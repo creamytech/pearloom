@@ -623,9 +623,25 @@ function EditorCanvas({
       }
       if (s.kind === 'gallery' && typeof s.index === 'number') {
         const arr = Array.isArray(loose.galleryImages) ? [...(loose.galleryImages as string[])] : [];
-        if (url) arr[s.index] = url;
-        else arr.splice(s.index, 1);
-        return { ...loose, galleryImages: arr } as unknown as StoryManifest;
+        const captions = (loose.galleryCaptions ?? {}) as Record<string, string>;
+        if (url) {
+          // Clamp — ThemedSite's empty-gallery placeholders dispatch
+          // indices 0..5, so an unclamped write would leave undefined
+          // holes that render as broken <img> tiles.
+          arr[Math.min(s.index, arr.length)] = url;
+          return { ...loose, galleryImages: arr } as unknown as StoryManifest;
+        }
+        arr.splice(s.index, 1);
+        // Captions are index-keyed — shift keys above the removed
+        // index down by one so each caption stays with its photo
+        // (same re-key GalleryPanel.setPhoto does).
+        const nextCaptions: Record<string, string> = {};
+        for (const [k, v] of Object.entries(captions)) {
+          const ki = Number(k);
+          if (!Number.isInteger(ki) || ki === s.index) continue;
+          nextCaptions[String(ki > s.index ? ki - 1 : ki)] = v;
+        }
+        return { ...loose, galleryImages: arr, galleryCaptions: nextCaptions } as unknown as StoryManifest;
       }
       if (s.kind === 'chapter' && typeof s.index === 'number') {
         const chapters = Array.isArray(loose.chapters) ? [...(loose.chapters as Record<string, unknown>[])] : [];

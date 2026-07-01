@@ -92,7 +92,7 @@ export function PearLoomFx() {
         if (!target) return;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        // Origin: Pear's corner — where the FloatingPearBubble lives.
+        // Origin: Pear's corner (bottom-right — the shuttle's home point).
         const x0 = vw - 96;
         const y0 = vh - 64;
         const t = target.getBoundingClientRect();

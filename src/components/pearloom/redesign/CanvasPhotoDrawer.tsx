@@ -46,6 +46,17 @@ export function CanvasPhotoDrawer({
   const [library, setLibrary] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  // The parent nulls `slot` immediately on close; keep the last real
+  // slot so the .28s exit slide has something to render.
+  const [shownSlot, setShownSlot] = useState<PhotoSlot | null>(slot);
+  if (slot != null && slot !== shownSlot) setShownSlot(slot);
+
+  // Snapshot the manifest for the library effect — depending on the
+  // manifest identity would reset the tray + refire /api/user-media
+  // on every collab/undo tick while the drawer is open.
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+
   // Mount/enter/exit transition (matches the zip's .28s slide).
   useEffect(() => {
     if (open) {
@@ -58,16 +69,25 @@ export function CanvasPhotoDrawer({
     return () => clearTimeout(t);
   }, [open]);
 
+  // Esc closes, matching the Pear-picks modal.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   // Library = every photo already on the site (instant) unioned with
   // the host's uploaded media (fetched once per open).
   useEffect(() => {
     if (!open) return;
-    const pool = collectPhotoPool(manifest);
+    const pool = collectPhotoPool(manifestRef.current);
     setLibrary(pool);
     let cancelled = false;
+    const ctrl = new AbortController();
     (async () => {
       try {
-        const r = await fetch('/api/user-media', { cache: 'no-store' });
+        const r = await fetch('/api/user-media', { cache: 'no-store', signal: ctrl.signal });
         if (!r.ok) return;
         const d = await r.json();
         const urls: string[] = Array.isArray(d?.media)
@@ -80,12 +100,12 @@ export function CanvasPhotoDrawer({
         });
       } catch { /* library stays the manifest pool */ }
     })();
-    return () => { cancelled = true; };
-  }, [open, manifest]);
+    return () => { cancelled = true; ctrl.abort(); };
+  }, [open]);
 
-  if (!render || !slot) return null;
+  if (!render || !shownSlot) return null;
 
-  const current = slot.current ?? null;
+  const current = shownSlot.current ?? null;
 
   async function uploadFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -117,7 +137,7 @@ export function CanvasPhotoDrawer({
   }
 
   const trigger = () => inputRef.current?.click();
-  const headLabel = slot.label ? `Choose a photo for ${slot.label}` : 'Choose a photo';
+  const headLabel = shownSlot.label ? `Choose a photo for ${shownSlot.label}` : 'Choose a photo';
 
   return (
     <div

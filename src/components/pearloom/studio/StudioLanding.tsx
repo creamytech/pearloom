@@ -10,6 +10,7 @@
 // type and opens the editor.
 // ─────────────────────────────────────────────────────────────
 
+import Link from 'next/link';
 import { Icon, Pear } from '../motifs';
 import type { StationeryType } from './studio-constants';
 
@@ -35,7 +36,7 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
     <div
       className="pl8"
       style={{
-        height: '100vh', overflow: 'auto', background: 'var(--cream, #FBF7EE)',
+        height: '100dvh', overflow: 'auto', background: 'var(--cream, #FBF7EE)',
         fontFamily: 'var(--font-ui, "Inter", system-ui, sans-serif)', color: 'var(--ink)',
       }}
     >
@@ -45,9 +46,9 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
           <Pear size={22} tone="sage" shadow={false} />
           <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Studio</span>
         </div>
-        <a href="/dashboard/event" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <Link href="/dashboard/event" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Icon name="arrow-left" size={13} /> Dashboard
-        </a>
+        </Link>
       </div>
 
       <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px clamp(20px, 5vw, 48px) 64px' }}>

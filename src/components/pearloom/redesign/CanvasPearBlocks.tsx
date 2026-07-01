@@ -17,6 +17,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { Pear } from '../motifs';
 import { dressCodeSuggestions } from '../editor/panels/_suggestions';
 import type { OccasionKey } from '../editor/panels/_suggestions';
@@ -116,9 +117,16 @@ export function CanvasPearBlocks({
   const [vis, setVis] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [items, setItems] = useState<PickItem[]>([]);
   const [added, setAdded] = useState<Record<number, boolean>>({});
   const [nonce, setNonce] = useState(0);
+
+  // The parent nulls `kind` immediately on close; keep the last real
+  // kind so the exit transition has something to render (otherwise
+  // the modal vanishes the same frame and the .24s fade never plays).
+  const [shownKind, setShownKind] = useState<PicksKind | null>(kind);
+  if (kind != null && kind !== shownKind) setShownKind(kind);
 
   // Enter / exit transition (matches the photo drawer's .26s).
   useEffect(() => {
@@ -132,18 +140,29 @@ export function CanvasPearBlocks({
     return () => clearTimeout(t);
   }, [open]);
 
+  // Esc closes, like the rail's options popover.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   // Fetch / derive the suggestions whenever the modal opens, the kind
-  // changes, or Regenerate bumps the nonce.
+  // changes, or Regenerate bumps the nonce. Closing (or re-rolling)
+  // aborts the in-flight request — these are metered AI calls.
   useEffect(() => {
     if (!open || !kind) return;
     let cancelled = false;
+    const ctrl = new AbortController();
     setAdded({});
     setErr(null);
+    setNotice(null);
     setItems([]);
     setLoading(true);
     (async () => {
       try {
-        const next = await fetchSuggestions(kind, manifest);
+        const next = await fetchSuggestions(kind, manifest, ctrl.signal);
         if (!cancelled) setItems(next);
       } catch (e) {
         if (!cancelled) setErr(e instanceof Error ? e.message : 'Pear had trouble drafting that — try again.');
@@ -151,16 +170,27 @@ export function CanvasPearBlocks({
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; ctrl.abort(); };
     // manifest is intentionally read fresh per open, not a dep — a
     // keystroke shouldn't re-fire the AI mid-review.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, kind, nonce]);
 
-  if (!render || !kind) return null;
-  const meta = META[kind];
+  if (!render || !shownKind) return null;
+  const meta = META[shownKind];
 
   const addItem = (i: number, item: PickItem) => {
+    // Details holds 3 cards — applyPick would silently no-op past the
+    // cap, and a card that flips to "Added ✓" without landing on the
+    // site is a lie. Tell the host instead.
+    if (item.kind === 'details' && !isPresent(item, manifest)) {
+      const cards = ((manifest as unknown as Record<string, unknown>).detailsCards ?? []) as unknown[];
+      if (Array.isArray(cards) && cards.length >= 3) {
+        setNotice('Details is full — it holds three cards. Remove one in the Details panel to add this.');
+        return;
+      }
+    }
+    setNotice(null);
     onAdd((m) => applyPick(m, item));
     setAdded((a) => ({ ...a, [i]: true }));
   };
@@ -204,11 +234,10 @@ export function CanvasPearBlocks({
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                 <Pear size={30} tone="sage" sparkle shadow={false} />
               </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Pear is drafting from your details…</div>
-              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 5 }}>
-                {[0, 1, 2].map((d) => (
-                  <span key={d} style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--peach-ink, #8C6E3D)', animation: `pl-dot-pulse 1.4s ${d * 0.18}s ease-in-out infinite` }} />
-                ))}
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 12 }}>Pear is drafting from your details…</div>
+              {/* BRAND §8 — WeaveLoader replaces every spinner. */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <WeaveLoader size="sm" />
               </div>
             </div>
           )}
@@ -228,13 +257,19 @@ export function CanvasPearBlocks({
           {!loading && !err && items.map((item, i) => (
             <PickCard key={i} item={item} added={added[i] || isPresent(item, manifest)} onAdd={() => addItem(i, item)} />
           ))}
+
+          {notice && (
+            <div style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--peach-bg, #F6E9DD)', border: '1px solid var(--line-soft, #ECE4D2)', fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+              {notice}
+            </div>
+          )}
         </div>
 
         {/* Footer — Regenerate only where re-rolling actually varies
             the result (the AI sections); template sections (Details,
             Schedule) are deterministic, so it's hidden there. */}
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {REGEN_KINDS.has(kind) ? (
+          {REGEN_KINDS.has(shownKind) ? (
             <button
               type="button"
               onClick={() => { if (!loading) setNonce((n) => n + 1); }}
@@ -374,11 +409,11 @@ function PickCard({ item, added, onAdd }: { item: PickItem; added: boolean; onAd
 
 // ── Fetch / derive ──────────────────────────────────────────────
 
-async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promise<PickItem[]> {
+async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal?: AbortSignal): Promise<PickItem[]> {
   const loose = manifest as unknown as Record<string, unknown>;
   if (kind === 'faq') {
     const r = await fetch('/api/ai-faq', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest }), signal,
     });
     if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the FAQ — try again.'));
     const d = await r.json();
@@ -399,7 +434,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
       throw new Error('Add your venue in the Hero section first — then Pear can suggest stays near it.');
     }
     const r = await fetch('/api/ai-hotels', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ venueAddress, venueCity, eventDate }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ venueAddress, venueCity, eventDate }), signal,
     });
     if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t find stays — try again.'));
     const d = await r.json();
@@ -418,7 +453,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
     // timeline drafted (template-based, honest); we surface each
     // moment as a card to Add individually.
     const r = await fetch('/api/auto-draft', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest, section: 'schedule' }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest, section: 'schedule' }), signal,
     });
     if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the timeline — try again.'));
     const d = await r.json();
@@ -439,7 +474,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
     const names = Array.isArray(loose.names) ? (loose.names as string[]) : undefined;
     const occ = typeof loose.occasion === 'string' ? loose.occasion : undefined;
     const r = await fetch('/api/draft-registry', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names, occasion: occ }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names, occasion: occ }), signal,
     });
     if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft registry ideas — try again.'));
     const d = await r.json();
@@ -459,7 +494,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
     const logistics = (loose.logistics ?? {}) as Record<string, unknown>;
     const storySection = (loose.storySection ?? {}) as Record<string, unknown>;
     const r = await fetch('/api/story-draft', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
       body: JSON.stringify({
         names: loose.names,
         occasion: loose.occasion,
@@ -480,13 +515,17 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
   }
 
   if (kind === 'gallery') {
-    const photos = Array.isArray(loose.galleryImages) ? (loose.galleryImages as string[]).filter(Boolean) : [];
+    // Keep ORIGINAL galleryImages indices — galleryCaptions is keyed
+    // to the raw array, so indexing the filtered slice would caption
+    // the wrong photos whenever the array carries holes.
+    const raw = Array.isArray(loose.galleryImages) ? (loose.galleryImages as string[]) : [];
+    const photos = raw.map((photoUrl, index) => ({ photoUrl, index })).filter((p) => !!p.photoUrl);
     if (photos.length === 0) throw new Error('Add photos to your gallery first — then Pear can caption them.');
     const slice = photos.slice(0, 6);
-    const results = await Promise.all(slice.map(async (photoUrl, index): Promise<GalleryItem | null> => {
+    const results = await Promise.all(slice.map(async ({ photoUrl, index }): Promise<GalleryItem | null> => {
       try {
         const r = await fetch('/api/pear-caption', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photoUrl }),
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photoUrl }), signal,
         });
         if (!r.ok) return null;
         const d = await r.json();

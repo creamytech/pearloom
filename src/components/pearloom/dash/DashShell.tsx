@@ -1237,16 +1237,18 @@ export function DashMobileBar() {
 export function DashUtilityBar() {
   return (
     <div className="pl8-dash-utilitybar" data-utilitybar>
-      {/* Ask-Pear / jump-to search — opens the ⌘K command palette.
-          Matches the v2 design system's persistent utility-bar search. */}
+      {/* Jump-to search — opens the ⌘K command palette. Matches the
+          v2 design system's persistent utility-bar search. The label
+          names what the palette actually does (pages + tools);
+          "Ask Pear anything" over-promised — it has no chat mode. */}
       <button
         type="button"
         className="pl8-dash-ask"
         onClick={() => window.dispatchEvent(new CustomEvent('pl-open-command'))}
-        aria-label="Ask Pear, or jump to anything"
+        aria-label="Jump to anything"
       >
         <Icon name="search" size={15} />
-        <span className="pl8-dash-ask-label">Ask Pear anything, or jump to a block…</span>
+        <span className="pl8-dash-ask-label">Jump to a page, setting or tool…</span>
         <span className="pl8-dash-ask-kbd">⌘K</span>
       </button>
       <span style={{ flex: 1 }} aria-hidden />

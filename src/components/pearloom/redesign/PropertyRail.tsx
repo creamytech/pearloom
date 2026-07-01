@@ -218,9 +218,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
      Design + Motion tabs would be confusing there. Force content-
      mode on tools (the tab strip still shows, but tool panels stay
      on their own workspace). */
-  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'cohost', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
+  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'cohost', 'dayof', 'memorial', 'bachelor', 'toasts', 'privacy'] as const;
   const isToolPanel = active != null && (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
+  const [pearBusy, setPearBusy] = useState<string | null>(null);
+  const [pearErr, setPearErr] = useState<string | null>(null);
 
   /* Selecting a section jumps the rail to Content (v2 editor.jsx
      onSelect → setTab('content')); deselecting leaves the tab where
@@ -231,6 +233,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
   if (active !== prevActive) {
     setPrevActive(active);
     if (active != null) setTab('content');
+    // Pear feedback belongs to the section it was triggered on —
+    // "Add a hero tagline first…" must not linger under Story.
+    setPearErr(null);
+    setPearBusy(null);
   }
 
   /* The topbar Theme button + any "open the look" deep link flips
@@ -241,8 +247,6 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     window.addEventListener('pearloom:open-theme-rail', toDesign);
     return () => window.removeEventListener('pearloom:open-theme-rail', toDesign);
   }, []);
-  const [pearBusy, setPearBusy] = useState<string | null>(null);
-  const [pearErr, setPearErr] = useState<string | null>(null);
   /* Hero is the one section that can never be hidden — a site
      without a hero is broken. Disable the eye-off button there. */
   const canHide = active != null && active !== 'hero';
@@ -471,7 +475,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
             {headTitle}
           </h3>
-          {effectiveTab === 'content' && section && (
+          {/* Hide / move act on canvas sections; tool panels (Guests,
+              Share, Privacy…) aren't on the canvas, so the controls
+              would write meaningless keys into hiddenSections. */}
+          {effectiveTab === 'content' && section && !isToolPanel && (
           <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
             <button
               type="button"
