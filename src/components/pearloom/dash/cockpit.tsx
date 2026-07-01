@@ -420,6 +420,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<BudgetLine[]>(lines);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   // Keep the draft in sync when the saved budget changes underneath
   // us (e.g. switching the active site) — but not while editing.
   useEffect(() => { if (!editing) setDraft(lines); }, [lines, editing]);
@@ -434,10 +435,17 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
 
   const save = async () => {
     setSaving(true);
+    setSaveError(false);
     try {
-      const cleaned = draft.map((l) => ({ cat: l.cat.trim(), used: Number(l.used) || 0, cap: Number(l.cap) || 0 })).filter((l) => l.cat);
+      const cleaned = draft
+        .map((l) => ({ cat: l.cat.trim(), used: Math.max(0, Number(l.used) || 0), cap: Math.max(0, Number(l.cap) || 0) }))
+        .filter((l) => l.cat);
       await onSave(cleaned);
       setEditing(false);
+    } catch {
+      // Keep the editor open with the host's draft — closing here
+      // would claim a save that never landed.
+      setSaveError(true);
     } finally {
       setSaving(false);
     }
@@ -487,9 +495,14 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
           ))}
         </div>
         <button type="button" onClick={addLine} style={{ marginTop: 10, width: '100%', padding: 9, borderRadius: 9, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add category</button>
+        {saveError && (
+          <div style={{ marginTop: 10, fontSize: 12, color: 'var(--plum, #C6563D)' }}>
+            That didn&rsquo;t save — check your connection and try again.
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button type="button" disabled={saving} onClick={save} className="btn btn-primary btn-sm" style={{ flex: 1 }}>{saving ? 'Saving…' : 'Save budget'}</button>
-          <button type="button" disabled={saving} onClick={() => { setDraft(lines); setEditing(false); }} className="btn btn-outline btn-sm">Cancel</button>
+          <button type="button" disabled={saving} onClick={() => { setDraft(lines); setEditing(false); setSaveError(false); }} className="btn btn-outline btn-sm">Cancel</button>
         </div>
       </div>
     );
@@ -506,11 +519,12 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         </span>
       </div>
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 11 }}>
-        {lines.map((b) => {
+        {lines.map((b, i) => {
           const over = b.used > b.cap && b.cap > 0;
           const pct = b.cap > 0 ? Math.min(100, (b.used / b.cap) * 100) : 0;
           return (
-            <div key={b.cat}>
+            // Index key — category names are host-typed and can repeat.
+            <div key={i}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{b.cat}</span>
                 <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: over ? 'var(--plum, #C6563D)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>

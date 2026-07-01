@@ -49,6 +49,21 @@ let sitesCacheAt = 0;
 const SITES_CACHE_TTL_MS = 30_000;
 const sitesSubscribers: Set<() => void> = new Set();
 
+/** Merge freshly-saved manifest fields into the cached site row so
+ *  in-view consumers (and back-navigation within the TTL) see what
+ *  was just saved, without nulling the whole cache (invalidation
+ *  only refetches on the NEXT mount — mid-view it would blank the
+ *  site list). */
+export function patchSiteManifestInCache(siteId: string, patch: Record<string, unknown>): void {
+  if (!sitesCache) return;
+  sitesCache = sitesCache.map((s) =>
+    s.id === siteId
+      ? { ...s, manifest: { ...(s.manifest ?? {}), ...patch } as SiteSummary['manifest'] }
+      : s,
+  );
+  notifySitesSubscribers();
+}
+
 /** Lets producers (wizard completion, publish flow) invalidate the
  *  cache so the next dashboard view shows the freshly-created site. */
 export function invalidateSitesCache(): void {

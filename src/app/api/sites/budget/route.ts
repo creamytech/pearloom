@@ -1,11 +1,14 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/sites/budget/route.ts
 //
-// PATCH — owner-only, atomic save of the host-entered budget to the
-// site manifest (manifest.budget). The cockpit budget breakdown is
-// the only writer; this scopes its save to one manifest key so it
-// never races the editor's full-manifest autosave. Mirrors
-// /api/sites/seating.
+// PATCH — owner-only save of the host-entered budget to the site
+// manifest (manifest.budget). The cockpit budget breakdown is the
+// only writer. NOTE: this is a read-modify-write of the whole
+// ai_manifest (same shape as /api/sites/seating) — if the editor's
+// full-manifest autosave lands between our read and write, its
+// changes lose. The window is milliseconds and the cockpit + editor
+// are rarely open together; a jsonb_set RPC is the real fix if that
+// ever changes.
 //
 //   budget = [{ cat: string, used: number, cap: number }, …]
 //
@@ -27,7 +30,7 @@ function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+  return createClient(url, key, { auth: { persistSession: false } });
 }
 
 interface BudgetLine { cat: string; used: number; cap: number }

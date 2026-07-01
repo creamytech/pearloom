@@ -38,7 +38,7 @@ import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
-import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
@@ -203,12 +203,23 @@ export function WelcomeHome() {
     setBudget(next);
     if (!site?.id) return;
     try {
-      await fetch('/api/sites/budget', {
+      const res = await fetch('/api/sites/budget', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId: site.id, budget: next }),
       });
-    } catch {}
+      if (!res.ok) throw new Error(`budget save ${res.status}`);
+      // Sync the cached manifest — otherwise navigating away and back
+      // within the cache TTL re-syncs `budget` from the stale cached
+      // manifest and the just-saved lines visually disappear.
+      patchSiteManifestInCache(site.id, { budget: next });
+    } catch (e) {
+      // Roll back the optimistic state and let BudgetBreakdown keep
+      // the editor open + show the error, instead of silently
+      // "saving" a budget that never landed.
+      setBudget(savedBudget);
+      throw e;
+    }
   };
   const nextStep = useMemo(
     () => (manifest
