@@ -177,9 +177,13 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
                 onChange={(v) => onChange({ ...(manifest as unknown as Record<string, unknown>), galleryUploads: v } as unknown as StoryManifest)}
               />
             </FGroup>
-            <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
           </div>
         </details>
+
+        {/* Outside the More disclosure — the other seven section
+            panels keep the hide-this-section affordance always
+            visible; burying it here made Gallery the odd one out. */}
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
       </div>
     </SectionPanelShell>
   );

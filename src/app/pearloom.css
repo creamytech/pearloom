@@ -8266,8 +8266,17 @@ html { scroll-behavior: smooth; }
 @keyframes pl-candle { 0%,100%{opacity:.58; transform:translateX(-50%) scale(1)} 45%{opacity:.85; transform:translateX(-50%) scale(1.05)} 72%{opacity:.68; transform:translateX(-51%) scale(1.02)} }
 @keyframes pl-bloom { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
 @keyframes pl-spin { to{transform:rotate(360deg)} }
-/* Atelier upsell-banner sheen (editor Motion panel + upgrade modals). */
+/* Atelier upsell-banner sheen (editor Motion panel + upgrade modals).
+   Applied via .pl-atelier-sheen so the sweep honours reduced motion —
+   the gradient stays as a static highlight when the user opts out. */
 @keyframes pl-sheen { 0%{background-position:150% 0} 100%{background-position:-50% 0} }
+.pl-atelier-sheen {
+  background: linear-gradient(115deg, transparent 30%, rgba(255,240,200,0.18) 47%, transparent 64%);
+  background-size: 250% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl-atelier-sheen { animation: pl-sheen 4.5s ease-in-out infinite; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    ATELIER · ANIMATED DIVIDERS — port of v2 site-renderer. The

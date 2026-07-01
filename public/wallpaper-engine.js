@@ -190,12 +190,36 @@
     var progs={}, keys=Object.keys(SHADERS);
     keys.forEach(function(k){ progs[k]=program(gl,SHADERS[k]); });
 
+    // Uniform/attribute locations resolved ONCE per program — the
+    // frame loop runs at display refresh and getUniformLocation is a
+    // string lookup into GL; eight of them per frame was pure waste.
+    function locsFor(p){
+      return {
+        p: gl.getAttribLocation(p,'p'),
+        res: gl.getUniformLocation(p,'u_res'),
+        time: gl.getUniformLocation(p,'u_time'),
+        mouse: gl.getUniformLocation(p,'u_mouse'),
+        mvel: gl.getUniformLocation(p,'u_mvel'),
+        down: gl.getUniformLocation(p,'u_down'),
+        dark: gl.getUniformLocation(p,'u_dark'),
+        rip: gl.getUniformLocation(p,'u_rip')
+      };
+    }
+    var locs={};
+    keys.forEach(function(k){ if(progs[k]) locs[k]=locsFor(progs[k]); });
+
     var current='silk';
     var mouse=[0.5,0.6], target=[0.5,0.6], vel=[0,0], down=0, downT=0;
     var rips=[], maxR=6; for(var i=0;i<maxR;i++) rips.push([0,0,-1]);
     var ripHead=0;
     var dpr=Math.min(window.devicePixelRatio||1, 2);
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // prefers-reduced-motion is HONOURED, not slowed: under `reduce`
+    // the continuous rAF loop never runs — the wallpaper paints a
+    // still frame and repaints only on discrete, user-initiated
+    // events (pointer, tap, resize, shader swap). Tracked live so an
+    // OS-level toggle takes effect without a reload.
+    var reduceMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var reduce = !!(reduceMq && reduceMq.matches);
     var t0=performance.now();
 
     function resize(){
@@ -228,34 +252,52 @@
       var nx=mouse[0]+(target[0]-mouse[0])*sm, ny=mouse[1]+(target[1]-mouse[1])*sm;
       vel[0]=(nx-mouse[0]); vel[1]=(ny-mouse[1]); mouse[0]=nx; mouse[1]=ny;
       var downAmt=down?1:Math.max(0,1-(now-downT)/450); if(down)downAmt=1;
-      var p=progs[current]; if(p){
+      var p=progs[current], l=locs[current]; if(p&&l){
         gl.useProgram(p);
-        var loc=gl.getAttribLocation(p,'p'); gl.enableVertexAttribArray(loc);
-        gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-        gl.uniform2f(gl.getUniformLocation(p,'u_res'),canvas.width,canvas.height);
-        gl.uniform1f(gl.getUniformLocation(p,'u_time'),time);
-        gl.uniform2f(gl.getUniformLocation(p,'u_mouse'),mouse[0],mouse[1]);
-        gl.uniform2f(gl.getUniformLocation(p,'u_mvel'),vel[0]*60,vel[1]*60);
-        gl.uniform1f(gl.getUniformLocation(p,'u_down'),downAmt);
-        gl.uniform1f(gl.getUniformLocation(p,'u_dark'), document.documentElement.getAttribute('data-theme')==='dark'?1:0);
+        gl.enableVertexAttribArray(l.p);
+        gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.vertexAttribPointer(l.p,2,gl.FLOAT,false,0,0);
+        gl.uniform2f(l.res,canvas.width,canvas.height);
+        gl.uniform1f(l.time,time);
+        gl.uniform2f(l.mouse,mouse[0],mouse[1]);
+        gl.uniform2f(l.mvel,vel[0]*60,vel[1]*60);
+        gl.uniform1f(l.down,downAmt);
+        gl.uniform1f(l.dark, document.documentElement.getAttribute('data-theme')==='dark'?1:0);
         var flat=[]; for(var i=0;i<maxR;i++){ flat.push(rips[i][0],rips[i][1],rips[i][2]); }
-        gl.uniform3fv(gl.getUniformLocation(p,'u_rip'),new Float32Array(flat));
+        gl.uniform3fv(l.rip,new Float32Array(flat));
         gl.drawArrays(gl.TRIANGLES,0,3);
       }
     }
-    function loop(now){ frame(now); raf=requestAnimationFrame(loop); }
     var raf=0;
+    function loop(now){ raf=0; frame(now); startLoop(); }
+    // The continuous loop runs only when it can be seen AND motion is
+    // welcome — a fixed full-viewport canvas kept rendering at display
+    // refresh under covered/hidden tabs and for reduced-motion guests.
+    function startLoop(){ if(!raf && !reduce && !document.hidden) raf=requestAnimationFrame(loop); }
+    function stopLoop(){ if(raf){ cancelAnimationFrame(raf); raf=0; } }
+    var onVis=function(){ if(document.hidden) stopLoop(); else { poke(); startLoop(); } };
+    document.addEventListener('visibilitychange', onVis);
+    var onReduce=function(e){ reduce=!!e.matches; if(reduce) stopLoop(); else startLoop(); poke(); };
+    if(reduceMq && reduceMq.addEventListener) reduceMq.addEventListener('change', onReduce);
     // Immediate first paint, then animate. The immediate paint guarantees a
-    // visible frame even if rAF is throttled (e.g. background/preview frames).
-    resize(); frame(performance.now()); raf=requestAnimationFrame(loop);
+    // visible frame even if rAF is throttled (e.g. background/preview frames)
+    // and IS the render under reduced motion.
+    resize(); frame(performance.now()); startLoop();
 
-    // Pointer also nudges a repaint, so movement responds even between rAF ticks.
+    // Pointer also nudges a repaint, so movement responds even between rAF
+    // ticks — and stays the only render path under reduced motion (discrete,
+    // user-initiated repaints honour the preference; ambient motion doesn't).
     function poke(){ frame(performance.now()); }
 
     // destroy() — React-safe teardown (the showcase/editor remount on
     // background change + route nav). Stops the rAF loop and removes
-    // the window-level listeners; canvas-level listeners die with it.
-    function destroy(){ if(raf) cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('pointerup', onUp); }
+    // the window/document-level listeners; canvas-level listeners die with it.
+    function destroy(){
+      stopLoop();
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('pointerup', onUp);
+      document.removeEventListener('visibilitychange', onVis);
+      if(reduceMq && reduceMq.removeEventListener) reduceMq.removeEventListener('change', onReduce);
+    }
     return { set:function(k){ if(progs[k]){ current=k; poke(); } }, get:function(){ return current; }, resize:function(){ resize(); poke(); }, poke:poke, destroy:destroy };
   }
 

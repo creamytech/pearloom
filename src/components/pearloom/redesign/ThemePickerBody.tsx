@@ -627,20 +627,28 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
       </div>
       {/* Hero upsell banner */}
       <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 14, background: 'linear-gradient(135deg, #2A2416, #4A3A1C)', padding: '16px 14px', position: 'relative' }}>
-        <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg, transparent 30%, rgba(255,240,200,0.18) 47%, transparent 64%)', backgroundSize: '250% 100%', animation: 'pl-sheen 4.5s ease-in-out infinite', pointerEvents: 'none' }} />
+        {/* .pl-atelier-sheen — class, not inline animation, so the
+            sweep sits behind the reduced-motion media guard. */}
+        <div aria-hidden className="pl-atelier-sheen" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Atelier · Motion</div>
           <div className="display" style={{ fontSize: 20, color: '#FBF1DC', lineHeight: 1.1, marginBottom: 6 }}>{premium ? 'Your site is alive.' : 'Bring your site to life.'}</div>
           <div style={{ fontSize: 11.5, color: 'rgba(243,236,217,0.75)', lineHeight: 1.5, marginBottom: 13 }}>
             {premium ? 'Every motion kit is unlocked for this site. Tap one to apply it.' : 'Eight living finishes — neon, foil, candlelight and more. One unlock, this site forever.'}
           </div>
+          {/* NOTE the $19 unlock is the pre-checkout stub phase theme
+              packs shipped through — real checkout lands via the same
+              Stripe path (pl-store-owned + the publish paywall). Until
+              then the click enables motion for THIS site. Once on, the
+              button is an explicit toggle — the old "Manage" label
+              silently revoked the unlock on click. */}
           <button
             type="button"
             onClick={() => setPremium(!premium)}
             className="lift"
             style={{ padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: premium ? 'rgba(251,241,220,0.16)' : '#E6C877', color: premium ? '#FBF1DC' : '#241a08' }}
           >
-            {premium ? 'Unlocked ✓ · Manage' : 'Unlock Atelier — $19'}
+            {premium ? 'Turn motion off' : 'Unlock Atelier — $19'}
           </button>
         </div>
       </div>
