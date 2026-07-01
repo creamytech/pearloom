@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { MotionConfig } from 'framer-motion';
 
 type Theme = 'light' | 'dark';
 type ThemePreference = Theme | 'system';
@@ -77,7 +78,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, preference, setPreference, toggle }}>
-      {children}
+      {/* App-wide reduced-motion contract for framer-motion. The CSS
+          layers all honour prefers-reduced-motion, but framer drives
+          transforms from JS where the CSS blanket can't reach —
+          reducedMotion="user" disables its transform/layout animations
+          for those users (opacity is kept, per framer's own a11y
+          guidance) everywhere: buttons, toasts, BlurFade, dialogs. */}
+      <MotionConfig reducedMotion="user">
+        {children}
+      </MotionConfig>
     </ThemeContext.Provider>
   );
 }

@@ -81,6 +81,50 @@ html:not(.pl-motion-ready) [data-reveal] {
 .pl-tap { transition: transform var(--pl-dur-subtle) var(--pl-ease-spring); }
 .pl-tap:active { transform: scale(0.95); }
 
+/* Landing CTA (PLButton) — hover fill + lift, spring press, gold
+   focus ring. Paint comes from the two variables the component sets
+   inline (--pd-btn-bg / --pd-btn-bg-hover) so all six palettes share
+   one rule. BRAND §6: --pl-ease-spring belongs to tap states. */
+.pd-plbtn {
+  background: var(--pd-btn-bg, transparent);
+  transition:
+    background var(--pl-dur-fast) var(--pl-ease-out),
+    box-shadow var(--pl-dur-fast) var(--pl-ease-out),
+    transform var(--pl-dur-subtle) var(--pl-ease-spring);
+}
+.pd-plbtn:hover:not(:disabled) {
+  background: var(--pd-btn-bg-hover, var(--pd-btn-bg, transparent));
+  transform: translateY(-1px);
+}
+.pd-plbtn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+.pd-plbtn:focus-visible {
+  outline: 2px solid var(--pl-gold);
+  outline-offset: 2px;
+}
+
+/* Landing keyed crossfades — a keyed remount plays these once, so
+   content that swaps (hero occasion card, three-acts panels, the
+   threading-indicator word) eases in instead of snapping. */
+.pd-hero-xfade { animation: pd-xfade var(--pl-dur-base) var(--pl-ease-out) both; }
+.pd-act-xfade  { animation: pd-xfade var(--pl-dur-base) var(--pl-ease-out) both; }
+.pd-hero-word  { animation: pd-xfade 180ms var(--pl-ease-out) both; }
+@keyframes pd-xfade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* The hero preview card's mock RSVP button — tactile like the real
+   thing it advertises. */
+.pd-rsvp-mock {
+  transition:
+    filter var(--pl-dur-quick) var(--pl-ease-out),
+    transform var(--pl-dur-subtle) var(--pl-ease-spring);
+}
+.pd-rsvp-mock:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pd-rsvp-mock:active { transform: scale(0.96); }
+
 /* Link with a gold thread that weaves in from the left on hover */
 .pl-link { position: relative; text-decoration: none; color: var(--pl-olive); }
 .pl-link::after {
@@ -132,10 +176,22 @@ html:not(.pl-motion-ready) [data-reveal] {
 @keyframes pl-weave-open-bot  { from { transform: scaleY(1); } to { transform: scaleY(0); } }
 @keyframes pl-strand-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
+/* ─────────────── Lenis (GrooveMotion) ───────────────
+   While Lenis drives the scroll it stamps .lenis on <html>. The
+   global `scroll-behavior: smooth` must yield there — Lenis writes
+   scrollTop per frame, and CSS smoothing on top of that animates
+   every write (double-smoothing jank). Standard Lenis reset. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
 /* ─────────────── Reduced motion ─────────────── */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; filter: none !important; transition: none !important; }
   .pl-press-in, .pl-float, .pl-drift, .pl-pearl-pop { animation: none !important; }
   .pl-rule-draw { transform: none !important; }
   .pl-kenburns > img, .pl-kenburns > .pl-kb-layer { transition: none !important; transform: none !important; }
+  .pd-plbtn, .pl-lift, .pl-tap, .pl-link::after, .pd-rsvp-mock { transition: none !important; }
+  .pd-plbtn:hover:not(:disabled), .pd-plbtn:active:not(:disabled) { transform: none !important; }
+  .pd-hero-xfade, .pd-act-xfade, .pd-hero-word { animation: none !important; }
 }

@@ -61,6 +61,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
+      // Next 16 no longer forces scroll-behavior:auto during SPA
+      // navigations; without this attribute our global
+      // `html { scroll-behavior: smooth }` makes every route change
+      // slow-scroll to the top. The attribute restores instant
+      // nav-scroll while keeping smooth in-page anchor scrolling.
+      data-scroll-behavior="smooth"
       className={`h-full antialiased ${fraunces.variable} ${geist.variable} ${geistMono.variable}`}
     >
       <head>

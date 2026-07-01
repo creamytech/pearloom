@@ -1508,13 +1508,54 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   to   { opacity: 1; }
 }
 
+/* ── Popover / dropdown pop-in ───────────────────────────────
+   One entrance for every floating menu (user menu, notification
+   bell, site-card menu, crest switcher): a quick scale-settle from
+   the trigger's corner. Enter-only by design — these unmount on
+   dismiss and exit animations would need AnimatePresence plumbing
+   the shell deliberately avoids. */
+.pl8-pop-in {
+  transform-origin: top right;
+  animation: pl8-pop-in 200ms var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+.pl8-pop-in--left { transform-origin: top left; }
+@keyframes pl8-pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Menu rows + inline dash buttons ─────────────────────────
+   .pl8-menu-item — hover tint for dropdown rows (replaces the
+   per-component onMouseEnter background juggling).
+   .pl8-btnfx — hover/press feedback for the style-object buttons
+   (btnInk/btnGhost/btnMini in design/dash) that predate ui/button;
+   they keep their inline paint, this adds the missing states. */
+.pl8-menu-item {
+  transition: background var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease);
+}
+.pl8-menu-item:hover { background: var(--cream-2, #F5EFE2); }
+.pl8-btnfx {
+  transition:
+    opacity var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease),
+    box-shadow var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease),
+    transform var(--pl-dur-subtle, 120ms) var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+.pl8-btnfx:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(31, 36, 24, 0.10); }
+.pl8-btnfx:active:not(:disabled) { transform: translateY(0) scale(0.97); box-shadow: none; }
+
+/* ── Guest roster rows ───────────────────────────────────────
+   A quiet hover tint on the highest-traffic table in the product. */
+.pd-guests-row { transition: background var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease); }
+.pd-guests-row:hover { background: color-mix(in oklab, var(--ink, #0E0D0B) 3%, transparent); }
+
 @media (prefers-reduced-motion: reduce) {
   .pl8-dash-stagger > *,
   .pl8-card-lift, .pl8-tile-lift,
   .pl8-dash-page-enter, .pl8-dash-page-enter > *,
   .pl8-tab-enter,
   .pl8-stat-rise, .pl8-chip-pop,
-  .pl8-btn-press, .pl8-content-fade-in {
+  .pl8-btn-press, .pl8-content-fade-in,
+  .pl8-pop-in, .pl8-menu-item, .pl8-btnfx, .pd-guests-row {
     animation: none !important;
     transition: none !important;
     transform: none !important;

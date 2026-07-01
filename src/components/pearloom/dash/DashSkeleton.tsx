@@ -11,8 +11,8 @@
 //   - <DashSkeleton kind="stat-row" />    horizontal stat tiles
 //   - <DashSkeleton kind="list" />        vertical row list
 //
-// Each composes from <SkeletonBlock /> primitives that pulse
-// with the same pl-dot-pulse keyframe as the SaveDot — keeps
+// Each composes from <SkeletonBlock /> primitives that shimmer
+// with the pl8-skeleton-shimmer keyframe (pearloom.css) — keeps
 // the loading rhythm coherent across the product.
 // ─────────────────────────────────────────────────────────────
 
