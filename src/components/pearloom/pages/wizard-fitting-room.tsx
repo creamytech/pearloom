@@ -372,6 +372,10 @@ export function WizardFittingRoom({
            fixed always means the visual viewport. */
         position: 'fixed', inset: 0, zIndex: 200,
         background: 'var(--cream, #F5EFE2)',
+        /* 320ms curtain — the room used to snap over the wizard in
+           one frame. On the fixed root itself so the fade never
+           creates a containing block above it. */
+        animation: 'pl8-content-fade-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
         /* Flex column with the dock IN FLOW — iOS Safari's dynamic
            toolbar makes fixed-bottom elements unreliable (the dock
            vanished under it on iPhone, 2026-06-12). In-flow + 100dvh

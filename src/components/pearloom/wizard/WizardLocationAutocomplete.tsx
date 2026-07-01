@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 
 interface Props {
   value: string;
@@ -70,11 +71,21 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
         if (!raw || typeof raw !== 'object') return acc;
         const p = raw as Record<string, unknown>;
         if (typeof p.displayName !== 'string') return acc;
+        // Coordinates ride along when the API sends them — dropping
+        // them here silently killed venue-biased hotel search AND
+        // logistics.venueLat/Lng (handleSelect read pred.location,
+        // which this validator never copied).
+        const loc = p.location as { lat?: unknown; lng?: unknown } | undefined;
+        const location =
+          loc && typeof loc.lat === 'number' && typeof loc.lng === 'number'
+            ? { lat: loc.lat, lng: loc.lng }
+            : undefined;
         acc.push({
           id: typeof p.id === 'string' ? p.id : `pred-${acc.length}`,
           displayName: p.displayName,
           formattedAddress: typeof p.formattedAddress === 'string' ? p.formattedAddress : '',
           types: Array.isArray(p.types) ? (p.types as string[]) : undefined,
+          location,
         } as Prediction);
         return acc;
       }, []);
@@ -180,14 +191,12 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
               right: 14,
               top: '50%',
               transform: 'translateY(-50%)',
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
-              border: '1.5px solid var(--line)',
-              borderTopColor: 'var(--sage-deep, #5C6B3F)',
-              animation: 'wizard-loc-spin 720ms linear infinite',
+              display: 'inline-flex',
             }}
-          />
+          >
+            {/* WeaveLoader, never a border-spinner (BRAND §8). */}
+            <WeaveLoader size="xs" inline />
+          </span>
         )}
       </div>
 
@@ -293,10 +302,6 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
       )}
 
       <style jsx>{`
-        @keyframes wizard-loc-spin {
-          from { transform: translateY(-50%) rotate(0deg); }
-          to   { transform: translateY(-50%) rotate(360deg); }
-        }
         @keyframes wizard-loc-in {
           from { opacity: 0; transform: translateY(-4px); }
           to   { opacity: 1; transform: translateY(0); }

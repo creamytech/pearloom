@@ -81,11 +81,24 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
   const lastSignatureRef = useRef<string | null>(null);
   const inflightRef = useRef<AbortController | null>(null);
 
+  /* THE FIX (2026-07-01): the effect used to depend on the `sig`
+     OBJECT, which the wizard rebuilt every render — so every
+     keystroke re-ran the effect, whose cleanup aborted the
+     in-flight cook, while the lastSignature guard blocked a
+     restart. Net effect: the cook never finished and the pill
+     said "preparing…" forever. The effect now keys on the CACHE
+     STRING (stable until the inputs genuinely change) and reads
+     the full signature through a ref, so cleanup only aborts on
+     a real signature change or unmount. */
+  const sigRef = useRef(sig);
+  sigRef.current = sig;
+  const key = sig && sig.occasion && sig.paletteHex.length ? decorCacheKey(sig) : null;
+
   useEffect(() => {
-    if (!sig) return;
-    if (!sig.occasion || !sig.paletteHex.length) return;
-    const key = decorCacheKey(sig);
+    if (!key) return;
     if (lastSignatureRef.current === key) return;
+    const sigNow = sigRef.current;
+    if (!sigNow) return;
 
     // Cancel any previous in-flight cook before re-arming.
     if (inflightRef.current) {
@@ -95,7 +108,7 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
 
     // Cache hit — already cooked, just flip the readiness flag
     // and bail. Saves a redundant API call on wizard back-nav.
-    if (readCookedDecor(sig)) {
+    if (readCookedDecor(sigNow)) {
       lastSignatureRef.current = key;
       setStatus((s) => ({ ...s, cooking: false, decorReady: true, error: null }));
       return;
@@ -114,10 +127,10 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
           headers: { 'Content-Type': 'application/json' },
           signal: ctrl.signal,
           body: JSON.stringify({
-            occasion: sig.occasion,
-            paletteHex: sig.paletteHex,
-            venue: sig.venue,
-            vibe: sig.vibe,
+            occasion: sigNow.occasion,
+            paletteHex: sigNow.paletteHex,
+            venue: sigNow.venue,
+            vibe: sigNow.vibe,
             // Run all four slots: divider + sectionStamps +
             // confetti + footerBouquet.
             slots: ['divider', 'sectionStamps', 'confetti', 'footerBouquet'],
@@ -134,7 +147,13 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
         }
         setStatus({ cooking: false, decorReady: true, error: null });
       } catch (e) {
-        if ((e as Error)?.name === 'AbortError') return;
+        if ((e as Error)?.name === 'AbortError') {
+          // Un-claim the key so a remount (dev StrictMode) or a
+          // return to the same signature restarts the cook
+          // instead of dead-ending on the guard.
+          if (lastSignatureRef.current === key) lastSignatureRef.current = null;
+          return;
+        }
         setStatus({
           cooking: false,
           decorReady: false,
@@ -148,7 +167,7 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
     return () => {
       ctrl.abort();
     };
-  }, [sig]);
+  }, [key]);
 
   return status;
 }

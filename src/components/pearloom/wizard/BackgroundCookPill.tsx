@@ -31,10 +31,17 @@ export function BackgroundCookPill({ cooking, ready }: Props) {
 
 function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: boolean }) {
   const [hidden, setHidden] = useState(false);
+  // 4s dwell → 300ms sink-out → unmount (the pill used to vanish in
+  // one frame at the timer, despite the header promising a fade).
+  const [closing, setClosing] = useState(false);
   useEffect(() => {
     if (!ready) return;
-    const t = setTimeout(() => setHidden(true), 4000);
-    return () => clearTimeout(t);
+    const t = setTimeout(() => setClosing(true), 4000);
+    const t2 = setTimeout(() => setHidden(true), 4300);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+    };
   }, [ready]);
   if (!cooking && (!ready || hidden)) return null;
   return (
@@ -62,7 +69,9 @@ function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: 
         fontStyle: 'italic',
         fontSize: 13.5,
         color: 'var(--pl-ink, #0E0D0B)',
-        animation: 'pl-cook-pill-rise 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+        animation: closing
+          ? 'pl-cook-pill-sink 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards'
+          : 'pl-cook-pill-rise 320ms cubic-bezier(0.22, 1, 0.36, 1)',
         maxWidth: 'calc(100vw - 32px)',
       }}
     >
@@ -98,6 +107,10 @@ function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: 
         @keyframes pl-cook-pill-rise {
           from { opacity: 0; transform: translate(-50%, 8px); }
           to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes pl-cook-pill-sink {
+          from { opacity: 1; transform: translate(-50%, 0); }
+          to   { opacity: 0; transform: translate(-50%, 6px); }
         }
         @keyframes pl-cook-pill-breathe {
           0%, 100% { transform: scale(1); }

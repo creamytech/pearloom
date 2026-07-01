@@ -104,6 +104,11 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
     <div
       role="status"
       aria-live="polite"
+      // The press used to snap over the Review step in one frame —
+      // a 320ms fade (pl8-content-fade-in) makes the takeover read
+      // as a curtain, not a glitch. Applied on the fixed root itself
+      // so the opacity never creates a containing block above it.
+      className="pl8-content-fade-in"
       style={{
         position: 'fixed',
         inset: 0,
@@ -295,8 +300,14 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
         </div>
       </div>
 
-      {/* Global styles for the loom/stage markers */}
-      <style jsx>{`
+      {/* Global styles for the loom/stage markers. jsx global so the
+          reduced-motion rule below can reach the LoomShuttle /
+          StageMarker child components (scoped styles wouldn't), and
+          the class rule's !important can beat their inline
+          animation shorthand. BRAND §6 — these two are infinite
+          loops and must stop entirely under reduced motion (the
+          Reveal / Float wrappers guard themselves; these didn't). */}
+      <style jsx global>{`
         @keyframes pear-loom-shuttle {
           0%   { transform: translateX(0); opacity: 0.85; }
           50%  { transform: translateX(48px); opacity: 1; }
@@ -305,6 +316,9 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
         @keyframes pear-stage-pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50%      { transform: scale(1.15); opacity: 0.7; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pear-gen-anim { animation: none !important; }
         }
       `}</style>
     </div>
@@ -316,7 +330,7 @@ function LoomShuttle() {
   return (
     <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden style={{ flex: 'none' }}>
       <line x1="0" y1="7" x2="64" y2="7" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3 3" opacity="0.35" />
-      <g style={{ animation: 'pear-loom-shuttle 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite' }}>
+      <g className="pear-gen-anim" style={{ animation: 'pear-loom-shuttle 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite' }}>
         <rect x="0" y="4" width="14" height="6" rx="2" fill="var(--sage-deep, #8B9C5A)" />
         <circle cx="7" cy="7" r="1.2" fill="var(--cream, #FDFAF0)" />
       </g>
@@ -358,6 +372,7 @@ function StageMarker({ status }: { status: 'done' | 'active' | 'pending' }) {
         }}
       >
         <span
+          className="pear-gen-anim"
           style={{
             display: 'block',
             width: 10,

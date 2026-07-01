@@ -25,6 +25,7 @@ import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
 import { NumberInput } from '../editor/v8-forms';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { WizardTimePicker } from '../wizard/WizardTimePicker';
@@ -697,11 +698,11 @@ function WizardPhotoUpload({
           }}
         >
           {photos.map((p) => (
-            <div key={p.id} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
+            <div key={p.id} className="pl8-chip-pop" style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
               <img
                 src={p.previewUrl}
                 alt={p.name ?? ''}
-                style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block', opacity: p.uploading ? 0.6 : 1 }}
+                style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block', opacity: p.uploading ? 0.6 : 1, transition: 'opacity var(--pl-dur-base) var(--pl-ease-out)' }}
               />
               {p.uploading && (
                 <div
@@ -714,9 +715,15 @@ function WizardPhotoUpload({
                     color: '#fff',
                     fontSize: 10,
                     borderRadius: 999,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  uploading…
+                  {/* WeaveLoader + the house verb — "uploading…" was
+                      the one un-branded busy state in the flow. */}
+                  <WeaveLoader size="xs" inline />
+                  Threading…
                 </div>
               )}
               {p.error && !p.uploading && (
@@ -1210,6 +1217,7 @@ function GuestsWillAsk({
                     type="button"
                     aria-pressed={on}
                     onClick={() => setSt((s) => ({ ...s, kidsPolicy: on ? undefined : k }))}
+                    className="wz-chip"
                     style={{
                       padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
                       border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
@@ -1217,7 +1225,7 @@ function GuestsWillAsk({
                       color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    {k}
+                    <span>{k}</span>
                   </button>
                 );
               })}
@@ -1294,6 +1302,7 @@ function TheExtras({
       type="button"
       onClick={onClick}
       aria-pressed={on}
+      className="wz-chip"
       style={{
         padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
         border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
@@ -1301,7 +1310,7 @@ function TheExtras({
         color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
       }}
     >
-      {label}{expandable && !on ? ' +' : ''}
+      <span>{label}{expandable && !on ? ' +' : ''}</span>
     </button>
   );
 
@@ -1379,6 +1388,7 @@ function TheExtras({
                     const cur = s.meals ?? [];
                     return { ...s, meals: on ? cur.filter((x) => x !== m) : [...cur, m] };
                   })}
+                  className="wz-chip"
                   style={{
                     padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
                     border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
@@ -1386,7 +1396,7 @@ function TheExtras({
                     color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  {m}
+                  <span>{m}</span>
                 </button>
               );
             })}
@@ -1548,13 +1558,14 @@ function PearsQuestions({
           {dresses.map((d) => (
             <button key={d} type="button"
               onClick={() => setSt((s) => ({ ...s, dressCode: d }))}
+              className="wz-chip"
               style={{
                 padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
                 border: '1.5px solid var(--line)', background: 'var(--card)',
                 color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
-              {d}
+              <span>{d}</span>
             </button>
           ))}
         </div>
@@ -2007,15 +2018,21 @@ export function WizardV8() {
   // result lands in sessionStorage so the editor's first paint
   // can read it instead of generating decor on demand. Saves
   // 60-120s after the wizard's main generate pass.
-  const cookSig =
-    st.occasion && resolvedPaletteColors && resolvedPaletteColors.length > 0
-      ? {
-          occasion: st.occasion,
-          paletteHex: resolvedPaletteColors,
-          venue: st.location || undefined,
-          vibe: st.vibes.join(', ') || undefined,
-        }
-      : null;
+  // Memoized — a fresh object every render used to re-run the cook
+  // effect per keystroke (see the fix note in useBackgroundCook).
+  const cookVibe = st.vibes.join(', ');
+  const cookSig = useMemo(
+    () =>
+      st.occasion && resolvedPaletteColors && resolvedPaletteColors.length > 0
+        ? {
+            occasion: st.occasion,
+            paletteHex: resolvedPaletteColors,
+            venue: st.location || undefined,
+            vibe: cookVibe || undefined,
+          }
+        : null,
+    [st.occasion, resolvedPaletteColors, st.location, cookVibe],
+  );
   const cookStatus = useBackgroundCook(cookSig);
 
   // The speculative manifest pre-warm (background /api/generate
@@ -2209,6 +2226,39 @@ export function WizardV8() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [templateId]);
+
+  // Every step change returns the host to the top — after a long Day
+  // or Occasion step, Continue used to land mid-page with the new
+  // step's heading above the viewport (the Reveal entrance played
+  // off-screen).
+  useEffect(() => {
+    if (stepIndex === 0) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  }, [stepIndex]);
+
+  // Enter advances the step (the Welcome flow's established house
+  // pattern). Guards: only when the step's gate is satisfied, never
+  // from a textarea (multiline input), never when a popover already
+  // handled the key (the location autocomplete preventDefaults its
+  // Enter), and never on Review — the press is a deliberate tap.
+  const enterAdvanceRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    enterAdvanceRef.current = () => {
+      if (!canContinue || busy || step === 'Review') return;
+      setStepIndex((i) => nextStepIndex(i));
+    };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.defaultPrevented || e.isComposing) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      enterAdvanceRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const canContinue = useMemo(() => {
     switch (step) {
@@ -3226,32 +3276,32 @@ export function WizardV8() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 8 }}>
                       {moments.map((m) => {
                         const on = has(m);
-                        if (!on) {
-                          return (
-                            <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={false}
-                              style={{
-                                padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                                border: '1.5px solid var(--line)', background: 'var(--card)',
-                                color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
-                              }}>
-                              {m}
-                            </button>
-                          );
-                        }
                         const t = picked.find((e) => e.name === m)?.time ?? '5:00 pm';
+                        /* ONE wrapper for both states — the chip used
+                           to swap from <button> to <span> on select,
+                           a full DOM replacement that made the ink
+                           fill + time segment blink in. Now the fill
+                           eases and only the time segment mounts. */
                         return (
                           <span key={m} style={{
                             display: 'inline-flex', alignItems: 'stretch', borderRadius: 999, overflow: 'hidden',
-                            border: '1.5px solid var(--ink)', background: 'var(--ink)', color: 'var(--cream)',
+                            border: `1.5px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                            background: on ? 'var(--ink)' : 'var(--card)',
+                            color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                           }}>
-                            <button type="button" onClick={() => toggle(m)} aria-pressed
+                            <button type="button" onClick={() => toggle(m)} aria-pressed={on}
                               style={{
-                                padding: '8px 8px 8px 14px', border: 'none', background: 'transparent',
+                                padding: on ? '8px 8px 8px 14px' : '8px 14px', border: 'none', background: 'transparent',
                                 color: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                               }}>
                               {m}
                             </button>
-                            <WizardTimePicker value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                            {on && (
+                              <span className="pl8-content-fade-in" style={{ display: 'inline-flex', alignItems: 'stretch' }}>
+                                <WizardTimePicker value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                              </span>
+                            )}
                           </span>
                         );
                       })}
@@ -3270,13 +3320,14 @@ export function WizardV8() {
                         const on = st.dressCode === d;
                         return (
                           <button key={d} type="button" onClick={() => setSt((s) => ({ ...s, dressCode: on ? undefined : d }))} aria-pressed={on}
+                            className="wz-chip"
                             style={{
                               padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
                               border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
                               background: on ? 'var(--ink)' : 'var(--card)',
                               color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
                             }}>
-                            {d}
+                            <span>{d}</span>
                           </button>
                         );
                       })}
@@ -3331,9 +3382,12 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Tap a few. The type and palette follow your mood.
                   </p>
-                  {/* Live counter so the host knows how close to the
-                      2-vibe floor they are. Plum when at 0–1 (can't
-                      continue), sage when ≥2 (good to go). */}
+                  {/* Live counter. The gate (canContinue) enables at
+                      ONE vibe — the old copy demanded two while the
+                      Continue button sat enabled, a straight
+                      contradiction. Now it nudges ("2–4 feels right")
+                      without lying about the floor. Muted ink when
+                      empty — plum is destructive-only (BRAND §5). */}
                   <p
                     aria-live="polite"
                     style={{
@@ -3341,13 +3395,14 @@ export function WizardV8() {
                       fontWeight: 700,
                       letterSpacing: '0.18em',
                       textTransform: 'uppercase',
-                      color: st.vibes.length >= 2 ? 'var(--sage-deep)' : 'var(--plum, #7A2D2D)',
+                      color: st.vibes.length >= 1 ? 'var(--sage-deep)' : 'var(--ink-muted)',
                       margin: '0 0 18px',
+                      transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     {st.vibes.length === 0
-                      ? 'Pick at least 2 to continue'
-                      : `${st.vibes.length} of 4 selected${st.vibes.length === 1 ? ' — one more to continue' : ''}`}
+                      ? 'Pick one to continue — 2–4 feels right'
+                      : `${st.vibes.length} of 4 selected`}
                   </p>
                   {/* Each chip wears its own vibe — the typography IS the
                       preview (design system v2). Picked = olive fill,
@@ -3360,6 +3415,10 @@ export function WizardV8() {
                           key={v.id}
                           type="button"
                           onClick={() => toggleVibe(v.id)}
+                          /* .wz-chip (pearloom.css) carries the fill/press
+                             transitions — the tilt stays inline on the
+                             button, the press-scale lives on the inner
+                             span so the two transforms never fight. */
                           className="wz-chip"
                           style={{
                             background: on ? 'var(--pl-olive, #5C6B3F)' : 'var(--pl-cream-card, #FBF7EE)',
@@ -3372,7 +3431,7 @@ export function WizardV8() {
                             ...VIBE_FACE[v.id],
                           }}
                         >
-                          {v.label}
+                          <span>{v.label}</span>
                         </button>
                       );
                     })}
@@ -3527,10 +3586,12 @@ export function WizardV8() {
                             padding: 16,
                             borderRadius: 16,
                             background: 'var(--card)',
-                            border:
-                              st.palette === PHOTO_PALETTE_ID
-                                ? '2px solid var(--ink)'
-                                : '1.5px solid var(--line)',
+                            /* Constant 2px border (color-only change) —
+                               the old 1.5→2px flip shifted the whole
+                               card's layout by half a pixel on select. */
+                            border: `2px solid ${st.palette === PHOTO_PALETTE_ID ? 'var(--ink)' : 'var(--line)'}`,
+                            transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+                            boxShadow: st.palette === PHOTO_PALETTE_ID ? '0 4px 14px rgba(40,28,12,0.10)' : 'none',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 10,
@@ -3541,6 +3602,7 @@ export function WizardV8() {
                         >
                           {st.palette === PHOTO_PALETTE_ID && (
                             <div
+                              className="pl8-chip-pop"
                               style={{
                                 position: 'absolute',
                                 top: 10,
@@ -3618,7 +3680,9 @@ export function WizardV8() {
                               padding: 16,
                               borderRadius: 16,
                               background: 'var(--card)',
-                              border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
+                              border: `2px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                              transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+                              boxShadow: on ? '0 4px 14px rgba(40,28,12,0.10)' : 'none',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: 10,
@@ -3629,6 +3693,7 @@ export function WizardV8() {
                           >
                             {on && (
                               <div
+                                className="pl8-chip-pop"
                                 style={{
                                   position: 'absolute',
                                   top: 10,

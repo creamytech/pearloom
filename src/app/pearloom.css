@@ -1543,6 +1543,26 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pl8-btnfx:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(31, 36, 24, 0.10); }
 .pl8-btnfx:active:not(:disabled) { transform: translateY(0) scale(0.97); box-shadow: none; }
 
+/* ── Wizard chips ────────────────────────────────────────────
+   Shared feel for the wizard's tappable pills (vibes, extras,
+   dress code, meals…). The fill/border ease; the press-scale
+   lives on the inner <span> because several chips carry an
+   inline rotate tilt on the button that a transform here would
+   override. */
+.wz-chip {
+  transition:
+    background var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease),
+    color var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease),
+    border-color var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease),
+    box-shadow var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease);
+}
+.wz-chip:hover { box-shadow: 0 2px 8px rgba(40, 28, 12, 0.10); }
+.wz-chip > span {
+  display: inline-block;
+  transition: transform var(--pl-dur-subtle, 120ms) var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+.wz-chip:active > span { transform: scale(0.94); }
+
 /* ── Guest roster rows ───────────────────────────────────────
    A quiet hover tint on the highest-traffic table in the product. */
 .pd-guests-row { transition: background var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease); }
@@ -1562,6 +1582,12 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
     filter: none !important;
     opacity: 1 !important;
   }
+  /* Chips keep their static decorative tilt (inline transform) —
+     only the motion goes. */
+  .wz-chip, .wz-chip > span {
+    transition: none !important;
+  }
+  .wz-chip:active > span { transform: none !important; }
 }
 
 /* Sidebar custom scrollbar — barely visible but clean. */

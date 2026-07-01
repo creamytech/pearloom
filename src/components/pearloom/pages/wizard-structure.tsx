@@ -65,7 +65,19 @@ export function WizardStructureSection({
   blurb?: string;
 }) {
   /* One real manifest, rebuilt on every pick — the same bridge
-     generation uses, so the preview IS the site. */
+     generation uses, so the preview IS the site.
+
+     VALUE-KEYED: the wizard rebuilds paletteColors / galleryImages /
+     picks / recipe as fresh literals on every render, so an
+     identity-keyed memo re-pressed the entire ThemedSite preview per
+     keystroke in the co-host email field. Content keys (the
+     use-nav-hooks idsKey pattern) only invalidate on real changes. */
+  const paletteKey = (paletteColors ?? []).join('|');
+  const galleryKey = (galleryImages ?? []).join('|');
+  const picksKey = [picks.siteMode, picks.kitId, picks.texture, picks.navVariant, picks.heroVariant, picks.motifLayout, picks.density]
+    .map((x) => x ?? '')
+    .join('|');
+  const recipeKey = recipe?.id ?? '';
   const manifest = useMemo<StoryManifest>(() => {
     const base = {
       occasion,
@@ -93,7 +105,17 @@ export function WizardStructureSection({
     if (picks.heroVariant) layouts.hero = picks.heroVariant;
     if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
     return dressed as unknown as StoryManifest;
-  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks]);
+    // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey),
+    // not the per-render literal identities — see the note above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey]);
+
+  /* Same treatment for names — the wizard passes a fresh tuple every
+     render, which would defeat the compiler's memo of the ThemedSite
+     element below. */
+  const nameA = names[0] ?? '';
+  const nameB = names[1] ?? '';
+  const stableNames = useMemo<[string, string]>(() => [nameA, nameB], [nameA, nameB]);
 
   /* Defer the live render one frame so the Palette step paints
      instantly (same trick the Review pressings use). */
@@ -148,7 +170,7 @@ export function WizardStructureSection({
                     real layout height — the window scrolls like a
                     phone. Supported in all evergreen browsers. */}
                 <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                  <ThemedSite manifest={manifest} names={names} forceMobile demoCopy />
+                  <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy />
                 </div>
               </div>
             </div>
