@@ -21,6 +21,8 @@ import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell, useCopyOverride, useSectionHidden, SectionVisibilityFooter } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { PearAiChip, pearErrorMessage } from '../../redesign/PearAssist';
+import { useVoicePack } from './_voice-pack';
+import { occasionCopyFor } from '../../redesign/occasion-copy';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -92,6 +94,12 @@ function deriveLocalChips(manifest: StoryManifest, existing: string[]): string[]
 
 export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'story');
+  /* Occasion-voiced labels + placeholders — 'Our story / How we
+     met' is wedding copy; a memorial reads 'Their story', a
+     bachelor weekend 'The plan'. Same packs the canvas reads. */
+  const v = useVoicePack(manifest);
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const oc = occasionCopyFor(occasion);
   const story = (manifest as unknown as { storySection?: { headline?: string; body?: string; chips?: string[] } }).storySection ?? {};
   const headline = story.headline ?? '';
   const body = story.body ?? '';
@@ -320,7 +328,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               production-only extras (eyebrow, chapter cards) live
               tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Headline">
-          <FInput value={headline} onChange={(v) => patch({ headline: v })} placeholder="How we got here" />
+          <FInput value={headline} onChange={(next) => patch({ headline: next })} placeholder={`${oc.storyTitle} ${oc.storyItalic}`} />
         </FGroup>
         <FGroup
           label="Your story"
@@ -336,7 +344,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             value={body}
             onChange={(e) => patch({ body: e.target.value })}
             rows={6}
-            placeholder="We met on an ordinary Tuesday…"
+            placeholder={v.story.bodyPlaceholder}
             disabled={!!busy}
             style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13, lineHeight: 1.5, resize: 'vertical', fontFamily: 'inherit', outline: 'none', opacity: busy ? 0.7 : 1 }}
           />
@@ -510,7 +518,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder="Two threads, one weave" />
+              <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder={oc.storyEyebrow} />
             </FGroup>
             <FGroup
               label="Chapter cards"
@@ -549,7 +557,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                       <FInput
                         value={chapterTitle(i)}
-                        onChange={(v) => setChapterTitle(i, v)}
+                        onChange={(next) => setChapterTitle(i, next)}
                         placeholder={`Chapter ${i + 1} title`}
                       />
                       <textarea
@@ -575,7 +583,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
         <SectionVisibilityFooter
           isHidden={isHidden}
           setHidden={setHidden}
-          sectionLabel="Our story"
+          sectionLabel={v.story.sectionLabel}
         />
       </div>
     </SectionPanelShell>

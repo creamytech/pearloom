@@ -11,29 +11,39 @@
    day: number (1-indexed). The canvas renders the same grouping
    when 2+ days are present. */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { scheduleEventSuggestions, typicalTimeFor } from './_suggestions';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { occasionCopyFor } from '../../redesign/occasion-copy';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
 
-/* Starter rows match the canvas's editor demo timeline exactly
-   (the panel used to say 'Clifftop' while the canvas previewed
-   'Olive grove' — two competing fictions). */
-const DEFAULT_EVENTS: WeddingEvent[] = [
-  { id: 'e-ceremony', name: 'Ceremony', type: 'ceremony', date: '', time: '4:30 pm', venue: 'Olive grove', address: '' },
-  { id: 'e-cocktails', name: 'Cocktails', type: 'other', date: '', time: '5:30 pm', venue: 'Terrace bar', address: '' },
-  { id: 'e-dinner', name: 'Dinner', type: 'reception', date: '', time: '7:00 pm', venue: 'Long table', address: '' },
-  { id: 'e-dancing', name: 'Dancing', type: 'other', date: '', time: '9:00 pm', venue: 'Until late', address: '' },
-];
+/* Starter rows match the canvas's editor demo timeline exactly —
+   both sides read occasionCopyFor(occasion).scheduleDemo (the
+   panel used to say 'Clifftop' while the canvas previewed 'Olive
+   grove' — two competing fictions; and a memorial no longer opens
+   on a wedding ceremony). */
+function defaultEventsFor(occasion?: string): WeddingEvent[] {
+  return occasionCopyFor(occasion).scheduleDemo.map((row, i): WeddingEvent => ({
+    id: `e-demo-${i}`,
+    name: row.l,
+    /* 'ceremony' only when the row IS the ceremony — everything
+       else stays the generic type the schema allows. */
+    type: /^(ceremony|service|mass)$/i.test(row.l) ? 'ceremony' : 'other',
+    date: '',
+    time: row.t,
+    venue: row.s,
+    address: '',
+  }));
+}
 
 /* ─── Occasion timeline templates ─────────────────────────────
    One-tap starting timelines keyed by template family. Shown only
    while the schedule is empty or still exactly the untouched
-   DEFAULT_EVENTS — once the host edits anything, the affordance
+   occasion-demo seed — once the host edits anything, the affordance
    disappears. Occasion ids come from EVENT_TYPES
    (src/lib/event-os/event-types.ts); aliases below map related
    occasions onto the same template. */
@@ -108,21 +118,38 @@ const OCCASION_TEMPLATE_KEY: Record<string, string> = {
 
 /* True while the host hasn't touched the timeline — either no
    events saved yet, or the saved rows still exactly match the
-   untouched DEFAULT_EVENTS seed. */
-function isUntouchedSchedule(saved: WeddingEvent[] | undefined): boolean {
+   untouched occasion-demo seed. */
+function isUntouchedSchedule(saved: WeddingEvent[] | undefined, defaults: WeddingEvent[]): boolean {
   if (!saved || saved.length === 0) return true;
-  if (saved.length !== DEFAULT_EVENTS.length) return false;
+  if (saved.length !== defaults.length) return false;
   return saved.every((e, i) => {
-    const d = DEFAULT_EVENTS[i];
+    const d = defaults[i];
     return e.id === d.id && e.name === d.name && e.time === d.time && e.venue === d.venue && (e.day ?? 1) === 1;
   });
+}
+
+/* Pure id mint — next numeric suffix above every existing `e-N`
+   row. A pure function of the rows keeps the React Compiler's
+   render-purity analysis happy where `Date.now()` ids would not
+   (it can't always prove these callbacks are event handlers). */
+function mintEventId(existing: WeddingEvent[]): string {
+  let max = 0;
+  for (const e of existing) {
+    const m = /^e-(\d+)$/.exec(e.id);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return `e-${max + 1}`;
 }
 
 export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'schedule');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const eventNameSet = scheduleEventSuggestions(occasion);
-  const events = manifest.events && manifest.events.length > 0 ? manifest.events : DEFAULT_EVENTS;
+  /* Memoized — occasionCopyFor reads getter-backed packs, which
+     the React Compiler flags as impure when called bare in render;
+     useMemo keeps the seed stable and the component compilable. */
+  const defaultEvents = useMemo(() => defaultEventsFor(occasion), [occasion]);
+  const events = manifest.events && manifest.events.length > 0 ? manifest.events : defaultEvents;
   const [scheduleEyebrow, setScheduleEyebrow] = useCopyOverride(manifest, onChange, 'scheduleEyebrow');
 
   /* Multi-day mode flips on automatically when any event has
@@ -136,7 +163,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   /* Template affordance — only while the timeline is pristine.
      One tap replaces the seed with the picked template via the
      same events write path as every other edit. */
-  const showTemplates = isUntouchedSchedule(manifest.events);
+  const showTemplates = isUntouchedSchedule(manifest.events, defaultEvents);
   const applyTemplate = (key: string) => {
     const tpl = TIMELINE_TEMPLATES[key];
     if (!tpl) return;
@@ -158,7 +185,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   const addEvent = (day?: number) => writeEvents([
     ...events,
     {
-      id: `e-${Date.now()}`,
+      id: mintEventId(events),
       name: 'New moment',
       type: 'other',
       date: '',
@@ -175,7 +202,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
     writeEvents([
       ...events.map((e) => ({ ...e, day: e.day ?? 1 })),
       {
-        id: `e-${Date.now()}`,
+        id: mintEventId(events),
         name: 'First moment',
         type: 'other',
         date: '',

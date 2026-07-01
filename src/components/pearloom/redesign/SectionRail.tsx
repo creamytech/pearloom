@@ -13,6 +13,7 @@ import { isCoreSectionApplicable, sectionHasContent } from './section-applicabil
 import { SiteModeSection } from '../editor/panels/SiteModeSection';
 import { useMobileViewport } from './use-mobile-viewport';
 import { readSiteMode, readHomePageBlocks, MULTI_PAGE_BLOCKS, BLOCK_PAGE_SLUG, type SiteBlockKey } from '@/lib/site-mode';
+import { occasionCopyFor } from './occasion-copy';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -20,6 +21,18 @@ interface SectionDef {
   icon: string;
   required?: boolean;
   desc: string;
+}
+
+/* The story row is the only occasion-voiced entry — 'Our story /
+   How you met' stays for the couple arc; every other occasion
+   reads its copy pack ('Their story' on a memorial, 'The plan'
+   on a bachelor weekend). Resolved where the ordered list is
+   built so the static map stays static. */
+const COUPLE_STORY_OCCASIONS = new Set(['wedding', 'engagement', 'anniversary', 'vow-renewal']);
+
+function resolveSectionDef(s: SectionDef, occasion?: string): SectionDef {
+  if (s.id !== 'story' || occasion == null || COUPLE_STORY_OCCASIONS.has(occasion)) return s;
+  return { ...s, label: occasionCopyFor(occasion).navStory, desc: 'The story behind the day' };
 }
 
 const SECTIONS: SectionDef[] = [
@@ -278,7 +291,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   const orderedSections: SectionDef[] = [
     ...(heroSection ? [heroSection] : []),
     ...restOrder.map((k) => sectionLookup.get(k)!).filter(Boolean),
-  ];
+  ].map((s) => resolveSectionDef(s, occasion));
   /* Available picker options — anything optional + applicable +
      not yet in the order. */
   const availableOptional = OPTIONAL_SECTIONS

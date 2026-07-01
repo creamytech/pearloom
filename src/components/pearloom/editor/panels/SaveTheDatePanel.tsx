@@ -13,6 +13,8 @@
 
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
+import { getEventType } from '@/lib/event-os/event-types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { FDate } from './_form-atoms';
@@ -41,7 +43,12 @@ export function SaveTheDatePanel({
   const heroDate = manifest.logistics?.date ?? '';
   const venue = manifest.logistics?.venue ?? '';
   const [n1, n2] = manifest.names ?? ['', ''];
-  const couple = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Save the date');
+  /* Solo occasions honor ONE person — never join two names with
+     '&' on a birthday, shower, or memorial card. */
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const solo = isSoloSubject(manifest);
+  const subjectNames = solo ? (n1 || n2) : [n1, n2].filter(Boolean).join(' & ');
+  const subject = subjectNames || 'Save the date';
   const photoPool = collectPhotoPool(manifest);
 
   const [busy, setBusy] = useState(false);
@@ -75,7 +82,21 @@ export function SaveTheDatePanel({
 
   const displayDate = std.dateOverride || heroDate;
   const photo = std.photoUrl || loose.coverPhoto || '';
-  const defaultMessage = `${couple} are getting married! Save the date — ${displayDate || 'date coming soon'}${venue ? ` · ${venue}` : ''}.`;
+  /* Default message — this text is EMAILED to guests when the host
+     doesn't rewrite it, so it must fit the occasion. Only the
+     wedding-arc couple occasions announce a marriage; everything
+     else names the event (a memorial or a birthday must never say
+     "getting married"). Date/link wording stays the same. */
+  const when = `${displayDate || 'date coming soon'}${venue ? ` · ${venue}` : ''}.`;
+  const isWeddingArcCouple = occasion == null || occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal';
+  const eventLabel = (getEventType(occasion)?.label ?? 'celebration').toLowerCase();
+  const defaultMessage = isWeddingArcCouple
+    ? `${subjectNames ? `${subjectNames} are` : 'We’re'} getting married! Save the date — ${when}`
+    : solo && subjectNames
+      ? `Save the date — ${subjectNames}’s ${eventLabel}, ${when}`
+      : subjectNames
+        ? `${subjectNames} are celebrating — save the date: ${when}`
+        : `Save the date — ${when}`;
   const message = std.message ?? '';
 
   async function send() {
@@ -131,7 +152,7 @@ export function SaveTheDatePanel({
             Save the date
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.1, marginBottom: 6 }}>
-            {couple}
+            {subject}
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--ink-soft)', marginBottom: 4 }}>
             {displayDate || 'Date coming soon'}

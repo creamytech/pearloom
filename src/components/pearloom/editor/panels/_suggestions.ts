@@ -403,8 +403,13 @@ export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
     base.push('One last fling', 'The send-off weekend', 'Pack your bags');
   } else if (occ === 'wedding' || occ === 'engagement' || occ === 'vow-renewal') {
     base.push('Save the date', 'Together, at last', 'We’re getting married');
+  } else if (occ === 'anniversary') {
+    base.push('Save the date', 'Together, at last', 'Still, after all these years');
   } else {
-    base.push('Save the date', 'Together, at last', 'A day worth gathering for');
+    /* Catch-all for unmapped occasions (graduation, retirement,
+       reunion, housewarming, bar/bat mitzvah…) — couple lines like
+       'Together, at last' don't belong here. */
+    base.push('Save the date', 'A day to remember', 'A day worth gathering for');
   }
   if (at) base.push(`Meet us in ${at}`);
   return { hint: 'The small line above the names — tap one or write your own.', options: base.slice(0, 5) };
@@ -418,8 +423,8 @@ export function travelDirectionsSuggestions(ctx: SmartContext): SuggestionSet {
   const options = [
     `${v} is easiest by taxi or rideshare — parking nearby is limited.`,
     p
-      ? `Fly into the nearest airport to ${p}; ${v} is a short ride from there. Say our names when you book the hotels below.`
-      : `${v} is a short ride from the airport. Say our names when you book the hotels below.`,
+      ? `Fly into the nearest airport to ${p}; ${v} is a short ride from there. Mention the event when you book the hotels below.`
+      : `${v} is a short ride from the airport. Mention the event when you book the hotels below.`,
     `We’ve held room blocks at the hotels below — mention us for the group rate.`,
     `A shuttle will loop between the hotels and ${v} — times to follow.`,
   ];

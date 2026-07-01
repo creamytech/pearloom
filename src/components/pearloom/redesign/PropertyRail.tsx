@@ -17,6 +17,7 @@ import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
 import { useMobileViewport } from './use-mobile-viewport';
 import { ThemePickerBody } from './ThemePickerBody';
+import { occasionCopyFor } from './occasion-copy';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -147,6 +148,17 @@ interface SectionInfo {
   desc: string;
 }
 
+/* The story row is the only occasion-voiced entry — 'Our story /
+   How you met' is wrong on a birthday or a memorial. Resolved at
+   lookup (sectionInfoFor below) so the static map stays static. */
+const COUPLE_STORY_OCCASIONS = new Set(['wedding', 'engagement', 'anniversary', 'vow-renewal']);
+
+function sectionInfoFor(id: Exclude<SectionId, null>, occasion?: string): SectionInfo {
+  const base = SECTIONS[id];
+  if (id !== 'story' || occasion == null || COUPLE_STORY_OCCASIONS.has(occasion)) return base;
+  return { ...base, label: occasionCopyFor(occasion).navStory, desc: 'The story behind the day' };
+}
+
 const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   hero:     { id: 'hero',     label: 'Opening',   desc: 'Names, date, cover photo' },
   story:    { id: 'story',    label: 'Our story', desc: 'How you met' },
@@ -211,7 +223,8 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
   /* True when mounted inside the phone bottom sheet (the desktop
      grid only renders this rail above the breakpoint). */
   const isMobileViewport = useMobileViewport();
-  const section = active ? SECTIONS[active] : null;
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const section = active ? sectionInfoFor(active, occasion) : null;
   const [tab, setTab] = useState<'content' | 'design' | 'motion'>('content');
   /* Tool panels (Guests / Share / Day-of / etc.) are host-only
      workspaces — they don't render a canvas section, so the global

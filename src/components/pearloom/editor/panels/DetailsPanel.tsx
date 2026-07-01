@@ -8,6 +8,7 @@
    actually updates. */
 
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import {
@@ -30,11 +31,14 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
      slices to 3 too — both sides agree on the max. */
   /* The panel's starter rows MATCH the canvas's editor demo cards
      ('Aegean formal' here vs 'Garden formal' on the canvas left
-     hosts unsure which was real). */
+     hosts unsure which was real). The dress-code value routes by
+     occasion (a memorial never opens on 'Garden formal'), and
+     solemn voices swap the Gifts card for in-lieu-of-flowers. */
+  const solemn = getEventType(occasion)?.voice === 'solemn';
   const rawCards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
-    ['Dress code', 'Garden formal'],
+    ['Dress code', dressSet.options[0] ?? 'Garden formal'],
     ['Kids welcome', 'Ages 10 +'],
-    ['Gifts', 'Your presence is enough'],
+    solemn ? ['In lieu of flowers', 'Donations welcome'] : ['Gifts', 'Your presence is enough'],
   ];
   const cards: Card[] = rawCards.slice(0, 3);
 

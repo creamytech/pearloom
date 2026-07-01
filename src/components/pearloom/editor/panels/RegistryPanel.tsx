@@ -15,6 +15,7 @@ import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { useVoicePack } from './_voice-pack';
 import { readVariant } from '../../redesign/layouts';
+import { occasionCopyFor } from '../../redesign/occasion-copy';
 
 /** Registry MODE — re-skins the entire section for non-wedding
  *  events. Drives the section label, intro placeholder, AddCard
@@ -33,11 +34,17 @@ const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'
 
 interface StoreEntry { name: string; url?: string; note?: string }
 
-const DEFAULT_STORES: StoreEntry[] = [
-  { name: 'Honeymoon fund' },
-  { name: 'Crate & Barrel', url: REGISTRY_STORE_URLS['crate-and-barrel'] },
-  { name: 'Zola',           url: REGISTRY_STORE_URLS['zola'] },
-];
+/** Demo rows mirror the canvas — both sides read
+ *  occasionCopyFor(occasion).registryDemoStores (Zola on a wedding,
+ *  Babylist on a baby shower, 'In lieu of flowers' on a memorial).
+ *  Known catalog stores get their URL back-filled so the pill
+ *  stays clickable. */
+function defaultStoresFor(occasion?: string): StoreEntry[] {
+  return occasionCopyFor(occasion).registryDemoStores.map((name) => ({
+    name,
+    url: REGISTRY_STORE_URLS[presetIdForName(name)],
+  }));
+}
 
 /** Resolve which curated catalog entry (if any) matches this store's
  *  name — used to back-derive the dropdown's selected value when
@@ -68,6 +75,19 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
     registryMode: next,
   } as unknown as StoryManifest);
   const modeCopy = MODE_LABELS[mode];
+  /* Custom-name + note placeholders follow the mode — 'Our
+     honeymoon fund' only reads right on a wedding-arc couple
+     registry or fund; a memorial gets charity wording, a wishlist
+     gets wishlist wording. */
+  const weddingArcCouple = occasion == null || occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal';
+  const namePlaceholder = weddingArcCouple && (mode === 'gifts' || mode === 'fund')
+    ? 'Registry name (e.g. Our honeymoon fund)'
+    : mode === 'donation' ? 'e.g. The family’s chosen charity'
+      : mode === 'wishlist' ? 'e.g. A wishlist'
+        : 'Registry name';
+  const notePlaceholder = weddingArcCouple && (mode === 'gifts' || mode === 'fund')
+    ? "A note under it — 'for the honeymoon' (optional)"
+    : 'A note under it (optional)';
 
   /* Layout-aware extras — only the Progress variant uses fundPct
      and fundSub. When the host's on Progress, expose the slider
@@ -90,7 +110,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
   const storesRaw = ((manifest as unknown as { registryStores?: Array<string | StoreEntry> }).registryStores);
   const stores: StoreEntry[] = Array.isArray(storesRaw) && storesRaw.length > 0
     ? storesRaw.map((s): StoreEntry => typeof s === 'string' ? { name: s } : { name: s.name ?? '', url: s.url })
-    : DEFAULT_STORES;
+    : defaultStoresFor(occasion);
   const [registryEyebrow, setRegistryEyebrow] = useCopyOverride(manifest, onChange, 'registryEyebrow');
 
   const setIntro = (v: string) => onChange({
@@ -170,7 +190,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
                         <FInput
                           value={s.name}
                           onChange={(v) => patchStore(i, { name: v })}
-                          placeholder="Registry name (e.g. Our honeymoon fund)"
+                          placeholder={namePlaceholder}
                         />
                       )}
                       <FInput
@@ -183,7 +203,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
                       <FInput
                         value={(s as { note?: string }).note ?? ''}
                         onChange={(v) => patchStore(i, { note: v || undefined } as Partial<StoreEntry>)}
-                        placeholder="A note under it — 'for the honeymoon' (optional)"
+                        placeholder={notePlaceholder}
                       />
                     </div>
                     <button

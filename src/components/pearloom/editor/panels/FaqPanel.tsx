@@ -12,21 +12,23 @@ import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, Section
 import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
+import { occasionCopyFor } from '../../redesign/occasion-copy';
 
-/* Wording matches the canvas's DEFAULT_FAQ_QUESTIONS exactly so
-   the panel and the preview never show two different drafts. */
-const DEFAULT_FAQS: FaqItem[] = [
-  { id: 'f-dress', question: "What's the dress code, really?", answer: '', order: 0 },
-  { id: 'f-guest', question: 'Can I bring a plus-one?', answer: '', order: 1 },
-  { id: 'f-kids', question: 'Are kids welcome at the ceremony?', answer: '', order: 2 },
-  { id: 'f-stay', question: 'Where should we stay?', answer: '', order: 3 },
-];
+/* Wording matches the canvas exactly — both sides read
+   occasionCopyFor(occasion).faqDemo — so the panel and the preview
+   never show two different drafts. */
+function defaultFaqsFor(occasion?: string): FaqItem[] {
+  return occasionCopyFor(occasion).faqDemo.map((question, i) => ({
+    id: `f-demo-${i}`, question, answer: '', order: i,
+  }));
+}
 
 export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'faq');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const questionSet = faqQuestionSuggestions(occasion);
-  const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : DEFAULT_FAQS;
+  const defaultFaqs = defaultFaqsFor(occasion);
+  const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : defaultFaqs;
   const [faqEyebrow, setFaqEyebrow] = useCopyOverride(manifest, onChange, 'faqEyebrow');
   const [openId, setOpenId] = useState<string | null>(null);
   /* Tracks per-row "Draft answer from Pear" busy state. Keyed by
@@ -94,7 +96,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
      during the run (no add/remove can happen mid-bulk). */
   async function draftAllUnanswered() {
     if (bulk || draftingId) return;
-    const current = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : DEFAULT_FAQS;
+    const current = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : defaultFaqs;
     const targets = current
       .map((f, i) => ({ f, i }))
       .filter(({ f }) => f.question.trim() && !f.answer.trim());
@@ -114,7 +116,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
 
   const write = (next: FaqItem[]) => onChange({ ...manifestRef.current, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
   const patch = (i: number, p: Partial<FaqItem>) => {
-    const cur = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : DEFAULT_FAQS;
+    const cur = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : defaultFaqs;
     write(cur.map((f, idx) => idx === i ? { ...f, ...p } : f));
   };
   const remove = (i: number) => write(faqs.filter((_, idx) => idx !== i));
