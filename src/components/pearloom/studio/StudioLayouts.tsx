@@ -18,9 +18,10 @@ interface LayoutProps {
   font: StudioFontPair;
   type: StationeryType;
   nameA: string;
+  /** Empty on solo occasions — layouts render one name, no amp. */
   nameB: string;
   amp?: string;
-  /** Couple photo URL — used by the photo layout. Falls back to
+  /** Cover photo URL — used by the photo layout. Falls back to
    *  a tonal placeholder when not set. */
   photoUrl?: string | null;
 }
@@ -45,8 +46,12 @@ export function ClassicLayout({ content, palette, font, type, nameA, nameB, amp 
           color: palette.ink,
         }}>
           {nameA}
-          <div style={{ fontSize: 36, fontStyle: 'italic', color: palette.accent, fontWeight: 400, margin: '4px 0', letterSpacing: '0.04em' }}>{amp}</div>
-          {nameB}
+          {nameB && (
+            <>
+              <div style={{ fontSize: 36, fontStyle: 'italic', color: palette.accent, fontWeight: 400, margin: '4px 0', letterSpacing: '0.04em' }}>{amp}</div>
+              {nameB}
+            </>
+          )}
         </div>
         <div style={{ fontFamily: font.ui, fontSize: 13, color: palette.ink, opacity: 0.85, marginTop: 6, fontStyle: type === 'thanks' ? 'italic' : 'normal' }}>
           {content.line2}
@@ -82,9 +87,14 @@ export function AsymLayout({ content, palette, font, nameA, nameB, amp = AMP_DEF
           fontFamily: font.display, fontStyle: font.italic ? 'italic' : 'normal',
           fontWeight: font.weight, fontSize: 70, lineHeight: 0.92, letterSpacing: '-0.03em', color: palette.ink,
         }}>
-          {nameA}<br />
-          <span style={{ fontStyle: 'italic', color: palette.accent, fontWeight: 400, fontSize: 56 }}>{amp}</span><br />
-          {nameB}
+          {nameA}
+          {nameB && (
+            <>
+              <br />
+              <span style={{ fontStyle: 'italic', color: palette.accent, fontWeight: 400, fontSize: 56 }}>{amp}</span><br />
+              {nameB}
+            </>
+          )}
         </div>
       </div>
 
@@ -115,7 +125,7 @@ export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, am
       <div style={{ padding: '0 36px 36px', display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'center', flex: 1 }}>
         <div style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: palette.ink, opacity: 0.65, fontWeight: 600, marginBottom: 4 }}>{content.eyebrow}</div>
         <div style={{ fontFamily: font.display, fontStyle: font.italic ? 'italic' : 'normal', fontWeight: font.weight, fontSize: 40, lineHeight: 1, color: palette.ink, letterSpacing: '-0.02em' }}>
-          {nameA} <span style={{ fontStyle: 'italic', color: palette.accent, fontSize: 30 }}>{amp}</span> {nameB}
+          {nameA}{nameB && <> <span style={{ fontStyle: 'italic', color: palette.accent, fontSize: 30 }}>{amp}</span> {nameB}</>}
         </div>
         <div style={{ fontFamily: font.display, fontSize: 13, color: palette.ink, fontWeight: 500, marginTop: 8 }}>{content.line3}</div>
         <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: palette.ink, opacity: 0.6, fontWeight: 600 }}>{content.line4}</div>
@@ -124,19 +134,17 @@ export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, am
   );
 }
 
-export function ScriptLayout({ content, palette, type, nameA, nameB }: LayoutProps) {
+export function ScriptLayout({ content, palette, nameA, nameB }: LayoutProps) {
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, zIndex: 2 }}>
       <div style={{ fontFamily: "'Caveat', cursive", fontSize: 32, color: palette.ink, lineHeight: 1.15 }}>
         Dearest friend,
       </div>
       <div style={{ fontFamily: "'Caveat', cursive", fontSize: 24, color: palette.ink, opacity: 0.85, lineHeight: 1.3 }}>
-        {type === 'thanks'
-          ? "We can't believe it really happened, and we can't believe you were there. Thank you, with all our love, for celebrating with us."
-          : "Save the date — we're getting married, and we'd love nothing more than to have you there."}
+        {content.scriptBody}
       </div>
       <div style={{ marginTop: 14, fontFamily: "'Caveat', cursive", fontSize: 28, color: palette.accent }}>
-        — {nameA} & {nameB}
+        — {nameB ? `${nameA} & ${nameB}` : nameA}
       </div>
       <div style={{ marginTop: 'auto', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
         {content.line3}
@@ -149,7 +157,7 @@ export function MinimalLayout({ content, palette, font, nameA, nameB }: LayoutPr
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', zIndex: 2, gap: 18 }}>
       <div style={{ fontFamily: font.display, fontStyle: font.italic ? 'italic' : 'normal', fontWeight: font.weight, fontSize: 48, lineHeight: 1, color: palette.ink, letterSpacing: '-0.02em' }}>
-        {nameA} <span style={{ color: palette.accent }}>&</span> {nameB}
+        {nameA}{nameB && <> <span style={{ color: palette.accent }}>&</span> {nameB}</>}
       </div>
       <Rule color={palette.accent} width={80} />
       <div style={{ fontSize: 11.5, letterSpacing: '0.3em', textTransform: 'uppercase', color: palette.ink, opacity: 0.7, fontWeight: 600 }}>

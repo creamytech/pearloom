@@ -91,6 +91,32 @@ describe('studioCardToPrintSvg', () => {
     expect(light).toContain('pl-paper-noise');
   });
 
+  it('renders a single name with no amp line on solo occasions', () => {
+    const soloContent = buildTypeContent({
+      type: 'std',
+      nameA: 'Eleanor',
+      nameB: '',
+      dateShort: 'Apr 26, 2027',
+      dateLong: 'Monday, April 26, 2027',
+      venue: 'The Orchard House',
+      place: 'Hudson, New York',
+      siteUrl: 'pearloom.com/memorial/eleanor',
+      occasion: 'memorial',
+    });
+    for (const layout of LAYOUTS) {
+      const svg = studioCardToPrintSvg(baseArgs({
+        layout: layout.id,
+        nameA: 'Eleanor',
+        nameB: '',
+        monogram: 'E',
+        content: soloContent,
+      }));
+      expect(svg).toContain('Eleanor');
+      expect(svg).not.toContain('>and</text>');
+      expect(svg).not.toContain('Eleanor &amp;');
+    }
+  });
+
   it('never emits a remote http(s) image reference (librsvg cannot fetch them)', () => {
     for (const layout of LAYOUTS) {
       const svg = studioCardToPrintSvg(baseArgs({
@@ -100,6 +126,46 @@ describe('studioCardToPrintSvg', () => {
       }));
       expect(svg).not.toMatch(/href="https?:/);
     }
+  });
+});
+
+describe('buildTypeContent occasion routing', () => {
+  const base = {
+    nameA: 'Eleanor', nameB: '',
+    dateShort: 'Apr 26, 2027', dateLong: 'Monday, April 26, 2027',
+    venue: 'The Orchard House', place: 'Hudson, New York',
+    siteUrl: 'pearloom.com/memorial/eleanor',
+  };
+
+  it('keeps couple copy for the wedding arc', () => {
+    const c = buildTypeContent({ ...base, type: 'std', nameA: 'Emma', nameB: 'James', occasion: 'wedding' });
+    expect(c.line2).toBe('are getting married');
+    expect(c.headline).toBe('Emma & James');
+  });
+
+  it('never says "are getting married" on non-wedding occasions', () => {
+    for (const occasion of ['birthday', 'memorial', 'reunion', 'baby-shower', 'graduation']) {
+      for (const type of ['std', 'invite', 'thanks'] as const) {
+        const c = buildTypeContent({ ...base, type, occasion });
+        const all = [c.eyebrow, c.line2, c.line4, c.cta, c.scriptBody, ...c.pearNudges].join(' ');
+        expect(all).not.toMatch(/getting married|wedding|couples/i);
+      }
+    }
+  });
+
+  it('routes solemn occasions to gathered-not-celebrated copy', () => {
+    const std = buildTypeContent({ ...base, type: 'std', occasion: 'memorial' });
+    expect(std.eyebrow).toBe('In loving memory');
+    expect(std.stamp).toBe('IN MEMORY');
+    const thanks = buildTypeContent({ ...base, type: 'thanks', occasion: 'memorial' });
+    expect(thanks.line4).toBe('the family of Eleanor');
+    const all = [std.line2, std.cta, std.scriptBody, thanks.line2].join(' ');
+    expect(all).not.toMatch(/celebrat|party|can't wait/i);
+  });
+
+  it('solo cards carry one name in the headline', () => {
+    const c = buildTypeContent({ ...base, type: 'invite', occasion: 'birthday' });
+    expect(c.headline).toBe('Eleanor');
   });
 });
 

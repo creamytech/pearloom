@@ -17,6 +17,8 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { authOptions } from '@/lib/auth';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { getSiteConfig } from '@/lib/db';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 
 export const dynamic = 'force-dynamic';
 
@@ -125,7 +127,20 @@ export async function POST(req: NextRequest) {
 
     const manifest = siteConfig.manifest;
     const names = siteConfig.names || ['', ''];
-    const occasion = manifest?.occasion || 'celebration';
+    const occasion = manifest?.occasion || 'wedding';
+    /* Occasion routing — the registry label ("Bachelorette party",
+       "Memorial / Celebration of life") beats the raw hyphenated id
+       in guest-facing copy; solemn occasions swap the celebratory
+       lines; solo honorees get one name, never "Eleanor & ". */
+    const eventType = getEventType(occasion);
+    const occasionLabel = (eventType?.label ?? 'celebration').split(' / ')[0].toLowerCase();
+    const solemn = eventType?.voice === 'solemn';
+    const solo = isSoloSubject(manifest ?? { occasion });
+    const displayNames =
+      (solo ? [names[0]] : names)
+        .map((n) => String(n ?? '').trim())
+        .filter(Boolean)
+        .join(' & ') || 'Your hosts';
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
     if (!process.env.RESEND_API_KEY) {
@@ -171,19 +186,24 @@ export async function POST(req: NextRequest) {
       }
 
       const inviteUrl = `${baseUrl}/i/${token}`;
-      const coupleNames = `${names[0]} & ${names[1]}`;
-      const occasionLabel = occasion === 'wedding' ? 'wedding' : occasion === 'engagement' ? 'engagement' : occasion;
       const subject =
-        cardType === 'std'    ? `Save the date — ${coupleNames}` :
-        cardType === 'thanks' ? `Thank you, from ${coupleNames}` :
-                                `You're invited to ${coupleNames}'s ${occasionLabel}`;
+        cardType === 'std'    ? `Save the date — ${displayNames}` :
+        cardType === 'thanks' ? (solemn ? `With thanks, from the family of ${displayNames}` : `Thank you, from ${displayNames}`) :
+        solemn                ? `${(eventType?.label ?? 'Memorial').split(' / ')[0]} for ${displayNames}` :
+                                `You're invited to ${displayNames}'s ${occasionLabel}`;
       const eyebrowCopy =
         cardType === 'std'    ? 'Save the date' :
-        cardType === 'thanks' ? 'Thank you' :
+        cardType === 'thanks' ? (solemn ? 'With gratitude' : 'Thank you') :
+        solemn                ? 'Join us in remembering' :
                                 'You are cordially invited';
       const bodyCopy =
-        cardType === 'std'    ? `We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.` :
-        cardType === 'thanks' ? `Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.` :
+        cardType === 'std'    ? (solemn
+          ? `We've set a date to gather and remember together. Open the card for the details and the link to the site.`
+          : `We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.`) :
+        cardType === 'thanks' ? (solemn
+          ? `Thank you for standing with us. Open the card for a note from the family.`
+          : `Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.`) :
+        solemn ? `We're gathering to honor a beautiful life. Open the card for the details, and let us know if you can be with us.` :
                                 `We have prepared something special just for you.<br/>Open your personal invitation to see all the details<br/>and let us know if you'll be joining us.`;
       const ctaLabel =
         cardType === 'std'    ? 'Open the save-the-date' :
@@ -216,10 +236,12 @@ export async function POST(req: NextRequest) {
           <tr>
             <td style="background:rgba(163,177,138,0.04);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
               <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">${esc(eyebrowCopy)}</p>
-              <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(coupleNames)}</h1>
+              <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(displayNames)}</h1>
               <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">${
-                cardType === 'std'    ? `for the ${esc(occasionLabel)}` :
-                cardType === 'thanks' ? `with all our love` :
+                cardType === 'std'    ? (solemn ? 'in loving memory' : `for the ${esc(occasionLabel)}`) :
+                cardType === 'thanks' ? (solemn ? 'with heartfelt thanks' : 'with all our love') :
+                solemn                ? 'a gathering to honor a beautiful life' :
+                solo                  ? `you're invited to the ${esc(occasionLabel)}` :
                                         `invite you to celebrate their ${esc(occasionLabel)}`
               }</p>
 

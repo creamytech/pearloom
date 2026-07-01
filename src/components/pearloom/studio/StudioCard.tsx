@@ -25,9 +25,13 @@ interface CardProps {
   font: StudioFontPair;
   content: StudioContent;
   nameA: string;
+  /** Empty on solo occasions — cards render one name, no amp. */
   nameB: string;
   monogram: string;
-  /** Couple photo URL — used by the photo layout. */
+  /** Solemn occasion (memorial / funeral) — softens the back-card
+   *  reply options, sign-offs, and flourishes. */
+  solemn?: boolean;
+  /** Cover photo URL — used by the photo layout. */
   photoUrl?: string | null;
   /** Site URL for the back of save-the-date / thank-you (RSVP +
    *  share). */
@@ -93,7 +97,7 @@ export function CardFront(props: CardProps) {
 export function CardBack(props: CardProps) {
   const {
     palette, font, type, monogram, siteUrl, rsvpDeadline, nameA, nameB,
-    ceremonyAt, receptionAt, dressCode, hotelLine, texture,
+    ceremonyAt, receptionAt, dressCode, hotelLine, texture, solemn,
   } = props;
   const w = 420, h = 588;
   return (
@@ -129,7 +133,7 @@ export function CardBack(props: CardProps) {
             <div>
               <div style={{ fontSize: 9, letterSpacing: '0.26em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600, marginBottom: 6 }}>Will attend</div>
               <div style={{ display: 'flex', gap: 10 }}>
-                {['Joyfully accepts', 'Regretfully declines'].map(opt => (
+                {(solemn ? ['Will attend', 'Unable to attend'] : ['Joyfully accepts', 'Regretfully declines']).map(opt => (
                   <div key={opt} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: font.display, fontSize: 13, color: palette.ink }}>
                     <div style={{ width: 14, height: 14, border: `1.5px solid ${palette.accent}`, borderRadius: 3 }} />
                     {opt}
@@ -138,7 +142,9 @@ export function CardBack(props: CardProps) {
               </div>
             </div>
             <Field label="Meal preference" value="" font={font} palette={palette} sub="Beef · Fish · Vegetarian · Vegan" />
-            <Field label="Song that’d get you on the floor" value="" font={font} palette={palette} />
+            {solemn
+              ? <Field label="A memory to share, if you wish" value="" font={font} palette={palette} />
+              : <Field label="Song that’d get you on the floor" value="" font={font} palette={palette} />}
             <div style={{ marginTop: 'auto', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
               {siteUrl ? `Or RSVP at ${siteUrl}` : 'RSVP via the QR on your envelope'}
             </div>
@@ -147,14 +153,20 @@ export function CardBack(props: CardProps) {
 
         {type === 'std' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <DetailRow label="Ceremony" value={ceremonyAt ?? '—'} font={font} palette={palette} />
-            <DetailRow label="Reception" value={receptionAt ?? '—'} font={font} palette={palette} />
-            <DetailRow label="Dress code" value={dressCode ?? 'Garden formal'} font={font} palette={palette} />
+            {/* Ceremony / Reception rows only when the manifest has
+                those events — a birthday or reunion back-card should
+                not print wedding-shaped rows with em-dashes. */}
+            {ceremonyAt && <DetailRow label="Ceremony" value={ceremonyAt} font={font} palette={palette} />}
+            {receptionAt && <DetailRow label="Reception" value={receptionAt} font={font} palette={palette} />}
+            {!ceremonyAt && !receptionAt && (
+              <DetailRow label="Schedule" value="Details to follow" font={font} palette={palette} />
+            )}
+            <DetailRow label="Dress code" value={dressCode ?? 'Details to follow'} font={font} palette={palette} />
             <DetailRow label="Stay nearby" value={hotelLine ?? 'Hotel block details to follow'} font={font} palette={palette} />
             <DetailRow label="Live updates" value={siteUrl ?? 'pearloom.com'} font={font} palette={palette} />
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.accent }}>
-                we can’t wait
+                {solemn ? 'with love' : 'we can’t wait'}
               </div>
               <div style={{ width: 60, height: 60, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 4 }}>
                 {/* Real QR — encodes the live site so a printed card
@@ -174,10 +186,12 @@ export function CardBack(props: CardProps) {
               Dear [Guest first name],
             </div>
             <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.ink, opacity: 0.85, lineHeight: 1.45 }}>
-              Thank you for the [gift], and even more for being there. Every photo on the wall has you in it somewhere, and we keep coming back to that. With all our love —
+              {solemn
+                ? 'Thank you for [being there / your kind words]. Your presence meant more than we can say, and we keep coming back to it. With heartfelt thanks —'
+                : 'Thank you for the [gift], and even more for being there. Every photo on the wall has you in it somewhere, and we keep coming back to that. With all our love —'}
             </div>
             <div style={{ fontFamily: "'Caveat', cursive", fontSize: 28, color: palette.accent, marginTop: 4 }}>
-              {nameA} & {nameB}
+              {solemn ? `the family of ${nameA}` : nameB ? `${nameA} & ${nameB}` : nameA}
             </div>
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
@@ -233,7 +247,7 @@ function QRGlyph({ color = '#3D4A1F' }: { color?: string }) {
 export function CardEnvelope(props: CardProps) {
   const { palette, font, motif, monogram, returnAddress, nameA, nameB } = props;
   const w = 540, h = 380;
-  const ret = returnAddress ?? { name: `${nameA} & ${nameB}`, line1: '', line2: '' };
+  const ret = returnAddress ?? { name: nameB ? `${nameA} & ${nameB}` : nameA, line1: '', line2: '' };
   return (
     <div style={{ width: w, height: h, position: 'relative' }} className="pl-studio-card-shadow">
       <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ position: 'absolute', inset: 0 }}>

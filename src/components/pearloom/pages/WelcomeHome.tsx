@@ -255,8 +255,11 @@ export function WelcomeHome() {
 
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(
-    () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence }),
-    [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence],
+    () => buildMilestones({
+      stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence,
+      solemn: occasion === 'memorial' || occasion === 'funeral',
+    }),
+    [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion],
   );
 
   const stageBlurb =
@@ -733,7 +736,7 @@ interface Milestone {
 }
 
 function buildMilestones({
-  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence,
+  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, solemn,
 }: {
   stage: Stage;
   eventDate: Date | null;
@@ -741,7 +744,10 @@ function buildMilestones({
   daysUntil: number | null;
   guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
   cadence?: CadencePhaseLite[] | null;
+  /** Memorial / funeral — quiet labels, no party-planning ladder. */
+  solemn?: boolean;
 }): Milestone[] {
+  const dayLabel = solemn ? 'The day itself' : 'The big day';
   const out: Milestone[] = [];
   out.push({ date: 'Done', label: 'Site claimed', sub: '', status: 'done', urgency: 'on-track' });
   if (eventDate) {
@@ -785,7 +791,7 @@ function buildMilestones({
     if (eventDateShort) {
       out.push({
         date: eventDateShort,
-        label: 'The big day',
+        label: dayLabel,
         sub: daysUntil != null ? `${daysUntil} days out` : '',
         status: 'distant',
         urgency: 'on-track',
@@ -794,7 +800,15 @@ function buildMilestones({
     return out;
   }
 
-  if (stage === 'early') {
+  if (solemn) {
+    // Quiet ladder — no vendors / seating / menu-count rows on a
+    // memorial or funeral site.
+    out.push({ date: 'This week', label: 'Share the site', sub: 'family & close friends first', status: 'next', urgency: 'soon' });
+    out.push({ date: 'Soon', label: 'Gather photos & words', sub: 'for the tribute wall', status: 'upcoming', urgency: 'on-track' });
+    if (guestCounts && guestCounts.pending > 0) {
+      out.push({ date: 'Soon', label: 'Replies', sub: `${guestCounts.pending} still to reply`, status: 'upcoming', urgency: 'on-track' });
+    }
+  } else if (stage === 'early') {
     out.push({ date: 'This week', label: 'Send save-the-dates', sub: 'recommended now', status: 'next', urgency: 'soon' });
     out.push({ date: '~4 mo',     label: 'Book vendors',         sub: 'in roughly four months', status: 'upcoming', urgency: 'on-track' });
     out.push({ date: '~10 mo',    label: 'Send invitations',     sub: 'with the guest list', status: 'upcoming', urgency: 'on-track' });
@@ -827,7 +841,7 @@ function buildMilestones({
   if (eventDateShort) {
     out.push({
       date: eventDateShort,
-      label: 'The big day',
+      label: dayLabel,
       sub: daysUntil != null ? `${daysUntil} days out` : '',
       status: 'distant',
       urgency: 'on-track',

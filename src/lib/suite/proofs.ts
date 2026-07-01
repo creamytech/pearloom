@@ -456,12 +456,12 @@ ${MONOGRAM_FRAMES.join(', ')}
 
 PALETTE EMPHASIS — paletteEmphasis is one of:
 - paper — paper-led, quiet; the card is mostly ground.
-- accent — accent-forward; the couple's accent color does the talking.
+- accent — accent-forward; the host's accent color does the talking.
 - ink — ink-on-paper letterpress read; high contrast, no wash.
 
-For each proof return: name (1–2 words, e.g. "Gilded Evening"), note (short style note, e.g. "gold · deco · evening"), layoutId, motif, monogramFrame, paletteEmphasis, useStylizedArt (true = the card leads with the couple's photo made into art; pair it with the photo layout and use it on at most 2 proofs), and copy { eyebrow ≤ 42 chars, headline ≤ 60, dateLine ≤ 80, footer ≤ 70 }.
+For each proof return: name (1–2 words, e.g. "Gilded Evening"), note (short style note, e.g. "gold · deco · evening"), layoutId, motif, monogramFrame, paletteEmphasis, useStylizedArt (true = the card leads with the host's photo made into art; pair it with the photo layout and use it on at most 2 proofs), and copy { eyebrow ≤ 42 chars, headline ≤ 60, dateLine ≤ 80, footer ≤ 70 }.
 
-Compose proofs that read as ONE suite with range: vary layout and paletteEmphasis across the sheet. Keep most proofs on the couple's own motif; you may introduce at most TWO alternate motifs across the whole sheet, and they must be tasteful neighbours of the original (a garden stays botanical; an evening stays celestial), never novelty. Copy never says "AI", "generated", "powered", or "template".`;
+Compose proofs that read as ONE suite with range: vary layout and paletteEmphasis across the sheet. Keep most proofs on the host's own motif; you may introduce at most TWO alternate motifs across the whole sheet, and they must be tasteful neighbours of the original (a garden stays botanical; an evening stays celestial), never novelty. Copy never says "AI", "generated", "powered", or "template".`;
 
 /**
  * One Claude call → 4–6 fully-validated proofs. Deterministic-ish:
@@ -500,7 +500,7 @@ THE EVENT
 - Date: ${suite.eventDate ?? '(not set)'}
 - Venue: ${suite.venue ?? '(not set)'}
 
-THE COUPLE'S LOOK (their site's live design system — the proofs must read as the same made object)
+THE HOST'S LOOK (their site's live design system — the proofs must read as the same made object)
 - Paper ${suite.palette.paper} · ink ${suite.palette.ink} · accent ${suite.palette.accent} · gold ${suite.palette.gold}${ctx.darkPaper ? ' (dark evening paper)' : ''}
 - Display face: ${suite.fonts.displayFamily} · body: ${suite.fonts.bodyFamily}
 - Their motif: ${suite.motif ?? '(none picked — choose one occasion-true glyph and stay on it)'}

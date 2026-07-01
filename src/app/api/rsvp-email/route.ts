@@ -12,6 +12,8 @@ import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, emailLayout, button } from '@/lib/email-sequences';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { buildSiteUrl } from '@/lib/site-urls';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import type { StoryManifest } from '@/types';
 
 const esc = (s: string) =>
@@ -88,34 +90,50 @@ export async function POST(req: NextRequest) {
     const siteConfig = (site.site_config || {}) as {
       names?: string[]; coupleNames?: [string, string];
     };
-    const names = Array.isArray(siteConfig.names) && siteConfig.names.length
+    const names = (Array.isArray(siteConfig.names) && siteConfig.names.length
       ? siteConfig.names
       : Array.isArray(siteConfig.coupleNames) && siteConfig.coupleNames.length
         ? siteConfig.coupleNames
-        : ['Us', 'Together'];
-    const [name1, name2] = names;
+        : []) as string[];
+    const [name1 = '', name2 = ''] = names;
+    /* Occasion routing — solo honorees carry one name (never
+       "Eleanor & "); solemn occasions (memorial / funeral) write as
+       the family, gently, and never in the celebratory register. */
+    const occasion = (manifest.occasion as string) || 'wedding';
+    const eventType = getEventType(occasion);
+    const occasionNoun = (eventType?.label ?? 'celebration').split(' / ')[0].toLowerCase();
+    const solemn = eventType?.voice === 'solemn';
+    const solo = isSoloSubject(manifest as { occasion?: string; subject?: { kind?: string } });
+    const hostDisplay =
+      (solo ? [name1] : names).map((n) => String(n ?? '').trim()).filter(Boolean).join(' & ')
+      || 'Your hosts';
+    const sender = solemn ? `the family of ${hostDisplay}` : hostDisplay;
     const logistics = manifest.logistics as Record<string, unknown> | undefined;
     const vibeString = (manifest.vibeString as string) || '';
 
     // Generate personalized email via AI
-    const prompt = `Write a short, warm RSVP confirmation email from ${name1} & ${name2} to their wedding guest ${guestName}.
+    const prompt = `Write a short, warm RSVP confirmation email from ${sender} to ${guestName}, a guest who just replied for their ${occasionNoun}.
 
 Guest RSVP status: ${status === 'attending' ? 'ATTENDING (they said yes!)' : status === 'declined' ? 'DECLINED (they can\'t make it)' : 'PENDING'}
 ${events?.length ? `Events they're attending: ${events.join(', ')}` : ''}
-Wedding date: ${logistics?.date || 'coming soon'}
+Event date: ${logistics?.date || 'coming soon'}
 Venue: ${logistics?.venue || ''}
 Dress code: ${logistics?.dresscode || ''}
-Couple's vibe: ${vibeString}
+The hosts' vibe: ${vibeString}
 
 RULES:
-- Write as ${name1} & ${name2} speaking together
+- Write as ${sender} speaking together
+${solemn
+  ? `- This is a ${occasionNoun} — gentle and grateful, never celebratory. No exclamation marks.
+- If attending: "it will mean a great deal to have you with us"
+- If declined: gracious, understanding, "you'll be in our thoughts"`
+  : `- If attending: excited, grateful, maybe mention dress code or a fun detail
+- If declined: gracious, understanding, "we'll miss you"`}
 - Keep it SHORT — 3-5 sentences max
-- If attending: excited, grateful, maybe mention dress code or a fun detail
-- If declined: gracious, understanding, "we'll miss you"
 - Warm, personal tone — not corporate
 - Do NOT include a subject line
 - Do NOT include greeting (we'll add "Dear ${guestName},")
-- Do NOT include sign-off (we'll add "${name1} & ${name2}")
+- Do NOT include sign-off (we'll add "${sender}")
 
 Just write the body paragraph(s).`;
 
@@ -132,9 +150,13 @@ Just write the body paragraph(s).`;
       }
     );
 
-    let bodyText = status === 'attending'
-      ? `We're so excited you'll be there! It means the world to us.`
-      : `We completely understand and will miss you so much.`;
+    let bodyText = solemn
+      ? (status === 'attending'
+          ? `Thank you — it will mean a great deal to have you with us.`
+          : `Thank you for letting us know. You'll be in our thoughts.`)
+      : status === 'attending'
+        ? `We're so excited you'll be there! It means the world to us.`
+        : `We completely understand and will miss you so much.`;
 
     if (aiRes.ok) {
       const aiData = await aiRes.json();
@@ -146,9 +168,13 @@ Just write the body paragraph(s).`;
     // contract so the confirmation wears the couple's exact look
     // (email-safe palette + display face + monogrammed hairline).
     const resend = new Resend(resendKey);
-    const subject = status === 'attending'
-      ? `We can't wait to celebrate with you! - ${name1} & ${name2}`
-      : `Thanks for letting us know - ${name1} & ${name2}`;
+    const subject = solemn
+      ? (status === 'attending'
+          ? `Thank you — we look forward to gathering with you`
+          : `Thank you for letting us know`)
+      : status === 'attending'
+        ? `We can't wait to celebrate with you! - ${hostDisplay}`
+        : `Thanks for letting us know - ${hostDisplay}`;
 
     const suite = suiteThemeFromManifest(
       manifest as unknown as StoryManifest,
@@ -158,12 +184,16 @@ Just write the body paragraph(s).`;
     const headingStack = `'${t.headingFont}',Georgia,serif`;
     const bodyStack = `'${t.bodyFont}',Georgia,serif`;
     const safeBody = esc(bodyText).replace(/\n/g, '<br/>');
-    const coupleSig = `${esc(String(name1))} &amp; ${esc(String(name2))}`;
-    const headline = status === 'attending'
-      ? `We're thrilled you'll be there!`
-      : status === 'declined'
-        ? `We'll miss you.`
-        : `Thank you for responding.`;
+    const hostSig = esc(sender);
+    const headline = solemn
+      ? (status === 'attending'
+          ? `We're grateful you'll be with us.`
+          : `Thank you for letting us know.`)
+      : status === 'attending'
+        ? `We're thrilled you'll be there!`
+        : status === 'declined'
+          ? `We'll miss you.`
+          : `Thank you for responding.`;
     const siteUrl = buildSiteUrl(String(site.subdomain), '', undefined, suite.occasion);
 
     const dateVenueBlock = (logistics?.date || logistics?.venue)
@@ -186,7 +216,7 @@ Just write the body paragraph(s).`;
       <tr><td style="padding:4px 36px 20px;text-align:center">
         <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0 0 12px">Dear ${esc(guestName)},</p>
         <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">${safeBody}</p>
-        <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:20px 0 0;line-height:1.6;font-family:${headingStack}">With love,<br><strong>${coupleSig}</strong></p>
+        <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:20px 0 0;line-height:1.6;font-family:${headingStack}">${solemn ? 'With gratitude,' : 'With love,'}<br><strong>${hostSig}</strong></p>
       </td></tr>
       ${dateVenueBlock}
       <tr><td style="padding:14px 36px ${manageToken ? 8 : 40}px;text-align:center">

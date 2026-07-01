@@ -146,7 +146,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           <Pear size={24} tone="sage" shadow={false} />
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Studio · {nameA} & {nameB}
+              Studio · {nameB ? `${nameA} & ${nameB}` : nameA}
             </div>
             <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {dateShort}
@@ -244,7 +244,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
         <Pear size={26} tone="sage" shadow={false} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Studio · {nameA} & {nameB}
+            Studio · {nameB ? `${nameA} & ${nameB}` : nameA}
           </div>
           <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
             {dateShort}
@@ -562,7 +562,7 @@ function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; activ
             fontSize: 13, fontWeight: 600, color: palette.ink, lineHeight: 1.05, letterSpacing: '-0.02em',
             padding: '0 8px',
           }}>
-            {nameA} & {nameB}
+            {nameB ? `${nameA} & ${nameB}` : nameA}
           </div>
           {draft.motif === 'stamp' && (
             <div style={{ position: 'absolute', top: 6, right: 6, transform: 'rotate(8deg)' }}>
@@ -1206,7 +1206,7 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
         <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
           The <strong>{state.layout}</strong> layout reads {LAYOUT_CHARACTER[state.layout] ?? 'warm and confident'}. With{' '}
           <strong>{PALETTES.find(p => p.id === state.palette)?.name ?? 'this'}</strong> and the{' '}
-          <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the {PALETTE_NEIGHBOURHOOD[state.palette] ?? 'editorial-classic'} neighbourhood for {nameA} & {nameB}.
+          <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the {PALETTE_NEIGHBOURHOOD[state.palette] ?? 'editorial-classic'} neighbourhood for {nameB ? `${nameA} & ${nameB}` : nameA}.
         </div>
       </div>
 

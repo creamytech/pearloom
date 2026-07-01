@@ -236,7 +236,7 @@ function divider(themeColors?: EmailThemeColors): string {
 
 function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: string } {
   const guestName = ctx.guestName || 'Friend';
-  const coupleNames = ctx.coupleNames || 'the happy couple';
+  const coupleNames = ctx.coupleNames || 'your hosts';
   const isAttending = ctx.rsvpStatus === 'attending';
   const isDeclined = ctx.rsvpStatus === 'declined';
   const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
@@ -279,7 +279,7 @@ function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: s
     <tr><td style="padding:8px 36px 36px;text-align:center">
       <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0 0 16px">${bodyMessage}</p>
       ${eventDetails}
-      ${ctx.siteUrl ? `<p style="margin:24px 0 0">${button('View Wedding Site', ctx.siteUrl, t)}</p>` : ''}
+      ${ctx.siteUrl ? `<p style="margin:24px 0 0">${button('Visit the site', ctx.siteUrl, t)}</p>` : ''}
     </td></tr>
   `, t);
 
@@ -288,7 +288,7 @@ function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: s
 
 function rsvpReminderTemplate(ctx: EmailContext): { subject: string; html: string } {
   const guestName = ctx.guestName || 'Friend';
-  const coupleNames = ctx.coupleNames || 'the couple';
+  const coupleNames = ctx.coupleNames || 'your hosts';
   const daysLeft = ctx.daysUntilDeadline;
   const urgency = daysLeft !== undefined && daysLeft <= 3 ? 'last-chance' : 'gentle';
   const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
@@ -335,7 +335,7 @@ function rsvpReminderTemplate(ctx: EmailContext): { subject: string; html: strin
 
 function eventReminderTemplate(ctx: EmailContext): { subject: string; html: string } {
   const guestName = ctx.guestName || 'Friend';
-  const coupleNames = ctx.coupleNames || 'the couple';
+  const coupleNames = ctx.coupleNames || 'your hosts';
   const daysUntil = ctx.daysUntilEvent;
   const isTomorrow = daysUntil === 1;
   const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
@@ -384,7 +384,7 @@ function eventReminderTemplate(ctx: EmailContext): { subject: string; html: stri
 
 function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html: string } {
   const guestName = ctx.guestName || 'Friend';
-  const coupleNames = ctx.coupleNames || 'the newlyweds';
+  const coupleNames = ctx.coupleNames || 'your hosts';
   const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
   const headingStack = `'${t.headingFont}',Georgia,serif`;
   const bodyStack = `'${t.bodyFont}',Georgia,serif`;

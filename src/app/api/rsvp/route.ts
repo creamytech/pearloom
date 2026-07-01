@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
         const ownerEmail = String((site as { creator_email?: string }).creator_email ?? cfg?.creator_email ?? '');
         if (!ownerEmail) return;
         const names = (cfg?.names ?? []).filter(Boolean);
-        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : (site as { subdomain?: string }).subdomain ?? String(siteId);
+        const siteLabel = names.join(' & ') || ((site as { subdomain?: string }).subdomain ?? String(siteId));
         const declined = status === 'declined';
         const { notifyHost } = await import('@/lib/notifications/notify');
         await notifyHost(supabase, {

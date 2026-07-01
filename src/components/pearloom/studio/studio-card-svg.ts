@@ -117,14 +117,16 @@ function classicLayout(a: StudioCardSvgArgs): string {
   parts.push(rule(cx, PAD + 16, 48 * S, p.accent));
   parts.push(text(c.eyebrow, { x: cx, y: PAD + 52, size: 9 * S, family: f.ui, fill: p.ink, weight: 600, anchor: 'middle', lsEm: 0.32, uppercase: true, opacity: 0.7 }));
   parts.push(rule(cx, PAD + 72, 48 * S, p.accent));
-  // Middle: names + amp
+  // Middle: names + amp (solo cards carry one name — no amp line)
   const nameSize = 56 * S;
-  let y = H / 2 - 130;
+  let y = nameB ? H / 2 - 130 : H / 2 - 40;
   parts.push(text(nameA, { x: cx, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
-  y += 36 * S + 16;
-  parts.push(text('and', { x: cx, y, size: 36 * S, family: f.display, fill: p.accent, weight: 400, italic: true, anchor: 'middle', lsEm: 0.04 }));
-  y += nameSize * 0.95 + 8;
-  parts.push(text(nameB, { x: cx, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
+  if (nameB) {
+    y += 36 * S + 16;
+    parts.push(text('and', { x: cx, y, size: 36 * S, family: f.display, fill: p.accent, weight: 400, italic: true, anchor: 'middle', lsEm: 0.04 }));
+    y += nameSize * 0.95 + 8;
+    parts.push(text(nameB, { x: cx, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
+  }
   y += 64;
   parts.push(text(c.line2, { x: cx, y, size: 13 * S, family: f.ui, fill: p.ink, opacity: 0.85, anchor: 'middle', italic: type === 'thanks' }));
   y += 40;
@@ -143,14 +145,17 @@ function asymLayout(a: StudioCardSvgArgs): string {
   const parts: string[] = [];
   parts.push(text(c.eyebrow, { x: PAD, y: PAD + 20, size: 9 * S, family: f.ui, fill: p.ink, weight: 600, lsEm: 0.26, uppercase: true, opacity: 0.7 }));
   parts.push(text('no. 01', { x: W - PAD, y: PAD + 22, size: 10 * S, family: f.display, fill: p.ink, italic: true, anchor: 'end', opacity: 0.6 }));
-  // Names anchored at ~32% height, left-aligned, stacked.
+  // Names anchored at ~32% height, left-aligned, stacked. Solo
+  // cards render one name, no amp stack.
   const nameSize = 70 * S;
-  let y = H * 0.32 - nameSize * 0.6;
+  let y = nameB ? H * 0.32 - nameSize * 0.6 : H * 0.32;
   parts.push(text(nameA, { x: PAD, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, lsEm: -0.03 }));
-  y += nameSize * 0.92;
-  parts.push(text('and', { x: PAD, y, size: 56 * S, family: f.display, fill: p.accent, weight: 400, italic: true }));
-  y += nameSize * 0.92;
-  parts.push(text(nameB, { x: PAD, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, lsEm: -0.03 }));
+  if (nameB) {
+    y += nameSize * 0.92;
+    parts.push(text('and', { x: PAD, y, size: 56 * S, family: f.display, fill: p.accent, weight: 400, italic: true }));
+    y += nameSize * 0.92;
+    parts.push(text(nameB, { x: PAD, y, size: nameSize, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, lsEm: -0.03 }));
+  }
   // Bottom strip: rule + The day / The place columns
   const ruleY = H - PAD - 130;
   parts.push(`<rect x="${PAD}" y="${ruleY}" width="${W - PAD * 2}" height="2.4" fill="${escapeXml(p.accent)}" opacity="0.6" />`);
@@ -175,7 +180,7 @@ function photoLayout(a: StudioCardSvgArgs): string {
   let y = photoH + 80;
   parts.push(text(c.eyebrow, { x: cx, y, size: 9 * S, family: f.ui, fill: p.ink, weight: 600, anchor: 'middle', lsEm: 0.3, uppercase: true, opacity: 0.65 }));
   y += 100;
-  parts.push(text(`${nameA} and ${nameB}`, { x: cx, y, size: 40 * S, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
+  parts.push(text(nameB ? `${nameA} and ${nameB}` : nameA, { x: cx, y, size: 40 * S, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
   y += 86;
   parts.push(text(c.line3, { x: cx, y, size: 13 * S, family: f.display, fill: p.ink, weight: 500, anchor: 'middle' }));
   y += 56;
@@ -184,11 +189,11 @@ function photoLayout(a: StudioCardSvgArgs): string {
 }
 
 function scriptLayout(a: StudioCardSvgArgs): string {
-  const { palette: p, content: c, nameA, nameB, type } = a;
+  const { palette: p, content: c, nameA, nameB } = a;
   const script = "'Caveat', cursive";
-  const body = type === 'thanks'
-    ? "We can't believe it really happened, and we can't believe you were there. Thank you, with all our love, for celebrating with us."
-    : "Save the date — we're getting married, and we'd love nothing more than to have you there.";
+  // Same occasion-routed letter body the canvas renders
+  // (buildTypeContent.scriptBody) — one source of copy truth.
+  const body = c.scriptBody;
   const parts: string[] = [];
   let y = H * 0.3;
   parts.push(text('Dearest friend,', { x: PAD, y, size: 32 * S, family: script, fill: p.ink }));
@@ -198,7 +203,7 @@ function scriptLayout(a: StudioCardSvgArgs): string {
     y += 24 * S * 1.3;
   }
   y += 56;
-  parts.push(text(`— ${nameA} & ${nameB}`, { x: PAD, y, size: 28 * S, family: script, fill: p.accent }));
+  parts.push(text(nameB ? `— ${nameA} & ${nameB}` : `— ${nameA}`, { x: PAD, y, size: 28 * S, family: script, fill: p.accent }));
   parts.push(text(c.line3, { x: PAD, y: H - PAD, size: 10 * S, family: "'Inter', system-ui, sans-serif", fill: p.ink, weight: 600, lsEm: 0.2, uppercase: true, opacity: 0.55 }));
   return parts.join('\n');
 }
@@ -208,7 +213,7 @@ function minimalLayout(a: StudioCardSvgArgs): string {
   const cx = W / 2;
   const parts: string[] = [];
   let y = H / 2 - 40;
-  parts.push(text(`${nameA} & ${nameB}`, { x: cx, y, size: 48 * S, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
+  parts.push(text(nameB ? `${nameA} & ${nameB}` : nameA, { x: cx, y, size: 48 * S, family: f.display, fill: p.ink, weight: f.weight, italic: f.italic, anchor: 'middle', lsEm: -0.02 }));
   y += 76;
   parts.push(rule(cx, y, 80 * S, p.accent));
   y += 76;

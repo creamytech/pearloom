@@ -41,6 +41,8 @@ import { StudioProofSheet } from './StudioProofSheet';
 import { studioCardToPrintSvg, inlineRemoteImage } from './studio-card-svg';
 import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { parseLocalDate } from '@/lib/date-utils';
 
 interface Props {
@@ -50,16 +52,24 @@ interface Props {
 }
 
 export function StudioApp({ siteSlug, manifest, names }: Props) {
+  /* Solo honoree (memorial, birthday, shower, …) — one name on
+     every card, no '&', no placeholder partner. Same registry the
+     published site + suite read. */
+  const solo = isSoloSubject(manifest);
   const [nameA, nameB] = useMemo(() => {
-    const a = (names[0] || '').trim() || 'Your';
-    const b = (names[1] || '').trim() || 'Celebration';
-    return [titleCase(a), titleCase(b)];
-  }, [names]);
+    const a = titleCase((names[0] || '').trim());
+    const b = titleCase((names[1] || '').trim());
+    if (solo) return [a || 'Your Celebration', ''];
+    if (!a && !b) return ['Your', 'Celebration'];
+    return [a || 'Your', b || 'Celebration'];
+  }, [names, solo]);
+  /** "Emma & James" for pairs, "Eleanor" for solo honorees. */
+  const displayNames = nameB ? `${nameA} & ${nameB}` : nameA;
   const monogram = useMemo(() => {
     const first = (nameA[0] ?? '').toUpperCase();
     const second = (nameB[0] ?? '').toUpperCase();
-    if (!first && !second) return '·&·';
-    return `${first || '·'}&${second || '·'}`;
+    if (!second) return first || '·';
+    return `${first || '·'}&${second}`;
   }, [nameA, nameB]);
 
   const dateShort = useMemo(() => {
@@ -101,21 +111,24 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     ? `${hotels[0].name}${hotels[0].groupRate ? ` · ${hotels[0].groupRate}` : ''}`
     : undefined;
 
-  // Envelope return-address corner. Fall back to the couple's
-  // venue address if the host hasn't entered a dedicated one —
+  // Envelope return-address corner. Fall back to the host's
+  // venue address if they haven't entered a dedicated one —
   // it's a sensible default when the envelope ships from the
-  // wedding location, and it's better than three blank lines.
+  // event location, and it's better than three blank lines.
   const returnAddress = useMemo(() => {
     const parts = (venueAddress || '').split(',').map(s => s.trim()).filter(Boolean);
     return {
-      name: `${nameA} & ${nameB}`,
+      name: displayNames,
       line1: parts[0] ?? '',
       line2: parts.slice(1).join(', '),
     };
-  }, [nameA, nameB, venueAddress]);
+  }, [displayNames, venueAddress]);
 
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
+  /* Solemn occasions (memorial / funeral) soften the card backs —
+     reply options, sign-offs, the Caveat flourish. */
+  const solemn = getEventType(occasion)?.voice === 'solemn';
 
   const { state, setField, setMany, savedAt, saving, saveError, retrySave } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
@@ -262,7 +275,8 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     venue,
     place,
     siteUrl,
-  }), [state.type, nameA, nameB, dateShort, dateLong, venue, place, siteUrl]);
+    occasion,
+  }), [state.type, nameA, nameB, dateShort, dateLong, venue, place, siteUrl, occasion]);
 
   // Merge AI-drafted alternates + host-typed copy overrides over
   // the built-in defaults. Locked fields (headline, line3) always
@@ -658,6 +672,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
             {state.view === 'back' && (
               <CardBack
                 type={state.type}
+                solemn={solemn}
                 view="back"
                 layout={state.layout}
                 motif={state.motif}
@@ -961,7 +976,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           }}
           onSent={() => setStatsTick((t) => t + 1)}
           buildPrintSvg={buildPrintSvg}
-          defaultReturnName={`${nameA} & ${nameB}`}
+          defaultReturnName={displayNames}
           initialMail={sendMailFirst}
         />
       )}

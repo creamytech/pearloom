@@ -9,6 +9,9 @@
 // manifest.studio.{type}.{palette,layout,fontPair,motif,tone}.
 // ─────────────────────────────────────────────────────────────
 
+import { getEventType } from '@/lib/event-os/event-types';
+import { occasionCopyFor } from '@/components/pearloom/redesign/occasion-copy';
+
 export type StationeryType = 'std' | 'invite' | 'thanks';
 export type CardView = 'front' | 'back' | 'envelope';
 
@@ -85,6 +88,9 @@ export interface StudioContent {
   line4: string;
   cta: string;
   stamp: string;
+  /** Letter body for the handwritten ('script') layout — a full
+   *  sentence in the occasion's voice, not the short line2. */
+  scriptBody: string;
   drafts: StudioDraft[];
   pearNudges: string[];
 }
@@ -152,7 +158,7 @@ export const COPY_TONES: StudioCopyTone[] = [
 export const DEFAULT_ASSET_PALETTE: AssetEntry[] = [
   { id: 's1', kind: 'stamp', tone: 'lavender', text: 'SAVE THE DATE', icon: 'heart' },
   { id: 's2', kind: 'stamp', tone: 'peach',    text: 'BY AIR MAIL',   icon: 'sparkle' },
-  { id: 's3', kind: 'stamp', tone: 'sage',     text: 'PARTY OF TWO',  icon: 'pear' },
+  { id: 's3', kind: 'stamp', tone: 'sage',     text: 'WITH LOVE',     icon: 'pear' },
   { id: 'w1', kind: 'wax',   color: '#C97A6E' },
   { id: 'w2', kind: 'wax',   color: '#3D4A1F' },
   { id: 'l1', kind: 'leaf' },
@@ -164,20 +170,50 @@ export const DEFAULT_ASSET_PALETTE: AssetEntry[] = [
   { id: 't2', kind: 'tape', color: '#C4B5D9' },
 ];
 
+/** Display join for the honoree names — solo occasions carry one
+ *  name (nameB is empty), pairs join with the ampersand. */
+export function joinStudioNames(nameA: string, nameB: string): string {
+  return nameB ? `${nameA} & ${nameB}` : nameA;
+}
+
+/** Short prose noun for an occasion ("wedding", "memorial",
+ *  "bachelorette party") — the registry label's first segment,
+ *  lowercased for mid-sentence use. */
+export function occasionNoun(occasion?: string | null): string {
+  const label = (occasion && getEventType(occasion)?.label) || 'celebration';
+  return label.split(' / ')[0].toLowerCase();
+}
+
 /** Build the per-type content from manifest data. The Studio
  *  binds these to real fields so editing the date in the hero
- *  flows through to every card automatically. */
+ *  flows through to every card automatically. Copy routes by
+ *  occasion: couple lines ("are getting married") fire only for
+ *  the couple-led wedding arc; solemn occasions (memorial /
+ *  funeral) get gathered-not-celebrated wording; everything else
+ *  reads its occasion pack's tagline. */
 export function buildTypeContent(args: {
   type: StationeryType;
   nameA: string;
+  /** Empty string on solo occasions — the card renders one name. */
   nameB: string;
   dateShort: string;       // 'Apr 26, 2027'
   dateLong: string;        // 'Monday, April 26, 2027'
   venue: string;
   place: string;
   siteUrl: string;         // 'pearloom.com/<slug>'
+  /** Site occasion id — defaults to 'wedding' (legacy rows). */
+  occasion?: string;
 }): StudioContent {
   const { type, nameA, nameB, dateLong, venue, place, siteUrl } = args;
+  const occasion = args.occasion ?? 'wedding';
+  const voice = getEventType(occasion)?.voice ?? 'celebratory';
+  const solemn = voice === 'solemn';
+  const pack = occasionCopyFor(occasion);
+  const noun = occasionNoun(occasion);
+  /* Couple-led wedding arc — the only occasions where classic
+     couple copy ("are getting married") is true. */
+  const coupleArc = occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal';
+  const headline = joinStudioNames(nameA, nameB);
   // Venue + place, de-duplicated: `place` falls back to `venue` when
   // there's no separate address, which doubled the line ("Madison
   // Square Garden · NY · Madison Square Garden · NY"). Collapse when
@@ -192,13 +228,21 @@ export function buildTypeContent(args: {
   })();
   if (type === 'std') {
     return {
-      eyebrow: 'Save the date',
-      headline: `${nameA} & ${nameB}`,
-      line2: 'are getting married',
+      eyebrow: pack.lead,
+      headline,
+      line2: occasion === 'wedding' ? 'are getting married'
+        : occasion === 'engagement' ? 'are engaged'
+        : occasion === 'vow-renewal' ? 'are renewing their vows'
+        : pack.tagline,
       line3: dateLong,
       line4: place,
-      cta: 'Formal invitation to follow',
-      stamp: 'SAVE THE DATE',
+      cta: solemn ? 'Details will follow gently' : 'Formal invitation to follow',
+      stamp: solemn ? 'IN MEMORY' : 'SAVE THE DATE',
+      scriptBody: solemn
+        ? "We're setting aside a day to gather and remember together, and we'd be honored to have you with us."
+        : coupleArc
+          ? "Save the date — we're getting married, and we'd love nothing more than to have you there."
+          : `Save the date — a ${noun} is coming, and we'd love nothing more than to have you there.`,
       drafts: [
         { id: 'editorial', name: 'Editorial', tone: 'serif · centered · stamp', accent: 'lavender', layout: 'classic', motif: 'stamp' },
         { id: 'garden',    name: 'Garden',    tone: 'olive · vines · soft',     accent: 'sage',     layout: 'asym',    motif: 'leaves' },
@@ -206,20 +250,27 @@ export function buildTypeContent(args: {
       ],
       pearNudges: [
         'Try a serif headline — it lands warmer for save-the-dates.',
-        "Most couples send 6–9 months out. You're at 12 — perfect.",
+        'Most hosts send 6–9 months out — earlier for a travel weekend.',
         'Add a stamp with the date. Guests glance at one detail; make it that.',
       ],
     };
   }
   if (type === 'invite') {
     return {
-      eyebrow: 'You are invited to celebrate',
-      headline: `${nameA} & ${nameB}`,
-      line2: 'request the pleasure of your company',
+      eyebrow: solemn ? 'Join us in remembering' : 'You are invited to celebrate',
+      headline,
+      line2: solemn ? 'a gathering to honor a beautiful life'
+        : coupleArc ? 'request the pleasure of your company'
+        : pack.tagline,
       line3: dateLong,
       line4: locationLine,
       cta: 'Kindly respond by the date on your card',
-      stamp: "YOU’RE INVITED",
+      stamp: solemn ? 'IN MEMORY' : "YOU’RE INVITED",
+      scriptBody: solemn
+        ? "We're gathering to remember a beautiful life, and we'd be honored to have you with us."
+        : coupleArc
+          ? "We're getting married, and we'd love nothing more than to have you with us."
+          : `We're gathering for a ${noun}, and we'd love nothing more than to have you with us.`,
       drafts: [
         { id: 'editorial', name: 'Letterpress',  tone: 'classic · centered',      accent: 'cream',    layout: 'classic', motif: 'monogram' },
         { id: 'garden',    name: 'En plein air', tone: 'natural · pressed leaves', accent: 'sage',     layout: 'asym',    motif: 'leaves' },
@@ -228,18 +279,23 @@ export function buildTypeContent(args: {
       pearNudges: [
         'Switch the date to spelled-out form — it reads more formal.',
         'Add a meal preference question to the RSVP card on the back.',
-        'I can rewrite the body in three tones — formal, warm, playful.',
+        solemn
+          ? 'I can soften any line — gentle, formal, or spare.'
+          : 'I can rewrite the body in three tones — formal, warm, playful.',
       ],
     };
   }
   return {
-    eyebrow: 'Thank you',
-    headline: 'with all our love',
-    line2: 'for celebrating with us',
+    eyebrow: solemn ? 'With gratitude' : 'Thank you',
+    headline: solemn ? 'with heartfelt thanks' : 'with all our love',
+    line2: solemn ? 'for standing with us' : 'for celebrating with us',
     line3: dateLong,
-    line4: `love, ${nameA} & ${nameB}`,
+    line4: solemn ? `the family of ${nameA}` : `love, ${headline}`,
     cta: `Photos at ${siteUrl}`,
     stamp: 'WITH GRATITUDE',
+    scriptBody: solemn
+      ? 'Thank you for standing with us, and for every kind word. It meant more than we can say.'
+      : "We can't believe it really happened, and we can't believe you were there. Thank you, with all our love, for celebrating with us.",
     drafts: [
       { id: 'photo',   name: 'Photo card',  tone: 'big photo · short note', accent: 'peach',    layout: 'photo',   motif: 'tape' },
       { id: 'script',  name: 'Handwritten', tone: 'script · personal',       accent: 'cream',    layout: 'script',  motif: 'wax' },
@@ -248,7 +304,9 @@ export function buildTypeContent(args: {
     pearNudges: [
       "Write each one slightly different — guests notice when it's personal.",
       "I'll auto-fill 'thank you for the [gift]' from your registry log.",
-      'Schedule for the day after the wedding — they arrive while it’s still fresh.',
+      solemn
+        ? 'Send within a few weeks — a short note means a great deal.'
+        : `Schedule for the day after the ${noun} — they arrive while it’s still fresh.`,
     ],
   };
 }
