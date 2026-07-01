@@ -32,6 +32,7 @@ import { ThemeRail } from './ThemeRail';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
+import { LivingBackground } from '../site/LivingBackground';
 import { CanvasPhotoDrawer, type PhotoSlot } from './CanvasPhotoDrawer';
 import { CanvasPearBlocks, type PicksKind } from './CanvasPearBlocks';
 import { EditorDrawers } from './EditorDrawers';
@@ -623,8 +624,18 @@ function EditorCanvas({
       }
       if (s.kind === 'gallery' && typeof s.index === 'number') {
         const arr = Array.isArray(loose.galleryImages) ? [...(loose.galleryImages as string[])] : [];
-        if (url) arr[s.index] = url;
-        else arr.splice(s.index, 1);
+        if (url) {
+          /* Anti-sparse guard: empty-state tiles dispatch arbitrary
+             indices (the 4th square can be clicked first). Writing
+             arr[3] on an empty array would save [ , , , url] — null
+             holes that render as blank tiles on the published site
+             and misalign index-keyed galleryCaptions. Append instead
+             when the slot is past the end. */
+          if (s.index >= arr.length) arr.push(url);
+          else arr[s.index] = url;
+        } else {
+          arr.splice(s.index, 1);
+        }
         return { ...loose, galleryImages: arr } as unknown as StoryManifest;
       }
       if (s.kind === 'chapter' && typeof s.index === 'number') {
@@ -733,6 +744,19 @@ function EditorCanvas({
           flexShrink: 0,
         }}
       >
+        {/* Living background (v2 shader wallpaper) — ThemedSite's root
+            goes transparent when manifest.background is set, expecting
+            an animated ground behind it. The published shell mounts
+            one; without this the canvas previewed a wallpaper pick as
+            flat editor paper. Absolute (fixed={false}) so the device
+            frame contains it; the site root carries zIndex 1 and
+            paints above. LivingBackground self-validates the id. */}
+        {Boolean((canvasManifest as unknown as { background?: string }).background) && (
+          <LivingBackground
+            id={(canvasManifest as unknown as { background?: string }).background as string}
+            fixed={false}
+          />
+        )}
         <ThemedSite
           active={active}
           hover={hover}

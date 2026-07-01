@@ -18,6 +18,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Pear } from '../motifs';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { dressCodeSuggestions } from '../editor/panels/_suggestions';
 import type { OccasionKey } from '../editor/panels/_suggestions';
 
@@ -116,9 +117,16 @@ export function CanvasPearBlocks({
   const [vis, setVis] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [items, setItems] = useState<PickItem[]>([]);
   const [added, setAdded] = useState<Record<number, boolean>>({});
   const [nonce, setNonce] = useState(0);
+  // Latch the last non-null kind: EditorRedesign nulls `kind`
+  // synchronously on close, and rendering from the prop would unmount
+  // in one frame — the 240ms exit transition below would never play.
+  // Render-time adjustment, not a setState-in-effect.
+  const [lastKind, setLastKind] = useState<PicksKind | null>(kind);
+  if (kind != null && kind !== lastKind) setLastKind(kind);
 
   // Enter / exit transition (matches the photo drawer's .26s).
   useEffect(() => {
@@ -139,6 +147,7 @@ export function CanvasPearBlocks({
     let cancelled = false;
     setAdded({});
     setErr(null);
+    setNotice(null);
     setItems([]);
     setLoading(true);
     (async () => {
@@ -157,10 +166,24 @@ export function CanvasPearBlocks({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, kind, nonce]);
 
-  if (!render || !kind) return null;
-  const meta = META[kind];
+  if (!render || !lastKind) return null;
+  const meta = META[lastKind];
 
   const addItem = (i: number, item: PickItem) => {
+    // applyPick silently no-ops when Details is at its 3-card cap —
+    // check BEFORE dispatching so the card never claims an add that
+    // didn't happen. (Dedupe no-ops already read truthfully: the card
+    // shows Added via isPresent.) A rapid double-click can still race
+    // the manifest prop, but applyPick's own cap guards the write.
+    if (item.kind === 'details') {
+      const loose = manifest as unknown as Record<string, unknown>;
+      const cards = Array.isArray(loose.detailsCards) ? loose.detailsCards : [];
+      if (cards.length >= 3) {
+        setNotice('Details holds three cards — remove one in the panel first, then add this.');
+        return;
+      }
+    }
+    setNotice(null);
     onAdd((m) => applyPick(m, item));
     setAdded((a) => ({ ...a, [i]: true }));
   };
@@ -205,10 +228,9 @@ export function CanvasPearBlocks({
                 <Pear size={30} tone="sage" sparkle shadow={false} />
               </div>
               <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Pear is drafting from your details…</div>
-              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 5 }}>
-                {[0, 1, 2].map((d) => (
-                  <span key={d} style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--peach-ink, #8C6E3D)', animation: `pl-dot-pulse 1.4s ${d * 0.18}s ease-in-out infinite` }} />
-                ))}
+              {/* WeaveLoader is THE loader (BRAND §8) — no bespoke dots. */}
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+                <WeaveLoader size="sm" />
               </div>
             </div>
           )}
@@ -216,6 +238,12 @@ export function CanvasPearBlocks({
           {!loading && err && (
             <div style={{ padding: 16, borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line-soft, #ECE4D2)', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
               {err}
+            </div>
+          )}
+
+          {!loading && notice && (
+            <div role="status" style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line-soft, #ECE4D2)', fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+              {notice}
             </div>
           )}
 
@@ -234,7 +262,7 @@ export function CanvasPearBlocks({
             the result (the AI sections); template sections (Details,
             Schedule) are deterministic, so it's hidden there. */}
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {REGEN_KINDS.has(kind) ? (
+          {REGEN_KINDS.has(lastKind) ? (
             <button
               type="button"
               onClick={() => { if (!loading) setNonce((n) => n + 1); }}

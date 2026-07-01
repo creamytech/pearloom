@@ -35,6 +35,7 @@ import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
 import { StoreFonts } from '@/lib/theme-store/fonts';
+import { LAYOUTS, readVariant } from './layouts';
 
 interface Props {
   manifest: StoryManifest;
@@ -770,24 +771,17 @@ function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange:
    exposes both nav axes; production reads manifest.layouts.nav /
    .navMobile. "Menu" is the brand-plain label (BRAND §7). ───────── */
 
-const NAV_DESKTOP = [
-  { id: 'centered', label: 'Centered' },
-  { id: 'split', label: 'Split' },
-  { id: 'serif-block', label: 'Serif block' },
-  { id: 'minimal-text', label: 'Minimal' },
-  { id: 'iconic', label: 'Iconic' },
-];
-const NAV_PHONE = [
-  { id: 'overlay', label: 'Overlay' },
-  { id: 'slide-in', label: 'Slide-in' },
-  { id: 'bottom-sheet', label: 'Bottom sheet' },
-  { id: 'pill', label: 'Pill' },
-];
+/* Options + active values come from the layouts registry (LAYOUTS +
+   readVariant), never a local copy — a new nav variant or a changed
+   default would silently desync a hardcoded list, highlighting one
+   chip while the canvas renders another. */
+const NAV_DESKTOP = LAYOUTS.nav ?? [];
+const NAV_PHONE = LAYOUTS.navMobile ?? [];
 
 function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const layouts = ((manifest as unknown as { layouts?: Record<string, string> }).layouts) ?? {};
-  const desktop = layouts.nav ?? 'split';
-  const phone = layouts.navMobile ?? 'slide-in';
+  const desktop = readVariant(manifest, 'nav');
+  const phone = readVariant(manifest, 'navMobile');
   const set = (key: 'nav' | 'navMobile', id: string) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     layouts: { ...layouts, [key]: id },

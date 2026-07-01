@@ -46,7 +46,7 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
   // Phase 4.2 of AUDIT-2026-05-29. Title id wired into
   // aria-labelledby so screen readers announce "Import guests
   // from CSV" on open. Esc-to-close matches every other
-  // Pearloom modal (AuthModal, DesignAdvisor, DashSettings delete).
+  // Pearloom modal (DashSettings delete, the Studio send overlay).
   const titleId = useId();
   useEffect(() => {
     if (!open) return;

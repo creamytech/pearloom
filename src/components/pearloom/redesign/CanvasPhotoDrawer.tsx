@@ -45,6 +45,12 @@ export function CanvasPhotoDrawer({
   const [vis, setVis] = useState(false);
   const [library, setLibrary] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  // Latch the last non-null slot: EditorRedesign nulls `slot`
+  // synchronously on close, and rendering from the prop would unmount
+  // in one frame — the 280ms exit slide below would never play.
+  // Render-time adjustment, not a setState-in-effect.
+  const [lastSlot, setLastSlot] = useState<PhotoSlot | null>(slot);
+  if (slot != null && slot !== lastSlot) setLastSlot(slot);
 
   // Mount/enter/exit transition (matches the zip's .28s slide).
   useEffect(() => {
@@ -81,11 +87,16 @@ export function CanvasPhotoDrawer({
       } catch { /* library stays the manifest pool */ }
     })();
     return () => { cancelled = true; };
-  }, [open, manifest]);
+    // manifest is intentionally read fresh per open, not a dep — an
+    // editor write landing while the tray is open (an undo, a Pear
+    // apply, a collab save) would reset the grid's uploaded-first
+    // ordering and re-fetch /api/user-media mid-browse.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-  if (!render || !slot) return null;
+  if (!render || !lastSlot) return null;
 
-  const current = slot.current ?? null;
+  const current = lastSlot.current ?? null;
 
   async function uploadFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -117,7 +128,7 @@ export function CanvasPhotoDrawer({
   }
 
   const trigger = () => inputRef.current?.click();
-  const headLabel = slot.label ? `Choose a photo for ${slot.label}` : 'Choose a photo';
+  const headLabel = lastSlot.label ? `Choose a photo for ${lastSlot.label}` : 'Choose a photo';
 
   return (
     <div
