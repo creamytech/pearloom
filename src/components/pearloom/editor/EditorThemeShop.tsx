@@ -26,6 +26,7 @@ import { applyPackToManifest } from '@/lib/theme-store/apply';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { PackPreview } from '../store/PackPreview';
 import { Icon, Pear } from '../motifs';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { UndoToast, fireUndoable } from '../redesign/UndoToast';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 
@@ -238,6 +239,18 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     onClose();
   };
 
+  /* Escape closes (restoring the try-on snapshot) — every sibling
+     sheet (MobileSheet, CanvasPhotoDrawer, FittingRoom, the palette)
+     already does; the shop was the odd one out. */
+  const handleCloseRef = useRef(handleClose);
+  useEffect(() => { handleCloseRef.current = handleClose; });
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleCloseRef.current(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const unlock = async (pack: Pack) => {
     setBusyId(pack.id);
     try {
@@ -304,8 +317,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         <style>{`
           .shopbtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:none;min-height:30px;transition:filter .14s;font-family:inherit}
           .shopbtn-ink{background:var(--ink);color:var(--cream)} .shopbtn:hover{filter:brightness(1.1)}
-          .shop-spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;animation:shop-spin .7s linear infinite;display:inline-block}
-          @keyframes shop-spin{to{transform:rotate(360deg)}}
           @keyframes shop-bar-in{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
           .shop-chip{flex:0 0 auto;white-space:nowrap;padding:6px 13px;border-radius:999px;font-family:var(--font-mono,ui-monospace,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:background .14s,color .14s}
         `}</style>
@@ -416,7 +427,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                   className="shopbtn"
                   style={{ background: dark ? 'var(--gold)' : 'var(--ink)', color: dark ? '#231F33' : 'var(--cream)' }}
                 >
-                  {busyId === tryingPack.id ? <span className="shop-spin" /> : <>Unlock · ${price}</>}
+                  {/* WeaveLoader, never a border-spinner (BRAND §8). */}
+                  {busyId === tryingPack.id ? <WeaveLoader size="xs" inline /> : <>Unlock · ${price}</>}
                 </button>
               </div>
             </div>

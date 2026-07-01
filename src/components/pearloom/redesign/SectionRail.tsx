@@ -525,6 +525,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 color: on ? 'var(--cream)' : 'var(--ink-soft)',
                 border: 0,
                 cursor: 'pointer',
+                transition: 'background var(--pl-dur-quick) var(--pl-ease-out), color var(--pl-dur-quick) var(--pl-ease-out)',
               }}
             >
               {label}
@@ -537,7 +538,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           page block picker. Mounted from the section-panels module
           since the same control lives in ThemePanel's Pages section. */}
       {tab === 'pages' && onChange && (
-        <div style={{ padding: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="pl8-tab-enter" style={{ padding: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SiteModeSection manifest={manifest} onChange={onChange} />
 
           {/* The pages themselves — flipping to magazine mode used
@@ -616,6 +617,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           as a broken tab. */}
       {tab === 'theme' && (
         <div
+          className="pl8-tab-enter"
           style={{
             padding: '12px 13px',
             borderRadius: 10,
@@ -749,7 +751,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 opacity: isDragging ? 0.32 : 1,
                 transform: isDragging ? 'scale(0.98)' : 'scale(1)',
                 transformOrigin: 'left center',
-                transition: 'background var(--pl-dur-instant), opacity var(--pl-dur-quick), transform var(--pl-dur-quick)',
+                transition: 'background var(--pl-dur-quick), opacity var(--pl-dur-quick), transform var(--pl-dur-quick)',
                 userSelect: 'none',
               }}
             >

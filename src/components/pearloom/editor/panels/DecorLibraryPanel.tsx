@@ -24,7 +24,7 @@
    ========================================================================= */
 
 import { MOTIF_LAYOUTS, motifLayoutForKit } from '../../redesign/MotifLayer';
-import { useState, type ReactNode, type CSSProperties } from 'react';
+import { useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import {
@@ -812,6 +812,22 @@ export function DecorLibraryPanel({
   const [tab, setTab] = useState<DLTab>('motifs');
   const [text, setText] = useState('');
   const [gen, setGen] = useState<DecorState | null>(null);
+  /* Drawer exit — stay mounted for the slide-out (a 300ms entrance
+     with a 0ms exit reads broken). `vis` drives the transition;
+     `drawerRender` unmounts after it completes. */
+  const [drawerRender, setDrawerRender] = useState(asDrawer ? open : true);
+  const [drawerVis, setDrawerVis] = useState(false);
+  useEffect(() => {
+    if (!asDrawer) return;
+    if (open) {
+      setDrawerRender(true);
+      const t = setTimeout(() => setDrawerVis(true), 10);
+      return () => clearTimeout(t);
+    }
+    setDrawerVis(false);
+    const t = setTimeout(() => setDrawerRender(false), 260);
+    return () => clearTimeout(t);
+  }, [asDrawer, open]);
   /* True when the current `gen` preview came from Pear (the
      Generate flow) vs a curated preset tap — drives the
      "drafted by Pear" attribution on the preview card. */
@@ -1047,10 +1063,9 @@ export function DecorLibraryPanel({
 
   // Drawer mode: wrap the existing card in the prototype's fixed
   // overlay + slide-in aside. Embedded mode: render the card inline.
-  // Returns null when asDrawer && !open so the drawer disappears
-  // entirely (allows callers to keep it mounted without paying
-  // pointer-events cost).
-  if (asDrawer && !open) return null;
+  // Unmounts only after the exit slide completes (drawerRender);
+  // callers can keep it mounted without paying pointer-events cost.
+  if (asDrawer && !drawerRender) return null;
 
   const innerCard = (
     <div data-pl-decor-library style={asDrawer ? { width: '100%', height: '100%', display: 'flex', flexDirection: 'column' } : { marginBottom: 14 }}>
@@ -1439,8 +1454,7 @@ export function DecorLibraryPanel({
         pointerEvents: 'none',
       }}
     >
-      <style>{`@keyframes dl-in{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}
-.pl8-dl-drawer{width:min(460px,94vw);border-radius:0;}
+      <style>{`.pl8-dl-drawer{width:min(460px,94vw);border-radius:0;}
 @media (max-width:520px){.pl8-dl-drawer{width:100vw;border-radius:14px 0 0 14px;}}`}</style>
       <div
         onClick={onClose}
@@ -1450,6 +1464,8 @@ export function DecorLibraryPanel({
           inset: 0,
           background: 'rgba(40,40,30,0.18)',
           pointerEvents: 'auto',
+          opacity: drawerVis ? 1 : 0,
+          transition: 'opacity 240ms ease',
         }}
       />
       <aside
@@ -1467,7 +1483,11 @@ export function DecorLibraryPanel({
           flexDirection: 'column',
           pointerEvents: 'auto',
           overflow: 'hidden',
-          animation: 'dl-in 300ms cubic-bezier(0.16,1,0.3,1)',
+          // vis-driven so the slide plays BOTH ways (the old dl-in
+          // keyframe only animated the mount).
+          transform: drawerVis ? 'none' : 'translateX(28px)',
+          opacity: drawerVis ? 1 : 0,
+          transition: 'transform 280ms cubic-bezier(0.16,1,0.3,1), opacity 240ms ease',
         }}
       >
         {innerCard}

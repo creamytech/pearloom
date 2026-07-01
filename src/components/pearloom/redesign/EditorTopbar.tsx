@@ -363,6 +363,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
               {menuOpen && (
                 <div
                   role="menu"
+                  className="pl8-pop-in"
                   style={{
                     position: 'absolute',
                     top: 'calc(100% + 6px)',
@@ -544,15 +545,22 @@ function avatarInitials(name?: string | null, email?: string | null): string {
    pearloom:design-jump event. */
 
 function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
+  /* "Today" is sampled once per mount (lazy init) — reading the clock
+     in render violates the React Compiler contract (the compiler may
+     cache the render across time). Once-per-session staleness across
+     a midnight boundary is fine for a ±7-day badge. */
+  const [todayMs] = useState(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t.getTime();
+  });
   const dateStr = manifest.logistics?.date ?? '';
   if (!dateStr.trim()) return null;
   const ms = Date.parse(dateStr);
   if (Number.isNaN(ms)) return null;
   const eventDay = new Date(ms);
   eventDay.setHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysOut = Math.round((eventDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysOut = Math.round((eventDay.getTime() - todayMs) / (1000 * 60 * 60 * 24));
   if (daysOut > 7 || daysOut < -1) return null;
   const isLive = daysOut <= 0 && daysOut >= -1;
   const label = isLive ? 'Go live' : `Day-of · ${daysOut}d`;

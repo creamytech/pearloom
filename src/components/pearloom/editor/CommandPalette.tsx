@@ -74,6 +74,22 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
+  // Two-state mount so close eases out (the old `if (!open) return
+  // null` cut everything — including the 0.4-opacity backdrop — in
+  // one frame). Same pattern as CanvasPhotoDrawer.
+  const [render, setRender] = useState(open);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setRender(true);
+      const t = setTimeout(() => setVis(true), 10);
+      return () => clearTimeout(t);
+    }
+    setVis(false);
+    const t = setTimeout(() => setRender(false), 170);
+    return () => clearTimeout(t);
+  }, [open]);
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setOpen((v) => !v); }
@@ -139,7 +155,7 @@ export function CommandPalette({
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }, [sel, open]);
 
-  if (!open) return null;
+  if (!render) return null;
 
   const groups: [string, Command[]][] = [];
   const seen: Record<string, Command[]> = {};
@@ -147,10 +163,10 @@ export function CommandPalette({
 
   let idx = -1;
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh' } as CSSProperties}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh', opacity: vis ? 1 : 0, transition: 'opacity 160ms var(--pl-ease-out, ease)', pointerEvents: vis ? 'auto' : 'none' } as CSSProperties}>
       <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--pl-glass)',
-        backgroundImage: 'var(--pl-glass-sheen)', backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', borderRadius: 16, boxShadow: 'var(--pl-glass-shadow-lg)', overflow: 'hidden', border: '1px solid var(--pl-glass-border)', animation: 'cmd-in 180ms cubic-bezier(0.16,1,0.3,1)' }}>
-        <style>{`@keyframes cmd-in{from{transform:translateY(-8px) scale(0.99);opacity:0}to{transform:none;opacity:1}}`}</style>
+        backgroundImage: 'var(--pl-glass-sheen)', backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', borderRadius: 16, boxShadow: 'var(--pl-glass-shadow-lg)', overflow: 'hidden', border: '1px solid var(--pl-glass-border)',
+        transform: vis ? 'none' : 'translateY(-8px) scale(0.99)', transition: 'transform 180ms cubic-bezier(0.16,1,0.3,1), opacity 160ms ease' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--pl-chrome-border)' }}>
           <Icon name="search" size={17} color="var(--pl-chrome-text-muted)"/>
           <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sections, themes, actions…" style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 15.5, outline: 'none', color: 'var(--pl-chrome-text)', fontFamily: 'inherit' }}/>
@@ -164,7 +180,7 @@ export function CommandPalette({
               {items.map(c => {
                 idx++; const i = idx; const on = i === sel;
                 return (
-                  <button key={c.id || c.label} onMouseEnter={() => setSel(i)} onClick={() => run(c)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: on ? 'var(--pl-chrome-text)' : 'transparent', color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)', cursor: 'pointer' } as CSSProperties}>
+                  <button key={c.id || c.label} onMouseEnter={() => setSel(i)} onClick={() => run(c)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: on ? 'var(--pl-chrome-text)' : 'transparent', color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)', cursor: 'pointer', transition: 'background var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease), color var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease)' } as CSSProperties}>
                     <span style={{ width: 30, height: 30, borderRadius: 8, background: on ? 'rgba(255,255,255,0.14)' : 'var(--cream-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                       {c.swatch ? <span style={{ width: 16, height: 16, borderRadius: '50%', background: c.swatch }}/> : <Icon name={c.icon || 'arrow-right'} size={15} color={on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-soft)'}/>}
                     </span>

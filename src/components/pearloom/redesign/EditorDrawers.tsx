@@ -100,7 +100,10 @@ export function EditorDrawers({ manifest, onChange, siteSlug }: Props) {
         onPatchManifest={onChange}
         onJumpSection={(key) => {
           if (typeof window === 'undefined') return;
-          window.dispatchEvent(new CustomEvent('pearloom:jump-section', { detail: { key } }));
+          // design-jump is the event EditorRedesign actually listens
+          // for (jump-section had no listener — every "Jump to …" row
+          // was a silent no-op).
+          window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: key } }));
         }}
         onOpenThemeShop={() => setThemeShopOpen(true)}
         onOpenDecorLibrary={() => setDecorOpen(true)}
@@ -116,11 +119,11 @@ export function EditorDrawers({ manifest, onChange, siteSlug }: Props) {
           if (typeof window === 'undefined') return;
           window.dispatchEvent(new CustomEvent('pearloom:toggle-preview'));
         }}
-        onOpenAskPear={() => {
-          if (typeof window === 'undefined') return;
-          window.dispatchEvent(new CustomEvent('pearloom:open-ask-pear'));
-        }}
       />
+      {/* No onOpenAskPear on the palette above — the Pear chat
+          (advisor column + floating pill) was removed; the row led to
+          a dead event. CommandPalette hides it when the handler is
+          absent. */}
       <PublishModal
         open={publishOpen}
         onClose={() => setPublishOpen(false)}

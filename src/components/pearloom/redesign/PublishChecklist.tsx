@@ -191,6 +191,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
         <div
           role="dialog"
           aria-label="Publish readiness"
+          className="pl8-pop-in"
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',

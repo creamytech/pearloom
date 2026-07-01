@@ -524,6 +524,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
             {optionsOpen && (
               <div
                 role="menu"
+                className="pl8-pop-in"
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 6px)',
@@ -630,7 +631,12 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           shrink below its content's intrinsic size and the rail
           pushes past the viewport. */}
       <div
-        key={tab}
+        /* Keyed by tab AND (on the content tab) the active section, so
+           switching sections replays the fade-up like tab flips do —
+           panel switches were the one hard swap left in the rail.
+           Design/Motion keep the plain tab key: keying those by
+           section would remount ThemePickerBody and drop its state. */
+        key={effectiveTab === 'content' ? `content:${active ?? 'none'}` : tab}
         className="pl-rd-tab-body"
         style={{
           flex: 1,

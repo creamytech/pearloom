@@ -30,7 +30,7 @@
    singleton guard makes accidental double-mounts harmless: only
    the first instance renders. */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export const UNDOABLE_EVENT = 'pearloom:undoable';
 
@@ -66,6 +66,17 @@ interface ActiveToast extends UndoableDetail {
 
 export function UndoToast() {
   const [toast, setToast] = useState<ActiveToast | null>(null);
+  /* Exit fade — the toast used to vanish in one frame at the 6s
+     timer (often mid-read). `closing` plays a 180ms out animation
+     before the unmount. */
+  const [closing, setClosing] = useState(false);
+  const dismiss = useCallback(() => {
+    setClosing(true);
+    window.setTimeout(() => {
+      setToast(null);
+      setClosing(false);
+    }, 180);
+  }, []);
 
   /* Claim the singleton slot + listen for pearloom:undoable. A
      non-primary instance simply never subscribes, so its toast
@@ -82,6 +93,7 @@ export function UndoToast() {
     const onUndoable = (e: Event) => {
       const detail = (e as CustomEvent<UndoableDetail>).detail;
       if (!detail || typeof detail.message !== 'string' || typeof detail.undo !== 'function') return;
+      setClosing(false);
       setToast({ message: detail.message, undo: detail.undo, key: Date.now() });
     };
     window.addEventListener(UNDOABLE_EVENT, onUndoable);
@@ -94,9 +106,9 @@ export function UndoToast() {
   /* 6s auto-dismiss — keyed on the toast so replacements restart it. */
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), TOAST_MS);
+    const t = setTimeout(dismiss, TOAST_MS);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [toast, dismiss]);
 
   if (!toast) return null;
 
@@ -106,7 +118,7 @@ export function UndoToast() {
     } catch (e) {
       console.error('[undo-toast] undo callback failed:', e);
     }
-    setToast(null);
+    dismiss();
   };
 
   return (
@@ -141,14 +153,20 @@ export function UndoToast() {
         boxShadow: 'var(--pl-glass-shadow-lg)',
         fontSize: 12.5,
         lineHeight: 1.45,
-        animation: 'pl-rd-undo-in 220ms var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1))',
-        pointerEvents: 'auto',
+        animation: closing
+          ? 'pl-rd-undo-out 180ms var(--pl-ease-out, ease) forwards'
+          : 'pl-rd-undo-in 220ms var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1))',
+        pointerEvents: closing ? 'none' : 'auto',
       }}
     >
       <style>{`
         @keyframes pl-rd-undo-in {
           from { opacity: 0; transform: translateX(-50%) translateY(10px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes pl-rd-undo-out {
+          from { opacity: 1; transform: translateX(-50%) translateY(0); }
+          to   { opacity: 0; transform: translateX(-50%) translateY(8px); }
         }
         @keyframes pl-rd-undo-run {
           from { transform: scaleX(1); }
