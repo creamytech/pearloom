@@ -5355,7 +5355,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
     lead: co('heroLead', V.lead),
     tagline: tagline || V.tagline,
-    cta: co('heroCta', 'RSVP'),
+    cta: co('heroCta', V.cta),
     ctaHref: co('heroCtaHref', '#rsvp'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
@@ -5430,7 +5430,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         : !demo
           ? []
           : [
-            { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
+            { l: 'Dress code', v: V.detailsDressDemo, icon: 'sparkles' },
             /* Kids card responds to DetailsPanel's binary toggles.
                kidsWelcome=true wins; adultsOnly=true forces an
                adults-only label; neither set leaves the cream default. */
@@ -5439,7 +5439,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
               : adultsOnlyRaw === true
                 ? { l: 'Adults-only evening', v: 'Reception is 18+', icon: 'users' }
                 : { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
-            { l: 'Gifts', v: 'Your presence is enough', icon: 'gift' },
+            { l: V.detailsGiftsCard[0], v: V.detailsGiftsCard[1], icon: 'gift' },
           ],
       };
     })(),
@@ -5549,7 +5549,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
            counts) must never reach guests — editor preview only. */
         hotels: mapped.length > 0 ? mapped : !demo ? [] : [
           { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
-          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
+          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A quiet cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
         ],
       };
     })(),

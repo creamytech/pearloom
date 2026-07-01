@@ -831,6 +831,11 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
 
 function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const voice = (manifest as unknown as { voiceOverride?: string }).voiceOverride ?? 'classic';
+  /* Solemn occasions ignore the voice on purpose (occasion-copy:
+     a playful memorial is not a thing we ship) — hide the knob
+     rather than offer a control that does nothing. */
+  const occ = (manifest as unknown as { occasion?: string }).occasion;
+  const solemnSite = occ === 'memorial' || occ === 'funeral';
   const density = manifest.density ?? 'comfortable';
   const intensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
   const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
@@ -871,13 +876,15 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
         Fine-tune · {theme.name}
       </div>
 
-      <PickRow label="Voice">
-        <Segmented value={voice} setValue={setVoice} options={[
-          { id: 'classic', label: 'Classic' },
-          { id: 'playful', label: 'Playful' },
-          { id: 'poetic', label: 'Poetic' },
-        ]} />
-      </PickRow>
+      {!solemnSite && (
+        <PickRow label="Voice">
+          <Segmented value={voice} setValue={setVoice} options={[
+            { id: 'classic', label: 'Classic' },
+            { id: 'playful', label: 'Playful' },
+            { id: 'poetic', label: 'Poetic' },
+          ]} />
+        </PickRow>
+      )}
 
       <PickRow label="Spacing">
         <Segmented value={density} setValue={setDensity} options={[

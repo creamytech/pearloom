@@ -24,6 +24,10 @@ describe('occasionCopyFor', () => {
       expect(c.registryDemoStores.length, e.id).toBeGreaterThan(0);
       expect(c.scheduleDemo.length, e.id).toBeGreaterThan(0);
       expect(c.faqDemo.length, e.id).toBeGreaterThan(0);
+      expect(c.cta, e.id).toBeTruthy();
+      expect(c.detailsDressDemo, e.id).toBeTruthy();
+      expect(c.detailsGiftsCard[0], e.id).toBeTruthy();
+      expect(c.detailsGiftsCard[1], e.id).toBeTruthy();
     }
   });
 
@@ -64,11 +68,17 @@ describe('occasionCopyFor', () => {
     }
   });
 
-  it('wedding responds to the Pear-voice pick; other occasions ignore it', () => {
+  it('wedding responds to the Pear-voice pick; other occasions get safe overlays; solemn ignores it', () => {
     expect(occasionCopyFor('wedding', 'playful').tagline).toBe(WEDDING_VOICES.playful.tagline);
     expect(occasionCopyFor('wedding', 'poetic').storyTitle).toBe(WEDDING_VOICES.poetic.storyTitle);
+    /* Non-wedding overlays touch only occasion-safe fields. */
     expect(occasionCopyFor('birthday', 'playful').tagline).toBe(occasionCopyFor('birthday').tagline);
-    expect(occasionCopyFor('memorial', 'playful').lead).toBe('In loving memory');
+    expect(occasionCopyFor('birthday', 'playful').rsvpTitle).toBe('Get in here');
+    expect(occasionCopyFor('birthday', 'poetic').tagline).toBe('of all the days, this one');
+    expect(occasionCopyFor('birthday', 'poetic').storyTitle).toBe(occasionCopyFor('birthday').storyTitle);
+    /* Solemn occasions ignore voice entirely. */
+    expect(occasionCopyFor('memorial', 'playful')).toEqual(occasionCopyFor('memorial'));
+    expect(occasionCopyFor('funeral', 'poetic')).toEqual(occasionCopyFor('funeral'));
   });
 
   it('legacy manifests (no occasion) keep wedding copy; unknown occasions get the generic pack', () => {
