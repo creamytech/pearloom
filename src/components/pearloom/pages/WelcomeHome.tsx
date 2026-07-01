@@ -36,6 +36,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
+import { DashSkeleton } from '../dash/DashSkeleton';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketing/design/dash/hooks';
@@ -591,8 +592,8 @@ function GuestPulse({
     return (
       <div className="card" style={{ padding: 20, borderRadius: 20 }}>
         <SectionHeader icon="users">Guests</SectionHeader>
-        <div style={{ padding: '14px 4px 4px', fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
-          Threading…
+        <div style={{ paddingTop: 14 }}>
+          <DashSkeleton kind="list" count={2} label="Threading your guest counts" />
         </div>
       </div>
     );

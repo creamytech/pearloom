@@ -224,6 +224,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden
+            className="pl8-chip-pop"
             style={{
               position: 'absolute',
               top: 4,
@@ -251,6 +252,7 @@ export function NotificationBell() {
         <div
           role="dialog"
           aria-label="Recent activity"
+          className="pl8-pop-in"
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',

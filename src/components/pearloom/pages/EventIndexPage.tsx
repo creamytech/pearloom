@@ -174,26 +174,29 @@ function SiteCard({
           {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
         </div>
         {/* Stat row — real coming/invited + lifetime visits (zip
-            SiteCard). Rendered only once stats have loaded; never a
-            placeholder number. */}
-        {stat && (
-          <div style={{ display: 'flex', gap: 24, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
-            {([['RSVPs', `${stat.coming} / ${stat.invited}`], ['Visits', fmtVisits(stat.visits)]] as const).map(([l, v]) => (
-              <div key={l}>
-                <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)', marginTop: 2 }}>{v}</div>
-              </div>
-            ))}
-          </div>
-        )}
+            SiteCard). The row's frame renders immediately with an em
+            dash (the KPI-tile convention for "still threading") and
+            the real numbers fade in — no placeholder number, and no
+            layout jump a second after paint. */}
+        <div style={{ display: 'flex', gap: 24, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
+          {([
+            ['RSVPs', stat ? `${stat.coming} / ${stat.invited}` : '—'],
+            ['Visits', stat ? fmtVisits(stat.visits) : '—'],
+          ] as const).map(([l, v]) => (
+            <div key={l}>
+              <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
+              <div key={stat ? 'v' : 'p'} className={stat ? 'pl8-content-fade-in' : undefined} style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: stat ? 'var(--ink)' : 'var(--ink-muted)', marginTop: 2 }}>{v}</div>
+            </div>
+          ))}
+        </div>
         {site.venue && (
           <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
             <Icon name="pin" size={12} /> {site.venue}
           </div>
         )}
         {/* URL with a live/idle status dot (zip SiteCard domain row).
-            Own divider only when no stat row sits above it. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: stat ? 12 : 10, paddingTop: stat ? 0 : 12, borderTop: stat ? 'none' : '1px solid var(--line-soft)', fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
+            The stat row above always renders now, so no own divider. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
           <span style={{ width: 6, height: 6, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--line)' }} />
           {url}
         </div>
@@ -353,6 +356,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
       {open && (
         <div
           role="menu"
+          className="pl8-pop-in"
           style={{
             position: 'absolute',
             top: 38,
@@ -373,6 +377,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
             href={`/editor/${encodeURIComponent(site.domain)}`}
             role="menuitem"
             onClick={() => setOpen(false)}
+            className="pl8-menu-item"
             style={menuItemStyle}
           >
             <Icon name="brush" size={13} /> Edit site
@@ -383,6 +388,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
             rel="noreferrer"
             role="menuitem"
             onClick={() => setOpen(false)}
+            className="pl8-menu-item"
             style={menuItemStyle}
           >
             <Icon name="arrow-ur" size={13} /> View live
@@ -393,6 +399,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
             role="menuitem"
             disabled={busy}
             onClick={handleDelete}
+            className="pl8-menu-item"
             style={{
               ...menuItemStyle,
               color: '#7A2D2D',

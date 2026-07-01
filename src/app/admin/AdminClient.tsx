@@ -162,7 +162,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
             outline: 'none',
           }}
         />
-        <button type="submit" style={btnInk} disabled={busy === 'lookup'}>
+        <button type="submit" className="pl8-btnfx" style={btnInk} disabled={busy === 'lookup'}>
           {busy === 'lookup' ? 'Threading…' : 'Look up'}
         </button>
       </form>

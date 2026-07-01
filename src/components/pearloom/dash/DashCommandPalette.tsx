@@ -351,6 +351,9 @@ export function DashCommandPalette() {
                     fontFamily: 'inherit',
                     fontSize: 13.5,
                     color: 'var(--ink)',
+                    // Keyboard navigation glides between rows instead
+                    // of snapping (arrow keys move `active` fast).
+                    transition: 'background var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease), border-color var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease)',
                   }}
                 >
                   <Icon name={item.icon ?? 'sparkles'} size={14} color="var(--peach-ink, #C6703D)" />

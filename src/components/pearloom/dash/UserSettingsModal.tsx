@@ -533,7 +533,9 @@ export function UserSettingsModal({
   const plans = planList(planInfo.plan);
 
   return (
-    <div className="pl8" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: isPhone ? 12 : 24, boxSizing: 'border-box' }}>
+    // Backdrop fades with the panel (it used to snap on while the
+    // panel scaled in). pl8-content-fade-in is the shared 320ms fade.
+    <div className="pl8 pl8-content-fade-in" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: isPhone ? 12 : 24, boxSizing: 'border-box' }}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: isPhone ? 'calc(100vw - 24px)' : 'min(880px, 96vw)', maxWidth: '100%', height: isPhone ? 'min(700px, 92dvh)' : 'min(620px, 92vh)', background: 'var(--card)', borderRadius: 22, overflow: 'hidden', display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '232px 1fr', gridTemplateRows: isPhone ? 'auto 1fr' : undefined, boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
         <style>{`@keyframes us-in{from{transform:scale(0.97);opacity:0}to{transform:none;opacity:1}}`}</style>
         {/* left rail — horizontal tab strip on phones */}
@@ -543,7 +545,7 @@ export function UserSettingsModal({
             {tabs.map((t) => {
               const on = tab === t.id;
               return (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontSize: 12.5, fontWeight: on ? 700 : 500, boxShadow: on ? '0 1px 3px rgba(61,74,31,0.08)' : 'none', border: 'none', fontFamily: 'inherit' }}>
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontSize: 12.5, fontWeight: on ? 700 : 500, boxShadow: on ? '0 1px 3px rgba(61,74,31,0.08)' : 'none', border: 'none', fontFamily: 'inherit', transition: 'background var(--pl-dur-quick) var(--pl-ease-out), color var(--pl-dur-quick) var(--pl-ease-out), box-shadow var(--pl-dur-quick) var(--pl-ease-out)' }}>
                   <Icon name={t.icon} size={13} color={on ? 'var(--sage-deep)' : 'var(--ink-muted)'} /> {t.label}
                 </button>
               );
@@ -565,7 +567,7 @@ export function UserSettingsModal({
             {tabs.map((t) => {
               const on = tab === t.id;
               return (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, textAlign: 'left', cursor: 'pointer', background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: on ? 700 : 500, boxShadow: on ? '0 1px 3px rgba(61,74,31,0.08)' : 'none', border: 'none' }}>
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, textAlign: 'left', cursor: 'pointer', background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: on ? 700 : 500, boxShadow: on ? '0 1px 3px rgba(61,74,31,0.08)' : 'none', border: 'none', transition: 'background var(--pl-dur-quick) var(--pl-ease-out), color var(--pl-dur-quick) var(--pl-ease-out), box-shadow var(--pl-dur-quick) var(--pl-ease-out)' }}>
                   <Icon name={t.icon} size={15} color={on ? 'var(--sage-deep)' : 'var(--ink-muted)'} /> {t.label}
                 </button>
               );
@@ -579,11 +581,15 @@ export function UserSettingsModal({
         {/* content */}
         <div style={{ position: 'relative', overflow: 'auto', minHeight: 0, padding: isPhone ? '18px 16px 20px' : '24px 28px' }}>
           <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', zIndex: 2, border: 'none', cursor: 'pointer' }}><Icon name="close" size={15} color="var(--ink-soft)" /></button>
-          {tab === 'account' && <AccountTab user={user} />}
-          {tab === 'usage' && <UsageTab usage={usage} planLabel={planInfo.label} onUpgrade={() => setTab('subscription')} />}
-          {tab === 'subscription' && <SubscriptionTab plans={plans} />}
-          {tab === 'notifications' && <NotificationPrefsTab />}
-          {tab === 'preferences' && <PreferencesTab />}
+          {/* key={tab} + pl8-tab-enter: tab switches crossfade instead
+              of hard-swapping. */}
+          <div key={tab} className="pl8-tab-enter">
+            {tab === 'account' && <AccountTab user={user} />}
+            {tab === 'usage' && <UsageTab usage={usage} planLabel={planInfo.label} onUpgrade={() => setTab('subscription')} />}
+            {tab === 'subscription' && <SubscriptionTab plans={plans} />}
+            {tab === 'notifications' && <NotificationPrefsTab />}
+            {tab === 'preferences' && <PreferencesTab />}
+          </div>
         </div>
       </div>
     </div>

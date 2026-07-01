@@ -434,11 +434,13 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
         <div
           ref={menuRef}
           role="menu"
+          className="pl8-pop-in pl8-pop-in--left"
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 8px)',
             left: 0,
             right: 0,
+            transformOrigin: 'bottom left',
             background: 'var(--pl-glass)',
         backgroundImage: 'var(--pl-glass-sheen)',
             backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
