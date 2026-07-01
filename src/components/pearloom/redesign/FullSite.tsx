@@ -18,6 +18,7 @@ import { Blob, Icon, Pear, Squiggle } from '../motifs';
 import { AmbientThread } from '../ambient';
 import { getTheme, themeRootStyle, type Density } from '../site/themes';
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
+import { occasionCopyFor } from './occasion-copy';
 import { TextureFilters } from '../site/TextureFilters';
 import type { SectionId } from './EditorRedesign';
 
@@ -103,6 +104,13 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
       isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
   const nameA = cleanA || (solo ? 'Sam' : 'Scott');
   const nameB = solo ? '' : (cleanB || 'Shauna');
+  /* Occasion copy pack — the demo strings below (tagline, story
+     eyebrow/title/body, schedule rows, registry stores, FAQ) used to
+     be hardcoded wedding copy for every occasion; a memorial canvas
+     showed "How we met … as we marry". Host-facing stand-in only. */
+  const copy = occasionCopyFor(
+    (manifest as unknown as { occasion?: string }).occasion,
+  );
   /* Date formatter — accepts ISO ("2027-04-27") or pre-formatted
      strings ("Monday, April 26, 2027") and always renders the long
      human form the handoff hero uses. */
@@ -210,7 +218,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               Save the date
             </div>
             <div style={{ fontFamily: headFont, fontStyle: 'italic', fontSize: 18, color: themeInkSoft, marginBottom: 14 }}>
-              together, at last
+              {copy.tagline}
             </div>
             <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: 0, letterSpacing: '-0.02em', fontWeight: Number(theme.vars['--t-display-wght'] ?? 600), color: themeInk }}>
               {nameA}
@@ -266,17 +274,14 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
                 marginBottom: 8,
               }}
             >
-              Our story
+              {copy.storyEyebrow}
             </div>
             <h2 style={{ fontFamily: headFont, fontSize: 36, margin: 0, lineHeight: 1, fontWeight: 600, color: themeInk }}>
-              How we{' '}
-              <span style={{ fontStyle: 'italic', color: themeInkSoft }}>met</span>
+              {copy.storyTitle}{' '}
+              <span style={{ fontStyle: 'italic', color: themeInkSoft }}>{copy.storyItalic}</span>
             </h2>
             <p style={{ marginTop: 16, fontSize: 14.5, color: themeInkSoft, lineHeight: 1.6 }}>
-              We met on an ordinary Tuesday and spent the evening arguing, fondly,
-              about whether olives belong on pizza. Ten years later, we would be
-              honoured to have you with us as we marry — there is no story we would
-              rather tell, and no one we would rather tell it to.
+              {copy.storyBodyDemo}
             </p>
           </div>
         </div>
@@ -310,13 +315,8 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               The day, in moments
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
-            {[
-              { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
-              { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },
-              { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
-              { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
-            ].map((s) => (
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${copy.scheduleDemo.length},1fr)`, gap: 12, maxWidth: 880, marginInline: 'auto' }}>
+            {copy.scheduleDemo.map((s) => (
               <div key={s.t} style={{ padding: 16, background: themeCard, borderRadius: 12, border: `1px solid ${themeLineSoft}`, textAlign: 'center' }}>
                 <div style={{ fontFamily: headFont, fontSize: 20, fontWeight: 600, color: themeInk }}>{s.t}</div>
                 <div style={{ fontSize: 13, color: themeInk, marginTop: 4, fontWeight: 600 }}>{s.l}</div>
@@ -369,7 +369,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             If you&apos;d like to celebrate further, we&apos;ve put a few things together.
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-            {['Honeyfund', 'Crate & Barrel', 'Zola'].map((s) => (
+            {copy.registryDemoStores.map((s) => (
               <span key={s} style={{ padding: '12px 22px', borderRadius: 12, background: themeCard, border: `1px solid ${themeLineSoft}`, fontSize: 13, fontWeight: 600, color: themeInk }}>
                 {s} ↗
               </span>
@@ -423,12 +423,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             </h2>
           </div>
           <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              "What's the dress code, really?",
-              'Can I bring a plus-one?',
-              'Are kids welcome at the ceremony?',
-              'Where should I stay in Santorini?',
-            ].map((q, i) => (
+            {copy.faqDemo.map((q, i) => (
               <div key={i} style={{ padding: '12px 16px', background: themeCard, border: `1px solid ${themeLineSoft}`, borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 13.5, color: themeInk }}>{q}</span>
                 <Icon name="chev-down" size={13} color={themeInkMuted} />

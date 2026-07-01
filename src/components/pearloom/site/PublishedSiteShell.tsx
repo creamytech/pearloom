@@ -60,7 +60,7 @@ function GuestCrashFallback() {
         </h1>
         <p style={{ fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 20px' }}>
           We hit a snag rendering this page. Refreshing usually clears it —
-          if not, the couple has been notified.
+          if not, the hosts have been notified.
         </p>
         {/* Raw <a> not next/link — full reload escapes any broken React state. */}
         <a

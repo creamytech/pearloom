@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { PearThinking } from '../pear-thinking';
 
 interface Props {
@@ -55,12 +56,22 @@ interface Message {
   content: string;
 }
 
-const STARTER_PROMPTS = [
+const BASE_STARTER_PROMPTS = [
   'Where do I park?',
   "What's the dress code?",
   'How do I RSVP?',
-  "What time's the ceremony?",
 ];
+
+/* The fourth chip routes by occasion — "What time's the ceremony?"
+   only fits events whose schedule genuinely centers a ceremony or
+   service (ceremonial + solemn voices: weddings, memorials, baptisms,
+   bar/bat mitzvahs, …). A birthday or bachelor party just starts. */
+function scheduleStarterPrompt(occasion: string | undefined): string {
+  const voice = getEventType(occasion ?? 'wedding')?.voice;
+  return voice === 'ceremonial' || voice === 'solemn'
+    ? "What time's the ceremony?"
+    : 'What time does it start?';
+}
 
 export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
   const [open, setOpen] = useState(false);
@@ -115,6 +126,8 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
   }, [guest, domain]);
 
   const effectiveGuest = guest ?? resolvedGuest ?? undefined;
+
+  const starterPrompts = [...BASE_STARTER_PROMPTS, scheduleStarterPrompt(manifest.occasion)];
 
   useEffect(() => {
     if (!open) return;
@@ -345,7 +358,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
               speaking when. I&apos;ll keep it short.
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-              {STARTER_PROMPTS.map((s) => (
+              {starterPrompts.map((s) => (
                 <button
                   key={s}
                   type="button"

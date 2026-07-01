@@ -20,6 +20,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { computeDayOfState, formatDelta, type DayOfState } from '@/lib/day-of/state';
+import { getEventType } from '@/lib/event-os/event-types';
 import type { StoryManifest } from '@/types';
 
 interface Props {
@@ -57,10 +58,15 @@ export function DayOfBanner({ manifest }: Props) {
   const tone = state.status === 'live' ? 'peach' : state.status === 'post' ? 'sage' : 'lavender';
   const palette = TONE_PALETTE[tone];
 
+  /* Solemn occasions (memorial / funeral) get a quieter after-state
+     — "Thanks for celebrating / See you again, soon." is the wrong
+     key for a service. */
+  const solemn = getEventType(manifest.occasion ?? 'wedding')?.voice === 'solemn';
+
   const eyebrow = state.status === 'live'
     ? 'Live now'
     : state.status === 'post'
-      ? 'Thanks for celebrating'
+      ? (solemn ? 'With gratitude' : 'Thanks for celebrating')
       : state.nextLabel
         ? 'Up next'
         : 'Tomorrow';
@@ -68,7 +74,7 @@ export function DayOfBanner({ manifest }: Props) {
   const headline = state.status === 'live'
     ? state.nowLabel ?? 'The day, in your hands'
     : state.status === 'post'
-      ? 'See you again, soon.'
+      ? (solemn ? 'Thank you for being with us.' : 'See you again, soon.')
       : state.nextLabel ?? 'The day is starting';
 
   const meta = state.nextMomentAt && state.status !== 'post'

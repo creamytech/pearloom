@@ -204,6 +204,10 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const occasion = manifest.occasion ?? 'wedding';
   const eventType = getEventType(occasion);
   const rsvpPreset: RsvpPreset = (eventType?.rsvpPreset as RsvpPreset) ?? 'wedding';
+  /* Solemn occasions (memorial / funeral) get quieter defaults —
+     no song-request field, and the note addresses "the family"
+     rather than "the hosts". */
+  const solemnVoice = eventType?.voice === 'solemn';
 
   // Custom meal options surface from the host's catered-menu config when
   // present. We re-use the same field name that ThemedSiteRenderer's
@@ -224,8 +228,11 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
      dietary, songRequest, plusOne}. When the host turns one off in the
      editor, the guest modal hides that field. Each defaults to true
      when the rsvpConfig object is absent (legacy sites) so we don't
-     regress already-published flows. plusOne is the only field that
-     defaults to false — matching the editor panel's default. */
+     regress already-published flows. Exceptions: plusOne defaults to
+     false (matching the editor panel's default), and songRequest
+     defaults to false on solemn occasions — "A song to get you
+     dancing" has no place on a memorial. An explicit host setting
+     always wins over these defaults. */
   const questionGates = useMemo(() => {
     const cfg = (manifest as unknown as {
       rsvpConfig?: { mealChoice?: boolean; dietary?: boolean; songRequest?: boolean; plusOne?: boolean };
@@ -233,10 +240,10 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     return {
       mealChoice: cfg?.mealChoice ?? true,
       dietary: cfg?.dietary ?? true,
-      songRequest: cfg?.songRequest ?? true,
+      songRequest: cfg?.songRequest ?? !solemnVoice,
       plusOne: cfg?.plusOne ?? false,
     };
-  }, [manifest]);
+  }, [manifest, solemnVoice]);
 
   /* The "Bringing a guest?" field shows when the host allows plus-
      ones site-wide OR granted this specific guest one. */
@@ -1087,7 +1094,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 </div>
                 )}
                 <div style={fieldStyle()}>
-                  <label style={labelStyle()}>A note to the {anyYes ? 'hosts' : 'couple'}</label>
+                  <label style={labelStyle()}>A note to the {solemnVoice ? 'family' : 'hosts'}</label>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
