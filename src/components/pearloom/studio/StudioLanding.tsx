@@ -10,6 +10,7 @@
 // type and opens the editor.
 // ─────────────────────────────────────────────────────────────
 
+import Link from 'next/link';
 import { Icon, Pear } from '../motifs';
 import type { StationeryType } from './studio-constants';
 
@@ -24,10 +25,14 @@ interface CardSpec {
   ring: string;   // hairline
 }
 
+/* Accent tokens must be REAL pearloom.css vars (they carry the
+   editorial-midnight dark values) — --sage-ink / --lavender-tint
+   don't exist, so their light-mode hex fallbacks applied in dark
+   mode too: dark olive ink on dark paper, a glaring pastel disc. */
 const CARDS: CardSpec[] = [
   { id: 'std', eyebrow: 'Save the date', name: 'Save the Date', sub: 'Send 6–9 months ahead', icon: 'calendar-check', tint: 'var(--peach-bg, #F6E9DD)', ink: 'var(--peach-ink, #8C6E3D)', ring: 'var(--peach-2, #E6C9A8)' },
-  { id: 'invite', eyebrow: 'Invitation', name: 'The Invitation', sub: 'Send about 8 weeks before', icon: 'mail', tint: 'var(--sage-tint, #E7EAD3)', ink: 'var(--sage-ink, #5C6B3F)', ring: 'var(--sage, #A6B884)' },
-  { id: 'thanks', eyebrow: 'Thank-you', name: 'Thank You', sub: 'Send the day after', icon: 'heart-icon', tint: 'var(--lavender-tint, #E7E2EF)', ink: 'var(--lavender-ink, #6B5E86)', ring: 'var(--lavender, #B7A7D0)' },
+  { id: 'invite', eyebrow: 'Invitation', name: 'The Invitation', sub: 'Send about 8 weeks before', icon: 'mail', tint: 'var(--sage-tint, #E7EAD3)', ink: 'var(--sage-deep, #5C6B3F)', ring: 'var(--sage, #A6B884)' },
+  { id: 'thanks', eyebrow: 'Thank-you', name: 'Thank You', sub: 'Send the day after', icon: 'heart-icon', tint: 'var(--lavender-bg, #E7E2EF)', ink: 'var(--lavender-ink, #6B5E86)', ring: 'var(--lavender, #B7A7D0)' },
 ];
 
 export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void }) {
@@ -35,7 +40,11 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
     <div
       className="pl8"
       style={{
-        height: '100vh', overflow: 'auto', background: 'var(--cream, #FBF7EE)',
+        /* dvh, not vh — mobile browser chrome resizes the visual
+           viewport; a fixed 100vh box can pin the cards' Start row
+           behind the toolbar with no scrollbar (same rule as the
+           editor root). minHeight so content can grow past it. */
+        minHeight: '100dvh', overflow: 'auto', background: 'var(--cream, #FBF7EE)',
         fontFamily: 'var(--font-ui, "Inter", system-ui, sans-serif)', color: 'var(--ink)',
       }}
     >
@@ -45,9 +54,9 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
           <Pear size={22} tone="sage" shadow={false} />
           <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Studio</span>
         </div>
-        <a href="/dashboard/event" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <Link href="/dashboard/event" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Icon name="arrow-left" size={13} /> Dashboard
-        </a>
+        </Link>
       </div>
 
       <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px clamp(20px, 5vw, 48px) 64px' }}>
