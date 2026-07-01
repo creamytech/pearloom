@@ -4002,6 +4002,8 @@ export function WizardV8() {
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
                         recipe={lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null}
+                        suggestedMotif={st.suggestedMotif}
+                        suggestedMotifLayout={st.suggestedMotifLayout}
                         picks={{
                           siteMode: st.siteMode,
                           kitId: st.kitId,
@@ -4213,7 +4215,10 @@ export function WizardV8() {
                         const lookNames = st.names.filter(Boolean);
                         const fitPalettes: PaletteChoice[] = [];
                         for (const sp of st.smartPalettes ?? []) {
-                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors });
+                          // The paired mark rides the palette into the room
+                          // so the live press wears it, exactly like the
+                          // pressing and generation do.
+                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors, motif: sp.motif, motifLayout: sp.motifLayout });
                         }
                         for (const pp of PALETTES) {
                           if (!fitPalettes.some((x) => x.id === pp.id)) {
@@ -4221,7 +4226,7 @@ export function WizardV8() {
                           }
                         }
                         if (st.palette && !fitPalettes.some((x) => x.id === st.palette) && st.paletteColors?.length) {
-                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors });
+                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors, motif: st.suggestedMotif, motifLayout: st.suggestedMotifLayout });
                         }
                         return (
                           <WizardFittingRoom

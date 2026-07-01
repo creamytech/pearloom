@@ -39,6 +39,8 @@ export function WizardStructureSection({
   coverPhoto,
   galleryImages,
   recipe,
+  suggestedMotif,
+  suggestedMotifLayout,
   picks,
   onChange: _onChange,
   onExpand,
@@ -54,6 +56,11 @@ export function WizardStructureSection({
    *  it so structure choices appear on the construction the host
    *  already picked. */
   recipe?: LookRecipe | null;
+  /** The paired mark + placement riding the picked smart palette
+   *  ("paired mark · champagne") — generation stamps these via
+   *  applyWizardLook, so the pressing must wear them too. */
+  suggestedMotif?: string;
+  suggestedMotifLayout?: string;
   picks: StructurePicks;
   /** Retained for call-site compat — the chip rows moved into the
    *  fitting room, so this section no longer writes picks itself. */
@@ -87,12 +94,17 @@ export function WizardStructureSection({
     const dressed = applyWizardLook(base, {
       selectedPaletteColors: paletteColors,
       occasion,
+      motifKind: suggestedMotif,
+      motifLayout: suggestedMotifLayout,
     }) as unknown as Record<string, unknown>;
     if (recipe) {
       dressed.kitId = recipe.kitId;
       dressed.texture = recipe.texture;
       dressed.textureIntensity = recipe.textureIntensity;
-      dressed.motifLayout = recipe.motifLayout;
+      /* The paired placement (stamped above when valid) survives
+         the recipe — same precedence as generation, where no
+         recipe overrides it. */
+      if (dressed.motifLayout !== suggestedMotifLayout) dressed.motifLayout = recipe.motifLayout;
       dressed.density = recipe.density;
     }
     if (picks.kitId) dressed.kitId = picks.kitId;
@@ -108,7 +120,7 @@ export function WizardStructureSection({
     // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey),
     // not the per-render literal identities — see the note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey]);
+  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, suggestedMotif, suggestedMotifLayout]);
 
   /* Same treatment for names — the wizard passes a fresh tuple every
      render, which would defeat the compiler's memo of the ThemedSite

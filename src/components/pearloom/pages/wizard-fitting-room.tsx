@@ -48,6 +48,11 @@ export interface PaletteChoice {
   id: string;
   name: string;
   colors: string[];
+  /** Paired mark — the ornament Pear's palette advisor matched to
+   *  this palette ("paired mark · champagne"). Rides smart
+   *  palettes only; presets carry none. */
+  motif?: string;
+  motifLayout?: string;
 }
 
 const TEXTURES: Array<{ id: string; label: string }> = [
@@ -164,6 +169,11 @@ export function buildFittingManifest(opts: {
   coverPhoto?: string;
   galleryImages?: string[];
   recipe?: LookRecipe | null;
+  /** The palette's paired mark + placement — generation stamps
+   *  these via applyWizardLook, so the preview must too or the
+   *  paired mark the host was promised never shows up here. */
+  suggestedMotif?: string;
+  suggestedMotifLayout?: string;
   picks: FittingPicks;
 }): StoryManifest {
   const base = {
@@ -174,12 +184,17 @@ export function buildFittingManifest(opts: {
   const dressed = applyWizardLook(base, {
     selectedPaletteColors: opts.paletteColors,
     occasion: opts.occasion,
+    motifKind: opts.suggestedMotif,
+    motifLayout: opts.suggestedMotifLayout,
   }) as unknown as Record<string, unknown>;
   if (opts.recipe) {
     dressed.kitId = opts.recipe.kitId;
     dressed.texture = opts.recipe.texture;
     dressed.textureIntensity = opts.recipe.textureIntensity;
-    dressed.motifLayout = opts.recipe.motifLayout;
+    /* The paired placement (stamped above when valid) survives the
+       recipe — same precedence as generation, where no recipe
+       overrides it. */
+    if (dressed.motifLayout !== opts.suggestedMotifLayout) dressed.motifLayout = opts.recipe.motifLayout;
     dressed.density = opts.recipe.density;
   }
   if (opts.picks.kitId) dressed.kitId = opts.picks.kitId;
@@ -327,6 +342,8 @@ export function WizardFittingRoom({
       coverPhoto,
       galleryImages,
       recipe,
+      suggestedMotif: activePalette?.motif,
+      suggestedMotifLayout: activePalette?.motifLayout,
       picks,
     }),
     /* Primitive deps — the parent recreates `picks` + the gallery
@@ -334,6 +351,7 @@ export function WizardFittingRoom({
        site re-render) on every parent render. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [occasion, paletteKey, coverPhoto, galleryKey, recipe,
+     activePalette?.motif, activePalette?.motifLayout,
      picks.siteMode, picks.kitId, picks.texture, picks.navVariant,
      picks.navMobile, picks.heroVariant, picks.motifLayout,
      picks.density, picks.edition],
