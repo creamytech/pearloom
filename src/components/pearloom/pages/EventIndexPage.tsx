@@ -17,20 +17,24 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import type { SiteStat } from '@/app/api/dashboard/sites-stats/route';
 
 // Real per-site stats (coming / invited / visits) for the v2 SiteCard
-// stat row. Module-cached so flipping between dashboard tabs doesn't
-// refetch. Fails soft — a card with no stat just omits the row.
-let _statsCache: Record<string, SiteStat> | null = null;
+// stat row. Module-cached with a short TTL: flipping between dashboard
+// tabs doesn't refetch, but RSVPs landing / a freshly created site
+// don't stay stale for the whole SPA session either. Stale-while-
+// revalidate: paint the cached copy instantly, refresh in the effect.
+// Fails soft — a card with no stat just omits the row.
+let _statsCache: { at: number; stats: Record<string, SiteStat> } | null = null;
+const STATS_TTL_MS = 60_000;
 function useSitesStats(): Record<string, SiteStat> {
-  const [stats, setStats] = useState<Record<string, SiteStat>>(_statsCache ?? {});
+  const [stats, setStats] = useState<Record<string, SiteStat>>(_statsCache?.stats ?? {});
   useEffect(() => {
-    if (_statsCache) return;
+    if (_statsCache && Date.now() - _statsCache.at < STATS_TTL_MS) return;
     let cancelled = false;
     (async () => {
       try {
         const r = await fetch('/api/dashboard/sites-stats', { cache: 'no-store' });
         if (!r.ok) return;
         const d = await r.json();
-        if (!cancelled && d?.stats) { _statsCache = d.stats; setStats(d.stats); }
+        if (!cancelled && d?.stats) { _statsCache = { at: Date.now(), stats: d.stats }; setStats(d.stats); }
       } catch {}
     })();
     return () => { cancelled = true; };

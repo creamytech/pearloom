@@ -198,17 +198,32 @@ export function WelcomeHome() {
     return Array.isArray(raw) ? (raw as BudgetLine[]) : [];
   }, [manifest]);
   const [budget, setBudget] = useState<BudgetLine[]>(savedBudget);
-  useEffect(() => { setBudget(savedBudget); }, [savedBudget]);
+  // Render-time adjustment (not a setState-in-effect): resync the
+  // optimistic copy when the saved manifest changes underneath us
+  // (site switch / refetch).
+  const [prevSavedBudget, setPrevSavedBudget] = useState(savedBudget);
+  if (prevSavedBudget !== savedBudget) {
+    setPrevSavedBudget(savedBudget);
+    setBudget(savedBudget);
+  }
+  // Throws on failure so BudgetBreakdown keeps the editor open and
+  // shows the error — a swallowed failure here read as "saved" while
+  // the numbers silently reverted on reload.
   const saveBudget = async (next: BudgetLine[]) => {
-    setBudget(next);
-    if (!site?.id) return;
+    if (!site?.id) throw new Error('No site selected');
+    const prev = budget;
+    setBudget(next); // optimistic — reverted below if the save fails
     try {
-      await fetch('/api/sites/budget', {
+      const res = await fetch('/api/sites/budget', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId: site.id, budget: next }),
       });
-    } catch {}
+      if (!res.ok) throw new Error(`Budget save failed (${res.status})`);
+    } catch (err) {
+      setBudget(prev);
+      throw err;
+    }
   };
   const nextStep = useMemo(
     () => (manifest

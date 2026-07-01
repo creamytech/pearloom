@@ -167,26 +167,12 @@ export function DashSidebar({ active }: { active?: string }) {
   const initial = (name.trim()[0] ?? 'P').toUpperCase();
   const plan = usePlan();
 
-  // Unread-whispers badge — counts whispers delivered but not yet
-  // read across all of the user's sites. Cheap endpoint, 30s refresh.
-  const [unread, setUnread] = useState(0);
-  useEffect(() => {
-    let cancelled = false;
-    const pull = async () => {
-      try {
-        const r = await fetch('/api/whispers/count', { cache: 'no-store' });
-        if (!r.ok) return;
-        const d = await r.json();
-        if (!cancelled) setUnread(Number(d.unread) || 0);
-      } catch {}
-    };
-    void pull();
-    const id = setInterval(pull, 30_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
+  // NOTE deliberately no unread-whispers badge on the nav: whispers
+  // are read (and their count cleared) on /dashboard/bridge, which
+  // the 22→10 nav cut de-promoted. Pinning that count on the Guests
+  // item left a number the Guests surfaces could never explain or
+  // clear — a real count on the wrong door. Re-add the badge
+  // alongside a whispers destination, not before.
 
   return (
     <>
@@ -271,7 +257,7 @@ export function DashSidebar({ active }: { active?: string }) {
         }}
       >
         {DASH_NAV_GROUPS.map((group) => (
-          <NavGroup key={group.id} group={group} active={active} pathname={pathname} unread={unread} />
+          <NavGroup key={group.id} group={group} active={active} pathname={pathname} />
         ))}
       </nav>
 
@@ -948,12 +934,10 @@ function NavGroup({
   group,
   active,
   pathname,
-  unread,
 }: {
   group: DashNavGroup;
   active?: string;
   pathname: string | null;
-  unread: number;
 }) {
   // v2 IA — static mono group label (no collapse), then the items.
   // The active item carries its own ink pill (NavLink), so there's
@@ -980,9 +964,9 @@ function NavGroup({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {group.items.map((item) => {
           const isActive = active ? item.id === active : pathname === item.href;
-          // Real unread-activity count rides the Guests badge (the
-          // v2 mock showed a static "5"); never fabricated.
-          const liveBadge = item.id === 'guests' && unread > 0 ? String(unread) : item.badge;
+          // Badges are static declarations from the nav registry —
+          // never a fabricated count (the v2 mock's "5" stays out).
+          const liveBadge = item.badge;
           return (
             <NavLink
               key={item.id}
