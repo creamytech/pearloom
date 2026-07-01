@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -95,11 +95,10 @@ interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
      this exact component in published mode without supplying any
      editor wiring. Defaults map to "nothing selected, nothing
-     hovered, nothing editable". */
+     editable". (Hover chrome is pure CSS — see TSection — so hover
+     never invalidates React state.) */
   active?: SectionId;
-  hover?: SectionId;
   setActive?: (id: SectionId) => void;
-  setHover?: (id: SectionId) => void;
   editable?: boolean;
   /* Wizard previews (the pressings, the structure phone, the
      fitting room) — host-facing surfaces that deserve the same
@@ -163,9 +162,7 @@ const INLINE_GHOST_CSS =
 
 export function ThemedSite({
   active = null,
-  hover = null,
   setActive = noop,
-  setHover = noop,
   editable = false,
   demoCopy = false,
   manifest,
@@ -609,7 +606,10 @@ export function ThemedSite({
      device frame even when the browser viewport is desktop-width. */
   const realIsMobile = useIsMobile();
   const isMobile = forceMobile || realIsMobile;
-  const activeId = useActiveSection(sections.map(String));
+  /* useActiveSection lives INSIDE <SiteNav/> (below), not here — the
+     hook's setState fires on every scroll section-crossing, and at
+     the root it re-rendered this entire component (the whole site)
+     mid-scroll on published pages. Only the nav highlights care. */
 
   /* Variant ids — manifest.layouts.nav / manifest.layouts.navMobile
      override the per-section defaults registered in layouts.ts. */
@@ -675,48 +675,24 @@ export function ThemedSite({
         solo?: boolean;
       })
     : undefined;
-  const sharedDesktopNavProps = {
+  const sharedNavProps = {
     headline,
     navItems,
     cta: C.cta,
     onNavClick,
     onCtaClick,
-    activeId,
     monogram,
-  };
-  const sharedMobileNavProps = {
-    headline,
-    navItems,
-    cta: C.cta,
-    onNavClick,
-    onCtaClick,
-    activeId: activeId ?? undefined,
-    monogram,
-  };
-
-  const renderNavVariant = () => {
-    if (isMobile) {
-      switch (navMobileVariant) {
-        case 'overlay':      return <NavMobileOverlay {...sharedMobileNavProps} />;
-        case 'bottom-sheet': return <NavMobileBottomSheet {...sharedMobileNavProps} />;
-        case 'pill':         return <NavMobilePill {...sharedMobileNavProps} />;
-        case 'slide-in':
-        default:             return <NavMobileSlideIn {...sharedMobileNavProps} />;
-      }
-    }
-    switch (navVariant) {
-      case 'centered':     return <NavCentered {...sharedDesktopNavProps} sticky />;
-      case 'serif-block':  return <NavSerifBlock {...sharedDesktopNavProps} sticky />;
-      case 'minimal-text': return <NavMinimalText {...sharedDesktopNavProps} sticky />;
-      case 'iconic':       return <NavIconic {...sharedDesktopNavProps} sticky />;
-      case 'split':
-      default:             return <NavSplit {...sharedDesktopNavProps} sticky />;
-    }
   };
 
   const navEl = (
-    <TSection id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} hideHandle>
-      {renderNavVariant()}
+    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle>
+      <SiteNav
+        sectionIds={sections.map(String)}
+        isMobile={isMobile}
+        navVariant={navVariant}
+        navMobileVariant={navMobileVariant}
+        shared={sharedNavProps}
+      />
     </TSection>
   );
 
@@ -747,9 +723,7 @@ export function ThemedSite({
         id={kind}
         label={ownPage ? `${SECTION_LABEL[kind]} · own page` : SECTION_LABEL[kind]}
         active={active}
-        hover={hover}
         setActive={setActive}
-        setHover={setHover}
         editable={editable}
         onSectionFocus={onSectionFocus}
         motifLayout={ctx.motifLayout}
@@ -778,7 +752,7 @@ export function ThemedSite({
      Handoff themed-site.jsx L181-217 verbatim. */
   if (siteLayout === 'split') {
     return (
-      <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-split">
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -798,9 +772,7 @@ export function ThemedSite({
               navItems={navItems}
               scrollToSection={scrollToSection}
               active={active}
-              hover={hover}
               setActive={setActive}
-              setHover={setHover}
               editable={editable}
               onSectionFocus={onSectionFocus}
             />
@@ -817,10 +789,10 @@ export function ThemedSite({
   if (siteLayout === 'boxed') {
     return (
       <div
-        onMouseLeave={() => setHover(null)}
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 26px)' }}
         data-pl-texture={effectiveTexture}
         data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr}
+        data-pl-editable={editable ? '' : undefined}
         ref={revealRoot}
         className="pl8-guest pl8-guest-boxed"
       >
@@ -863,7 +835,7 @@ export function ThemedSite({
     const leftCol = rest.filter((_, i) => i % 2 === 0);
     const rightCol = rest.filter((_, i) => i % 2 === 1);
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-magazine">
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -894,7 +866,7 @@ export function ThemedSite({
          doesn't suffer in narrow viewports. ───────────────────────── */
   if (siteLayout === 'zine') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-zine">
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -936,7 +908,7 @@ export function ThemedSite({
          inset feel. Mobile keeps the folio + tightens margins. ──── */
   if (siteLayout === 'storybook') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-storybook">
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -993,7 +965,7 @@ export function ThemedSite({
     const rest = sections.filter((s) => s !== 'hero');
     const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-gallery">
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -1007,25 +979,9 @@ export function ThemedSite({
           <div className="pl8-gallery-rail" style={{ position: 'relative' }}>
             {/* Progress strip — right-edge dot column. One dot per
                 non-hero section. Desktop only via the CSS media
-                query below. Currently decorative — turning these
-                into anchored links would need a useState/scroll
-                listener; that's nicer as a follow-up. */}
-            <div className="pl8-gallery-progress" aria-hidden style={{
-              position: 'sticky', top: '40vh', float: 'right',
-              display: 'flex', flexDirection: 'column', gap: 8,
-              padding: '6px 8px', marginRight: 16, zIndex: 2,
-            }}>
-              {rest.map((s) => (
-                <span
-                  key={s}
-                  style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
-                    transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
-                  }}
-                />
-              ))}
-            </div>
+                query below. Own component so its scrollspy state
+                re-renders the dots, not the whole site. */}
+            <SectionDotRail sectionIds={rest.map(String)} />
             <div className="pl8-gallery-col" style={{ maxWidth: 720, margin: '0 auto' }}>
               {rest.map(sectionEl)}
             </div>
@@ -1043,10 +999,11 @@ export function ThemedSite({
   if (siteLayout === 'postcard') {
     return (
       <div
-        onMouseLeave={() => setHover(null)}
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 20%, var(--t-section))', padding: 'clamp(16px, 4vw, 56px) clamp(12px, 4vw, 40px)' }}
         data-pl-texture={effectiveTexture}
         data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr}
+        data-pl-editable={editable ? '' : undefined}
+        ref={revealRoot}
         className="pl8-guest pl8-guest-postcard"
       >
         <TextureFilters />
@@ -1146,7 +1103,7 @@ export function ThemedSite({
 
   /* Classic stacked — default scroll. */
   return (
-    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest">
+    <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest">
       <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -1267,16 +1224,14 @@ function SiteFooter({
    nav links, and RSVP CTA in a vertical column. */
 
 function SidebarHero({
-  ctx, headline, navItems, scrollToSection, active, hover, setActive, setHover, editable, onSectionFocus,
+  ctx, headline, navItems, scrollToSection, active, setActive, editable, onSectionFocus,
 }: {
   ctx: SectionCtx;
   headline: string;
   navItems: { id: string; label: string }[];
   scrollToSection: (id: string) => void;
   active: SectionId;
-  hover: SectionId;
   setActive: (id: SectionId) => void;
-  setHover: (id: SectionId) => void;
   editable: boolean;
   onSectionFocus?: (id: SectionId) => void;
 }) {
@@ -1285,7 +1240,7 @@ function SidebarHero({
   const isCouple = C.subject.type === 'couple';
   const isEditorial = theme.id === 'editorial';
   return (
-    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif} manifest={ctx.manifest} onEditField={ctx.onEditField}>
+    <TSection id="hero" label="Hero" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif} manifest={ctx.manifest} onEditField={ctx.onEditField}>
       <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
           <Pear size={24} tone="sage" shadow={false} />
@@ -3905,16 +3860,80 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
   );
 }
 
+/* ─── SiteNav — nav variant dispatch + scrollspy ─────────────────
+   Owns useActiveSection so the hook's setState (which fires on every
+   scroll section-crossing) re-renders ~this component, not the whole
+   renderer tree. The variant props are exactly what ThemedSite used
+   to build inline; activeId is grafted on here. */
+function SiteNav({
+  sectionIds,
+  isMobile,
+  navVariant,
+  navMobileVariant,
+  shared,
+}: {
+  sectionIds: string[];
+  isMobile: boolean;
+  navVariant: string;
+  navMobileVariant: string;
+  shared: Omit<ComponentProps<typeof NavSplit>, 'activeId' | 'sticky'> &
+    Omit<ComponentProps<typeof NavMobileSlideIn>, 'activeId'>;
+}) {
+  const activeId = useActiveSection(sectionIds);
+  if (isMobile) {
+    const p = { ...shared, activeId: activeId ?? undefined };
+    switch (navMobileVariant) {
+      case 'overlay':      return <NavMobileOverlay {...p} />;
+      case 'bottom-sheet': return <NavMobileBottomSheet {...p} />;
+      case 'pill':         return <NavMobilePill {...p} />;
+      case 'slide-in':
+      default:             return <NavMobileSlideIn {...p} />;
+    }
+  }
+  const p = { ...shared, activeId };
+  switch (navVariant) {
+    case 'centered':     return <NavCentered {...p} sticky />;
+    case 'serif-block':  return <NavSerifBlock {...p} sticky />;
+    case 'minimal-text': return <NavMinimalText {...p} sticky />;
+    case 'iconic':       return <NavIconic {...p} sticky />;
+    case 'split':
+    default:             return <NavSplit {...p} sticky />;
+  }
+}
+
+/* ─── SectionDotRail — the gallery layout's right-edge scrollspy
+   dots. Isolated for the same reason as SiteNav: the hook's setState
+   must not invalidate the whole renderer per section-crossing. */
+function SectionDotRail({ sectionIds }: { sectionIds: string[] }) {
+  const activeId = useActiveSection(sectionIds);
+  return (
+    <div className="pl8-gallery-progress" aria-hidden style={{
+      position: 'sticky', top: '40vh', float: 'right',
+      display: 'flex', flexDirection: 'column', gap: 8,
+      padding: '6px 8px', marginRight: 16, zIndex: 2,
+    }}>
+      {sectionIds.map((s) => (
+        <span
+          key={s}
+          style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
+            transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, hover, setActive, setHover, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
+function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
   active: SectionId;
-  hover: SectionId;
   setActive: (id: SectionId) => void;
-  setHover: (id: SectionId) => void;
   editable: boolean;
   /** Fired when an editable field inside this section gains focus.
    *  InlineEdit stops click propagation to protect the caret, so
@@ -3932,7 +3951,6 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
 }) {
   const isActive = active === id;
-  const isHover = hover === id && !isActive;
   /* Inline Layout bar — the v2 on-canvas section-layout switcher
      (editor.jsx InlineLayoutBar). Shows over the SELECTED section
      when it has more than one layout, writing manifest.layouts[id]. */
@@ -3954,17 +3972,22 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
      fixed top that scrolls away). barTop is the bar's offset within the
      section, pinned just below the canvas's visible top edge. */
   const secRef = useRef<HTMLDivElement | null>(null);
-  const [barTop, setBarTop] = useState(8);
+  const barRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!showLayoutBar) return;
     const el = secRef.current;
     if (!el) return;
     const scroller = el.closest('[data-pl-canvas-scroll]') as HTMLElement | null;
     const update = () => {
+      const bar = barRef.current;
+      if (!bar) return;
       const sr = el.getBoundingClientRect();
       const top0 = scroller ? scroller.getBoundingClientRect().top : 0;
       const above = top0 - sr.top; // px the section top is scrolled above the visible edge
-      setBarTop(Math.max(8, Math.min(above + 8, el.offsetHeight - 48)));
+      // Direct style write, not setState — this fires per scroll
+      // frame while a tall section is selected, and a render+commit
+      // per frame is exactly the jank the bar is meant to avoid.
+      bar.style.top = `${Math.max(8, Math.min(above + 8, el.offsetHeight - 48))}px`;
     };
     const raf = requestAnimationFrame(update);
     const target: HTMLElement | Window = scroller ?? window;
@@ -3981,7 +4004,6 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
       ref={secRef}
       id={id}
       data-section-id={id}
-      onMouseEnter={() => setHover(id)}
       onClick={(e) => {
         if (!editable) return;
         e.stopPropagation();
@@ -4003,35 +4025,45 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
               section is selected, a faint dashed basting line on
               hover, and a peach "Editing ·" label tab. Peach is
               pinned to a literal so the .pl8-guest theme scope can't
-              remap it. */}
+              remap it.
+              HOVER IS PURE CSS (.pl8-tsec-frame / .pl8-tsec-label in
+              pearloom.css) — it used to be React state at the editor
+              root, so every mouse crossing re-rendered the whole
+              canvas tree. Active keeps its inline style, which also
+              outranks the CSS hover rule. */}
           <div
             aria-hidden
+            className="pl8-tsec-frame"
             style={{
               position: 'absolute', inset: 4, borderRadius: 6,
-              outline: isActive ? '2px solid #C6703D' : isHover ? '1.5px dashed rgba(198,112,61,0.5)' : 'none',
+              outline: isActive ? '2px solid #C6703D' : undefined,
               outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
-              transition: 'outline var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
-          {(isActive || isHover) && !hideHandle && (
-            <div style={{
-              position: 'absolute', top: 8, left: 12, padding: '3px 9px', borderRadius: 8,
-              background: isActive ? '#C6703D' : 'var(--pl-cream-card, #FBF7EE)',
-              color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
-              border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
-              fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-              display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
-              boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
-              fontFamily: 'var(--pl-font-mono, monospace)',
-            }}>
+          {!hideHandle && (
+            <div
+              className={isActive ? undefined : 'pl8-tsec-label'}
+              style={{
+                position: 'absolute', top: 8, left: 12, padding: '3px 9px', borderRadius: 8,
+                background: isActive ? '#C6703D' : 'var(--pl-cream-card, #FBF7EE)',
+                color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
+                border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
+                fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
+                boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
+                fontFamily: 'var(--pl-font-mono, monospace)',
+                pointerEvents: 'none',
+              }}
+            >
               {isActive ? `Editing · ${label}` : label}
             </div>
           )}
           {showLayoutBar && layoutVariants && (
             <div
+              ref={barRef}
               onClick={(e) => e.stopPropagation()}
               style={{
-                position: 'absolute', top: barTop, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
+                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
                 display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
                 background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
                 border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
@@ -4749,6 +4781,9 @@ function FadeInImage({
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
+        /* Eager = the hero/cover = the LCP candidate — tell the
+           browser to fetch it ahead of the below-fold queue. */
+        fetchPriority={eager ? 'high' : undefined}
         onLoad={() => setLoaded(true)}
         style={{
           position: 'absolute',

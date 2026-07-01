@@ -2790,11 +2790,41 @@ html { scroll-behavior: smooth; }
    viewport. Cuts initial paint cost on heavy sites with many
    chapters / hotels / FAQs. The `contain-intrinsic-size`
    reserves layout space so the page scrollbar doesn't jump as
-   sections come into view. The hero stays fully rendered (no
-   content-visibility) so first paint isn't deferred. */
-.pl8-guest section[id]:not(#top) {
+   sections come into view. The hero + nav stay fully rendered so
+   first paint isn't deferred.
+   NOTE: the current renderer (redesign/ThemedSite) emits
+   `div[data-section-id]`, not `section[id]` — the old selector
+   matched nothing and long pages rendered everything at once. */
+.pl8-guest [data-section-id]:not([data-section-id='hero']):not([data-section-id='nav']) {
   content-visibility: auto;
   contain-intrinsic-size: 1px 800px;
+}
+/* The editor canvas keeps everything rendered — content-visibility
+   would fight the section-jump scroll sync + selection chrome. */
+.pl8-guest[data-pl-editable] [data-section-id] {
+  content-visibility: visible;
+}
+
+/* ── Editor canvas hover chrome (TSection) ───────────────────
+   The dashed basting outline + section label on hover are pure
+   CSS — hover used to be React state at the editor root, so every
+   mouse crossing re-rendered the entire canvas tree. The ACTIVE
+   (selected) state stays inline in TSection; its inline outline
+   outranks the hover rule here, and the active label removes the
+   .pl8-tsec-label class entirely. */
+.pl8-tsec-frame {
+  transition: outline-color var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease);
+}
+.pl8-guest[data-pl-editable] [data-section-id]:hover > .pl8-tsec-frame {
+  outline: 1.5px dashed rgba(198, 112, 61, 0.5);
+  outline-offset: -2px;
+}
+.pl8-tsec-label {
+  opacity: 0;
+  transition: opacity var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease);
+}
+.pl8-guest[data-pl-editable] [data-section-id]:hover > .pl8-tsec-label {
+  opacity: 1;
 }
 
 /* Section anchor offset — when a guest clicks a nav link to a
@@ -2802,9 +2832,10 @@ html { scroll-behavior: smooth; }
    sticky nav covers ~72-80px of that, so the heading sits behind
    the nav and the guest doesn't see what they jumped to. The
    scroll-margin-top utility tells the browser to leave room
-   above the section when an anchor jump happens. The 96px buffer
-   covers the v8 nav height + a little breathing room. */
-.pl8-guest section[id] {
+   above the section when an anchor jump happens. (TSection also
+   sets an inline scrollMarginTop: 80 — this is the belt for any
+   layout that renders sections outside TSection.) */
+.pl8-guest [data-section-id] {
   scroll-margin-top: 96px;
 }
 

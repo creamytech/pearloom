@@ -207,7 +207,6 @@ export default function EditorRedesign({
      page exactly as guests will see it. Driven by the left rail's
      Pages tab; ignored entirely in scroll mode. */
   const [canvasPage, setCanvasPage] = useState<'home' | SiteBlockKey | null>(null);
-  const [hover, setHover] = useState<SectionId>(null);
   /* Pear Picks modal — which section Pear is populating with rich
      suggestion cards (FAQ / Travel / Details), or null when closed. */
   const [picksKind, setPicksKind] = useState<PicksKind | null>(null);
@@ -263,9 +262,10 @@ export default function EditorRedesign({
      sheet's open render. */
   const scrollSectionAboveSheet = useCallback((id: string) => {
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       document
         .querySelector<HTMLElement>(`[data-section-id="${id}"]`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     }));
   }, []);
   const selectFromCanvas = useCallback((id: SectionId) => {
@@ -277,7 +277,14 @@ export default function EditorRedesign({
   }, [scrollSectionAboveSheet]);
   const selectFromRail = useCallback((id: SectionId) => {
     setActive(id);
-    if (!viewportMobileRef.current) return;
+    if (!viewportMobileRef.current) {
+      /* Desktop: bring the picked section into the canvas viewport —
+         clicking "Gallery" in the rail used to select the panel while
+         the canvas stayed parked on the hero. Tool-panel keys have no
+         [data-section-id] node; the query just misses. */
+      if (id) scrollSectionAboveSheet(id);
+      return;
+    }
     setMobileSheet(id ? 'props' : 'theme');
     if (id) scrollSectionAboveSheet(id);
   }, [scrollSectionAboveSheet]);
@@ -287,21 +294,33 @@ export default function EditorRedesign({
      of it. useLayoutEffect (not state init) keeps SSR happy. */
   const [pressing, setPressing] = useState(false);
   useLayoutEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect --
-       deliberate: sessionStorage can only be read client-side, and
-       the layout effect flips state before first paint (see the
-       comment above). A render-time read would break SSR. */
+    /* Deliberate setState-in-effect: sessionStorage can only be read
+       client-side, and the layout effect flips state before first
+       paint (see the comment above). A render-time read would break
+       SSR. (The rule no longer flags this pattern.) */
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
 
   /* Deep surfaces (SharePanel writes, PublishChecklist jumps, the
      topbar Theme button) fire window events; the shell mounts one
      listener that owns the state. __plPearApply is the manifest-
-     apply hook SharePanel writes through. */
+     apply hook SharePanel writes through.
+
+     The listeners subscribe ONCE (empty deps) and reach the latest
+     setManifest through a ref — the bridge object (and setManifest,
+     whose useCallback depends on `names`) gets a new identity on
+     every keystroke, so depending on it re-subscribed 3 window
+     listeners per edit and left __plPearApply briefly undefined
+     between cleanup and re-run (a window where SharePanel's apply
+     silently no-ops). Same ref pattern as viewportMobileRef above. */
+  const setManifestRef = useRef(bridge.setManifest);
+  useEffect(() => {
+    setManifestRef.current = bridge.setManifest;
+  });
   useEffect(() => {
     if (typeof window === 'undefined') return;
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    (window as any).__plPearApply = (next: StoryManifest) => bridge.setManifest(next);
+    (window as any).__plPearApply = (next: StoryManifest) => setManifestRef.current(next);
     /* design-jump — dispatched by PublishChecklist + GoLiveBadge +
        Pear advisor when something needs to flip the active panel
        (e.g. "Cover photo · jump to Hero"). detail.block carries a
@@ -311,6 +330,9 @@ export default function EditorRedesign({
       if (!detail?.block) return;
       setActive(detail.block as SectionId);
       if (viewportMobileRef.current) setMobileSheet('props');
+      // Bring the section into view on both form factors (tool-panel
+      // keys have no [data-section-id] node; the query just misses).
+      scrollSectionAboveSheet(detail.block);
     };
     /* Theme shortcut — fired from the topbar Theme button. Clears
        the active section; the unified rail listens for the same
@@ -326,16 +348,26 @@ export default function EditorRedesign({
       const detail = (e as CustomEvent).detail as { kind?: PicksKind } | undefined;
       if (detail?.kind) setPicksKind(detail.kind);
     };
+    /* toggle-preview — the ⌘K "Preview as a guest" row. Flips
+       edit ↔ preview (functional update: no `mode` dep needed). */
+    const onTogglePreview = () => {
+      setMode((m) => (m === 'preview' ? 'edit' : 'preview'));
+    };
     window.addEventListener('pearloom:design-jump', onJump);
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
     window.addEventListener('pearloom:open-picks', onOpenPicks);
+    window.addEventListener('pearloom:toggle-preview', onTogglePreview);
     return () => {
       window.removeEventListener('pearloom:design-jump', onJump);
       window.removeEventListener('pearloom:open-theme-rail', onOpenTheme);
       window.removeEventListener('pearloom:open-picks', onOpenPicks);
+      window.removeEventListener('pearloom:toggle-preview', onTogglePreview);
       (window as any).__plPearApply = undefined;
     };
-  }, [bridge]);
+    // setActive/setMode/setMobileSheet/setPicksKind are stable state
+    // setters; setManifest arrives via the ref above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Prototype L1148-1160 — three-pane grid shell. On phone-sized
   // viewports the grid collapses to topbar + canvas; rails live
@@ -407,8 +439,6 @@ export default function EditorRedesign({
            viewport (no mobile props-sheet pop: opening a sheet over
            the keyboard mid-typing would bury the field being edited). */
         onSectionFocus={setActive}
-        hover={hover}
-        setHover={setHover}
         mode={mode}
         manifest={bridge.manifest}
         names={bridge.names}
@@ -561,7 +591,7 @@ export default function EditorRedesign({
    paper backdrop with a radial-grid dot pattern. */
 
 function EditorCanvas({
-  active, setActive, onSectionFocus, hover, setHover,
+  active, setActive, onSectionFocus,
   mode, manifest, names, siteSlug, onEditField, onEditNames,
   viewportMobile = false,
   usePrototypeCanvas = false,
@@ -575,8 +605,6 @@ function EditorCanvas({
   /** Fired when an inline-editable field gains focus — selects the
    *  section in the property rail without the mobile sheet pop. */
   onSectionFocus?: (id: SectionId) => void;
-  hover: SectionId;
-  setHover: (id: SectionId) => void;
   mode: EditorMode;
   manifest: StoryManifest;
   names: [string, string];
@@ -734,8 +762,10 @@ function EditorCanvas({
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
-          /* 360ms pairs with the shell grid-template-columns transition. */
-          transition: 'width 360ms var(--pl-ease-emphasis)',
+          /* 360ms pairs with the shell grid-template-columns transition.
+             border-radius rides along — the width eased while the
+             14↔36 corner snap gave the mode switch a hard edge. */
+          transition: 'width 360ms var(--pl-ease-emphasis), border-radius 360ms var(--pl-ease-emphasis)',
           containerType: 'inline-size',
           containerName: 'pl-site',
           /* CRITICAL: flexShrink: 0 stops the canvas flex-column from
@@ -751,9 +781,7 @@ function EditorCanvas({
       >
         <ThemedSite
           active={active}
-          hover={hover}
           setActive={setActive}
-          setHover={setHover}
           onSectionFocus={isPreview ? undefined : onSectionFocus}
           editable={!isPreview}
           manifest={canvasManifest}
@@ -786,7 +814,11 @@ function EditorCanvas({
             proposals (pearloom:drape). Lives inside the device
             frame so the drape aligns 1:1 with the canvas. */}
         <FittingRoom
-          manifest={manifest}
+          /* Deferred manifest — the drape preview doesn't need
+             keystroke-fresh data, and the undeferred prop made it
+             re-render synchronously on every edit while the canvas
+             itself rendered at deferred priority. */
+          manifest={canvasManifest}
           names={names}
           forceMobile={isMobile}
           onApply={(next) => onEditField(() => next)}
@@ -811,7 +843,8 @@ function EditorCanvas({
             it there is the RSVP panel's explicit "Preview as a
             guest" button — which was dead while this mount was
             Preview-only. */}
-        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
+        {/* Deferred for the same reason as FittingRoom above. */}
+        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={canvasManifest} />
       </div>
 
       {isPreview && (

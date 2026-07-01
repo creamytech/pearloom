@@ -57,6 +57,24 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg,#e8b8b8,#c48888)',
 };
 
+/** Lazy photo fill for a sized tile. These variants used to paint
+ *  photos as CSS background-image, which fetches every full-res
+ *  original eagerly at first paint (no lazy-load, no async decode) —
+ *  a real first-scroll hitch on photo-heavy sites. The parent keeps
+ *  its aspect-ratio box (so no layout shift) and must be
+ *  position:relative + overflow:hidden. */
+function LazyPhoto({ url }: { url: string }) {
+  return (
+    <img
+      src={url}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+    />
+  );
+}
+
 /** Small helper — destructure the editable head props out of any
  *  variant ctx in one go, keeping JSX terse. */
 function headProps(ctx: GalleryVariantCtxEditable) {
@@ -101,14 +119,16 @@ export function GalleryMasonry({ ctx }: { ctx: GalleryVariantCtxEditable }) {
               role={it.kind === 'photo' && ctx.onPhotoClick ? 'button' : undefined}
               aria-label={it.kind === 'photo' && ctx.onPhotoClick ? 'Open photo' : undefined}
               style={{
-                background: it.kind === 'photo'
-                  ? `var(--t-section) center / cover no-repeat url("${it.url.replace(/"/g, '%22')}")`
-                  : TONE_BG[it.tone],
+                position: 'relative',
+                overflow: 'hidden',
+                background: it.kind === 'photo' ? 'var(--t-section)' : TONE_BG[it.tone],
                 aspectRatio: ratios[i % ratios.length],
                 borderRadius: 'var(--t-radius)',
                 cursor: it.kind === 'photo' && ctx.onPhotoClick ? 'zoom-in' : undefined,
               }}
-            />
+            >
+              {it.kind === 'photo' && <LazyPhoto url={it.url} />}
+            </div>
             {it.kind === 'photo' && (
               <CaptionSlot
                 ctx={ctx}
@@ -129,9 +149,6 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
   const { C } = ctx;
   const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'warm'];
   const hasPhotos = !!(C.photos && C.photos.length > 0);
-  const heroBg = hasPhotos
-    ? `var(--t-section) center / cover no-repeat url("${C.photos![0].replace(/"/g, '%22')}")`
-    : TONE_BG[tones[0]];
   const thumbs = hasPhotos ? C.photos!.slice(1, 7) : tones.slice(1, 7);
   return (
     <>
@@ -145,10 +162,14 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
           maxWidth: 760,
           margin: '0 auto',
           borderRadius: 'var(--t-radius)',
-          background: heroBg,
+          position: 'relative',
+          overflow: 'hidden',
+          background: hasPhotos ? 'var(--t-section)' : TONE_BG[tones[0]],
           cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
         }}
-      />
+      >
+        {hasPhotos && <LazyPhoto url={C.photos![0]} />}
+      </div>
       {/* Caption for the stage photo (photos[0]) — under the stage,
           centered, in the variant's editorial voice. */}
       {hasPhotos && (
@@ -169,13 +190,15 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
             aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
             style={{
               aspectRatio: '1',
-              background: hasPhotos
-                ? `var(--t-section) center / cover no-repeat url("${(item as string).replace(/"/g, '%22')}")`
-                : TONE_BG[item as PhotoTone],
+              position: 'relative',
+              overflow: 'hidden',
+              background: hasPhotos ? 'var(--t-section)' : TONE_BG[item as PhotoTone],
               borderRadius: 'var(--t-radius)',
               cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
             }}
-          />
+          >
+            {hasPhotos && <LazyPhoto url={item as string} />}
+          </div>
         ))}
       </div>
     </>
@@ -189,8 +212,8 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
   const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'warm', 'cream'];
   const rotations = [-3, 2, -1.5, 3, -2, 1.5, -2.5, 2];
   const hasPhotos = !!(C.photos && C.photos.length > 0);
-  const items: Array<{ bg: string }> = hasPhotos
-    ? C.photos!.map((url) => ({ bg: `var(--t-section) center / cover no-repeat url("${url.replace(/"/g, '%22')}")` }))
+  const items: Array<{ bg: string; url?: string }> = hasPhotos
+    ? C.photos!.map((url) => ({ bg: 'var(--t-section)', url }))
     : tones.map((tone) => ({ bg: TONE_BG[tone] }));
   return (
     <>
@@ -216,8 +239,10 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
               onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(i) : undefined}
               role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
               aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
-              style={{ aspectRatio: '1', background: it.bg, cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined }}
-            />
+              style={{ aspectRatio: '1', position: 'relative', overflow: 'hidden', background: it.bg, cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined }}
+            >
+              {it.url && <LazyPhoto url={it.url} />}
+            </div>
             {/* Label band — always present so blank polaroids keep
                 the classic empty-bottom proportions. */}
             <div style={{ minHeight: 18, marginTop: 4 }}>
