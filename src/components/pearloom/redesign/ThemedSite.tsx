@@ -35,6 +35,9 @@ import type { SectionId } from './EditorRedesign';
    with EditorRedesign / SectionRail (importing from EditorRedesign
    here would cycle: EditorRedesign imports ThemedSite). */
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
+/* Occasion copy packs — fallback + demo copy routed by occasion so
+   a solo birthday never renders "How we met" (leaf data module). */
+import { occasionCopyFor } from './occasion-copy';
 import { InlineEdit } from './InlineEdit';
 /* Per-section layout variants — each section block dispatches via
    ctx.variants.<section> to one of these. Default ('tiles', 'cards',
@@ -232,7 +235,8 @@ export function ThemedSite({
         const cur = Array.isArray(loose.faqs) ? [...(loose.faqs as Array<Record<string, unknown>>)] : [];
         const faqs = cur.length > 0
           ? cur
-          : DEFAULT_FAQ_QUESTIONS.map((q, i) => ({ id: `faq-${i + 1}`, question: q, answer: '', order: i }));
+          : occasionCopyFor((m as unknown as { occasion?: string }).occasion)
+              .faqDemo.map((q, i) => ({ id: `faq-${i + 1}`, question: q, answer: '', order: i }));
         while (faqs.length <= idx) faqs.push({ id: `faq-${faqs.length + 1}`, question: '', answer: '', order: faqs.length });
         faqs[idx] = { ...(faqs[idx] ?? {}), [field]: next };
         return { ...loose, faqs } as unknown as StoryManifest;
@@ -527,8 +531,19 @@ export function ThemedSite({
      content always render — content wins. Unknown occasion →
      everything renders (manifests that predate the registry). */
   const occasionId = (manifest as unknown as { occasion?: string }).occasion;
+  /* Published honesty gate — a story section with nothing authored
+     is 100% fallback copy. It still renders in the editor and the
+     wizard's demo pressings (where the ghost copy invites writing),
+     but guests never see a fabricated story. */
+  const storyAuthored = (() => {
+    const l = manifest as unknown as { chapters?: unknown[]; storySection?: { headline?: string; body?: string } };
+    return (Array.isArray(l.chapters) && l.chapters.length > 0)
+      || !!l.storySection?.body?.trim()
+      || !!l.storySection?.headline?.trim();
+  })();
   const allSections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s))
+    .filter((s) => s !== 'story' || editable || demoCopy || storyAuthored)
     .filter((s) =>
       !coreKinds.includes(s)
       || isCoreSectionApplicable(s, occasionId)
@@ -570,7 +585,11 @@ export function ThemedSite({
      gets its own dedicated CTA button). Built from allSections —
      on a multi-page home the nav still lists Travel even though
      Travel lives on its own page (the click navigates there). */
-  const navItems = allSections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: SECTION_LABEL[s] }));
+  /* The story label routes by occasion — "Our story" belongs to
+     couples; solo honorees get "The story", memorials "Their story". */
+  const sectionLabel = (s: SectionKind): string =>
+    s === 'story' ? occasionCopyFor(occasionId).navStory : SECTION_LABEL[s];
+  const navItems = allSections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: sectionLabel(s) }));
   const headline = C.subject.type === 'solo' ? C.subject.a : `${C.subject.a} & ${C.subject.b}`;
 
   /* Smooth-scroll handler — every nav link + the RSVP CTA call this
@@ -721,7 +740,7 @@ export function ThemedSite({
       <TSection
         key={kind}
         id={kind}
-        label={ownPage ? `${SECTION_LABEL[kind]} · own page` : SECTION_LABEL[kind]}
+        label={ownPage ? `${sectionLabel(kind)} · own page` : sectionLabel(kind)}
         active={active}
         setActive={setActive}
         editable={editable}
@@ -1753,8 +1772,8 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
       onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyTitle', v) : undefined,
       onEditChapterTitle: ctx.edit?.chapterTitle,
       onEditChapterBody:  ctx.edit?.chapterBody,
-      eyebrowPlaceholder: 'Our story',
-      titlePlaceholder: 'How we got here',
+      eyebrowPlaceholder: C.story.eyebrow,
+      titlePlaceholder: [C.story.title, C.story.italic].filter(Boolean).join(' '),
     }} /></div>;
   }
   switch (ctx.variants.story) {
@@ -1792,7 +1811,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
           value={C.story.eyebrow}
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
-          placeholder="Two threads, one weave"
+          placeholder={C.story.eyebrow}
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
         />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
@@ -1801,7 +1820,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
             value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
             onChange={edit?.storyHeadline}
             editable={editable && !!edit?.storyHeadline}
-            placeholder="How we got here"
+            placeholder={[C.story.title, C.story.italic].filter(Boolean).join(' ')}
           />
         </h2>
         <InlineEdit
@@ -1861,7 +1880,7 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
             value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
             onChange={edit.storyHeadline}
             editable
-            placeholder="How we got here"
+            placeholder={[C.story.title, C.story.italic].filter(Boolean).join(' ')}
           />
         ) : (
           <>
@@ -1910,7 +1929,7 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
           value={C.story.eyebrow}
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
-          placeholder="Two threads, one weave"
+          placeholder={C.story.eyebrow}
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 16 }}
         />
         <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>
@@ -1940,7 +1959,7 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
           value={C.story.eyebrow}
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
-          placeholder="Two threads, one weave"
+          placeholder={C.story.eyebrow}
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
         />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, color: 'var(--t-ink)' }}>
@@ -2033,7 +2052,7 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
           value={C.story.eyebrow}
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
-          placeholder="Two threads, one weave"
+          placeholder={C.story.eyebrow}
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 14 }}
         />
         {(heroPhoto || editable) && (
@@ -2840,7 +2859,7 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpTitle', v) : undefined,
     eyebrowPlaceholder: 'RSVP',
-    titlePlaceholder: 'Will you join us?',
+    titlePlaceholder: C.rsvp.title,
   };
   if (variants.rsvp === 'split')   return <RsvpSplit ctx={sub} />;
   if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
@@ -5252,36 +5271,6 @@ function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?:
   return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;
 }
 
-/* Voice copy registry — each voice picks the eyebrow/tagline/story
-   tone. Matches handoff site-config.jsx COPY map at the field level
-   (we focus on hero + story + rsvp where voice is most visible). */
-const VOICE_COPY = {
-  classic: {
-    lead: 'Save the date',
-    tagline: 'together, at last',
-    storyEyebrow: 'Our story',
-    storyTitle: 'How we',
-    storyItalic: 'met',
-    rsvpTitle: 'Save your seat',
-  },
-  playful: {
-    lead: "It's happening",
-    tagline: 'finally putting a ring on it',
-    storyEyebrow: 'How we got here',
-    storyTitle: 'The (long)',
-    storyItalic: 'short of it',
-    rsvpTitle: 'Get in here',
-  },
-  poetic: {
-    lead: 'A small forever',
-    tagline: 'of all the days, this one',
-    storyEyebrow: 'Two threads, one weave',
-    storyTitle: 'Where we',
-    storyItalic: 'began',
-    rsvpTitle: 'Hold this day with us',
-  },
-} as const;
-
 /* `editable` gates every DEMO content fallback below — the editor
    canvas previews a fully-dressed site, but published pages render
    only host-authored content. No fabricated hotels, dates, stores,
@@ -5322,11 +5311,11 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const kidsWelcomeRaw = loose.kidsWelcome as boolean | undefined;
   const adultsOnlyRaw = loose.adultsOnly as boolean | undefined;
   const occasion = (loose.occasion as string | undefined) ?? 'wedding';
-  const voiceKey = ((loose.voiceOverride as string | undefined) ?? 'classic') as keyof typeof VOICE_COPY;
-  const V = VOICE_COPY[voiceKey] ?? VOICE_COPY.classic;
-
-  const occasionDate = formatHeroDate(rsvpDeadline) || args.date;
-  const isWedding = occasion === 'wedding';
+  /* Occasion copy pack — every fallback + demo string below routes
+     through this so a solo birthday never renders "How we met" and
+     a memorial never renders "Honeymoon fund". Wedding-arc packs
+     still respond to the host's Pear-voice pick. */
+  const V = occasionCopyFor(occasion, (loose.voiceOverride as string | undefined) ?? 'classic');
   /* Host-authored copy overrides for every visible label on the
      canvas — eyebrows, CTAs, section titles. Each falls through
      to the voice-defaulted V.* or hardcoded value when unset so
@@ -5410,7 +5399,10 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         eyebrow: co('storyEyebrow', V.storyEyebrow),
         title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
         italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
-        body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
+        /* Demo-gated — the fabricated story body must never reach a
+           published page (it used to: every generated site without
+           an authored story shipped a fake couple anecdote). */
+        body: storySection.body || (demo ? V.storyBodyDemo : ''),
         chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
         chapterImages: chapterImages.some(Boolean) ? chapterImages : undefined,
         chapterTitles: chapterTitles.some(Boolean) ? chapterTitles : undefined,
@@ -5480,12 +5472,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           })()
         : !demo
           ? []
-          : [
-            { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
-            { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },
-            { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
-            { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
-          ],
+          : V.scheduleDemo,
       };
     })(),
     travel: (() => {
@@ -5567,17 +5554,17 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       };
     })(),
     registry: (() => {
-      const t = coTitle('registryTitle', 'Your presence is', 'the gift');
+      const t = coTitle('registryTitle', V.registryTitleHead, V.registryTitleItalic);
       const fundPct = (loose.fundPct as number | undefined);
       const fundSub = (loose.fundSub as string | undefined);
       return {
       eyebrow: co('registryEyebrow', 'Registry'),
       title: t.head,
       italic: t.italic,
-      body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
+      body: registryIntro || V.registryBody,
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
-        : !demo ? [] : [{ name: 'Honeymoon fund' }, { name: 'Crate & Barrel' }, { name: 'Zola' }],
+        : !demo ? [] : V.registryDemoStores.map((name) => ({ name })),
       fundPct: typeof fundPct === 'number' ? fundPct : undefined,
       fundSub: fundSub && fundSub.trim() ? fundSub : undefined,
       };
@@ -5608,7 +5595,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       };
     })(),
     rsvp: (() => {
-      const t = coTitle('rsvpTitle', isWedding ? V.rsvpTitle : 'Reply by the date', '');
+      const t = coTitle('rsvpTitle', V.rsvpTitle, '');
       /* Social-proof "X going" pile — default ON for public-RSVP
          events (bachelor, birthday, reunion, etc.), default OFF
          for weddings + memorials (private guest list expectation).
@@ -5631,7 +5618,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}`
         : demo ? 'RSVP by April 28' : 'RSVP'),
       title: t.head,
-      body: co('rsvpBody', 'It takes about 90 seconds. Pear will follow up if anyone forgets.'),
+      body: co('rsvpBody', V.rsvpBody),
       socialProof: { enabled, names: previewNames, count: goingCount },
       };
     })(),
@@ -5643,7 +5630,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       italic: t.italic,
       questions: faqsRaw.length > 0
         ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
-        : demo ? DEFAULT_FAQ_QUESTIONS : [],
+        : demo ? V.faqDemo : [],
       /* qa[] carries the host-authored answers (FaqPanel writes
          manifest.faqs[].answer). Variants twocol/numbered/cards
          read ctx.C.qa[i].a and fall through to placeholder when
@@ -5655,16 +5642,6 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
   };
 }
-
-/* Demo FAQ questions — shown when the host hasn't authored any.
-   Shared by buildCopy (display fallback) AND patchFaq (first-touch
-   seed) so editing a demo row keeps every other demo row alive. */
-const DEFAULT_FAQ_QUESTIONS = [
-  "What's the dress code, really?",
-  'Can I bring a plus-one?',
-  'Are kids welcome at the ceremony?',
-  'Where should we stay?',
-];
 
 /* Story headline ("How we met") into ["How we", "met"] so the
    italic accent word reads like the handoff. Falls through to the
