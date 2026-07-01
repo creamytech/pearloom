@@ -40,8 +40,7 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
-import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
-import { WizardLooksSection } from './wizard-looks';
+import { lookRecipesFor } from '@/lib/site-look/look-recipes';
 import { WizardStructureSection } from './wizard-structure';
 import { WizardFittingRoom, type PaletteChoice } from './wizard-fitting-room';
 import type { StoryManifest } from '@/types';
@@ -362,9 +361,6 @@ interface WizardState {
    *  when the host picks a preset/photo palette instead. */
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
-  /** Explicit end-of-wizard LOOK pick (look-recipes.ts id). null =
-   *  Pear's match, i.e. exactly what generation stamps anyway. */
-  lookRecipeId?: string | null;
 }
 
 const defaultState: WizardState = {
@@ -2046,7 +2042,6 @@ export function WizardV8() {
      it's set, the whole room wears that look's paper grain (the
      underlay below). Falls back to the picked look so the dressing
      persists through Review once they choose. */
-  const [lookPreview, setLookPreview] = useState<LookRecipe | null>(null);
   /* Full-screen fitting room (Palette step). */
   const [fittingOpen, setFittingOpen] = useState(false);
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
@@ -2486,23 +2481,13 @@ export function WizardV8() {
         };
       }
 
-      // ── Explicit LOOK pick — overwrites the occasion defaults on
-      //    both paths (AI + skeleton). The host saw exactly this
-      //    construction in the wizard's preview; it must be what
-      //    the editor opens on.
-      if (st.lookRecipeId) {
-        const recipe = lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId);
-        if (recipe) {
-          manifest.kitId = recipe.kitId;
-          manifest.texture = recipe.texture;
-          manifest.textureIntensity = recipe.textureIntensity;
-          manifest.motifLayout = recipe.motifLayout;
-          manifest.density = recipe.density;
-        }
-      }
-      // Explicit kit / texture / motif / density picks from The
-      // Structure + fitting room beat the recipe's — the host saw
-      // them live.
+      // ── Look: applyWizardLook already stamped Pear's occasion
+      //    defaults (the 'match' recipe the pressing previews).
+      //    Explicit kit / texture / motif / density picks from the
+      //    fitting room beat them — the host saw those live. (The
+      //    old lookRecipeId card-picker died inside the dead-coded
+      //    Layout branch and was removed 2026-07-01; the fitting
+      //    room is its successor.)
       if (st.kitId) manifest.kitId = st.kitId;
       if (st.texture) manifest.texture = st.texture;
       if (st.motifLayoutPick) manifest.motifLayout = st.motifLayoutPick;
@@ -2611,13 +2596,16 @@ export function WizardV8() {
      colors bloom behind the canvas (700ms, honours the cream
      ground). The product wears your choice before the site does. */
   const dye = resolvedPaletteColors;
-  /* The look the room wears: the hovered card wins; once a look is
-     picked it stays on through Review. Only dressed on the steps
-     where the picker exists — earlier steps keep the plain cream. */
-  const pickedLook = st.lookRecipeId
-    ? lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId) ?? null
+  /* The look the room wears: Pear's occasion-matched recipe — the
+     same construction the pressing previews and the finished site
+     opens with. (This underlay was written for the old look-card
+     picker's hover; the picker died inside the removed dead-coded
+     Layout branch, but the moment itself is worth keeping — the
+     product wears the site's paper before the site does.) Only on
+     the late steps; earlier steps keep the plain cream. */
+  const roomLook = (step === 'Palette' || step === 'Review')
+    ? lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null
     : null;
-  const roomLook = (step === 'Palette' || step === 'Review') ? (lookPreview ?? pickedLook) : null;
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
       {/* THE ROOM WEARS THE LOOK — hovering a look card at the end
@@ -3831,115 +3819,6 @@ export function WizardV8() {
                 </>
               )}
 
-              {/* Layout step removed from STEPS in 2026-05-30 but the
-                  JSX is kept dead-coded for easy re-enable. Layouts
-                  pick the layout per persona. The cast bypasses the
-                  StepKey narrow check so the branch compiles
-                  unreachable. */}
-              {(step as string) === 'Layout' && (
-                <>
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    How should it <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>read?</span>
-                  </h2>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Every layout is a full site — they just handle pacing differently.
-                  </p>
-                  <div className="pl8-layout-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                    {LAYOUTS.map((l) => {
-                      const on = st.layout === l.id;
-                      return (
-                        <button
-                          key={l.id}
-                          type="button"
-                          onClick={() => {
-                            setSt((s) => ({ ...s, layout: l.id }));
-                            autoAdvance();
-                          }}
-                          style={{
-                            padding: 18,
-                            borderRadius: 14,
-                            background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
-                            border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 6,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 10,
-                              background: 'var(--cream-2)',
-                              display: 'grid',
-                              placeItems: 'center',
-                              marginBottom: 6,
-                              fontSize: 20,
-                            }}
-                          >
-                            {l.icon}
-                          </div>
-                          <div style={{ fontSize: 14, fontWeight: 600 }}>{l.name}</div>
-                          <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{l.body}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* ── The look — three real constructions of the
-                      picked palette (kit + texture + ornament), each
-                      expandable to full size. Replaces "three tints
-                      of the same card". */}
-                  {(() => {
-                    const lookNameSpec = nameModeFor(st.occasion);
-                    const lookCouple = lookNameSpec.mode === 'couple';
-                    const lookNames = st.names.filter(Boolean);
-                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
-                      ? st.paletteColors
-                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
-                    return (
-                      <>
-                      <WizardLooksSection
-                        occasion={st.occasion}
-                        paletteColors={lookPalette}
-                        nameA={lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder)}
-                        nameB={lookCouple ? (lookNames[1] || 'Jamie') : ''}
-                        dateLabel={parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) || 'Your date'}
-                        placeLabel={st.location || 'Your place'}
-                        selectedId={st.lookRecipeId ?? null}
-                        onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
-                        onPreview={setLookPreview}
-                      />
-                      <WizardStructureSection
-                        occasion={st.occasion}
-                        paletteColors={lookPalette}
-                        names={[
-                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
-                          lookCouple ? (lookNames[1] || 'Jamie') : '',
-                        ]}
-                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
-                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
-                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
-                        picks={{
-                          siteMode: st.siteMode,
-                          kitId: st.kitId,
-                          texture: st.texture,
-                          navVariant: st.navVariant,
-                          heroVariant: st.heroVariant,
-                          motifLayout: st.motifLayoutPick,
-                          density: st.densityPick,
-                        }}
-                        onExpand={() => setFittingOpen(true)}
-                      />
-
-                      </>
-                    );
-                  })()}
-                </>
-              )}
-
               {step === 'Review' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
@@ -4122,7 +4001,7 @@ export function WizardV8() {
                         ]}
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
-                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null}
                         picks={{
                           siteMode: st.siteMode,
                           kitId: st.kitId,
@@ -4353,7 +4232,7 @@ export function WizardV8() {
                             ]}
                             coverPhoto={st.photos.find((ph) => ph.url)?.url}
                             galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
-                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null}
                             palettes={fitPalettes}
                             activePaletteId={st.palette}
                             onPalettePick={(c) => {

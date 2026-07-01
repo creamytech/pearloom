@@ -111,7 +111,7 @@ A site's look = **theme** (§3.3 palette/type bag) + **kit** + **texture** (+ in
 | `density` | cozy / comfortable / spacious | `--pl-density-scale` |
 | `edition` | `src/lib/site-editions/editions.ts` | read-time defaults only — `recommendEdition(occasion, voice)`; the resolver never writes back |
 
-- **Wizard**: `lookRecipesFor(occasion)` builds three real looks ([0] is always Pear's occasion match; alternates are voice-curated — solemn voices never see scrapbook/ticket). An explicit pick stamps the manifest; otherwise `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts).
+- **Wizard**: `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts) — the `'match'` recipe from `lookRecipesFor(occasion)` dresses the live pressing (and the "room wears the look" underlay on Palette/Review). Explicit kit/texture/motif/density picks come from the **fitting room** (`wizard-fitting-room.tsx`) and beat the defaults at generation. (The old three-look card picker — `wizard-looks.tsx` — was unreachable inside the dead-coded Layout step and was deleted 2026-07-01; the fitting room is its successor.)
 - **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (in-canvas pack preview/unlock, shares `pl-store-owned` localStorage with `/store`).
 - **Studio inheritance**: `studio-defaults-from-look.ts` — first Studio open inherits the site look.
 - **From photos**: `src/lib/look-engine/palette-from-photo.ts` (client-side quantize) feeds the wizard's "From your photos" palette + `/api/wizard/smart-palette`.
