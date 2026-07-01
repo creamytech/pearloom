@@ -32,6 +32,7 @@
 | Site Editions (read-time defaults) | `src/lib/site-editions/` | `recommendEdition` by occasion/voice. Never written to the manifest by the resolver. |
 | Event OS registry | `src/lib/event-os/event-types.ts` | 28 occasions: blocks, voice, RSVP preset, templates, look defaults. Plus `name-mode.ts`, `rsvp-presets.ts`, `wizard-questions.ts`, `solo-occasions.ts`. |
 | Suggestion chips | `src/components/pearloom/editor/panels/_suggestions.ts` | Occasion-shape routed (wedding sets only for wedding-shaped events — de-wedding'd 2026-06-12). |
+| Occasion copy packs | `src/components/pearloom/redesign/occasion-copy.ts` | `occasionCopyFor(occasion, voice)` — the renderer's fallback + DEMO copy per occasion (story heading/body, schedule/registry/FAQ seeds, nav story label). buildCopy, the panel seeds (Faq/Registry/Schedule), FullSite, and the rails all read it; wedding-arc packs modulate by Pear voice. Demo fields never reach published sites (2026-07-01). Editor panel LABELS stay with `_voice-pack.ts`. |
 | CSS tokens + utilities | `src/app/globals.css` (2.4k lines) + `src/app/pearloom.css` (8.4k lines) | See §3. |
 | Editor state helpers | `src/lib/editor-state.ts` | `stripArtForStorage` (chapter-image base64 strip). |
 | URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`, `normalizeOccasion`. **Never concatenate site URLs.** |
