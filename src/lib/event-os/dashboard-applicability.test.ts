@@ -45,12 +45,33 @@ describe('isDashSurfaceApplicable', () => {
     expect(isDashSurfaceApplicable('music', 'funeral')).toBe(!funeralHidesSpotify);
   });
 
-  it('limits the weekend builder to the wedding arc', () => {
+  it('offers the weekend builder to every occasion inside a weekend arc', () => {
+    // Anchors…
     expect(isDashSurfaceApplicable('weekend', 'wedding')).toBe(true);
+    expect(isDashSurfaceApplicable('weekend', 'quinceanera')).toBe(true);
+    expect(isDashSurfaceApplicable('weekend', 'reunion')).toBe(true);
+    expect(isDashSurfaceApplicable('weekend', 'milestone-birthday')).toBe(true);
+    // …and satellites (a rehearsal-dinner host is mid-arc).
     expect(isDashSurfaceApplicable('weekend', 'rehearsal-dinner')).toBe(true);
-    expect(isDashSurfaceApplicable('weekend', 'birthday')).toBe(false);
+    expect(isDashSurfaceApplicable('weekend', 'brunch')).toBe(true);
+    // Occasions with no arc stay out.
     expect(isDashSurfaceApplicable('weekend', 'memorial')).toBe(false);
     expect(isDashSurfaceApplicable('weekend', 'baby-shower')).toBe(false);
+  });
+
+  it('keeps party furniture off solemn dashboards', () => {
+    for (const surface of ['passport', 'qr', 'director', 'cadence']) {
+      expect(isDashSurfaceApplicable(surface, 'memorial'), surface).toBe(false);
+      expect(isDashSurfaceApplicable(surface, 'funeral'), surface).toBe(false);
+      expect(isDashSurfaceApplicable(surface, 'wedding'), surface).toBe(true);
+      expect(isDashSurfaceApplicable(surface, 'birthday'), surface).toBe(true);
+    }
+  });
+
+  it('payments follows the registry block (same money surface)', () => {
+    expect(isDashSurfaceApplicable('payments', 'bachelor-party')).toBe(false);
+    expect(isDashSurfaceApplicable('payments', 'wedding')).toBe(true);
+    expect(isDashSurfaceApplicable('payments', 'memorial')).toBe(true);
   });
 });
 

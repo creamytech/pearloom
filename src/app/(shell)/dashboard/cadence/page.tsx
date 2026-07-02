@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { CadenceClient } from './CadenceClient';
 
 export const metadata: Metadata = {
-  title: 'Send cadence · Pearloom',
+  title: 'Send timeline · Pearloom',
   description: 'Plan every save-the-date, reminder, and thank-you for your event.',
 };
 

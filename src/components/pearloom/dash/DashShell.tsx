@@ -101,7 +101,9 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
   guests: {
     label: 'Guests',
     tabs: [
-      { id: 'roster',      label: 'Roster',      href: '/dashboard/rsvp' },
+      /* Matches the sidebar's "Guests" so clicking the sidebar
+         never lands on a differently-named tab. */
+      { id: 'roster',      label: 'Guests',      href: '/dashboard/rsvp' },
       { id: 'messages',    label: 'Messages',    href: '/dashboard/messages' },
       { id: 'submissions', label: 'Submissions', href: '/dashboard/submissions' },
       { id: 'registry',    label: 'Registry',    href: '/dashboard/registry' },
@@ -441,11 +443,12 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
             gap: 2,
           }}
         >
+          {/* "Settings" ALWAYS means the settings page — the modal
+              only ever opens under its own names (billing, usage),
+              so the same word never leads to two different UIs. */}
           <UserMenuItem
-            onClick={() => {
-              setOpen(false);
-              openTab('account');
-            }}
+            href="/dashboard/profile"
+            onSelect={() => setOpen(false)}
             icon="sliders"
             label="Settings"
             description="Profile, preferences, theme"
@@ -1260,7 +1263,7 @@ export function TopbarAvatarButton() {
     <button
       type="button"
       onClick={() => openTab('account')}
-      aria-label="Open account settings"
+      aria-label="Open account"
       title="Account"
       style={{
         width: 32,

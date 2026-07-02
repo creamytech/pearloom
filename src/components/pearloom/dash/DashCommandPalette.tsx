@@ -54,17 +54,20 @@ export const DEPROMOTED_DESTINATIONS: Array<{
   gate?: string;
 }> = [
   { id: 'tool-analytics',  label: 'Analytics',        hint: 'Visits & sections',         icon: 'eye',      href: '/dashboard/analytics' },
-  { id: 'tool-bridge',     label: 'The bridge',       hint: 'Every guest thread',        icon: 'users',    href: '/dashboard/bridge' },
-  { id: 'tool-cadence',    label: 'Send timeline',    hint: 'Save-the-dates & reminders', icon: 'bell',    href: '/dashboard/cadence' },
-  { id: 'tool-director',   label: 'The Director',     hint: 'Pear plans with you',       icon: 'sparkles', href: '/dashboard/director' },
-  { id: 'tool-gallery',    label: 'The Reel',         hint: 'Every photo, all sites',    icon: 'image',    href: '/dashboard/gallery' },
+  { id: 'tool-bridge',     label: 'Guest threads',    hint: 'Memory prompts, whispers, capsule', icon: 'users', href: '/dashboard/bridge', gate: 'bridge' },
+  { id: 'tool-cadence',    label: 'Send timeline',    hint: 'Save-the-dates & reminders', icon: 'bell',    href: '/dashboard/cadence', gate: 'cadence' },
+  { id: 'tool-director',   label: 'The Director',     hint: 'Pear plans with you',       icon: 'sparkles', href: '/dashboard/director', gate: 'director' },
+  /* The Reel is a first-class sidebar + Studio-tab destination —
+     it does NOT also belong in the de-promoted discovery list
+     (it was triple-listed; More tools claims to list routes the
+     sidebar doesn't carry). */
   { id: 'tool-review',     label: "Pear's review",    hint: 'Duplicates, VIPs, gaps',    icon: 'check',    href: '/dashboard/guest-review' },
   { id: 'tool-help',       label: 'Help & docs',      hint: 'Shortcuts & answers',       icon: 'heart-icon', href: '/dashboard/help' },
   { id: 'tool-music',      label: 'Music',            hint: 'Guest song requests',       icon: 'music',    href: '/dashboard/music', gate: 'music' },
-  { id: 'tool-passport',   label: 'Passport cards',   hint: 'Printable guest QR cards',  icon: 'gift',     href: '/dashboard/passport-cards' },
-  { id: 'tool-payments',   label: 'Gifts & payments', hint: 'Stripe feed',               icon: 'gift',     href: '/dashboard/payments' },
+  { id: 'tool-passport',   label: 'Passport cards',   hint: 'Printable guest QR cards',  icon: 'gift',     href: '/dashboard/passport-cards', gate: 'passport' },
+  { id: 'tool-payments',   label: 'Gifts & payments', hint: 'Stripe feed',               icon: 'gift',     href: '/dashboard/payments', gate: 'payments' },
   { id: 'tool-print',      label: 'Print orders',     hint: 'Pearloom Print tracking',   icon: 'mail',     href: '/dashboard/print' },
-  { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster' },
+  { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster', gate: 'qr' },
   { id: 'tool-voice',      label: "Pear's voice",     hint: 'Train Pear on your tone',   icon: 'mic',      href: '/dashboard/voice' },
   { id: 'tool-weekend',    label: 'Weekend builder',  hint: 'Linked multi-event sites',  icon: 'calendar', href: '/dashboard/weekend', gate: 'weekend' },
 ];
@@ -136,19 +139,10 @@ export function DashCommandPalette() {
       if (d.gate && !isDashSurfaceApplicable(d.gate, selectedSite?.occasion)) continue;
       items.push({ id: d.id, kind: 'nav', label: d.label, hint: d.hint, icon: d.icon, href: d.href });
     }
-    // Settings modal entries — opens the in-shell modal rather
-    // than routing to a page. Mirrors the four tabs.
-    items.push({
-      id: 'action-settings-account',
-      kind: 'action',
-      label: 'Open settings',
-      hint: 'Account',
-      icon: 'user',
-      onSelect: () => {
-        openSettingsTab('account');
-        setOpen(false);
-      },
-    });
+    // "Settings" always routes to the settings PAGE (one word, one
+    // destination — the nav-settings entry above covers it). The
+    // modal keeps only its clearly-named quick views: billing and
+    // usage.
     items.push({
       id: 'action-settings-usage',
       kind: 'action',
@@ -168,17 +162,6 @@ export function DashCommandPalette() {
       icon: 'star',
       onSelect: () => {
         openSettingsTab('subscription');
-        setOpen(false);
-      },
-    });
-    items.push({
-      id: 'action-settings-preferences',
-      kind: 'action',
-      label: 'Preferences',
-      hint: 'Theme, voice, quiet hours',
-      icon: 'settings',
-      onSelect: () => {
-        openSettingsTab('preferences');
         setOpen(false);
       },
     });
