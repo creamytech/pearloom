@@ -115,6 +115,7 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
     tabs: [
       { id: 'timeline', label: 'Timeline', href: '/dashboard/day-of' },
       { id: 'seating',  label: 'Seating',  href: '/dashboard/seating' },
+      { id: 'vendors',  label: 'Vendors',  href: '/dashboard/vendors' },
     ],
   },
   studio: {
