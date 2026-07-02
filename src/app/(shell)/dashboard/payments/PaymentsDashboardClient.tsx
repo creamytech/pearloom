@@ -9,7 +9,7 @@ export function PaymentsDashboardClient() {
   const { site, loading } = useSelectedSite();
 
   return (
-    <DashLayout active="payments" hideTopbar>
+    <DashLayout active="guests" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
         <PLHead
           align="center"

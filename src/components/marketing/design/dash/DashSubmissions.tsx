@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { Panel, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
+import { Panel, EmptyShell, btnInk, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -93,7 +93,11 @@ export function DashSubmissions() {
   const [subs, setSubs] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'pending' | 'approved' | 'flag' | 'all'>('approved');
+  // null = the host hasn't picked a tab yet; we land them on
+  // whichever bucket needs review (flagged first, else approved).
+  // Derived at render so the default tracks the loaded data
+  // without a setState-in-effect cascade.
+  const [tab, setTab] = useState<'approved' | 'hidden' | 'flag' | 'all' | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const loadAll = useCallback(async (domain: string) => {
@@ -154,23 +158,28 @@ export function DashSubmissions() {
   }, [site?.domain, loadAll]);
 
   const counts = useMemo(() => {
-    const c = { pending: 0, approved: 0, flag: 0, all: subs.length };
+    // The three real moderation states — there is no 'pending'.
+    // Guest posts land approved (or whatever state the block set)
+    // and hosts move them between approved / hidden / flagged.
+    const c = { approved: 0, hidden: 0, flag: 0, all: subs.length };
     for (const s of subs) {
       if (s.status === 'flagged') c.flag += 1;
       else if (s.status === 'approved') c.approved += 1;
-      else c.pending += 1;
+      else c.hidden += 1;
     }
     return c;
   }, [subs]);
 
+  const activeTab = tab ?? (counts.flag > 0 ? 'flag' : 'approved');
+
   const filtered = useMemo(() => {
     return subs.filter((s) => {
-      if (tab === 'all') return true;
-      if (tab === 'flag') return s.status === 'flagged';
-      if (tab === 'approved') return s.status === 'approved';
+      if (activeTab === 'all') return true;
+      if (activeTab === 'flag') return s.status === 'flagged';
+      if (activeTab === 'approved') return s.status === 'approved';
       return s.status === 'hidden';
     });
-  }, [subs, tab]);
+  }, [subs, activeTab]);
 
   const submissionsBody = submissionsBodyFor(site?.occasion);
   const relevantKinds = useMemo(() => getSubmissionKinds(site?.occasion), [site?.occasion]);
@@ -235,18 +244,17 @@ export function DashSubmissions() {
             <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
               Nothing yet.
             </i>{' '}
-            Share the submission link.
+            Guests submit from your site.
           </span>
         )
       }
       subtitle={submissionsBody}
       actions={
-        <>
-          <button className="pl8-btnfx" style={btnGhost}>Submission link</button>
-          <button className="pl8-btnfx" style={btnInk} onClick={() => void loadAll(site.domain)}>
-            ↻ Refresh
-          </button>
-        </>
+        // No standalone submission URL exists — guests submit from
+        // the advice/tribute/toast blocks on the published site.
+        <button className="pl8-btnfx" style={btnInk} onClick={() => void loadAll(site.domain)}>
+          ↻ Refresh
+        </button>
       }
     >
 
@@ -262,8 +270,8 @@ export function DashSubmissions() {
 
         <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2 }}>
           {([
-            { k: 'pending', l: `Pending · ${counts.pending}`, c: PD.gold },
             { k: 'approved', l: `Approved · ${counts.approved}`, c: PD.olive },
+            { k: 'hidden', l: `Hidden · ${counts.hidden}`, c: PD.gold },
             { k: 'flag', l: `Flagged · ${counts.flag}`, c: PD.terra },
             { k: 'all', l: `All · ${counts.all}`, c: PD.ink },
           ] as const).map((t) => (
@@ -274,9 +282,9 @@ export function DashSubmissions() {
                 padding: '8px 16px',
                 fontSize: 13,
                 borderRadius: 999,
-                background: tab === t.k ? t.c : 'transparent',
-                color: tab === t.k ? PD.paper : PD.ink,
-                border: `1px solid ${tab === t.k ? t.c : 'rgba(31,36,24,0.18)'}`,
+                background: activeTab === t.k ? t.c : 'transparent',
+                color: activeTab === t.k ? PD.paper : PD.ink,
+                border: `1px solid ${activeTab === t.k ? t.c : 'rgba(31,36,24,0.18)'}`,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
@@ -335,7 +343,14 @@ export function DashSubmissions() {
               gap: 16,
             }}
           >
-            {filtered.map((s) => (
+            {filtered.map((s) => {
+              // Toast claims + activity votes live in their own
+              // stores (toast_signups / activity_votes) — the
+              // tribute-submissions moderation endpoint can't touch
+              // them, so their cards are read-only here. Toasts have
+              // their own void control in the toast claims list.
+              const moderatable = s.kind !== 'toast' && s.kind !== 'vote';
+              return (
               <Panel
                 key={s.id}
                 bg={s.status === 'flagged' ? '#F1D7CE' : PD.paperCard}
@@ -365,7 +380,7 @@ export function DashSubmissions() {
                       {s.kind.toUpperCase()} · {s.when}
                     </div>
                   </div>
-                  {s.status === 'flagged' && (
+                  {moderatable && s.status === 'flagged' && (
                     <span
                       style={{
                         ...MONO_STYLE,
@@ -379,7 +394,7 @@ export function DashSubmissions() {
                       FLAGGED
                     </span>
                   )}
-                  {s.status === 'approved' && (
+                  {moderatable && s.status === 'approved' && (
                     <span
                       style={{
                         ...MONO_STYLE,
@@ -407,37 +422,40 @@ export function DashSubmissions() {
                   {s.body || <span style={{ opacity: 0.5 }}>(no text)</span>}
                 </div>
 
-                <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
-                  {s.status !== 'approved' && (
-                    <button
-                      disabled={pendingId === s.id}
-                      onClick={() => void moderate(s.id, 'approved')}
-                      className="pl8-btnfx" style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1, opacity: pendingId === s.id ? 0.5 : 1 }}
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {s.status !== 'hidden' && (
-                    <button
-                      disabled={pendingId === s.id}
-                      onClick={() => void moderate(s.id, 'hidden')}
-                      className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
-                    >
-                      Hide
-                    </button>
-                  )}
-                  {s.status !== 'flagged' && (
-                    <button
-                      disabled={pendingId === s.id}
-                      onClick={() => void moderate(s.id, 'flagged')}
-                      className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
-                    >
-                      Flag
-                    </button>
-                  )}
-                </div>
+                {moderatable && (
+                  <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
+                    {s.status !== 'approved' && (
+                      <button
+                        disabled={pendingId === s.id}
+                        onClick={() => void moderate(s.id, 'approved')}
+                        className="pl8-btnfx" style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {s.status !== 'hidden' && (
+                      <button
+                        disabled={pendingId === s.id}
+                        onClick={() => void moderate(s.id, 'hidden')}
+                        className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      >
+                        Hide
+                      </button>
+                    )}
+                    {s.status !== 'flagged' && (
+                      <button
+                        disabled={pendingId === s.id}
+                        onClick={() => void moderate(s.id, 'flagged')}
+                        className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      >
+                        Flag
+                      </button>
+                    )}
+                  </div>
+                )}
               </Panel>
-            ))}
+              );
+            })}
           </div>
         )}
 

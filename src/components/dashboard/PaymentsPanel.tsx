@@ -59,17 +59,10 @@ export function PaymentsPanel({ siteId }: Props) {
   const payments = !loading ? data!.payments : [];
   const totals = !loading ? data!.totals : { gross: 0, net: 0, fee: 0, count: 0 };
 
+  // No internal header — the mounting page (PaymentsDashboardClient's
+  // PLHead) owns the "Gifts & payments" title.
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <header>
-        <h2 style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 28, margin: 0 }}>
-          Gifts & payments
-        </h2>
-        <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 4 }}>
-          Every payment that came through your site, with totals.
-        </div>
-      </header>
-
       <div
         style={{
           display: 'grid',
@@ -103,7 +96,7 @@ export function PaymentsPanel({ siteId }: Props) {
             borderRadius: 14, overflow: 'hidden',
           }}
         >
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+          <table className="pl-payments-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
             <thead style={{ background: 'var(--cream-2, #F5EFE2)' }}>
               <tr>
                 <Th>From</Th>
@@ -148,6 +141,22 @@ export function PaymentsPanel({ siteId }: Props) {
           </table>
         </div>
       )}
+      {/* Phones keep From / Amount / Status / When — the columns
+          that answer "who sent what, did it land". Type (2),
+          Net (4) and Message (6) hide below 760px; same media-query
+          pattern as the guests roster. */}
+      <style jsx>{`
+        @media (max-width: 760px) {
+          :global(.pl-payments-table th:nth-child(2)),
+          :global(.pl-payments-table td:nth-child(2)),
+          :global(.pl-payments-table th:nth-child(4)),
+          :global(.pl-payments-table td:nth-child(4)),
+          :global(.pl-payments-table th:nth-child(6)),
+          :global(.pl-payments-table td:nth-child(6)) {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

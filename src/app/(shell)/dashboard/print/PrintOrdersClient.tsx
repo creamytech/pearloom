@@ -137,7 +137,9 @@ export function PrintOrdersClient({
 
   return (
     <DashLayout
-      active="sites"
+      /* Print is keepsake fulfillment — "memory" is the closest real
+         sidebar id (the shell has no print/sites entry). */
+      active="memory"
       title="Print orders"
       subtitle="Every postcard, invitation, and thank-you card sent through Pearloom Print, with delivery tracking."
     >

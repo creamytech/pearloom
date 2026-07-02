@@ -24,6 +24,10 @@ import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 function guestCopy(occasion?: string | null) {
   const e = getEventType(occasion as never) ?? null;
   const preset = e?.rsvpPreset ?? 'wedding';
+  // Solemn presets (memorial / funeral): Pear never chases anyone —
+  // no stale stat, no nudge affordances, gentler panel labels.
+  const solemn = preset === 'memorial';
+  const base = (() => {
   switch (preset) {
     case 'memorial':
       return {
@@ -91,6 +95,8 @@ function guestCopy(occasion?: string | null) {
         verbQuiet: 'still quiet',
       };
   }
+  })();
+  return { ...base, solemn };
 }
 
 type RsvpKey = 'yes' | 'no' | 'maybe' | 'pending';
@@ -1080,6 +1086,13 @@ export function DashGuests() {
   const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
   const copy = guestCopy(site?.occasion);
+  const solemn = copy.solemn;
+  // The 5th roster column only renders when the guest row actually
+  // carries a distinct field for it (meal). Presets whose fifthKey is
+  // the merged note would just duplicate the Note column — drop the
+  // column entirely for those occasions instead of a row of "—".
+  const showFifth = copy.fifthKey !== 'note';
+  const rosterColumns = showFifth ? '1.3fr 1fr 0.7fr 1.5fr 90px' : '1.3fr 1fr 0.7fr 1.5fr';
   const guestListOnly = Boolean(
     (site?.manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig?.guestListOnly,
   );
@@ -1175,14 +1188,16 @@ export function DashGuests() {
           {/* STATS */}
           <div
             className="pd-guests-stats pl8-dash-stagger"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }}
+            style={{ display: 'grid', gridTemplateColumns: `repeat(${solemn ? 5 : 6},1fr)`, gap: 10 }}
           >
             {[
               { l: 'Invited', v: counts.all, c: PD.stone },
               { l: 'Yes', v: counts.yes, c: PD.olive },
               { l: 'Maybe', v: counts.maybe, c: PD.gold },
               { l: 'Pending', v: counts.pending, c: PD.plum },
-              { l: 'Stale', v: counts.stale, c: PD.terra, hint: '> 7 days, no reply' },
+              // Solemn events never surface the stale/no-reply framing —
+              // "Pear checks in quietly — no follow-ups unless you ask."
+              ...(solemn ? [] : [{ l: 'Stale', v: counts.stale, c: PD.terra, hint: '> 7 days, no reply' }]),
               { l: 'Declined', v: counts.no, c: PD.stone },
             ].map((s) => (
               <Panel key={s.l} bg={PD.paperCard} style={{ padding: '14px 16px' }}>
@@ -1293,7 +1308,7 @@ export function DashGuests() {
           {(cater.meals.length > 0 || cater.diets.length > 0) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
-                FOR THE CATERER
+                {solemn ? 'FOR THE MEAL COUNT' : 'FOR THE CATERER'}
               </div>
               <Panel bg={PD.paperCard} style={{ padding: '14px 16px' }}>
                 {cater.meals.length > 0 && (
@@ -1357,7 +1372,7 @@ export function DashGuests() {
               {copyAllNote}
             </div>
           )}
-          {rows && (() => {
+          {!solemn && rows && (() => {
             const deadlineSoon = rsvpDeadline != null && rsvpDeadline.daysLeft >= 0 && rsvpDeadline.daysLeft <= 14;
             if (deadlineSoon && counts.pending > 0) {
               const pendingWithEmail = rows.filter((g) => g.rsvp === 'pending' && g.em);
@@ -1442,7 +1457,7 @@ export function DashGuests() {
                 { k: 'all', l: `All · ${counts.all}` },
                 { k: 'yes', l: `Yes · ${counts.yes}` },
                 { k: 'pending', l: `Pending · ${counts.pending}` },
-                { k: 'stale', l: `Stale · ${counts.stale}` },
+                ...(solemn ? [] : [{ k: 'stale' as const, l: `Stale · ${counts.stale}` }]),
                 { k: 'maybe', l: `Maybe · ${counts.maybe}` },
                 { k: 'no', l: `No · ${counts.no}` },
                 ...(duplicateIds.size > 0 ? [{ k: 'dupes' as const, l: `Duplicates · ${duplicateIds.size}` }] : []),
@@ -1538,13 +1553,13 @@ export function DashGuests() {
                   className="pd-guests-head"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1.3fr 1fr 0.7fr 1.5fr 90px',
+                    gridTemplateColumns: rosterColumns,
                     padding: '10px 18px',
                     background: PD.paper3,
                     borderBottom: '1px solid rgba(31,36,24,0.08)',
                   }}
                 >
-                  {['Guest', 'Party', 'RSVP', 'Note', copy.fifthColumn].map((h) => (
+                  {['Guest', 'Party', 'RSVP', 'Note', ...(showFifth ? [copy.fifthColumn] : [])].map((h) => (
                     <div key={h} style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
                       {h.toUpperCase()}
                     </div>
@@ -1558,7 +1573,7 @@ export function DashGuests() {
                       className="pd-guests-row"
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: '1.3fr 1fr 0.7fr 1.5fr 90px',
+                        gridTemplateColumns: rosterColumns,
                         padding: '14px 18px',
                         borderBottom:
                           i < filtered.length - 1 ? '1px solid rgba(31,36,24,0.06)' : 'none',
@@ -1780,15 +1795,20 @@ export function DashGuests() {
                           </div>
                         )}
                       </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          textTransform: 'capitalize',
-                          color: '#6A6A56',
-                        }}
-                      >
-                        {g.meal}
-                      </div>
+                      {/* 5th column — the field guestCopy names via
+                          fifthKey. Rendered only when it's a real,
+                          distinct row field (see showFifth above). */}
+                      {showFifth && (
+                        <div
+                          style={{
+                            fontSize: 12,
+                            textTransform: 'capitalize',
+                            color: '#6A6A56',
+                          }}
+                        >
+                          {g[copy.fifthKey]}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1863,12 +1883,14 @@ export function DashGuests() {
                 }}
               >
                 {counts.pending > 0
-                  ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
+                  ? solemn
+                    ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Pear is leaving them be — no follow-ups unless you ask.`
+                    : `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
                   : counts.yes === 0
                   ? 'No RSVPs yet. Want me to send the invitation?'
                   : 'Everyone accounted for. Nice.'}
               </div>
-              {counts.pending > 0 && (
+              {!solemn && counts.pending > 0 && (
                 <button
                   type="button"
                   onClick={() => setFilter('pending')}

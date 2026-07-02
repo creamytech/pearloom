@@ -70,7 +70,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
 
   return (
     <DashLayout
-      active="event"
+      active="guests"
       title="Send timeline"
       subtitle="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you. Approve, edit copy, or schedule."
     >

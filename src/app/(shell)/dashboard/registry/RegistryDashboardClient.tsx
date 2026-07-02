@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
 import { RegistryClaimsFeed, useRegistryClaims } from '@/components/registry/RegistryClaimsFeed';
@@ -115,6 +116,19 @@ export function RegistryDashboardClient() {
                 <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginTop: 6 }}>
                   Cash funds settle straight to your account. No fees on gifts.
                 </div>
+                <Link
+                  href="/dashboard/payments"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: 'var(--peach-ink, #C6703D)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  See payments →
+                </Link>
               </PLCard>
               {/* Thank-yous / recent claims — the editor's component,
                   in the sidebar. Hides itself when there are none. */}
