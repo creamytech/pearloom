@@ -191,6 +191,9 @@ function InsightCard({
         display: 'flex',
         gap: 14,
         alignItems: 'flex-start',
+        /* Phones: the action pill drops to its own line instead of
+           crushing the title + detail into a sliver column. */
+        flexWrap: 'wrap',
       }}
     >
       <div style={{
@@ -202,7 +205,7 @@ function InsightCard({
       }}>
         <Icon name={KIND_ICONS[insight.kind]} size={16} color={tone.fg} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 'min(180px, 100%)' }}>
         <div style={{
           fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em',
           textTransform: 'uppercase', color: tone.fg, marginBottom: 6,

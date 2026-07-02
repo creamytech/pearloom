@@ -112,9 +112,9 @@ export function PaymentsPanel({ siteId }: Props) {
               {payments.map((p) => (
                 <tr key={p.id} style={{ borderTop: '1px solid var(--line, rgba(61,74,31,0.08))' }}>
                   <Td>
-                    <div style={{ fontWeight: 600 }}>{p.payerName || p.payerEmail}</div>
+                    <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{p.payerName || p.payerEmail}</div>
                     {p.payerName && (
-                      <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{p.payerEmail}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-muted)', overflowWrap: 'anywhere' }}>{p.payerEmail}</div>
                     )}
                   </Td>
                   <Td>
@@ -154,6 +154,15 @@ export function PaymentsPanel({ siteId }: Props) {
           :global(.pl-payments-table th:nth-child(6)),
           :global(.pl-payments-table td:nth-child(6)) {
             display: none;
+          }
+        }
+        /* Phone widths — the four surviving columns share ~350px,
+           so the 14px cell gutters give their width back to content. */
+        @media (max-width: 480px) {
+          :global(.pl-payments-table th),
+          :global(.pl-payments-table td) {
+            padding-left: 8px;
+            padding-right: 8px;
           }
         }
       `}</style>

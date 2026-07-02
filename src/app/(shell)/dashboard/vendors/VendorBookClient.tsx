@@ -627,7 +627,7 @@ export function VendorBookClient() {
                       className="pd-vb-grid"
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
                         gap: 16,
                       }}
                     >
@@ -888,6 +888,7 @@ const iconBtn: React.CSSProperties = {
 };
 const contactLink: React.CSSProperties = {
   color: 'var(--peach-ink, #C6703D)', textDecoration: 'none', fontWeight: 600,
+  overflowWrap: 'anywhere',
 };
 const moneyRow: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', fontSize: 12.5,

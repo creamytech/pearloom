@@ -247,7 +247,7 @@ export function DashConnections() {
           <div
             style={{
               position: 'relative',
-              padding: 40,
+              padding: 'clamp(16px, 5vw, 40px)',
               minHeight: 440,
               background: `linear-gradient(180deg, ${PD.paperCard} 0%, ${PD.paper3} 100%)`,
             }}
@@ -423,6 +423,11 @@ export function DashConnections() {
           :global(.pd-connections-main) {
             grid-template-columns: 1fr !important;
           }
+          /* Single-column: the details column stops being a sidebar,
+             so it stops being sticky (mirrors the registry page). */
+          :global(.pd-connections-main > div:last-child) {
+            position: static !important;
+          }
         }
       `}</style>
 
@@ -448,11 +453,15 @@ function CelebrationGraph({
   onUnlink: (siteId: string) => void;
   saving: string | null;
 }) {
-  // Nodes on a circle around the celebration label.
+  // Nodes on a circle around the celebration label. Positions are
+  // computed in the 440-unit viewBox space and emitted as
+  // PERCENTAGES so the whole constellation scales with the panel —
+  // fixed-pixel coordinates overflowed the card on phones.
   const radius = Math.min(180, 60 + sites.length * 14);
   const containerSize = 440;
   const cx = containerSize / 2;
   const cy = containerSize / 2;
+  const pct = (n: number) => `${(n / containerSize) * 100}%`;
 
   return (
     <div
@@ -460,7 +469,7 @@ function CelebrationGraph({
         position: 'relative',
         width: '100%',
         maxWidth: containerSize,
-        height: containerSize,
+        aspectRatio: '1 / 1',
         margin: '0 auto',
       }}
     >
@@ -497,16 +506,17 @@ function CelebrationGraph({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
-          padding: '22px 30px',
+          padding: 'clamp(14px, 4vw, 22px) clamp(18px, 5vw, 30px)',
           background: PD.paperCard,
           borderRadius: 999,
           border: `2px solid ${PD.ink}`,
           zIndex: 2,
           boxShadow: '0 12px 30px -12px rgba(31,36,24,0.3)',
-          minWidth: 180,
+          minWidth: 'min(180px, 80%)',
+          maxWidth: '92%',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 0 }}>
           <Pear size={26} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
           <div
             style={{
@@ -515,6 +525,10 @@ function CelebrationGraph({
               fontSize: 18,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {celebration.name}
@@ -534,8 +548,8 @@ function CelebrationGraph({
             key={s.id}
             style={{
               position: 'absolute',
-              left: x,
-              top: y,
+              left: pct(x),
+              top: pct(y),
               transform: 'translate(-50%, -50%)',
               zIndex: 3,
             }}
@@ -546,7 +560,7 @@ function CelebrationGraph({
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 6,
-                maxWidth: 160,
+                maxWidth: 'min(160px, 38vw)',
                 textAlign: 'center',
                 opacity: isSaving ? 0.5 : 1,
               }}

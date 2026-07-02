@@ -339,7 +339,7 @@ export function DashSubmissions() {
             className="pl8-dash-stagger"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
               gap: 16,
             }}
           >
@@ -414,6 +414,7 @@ export function DashSubmissions() {
                     fontSize: s.kind === 'note' ? 14.5 : 13.5,
                     color: PD.ink,
                     lineHeight: 1.55,
+                    overflowWrap: 'anywhere',
                     fontFamily: s.kind === 'note' ? '"Fraunces", Georgia, serif' : 'var(--pl-font-body)',
                     fontStyle: s.kind === 'note' ? 'italic' : 'normal',
                     fontVariationSettings: s.kind === 'note' ? '"opsz" 144, "SOFT" 80, "WONK" 1' : undefined,
@@ -507,7 +508,7 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
         GUESTBOOK · {wishes.length}
       </div>
       <div
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: 16 }}
       >
         {wishes.map((w) => (
           <Panel key={w.id} bg={PD.paperCard} style={{ padding: 18 }}>
@@ -519,6 +520,7 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
                 fontFamily: '"Fraunces", Georgia, serif',
                 fontStyle: 'italic',
                 marginBottom: 10,
+                overflowWrap: 'anywhere',
               }}
             >
               “{w.message}”

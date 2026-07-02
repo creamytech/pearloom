@@ -484,7 +484,7 @@ export function EventIndexPage() {
             className="pl8-dash-stagger"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
               gap: 24,
             }}
           >
@@ -518,6 +518,7 @@ export function EventIndexPage() {
               marginTop: 28,
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 14,
               padding: '16px 20px',
               borderRadius: 14,
@@ -528,7 +529,7 @@ export function EventIndexPage() {
             }}
           >
             <Icon name="calendar" size={18} />
-            <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ flex: 1, minWidth: 'min(220px, 100%)' }}>
               <span style={{ fontWeight: 700, fontSize: 14 }}>Planning a whole weekend?</span>{' '}
               <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
                 One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.

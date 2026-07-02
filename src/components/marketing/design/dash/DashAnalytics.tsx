@@ -427,6 +427,7 @@ export function DashAnalytics() {
                 {depth.map((r) => (
                   <div
                     key={r.s}
+                    className="pd-analytics-depthrow"
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '140px 1fr 54px',
@@ -526,6 +527,21 @@ export function DashAnalytics() {
           }
           :global(.pd-analytics-charts),
           :global(.pd-analytics-scroll) {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        /* Phones: give the depth bars their width back — the fixed
+           140px label column left the bars a sliver at 390px. */
+        @media (max-width: 480px) {
+          :global(.pd-analytics-depthrow) {
+            grid-template-columns: 96px 1fr 40px !important;
+            gap: 8px !important;
+          }
+        }
+        /* The narrowest phones: two 40px display numbers side by
+           side squeeze — stack the KPI tiles. */
+        @media (max-width: 380px) {
+          :global(.pd-analytics-kpi) {
             grid-template-columns: 1fr !important;
           }
         }

@@ -77,8 +77,8 @@ export function RegistryItemsManager({ siteId }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
           <h2 style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 28, margin: 0 }}>
             Registry items
           </h2>
@@ -103,7 +103,7 @@ export function RegistryItemsManager({ siteId }: Props) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))',
             gap: 14,
           }}
         >

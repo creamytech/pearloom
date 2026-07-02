@@ -322,8 +322,8 @@ export function ClaimCard({
         transition: 'opacity 200ms ease',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
           {claim.claimer_name || claim.claimer_email.split('@')[0] || 'A guest'}
           <KindChip kind={claim.kind ?? 'link'} />
         </span>
@@ -354,7 +354,7 @@ export function ClaimCard({
       {claim.claimer_email && (
         <a
           href={`mailto:${claim.claimer_email}`}
-          style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
+          style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none', overflowWrap: 'anywhere' }}
         >
           {claim.claimer_email} →
         </a>
