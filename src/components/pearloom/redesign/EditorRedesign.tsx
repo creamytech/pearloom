@@ -25,8 +25,10 @@ import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
 import { nextStepFor, isManifestPublished } from '@/lib/next-step';
+import { applyPackToManifest, readPackStash, APPLIED_PACK_STASH_KEY } from '@/lib/theme-store/apply';
 import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
+import { fireUndoable } from './UndoToast';
 import { EditorRailLeft, sectionOrderFor, sectionDisplayLabel } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
 import { ThemeRail } from './ThemeRail';
@@ -393,6 +395,73 @@ export default function EditorRedesign({
   useEffect(() => {
     setManifestRef.current = bridge.setManifest;
   });
+
+  /* ── Theme Store hand-off ────────────────────────────────────
+     The standalone /store page (and /templates) can't reach this
+     editor's manifest, so their Apply stashes the chosen pack
+     under 'pl-applied-pack' and navigates here. Consume it once
+     on mount and stamp the look through the bridge's normal
+     setManifest path — it rides the autosave POST, lands in the
+     undo stack, and fires the same undoable toast an in-editor
+     ThemeShop apply does.
+
+     Everything runs inside a deferred timeout: no synchronous
+     setState-in-effect (React Compiler rule), and StrictMode's
+     double-invoke stays safe because the stash is only removed
+     when a scheduled callback actually runs (the first schedule
+     is cancelled by cleanup before it can read). */
+  const manifestRef = useRef(bridge.manifest);
+  useEffect(() => {
+    manifestRef.current = bridge.manifest;
+  });
+  /* Viewers + guest-managers can't save manifests — the server
+     rejects their POSTs — so never consume the stash for them
+     (it stays put for the owner's next visit). */
+  const canApplyStash = viewerRole === 'owner' || viewerRole === 'editor';
+  useEffect(() => {
+    if (typeof window === 'undefined' || !canApplyStash) return;
+    const t = setTimeout(() => {
+      let raw: string | null = null;
+      try {
+        raw = window.localStorage.getItem(APPLIED_PACK_STASH_KEY);
+        if (raw !== null) window.localStorage.removeItem(APPLIED_PACK_STASH_KEY);
+      } catch {
+        return; /* private mode — nothing stashed */
+      }
+      const pack = readPackStash(raw, Date.now());
+      if (!pack) return;
+      const prior = manifestRef.current;
+      /* Free vs owned — mirrors EditorThemeShop.onApply. An unowned
+         paid pack may be worn on a DRAFT (try-before-you-buy; the
+         publish gate reads manifest.appliedPackId), but never on a
+         live site — its autosaves would put a paid look in front
+         of guests. Ownership reads the shared 'pl-store-owned'
+         ledger the store + shop both write. */
+      let ownedLocally = pack.priceCents === 0;
+      if (!ownedLocally) {
+        try {
+          const ownedIds = JSON.parse(window.localStorage.getItem('pl-store-owned') || '[]') as unknown;
+          ownedLocally = Array.isArray(ownedIds) && ownedIds.includes(pack.id);
+        } catch {
+          /* unreadable ledger — treat as unowned */
+        }
+      }
+      const locked = !ownedLocally && pack.priceCents > 0;
+      if (locked && isManifestPublished(prior)) {
+        console.warn('[editor] skipped stashed pack — site is live and the pack is unowned:', pack.id);
+        return;
+      }
+      setManifestRef.current(applyPackToManifest(pack, prior));
+      fireUndoable(
+        locked
+          ? `Wearing ${pack.name} to try — unlock it when you publish`
+          : `${pack.name} applied — your old look is one tap away`,
+        () => setManifestRef.current(prior),
+      );
+    }, 0);
+    return () => clearTimeout(t);
+  }, [canApplyStash]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     /* eslint-disable @typescript-eslint/no-explicit-any */

@@ -15,7 +15,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyPackToManifest } from './apply';
+import {
+  applyPackToManifest,
+  readPackStash,
+  APPLIED_PACK_STASH_TTL_MS,
+} from './apply';
 import { PACKS, getPackById } from './packs';
 import type { StoryManifest } from '@/types';
 
@@ -133,5 +137,74 @@ describe('applyPackToManifest', () => {
       unknown
     >;
     expect(next.appliedPackId).toBe(pack.id);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+// readPackStash — the /store → editor `pl-applied-pack` hand-off
+// parser. EditorRedesign feeds it the raw localStorage payload;
+// it must resolve real catalog packs, reject garbage, and expire
+// stale stashes so an abandoned Apply never re-dresses a site
+// days later.
+// ─────────────────────────────────────────────────────────────
+
+describe('readPackStash', () => {
+  const NOW = 1_750_000_000_000;
+
+  it('returns null for a missing stash', () => {
+    expect(readPackStash(null)).toBeNull();
+    expect(readPackStash('')).toBeNull();
+  });
+
+  it('returns null for malformed JSON', () => {
+    expect(readPackStash('not-json{')).toBeNull();
+  });
+
+  it('returns null when the id is missing or not a string', () => {
+    expect(readPackStash(JSON.stringify({}))).toBeNull();
+    expect(readPackStash(JSON.stringify({ id: 42 }))).toBeNull();
+    expect(readPackStash('null')).toBeNull();
+  });
+
+  it('returns null for an unknown pack id', () => {
+    expect(readPackStash(JSON.stringify({ id: 'not-a-real-pack' }))).toBeNull();
+  });
+
+  it('resolves a known pack id to the live catalog entry', () => {
+    const pack = readPackStash(JSON.stringify({ id: 'sage-watercolor' }));
+    expect(pack).toBe(getPackById('sage-watercolor'));
+    expect(pack?.priceCents).toBe(0);
+  });
+
+  it('accepts the Theme Store payload shape ({ id, at })', () => {
+    const pack = readPackStash(
+      JSON.stringify({ id: 'sage-watercolor', at: NOW - 1000 }),
+      NOW,
+    );
+    expect(pack?.id).toBe('sage-watercolor');
+  });
+
+  it('accepts legacy payloads without an `at` timestamp', () => {
+    // Pre-TTL writers stashed { id, themeRef, kit } — still valid.
+    const legacy = getPackById('sage-watercolor')!;
+    const pack = readPackStash(
+      JSON.stringify({ id: legacy.id, themeRef: legacy.themeRef, kit: legacy.kit }),
+      NOW,
+    );
+    expect(pack?.id).toBe(legacy.id);
+  });
+
+  it('expires stashes older than the TTL', () => {
+    const stale = JSON.stringify({
+      id: 'sage-watercolor',
+      at: NOW - APPLIED_PACK_STASH_TTL_MS - 1,
+    });
+    expect(readPackStash(stale, NOW)).toBeNull();
+    // …but a stash just inside the window survives.
+    const fresh = JSON.stringify({
+      id: 'sage-watercolor',
+      at: NOW - APPLIED_PACK_STASH_TTL_MS + 1000,
+    });
+    expect(readPackStash(fresh, NOW)?.id).toBe('sage-watercolor');
   });
 });

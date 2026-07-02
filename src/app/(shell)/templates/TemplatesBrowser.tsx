@@ -28,6 +28,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getPackById, type Pack } from '@/lib/theme-store/packs';
+import { APPLIED_PACK_STASH_KEY } from '@/lib/theme-store/apply';
 import { Pear, Squiggle, Wash, Icon } from '@/components/pearloom/motifs';
 import { TemplateVignette, type OccasionGroup } from './TemplateVignette';
 
@@ -483,22 +484,18 @@ export function TemplatesBrowser() {
   const rest = filtered.filter((r) => !r.featured);
   const totalCount = filtered.length;
 
-  // "Use this template" stashes the chosen pack so the wizard +
-  // editor can apply the look on the next render. Same shape as
-  // the Theme Store's `pl-applied-pack` payload so downstream
-  // consumers don't need a second branch.
+  // "Use this template" stashes the chosen pack so the editor can
+  // apply the look when it opens (after the wizard finishes and
+  // routes to /editor/{slug}). Same payload the Theme Store's
+  // Apply writes — EditorRedesign's mount consumer (readPackStash)
+  // handles both without a second branch. `at` lets it ignore
+  // stale stashes from abandoned wizard runs.
   function handleUse(row: HydratedRow) {
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.setItem(
-          'pl-applied-pack',
-          JSON.stringify({
-            id: row.pack.id,
-            themeRef: row.pack.themeRef,
-            kit: row.pack.kit,
-            templateName: row.name,
-            cat: row.cat,
-          }),
+          APPLIED_PACK_STASH_KEY,
+          JSON.stringify({ id: row.pack.id, at: Date.now() }),
         );
       } catch {
         /* ignore quota errors — wizard will use defaults. */

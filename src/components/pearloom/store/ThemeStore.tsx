@@ -18,15 +18,18 @@
 //   - ownership comes from useEntitlements() (server)
 //   - cart comes from useCart() (CartProvider, localStorage-backed)
 //
-// "Apply" handler writes `{ id, themeRef, kit }` to the legacy
-// `pl-applied-pack` localStorage key and navigates to /editor —
-// the editor reads that key on mount to stamp the look.
+// "Apply" handler stashes the pack id under the shared
+// APPLIED_PACK_STASH_KEY ('pl-applied-pack') and navigates to
+// /editor/[slug] — EditorRedesign consumes the stash on mount
+// and stamps the look via applyPackToManifest through its
+// autosaving, undo-able bridge path.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { COLLECTIONS, PACKS, getPackById, type Pack } from '@/lib/theme-store/packs';
+import { APPLIED_PACK_STASH_KEY } from '@/lib/theme-store/apply';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { Icon, Pear, PearloomGlyph, PearloomWordmark } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
@@ -374,9 +377,11 @@ function StoreInner() {
   };
 
   /**
-   * Stash the pack payload that the editor's mount hook reads. The
-   * editor's first paint picks this up and stamps the look onto
-   * the active manifest via applyPackToManifest().
+   * Stash the pack payload that EditorRedesign's mount consumer
+   * reads (readPackStash in lib/theme-store/apply.ts). The editor
+   * resolves the id against the live catalog and stamps the look
+   * onto the active manifest via applyPackToManifest(). `at`
+   * lets the consumer ignore stale stashes from abandoned runs.
    *
    * Returns false silently if storage is unavailable so the caller
    * can decide whether to abort the redirect.
@@ -384,8 +389,8 @@ function StoreInner() {
   const stashPackForEditor = (p: Pack): boolean => {
     try {
       window.localStorage.setItem(
-        'pl-applied-pack',
-        JSON.stringify({ id: p.id, vars: p.themeRef, kit: p.kit }),
+        APPLIED_PACK_STASH_KEY,
+        JSON.stringify({ id: p.id, at: Date.now() }),
       );
       return true;
     } catch {

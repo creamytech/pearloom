@@ -45,7 +45,50 @@
 
 import type { StoryManifest } from '@/types';
 import type { Pack, Motif, Kit } from './packs';
-import { dividerForMotif } from './packs';
+import { dividerForMotif, getPackById } from './packs';
+
+/* ── The `pl-applied-pack` hand-off ──────────────────────────
+   The standalone /store page (ThemeStore.tsx) and /templates
+   (TemplatesBrowser.tsx) can't reach the open editor's manifest,
+   so their Apply / "Use this template" actions stash the chosen
+   pack under this localStorage key and navigate to the editor.
+   EditorRedesign consumes the stash once on mount and stamps the
+   look through the bridge's normal setManifest path (undo-able +
+   autosaved). `readPackStash` is the parse half, kept pure so it
+   can be unit-tested without a DOM. */
+
+export const APPLIED_PACK_STASH_KEY = 'pl-applied-pack';
+
+/** Stashes older than this are ignored — an abandoned Apply
+ *  (e.g. navigation interrupted) must not silently re-dress a
+ *  site the host opens days later. Writers that predate the
+ *  `at` field are accepted unconditionally. */
+export const APPLIED_PACK_STASH_TTL_MS = 15 * 60 * 1000;
+
+/**
+ * Parse a raw `pl-applied-pack` localStorage payload and resolve
+ * it to a catalog Pack. Returns null on malformed JSON, missing /
+ * unknown pack id, or an expired stash (see TTL above). Only the
+ * `id` field is trusted — the stashed themeRef/kit copies are
+ * ignored in favor of the live catalog entry.
+ */
+export function readPackStash(raw: string | null, now?: number): Pack | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { id?: unknown; at?: unknown } | null;
+    if (!parsed || typeof parsed.id !== 'string') return null;
+    if (
+      typeof parsed.at === 'number' &&
+      typeof now === 'number' &&
+      now - parsed.at > APPLIED_PACK_STASH_TTL_MS
+    ) {
+      return null;
+    }
+    return getPackById(parsed.id) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /* Pack `Motif` ↔ canvas `MotifKind` mapping. The two enums are
    mostly aligned (olive/bloom/pressed/laurel/fern/wheat/citrus/
