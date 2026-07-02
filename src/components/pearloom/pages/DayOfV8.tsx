@@ -5,7 +5,7 @@
    ======================================================================== */
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
 import { Icon, PhotoPlaceholder } from '../motifs';
 import { AmbientHour } from '../ambient';
@@ -998,6 +998,287 @@ function SongQueue({ siteId }: { siteId?: string | null }) {
   );
 }
 
+type VoiceToastRow = {
+  id: string;
+  guest_display_name?: string | null;
+  audio_url: string;
+  duration_seconds?: number | null;
+  moderation_status?: string;
+  created_at?: string;
+};
+
+function useVoiceToasts(siteId?: string | null): { items: VoiceToastRow[]; loading: boolean } {
+  const [items, setItems] = useState<VoiceToastRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/toasts?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ toasts: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const toasts = Array.isArray(data?.toasts) ? (data.toasts as VoiceToastRow[]) : [];
+        // A queue, not a feed — oldest first, so the run order matches
+        // the order guests recorded. Hidden/rejected stay out of the room.
+        const playable = toasts
+          .filter((t) => t.audio_url && t.moderation_status !== 'rejected' && t.moderation_status !== 'hidden')
+          .sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime());
+        setItems(playable);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function fmtDuration(s?: number | null): string {
+  if (!s || !Number.isFinite(s) || s <= 0) return '';
+  const m = Math.floor(s / 60);
+  const ss = Math.round(s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+function firstName(name?: string | null): string {
+  const n = (name ?? '').trim();
+  return n ? n.split(/\s+/)[0] : 'A guest';
+}
+
+function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?: string | null }) {
+  // Playback queue for the voice toasts guests record from their
+  // passports (/g/[token] → /api/toasts). One shared <audio>
+  // element, one toast at a time — a host or DJ taps through the
+  // queue over the speakers.
+  const { items, loading } = useVoiceToasts(siteId);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const solemn = occasion === 'memorial' || occasion === 'funeral';
+  const heading = solemn ? 'Words from guests' : 'Raise a glass';
+
+  const startToast = (t: VoiceToastRow) => {
+    const el = audioRef.current;
+    if (!el) return;
+    setActiveId(t.id);
+    setProgress(0);
+    el.src = t.audio_url;
+    void el.play();
+  };
+
+  const toggleToast = (t: VoiceToastRow) => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (activeId === t.id) {
+      if (el.paused) void el.play();
+      else el.pause();
+      return;
+    }
+    startToast(t);
+  };
+
+  const nextInQueue = (): VoiceToastRow | undefined => {
+    const idx = items.findIndex((t) => t.id === activeId);
+    return idx >= 0 ? items[idx + 1] : items[0];
+  };
+
+  const playNext = () => {
+    const next = nextInQueue();
+    if (next) startToast(next);
+  };
+
+  const replay = () => {
+    const el = audioRef.current;
+    if (!el || !activeId) return;
+    el.currentTime = 0;
+    void el.play();
+  };
+
+  const handleTimeUpdate = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    // MediaRecorder webm blobs sometimes report Infinity — fall
+    // back to the duration the guest's recorder measured.
+    const row = items.find((t) => t.id === activeId);
+    const dur =
+      Number.isFinite(el.duration) && el.duration > 0
+        ? el.duration
+        : row?.duration_seconds ?? 0;
+    setProgress(dur > 0 ? Math.min(1, el.currentTime / dur) : 0);
+  };
+
+  const handleEnded = () => {
+    // Run the queue — roll straight into the next toast; at the
+    // end, rest quietly with the last one ready to replay.
+    const idx = items.findIndex((t) => t.id === activeId);
+    const next = idx >= 0 ? items[idx + 1] : undefined;
+    if (next) startToast(next);
+    else setProgress(0);
+  };
+
+  const hasNext = activeId !== null && items.findIndex((t) => t.id === activeId) < items.length - 1;
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <audio
+        ref={audioRef}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        style={{ display: 'none' }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="mic" size={18} color="var(--gold)" />
+          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+          {items.length > 0 && (
+            <span className="pill pill-sage" style={{ fontSize: 11 }}>
+              {items.length} recorded
+            </span>
+          )}
+        </div>
+        {activeId && (
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button type="button" className="btn btn-outline btn-sm" onClick={replay}>
+              <Icon name="redo" size={12} /> Replay
+            </button>
+            {hasNext && (
+              <button type="button" className="btn btn-outline btn-sm" onClick={playNext}>
+                Next <Icon name="chev-right" size={12} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto' }}>
+            {solemn
+              ? 'Words guests record from their passports gather here, ready to play when the room is.'
+              : 'Toasts guests record from their passports land here.'}
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((t, i) => {
+            const isActive = t.id === activeId;
+            const dur = fmtDuration(t.duration_seconds);
+            return (
+              <button
+                type="button"
+                key={t.id}
+                onClick={() => toggleToast(t)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '28px 1fr auto',
+                  gap: 10,
+                  alignItems: 'center',
+                  padding: '9px 12px',
+                  background: isActive ? 'var(--peach-bg)' : 'var(--cream-2)',
+                  border: isActive ? '1px solid var(--peach-2)' : '1px solid var(--line-soft)',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  font: 'inherit',
+                  color: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: isActive ? 'var(--peach-2)' : 'var(--cream-3)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: 'var(--ink)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon name={isActive && isPlaying ? 'pause' : 'play'} size={12} />
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {firstName(t.guest_display_name)}
+                  </span>
+                  {isActive ? (
+                    /* Two-strand progress thread — olive over gold,
+                       growing together as the toast plays. */
+                    <span aria-hidden style={{ display: 'block', position: 'relative', height: 5, marginTop: 5 }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          height: 1,
+                          width: `${Math.round(progress * 100)}%`,
+                          background: 'var(--pl-olive, #5C6B3F)',
+                          transition: 'width .25s linear',
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          bottom: 0,
+                          height: 1,
+                          width: `${Math.round(progress * 100)}%`,
+                          background: 'var(--gold, #C19A4B)',
+                          transition: 'width .25s linear',
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                      {[dur, t.created_at ? relativeTime(t.created_at) : ''].filter(Boolean).join(' · ') || 'recorded from their passport'}
+                    </span>
+                  )}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    color: 'var(--ink-muted)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* Quiet section label that gives the two columns a clear identity
    ("Run the day" vs "The live room") so the page reads as two
    intents instead of a flat stack of cards. */
@@ -1177,6 +1458,7 @@ export function DayOfV8() {
             {/* Song queue only where music fits the occasion — the
                 registry gate hides it for memorials and the like. */}
             {isDashSurfaceApplicable('music', occasion) && <SongQueue siteId={site?.id} />}
+            <ToastJukebox siteId={site?.id} occasion={occasion} />
             <GuestWall siteId={site?.id} siteDomain={site?.domain} occasion={occasion} />
           </div>
         </div>

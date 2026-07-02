@@ -28,6 +28,7 @@ type Capsule = { guest_name: string; body: string; reveal_years: number; reveal_
 type Song = { guest_name: string; song_title: string; artist?: string | null; spotify_url?: string | null };
 type Tribute = { guest_name: string; body: string; block_id?: string };
 type GuestbookEntry = { guest_name: string; message: string };
+type VoiceToast = { guest_name: string; duration_seconds?: number | null; created_at?: string | null };
 
 interface Payload {
   site: {
@@ -47,6 +48,14 @@ interface Payload {
   songs: Song[];
   tributes?: Tribute[];
   guestbook?: GuestbookEntry[];
+  voiceToasts?: VoiceToast[];
+}
+
+function fmtToastDuration(s?: number | null) {
+  if (!s || !Number.isFinite(s) || s <= 0) return '';
+  const m = Math.floor(s / 60);
+  const ss = Math.round(s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
 }
 
 function fmtDate(iso?: string | null) {
@@ -284,13 +293,19 @@ export function MemoryBookPage() {
     tributes: data?.tributes?.length ?? 0,
     guestbook: data?.guestbook?.length ?? 0,
     songs: data?.songs?.length ?? 0,
+    voices: data?.voiceToasts?.length ?? 0,
   };
   const totalEntries =
     counts.memories + counts.whispers + counts.capsule + counts.tributes + counts.guestbook;
   // Nothing to bind yet — show an occasion-aware empty state instead
   // of a blank "0 entries" book (it read wedding-shaped + bare for
   // birthdays, reunions, memorials with no collected memories yet).
-  const bookEmpty = totalEntries === 0 && counts.chapters === 0 && (photos?.length ?? 0) === 0 && counts.songs === 0;
+  const bookEmpty =
+    totalEntries === 0 &&
+    counts.chapters === 0 &&
+    (photos?.length ?? 0) === 0 &&
+    counts.songs === 0 &&
+    counts.voices === 0;
   const occLabel = data?.site?.occasion ? occasionLabel(data.site.occasion) : 'celebration';
 
   return (
@@ -646,6 +661,56 @@ export function MemoryBookPage() {
                 {data.guestbook.map((g, i) => (
                   <GuestEntry key={i} guestName={g.guest_name} body={g.message} italic />
                 ))}
+              </section>
+            </>
+          )}
+
+          {/* Voices — roll call of recorded voice toasts. Paper can't
+              play audio; the recordings themselves live in the day-of
+              room, so the book keeps the names and lengths. */}
+          {data.voiceToasts && data.voiceToasts.length > 0 && (
+            <>
+              <ChapterRule />
+              <section style={{ marginBottom: 16, breakInside: 'avoid' }}>
+                <SectionHead
+                  kicker="Voices"
+                  title="In their own voices"
+                  sub="Words recorded aloud — the audio lives on with your Pearloom celebration."
+                />
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: 0,
+                    margin: 0,
+                    columnCount: 2,
+                    columnGap: 44,
+                  }}
+                >
+                  {data.voiceToasts.map((v, i) => (
+                    <li
+                      key={i}
+                      style={{
+                        marginBottom: 8,
+                        fontSize: 13.5,
+                        breakInside: 'avoid',
+                        paddingBottom: 6,
+                        borderBottom: '1px dotted var(--line-soft)',
+                      }}
+                    >
+                      <strong style={{ color: 'var(--ink)' }}>{v.guest_name}</strong>
+                      {fmtToastDuration(v.duration_seconds) && (
+                        <span style={{ color: 'var(--ink-soft)' }}>
+                          {' '}— {fmtToastDuration(v.duration_seconds)}
+                        </span>
+                      )}
+                      {v.created_at && (
+                        <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>
+                          recorded {fmtDate(v.created_at)}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </section>
             </>
           )}

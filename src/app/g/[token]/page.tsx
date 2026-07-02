@@ -867,6 +867,7 @@ export default async function PersonalGuestPage({
           token={token}
           accent={accent}
           headingFont={headingFont}
+          occasion={(manifest as unknown as { occasion?: string }).occasion ?? null}
         />
       </section>
 

@@ -16,12 +16,56 @@ interface Props {
   token: string;
   accent?: string;
   headingFont?: string;
+  /** Site occasion — solemn occasions get gentler copy. */
+  occasion?: string | null;
+}
+
+// Occasion-keyed microcopy. Solemn voices (memorial / funeral) never
+// hear "toast"; couple-shaped events keep the original "the couple"
+// key; everything else addresses the hosts generically.
+function copyFor(occasion?: string | null) {
+  const solemn = occasion === 'memorial' || occasion === 'funeral';
+  if (solemn) {
+    return {
+      eyebrow: 'In remembrance',
+      headLead: 'Leave a few',
+      headWord: 'words',
+      blurb: 'Record up to two minutes. Your voice will be kept alongside their memories.',
+      send: 'Send your words',
+      done: 'Thank you — your words were sent. The family will listen before sharing them.',
+    };
+  }
+  const coupleShaped =
+    !occasion ||
+    occasion === 'wedding' ||
+    occasion === 'engagement' ||
+    occasion === 'anniversary' ||
+    occasion === 'vow-renewal';
+  if (coupleShaped) {
+    return {
+      eyebrow: 'For the film',
+      headLead: 'Leave them a',
+      headWord: 'toast',
+      blurb: 'Record up to two minutes. Your words could end up in the film they watch every anniversary.',
+      send: 'Send to the couple',
+      done: 'Thank you — your toast was sent. The couple will review before adding it to the film.',
+    };
+  }
+  return {
+    eyebrow: 'For the film',
+    headLead: 'Record a',
+    headWord: 'toast',
+    blurb: 'Record up to two minutes. Your words could end up in the keepsake film from the day.',
+    send: 'Send your toast',
+    done: 'Thank you — your toast was sent. Your hosts will review before adding it to the film.',
+  };
 }
 
 export function VoiceToastRecorder({
   token,
   accent = '#5C6B3F',
   headingFont = 'Playfair Display',
+  occasion = null,
 }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +176,7 @@ export function VoiceToastRecorder({
 
   const mm = Math.floor(seconds / 60).toString().padStart(2, '0');
   const ss = (seconds % 60).toString().padStart(2, '0');
+  const copy = copyFor(occasion);
 
   return (
     <section
@@ -156,7 +201,7 @@ export function VoiceToastRecorder({
           marginBottom: 8,
         }}
       >
-        For the film
+        {copy.eyebrow}
       </div>
       <h3
         style={{
@@ -170,8 +215,8 @@ export function VoiceToastRecorder({
           lineHeight: 1.15,
         }}
       >
-        Leave them a{' '}
-        <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>toast</span>
+        {copy.headLead}{' '}
+        <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>{copy.headWord}</span>
       </h3>
       <p
         style={{
@@ -184,7 +229,7 @@ export function VoiceToastRecorder({
           lineHeight: 1.55,
         }}
       >
-        Record up to two minutes. Your words could end up in the film they watch every anniversary.
+        {copy.blurb}
       </p>
 
       {phase === 'idle' && (
@@ -211,7 +256,7 @@ export function VoiceToastRecorder({
           <audio controls src={blobUrl} style={{ width: '100%', marginBottom: '0.75rem' }} />
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button type="button" onClick={() => void upload()} style={primaryBtn(accent)}>
-              Send to the couple
+              {copy.send}
             </button>
             <button type="button" onClick={resetToIdle} style={secondaryBtn()}>
               Record again
@@ -224,7 +269,7 @@ export function VoiceToastRecorder({
 
       {phase === 'done' && (
         <div style={{ fontSize: '0.95rem', color: '#2B2B2B' }}>
-          Thank you — your toast was sent. The couple will review before adding it to the film.
+          {copy.done}
         </div>
       )}
 

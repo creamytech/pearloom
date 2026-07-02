@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     }
   };
 
-  const [memoryRes, whispersRes, capsuleRes, songsRes, tributesData, guestbookData] = await Promise.all([
+  const [memoryRes, whispersRes, capsuleRes, songsRes, tributesData, guestbookData, voiceToastData] = await Promise.all([
     supabase
       .from('memory_prompts')
       .select('guest_name, prompt, response, responded_at')
@@ -87,6 +87,14 @@ export async function GET(req: NextRequest) {
       .select('guest_name, message, created_at')
       .eq('site_id', siteId)
       .order('created_at', { ascending: true }) as unknown as PromiseLike<{ data: AnyRow[] | null }>),
+    // Voice toasts recorded from guest passports — the print view
+    // lists them as a roll call (paper can't play audio; the
+    // recordings themselves live in the day-of room).
+    safeFetch(supabase
+      .from('voice_toasts')
+      .select('guest_display_name, duration_seconds, moderation_status, created_at')
+      .eq('site_id', siteId)
+      .order('created_at', { ascending: true }) as unknown as PromiseLike<{ data: AnyRow[] | null }>),
   ]);
 
   const tributes = tributesData.map((t) => ({
@@ -98,6 +106,13 @@ export async function GET(req: NextRequest) {
     guest_name: (g.guest_name as string) ?? 'A guest',
     message: (g.message as string) ?? '',
   })).filter((g) => g.message);
+  const voiceToasts = voiceToastData
+    .filter((t) => t.moderation_status !== 'rejected' && t.moderation_status !== 'hidden')
+    .map((t) => ({
+      guest_name: (t.guest_display_name as string) ?? 'A guest',
+      duration_seconds: typeof t.duration_seconds === 'number' ? t.duration_seconds : null,
+      created_at: (t.created_at as string) ?? null,
+    }));
 
   // Pull the hero photo from the manifest + chapter covers.
   const manifestAny = cfg.manifest as unknown as {
@@ -134,5 +149,6 @@ export async function GET(req: NextRequest) {
     songs: songsRes.data ?? [],
     tributes,
     guestbook: guestbookEntries,
+    voiceToasts,
   });
 }
