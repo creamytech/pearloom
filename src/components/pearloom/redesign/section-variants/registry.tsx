@@ -25,6 +25,7 @@ export function RegistryChips({ ctx }: { ctx: RegistryVariantCtx }) {
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
+      {ctx.itemsSlot}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 560, marginInline: 'auto' }}>
         {C.stores.map((s, i) => {
           const style = {
@@ -66,6 +67,7 @@ export function RegistryProgress({ ctx }: { ctx: RegistryVariantCtx }) {
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
+      {ctx.itemsSlot}
       <div
         style={{
           maxWidth: 480,
@@ -112,6 +114,7 @@ export function RegistryLogoWall({ ctx }: { ctx: RegistryVariantCtx }) {
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
+      {ctx.itemsSlot}
       <div
         style={{
           display: 'grid',

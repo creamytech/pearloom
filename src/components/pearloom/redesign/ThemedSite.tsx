@@ -80,6 +80,7 @@ import { ProgramSection } from './section-variants/blocks/program';
 import { LivestreamSection } from './section-variants/blocks/livestream';
 import { GuestbookSection } from './GuestbookSection';
 import { GuestPlaylist } from './GuestPlaylist';
+import { RegistryItemsGrid } from './RegistryItemsGrid';
 import { LinkedEventsStrip } from './LinkedEventsStrip';
 import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
 import { ObituarySection } from './section-variants/blocks/obituary';
@@ -2655,12 +2656,18 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
 
 function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
+  /* Native registry items (R1-lite) — the reserve-and-link item
+     grid, rendered ABOVE the linked-store pills in every layout.
+     Published fetches by siteSlug; the editor canvas shows demo
+     cards gated by `editable` (honesty rule). Built once here so
+     the four layouts share one fetch/claim behaviour. */
+  const itemsSlot = <RegistryItemsGrid siteSlug={ctx.siteSlug} editable={editable} />;
   /* sub carries the editable callbacks + placeholders so the
      variant's VariantSectionHead has parity with the default
      TSectionHead path below (click-to-edit eyebrow + composite
      title/italic). */
   const sub = {
-    C: C.registry, pad, editable, cta: C.cta,
+    C: C.registry, pad, editable, cta: C.cta, itemsSlot,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryTitle', v) : undefined,
     eyebrowPlaceholder: 'Registry',
@@ -2685,6 +2692,7 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.registry.body}
       </div>
+      {itemsSlot}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
         {C.registry.stores.map((s, i) => {
           const pillStyle: CSSProperties = {

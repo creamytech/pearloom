@@ -24,10 +24,18 @@ export interface ClaimRow {
   id: string;
   entry_url: string;
   claimer_name: string | null;
+  /** Empty string for reserve-and-link item reservations left
+   *  without an email. */
   claimer_email: string;
   message: string | null;
   quantity: number;
   created_at: string;
+  /** What kind of gift this is — link-out claim (default), a
+   *  no-payment item reservation, or a paid Stripe purchase. */
+  kind?: 'link' | 'reserved' | 'paid';
+  /** Native-item claims resolve their label server-side (the item
+   *  name) — takes precedence over entry_url matching. */
+  itemLabel?: string;
 }
 
 export interface RegistryEntryLite {
@@ -52,6 +60,11 @@ interface Props {
   /** Optional max rows to render (default: 10). Older claims
    *  collapse into a "+ N more" line. */
   maxRows?: number;
+  /** Extra pre-shaped rows merged into the feed — native-item
+   *  reservations / purchases from /api/registry-items/claims.
+   *  Sorted together with the link claims by created_at. These
+   *  rows have no revoke (hosts edit items in the panel instead). */
+  extraClaims?: ClaimRow[];
 }
 
 export function useRegistryClaims(subdomain: string | undefined) {
@@ -95,30 +108,39 @@ export function useRegistryClaims(subdomain: string | undefined) {
   return { rows, refetch, revoke };
 }
 
-export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10 }: Props) {
+export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, extraClaims }: Props) {
   const { rows, revoke } = useRegistryClaims(subdomain);
 
-  function labelFor(url: string): string {
+  function labelFor(claim: ClaimRow): string {
+    if (claim.itemLabel) return claim.itemLabel;
+    const url = claim.entry_url;
     const match = items.find((it) => it.url === url);
     if (match) return match.label ?? match.name ?? '';
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
   }
 
-  if (!rows || rows.length === 0) return null;
+  /* One ledger — link claims + native-item reservations/purchases,
+     newest first. */
+  const merged = [...(rows ?? []), ...(extraClaims ?? [])]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  if (merged.length === 0) return null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {rows.slice(0, maxRows).map((c) => (
+      {merged.slice(0, maxRows).map((c) => (
         <ClaimCard
-          key={c.id}
+          key={`${c.kind ?? 'link'}-${c.id}`}
           claim={c}
           manifest={manifest}
-          entryLabel={labelFor(c.entry_url) || new URL(c.entry_url).hostname.replace(/^www\./, '')}
-          onRevoke={() => revoke(c.id)}
+          entryLabel={labelFor(c) || 'a gift'}
+          /* Revoke applies to link claims only — item reservations
+             are edited from the registry panel. */
+          onRevoke={c.kind === 'reserved' || c.kind === 'paid' ? undefined : () => revoke(c.id)}
         />
       ))}
-      {rows.length > maxRows && (
+      {merged.length > maxRows && (
         <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textAlign: 'center', padding: 4 }}>
-          + {rows.length - maxRows} more
+          + {merged.length - maxRows} more
         </div>
       )}
     </div>
@@ -137,7 +159,8 @@ export function ClaimCard({
   claim: ClaimRow;
   manifest: StoryManifest;
   entryLabel: string;
-  onRevoke: () => void;
+  /** Omit to hide the revoke affordance (native-item rows). */
+  onRevoke?: () => void;
 }) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -156,7 +179,7 @@ export function ClaimCard({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          guestName: claim.claimer_name || claim.claimer_email.split('@')[0],
+          guestName: claim.claimer_name || claim.claimer_email.split('@')[0] || 'A guest',
           giftDescription: claim.message ? `${entryLabel} — they noted: "${claim.message}"` : entryLabel,
           coupleNames: names.filter(Boolean).join(' & '),
           occasion,
@@ -199,25 +222,29 @@ export function ClaimCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
-          {claim.claimer_name ?? claim.claimer_email.split('@')[0]}
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          {claim.claimer_name || claim.claimer_email.split('@')[0] || 'A guest'}
+          <KindChip kind={claim.kind ?? 'link'} />
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
             {relativeTime(claim.created_at)}
           </span>
-          <RevokeButton onConfirm={onRevoke} />
+          {onRevoke && <RevokeButton onConfirm={onRevoke} />}
         </div>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
-        got <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
+        {claim.kind === 'reserved' ? 'reserved' : 'got'} <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
+        {claim.quantity > 1 ? ` × ${claim.quantity}` : ''}
       </div>
-      <a
-        href={`mailto:${claim.claimer_email}`}
-        style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
-      >
-        {claim.claimer_email} →
-      </a>
+      {claim.claimer_email && (
+        <a
+          href={`mailto:${claim.claimer_email}`}
+          style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
+        >
+          {claim.claimer_email} →
+        </a>
+      )}
       {claim.message && (
         <div
           style={{
@@ -319,6 +346,28 @@ export function ClaimCard({
         </div>
       )}
     </div>
+  );
+}
+
+/* Tiny mono chip naming the row's kind — "reserved" (no-payment
+   item reservation), "paid" (Stripe purchase), "claimed link"
+   (link-out store claim). */
+function KindChip({ kind }: { kind: 'link' | 'reserved' | 'paid' }) {
+  const label = kind === 'reserved' ? 'reserved' : kind === 'paid' ? 'paid' : 'claimed link';
+  const ink = kind === 'paid' ? 'var(--sage-deep, #3D4A1F)' : 'var(--peach-ink, #C6703D)';
+  return (
+    <span
+      style={{
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em',
+        textTransform: 'uppercase', color: ink,
+        border: `1px solid color-mix(in oklab, ${ink} 35%, transparent)`,
+        borderRadius: 999, padding: '2px 7px', whiteSpace: 'nowrap',
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </span>
   );
 }
 

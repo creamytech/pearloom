@@ -7,10 +7,13 @@
    wrap the pill in <a href>. Legacy string[] manifests are
    normalized in ThemedSite's buildCopy. */
 
+import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
+import { PhotoUploadSlot } from './_photo-upload';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { useVoicePack } from './_voice-pack';
@@ -55,7 +58,7 @@ function presetIdForName(name: string): string {
   return m ? m.value : 'custom';
 }
 
-export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; siteSlug?: string }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'registry');
   /* Voice pack — currently consumed only for future re-skins;
      mode picker above is the primary driver. */
@@ -159,6 +162,10 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
             </div>
           )}
         </FGroup>
+        {/* ── Native items — the reserve-and-link registry. Hidden in
+              donation mode (charity links have nothing to reserve). */}
+        {mode !== 'donation' && siteSlug && <RegistryItemsGroup siteSlug={siteSlug} />}
+
         <FGroup label={`${modeCopy.section} · ${stores.length}`} hint="Each link below becomes a clickable pill on the canvas.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {stores.map((s, i) => {
@@ -323,6 +330,283 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
     </SectionPanelShell>
+  );
+}
+
+/* ─── Native items manager ──────────────────────────────────────
+   Real registry_items rows (the reserve-and-link flow on the
+   published site) — NOT manifest state. Fetches the owner view on
+   panel open, writes through /api/registry-items with optimistic
+   updates, and shows claim counts so the host can see what's been
+   spoken for. */
+
+interface OwnerItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number | null;
+  imageUrl: string | null;
+  itemUrl: string | null;
+  quantity: number;
+  quantityClaimed: number;
+  claimedByName?: string | null;
+}
+
+interface ItemDraft {
+  name: string;
+  price: string;
+  quantity: string;
+  imageUrl: string;
+  itemUrl: string;
+  description: string;
+}
+
+const EMPTY_DRAFT: ItemDraft = { name: '', price: '', quantity: '1', imageUrl: '', itemUrl: '', description: '' };
+
+function draftFrom(item: OwnerItem): ItemDraft {
+  return {
+    name: item.name,
+    price: item.price != null ? String(item.price) : '',
+    quantity: String(item.quantity || 1),
+    imageUrl: item.imageUrl ?? '',
+    itemUrl: item.itemUrl ?? '',
+    description: item.description ?? '',
+  };
+}
+
+function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
+  const [items, setItems] = useState<OwnerItem[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  /** null = closed · 'new' = add form · item id = editing that row. */
+  const [open, setOpen] = useState<string | null>(null);
+  const [draft, setDraft] = useState<ItemDraft>(EMPTY_DRAFT);
+  const [saving, setSaving] = useState(false);
+
+  const refetch = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/registry-items?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
+      if (!r.ok) throw new Error('fetch failed');
+      const d = (await r.json()) as { items?: OwnerItem[] };
+      setItems(d.items ?? []);
+    } catch {
+      setItems((prev) => prev ?? []);
+      setError('Couldn’t load your items — reopen the panel to retry.');
+    }
+  }, [siteSlug]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { void refetch(); }, 0);
+    return () => clearTimeout(t);
+  }, [refetch]);
+
+  function startAdd() {
+    setDraft(EMPTY_DRAFT);
+    setOpen('new');
+    setError(null);
+  }
+  function startEdit(item: OwnerItem) {
+    setDraft(draftFrom(item));
+    setOpen(item.id);
+    setError(null);
+  }
+
+  async function save() {
+    if (saving) return;
+    const price = parseFloat(draft.price);
+    const qty = parseInt(draft.quantity, 10);
+    if (!draft.name.trim()) { setError('Give it a name first.'); return; }
+    if (!Number.isFinite(price) || price <= 0) { setError('Price needs to be a number above 0.'); return; }
+    if (!Number.isFinite(qty) || qty < 1) { setError('Quantity is at least 1.'); return; }
+    setSaving(true);
+    setError(null);
+    const body = {
+      siteId: siteSlug,
+      name: draft.name.trim(),
+      description: draft.description.trim() || null,
+      price,
+      quantity: qty,
+      imageUrl: draft.imageUrl.trim() || null,
+      itemUrl: draft.itemUrl.trim() || null,
+    };
+    try {
+      if (open === 'new') {
+        const r = await fetch('/api/registry-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const d = (await r.json().catch(() => ({}))) as { item?: OwnerItem; error?: string };
+        if (!r.ok || !d.item) throw new Error(d.error ?? 'Couldn’t add the item.');
+        setItems((prev) => [...(prev ?? []), d.item as OwnerItem]);
+      } else if (open) {
+        // Optimistic — patch locally, then hit the network.
+        const id = open;
+        setItems((prev) => (prev ?? []).map((it) => it.id === id
+          ? {
+            ...it,
+            name: body.name, description: body.description, price,
+            quantity: qty, imageUrl: body.imageUrl, itemUrl: body.itemUrl,
+          }
+          : it));
+        const r = await fetch('/api/registry-items', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...body }),
+        });
+        if (!r.ok) {
+          const d = (await r.json().catch(() => ({}))) as { error?: string };
+          void refetch();
+          throw new Error(d.error ?? 'Couldn’t save — restored the last version.');
+        }
+      }
+      setOpen(null);
+      setDraft(EMPTY_DRAFT);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Couldn’t save.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function remove(id: string) {
+    // Optimistic remove; restore from the server on failure.
+    setItems((prev) => (prev ?? []).filter((it) => it.id !== id));
+    if (open === id) setOpen(null);
+    void fetch(`/api/registry-items?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      .then((r) => { if (!r.ok) void refetch(); })
+      .catch(() => { void refetch(); });
+  }
+
+  const count = items?.length ?? 0;
+
+  return (
+    <FGroup
+      label={count > 0 ? `Items · ${count}` : 'Items'}
+      hint="Real gifts guests reserve right on the site — they render above your linked stores."
+    >
+      {items === null ? (
+        <div style={{ display: 'grid', placeItems: 'center', padding: '14px 0' }}>
+          <WeaveLoader size="sm" ariaLabel="Threading" />
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                display: 'flex', flexDirection: 'column', gap: 6,
+                padding: 10, borderRadius: 11,
+                background: 'var(--card)', border: '1px solid var(--line)',
+              }}
+            >
+              {open === item.id ? (
+                <ItemFields draft={draft} setDraft={setDraft} saving={saving} error={error}
+                  onSave={save} onCancel={() => { setOpen(null); setError(null); }} />
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--sage-2)', display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 2 }}>
+                    <Icon name="gift" size={14} color="#3D4A1F" />
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>
+                      {typeof item.price === 'number' ? `$${item.price}` : '—'}
+                      {' · '}{item.quantityClaimed} of {item.quantity} spoken for
+                      {item.itemUrl ? <> · <Icon name="link" size={9} color="var(--ink-muted)" /> linked</> : null}
+                    </div>
+                    {item.claimedByName && item.quantityClaimed > 0 && (
+                      <div style={{ fontSize: 10.5, color: 'var(--peach-ink, #C6703D)', marginTop: 2 }}>
+                        Last basted in by {item.claimedByName}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => startEdit(item)}
+                    aria-label={`Edit ${item.name}`}
+                    style={{ padding: '3px 9px', borderRadius: 7, background: 'transparent', border: '1px solid var(--line)', cursor: 'pointer', color: 'var(--ink-soft)', fontSize: 10.5, fontWeight: 700, marginTop: 2 }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(item.id)}
+                    aria-label={`Remove ${item.name}`}
+                    style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', marginTop: 2 }}
+                  >
+                    <Icon name="close" size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {open === 'new' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
+              <ItemFields draft={draft} setDraft={setDraft} saving={saving} error={error}
+                onSave={save} onCancel={() => { setOpen(null); setError(null); }} />
+            </div>
+          ) : (
+            <AddCard label="Add an item" onClick={startAdd} />
+          )}
+
+          {error && open === null && (
+            <div style={{ fontSize: 11, color: 'var(--plum, #7A2D2D)' }}>{error}</div>
+          )}
+        </div>
+      )}
+    </FGroup>
+  );
+}
+
+function ItemFields({
+  draft, setDraft, saving, error, onSave, onCancel,
+}: {
+  draft: ItemDraft;
+  setDraft: (next: ItemDraft) => void;
+  saving: boolean;
+  error: string | null;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <FInput value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} placeholder="Item name (e.g. The dutch oven)" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <FInput value={draft.price} onChange={(v) => setDraft({ ...draft, price: v })} type="number" placeholder="Price (USD)" />
+        <FInput value={draft.quantity} onChange={(v) => setDraft({ ...draft, quantity: v })} type="number" placeholder="Quantity" />
+      </div>
+      <FInput value={draft.itemUrl} onChange={(v) => setDraft({ ...draft, itemUrl: v })} type="url" icon="link" placeholder="Product link (optional — the 'buy it' handoff)" />
+      <FInput value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} placeholder="A quiet line under it (optional)" />
+      <PhotoUploadSlot
+        url={draft.imageUrl}
+        onChange={(next) => setDraft({ ...draft, imageUrl: next })}
+        aspectRatio="4/3"
+        size="sm"
+        hint="A photo of the item (optional)"
+      />
+      {error && <div style={{ fontSize: 11, color: 'var(--plum, #7A2D2D)' }}>{error}</div>}
+      <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving}
+          style={{ padding: '7px 14px', borderRadius: 999, background: 'var(--ink)', color: 'var(--cream)', border: 'none', fontSize: 11.5, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? 'Threading…' : 'Set it'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          style={{ padding: '7px 12px', borderRadius: 999, background: 'transparent', color: 'var(--ink-soft)', border: '1px solid var(--line)', fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 }
 

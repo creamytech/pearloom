@@ -1,12 +1,56 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
-import { RegistryClaimsFeed, useRegistryClaims } from '@/components/registry/RegistryClaimsFeed';
+import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/components/registry/RegistryClaimsFeed';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
 import type { StoryManifest } from '@/types';
+
+/* Native-item side of the ledger — the items the host listed plus
+   every reservation / paid purchase on them. Complements
+   useRegistryClaims (link-out store claims) so the stats + feed
+   count ONE combined registry, not two silos. */
+interface ItemClaim {
+  id: string;
+  itemId: string;
+  itemName: string;
+  payerName: string | null;
+  payerEmail: string;
+  quantity: number;
+  amountCents: number;
+  status: string;
+  message: string | null;
+  createdAt: string;
+  kind: 'reserved' | 'paid';
+}
+
+function useItemLedger(siteId: string | undefined) {
+  const [itemCount, setItemCount] = useState(0);
+  const [itemClaims, setItemClaims] = useState<ItemClaim[]>([]);
+
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    void fetch(`/api/registry-items?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: unknown[] } | null) => {
+        if (!cancelled && Array.isArray(d?.items)) setItemCount(d.items.length);
+      })
+      .catch(() => { /* silent */ });
+    void fetch(`/api/registry-items/claims?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { claims?: ItemClaim[] } | null) => {
+        if (!cancelled && Array.isArray(d?.claims)) setItemClaims(d.claims);
+      })
+      .catch(() => { /* silent */ });
+    return () => { cancelled = true; };
+  }, [siteId]);
+
+  return { itemCount, itemClaims };
+}
 
 export function RegistryDashboardClient() {
   const { site, loading } = useSelectedSite();
@@ -14,6 +58,7 @@ export function RegistryDashboardClient() {
   // Read claims for the section header. Hides the whole panel
   // when there's nothing to show.
   const { rows: claimRows } = useRegistryClaims(subdomain || undefined);
+  const { itemCount, itemClaims } = useItemLedger(site?.id);
 
   // Pull manifest off the site summary so RegistryClaimsFeed has
   // access to couple names + occasion + entries for the
@@ -30,6 +75,24 @@ export function RegistryDashboardClient() {
   })();
 
   const claimsCount = claimRows?.length ?? 0;
+
+  /* One ledger — native-item reservations / purchases shaped as
+     ClaimRows (kind chip + item label) so RegistryClaimsFeed can
+     merge them with the link claims chronologically. */
+  const itemClaimRows: ClaimRow[] = itemClaims.map((c) => ({
+    id: c.id,
+    entry_url: '',
+    claimer_name: c.payerName,
+    claimer_email: c.payerEmail,
+    message: c.message,
+    quantity: c.quantity,
+    created_at: c.createdAt,
+    kind: c.kind,
+    itemLabel: c.itemName,
+  }));
+
+  /* Total gifts = link claims + item reservations/purchases. */
+  const totalGifts = claimsCount + itemClaims.length;
 
   return (
     <DashLayout
@@ -107,7 +170,9 @@ export function RegistryDashboardClient() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}>
               {/* Registry stats — real listed / claimed / still-open. */}
               <PLCard tone="paper" title="The registry">
-                {([['Listed', entries.length], ['Claimed', claimsCount], ['Still open', Math.max(0, entries.length - claimsCount)]] as const).map(([l, v]) => (
+                {/* Combined counts — link-out entries + native items,
+                    link claims + item reservations/purchases. */}
+                {([['Listed', entries.length + itemCount], ['Claimed', totalGifts], ['Still open', Math.max(0, entries.length + itemCount - totalGifts)]] as const).map(([l, v]) => (
                   <div key={l} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
                     <span style={{ fontSize: 13, color: 'var(--ink)' }}>{l}</span>
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>{v}</span>
@@ -132,7 +197,7 @@ export function RegistryDashboardClient() {
               </PLCard>
               {/* Thank-yous / recent claims — the editor's component,
                   in the sidebar. Hides itself when there are none. */}
-              {claimsCount > 0 && (
+              {totalGifts > 0 && (
                 <PLCard
                   tone="peach"
                   title="Thank-yous"
@@ -151,12 +216,13 @@ export function RegistryDashboardClient() {
                         background: 'rgba(255,255,255,0.55)',
                       }}
                     >
-                      {claimsCount} · new
+                      {totalGifts} · new
                     </span>
                   }
                 >
                   <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 14 }}>
-                    Guests who tapped &ldquo;I got this.&rdquo; Tap{' '}
+                    Every gift in one thread — reservations, purchases,
+                    and &ldquo;I got this&rdquo; link claims. Tap{' '}
                     <strong style={{ color: 'var(--peach-ink, #C6703D)' }}>Draft thank-you</strong>{' '}
                     and Pear writes a personal note.
                   </div>
@@ -164,6 +230,7 @@ export function RegistryDashboardClient() {
                     subdomain={subdomain}
                     items={entries}
                     manifest={manifest}
+                    extraClaims={itemClaimRows}
                   />
                 </PLCard>
               )}

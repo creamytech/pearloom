@@ -1,4 +1,6 @@
- 
+
+import type { ReactNode } from 'react';
+
 /* Shared types for the per-section layout variant components in
    src/components/pearloom/redesign/section-variants/*.tsx.
 
@@ -139,7 +141,14 @@ export interface RsvpVariantCtx extends BaseCtx { C: RsvpCopy }
 export interface DetailsVariantCtx extends BaseCtx { C: DetailsCopy }
 export interface ScheduleVariantCtx extends BaseCtx { C: ScheduleCopy }
 export interface TravelVariantCtx extends BaseCtx { C: TravelCopy }
-export interface RegistryVariantCtx extends BaseCtx { C: RegistryCopy }
+export interface RegistryVariantCtx extends BaseCtx {
+  C: RegistryCopy;
+  /** Native registry item grid (RegistryItemsGrid) — rendered by
+   *  every registry variant between the intro body and the
+   *  linked-store pills. Built once in ThemedSite's RegistryBlock
+   *  so variants can't drift on fetch/claim behaviour. */
+  itemsSlot?: ReactNode;
+}
 export interface GalleryVariantCtx extends BaseCtx { C: GalleryCopy }
 export interface FaqVariantCtx extends BaseCtx { C: FaqCopy }
 export interface StoryVariantCtx extends BaseCtx { C: StoryCopy }

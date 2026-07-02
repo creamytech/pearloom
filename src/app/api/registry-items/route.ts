@@ -30,6 +30,22 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** registry_items.site_id stores the site UUID (as text). Callers
+ *  may pass the uuid (dashboard) or the subdomain (the published
+ *  site + editor panels only know their slug) — resolve either to
+ *  the canonical uuid so rows land on one key. Same contract as
+ *  /api/guestbook. */
+async function resolveSiteUuid(
+  supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  idOrSlug: string,
+): Promise<string | null> {
+  if (UUID_RX.test(idOrSlug)) return idOrSlug;
+  const { data } = await supabase.from('sites').select('id').eq('subdomain', idOrSlug).maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
 interface ItemRow {
   id: string;
   site_id: string | null;
@@ -65,6 +81,12 @@ function publicView(row: ItemRow) {
     quantityClaimed: row.quantity_claimed ?? 0,
     purchased: row.purchased || false,
     sortOrder: row.sort_order ?? 0,
+    /* First name only — powers "Spoken for — basted in by June" on
+       the published card. Full names / emails stay owner-only. */
+    claimedByFirstName:
+      (row.quantity_claimed ?? 0) > 0 && row.claimed_by_name
+        ? row.claimed_by_name.trim().split(/\s+/)[0]
+        : null,
   };
 }
 
@@ -89,10 +111,13 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ items: [] });
 
+    const siteUuid = await resolveSiteUuid(supabase, siteId);
+    if (!siteUuid) return NextResponse.json({ items: [] });
+
     const { data, error } = await supabase
       .from('registry_items')
       .select('*')
-      .eq('site_id', siteId)
+      .eq('site_id', siteUuid)
       .is('source_id', null) // native items only
       .order('sort_order', { ascending: true });
 
@@ -109,7 +134,7 @@ export async function GET(req: NextRequest) {
       const { data: site } = await supabase
         .from('sites')
         .select('user_id, creator_email')
-        .eq('id', siteId)
+        .eq('id', siteUuid)
         .maybeSingle();
       // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
       if (site && String(site.creator_email ?? '').toLowerCase().trim()
@@ -153,10 +178,13 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: 'Storage not configured' }, { status: 503 });
 
+    const siteUuid = await resolveSiteUuid(supabase, siteId);
+    if (!siteUuid) return NextResponse.json({ error: 'Unknown site' }, { status: 404 });
+
     const { data, error } = await supabase
       .from('registry_items')
       .insert({
-        site_id: siteId,
+        site_id: siteUuid,
         user_id: session.user.email,
         source_id: null,
         name,

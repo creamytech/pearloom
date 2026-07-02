@@ -877,7 +877,7 @@ function renderSectionEditor(
     case 'details':  return <DetailsPanel {...props} />;
     case 'schedule': return <SchedulePanel {...props} />;
     case 'travel':   return <TravelPanel {...props} />;
-    case 'registry': return <RegistryPanel {...props} />;
+    case 'registry': return <RegistryPanel {...props} siteSlug={siteSlug} />;
     case 'gallery':  return <GalleryPanel {...props} />;
     case 'rsvp':     return <RsvpPanel {...props} siteSlug={siteSlug} />;
     case 'faq':      return <FaqPanel {...props} />;

@@ -2,15 +2,26 @@
 // POST /api/registry-items/[id]/claim
 //
 // Public endpoint. A guest clicks "I'll get this" on a registry
-// item. We:
-//   1. Validate the item exists, is native (source_id null), has
-//      remaining quantity, and the requested quantity fits.
-//   2. Build a Stripe Checkout Session for amount = price * qty.
-//   3. Return { url } so the client can redirect.
+// item. Two paths:
 //
-// The webhook is what marks the item claimed and inserts the
-// payment row — NOT this endpoint. Until the webhook fires the
-// item stays 'unpaid'.
+//   PAY (Stripe configured, default):
+//     1. Validate the item exists, is native (source_id null), has
+//        remaining quantity, and the requested quantity fits.
+//     2. Build a Stripe Checkout Session for amount = price * qty.
+//     3. Return { url } so the client can redirect.
+//     The webhook is what marks the item claimed and inserts the
+//     payment row — NOT this endpoint. Until the webhook fires the
+//     item stays 'unpaid'.
+//
+//   RESERVE (no Stripe key, or explicit body.mode === 'reserve'):
+//     The launch-mode flow — no payment at all. The guest leaves
+//     their name (+ optional note / email); we atomically bump
+//     quantity_claimed with an optimistic-concurrency guard, stamp
+//     the claimant on the item, record a ledger row in
+//     registry_item_claims (payment_id null = reservation), and
+//     return { reserved: true, buyUrl } where buyUrl is the item's
+//     external product link if it has one. Hosts undo mistakes by
+//     editing the item in the panel — there's no guest unreserve.
 //
 // Anti-abuse: 6 claim-attempts per IP per hour.
 // ──────────────────────────────────────────────────────────────
@@ -31,6 +42,14 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+/** Postgres check-constraint violation (23514). Older databases
+ *  carry a payment_status CHECK without 'reserved' — we retry the
+ *  reservation without touching payment_status when we hit it. */
+function isCheckViolation(err: unknown): boolean {
+  const e = err as { code?: string; message?: string } | null;
+  return e?.code === '23514' || /check constraint/i.test(e?.message ?? '');
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -47,22 +66,30 @@ export async function POST(
       );
     }
 
-    if (!hasStripe()) {
-      return NextResponse.json(
-        { error: 'Payments are not configured for this site.' },
-        { status: 503 },
-      );
-    }
-
     const body = await request.json();
     const {
       payerEmail,
       payerName,
       quantity = 1,
       message = '',
-    } = body || {};
+      mode,
+    } = (body || {}) as {
+      payerEmail?: string;
+      payerName?: string;
+      quantity?: number;
+      message?: string;
+      mode?: string;
+    };
 
-    if (!payerEmail || typeof payerEmail !== 'string') {
+    /* Reserve-and-link when Stripe isn't configured (launch mode),
+       or when the caller explicitly asks for it. */
+    const reserveMode = mode === 'reserve' || !hasStripe();
+
+    if (reserveMode) {
+      if (!payerName || typeof payerName !== 'string' || !payerName.trim()) {
+        return NextResponse.json({ error: 'payerName is required' }, { status: 400 });
+      }
+    } else if (!payerEmail || typeof payerEmail !== 'string') {
       return NextResponse.json({ error: 'payerEmail is required' }, { status: 400 });
     }
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
@@ -76,7 +103,7 @@ export async function POST(
 
     const { data: item, error: itemError } = await supabase
       .from('registry_items')
-      .select('id, site_id, source_id, name, description, price, image_url, quantity, quantity_claimed, purchased')
+      .select('id, site_id, source_id, name, description, price, image_url, item_url, quantity, quantity_claimed, purchased')
       .eq('id', id)
       .maybeSingle();
 
@@ -98,6 +125,87 @@ export async function POST(
       );
     }
     const price = Number(item.price);
+
+    // ── Reserve path — no payment, just a promise. ──────────────
+    if (reserveMode) {
+      const nowIso = new Date().toISOString();
+      const trimmedName = String(payerName).trim().slice(0, 120);
+      const trimmedNote = (typeof message === 'string' ? message : '').trim().slice(0, 500) || null;
+      const trimmedEmail = (typeof payerEmail === 'string' ? payerEmail : '').trim().slice(0, 200) || null;
+      const newClaimed = claimedQty + quantity;
+
+      const reserveFields = {
+        quantity_claimed: newClaimed,
+        purchased: newClaimed >= totalQty,
+        claimed_by_email: trimmedEmail,
+        claimed_by_name: trimmedName,
+        claimed_at: nowIso,
+        claim_note: trimmedNote,
+        updated_at: nowIso,
+      };
+
+      /* Atomic over-claim guard: the update only lands if
+         quantity_claimed is still what we read above. A racing
+         reservation changes it, the filter matches zero rows, and
+         we 409 instead of over-claiming — same remaining-quantity
+         contract the Stripe path validates. */
+      let { data: bumped, error: bumpError } = await supabase
+        .from('registry_items')
+        .update({ ...reserveFields, payment_status: 'reserved' })
+        .eq('id', item.id)
+        .eq('quantity_claimed', claimedQty)
+        .select('id');
+
+      if (bumpError && isCheckViolation(bumpError)) {
+        /* Legacy payment_status CHECK without 'reserved' — the
+           reservation is still fully represented by the claimed_*
+           stamps + the ledger row below. */
+        ({ data: bumped, error: bumpError } = await supabase
+          .from('registry_items')
+          .update(reserveFields)
+          .eq('id', item.id)
+          .eq('quantity_claimed', claimedQty)
+          .select('id'));
+      }
+
+      if (bumpError) {
+        console.error('[api/registry-items/claim] reserve bump failed:', bumpError.message);
+        return NextResponse.json({ error: 'Could not reserve — try again.' }, { status: 500 });
+      }
+      if (!bumped || bumped.length === 0) {
+        return NextResponse.json(
+          { error: 'Someone just spoke for this — refresh to see what’s left.' },
+          { status: 409 },
+        );
+      }
+
+      /* Ledger row — payment_id null marks it a reservation (vs the
+         webhook's 'paid' rows). Best-effort: the item-level stamps
+         above already carry the reservation if this insert fails. */
+      const { error: claimError } = await supabase
+        .from('registry_item_claims')
+        .insert({
+          registry_item_id: item.id,
+          site_id: item.site_id,
+          payer_email: trimmedEmail ?? '',
+          payer_name: trimmedName,
+          quantity,
+          amount_cents: Number.isFinite(price) && price > 0 ? Math.round(price * quantity * 100) : 0,
+          payment_id: null,
+          status: 'pending',
+          message: trimmedNote,
+        });
+      if (claimError) {
+        console.warn('[api/registry-items/claim] reserve ledger insert failed:', claimError.message);
+      }
+
+      return NextResponse.json({
+        reserved: true,
+        buyUrl: (item.item_url as string) || null,
+      });
+    }
+
+    // ── Stripe path — unchanged checkout flow. ──────────────────
     if (!Number.isFinite(price) || price <= 0) {
       return NextResponse.json({ error: 'Item price not set' }, { status: 400 });
     }
@@ -114,7 +222,7 @@ export async function POST(
       currency: 'usd',
       successUrl,
       cancelUrl,
-      customerEmail: payerEmail,
+      customerEmail: payerEmail as string,
       metadata: {
         siteId: item.site_id as string,
         paymentType: 'registry',
