@@ -506,16 +506,28 @@ export function ThemedSite({
       toObserve.push(el);
     }
     if (!toObserve.length) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.isIntersecting) {
-          (e.target as HTMLElement).classList.add('pl8-rise-in');
-          io.unobserve(e.target);
+          const el = e.target as HTMLElement;
+          el.classList.add('pl8-rise-in');
+          io.unobserve(el);
+          /* Drop both classes once the rise lands (640ms transition):
+             .pl8-rise-in leaves transform: translateY(0) on the
+             section FOREVER, and any transform makes the section the
+             containing block for position:fixed descendants — a
+             lightbox or drawer inside a risen section would anchor
+             to the section, not the viewport. Post-transition the
+             classes are pure liability; removing them is invisible. */
+          timers.push(setTimeout(() => {
+            el.classList.remove('pl8-rise-in', 'pl8-rise-pending');
+          }, 700));
         }
       }
     }, { rootMargin: '0px 0px 50% 0px', threshold: 0 });
     toObserve.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    return () => { io.disconnect(); timers.forEach(clearTimeout); };
   }, [editable]);
 
   /* Hidden sections — host can hide any non-essential section via
@@ -727,7 +739,7 @@ export function ThemedSite({
   };
 
   const navEl = (
-    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle>
+    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop>
       <SiteNav
         sectionIds={sections.map(String)}
         isMobile={isMobile}
@@ -4034,7 +4046,7 @@ function SectionDotRail({ sectionIds }: { sectionIds: string[] }) {
 
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
+function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, stickyTop, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
@@ -4047,6 +4059,12 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
    *  only whole-section clicks. */
   onSectionFocus?: (id: SectionId) => void;
   hideHandle?: boolean;
+  /** Pin this section to the top of the scroll (the nav). The nav
+   *  variants declare position:sticky INTERNALLY, but sticky can
+   *  only travel within its parent's bounds — and this wrapper is
+   *  exactly nav-height, so it never stuck. The wrapper itself has
+   *  to be the sticky element. */
+  stickyTop?: boolean;
   /** Motif placement — every section participates by construction. */
   motifLayout?: MotifLayout;
   motif?: MotifKind;
@@ -4129,7 +4147,12 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
           ? () => { if (active !== id) onSectionFocus(id); }
           : undefined
       }
-      style={{ position: 'relative', cursor: editable ? 'pointer' : 'default', scrollMarginTop: 80 }}
+      style={{
+        position: stickyTop ? 'sticky' : 'relative',
+        ...(stickyTop ? { top: 0, zIndex: 50 } : {}),
+        cursor: editable ? 'pointer' : 'default',
+        scrollMarginTop: 80,
+      }}
     >
       <MotifLayer layout={motifLayout} kind={motif} sectionId={id} />
       {children}

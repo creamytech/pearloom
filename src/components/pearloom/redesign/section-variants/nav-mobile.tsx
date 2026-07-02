@@ -49,17 +49,22 @@ function Hamburger({ onClick, label = 'Open menu' }: { onClick: () => void; labe
         display: 'inline-flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        /* Visual glyph is 22×16; padding + negative margin grow the
+           HIT AREA to ~46×44 without moving the layout — the bare
+           glyph was a fiddly thumb target. */
         width: 22,
         height: 16,
-        padding: 0,
+        boxSizing: 'content-box',
+        padding: '14px 12px',
+        margin: '-14px -12px',
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
       }}
     >
-      <span style={{ display: 'block', width: '100%', height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
-      <span style={{ display: 'block', width: '100%', height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
-      <span style={{ display: 'block', width: '100%', height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
+      <span style={{ display: 'block', width: 22, height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
+      <span style={{ display: 'block', width: 22, height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
+      <span style={{ display: 'block', width: 22, height: 2, background: 'var(--t-ink)', borderRadius: 1 }} />
     </button>
   );
 }
@@ -71,22 +76,39 @@ function CloseX({ onClick, label = 'Close menu' }: { onClick: () => void; label?
       aria-label={label}
       onClick={onClick}
       style={{
+        /* 32px ring stays the visual; padding + negative margin
+           grow the tap area to 44×44. */
         width: 32,
         height: 32,
+        boxSizing: 'content-box',
+        padding: 6,
+        margin: -6,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'transparent',
-        border: '1px solid var(--t-line-soft)',
-        borderRadius: 999,
+        border: 'none',
         cursor: 'pointer',
         color: 'var(--t-ink)',
         fontSize: 16,
         lineHeight: 1,
-        padding: 0,
       }}
     >
-      ×
+      <span
+        aria-hidden
+        style={{
+          width: 32,
+          height: 32,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid var(--t-line-soft)',
+          borderRadius: 999,
+          pointerEvents: 'none',
+        }}
+      >
+        ×
+      </span>
     </button>
   );
 }

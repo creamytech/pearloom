@@ -4368,7 +4368,12 @@ html { scroll-behavior: smooth; }
       transparent 2px, transparent 20px);
   /* background-attachment intentionally LEFT DEFAULT — fixed leaks
      the weave into the editor rails. */
-  filter: saturate(0.94);
+  /* NO root-level `filter` here (the old saturate(0.94) muting):
+     a filter on the site root makes it the containing block for
+     every position:fixed descendant — the mobile nav drawers
+     anchored to the 13,000px document instead of the viewport and
+     opened off-screen. Any future full-site tint must live on a
+     non-ancestor overlay, never the root. */
 }
 /* Linen cards keep their Edition-chosen background; we add the
    sharp 3px corners and the inset weave-press shadows. */
