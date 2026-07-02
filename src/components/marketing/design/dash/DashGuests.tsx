@@ -2227,9 +2227,18 @@ function AddGuestDialog({
   onClose: () => void;
   onAdded: () => void;
 }) {
+  // One guest or a couple — a couple becomes TWO guest rows added
+  // together, each with their own reply link (and optional email),
+  // so each half of the pair can RSVP for themselves.
+  const [mode, setMode] = useState<'single' | 'couple'>('single');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [plusOne, setPlusOne] = useState(false);
+  const [name2, setName2] = useState('');
+  const [email2, setEmail2] = useState('');
+  // The host's plus-one GRANT (guests.plus_one_allowed) — opens the
+  // "Bringing a guest?" field on their RSVP. Distinct from plus_one,
+  // the guest's own answer.
+  const [plusOneAllowed, setPlusOneAllowed] = useState(false);
   // Auto-invite by default — adding a guest with an email sends them
   // their personal invite link right away. Uncheck to just add them
   // to the list and invite later.
@@ -2272,6 +2281,24 @@ function AddGuestDialog({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  async function postGuest(guestName: string, guestEmail: string) {
+    const res = await fetch('/api/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteId,
+        name: guestName,
+        email: guestEmail || undefined,
+        plusOneAllowed,
+        sendInvite: sendInvite && !!guestEmail,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -2279,23 +2306,24 @@ function AddGuestDialog({
       setError('Name is required.');
       return;
     }
+    if (mode === 'couple' && !name2.trim()) {
+      setError('Both names are needed for a couple.');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch('/api/guests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId,
-          name: name.trim(),
-          email: email.trim() || undefined,
-          plusOne,
-          sendInvite: sendInvite && !!email.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+      await postGuest(name.trim(), email.trim());
+      if (mode === 'couple') {
+        try {
+          await postGuest(name2.trim(), email2.trim());
+        } catch (err) {
+          // The first row landed; don't retry it. Tell the host
+          // exactly who still needs adding.
+          throw new Error(
+            `${name.trim()} was added, but ${name2.trim()} wasn't (${err instanceof Error ? err.message : 'error'}). Add them again on their own.`,
+          );
+        }
       }
       onAdded();
     } catch (err) {
@@ -2350,7 +2378,7 @@ function AddGuestDialog({
               marginBottom: 6,
             }}
           >
-            Add a guest
+            Add {mode === 'couple' ? 'a couple' : 'a guest'}
           </div>
           <h2
             style={{
@@ -2361,15 +2389,44 @@ function AddGuestDialog({
               letterSpacing: '-0.01em',
             }}
           >
-            One name at a time.
+            {mode === 'couple' ? 'Two names, side by side.' : 'One name at a time.'}
           </h2>
           <p style={{ margin: '6px 0 0', fontSize: 13, color: PD.inkSoft, lineHeight: 1.5 }}>
-            We&apos;ll mark them as pending — Pear can email when you&apos;re ready, or they can RSVP through the link.
+            {mode === 'couple'
+              ? 'Each gets their own reply link, so they can each answer for themselves.'
+              : 'We’ll mark them as pending — Pear can email when you’re ready, or they can RSVP through the link.'}
           </p>
         </div>
 
+        {/* One guest / a couple — two rows added together. */}
+        <div role="radiogroup" aria-label="Guest or couple" style={{ display: 'flex', gap: 6 }}>
+          {([['single', 'One guest'], ['couple', 'A couple']] as const).map(([m, label]) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mode === m}
+              onClick={() => setMode(m)}
+              className="pl8-btnfx"
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: 999,
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: mode === m ? `1px solid ${PD.olive}` : '1px solid rgba(31,36,24,0.14)',
+                background: mode === m ? 'rgba(92,107,63,0.10)' : 'transparent',
+                color: mode === m ? PD.olive : PD.inkSoft,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Name</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>{mode === 'couple' ? 'First name' : 'Name'}</span>
           <input
             autoFocus
             value={name}
@@ -2380,7 +2437,7 @@ function AddGuestDialog({
         </label>
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional)</span></span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>{mode === 'couple' ? 'Their email' : 'Email'} <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional)</span></span>
           <input
             type="email"
             value={email}
@@ -2389,6 +2446,30 @@ function AddGuestDialog({
             style={inputStyle}
           />
         </label>
+
+        {mode === 'couple' && (
+          <>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Second name</span>
+              <input
+                value={name2}
+                onChange={(e) => setName2(e.target.value)}
+                placeholder="Sam Rivera"
+                style={inputStyle}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Their email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional — can share one)</span></span>
+              <input
+                type="email"
+                value={email2}
+                onChange={(e) => setEmail2(e.target.value)}
+                placeholder="sam@example.com"
+                style={inputStyle}
+              />
+            </label>
+          </>
+        )}
 
         {known && (
           <div
@@ -2430,39 +2511,49 @@ function AddGuestDialog({
         >
           <input
             type="checkbox"
-            checked={plusOne}
-            onChange={(e) => setPlusOne(e.target.checked)}
-            style={{ width: 16, height: 16, accentColor: PD.olive }}
-          />
-          <span style={{ fontSize: 13, color: PD.ink }}>Allow a plus-one</span>
-        </label>
-
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 12px',
-            background: email.trim() ? 'rgba(92,107,63,0.08)' : 'rgba(31,36,24,0.04)',
-            borderRadius: 10,
-            cursor: email.trim() ? 'pointer' : 'default',
-            opacity: email.trim() ? 1 : 0.55,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={sendInvite && !!email.trim()}
-            disabled={!email.trim()}
-            onChange={(e) => setSendInvite(e.target.checked)}
+            checked={plusOneAllowed}
+            onChange={(e) => setPlusOneAllowed(e.target.checked)}
             style={{ width: 16, height: 16, accentColor: PD.olive }}
           />
           <span style={{ fontSize: 13, color: PD.ink }}>
-            Email them their invite now
+            Allow a plus-one
             <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
-              {email.trim() ? 'Sends their personal RSVP link right away.' : 'Add an email to enable.'}
+              {mode === 'couple' ? 'Each of them gets a "bringing a guest?" field when they RSVP.' : 'They get a "bringing a guest?" field when they RSVP.'}
             </span>
           </span>
         </label>
+
+        {(() => {
+          const anyEmail = !!email.trim() || (mode === 'couple' && !!email2.trim());
+          return (
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                background: anyEmail ? 'rgba(92,107,63,0.08)' : 'rgba(31,36,24,0.04)',
+                borderRadius: 10,
+                cursor: anyEmail ? 'pointer' : 'default',
+                opacity: anyEmail ? 1 : 0.55,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={sendInvite && anyEmail}
+                disabled={!anyEmail}
+                onChange={(e) => setSendInvite(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: PD.olive }}
+              />
+              <span style={{ fontSize: 13, color: PD.ink }}>
+                Email them their invite now
+                <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
+                  {anyEmail ? 'Sends each personal RSVP link right away.' : 'Add an email to enable.'}
+                </span>
+              </span>
+            </label>
+          );
+        })()}
 
         {error && (
           <div
@@ -2484,7 +2575,7 @@ function AddGuestDialog({
             Cancel
           </button>
           <button type="submit" disabled={busy} className="pl8-btnfx" style={{ ...btnInk, opacity: busy ? 0.6 : 1 }}>
-            {busy ? 'Adding…' : 'Add guest'}
+            {busy ? 'Adding…' : mode === 'couple' ? 'Add couple' : 'Add guest'}
           </button>
         </div>
       </form>

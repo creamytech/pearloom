@@ -909,12 +909,15 @@ export interface StoryManifest {
    *  the editor's localStorage. Static bases always paint regardless,
    *  so the free-tier teaser still reads. */
   atelier?: boolean;
-  /** Toggles for the public RSVP form. Both default ON if absent
-   *  (legacy behaviour). plusOnes hides the "+1?" field on the
-   *  passport invite link; songRequests hides the SongCard on
-   *  the /g/[token] passport surface. */
+  /** Toggles for the public RSVP form. plusOnes/plusOne gate the
+   *  "Bringing a guest?" field on the site RSVP modal (default
+   *  OFF; a per-guest plus_one_allowed grant also opens it);
+   *  songRequests hides the SongCard on the /g/[token] passport
+   *  surface. plusOnes (plural) is what the wizard writes; the
+   *  editor panel writes both keys; readers accept either. */
   rsvpConfig?: {
     plusOnes?: boolean;
+    plusOne?: boolean;
     songRequests?: boolean;
     /** Invitation-only replies — when true, /api/rsvp only accepts
      *  submissions whose email already exists on the guest list (or

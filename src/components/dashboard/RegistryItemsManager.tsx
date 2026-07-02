@@ -32,6 +32,10 @@ interface Item {
   claimedByName?: string | null;
   paymentStatus?: string | null;
   notes?: string | null;
+  /** Group gifting — guests chip in what they like toward this
+   *  item (gift_pledges rows with item_id); chip-ins never mark
+   *  it spoken for. */
+  allowGroupGift?: boolean;
 }
 
 interface Props {
@@ -79,7 +83,7 @@ export function RegistryItemsManager({ siteId }: Props) {
             Registry items
           </h2>
           <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 4 }}>
-            Items guests can claim and pay for through Pearloom (3% platform fee).
+            Items guests can reserve — or chip in on together — right from your site.
           </div>
         </div>
         <button
@@ -165,6 +169,7 @@ function ItemCard({ item, onEdit, onDelete }: { item: Item; onEdit: () => void; 
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{item.name}</div>
         <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
           ${formatPrice(item.price ?? 0)} · {item.quantityClaimed} of {item.quantity} claimed
+          {item.allowGroupGift && <span style={{ color: 'var(--sage-deep)' }}> · chip in</span>}
         </div>
         {/* Group-gift / fund progress (zip Registry) — a real bar from
             quantityClaimed / quantity for any multi-unit item. Single
@@ -218,6 +223,7 @@ function ItemEditor({
   const [category, setCategory] = useState(existing?.category ?? '');
   const [priority, setPriority] = useState<Item['priority']>(existing?.priority ?? 'want');
   const [quantity, setQuantity] = useState<string>(String(existing?.quantity ?? 1));
+  const [allowGroupGift, setAllowGroupGift] = useState(existing?.allowGroupGift ?? false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -256,6 +262,7 @@ function ItemEditor({
         category: category.trim() || null,
         priority,
         quantity: q,
+        allowGroupGift,
       };
       const res = existing
         ? await fetch('/api/registry-items', {
@@ -333,6 +340,27 @@ function ItemEditor({
               </select>
             </Field>
           </div>
+          <label
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+              background: allowGroupGift ? 'rgba(92,107,63,0.08)' : 'var(--cream-2, #F5EFE2)',
+              border: '1px solid var(--line, rgba(61,74,31,0.14))',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={allowGroupGift}
+              onChange={(e) => setAllowGroupGift(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: 'var(--sage-deep, #5C6B3F)' }}
+            />
+            <span style={{ fontSize: 13, color: 'var(--ink)' }}>
+              Let guests chip in together
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)' }}>
+                For the big one — several guests give what they like toward it.
+              </span>
+            </span>
+          </label>
         </div>
 
         {error && (

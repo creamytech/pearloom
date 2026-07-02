@@ -232,16 +232,21 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
      false (matching the editor panel's default), and songRequest
      defaults to false on solemn occasions — "A song to get you
      dancing" has no place on a memorial. An explicit host setting
-     always wins over these defaults. */
+     always wins over these defaults.
+
+     Plus-one lives under TWO keys historically: the wizard's
+     "Plus-ones welcome" pick writes rsvpConfig.plusOnes (plural,
+     the name typed in StoryManifest) while the editor panel wrote
+     plusOne (singular). Read both — whichever the host set wins. */
   const questionGates = useMemo(() => {
     const cfg = (manifest as unknown as {
-      rsvpConfig?: { mealChoice?: boolean; dietary?: boolean; songRequest?: boolean; plusOne?: boolean };
+      rsvpConfig?: { mealChoice?: boolean; dietary?: boolean; songRequest?: boolean; plusOne?: boolean; plusOnes?: boolean };
     }).rsvpConfig;
     return {
       mealChoice: cfg?.mealChoice ?? true,
       dietary: cfg?.dietary ?? true,
       songRequest: cfg?.songRequest ?? !solemnVoice,
-      plusOne: cfg?.plusOne ?? false,
+      plusOne: cfg?.plusOne ?? cfg?.plusOnes ?? false,
     };
   }, [manifest, solemnVoice]);
 

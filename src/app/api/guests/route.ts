@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { siteId: siteIdParam, siteSlug, name, email, plusOne, sendInvite } = body;
+    const { siteId: siteIdParam, siteSlug, name, email, plusOne, plusOneAllowed, sendInvite } = body;
 
     if ((!siteIdParam && !siteSlug) || !name) {
       return NextResponse.json({ error: 'siteId (or siteSlug) and name required' }, { status: 400 });
@@ -202,7 +202,11 @@ export async function POST(req: NextRequest) {
         name,
         email: email || null,
         status: 'pending',
-        plus_one: plusOne || false,
+        // The HOST'S grant ("this guest may bring someone"), not the
+        // guest's answer — plus_one is what the guest sets when they
+        // RSVP that they're bringing one. The Add Guest dialog's old
+        // `plusOne` key meant the grant too, so it maps here as well.
+        plus_one_allowed: (plusOneAllowed ?? plusOne) === true,
         // Personal-link token (envelope + auto-recognition + gate).
         ...guestTokenColumns(),
         created_at: new Date().toISOString(),
@@ -358,6 +362,29 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
     const supabase = getSupabase();
+
+    // Ownership — same gate as PATCH. Without it any signed-in
+    // account could delete any guest row by id.
+    const { data: guestRow } = await supabase
+      .from('guests')
+      .select('site_id')
+      .eq('id', id)
+      .maybeSingle();
+    if (!guestRow) return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
+    const { data: site } = await supabase
+      .from('sites')
+      .select('creator_email, site_config')
+      .eq('id', (guestRow as { site_id: string }).site_id)
+      .maybeSingle();
+    const owner = String(
+      (site as { creator_email?: string; site_config?: { creator_email?: string } } | null)?.creator_email
+      ?? (site as { site_config?: { creator_email?: string } } | null)?.site_config?.creator_email
+      ?? '',
+    ).toLowerCase().trim();
+    if (!site || owner !== session.user.email.toLowerCase().trim()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { error } = await supabase.from('guests').delete().eq('id', id);
 
     if (error) {

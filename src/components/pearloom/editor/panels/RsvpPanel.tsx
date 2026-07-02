@@ -51,6 +51,11 @@ interface RsvpConfig {
   dietary?: boolean;
   songRequest?: boolean;
   plusOne?: boolean;
+  /** Legacy twin of plusOne — the wizard's "Plus-ones welcome"
+   *  pick writes this plural key (the name typed in
+   *  StoryManifest). The toggle below reads whichever is set and
+   *  writes both so every reader agrees. */
+  plusOnes?: boolean;
   /** Invitation-only replies — /api/rsvp rejects emails that
    *  aren't already on the guest list. Default off (open RSVP). */
   guestListOnly?: boolean;
@@ -111,7 +116,7 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
             <FToggleStandalone label="Meal choice" sub={mealOptions.map((o) => o.name).join(' · ')} def={!!config.mealChoice} onChange={(v) => setToggle('mealChoice', v)} />
             <FToggleStandalone label="Dietary restrictions" def={!!config.dietary} onChange={(v) => setToggle('dietary', v)} />
             <FToggleStandalone label="Song request" def={!!config.songRequest} onChange={(v) => setToggle('songRequest', v)} />
-            <FToggleStandalone label="Plus-one" def={!!config.plusOne} onChange={(v) => setToggle('plusOne', v)} />
+            <FToggleStandalone label="Plus-one" def={config.plusOne ?? config.plusOnes ?? false} onChange={(v) => patchConfig({ plusOne: v, plusOnes: v })} />
             {/* "Add a custom question" omitted — the zip's AddCard had
                 no handler and no data model behind it. Restore with
                 real custom-question support, not before. */}
