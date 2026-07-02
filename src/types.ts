@@ -239,6 +239,30 @@ export interface StoryManifest {
   faqs?: FaqItem[];
   // Travel & lodging info
   travelInfo?: TravelInfo;
+  /** Menu section (SectionKind 'menu') — the editorial menu card.
+   *  Courses hold dishes; per-dish `tags` are dietary chips
+   *  (Vegetarian / Vegan / GF / Nut-free / Spicy). Edited by
+   *  MenuPanel; rendered by section-variants/blocks/menu.tsx. */
+  menuSection?: {
+    intro?: string;
+    courses: Array<{
+      id: string;
+      name: string;
+      items: Array<{ id: string; name: string; description?: string; tags?: string[] }>;
+    }>;
+  };
+  /** Dress code section (SectionKind 'dressCode') — `code` is the
+   *  headline ("Garden formal"), `note` one sentence, `palette`
+   *  optional hex swatches guests can dress to, `examples`
+   *  do/don't chips ("Linen suits", "No white"). Edited by
+   *  DressCodePanel; rendered by
+   *  section-variants/blocks/dress-code.tsx. */
+  dressCodeSection?: {
+    code?: string;
+    note?: string;
+    palette?: string[];
+    examples?: Array<{ label: string; hint?: string }>;
+  };
   /** Per-photo gallery captions, keyed by the photo's index in
    *  `galleryImages` (stringified number, e.g. `{ "0": "First dance" }`).
    *  Index keying is deliberate: `galleryImages` is a plain string[] of
@@ -365,6 +389,18 @@ export interface StoryManifest {
    *  gate — parity with the legacy PasswordGate). Edited in the
    *  editor's Privacy panel; DashSettings deep-links ?jump=privacy. */
   privacyGate?: { password?: string };
+  /** Tribute wall section (SectionKind 'tributeWall') host config —
+   *  written by the editor's TributeWallPanel.
+   *  - prompt: composer line ("Share a memory"); unset falls back
+   *    to memorial.tributePrompt, then the occasion copy pack.
+   *  - composerOpen (default true; memorial sites fall back to
+   *    memorial.tributeWallOpen): closes the composer without
+   *    hiding already-approved tributes.
+   *  Guest tributes themselves never live on the manifest — they
+   *  sit in Supabase `tribute_submissions` (POST
+   *  /api/event-os/submissions, blockId 'tributeWall') and reach
+   *  the wall only once approved at /dashboard/submissions. */
+  tributeWall?: { prompt?: string; composerOpen?: boolean };
   /** Per-icon name override map. Drag any icon from the asset
    *  library onto a canvas glyph to write
    *  `iconOverrides[<originalName>] = <newName>`. The renderer

@@ -136,6 +136,10 @@ const OPTIONAL_SECTIONS: SectionDef[] = [
   { id: 'obituary',     label: 'Obituary',     icon: 'leaf',           desc: 'A life, remembered' },
   { id: 'packingList',  label: 'Packing list', icon: 'list',           desc: 'What to bring' },
   { id: 'honorList',    label: 'Honor list',   icon: 'users',          desc: 'The people beside them' },
+  /* Gentle on purpose — this row also reads on memorial sites. */
+  { id: 'tributeWall',  label: 'Tribute wall', icon: 'heart-icon',     desc: 'Memories, gathered from your guests' },
+  { id: 'menu',         label: 'Menu',         icon: 'fleuron',        desc: 'Dinner, course by course' },
+  { id: 'dressCode',    label: 'Dress code',   icon: 'palette',        desc: 'What to wear' },
 ];
 
 /* One gate for everything the Add Section picker offers — the

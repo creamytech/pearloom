@@ -81,7 +81,7 @@ export type SectionId =
      bachelorette host sees Itinerary/Cost/Vote/Packing. */
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
-  | 'packingList' | 'honorList'
+  | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
@@ -102,16 +102,16 @@ export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'musi
   return !(event.hiddenBlocks as readonly string[]).includes(gateId);
 }
 
-/* The ten Event-OS canvas blocks the Add Section picker can offer. */
+/* The Event-OS canvas blocks the Add Section picker can offer. */
 export type BlockSectionId =
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
-  | 'packingList' | 'honorList';
+  | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode';
 
 export const BLOCK_SECTION_IDS: readonly BlockSectionId[] = [
   'itinerary', 'costSplitter', 'activityVote', 'toastSignup',
   'adviceWall', 'program', 'livestream', 'obituary',
-  'packingList', 'honorList',
+  'packingList', 'honorList', 'tributeWall', 'menu', 'dressCode',
 ];
 
 /* honorList is the generalized weddingParty (wedding party / court

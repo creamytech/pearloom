@@ -165,6 +165,17 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'circle', label: 'Circle', sub: 'Round portraits in a row' },
     { id: 'rows',   label: 'Rows',   sub: 'Compact name + role rows' },
   ],
+  tributeWall: [
+    { id: 'columns', label: 'Columns', sub: 'Masonry of framed tributes' },
+    { id: 'rows',    label: 'Rows',    sub: 'A single quiet column' },
+  ],
+  menu: [
+    { id: 'card',   label: 'Card',    sub: 'One centered menu card' },
+    { id: 'twocol', label: 'Columns', sub: 'A card per course' },
+  ],
+  dressCode: [
+    { id: 'centered', label: 'Centered', sub: 'Code, tones, example chips' },
+  ],
 };
 
 export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> = {
@@ -193,6 +204,9 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   obituary: 'letter',
   packingList: 'checklist',
   honorList: 'cards',
+  tributeWall: 'columns',
+  menu: 'card',
+  dressCode: 'centered',
   /* Tool panels (guests, savetheDate, share, dayof, memorial,
      bachelor) have no layout variants — they're host workspaces.
      Partial<> lets the type compile without forcing stub entries

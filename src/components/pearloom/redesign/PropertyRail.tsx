@@ -119,11 +119,14 @@ import { CostSplitterPanel } from '../editor/panels/blocks/CostSplitterPanel';
 import { ActivityVotePanel } from '../editor/panels/blocks/ActivityVotePanel';
 import { ToastSignupPanel } from '../editor/panels/blocks/ToastSignupPanel';
 import { AdviceWallPanel } from '../editor/panels/blocks/AdviceWallPanel';
+import { TributeWallPanel } from '../editor/panels/blocks/TributeWallPanel';
 import { ProgramPanel } from '../editor/panels/blocks/ProgramPanel';
 import { LivestreamPanel } from '../editor/panels/blocks/LivestreamPanel';
 import { ObituaryPanel } from '../editor/panels/blocks/ObituaryPanel';
 import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
 import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
+import { MenuPanel } from '../editor/panels/blocks/MenuPanel';
+import { DressCodePanel } from '../editor/panels/blocks/DressCodePanel';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
    ('47 yes · 63 pending', '38 photos') that read as real data.
@@ -189,6 +192,9 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   obituary:     { id: 'obituary',     label: 'Obituary',      desc: 'A life, remembered' },
   packingList:  { id: 'packingList',  label: 'Packing list',  desc: 'What to bring' },
   honorList:    { id: 'honorList',    label: 'Honor list',    desc: 'The people beside them' },
+  tributeWall:  { id: 'tributeWall',  label: 'Tribute wall',  desc: 'Memories, gathered from your guests' },
+  menu:         { id: 'menu',         label: 'Menu',          desc: 'Dinner, course by course' },
+  dressCode:    { id: 'dressCode',    label: 'Dress code',    desc: 'What to wear' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -318,6 +324,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
       'countdown', 'map', 'music',
       'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
       'program', 'livestream', 'obituary', 'packingList', 'honorList',
+      'tributeWall', 'menu', 'dressCode',
     ];
     const allReorderable = [...coreReorderable, ...optionalReorderable];
     const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
@@ -889,6 +896,9 @@ function renderSectionEditor(
     case 'obituary':     return <ObituaryPanel {...props} />;
     case 'packingList':  return <PackingListPanel {...props} />;
     case 'honorList':    return <HonorListPanel {...props} />;
+    case 'tributeWall':  return <TributeWallPanel {...props} />;
+    case 'menu':         return <MenuPanel {...props} />;
+    case 'dressCode':    return <DressCodePanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

@@ -397,6 +397,27 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'honorList/rows': (
     <><circle cx={11} cy={10} r={2.6} fill={A} opacity={0.6} /><B x={17} y={8} w={18} /><B x={17} y={11.5} w={10} h={1.5} o={0.45} /><circle cx={11} cy={21} r={2.6} fill={A} opacity={0.6} /><B x={17} y={19} w={15} /><B x={17} y={22.5} w={11} h={1.5} o={0.45} /><circle cx={11} cy={32} r={2.6} fill={A} opacity={0.6} /><B x={17} y={30} w={17} /></>
   ),
+
+  /* tributeWall — framed cards, gold pearl beside the signer. */
+  'tributeWall/columns': (
+    <><Card x={6} y={6} w={14} h={17} /><B x={8.5} y={9} w={9} h={1.5} o={0.6} /><B x={8.5} y={12} w={7} h={1.5} o={0.6} /><D cx={9.7} cy={19} r={1.1} /><B x={12} y={18.2} w={5} h={1.5} o={0.45} /><Card x={22} y={6} w={14} h={12} /><B x={24.5} y={9} w={9} h={1.5} o={0.6} /><D cx={25.7} cy={14} r={1.1} /><Card x={38} y={6} w={12} h={21} /><B x={40.5} y={9} w={7} h={1.5} o={0.6} /><B x={40.5} y={12} w={6} h={1.5} o={0.6} /><D cx={41.7} cy={23} r={1.1} /><Card x={6} y={25} w={14} h={9} /><Card x={22} y={20} w={14} h={14} /><B x={24.5} y={23} w={9} h={1.5} o={0.6} /><D cx={25.7} cy={30} r={1.1} /></>
+  ),
+  'tributeWall/rows': (
+    <><Card x={12} y={5} w={32} h={13} /><B x={15} y={8} w={24} h={1.6} o={0.6} /><D cx={16.2} cy={14} r={1.1} /><B x={19} y={13.2} w={7} h={1.5} o={0.45} /><Card x={12} y={21} w={32} h={13} /><B x={15} y={24} w={20} h={1.6} o={0.6} /><D cx={16.2} cy={30} r={1.1} /><B x={19} y={29.2} w={9} h={1.5} o={0.45} /></>
+  ),
+
+  /* menu — course eyebrows in gold, dishes centered below. */
+  'menu/card': (
+    <><Card x={13} y={4} w={30} h={32} /><Ln x1={17} y1={9.5} x2={23} y2={9.5} f={G} w={1} /><B x={25} y={8.6} w={6} h={1.6} f={G} /><Ln x1={33} y1={9.5} x2={39} y2={9.5} f={G} w={1} /><B x={20} y={14} w={16} /><B x={22} y={18} w={12} h={1.5} o={0.45} /><Ln x1={17} y1={24.5} x2={23} y2={24.5} f={G} w={1} /><B x={25} y={23.6} w={6} h={1.6} f={G} /><Ln x1={33} y1={24.5} x2={39} y2={24.5} f={G} w={1} /><B x={20} y={29} w={16} /><B x={22} y={32.5} w={12} h={1.5} o={0.45} /></>
+  ),
+  'menu/twocol': (
+    <><Card x={6} y={7} w={21} h={26} /><B x={11} y={11} w={11} h={1.6} f={G} /><B x={9} y={16} w={15} /><B x={10.5} y={20} w={12} h={1.5} o={0.45} /><B x={9} y={25} w={15} /><Card x={29} y={7} w={21} h={26} /><B x={34} y={11} w={11} h={1.6} f={G} /><B x={32} y={16} w={15} /><B x={33.5} y={20} w={12} h={1.5} o={0.45} /><B x={32} y={25} w={15} /></>
+  ),
+
+  /* dressCode — eyebrow, code line, swatch circles, example chips. */
+  'dressCode/centered': (
+    <><B x={22} y={6} w={12} h={1.6} f={G} /><B x={15} y={11} w={26} h={3.2} /><circle cx={19} cy={22} r={3} fill={A} opacity={0.7} /><circle cx={28} cy={22} r={3} fill={A} opacity={0.45} /><circle cx={37} cy={22} r={3} fill={G} opacity={0.55} /><rect x={12} y={29} width={13} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /><rect x={29} y={29} width={15} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /></>
+  ),
 };
 
 /* Generic fallback — three stacked bars. Any variant id that lands

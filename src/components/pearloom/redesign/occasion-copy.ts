@@ -49,6 +49,11 @@ export interface OccasionCopy {
   scheduleDemo: Array<{ t: string; l: string; s: string }>;
   /** Editor/demo-only FAQ questions (also the first-touch seed). */
   faqDemo: string[];
+  /** Tribute wall composer prompt (chrome — safe when published). */
+  tributePrompt: string;
+  /** Tribute wall post-submit line. Must say the words wait for
+   *  host approval before they appear on the wall. */
+  tributeConfirm: string;
 }
 
 const BASE: OccasionCopy = {
@@ -81,6 +86,8 @@ const BASE: OccasionCopy = {
     'Are kids welcome?',
     'Where should I park?',
   ],
+  tributePrompt: 'Leave a few words',
+  tributeConfirm: 'Woven in — the hosts will read it before it joins the wall.',
 };
 
 /* Wedding voices — the host's Pear-voice pick (classic / playful /
@@ -175,6 +182,8 @@ const SOLEMN: OccasionCopy = {
     'Are children welcome?',
     'Where should I park?',
   ],
+  tributePrompt: 'Share a memory',
+  tributeConfirm: 'Woven in — the family will see it soon. It appears here once they’ve read it.',
 };
 
 const PACKS: Record<string, OccasionCopy> = {
@@ -386,6 +395,7 @@ const PACKS: Record<string, OccasionCopy> = {
   },
   retirement: {
     ...BASE,
+    tributePrompt: 'Leave a story',
     tagline: 'a career, well spent',
     storyTitle: 'A career',
     storyItalic: 'well spent',
