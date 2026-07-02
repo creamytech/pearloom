@@ -2,7 +2,8 @@
 // Pearloom / api/inline-rewrite/route.ts
 //
 // POST /api/inline-rewrite
-//   body: { text: string, context?: string }
+//   body: { text: string, context?: string, instruction?: string,
+//           voiceProfile?: { tone?, formality?, phrases?, avoidList? } }
 //   returns: { rewritten: string }
 //
 // Tiny single-call endpoint used by the canvas FloatingFormatToolbar
@@ -42,9 +43,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many rewrites — wait a moment.' }, { status: 429 });
   }
 
-  let body: { text?: unknown; context?: unknown; instruction?: unknown };
+  let body: {
+    text?: unknown;
+    context?: unknown;
+    instruction?: unknown;
+    voiceProfile?: { tone?: string; formality?: number; phrases?: string[]; avoidList?: string[] };
+  };
   try {
-    body = (await req.json()) as { text?: unknown; context?: unknown; instruction?: unknown };
+    body = (await req.json()) as typeof body;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -66,6 +72,26 @@ export async function POST(req: NextRequest) {
      instruction can't override the formatting contract. */
   const instruction = String(body.instruction ?? '').trim().slice(0, 280);
   const context = String(body.context ?? '').trim().slice(0, 80);
+
+  /* Optional voice block — editor callers attach the site's Voice
+     DNA (manifest.voiceDNA via lib/pear/editor-voice) so rewrites
+     sound like the host. Same param name + shape as
+     /api/rewrite-text's voiceProfile. Joined into the USER turn:
+     the system prompt is prompt-cached and must stay static. */
+  const vp = body.voiceProfile && typeof body.voiceProfile === 'object' ? body.voiceProfile : undefined;
+  const voiceLines = vp
+    ? [
+        `The host's voice — write in it:`,
+        typeof vp.tone === 'string' && vp.tone.trim() ? `- Tone: ${vp.tone.trim().slice(0, 80)}` : '',
+        typeof vp.formality === 'number' ? `- Formality (1=very casual, 5=very formal): ${vp.formality}` : '',
+        Array.isArray(vp.phrases) && vp.phrases.length
+          ? `- Signature phrases (use naturally when fitting): ${vp.phrases.slice(0, 6).map((p) => `"${String(p).slice(0, 60)}"`).join(', ')}`
+          : '',
+        Array.isArray(vp.avoidList) && vp.avoidList.length
+          ? `- Avoid: ${vp.avoidList.slice(0, 5).map((w) => `"${String(w).slice(0, 40)}"`).join(', ')}`
+          : '',
+      ].filter(Boolean)
+    : [];
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -100,6 +126,7 @@ export async function POST(req: NextRequest) {
             instruction
               ? `The host's direction: "${instruction}"`
               : 'Direction: tighter and warmer.',
+            ...voiceLines,
             '',
             text,
           ].join('\n'),

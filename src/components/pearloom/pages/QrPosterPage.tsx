@@ -7,6 +7,7 @@
 // Different from PassportCardsPage: that's per-guest invite
 // cards. This is a single tabletop poster with the site URL.
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
@@ -277,7 +278,16 @@ export function QrPosterPage() {
             meta={
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-                  {site?.domain ? <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></> : 'No site selected'}
+                  {site?.domain ? (
+                    <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></>
+                  ) : (
+                    <>
+                      No site selected —{' '}
+                      <Link href="/dashboard/event" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                        choose a celebration →
+                      </Link>
+                    </>
+                  )}
                 </span>
                 <HintChip
                   storageKey="pl-hint-qr-poster"

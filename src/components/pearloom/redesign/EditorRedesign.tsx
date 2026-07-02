@@ -26,6 +26,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
 import { nextStepFor, isManifestPublished } from '@/lib/next-step';
 import { applyPackToManifest, readPackStash, APPLIED_PACK_STASH_KEY } from '@/lib/theme-store/apply';
+import { setEditorVoiceProfile } from '@/lib/pear/editor-voice';
 import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { fireUndoable } from './UndoToast';
@@ -414,6 +415,17 @@ export default function EditorRedesign({
   useEffect(() => {
     manifestRef.current = bridge.manifest;
   });
+  /* Register the site's Voice DNA (lib/pear/editor-voice) so every
+     Pear rewrite call in the editor — PearInlineRewrite, the
+     PropertyRail chips, StoryPanel, FaqPanel — writes in the
+     host's captured voice. Keyed on the voiceDNA object itself
+     (it only changes via /dashboard/voice, not per keystroke);
+     cleared on unmount so no other site inherits it. */
+  const voiceDNA = bridge.manifest.voiceDNA;
+  useEffect(() => {
+    setEditorVoiceProfile({ voiceDNA });
+    return () => setEditorVoiceProfile(null);
+  }, [voiceDNA]);
   /* Viewers + guest-managers can't save manifests — the server
      rejects their POSTs — so never consume the stash for them
      (it stays put for the owner's next visit). */

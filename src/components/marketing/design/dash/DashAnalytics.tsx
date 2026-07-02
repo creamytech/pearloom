@@ -152,7 +152,7 @@ export function DashAnalytics() {
         <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
           <PageIntro eyebrow="Analytics" title="The reading of the room." />
         </div>
-        <EmptyShell message="Publish a site first — analytics light up once guests visit." />
+        <EmptyShell message="Publish a site first — analytics light up once guests visit." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
       </DashLayout>
     );
   }
@@ -162,7 +162,7 @@ export function DashAnalytics() {
         <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
           <PageIntro eyebrow="Analytics" title="The reading of the room." />
         </div>
-        <EmptyShell message="Pick a site from the top-right menu to see its analytics." />
+        <EmptyShell message="Pick a celebration from the sidebar to see its analytics." />
       </DashLayout>
     );
   }

@@ -4,6 +4,7 @@
 // Each card carries a QR that scans to that guest's /g/[token]
 // Passport. Designed for 4-up on A4 card stock.
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
@@ -138,6 +139,11 @@ export function PassportCardsPage() {
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, maxWidth: 420, margin: '6px auto 0' }}>
               Add guests on the Guests page. Each one gets a unique passport QR here that scans to their own view of
               your site.
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm">
+                <Icon name="users" size={12} /> Open the Guests page
+              </Link>
             </div>
           </div>
         )}

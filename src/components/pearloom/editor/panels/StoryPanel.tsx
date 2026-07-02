@@ -23,6 +23,7 @@ import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { PearAiChip, pearErrorMessage } from '../../redesign/PearAssist';
 import { useVoicePack } from './_voice-pack';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
+import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -253,7 +254,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: body, context: `story body — make it ${tone.toLowerCase()}` }),
+        body: JSON.stringify({ text: body, context: `story body — make it ${tone.toLowerCase()}`, voiceProfile: voiceProfileFrom(manifest) }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));

@@ -30,13 +30,12 @@
 import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { VariantSectionHead } from '../_section-head';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { optionIdsFor, readVotes, votePollsWithIds, type VotePollData } from '@/lib/event-os/activity-votes';
 
-export interface VotePollData { id?: string; question?: string; options?: string[] }
-
-export function readVotes(manifest: BlockSectionProps['manifest']): VotePollData[] {
-  const loose = manifest as unknown as { bachelor?: { votes?: VotePollData[] } };
-  return Array.isArray(loose.bachelor?.votes) ? loose.bachelor.votes : [];
-}
+/* Poll shape + id helpers live in lib/event-os/activity-votes so
+   the host-side tally on /dashboard/submissions derives the SAME
+   block/option ids this section writes — never fork them. */
+export { readVotes, type VotePollData };
 
 /* ─── Interaction plumbing (legacy port) ─────────────────────── */
 
@@ -58,21 +57,6 @@ function getOrCreateVoterKey(): string {
 
 function readSiteId(manifest: BlockSectionProps['manifest']): string {
   return (manifest.subdomain ?? '').trim();
-}
-
-/** Stable option ids from labels — the redesign data carries plain
- *  strings (no ids), so the server-side option_id is a slug of the
- *  label, index-deduped. Renaming an option therefore resets its
- *  live tally (documented in ActivityVotePanel). */
-function optionIdsFor(labels: string[]): string[] {
-  const seen = new Set<string>();
-  return labels.map((label, i) => {
-    let id = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
-    if (!id) id = `opt-${i}`;
-    if (seen.has(id)) id = `${id}-${i}`;
-    seen.add(id);
-    return id;
-  });
 }
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -204,16 +188,17 @@ const questionStyle = {
 /* ─── One poll — both variants render from the same sync state ── */
 
 function VotePoll({
-  poll, fallbackId, siteId, variant, editable, reduced,
+  poll, blockId, siteId, variant, editable, reduced,
 }: {
   poll: VotePollData;
-  fallbackId: string;
+  /** Tally id from votePollsWithIds — assigned by the parent so
+   *  it can never drift from the dashboard's. */
+  blockId: string;
   siteId: string;
   variant: 'pills' | 'bars';
   editable: boolean;
   reduced: boolean;
 }) {
-  const blockId = (poll.id ?? '').trim() || fallbackId;
   const labels = (poll.options ?? []).map((o) => o.trim()).filter(Boolean);
   const ids = optionIdsFor(labels);
   const { myVote, serverTallies, castVote, canSync } = useActivityVote(siteId, blockId, !editable);
@@ -379,9 +364,7 @@ export function ActivityVoteSection({ manifest, pad, editable, variant, onEditCo
   const v: 'pills' | 'bars' = variant === 'bars' ? 'bars' : 'pills';
   const reduced = usePrefersReducedMotion();
   const siteId = readSiteId(manifest);
-  const polls = readVotes(manifest).filter(
-    (p) => (p.question ?? '').trim() || (p.options ?? []).some((o) => o.trim()),
-  );
+  const polls = votePollsWithIds(manifest);
   const empty = polls.length === 0;
   if (empty && !editable) return null;
 
@@ -402,11 +385,11 @@ export function ActivityVoteSection({ manifest, pad, editable, variant, onEditCo
       ) : (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: v === 'bars' ? 580 : 620, margin: '0 auto' }}>
-            {polls.map((poll, pi) => (
+            {polls.map(({ poll, blockId }) => (
               <VotePoll
-                key={poll.id ?? pi}
+                key={blockId}
                 poll={poll}
-                fallbackId={`vote-${pi}`}
+                blockId={blockId}
                 siteId={siteId}
                 variant={v}
                 editable={editable}

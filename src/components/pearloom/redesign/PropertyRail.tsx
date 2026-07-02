@@ -127,6 +127,7 @@ import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
 import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
 import { MenuPanel } from '../editor/panels/blocks/MenuPanel';
 import { DressCodePanel } from '../editor/panels/blocks/DressCodePanel';
+import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
    ('47 yes · 63 pending', '38 photos') that read as real data.
@@ -383,7 +384,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: current, context: target.context, instruction: `make it ${target.tone}` }),
+        body: JSON.stringify({ text: current, context: target.context, instruction: `make it ${target.tone}`, voiceProfile: voiceProfileFrom(manifest) }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -429,7 +430,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
         const res = await fetch('/api/inline-rewrite', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: current, context: target.context, instruction }),
+          body: JSON.stringify({ text: current, context: target.context, instruction, voiceProfile: voiceProfileFrom(manifest) }),
         });
         if (!res.ok) throw new Error('Pear couldn’t press the variations — try again?');
         const { rewritten } = await res.json() as { rewritten: string };

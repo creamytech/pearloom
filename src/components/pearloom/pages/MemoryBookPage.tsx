@@ -15,6 +15,7 @@
    nav node so the two pages feel like halves of the same artifact.
    ======================================================================== */
 
+import Link from 'next/link';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { Icon } from '../motifs';
@@ -354,7 +355,10 @@ export function MemoryBookPage() {
         </div>
       ) : !data ? (
         <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>
-          Pick a site first.
+          <div style={{ marginBottom: 12 }}>Pick a site first.</div>
+          <Link href="/dashboard/event" className="btn btn-outline btn-sm">
+            Choose a celebration →
+          </Link>
         </div>
       ) : (
         <article
@@ -473,6 +477,13 @@ export function MemoryBookPage() {
                 and as you add story chapters in the editor — they gather here into a printable
                 keepsake.
               </p>
+              {site?.domain && (
+                <div className="pl8-no-print" style={{ marginTop: 16 }}>
+                  <Link href={`/editor/${encodeURIComponent(site.domain)}?focus=story`} className="btn btn-outline btn-sm">
+                    <Icon name="brush" size={12} /> Begin a chapter in the editor
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

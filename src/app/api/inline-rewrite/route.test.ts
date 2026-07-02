@@ -267,4 +267,38 @@ describe('POST /api/inline-rewrite — happy path', () => {
     expect(system).toMatch(/length within .20%/);
     expect(system).toMatch(/Do not add quote marks/i);
   });
+
+  it('threads voiceProfile into the USER turn (never the cached system prompt)', async () => {
+    mockAnthropic('ok');
+    await POST(
+      postReq({
+        text: 'a selection',
+        voiceProfile: {
+          tone: 'dry and warm',
+          formality: 2,
+          phrases: ['big love'],
+          avoidList: ['magical'],
+        },
+      }),
+    );
+
+    expect(h.claudeCalls).toHaveLength(1);
+    const call = h.claudeCalls[0];
+    const user = (call.messages as Array<{ content: string }>)[0].content;
+    expect(user).toContain("The host's voice");
+    expect(user).toContain('dry and warm');
+    expect(user).toContain('"big love"');
+    expect(user).toContain('"magical"');
+    // The system prompt is prompt-cached and must stay static —
+    // a per-request voice block there would bust the cache.
+    const system = (call.system as Array<{ text: string }>).map((b) => b.text).join('\n');
+    expect(system).not.toContain('dry and warm');
+  });
+
+  it('omits the voice block when no voiceProfile is sent', async () => {
+    mockAnthropic('ok');
+    await POST(postReq({ text: 'a selection' }));
+    const user = (h.claudeCalls[0].messages as Array<{ content: string }>)[0].content;
+    expect(user).not.toContain("The host's voice");
+  });
 });

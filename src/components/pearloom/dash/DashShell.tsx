@@ -82,15 +82,17 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
  *  page via <DashSubNav>. Routes still match the old paths so no
  *  redirects + no broken bookmarks; we just visually group them
  *  under one umbrella entry in the sidebar. */
-/** Simplified sub-nav — 22 tabs across 5 sections collapsed to
- *  10 essential destinations. The 12 removed routes (Weekend,
- *  AI planner, Templates, Send cadence, Pear's review, Payments,
+/** Simplified sub-nav — the 22-tab strip collapsed to the
+ *  essential destinations per section (Weekend and Vendors later
+ *  earned tabs back; see below). Everything de-promoted (AI
+ *  planner/Director, Send cadence, Pear's review, Payments,
  *  Print orders, QR poster, Music, Voice DNA, Passport cards,
- *  Vendors, The bridge, Analytics) still WORK at their existing
- *  URLs — they're just no longer surfaced in the sub-nav strip
- *  that wrapped on most laptops. Hosts reach them via the
- *  command palette (⌘K) and inline cross-links from related
- *  surfaces (e.g. Registry page links to Payments). */
+ *  The bridge, Analytics, Help) still WORKS at its existing URL —
+ *  reached via the command palette (⌘K), the More-tools grid
+ *  (DEPROMOTED_DESTINATIONS in DashCommandPalette is the single
+ *  source for both), and inline cross-links from related surfaces
+ *  (Registry → Payments, Day-of → Music / QR poster / Passport
+ *  cards, editor Music panel → Music). */
 export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: string; label: string; href: string }> }> = {
   site: {
     label: 'Site',

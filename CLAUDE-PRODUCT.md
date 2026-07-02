@@ -444,6 +444,40 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-02 — Dashboard host pass: three write-only loops closed + dead-end sweep
+
+Walked all 31 /dashboard routes as a host. Nav needed no surgery
+(the 22→10 cut holds); the value was closing loops and fixing
+first-use dead ends:
+
+- **Seating → day-of.** `manifest.seatingPlan` was write-only
+  (the arranger saved it; nothing read it). DayOfV8's new
+  "Seating at a glance" card shows tables + seats spoken for with
+  an "Open the chart" door; field now typed on StoryManifest.
+- **Voice DNA → the editor.** Previously only cadence drafts read
+  `manifest.voiceDNA`. Now `/api/inline-rewrite` accepts a
+  `voiceProfile` (in the user turn — the cached system prompt
+  stays static) and every editor rewrite surface sends it:
+  PearInlineRewrite (6 panels), PropertyRail's chips + 3-styles
+  pressings, StoryPanel, FaqPanel. Registration via
+  `lib/pear/editor-voice` (EditorRedesign effect). Tests pin it.
+- **Group votes → Submissions.** Read-only `VotesTally` panel on
+  /dashboard/submissions tallies `activityVote` polls per option;
+  block/option slug helpers extracted to
+  `lib/event-os/activity-votes` and shared with the published
+  renderer so ids can never fork (unit-tested).
+- **Dead-end sweep.** Empty states gained actions: Analytics /
+  Director / Connections → Create a site; Payments' empty ledger
+  → Set up your registry; Memory book → editor story deep link +
+  site picker; QR poster (no site) → sites index; Passport cards
+  (no guests) → Guests page. Four stale "top-right menu" copy
+  strings (site picker moved sidebars ago) → "sidebar".
+- **Cross-links + nav hygiene.** Day-of gained a quiet "Print for
+  the day" row (QR poster + passport cards, occasion-gated) —
+  those two print-at-home sheets were reachable only via ⌘K.
+  Weekend builder removed from `DEPROMOTED_DESTINATIONS` (it's a
+  first-class Site sub-nav tab; it was listed twice in ⌘K).
+
 ### 2026-07-02 — Registry + Vendor Book (launch-mode, no money transmission)
 
 The two launch-blocking features, built in three waves on the

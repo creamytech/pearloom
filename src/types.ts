@@ -531,6 +531,15 @@ export interface StoryManifest {
     signoffStyle?: string;
     capturedAt: string;
   };
+  // Seating plan — written by the seating arranger
+  // (/dashboard/seating → PATCH /api/sites/seating, which owns
+  // sanitization + caps) and read back there plus by the day-of
+  // room's "Seating at a glance" card. assignments maps guest id
+  // → table id.
+  seatingPlan?: {
+    tables?: Array<{ id: string; name: string; capacity: number; group?: string }>;
+    assignments?: Record<string, string>;
+  };
   // Which sections live on the home page in multi-page mode.
   // Defaults to ['story','gallery'] when omitted. 'details' is
   // always included implicitly. All other sections become their

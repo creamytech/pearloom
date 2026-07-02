@@ -69,7 +69,10 @@ export const DEPROMOTED_DESTINATIONS: Array<{
   { id: 'tool-print',      label: 'Print orders',     hint: 'Pearloom Print tracking',   icon: 'mail',     href: '/dashboard/print' },
   { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster', gate: 'qr' },
   { id: 'tool-voice',      label: "Pear's voice",     hint: 'Train Pear on your tone',   icon: 'mic',      href: '/dashboard/voice' },
-  { id: 'tool-weekend',    label: 'Weekend builder',  hint: 'Linked multi-event sites',  icon: 'calendar', href: '/dashboard/weekend', gate: 'weekend' },
+  /* Weekend builder is a first-class Site sub-nav tab (DASH_SECTIONS
+     site → Weekend) — same rule as the Reel above: routes the nav
+     already carries don't ALSO sit in the de-promoted list, or they
+     show up twice in ⌘K and once more in More tools. */
 ];
 
 export function DashCommandPalette() {

@@ -3,10 +3,9 @@
 // Submissions — real /api/event-os/* moderation wiring.
 // Merges tribute/advice/memory submissions + toast claims (and
 // guestbook wishes below) into a single moderated feed per site.
-// Activity-vote tallies do NOT surface here yet — /api/event-os/
-// votes is per-block (siteId+blockId) and tally-shaped, so a vote
-// panel needs its own design. Don't promise votes in this page's
-// copy until that lands.
+// Activity-vote tallies surface in their own read-only panel
+// (VotesTally below) — votes are counts, not posts, so they never
+// join the moderation feed's approve/hide/flag cards.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
@@ -16,6 +15,8 @@ import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
+import { optionIdsFor, votePollsWithIds } from '@/lib/event-os/activity-votes';
+import type { StoryManifest } from '@/types';
 
 function submissionsBodyFor(occasion?: string | null): string {
   const preset = getEventType(occasion as never)?.rsvpPreset ?? 'wedding';
@@ -255,7 +256,7 @@ export function DashSubmissions() {
         <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
           <PageIntro eyebrow="Submissions" title="What guests sent." />
         </div>
-        <EmptyShell message="Pick a site from the top-right menu to see its submissions." />
+        <EmptyShell message="Pick a celebration from the sidebar to see its submissions." />
       </DashLayout>
     );
   }
@@ -353,7 +354,8 @@ export function DashSubmissions() {
                     if (k.kind === 'advice') return 'an advice wall';
                     if (k.kind === 'toast') return 'a toast-signup block';
                     // 'vote' deliberately omitted — vote tallies
-                    // don't land in this feed (see header comment).
+                    // render in their own VotesTally panel below,
+                    // not in this moderation feed.
                     return null;
                   })
                   .filter(Boolean) as string[];
@@ -506,9 +508,134 @@ export function DashSubmissions() {
           </div>
         )}
 
+        <VotesTally manifest={site.manifest} siteDomain={site.domain} />
+
         <GuestbookModeration siteId={site.id} />
       </main>
     </DashLayout>
+  );
+}
+
+// ── Group-vote tally ────────────────────────────────────────────
+// Read-only counts for the site's activityVote polls
+// (manifest.bachelor.votes). Votes are tallies, not posts — there
+// is nothing to approve or hide, so this stays out of the feed
+// above. Renders nothing when the site carries no polls. Block +
+// option ids come from lib/event-os/activity-votes so they match
+// what the published renderer writes.
+function VotesTally({ manifest, siteDomain }: { manifest: unknown; siteDomain: string }) {
+  // votePollsWithIds assigns tally ids over the renderer's own
+  // filtered list (ids can't drift); question-only polls carry no
+  // options to tally, so they drop out for display AFTER ids are
+  // assigned.
+  const polls = useMemo(
+    () =>
+      votePollsWithIds(manifest as StoryManifest | null).filter(
+        ({ poll }) => (poll.options ?? []).some((o) => o.trim()),
+      ),
+    [manifest],
+  );
+  // The votes table keys site_id by the published slug — the same
+  // value the renderer sends (manifest.subdomain, = domain).
+  const siteId =
+    ((manifest as { subdomain?: string } | null | undefined)?.subdomain ?? '').trim() || siteDomain;
+  const [tallies, setTallies] = useState<Record<string, Record<string, number>> | null>(null);
+
+  useEffect(() => {
+    if (!siteId || polls.length === 0) return;
+    let cancelled = false;
+    void Promise.all(
+      polls.slice(0, 12).map(async ({ blockId }) => {
+        try {
+          const r = await fetch(
+            `/api/event-os/votes?siteId=${encodeURIComponent(siteId)}&blockId=${encodeURIComponent(blockId)}`,
+            { cache: 'no-store' },
+          );
+          const d = (await r.json().catch(() => null)) as { ok?: boolean; tallies?: Record<string, number> } | null;
+          return [blockId, d?.ok ? (d.tallies ?? {}) : {}] as const;
+        } catch {
+          return [blockId, {} as Record<string, number>] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (!cancelled) setTallies(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId, polls]);
+
+  if (polls.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: 36 }}>
+      <div style={{ ...MONO_STYLE, fontSize: 10, color: PD.gold, marginBottom: 12 }}>
+        GROUP VOTES · {polls.length}
+      </div>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: 16 }}
+      >
+        {polls.map(({ poll, blockId }) => {
+          const labels = (poll.options ?? []).map((o) => o.trim()).filter(Boolean);
+          const ids = optionIdsFor(labels);
+          const t = tallies?.[blockId] ?? {};
+          const counts = ids.map((id) => t[id] ?? 0);
+          const total = counts.reduce((a, b) => a + b, 0);
+          const max = counts.length ? Math.max(...counts) : 0;
+          return (
+            <Panel key={blockId} bg={PD.paperCard} style={{ padding: 18 }}>
+              <div
+                style={{
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  color: PD.ink,
+                  lineHeight: 1.4,
+                  marginBottom: 12,
+                  fontFamily: '"Fraunces", Georgia, serif',
+                }}
+              >
+                {poll.question?.trim() || 'Group vote'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {labels.map((label, i) => {
+                  const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+                  const leads = total > 0 && counts[i] === max && max > 0;
+                  return (
+                    <div key={ids[i]}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 3 }}>
+                        <span style={{ fontSize: 13, color: PD.ink, fontWeight: leads ? 600 : 400, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {label}
+                        </span>
+                        <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.inkSoft, flexShrink: 0 }}>
+                          {counts[i]}{leads ? ' · leads' : ''}
+                        </span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 999, background: 'rgba(31,36,24,0.08)', overflow: 'hidden' }}>
+                        <span
+                          style={{
+                            display: 'block', height: '100%', borderRadius: 999,
+                            width: `${pct}%`,
+                            background: leads ? PD.gold : PD.olive,
+                            opacity: leads ? 1 : 0.55,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.inkSoft, opacity: 0.7, marginTop: 12 }}>
+                {tallies === null
+                  ? 'THREADING…'
+                  : total === 0
+                    ? 'NO VOTES YET — GUESTS VOTE ON THE PUBLISHED SITE'
+                    : `${total} VOTE${total === 1 ? '' : 'S'}`}
+              </div>
+            </Panel>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

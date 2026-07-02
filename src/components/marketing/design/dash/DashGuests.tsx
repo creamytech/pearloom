@@ -1050,7 +1050,7 @@ export function DashGuests() {
         <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
           <PageIntro eyebrow="Guests" title="The guest list." />
         </div>
-        <EmptyShell message="Pick a site from the top-right menu to see its guests." />
+        <EmptyShell message="Pick a celebration from the sidebar to see its guests." />
       </DashLayout>
     );
   }

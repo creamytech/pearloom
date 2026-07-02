@@ -303,7 +303,7 @@ export function DashDirector() {
             }
             style={{ marginBottom: 20 }}
           />
-          <EmptyShell message="Create a site first — Pear needs something to plan." />
+          <EmptyShell message="Create a site first — Pear needs something to plan." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       </DashLayout>
     );
@@ -321,7 +321,7 @@ export function DashDirector() {
             }
             style={{ marginBottom: 20 }}
           />
-          <EmptyShell message="Pick a site from the top-right menu to start planning." />
+          <EmptyShell message="Pick a celebration from the sidebar to start planning." />
         </div>
       </DashLayout>
     );

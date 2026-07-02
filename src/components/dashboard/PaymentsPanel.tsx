@@ -12,6 +12,7 @@
 // off-platform (manual ACH) until/unless we move to Stripe Connect.
 // ──────────────────────────────────────────────────────────────
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { StatStrip } from '@/components/pearloom/dash/QuietDash';
 
@@ -87,6 +88,11 @@ export function PaymentsPanel({ siteId }: Props) {
           }}
         >
           Nothing yet. Payments will appear here as guests claim registry items or send cash gifts.
+          <div style={{ marginTop: 12 }}>
+            <Link href="/dashboard/registry" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink, #1F2418)' }}>
+              Set up your registry →
+            </Link>
+          </div>
         </div>
       ) : (
         <div

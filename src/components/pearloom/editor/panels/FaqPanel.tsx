@@ -13,6 +13,7 @@ import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_sugg
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
+import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Wording matches the canvas exactly — both sides read
    occasionCopyFor(occasion).faqDemo — so the panel and the preview
@@ -67,6 +68,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
         body: JSON.stringify({
           text: f.question,
           context: `FAQ answer — the question is "${f.question}". Draft a warm, factual 1-2 sentence answer for a celebration-website FAQ. Don't restate the question — answer it directly.`,
+          voiceProfile: voiceProfileFrom(manifest),
         }),
       });
       if (!res.ok) {

@@ -141,7 +141,7 @@ export function DashConnections() {
             }
             style={{ marginBottom: 20 }}
           />
-          <EmptyShell message="Create two sites first and you can weave them together here." />
+          <EmptyShell message="Create two sites first and you can weave them together here." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       </DashLayout>
     );

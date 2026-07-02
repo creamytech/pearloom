@@ -20,6 +20,7 @@
 
 import { pearWorking } from './PearLoomFx';
 import { recordTaste, orderByTaste, tasteHint, tasteLine } from './taste';
+import { editorVoiceProfile } from '@/lib/pear/editor-voice';
 import { useEffect, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 
@@ -235,6 +236,9 @@ export function PearInlineRewrite({
           text: value,
           context,
           instruction: [instruction, tasteHint()].filter(Boolean).join(' '),
+          /* Voice DNA — registered by EditorRedesign; undefined
+             (and omitted by JSON.stringify) when never captured. */
+          voiceProfile: editorVoiceProfile(),
         }),
       });
       if (!res.ok) {

@@ -32,6 +32,7 @@ import { buildSiteUrl } from '@/lib/site-urls';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
+import type { StoryManifest } from '@/types';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
@@ -1432,6 +1433,121 @@ function WhoToCall({ siteId }: { siteId?: string | null }) {
   );
 }
 
+/* Seating at a glance — closes the seating loop. The arranger
+   (/dashboard/seating → PATCH /api/sites/seating) writes
+   manifest.seatingPlan; until this card nothing ever read it
+   back. On the day the host wants "how full is the room" without
+   reopening the arranger. Renders nothing until a plan exists —
+   the Seating tab in the Day sub-nav is the front door. */
+function SeatingGlance({ manifest }: { manifest: unknown }) {
+  const plan = (manifest as { seatingPlan?: StoryManifest['seatingPlan'] } | null | undefined)?.seatingPlan;
+  const tables = (plan?.tables ?? []).filter((t) => t && t.id);
+
+  const seatedPerTable = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const tableId of Object.values(plan?.assignments ?? {})) {
+      m.set(tableId, (m.get(tableId) ?? 0) + 1);
+    }
+    return m;
+  }, [plan?.assignments]);
+
+  if (tables.length === 0) return null;
+
+  const capacity = tables.reduce((a, t) => a + (Number.isFinite(t.capacity) ? t.capacity : 0), 0);
+  const seated = tables.reduce((a, t) => a + (seatedPerTable.get(t.id) ?? 0), 0);
+  const SHOWN = 8;
+  const shown = tables.slice(0, SHOWN);
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="grid" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            Seating at a glance
+          </h3>
+        </div>
+        <Link href="/dashboard/seating" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+          Open the chart →
+        </Link>
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 14 }}>
+        {tables.length} table{tables.length === 1 ? '' : 's'} · {seated} of {capacity} seats spoken for
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+        {shown.map((t) => {
+          const n = seatedPerTable.get(t.id) ?? 0;
+          const full = t.capacity > 0 && n >= t.capacity;
+          return (
+            <div
+              key={t.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 8,
+                padding: '8px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+                minWidth: 0,
+              }}
+            >
+              <span style={{ fontSize: 12.5, fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {t.name || 'Table'}
+              </span>
+              <span style={{ fontSize: 11.5, color: full ? 'var(--sage-deep)' : 'var(--ink-soft)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                {n}/{t.capacity}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {tables.length > SHOWN && (
+        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-muted)' }}>
+          + {tables.length - SHOWN} more table{tables.length - SHOWN === 1 ? '' : 's'} in the chart
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Print for the day — contextual doors to the two print-at-home
+   sheets (welcome-table QR poster, per-guest passport cards).
+   They live off-nav (⌘K / More tools) by design; the day-of room
+   is where a host actually thinks "what goes on the tables". */
+function PaperForTheDay({ occasion }: { occasion: string | null }) {
+  const qr = isDashSurfaceApplicable('qr', occasion);
+  const passport = isDashSurfaceApplicable('passport', occasion);
+  if (!qr && !passport) return null;
+  return (
+    <div className="card" style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16 }}>
+      <span
+        style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        Print for the day
+      </span>
+      {qr && (
+        <Link href="/dashboard/qr-poster" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+          Welcome-table poster →
+        </Link>
+      )}
+      {passport && (
+        <Link href="/dashboard/passport-cards" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+          Guest passport cards →
+        </Link>
+      )}
+    </div>
+  );
+}
+
 /* Quiet section label that gives the two columns a clear identity
    ("Run the day" vs "The live room") so the page reads as two
    intents instead of a flat stack of cards. */
@@ -1587,8 +1703,14 @@ export function DayOfV8() {
             <DayOfBand label="Run the day" />
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
             <WhoToCall siteId={site?.id} />
+            {/* Seating loop-closer — reads what /dashboard/seating
+                saved; occasion gate mirrors the Seating tab's. */}
+            {isDashSurfaceApplicable('seating', occasion) && (
+              <SeatingGlance manifest={site?.manifest} />
+            )}
             {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
+            <PaperForTheDay occasion={occasion} />
           </div>
           {/* Right — the live room: what guests are doing right now. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
