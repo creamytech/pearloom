@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 
     const { data: rows } = await sb
       .from('registry_link_claims')
-      .select('id, entry_url, claimer_name, claimer_email, message, quantity, created_at')
+      .select('id, entry_url, claimer_name, claimer_email, message, quantity, created_at, thanked_at')
       .eq('site_id', siteUuid)
       .is('revoked_at', null)
       .order('created_at', { ascending: false })
@@ -274,6 +274,58 @@ export async function POST(req: NextRequest) {
   })();
 
   return NextResponse.json({ ok: true, id: data.id });
+}
+
+// ── PATCH ────────────────────────────────────────────────────
+// The thank-you ledger stamp. Owner-only. { id, thanked: boolean }
+// → sets/unsets thanked_at. Drafting a thank-you note never sets
+// this — only the host's explicit toggle does.
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: { id?: string; thanked?: boolean } = {};
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
+  }
+  const id = (body.id ?? '').trim();
+  if (!id || typeof body.thanked !== 'boolean') {
+    return NextResponse.json({ error: 'id and thanked are required' }, { status: 400 });
+  }
+
+  const sb2 = getSupabase();
+  if (!sb2) return NextResponse.json({ error: 'Storage unavailable' }, { status: 503 });
+
+  // Look up the claim's site to check ownership before touching it.
+  const { data: claim } = await sb2
+    .from('registry_link_claims')
+    .select('site_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!claim) return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
+
+  const { data: site } = await sb2
+    .from('sites')
+    .select('creator_email')
+    .eq('id', claim.site_id)
+    .maybeSingle();
+  const ownerEmail = (site as { creator_email?: string } | null)?.creator_email?.toLowerCase();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const thankedAt = body.thanked ? new Date().toISOString() : null;
+  const { error } = await sb2
+    .from('registry_link_claims')
+    .update({ thanked_at: thankedAt })
+    .eq('id', id);
+  if (error) {
+    console.error('[registry-link-claims PATCH]', error);
+    return NextResponse.json({ error: 'Could not update' }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, thankedAt });
 }
 
 // ── DELETE ───────────────────────────────────────────────────

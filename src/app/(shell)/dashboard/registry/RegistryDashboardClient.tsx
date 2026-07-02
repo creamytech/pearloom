@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
 import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/components/registry/RegistryClaimsFeed';
@@ -26,6 +26,7 @@ interface ItemClaim {
   message: string | null;
   createdAt: string;
   kind: 'reserved' | 'paid';
+  thankedAt?: string | null;
 }
 
 /* Honor-ledger side — "gave directly" pledges from the R2-lite
@@ -38,6 +39,7 @@ interface PledgeRow {
   note: string | null;
   createdAt: string;
   itemName: string | null;
+  thankedAt?: string | null;
 }
 
 function useItemLedger(siteId: string | undefined) {
@@ -109,6 +111,7 @@ export function RegistryDashboardClient() {
     created_at: c.createdAt,
     kind: c.kind,
     itemLabel: c.itemName,
+    thankedAt: c.thankedAt ?? null,
   }));
 
   /* "Gave directly" pledges (honor ledger) shaped as ClaimRows —
@@ -124,12 +127,35 @@ export function RegistryDashboardClient() {
     kind: 'pledge',
     itemLabel: p.itemName ?? 'the fund',
     amountCents: p.amountCents,
+    thankedAt: p.thankedAt ?? null,
   }));
   const pledgedCents = pledges.reduce((sum, p) => sum + (p.amountCents ?? 0), 0);
 
   /* Total gifts = link claims + item reservations/purchases +
      gave-directly pledges. */
   const totalGifts = claimsCount + itemClaims.length + pledges.length;
+
+  /* ── The thank-you ledger stat — "Still to thank · N". ──────
+     Counts every unthanked row across ALL kinds. Toggles inside
+     the feed report through onThankedChange so the number moves
+     without refetching three ledgers. */
+  const [thankOverrides, setThankOverrides] = useState<Record<string, string | null>>({});
+  const onThankedChange = useCallback((key: string, thankedAt: string | null) => {
+    setThankOverrides((prev) => ({ ...prev, [key]: thankedAt }));
+  }, []);
+  const allRows: ClaimRow[] = [
+    ...(claimRows ?? []).map((c) => ({
+      ...c,
+      thankedAt: c.thankedAt ?? (c as unknown as { thanked_at?: string | null }).thanked_at ?? null,
+    })),
+    ...itemClaimRows,
+    ...pledgeRows,
+  ];
+  const stillToThank = allRows.filter((r) => {
+    const key = `${r.kind ?? 'link'}-${r.id}`;
+    const thanked = key in thankOverrides ? thankOverrides[key] : r.thankedAt ?? null;
+    return !thanked;
+  }).length;
 
   return (
     <DashLayout
@@ -217,6 +243,23 @@ export function RegistryDashboardClient() {
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>{v}</span>
                   </div>
                 ))}
+                {/* The thank-you ledger — every unthanked gift
+                    across kinds. Live-updates as the host stamps
+                    rows in the feed below. */}
+                {totalGifts > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
+                    <span style={{ fontSize: 13, color: 'var(--ink)' }}>Still to thank</span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 22,
+                        color: stillToThank > 0 ? 'var(--peach-ink, #C6703D)' : 'var(--sage-deep, #3D4A1F)',
+                      }}
+                    >
+                      {stillToThank}
+                    </span>
+                  </div>
+                )}
                 {/* The honor ledger — "gave directly" pledges from
                     the fund card, as shared by guests. */}
                 {pledges.length > 0 && (
@@ -274,13 +317,16 @@ export function RegistryDashboardClient() {
                     Every gift in one thread — reservations, purchases,
                     and &ldquo;I got this&rdquo; link claims. Tap{' '}
                     <strong style={{ color: 'var(--peach-ink, #C6703D)' }}>Draft thank-you</strong>{' '}
-                    and Pear writes a personal note.
+                    and Pear writes a personal note. When it&rsquo;s out the
+                    door, stamp{' '}
+                    <strong style={{ color: 'var(--sage-deep, #3D4A1F)' }}>Mark thanked</strong>.
                   </div>
                   <RegistryClaimsFeed
                     subdomain={subdomain}
                     items={entries}
                     manifest={manifest}
                     extraClaims={[...itemClaimRows, ...pledgeRows]}
+                    onThankedChange={onThankedChange}
                   />
                 </PLCard>
               )}

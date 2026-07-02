@@ -10,6 +10,10 @@
 //
 // Each row carries kind: 'reserved' | 'paid' so the dashboard can
 // chip them without re-deriving payment semantics client-side.
+//
+// PATCH { id, thanked: boolean } — the thank-you ledger stamp
+// (owner-gated). Sets/unsets thanked_at; drafting a note never
+// writes it — only the host's explicit toggle does.
 // ──────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -71,7 +75,7 @@ export async function GET(req: NextRequest) {
 
     const { data: rows, error } = await supabase
       .from('registry_item_claims')
-      .select('id, registry_item_id, payer_email, payer_name, quantity, amount_cents, payment_id, status, message, created_at')
+      .select('id, registry_item_id, payer_email, payer_name, quantity, amount_cents, payment_id, status, message, created_at, thanked_at')
       .eq('site_id', siteUuid)
       .order('created_at', { ascending: false })
       .limit(60);
@@ -106,6 +110,7 @@ export async function GET(req: NextRequest) {
       status: (r.status as string) || 'pending',
       message: (r.message as string | null) ?? null,
       createdAt: r.created_at as string,
+      thankedAt: (r.thanked_at as string | null) ?? null,
       /* payment_id present (or status paid) = a Stripe purchase;
          otherwise it's a reserve-and-link reservation. */
       kind: (r.payment_id || r.status === 'paid' ? 'paid' : 'reserved') as 'paid' | 'reserved',
@@ -115,5 +120,60 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error('[api/registry-items/claims] GET unhandled:', err);
     return NextResponse.json({ claims: [] });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
+    if (!email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let body: { id?: string; thanked?: boolean } = {};
+    try { body = await req.json(); } catch {
+      return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
+    }
+    const id = (body.id ?? '').trim();
+    if (!id || typeof body.thanked !== 'boolean') {
+      return NextResponse.json({ error: 'id and thanked are required' }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: 'Storage unavailable' }, { status: 503 });
+
+    // Look up the claim's site to check ownership before touching it.
+    const { data: claim } = await supabase
+      .from('registry_item_claims')
+      .select('site_id')
+      .eq('id', id)
+      .maybeSingle();
+    const siteUuid = (claim as { site_id?: string } | null)?.site_id;
+    if (!siteUuid) return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
+
+    const { data: site } = await supabase
+      .from('sites')
+      .select('creator_email')
+      .eq('id', siteUuid)
+      .maybeSingle();
+    const creator = String((site as { creator_email?: string } | null)?.creator_email ?? '').toLowerCase().trim();
+    if (!site || creator !== email.toLowerCase().trim()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const thankedAt = body.thanked ? new Date().toISOString() : null;
+    const { error } = await supabase
+      .from('registry_item_claims')
+      .update({ thanked_at: thankedAt })
+      .eq('id', id);
+    if (error) {
+      console.error('[api/registry-items/claims] PATCH error:', error.message);
+      return NextResponse.json({ error: 'Could not update' }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, thankedAt });
+  } catch (err) {
+    console.error('[api/registry-items/claims] PATCH unhandled:', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

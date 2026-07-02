@@ -10,12 +10,19 @@
 //        — public write from the site's fund card. Rate-limited
 //          6/10min per IP. Amounts are the guest's OWN claim.
 //   GET ?subdomain=xxx&public=1
-//        — public aggregate: { totalCents, count, recent }.
+//        — public aggregate: { totalCents, count, recent, items }.
 //          recent carries first names + timestamps only — NO
-//          individual amounts leave the aggregate.
+//          individual amounts leave the aggregate. Fund-level
+//          totals cover UNTIED pledges only; item-tied chip-ins
+//          (group gifts) surface as per-item aggregates in
+//          items: [{ itemId, totalCents, count }].
 //   GET ?siteId=xxx (uuid or subdomain)
 //        — host ledger view (owner-gated): full pledges with
-//          amounts + notes for the dashboard's thank-you feed.
+//          amounts + notes + thanked_at for the dashboard's
+//          thank-you feed.
+//   PATCH { id, thanked } — owner-gated thank-you ledger stamp:
+//        sets/unsets thanked_at. Drafting a note never sets it —
+//        only this explicit toggle does.
 //
 // Subdomain → site-uuid resolution follows /api/song-requests.
 // ─────────────────────────────────────────────────────────────
@@ -47,6 +54,7 @@ interface PledgeRow {
   amount_cents: number | null;
   note: string | null;
   created_at: string;
+  thanked_at: string | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -56,32 +64,48 @@ export async function GET(req: NextRequest) {
     const subdomain = req.nextUrl.searchParams.get('subdomain')?.trim();
     if (!subdomain) return NextResponse.json({ error: 'subdomain required' }, { status: 400 });
     const supabase = sb();
-    if (!supabase) return NextResponse.json({ totalCents: 0, count: 0, recent: [] });
+    if (!supabase) return NextResponse.json({ totalCents: 0, count: 0, recent: [], items: [] });
     const { data: site } = await supabase
       .from('sites')
       .select('id')
       .eq('subdomain', subdomain)
       .maybeSingle();
     const siteUuid = (site as { id?: string } | null)?.id;
-    if (!siteUuid) return NextResponse.json({ totalCents: 0, count: 0, recent: [] });
+    if (!siteUuid) return NextResponse.json({ totalCents: 0, count: 0, recent: [], items: [] });
     const { data, error } = await supabase
       .from('gift_pledges')
-      .select('guest_name, amount_cents, created_at')
+      .select('item_id, guest_name, amount_cents, created_at')
       .eq('site_id', siteUuid)
       .order('created_at', { ascending: false })
       .limit(500);
     if (error) {
       console.warn('[gift-pledges] public GET error:', error.message);
-      return NextResponse.json({ totalCents: 0, count: 0, recent: [] });
+      return NextResponse.json({ totalCents: 0, count: 0, recent: [], items: [] });
     }
-    const rows = (data ?? []) as Array<Pick<PledgeRow, 'guest_name' | 'amount_cents' | 'created_at'>>;
-    const totalCents = rows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
+    const rows = (data ?? []) as Array<Pick<PledgeRow, 'item_id' | 'guest_name' | 'amount_cents' | 'created_at'>>;
+    /* Fund-level aggregate covers UNTIED pledges only — item-tied
+       chip-ins belong to their item's progress line, not the cash
+       fund's goal thread. */
+    const fundRows = rows.filter((r) => !r.item_id);
+    const totalCents = fundRows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
     /* First names only, newest 6 — the "recently woven in" strip. */
-    const recent = rows.slice(0, 6).map((r) => ({
+    const recent = fundRows.slice(0, 6).map((r) => ({
       firstName: (r.guest_name ?? '').trim().split(/\s+/)[0] || 'A guest',
       at: r.created_at,
     }));
-    return NextResponse.json({ totalCents, count: rows.length, recent });
+    /* Per-item chip-in aggregates — powers the group-gift progress
+       line on the item cards. Aggregates only, never individual
+       amounts. */
+    const byItem = new Map<string, { totalCents: number; count: number }>();
+    for (const r of rows) {
+      if (!r.item_id) continue;
+      const agg = byItem.get(r.item_id) ?? { totalCents: 0, count: 0 };
+      agg.totalCents += r.amount_cents ?? 0;
+      agg.count += 1;
+      byItem.set(r.item_id, agg);
+    }
+    const items = [...byItem.entries()].map(([itemId, agg]) => ({ itemId, ...agg }));
+    return NextResponse.json({ totalCents, count: fundRows.length, recent, items });
   }
 
   // ── Host branch — owner-gated ledger with amounts. ──────────
@@ -104,7 +128,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('gift_pledges')
-    .select('id, item_id, guest_name, amount_cents, note, created_at')
+    .select('id, item_id, guest_name, amount_cents, note, created_at, thanked_at')
     .eq('site_id', site.id)
     .order('created_at', { ascending: false })
     .limit(500);
@@ -131,9 +155,60 @@ export async function GET(req: NextRequest) {
       amountCents: r.amount_cents,
       note: r.note,
       createdAt: r.created_at,
+      thankedAt: r.thanked_at,
       itemName: r.item_id ? itemNames.get(r.item_id) ?? null : null,
     })),
   });
+}
+
+// ── PATCH — the thank-you ledger stamp (owner-gated). ─────────
+// { id, thanked: boolean } → sets/unsets thanked_at. Only this
+// explicit toggle writes the stamp — drafting a note never does.
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  let body: { id?: string; thanked?: boolean } = {};
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
+  }
+  const id = (body.id ?? '').trim();
+  if (!id || typeof body.thanked !== 'boolean') {
+    return NextResponse.json({ error: 'id and thanked are required' }, { status: 400 });
+  }
+
+  const supabase = sb();
+  if (!supabase) return NextResponse.json({ error: 'DB unavailable' }, { status: 503 });
+
+  const { data: pledge } = await supabase
+    .from('gift_pledges')
+    .select('site_id')
+    .eq('id', id)
+    .maybeSingle();
+  const siteId = (pledge as { site_id?: string } | null)?.site_id;
+  if (!siteId) return NextResponse.json({ error: 'Pledge not found' }, { status: 404 });
+
+  const { data: site } = await supabase
+    .from('sites')
+    .select('creator_email, site_config')
+    .eq('id', siteId)
+    .maybeSingle();
+  const siteRow = site as { creator_email?: string; site_config?: { creator_email?: string } } | null;
+  const ownerEmail = (siteRow?.creator_email ?? siteRow?.site_config?.creator_email ?? '').toLowerCase();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const thankedAt = body.thanked ? new Date().toISOString() : null;
+  const { error } = await supabase
+    .from('gift_pledges')
+    .update({ thanked_at: thankedAt })
+    .eq('id', id);
+  if (error) {
+    console.error('[gift-pledges] PATCH thanked failed:', error);
+    return NextResponse.json({ error: 'Could not update — try again.' }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, thankedAt });
 }
 
 // ── POST — public "add it to the thread" write. ───────────────

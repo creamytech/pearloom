@@ -35,7 +35,15 @@ interface PublicItem {
   quantityClaimed: number;
   purchased: boolean;
   claimedByFirstName: string | null;
+  /** Group gift — guests chip in what they like (honor-ledger
+   *  pledges with itemId) instead of reserving. Chip-ins never
+   *  mark the item spoken for. */
+  allowGroupGift?: boolean;
 }
+
+/** Per-item chip-in aggregate from the public pledge GET —
+ *  totals only, "as shared by guests". */
+interface ChipStat { totalCents: number; count: number }
 
 interface Props {
   /** The published slug — undefined on the editor canvas. */
@@ -60,7 +68,18 @@ const DEMO_ITEMS: PublicItem[] = [
     id: 'demo-3', name: 'Two nights in the hills', description: 'The first quiet weekend after.',
     price: 260, imageUrl: null, itemUrl: null, quantity: 1, quantityClaimed: 1, purchased: true, claimedByFirstName: 'June',
   },
+  {
+    id: 'demo-4', name: 'The long table', description: 'Every dinner party for the next decade starts here.',
+    price: 1200, imageUrl: null, itemUrl: null, quantity: 1, quantityClaimed: 0, purchased: false, claimedByFirstName: null,
+    allowGroupGift: true,
+  },
 ];
+
+/* Demo chip-in aggregate for the editor canvas ONLY — same
+   honesty gate as DEMO_ITEMS. */
+const DEMO_CHIP_STATS: Record<string, ChipStat> = {
+  'demo-4': { totalCents: 42000, count: 3 },
+};
 
 function formatPrice(n: number): string {
   return `$${n.toLocaleString('en-US', {
@@ -75,6 +94,10 @@ function storeNameFor(url: string): string {
 
 export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
   const [items, setItems] = useState<PublicItem[] | null>(editable ? DEMO_ITEMS : null);
+  /* Per-item chip-in aggregates — fetched only when a group-gift
+     item is actually listed, so plain registries pay no extra
+     request. */
+  const [chipStats, setChipStats] = useState<Record<string, ChipStat>>(editable ? DEMO_CHIP_STATS : {});
 
   const refresh = useCallback(async () => {
     if (!siteSlug || editable) return;
@@ -82,7 +105,19 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
       const r = await fetch(`/api/registry-items?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
       if (!r.ok) return;
       const d = (await r.json()) as { items?: PublicItem[] };
-      setItems(d.items ?? []);
+      const next = d.items ?? [];
+      setItems(next);
+      if (next.some((it) => it.allowGroupGift)) {
+        const pr = await fetch(`/api/gift-pledges?subdomain=${encodeURIComponent(siteSlug)}&public=1`, { cache: 'no-store' });
+        if (pr.ok) {
+          const pd = (await pr.json()) as { items?: Array<{ itemId: string; totalCents: number; count: number }> };
+          const rec: Record<string, ChipStat> = {};
+          for (const row of pd.items ?? []) {
+            rec[row.itemId] = { totalCents: row.totalCents, count: row.count };
+          }
+          setChipStats(rec);
+        }
+      }
     } catch { /* grid stays as-is */ }
   }, [siteSlug, editable]);
 
@@ -119,7 +154,14 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
         }}
       >
         {items.map((item) => (
-          <ItemCard key={item.id} item={item} preview={editable} onReserved={refresh} />
+          <ItemCard
+            key={item.id}
+            item={item}
+            preview={editable}
+            onReserved={refresh}
+            siteSlug={siteSlug}
+            chip={item.allowGroupGift ? chipStats[item.id] ?? { totalCents: 0, count: 0 } : undefined}
+          />
         ))}
       </div>
     </div>
@@ -128,7 +170,14 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
 
 type ClaimStage = 'idle' | 'form' | 'sending' | 'done';
 
-function ItemCard({ item, preview, onReserved }: { item: PublicItem; preview: boolean; onReserved: () => Promise<void> | void }) {
+function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
+  item: PublicItem;
+  preview: boolean;
+  onReserved: () => Promise<void> | void;
+  siteSlug?: string;
+  /** Present only for group-gift items — the chip-in aggregate. */
+  chip?: ChipStat;
+}) {
   const [stage, setStage] = useState<ClaimStage>('idle');
   const [name, setName] = useState('');
   const [note, setNote] = useState('');
@@ -136,8 +185,11 @@ function ItemCard({ item, preview, onReserved }: { item: PublicItem; preview: bo
   const [doneName, setDoneName] = useState<string | null>(null);
   const [buyUrl, setBuyUrl] = useState<string | null>(null);
 
+  /* Group gifts never become "spoken for" — guests chip in what
+     they like until (and past) the price; the card stays warm. */
+  const groupGift = item.allowGroupGift === true;
   const remaining = Math.max(0, item.quantity - item.quantityClaimed);
-  const spokenFor = stage !== 'done' && (item.purchased || remaining === 0);
+  const spokenFor = !groupGift && stage !== 'done' && (item.purchased || remaining === 0);
 
   async function reserve() {
     if (stage === 'sending' || !name.trim()) return;
@@ -224,7 +276,7 @@ function ItemCard({ item, preview, onReserved }: { item: PublicItem; preview: bo
         )}
 
         {/* Remaining-quantity chip — multi-unit items only. */}
-        {!spokenFor && stage !== 'done' && item.quantity > 1 && (
+        {!groupGift && !spokenFor && stage !== 'done' && item.quantity > 1 && (
           <span
             style={{
               alignSelf: 'flex-start',
@@ -239,7 +291,15 @@ function ItemCard({ item, preview, onReserved }: { item: PublicItem; preview: bo
         )}
 
         {/* ── Claim states ─────────────────────────────────── */}
-        {spokenFor || stage === 'done' ? (
+        {groupGift ? (
+          <ChipInBlock
+            item={item}
+            chip={chip ?? { totalCents: 0, count: 0 }}
+            siteSlug={siteSlug}
+            preview={preview}
+            onWoven={onReserved}
+          />
+        ) : spokenFor || stage === 'done' ? (
           <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
               Spoken for{claimedName ? <> — basted in by {claimedName}</> : null}
@@ -333,6 +393,207 @@ function ItemCard({ item, preview, onReserved }: { item: PublicItem; preview: bo
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ─── Chip in — the group-gift flow ─────────────────────────────
+   Guests give what they like toward the big item (honor-ledger
+   pledges with itemId — Pearloom never processes the money). A
+   woven progress line shows the chipped-in total against the
+   price, "as shared by guests"; the item never becomes spoken
+   for. When the total reaches the price the line reads "Fully
+   woven — N gave together" and the form quiets to a note-only
+   affordance. */
+
+type ChipStage = 'idle' | 'form' | 'sending' | 'done';
+
+function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
+  item: PublicItem;
+  chip: ChipStat;
+  siteSlug?: string;
+  preview: boolean;
+  onWoven: () => Promise<void> | void;
+}) {
+  const [stage, setStage] = useState<ChipStage>('idle');
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const priceCents = typeof item.price === 'number' && item.price > 0 ? Math.round(item.price * 100) : null;
+  const fullyWoven = priceCents !== null && chip.totalCents >= priceCents;
+  const pct = priceCents ? Math.max(0, Math.min(100, Math.round((chip.totalCents / priceCents) * 100))) : 0;
+
+  async function weaveIn() {
+    if (stage === 'sending' || !name.trim() || !siteSlug) return;
+    setStage('sending');
+    setError(null);
+    /* Optional amount — dollars in, integer cents out. Malformed
+       input just drops the number; the thread matters more. */
+    const dollars = parseFloat(amount.replace(/[$,\s]/g, ''));
+    const amountCents = !fullyWoven && Number.isFinite(dollars) && dollars > 0
+      ? Math.round(dollars * 100)
+      : undefined;
+    try {
+      const r = await fetch('/api/gift-pledges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subdomain: siteSlug,
+          guestName: name.trim(),
+          amountCents,
+          note: note.trim() || undefined,
+          itemId: item.id,
+        }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Could not save — try again.');
+      setStage('done');
+      void onWoven();
+    } catch (e) {
+      setStage('form');
+      setError(e instanceof Error ? e.message : 'Could not save — try again.');
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 7 }}>
+      {/* The woven progress line — totals only, guest-shared. */}
+      {priceCents !== null && (
+        <div>
+          <div style={{ height: 5, borderRadius: 999, background: 'var(--t-section)', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${pct}%`, height: '100%', borderRadius: 999,
+                background: 'var(--t-accent)', transition: 'width 600ms ease',
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--t-ink-soft)', marginTop: 5, lineHeight: 1.45 }}>
+            {fullyWoven
+              ? <>Fully woven — {chip.count} gave together</>
+              : chip.totalCents > 0
+                ? <>{formatPrice(chip.totalCents / 100)} of {formatPrice(priceCents / 100)} — <i>as shared by guests</i></>
+                : <>Chip in toward {formatPrice(priceCents / 100)} — give what you like</>}
+          </div>
+        </div>
+      )}
+      {priceCents === null && chip.count > 0 && (
+        <div style={{ fontSize: 11.5, color: 'var(--t-ink-soft)', lineHeight: 1.45 }}>
+          {chip.count} {chip.count === 1 ? 'guest has' : 'guests have'} chipped in
+        </div>
+      )}
+
+      {stage === 'done' ? (
+        <div style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
+          Woven in — thank you.
+        </div>
+      ) : stage === 'idle' ? (
+        fullyWoven ? (
+          /* The gift is covered — quiet the form to a note-only
+             affordance so latecomers can still add their name. */
+          <button
+            type="button"
+            onClick={() => { if (!preview) setStage('form'); }}
+            disabled={preview}
+            title={preview ? 'Live on your site' : undefined}
+            style={{
+              alignSelf: 'flex-start', padding: 0, border: 'none', background: 'transparent',
+              fontSize: 12, fontWeight: 700, color: 'var(--t-accent-ink)',
+              cursor: preview ? 'default' : 'pointer', fontFamily: 'inherit',
+              opacity: preview ? 0.7 : 1,
+            }}
+          >
+            Add a note anyway →
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { if (!preview) setStage('form'); }}
+            disabled={preview}
+            title={preview ? 'Live on your site' : undefined}
+            style={{
+              alignSelf: 'flex-start',
+              padding: '8px 16px', borderRadius: 999,
+              background: 'var(--t-rsvp, var(--t-accent))',
+              color: 'var(--t-rsvp-ink, var(--t-paper))',
+              border: 'none', fontSize: 12.5, fontWeight: 700,
+              cursor: preview ? 'default' : 'pointer',
+              opacity: preview ? 0.7 : 1,
+              fontFamily: 'inherit',
+            }}
+          >
+            {preview ? 'Live on your site' : 'Chip in'}
+          </button>
+        )
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {!fullyWoven && (
+            <input
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Amount (optional) — e.g. 50"
+              maxLength={12}
+              disabled={stage === 'sending'}
+              style={cardInput}
+            />
+          )}
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            maxLength={80}
+            disabled={stage === 'sending'}
+            style={cardInput}
+          />
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="A note for the hosts (optional)"
+            rows={2}
+            maxLength={280}
+            disabled={stage === 'sending'}
+            style={{ ...cardInput, resize: 'vertical', lineHeight: 1.45 }}
+          />
+          {error && <div style={{ fontSize: 11.5, color: 'var(--t-accent)' }}>{error}</div>}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={weaveIn}
+              disabled={stage === 'sending' || !name.trim()}
+              style={{
+                padding: '8px 16px', borderRadius: 999,
+                background: 'var(--t-rsvp, var(--t-accent))',
+                color: 'var(--t-rsvp-ink, var(--t-paper))',
+                border: 'none', fontSize: 12.5, fontWeight: 700,
+                cursor: stage === 'sending' || !name.trim() ? 'default' : 'pointer',
+                opacity: stage === 'sending' || !name.trim() ? 0.55 : 1,
+                fontFamily: 'inherit',
+              }}
+            >
+              {stage === 'sending' ? 'Threading…' : fullyWoven ? 'Add the note' : 'Weave it in'}
+            </button>
+            {stage !== 'sending' && (
+              <button
+                type="button"
+                onClick={() => { setStage('idle'); setError(null); }}
+                style={{
+                  padding: '8px 12px', borderRadius: 999,
+                  background: 'transparent', color: 'var(--t-ink-soft)',
+                  border: '1px solid var(--t-line)', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Not yet
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -24,9 +24,12 @@ interface SiteFetchResult {
 interface Props {
   /** Optional URL ?site= override — wins over the sidebar pick. */
   initialSlug?: string | null;
+  /** ?thankTo=&gift= deep link — opens the thank-you card
+   *  pre-addressed to the giver (registry ledger hand-off). */
+  initialThanks?: { to: string; gift?: string } | null;
 }
 
-export function StudioLoader({ initialSlug }: Props) {
+export function StudioLoader({ initialSlug, initialThanks }: Props) {
   const { site, loading: sitesLoading } = useSelectedSite();
   const slug = initialSlug ?? site?.domain ?? null;
   const [data, setData] = useState<SiteFetchResult | null>(null);
@@ -147,7 +150,7 @@ export function StudioLoader({ initialSlug }: Props) {
         </DashLayout>
       }
     >
-      <StudioApp siteSlug={slug!} manifest={data.manifest} names={data.names} />
+      <StudioApp siteSlug={slug!} manifest={data.manifest} names={data.names} initialThanks={initialThanks} />
     </ErrorBoundary>
   );
 }

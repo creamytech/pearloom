@@ -49,9 +49,14 @@ interface Props {
   siteSlug: string;
   manifest: StoryManifest;
   names: [string, string];
+  /** ?thankTo=&gift= deep link (registry thank-you ledger) —
+   *  opens straight onto the thank-you card, pre-addressed to
+   *  the giver. Drafting here never marks the gift thanked;
+   *  that stamp stays an explicit toggle back on the ledger. */
+  initialThanks?: { to: string; gift?: string } | null;
 }
 
-export function StudioApp({ siteSlug, manifest, names }: Props) {
+export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   /* Solo honoree (memorial, birthday, shower, …) — one name on
      every card, no '&', no placeholder partner. Same registry the
      published site + suite read. */
@@ -132,6 +137,29 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   const { state, setField, setMany, savedAt, saving, saveError, retrySave } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
+
+  /* ── ?thankTo= deep link — one-shot prefill. Switches to the
+     thank-you card and pre-addresses it via the same per-type
+     copy-override slice host edits use. Render-time adjustment
+     (the React-docs "derive from previous render" pattern) so
+     the first paint already shows the addressed card. */
+  const [thanksApplied, setThanksApplied] = useState(!initialThanks);
+  if (!thanksApplied && initialThanks) {
+    setThanksApplied(true);
+    const prevSlice = state.copyOverrides.thanks ?? {};
+    setMany({
+      type: 'thanks',
+      view: 'front',
+      copyOverrides: {
+        ...state.copyOverrides,
+        thanks: {
+          ...prevSlice,
+          eyebrow: `Dear ${initialThanks.to}`,
+          ...(initialThanks.gift ? { line2: `thank you for ${initialThanks.gift}` } : {}),
+        },
+      },
+    });
+  }
   // The v2 "Design the invitation" welcome (studio.png). Shown once
   // per site on first open; picking a stationery type sets it and
   // opens the editor. "Entered before" is judged by the persisted
@@ -140,6 +168,8 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // browser must not land on first-run and have the forced type
   // pick overwrite their saved stationery type via autosave.
   const [showLanding, setShowLanding] = useState<boolean>(() => {
+    // A thank-you deep link IS the type pick — skip the landing.
+    if (initialThanks) return false;
     const persisted = (manifest as unknown as { studio?: Record<string, unknown> }).studio;
     if (persisted && Object.keys(persisted).length > 0) return false;
     try { return !localStorage.getItem(`pl-studio-entered-${siteSlug}`); } catch { return false; }

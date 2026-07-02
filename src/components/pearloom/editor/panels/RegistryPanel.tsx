@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FToggle, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 import { PhotoUploadSlot } from './_photo-upload';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
@@ -435,6 +435,7 @@ interface OwnerItem {
   quantity: number;
   quantityClaimed: number;
   claimedByName?: string | null;
+  allowGroupGift?: boolean;
 }
 
 interface ItemDraft {
@@ -444,9 +445,10 @@ interface ItemDraft {
   imageUrl: string;
   itemUrl: string;
   description: string;
+  allowGroupGift: boolean;
 }
 
-const EMPTY_DRAFT: ItemDraft = { name: '', price: '', quantity: '1', imageUrl: '', itemUrl: '', description: '' };
+const EMPTY_DRAFT: ItemDraft = { name: '', price: '', quantity: '1', imageUrl: '', itemUrl: '', description: '', allowGroupGift: false };
 
 function draftFrom(item: OwnerItem): ItemDraft {
   return {
@@ -456,6 +458,7 @@ function draftFrom(item: OwnerItem): ItemDraft {
     imageUrl: item.imageUrl ?? '',
     itemUrl: item.itemUrl ?? '',
     description: item.description ?? '',
+    allowGroupGift: item.allowGroupGift === true,
   };
 }
 
@@ -521,6 +524,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
         imageUrl: d.imageUrl ?? '',
         itemUrl: url,
         description: '',
+        allowGroupGift: false,
       });
       setOpen('new');
       setError(null);
@@ -554,6 +558,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
       quantity: qty,
       imageUrl: draft.imageUrl.trim() || null,
       itemUrl: draft.itemUrl.trim() || null,
+      allowGroupGift: draft.allowGroupGift,
     };
     try {
       if (open === 'new') {
@@ -573,6 +578,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
             ...it,
             name: body.name, description: body.description, price,
             quantity: qty, imageUrl: body.imageUrl, itemUrl: body.itemUrl,
+            allowGroupGift: body.allowGroupGift,
           }
           : it));
         const r = await fetch('/api/registry-items', {
@@ -672,6 +678,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
                     <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>
                       {typeof item.price === 'number' ? `$${item.price}` : '—'}
                       {' · '}{item.quantityClaimed} of {item.quantity} spoken for
+                      {item.allowGroupGift ? ' · chip in' : ''}
                       {item.itemUrl ? <> · <Icon name="link" size={9} color="var(--ink-muted)" /> linked</> : null}
                     </div>
                     {item.claimedByName && item.quantityClaimed > 0 && (
@@ -738,6 +745,12 @@ function ItemFields({
       </div>
       <FInput value={draft.itemUrl} onChange={(v) => setDraft({ ...draft, itemUrl: v })} type="url" icon="link" placeholder="Product link (optional — the 'buy it' handoff)" />
       <FInput value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} placeholder="A quiet line under it (optional)" />
+      <FToggle
+        label="Let guests chip in together"
+        sub="For the big one — several guests give what they like toward it."
+        on={draft.allowGroupGift}
+        set={(v) => setDraft({ ...draft, allowGroupGift: v })}
+      />
       <PhotoUploadSlot
         url={draft.imageUrl}
         onChange={(next) => setDraft({ ...draft, imageUrl: next })}

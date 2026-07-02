@@ -12,6 +12,12 @@
 //   - Data hook that hits /api/registry-link-claims?host=1
 //   - Optimistic revoke with rollback
 //   - Per-claim "Draft thank-you" affordance via /api/ai-thankyou
+//     + an "Open in Studio" deep link that pre-addresses the
+//     Studio thank-you card (?thankTo=&gift=)
+//   - The thank-you ledger: every kind of row gets a "Mark
+//     thanked" toggle that stamps thanked_at through the row's
+//     own owner-gated PATCH. Drafting ≠ thanked — only the
+//     explicit toggle writes the stamp.
 //
 // Returns null when there are no claims so empty registries
 // don't pollute the host's surface with empty chrome.
@@ -40,6 +46,9 @@ export interface ClaimRow {
   /** Pledge rows only — the guest's OWN claimed amount, in cents.
    *  Host-visible here; the public site only ever sees aggregates. */
   amountCents?: number | null;
+  /** The thank-you ledger stamp — when the host explicitly marked
+   *  this gift thanked. null/undefined = still to thank. */
+  thankedAt?: string | null;
 }
 
 export interface RegistryEntryLite {
@@ -69,6 +78,16 @@ interface Props {
    *  Sorted together with the link claims by created_at. These
    *  rows have no revoke (hosts edit items in the panel instead). */
   extraClaims?: ClaimRow[];
+  /** Fires when the host toggles a row's thanked stamp, keyed
+   *  `${kind}-${id}` — lets a parent keep a "Still to thank"
+   *  stat live without refetching three ledgers. */
+  onThankedChange?: (key: string, thankedAt: string | null) => void;
+}
+
+/** The host GET returns raw DB rows — lift snake_case thanked_at
+ *  onto the camelCase field the feed reads. */
+function normalizeLinkClaims(claims: Array<ClaimRow & { thanked_at?: string | null }>): ClaimRow[] {
+  return claims.map((c) => ({ ...c, thankedAt: c.thankedAt ?? c.thanked_at ?? null }));
 }
 
 export function useRegistryClaims(subdomain: string | undefined) {
@@ -79,7 +98,7 @@ export function useRegistryClaims(subdomain: string | undefined) {
     return fetch(`/api/registry-link-claims?siteId=${encodeURIComponent(subdomain)}&host=1`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { claims?: ClaimRow[] } | null) => {
-        if (data?.claims) setRows(data.claims);
+        if (data?.claims) setRows(normalizeLinkClaims(data.claims));
       })
       .catch(() => { /* silent */ });
   }, [subdomain]);
@@ -91,7 +110,7 @@ export function useRegistryClaims(subdomain: string | undefined) {
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { claims?: ClaimRow[] } | null) => {
         if (cancelled || !data?.claims) return;
-        setRows(data.claims);
+        setRows(normalizeLinkClaims(data.claims));
       })
       .catch(() => { /* silent */ });
     return () => { cancelled = true; };
@@ -112,7 +131,7 @@ export function useRegistryClaims(subdomain: string | undefined) {
   return { rows, refetch, revoke };
 }
 
-export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, extraClaims }: Props) {
+export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, extraClaims, onThankedChange }: Props) {
   const { rows, revoke } = useRegistryClaims(subdomain);
 
   function labelFor(claim: ClaimRow): string {
@@ -123,10 +142,16 @@ export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, e
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
   }
 
-  /* One ledger — link claims + native-item reservations/purchases,
-     newest first. */
+  /* One ledger — link claims + native-item reservations/purchases
+     + pledges. Still-to-thank rows lead (newest first); thanked
+     rows sink below them so the feed reads as a to-do list. */
   const merged = [...(rows ?? []), ...(extraClaims ?? [])]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => {
+      const at = a.thankedAt ? 1 : 0;
+      const bt = b.thankedAt ? 1 : 0;
+      if (at !== bt) return at - bt;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
   if (merged.length === 0) return null;
   return (
@@ -137,6 +162,8 @@ export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, e
           claim={c}
           manifest={manifest}
           entryLabel={labelFor(c) || 'a gift'}
+          siteSlug={subdomain}
+          onThankedChange={onThankedChange}
           /* Revoke applies to link claims only — item reservations
              are edited from the registry panel; pledges are the
              guest's own honor-ledger entries. */
@@ -155,22 +182,87 @@ export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, e
 // One claim row with an optional "Draft thank-you" affordance.
 // Click → calls /api/ai-thankyou with the claim's gift + guest +
 // couple context. Result expands inline with a Copy button.
+/** Which owner-gated PATCH stamps thanked_at for this row's kind. */
+function thankEndpointFor(kind: ClaimRow['kind']): string {
+  if (kind === 'pledge') return '/api/gift-pledges';
+  if (kind === 'reserved' || kind === 'paid') return '/api/registry-items/claims';
+  return '/api/registry-link-claims';
+}
+
 export function ClaimCard({
   claim,
   manifest,
   entryLabel,
   onRevoke,
+  siteSlug,
+  onThankedChange,
 }: {
   claim: ClaimRow;
   manifest: StoryManifest;
   entryLabel: string;
   /** Omit to hide the revoke affordance (native-item rows). */
   onRevoke?: () => void;
+  /** Enables the "Open in Studio" deep link on the thank-you flow. */
+  siteSlug?: string;
+  /** See RegistryClaimsFeed Props. */
+  onThankedChange?: (key: string, thankedAt: string | null) => void;
 }) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const rowKey = `${claim.kind ?? 'link'}-${claim.id}`;
+  const nudgeKey = `pl-thank-nudge:${rowKey}`;
+  /* The thank-you stamp — optimistic local copy of thanked_at. */
+  const [thankedAt, setThankedAt] = useState<string | null>(claim.thankedAt ?? null);
+  const [thankBusy, setThankBusy] = useState(false);
+  /* Set when the host left for the Studio from this row — on
+     return, the Mark-thanked toggle steps forward so drafting
+     doesn't quietly pass for thanking. */
+  const [studioNudge, setStudioNudge] = useState<boolean>(() => {
+    try { return typeof window !== 'undefined' && sessionStorage.getItem(nudgeKey) === '1'; } catch { return false; }
+  });
+
+  async function toggleThanked() {
+    if (thankBusy) return;
+    const prev = thankedAt;
+    const next = prev ? null : new Date().toISOString();
+    // Optimistic — stamp locally, hit the network, roll back on failure.
+    setThankedAt(next);
+    onThankedChange?.(rowKey, next);
+    if (next) {
+      setStudioNudge(false);
+      try { sessionStorage.removeItem(nudgeKey); } catch { /* private mode */ }
+    }
+    setThankBusy(true);
+    try {
+      const r = await fetch(thankEndpointFor(claim.kind ?? 'link'), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: claim.id, thanked: !!next }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; thankedAt?: string | null };
+      if (!r.ok || !d.ok) throw new Error('patch failed');
+      if (d.thankedAt !== undefined) {
+        setThankedAt(d.thankedAt);
+        onThankedChange?.(rowKey, d.thankedAt);
+      }
+    } catch {
+      setThankedAt(prev);
+      onThankedChange?.(rowKey, prev);
+    } finally {
+      setThankBusy(false);
+    }
+  }
+
+  const guestDisplayName = claim.claimer_name || claim.claimer_email.split('@')[0] || 'A guest';
+  /* Deep link into the Studio's thank-you card, pre-addressed.
+     Drafting there does NOT mark the row thanked — only the
+     toggle does. */
+  const studioHref = siteSlug
+    ? `/dashboard/invite?site=${encodeURIComponent(siteSlug)}&thankTo=${encodeURIComponent(guestDisplayName)}&gift=${encodeURIComponent(entryLabel)}`
+    : null;
 
   async function draft() {
     if (busy) return;
@@ -224,6 +316,10 @@ export function ClaimCard({
         flexDirection: 'column',
         gap: 4,
         fontFamily: 'var(--font-ui)',
+        /* Thanked rows sink — done items read quieter than the
+           still-to-thank ones above them. */
+        opacity: thankedAt ? 0.62 : 1,
+        transition: 'opacity 200ms ease',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
@@ -278,7 +374,7 @@ export function ClaimCard({
         </div>
       )}
       <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-        {!note && !busy && (
+        {!thankedAt && !note && !busy && (
           <button
             type="button"
             onClick={draft}
@@ -298,6 +394,31 @@ export function ClaimCard({
             ✦ Draft thank-you
           </button>
         )}
+        {!thankedAt && !busy && studioHref && (
+          /* Pre-addressed Studio card — leaves this page. Set the
+             session flag so the row's thanked toggle steps
+             forward when the host comes back. */
+          <a
+            href={studioHref}
+            onClick={() => {
+              try { sessionStorage.setItem(nudgeKey, '1'); } catch { /* private mode */ }
+            }}
+            style={{
+              padding: '5px 12px',
+              borderRadius: 999,
+              border: '1px solid var(--line)',
+              background: 'transparent',
+              color: 'var(--ink-soft)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Open in Studio →
+          </a>
+        )}
         {busy && (
           <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
             Pear is writing…
@@ -306,6 +427,68 @@ export function ClaimCard({
         {error && (
           <span style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</span>
         )}
+        {/* ── The thank-you ledger toggle. Drafting ≠ thanked —
+            only this explicit stamp sets thanked_at. */}
+        <span style={{ marginLeft: 'auto' }}>
+          {thankedAt ? (
+            <button
+              type="button"
+              onClick={toggleThanked}
+              disabled={thankBusy}
+              title="Tap to unmark"
+              style={{
+                padding: '5px 10px',
+                borderRadius: 999,
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--sage-deep, #3D4A1F)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                cursor: thankBusy ? 'default' : 'pointer',
+                fontFamily: 'var(--font-ui)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Thanked ✓ {formatThankedDate(thankedAt)}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleThanked}
+              disabled={thankBusy}
+              title="Stamp this gift as thanked — your note is out the door."
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 12px',
+                borderRadius: 999,
+                border: studioNudge
+                  ? '1px solid var(--sage-deep, #3D4A1F)'
+                  : '1px solid var(--line-soft)',
+                background: studioNudge ? 'var(--sage-2, rgba(61,74,31,0.08))' : 'transparent',
+                color: studioNudge ? 'var(--sage-deep, #3D4A1F)' : 'var(--ink-muted)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                cursor: thankBusy ? 'default' : 'pointer',
+                fontFamily: 'var(--font-ui)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {/* The pearl-check — a gold pearl dot ahead of the verb. */}
+              <span
+                aria-hidden
+                style={{
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: 'var(--gold, #D4A95D)', flexShrink: 0,
+                }}
+              />
+              {studioNudge ? 'Sent it? Mark thanked' : 'Mark thanked'}
+            </button>
+          )}
+        </span>
       </div>
       {note && (
         <div
@@ -365,6 +548,13 @@ export function ClaimCard({
       )}
     </div>
   );
+}
+
+/** "Jun 12" — the thanked stamp's short date. */
+function formatThankedDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 /** Whole dollars stay whole ("$1,250"); fractional cents keep two

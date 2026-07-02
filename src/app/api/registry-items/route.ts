@@ -65,6 +65,10 @@ interface ItemRow {
   payment_status: string | null;
   sort_order: number | null;
   notes: string | null;
+  /** Group gifting — guests chip in what they like via
+   *  gift_pledges (item_id); chip-ins never mark the item
+   *  spoken for. Column may be absent pre-migration. */
+  allow_group_gift?: boolean | null;
 }
 
 function publicView(row: ItemRow) {
@@ -81,6 +85,7 @@ function publicView(row: ItemRow) {
     quantityClaimed: row.quantity_claimed ?? 0,
     purchased: row.purchased || false,
     sortOrder: row.sort_order ?? 0,
+    allowGroupGift: row.allow_group_gift || false,
     /* First name only — powers "Spoken for — basted in by June" on
        the published card. Full names / emails stay owner-only. */
     claimedByFirstName:
@@ -165,7 +170,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       siteId, name, description, price, imageUrl, itemUrl,
-      category, priority, quantity, sortOrder, notes,
+      category, priority, quantity, sortOrder, notes, allowGroupGift,
     } = body || {};
 
     if (!siteId || !name) {
@@ -200,6 +205,7 @@ export async function POST(req: NextRequest) {
         sort_order: typeof sortOrder === 'number' ? sortOrder : 0,
         notes: notes || null,
         payment_status: 'unpaid',
+        allow_group_gift: allowGroupGift === true,
       })
       .select()
       .single();
@@ -242,6 +248,7 @@ export async function PATCH(req: NextRequest) {
     if (Number.isInteger(rest.quantity) && rest.quantity > 0) updates.quantity = rest.quantity;
     if (typeof rest.sortOrder === 'number') updates.sort_order = rest.sortOrder;
     if (rest.notes !== undefined) updates.notes = rest.notes || null;
+    if (typeof rest.allowGroupGift === 'boolean') updates.allow_group_gift = rest.allowGroupGift;
 
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: 'Storage not configured' }, { status: 503 });
