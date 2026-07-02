@@ -1,14 +1,16 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// The Guest Bridge — host-side command center for all the
-// guest ⇄ couple bridge features that ship in this session:
+// Guest threads — host-side command center for the guest ⇄ host
+// bridge features:
 //   • Memory Weave (AI-generate per-guest prompts, read responses)
 //   • Live Whispers (slow-drip private notes feed)
 //   • Anniversary Time-Capsule (sealed notes + reveal log)
 //   • Seat-mate Intros (AI-generate, preview)
-//   • Collaborative Playlist (song queue, accept/hide)
 //   • Pear SMS drafts (copyable per-guest SMS bodies)
+// Song-request triage lives in /dashboard/music — this page only
+// links there. Wedding-shaped tabs (capsule, seat-mates) hide for
+// solemn voices and for bachelor/bachelorette trips.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from 'react';
@@ -17,85 +19,116 @@ import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { AIHint, AISuggestButton, useAICall } from '../editor/ai';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { getEventType } from '@/lib/event-os/event-types';
 import { todayLocal } from '@/lib/date-utils';
 
-type Tab = 'memory' | 'whispers' | 'capsule' | 'seats' | 'songs' | 'sms';
+type Tab = 'memory' | 'whispers' | 'capsule' | 'seats' | 'sms';
 
 export function BridgePage() {
   const { site } = useSelectedSite();
   const [tab, setTab] = useState<Tab>('memory');
   const siteId = site?.id ?? null;
 
+  // Occasion gating — anniversary capsules and seat-mate intros are
+  // wedding-shaped; they don't fit a memorial or a weekend trip.
+  // Day-before SMS drafts stay off for solemn voices too.
+  const occasion = site?.occasion ?? null;
+  const solemn = getEventType(occasion)?.voice === 'solemn';
+  const trip = occasion === 'bachelor-party' || occasion === 'bachelorette-party';
+
   const tabs: Array<{ id: Tab; label: string; icon: string }> = [
     { id: 'memory',   label: 'Memory Weave',  icon: 'sparkles' },
     { id: 'whispers', label: 'Whispers',      icon: 'mail' },
-    { id: 'capsule',  label: 'Time-capsule',  icon: 'clock' },
-    { id: 'seats',    label: 'Seat-mates',    icon: 'users' },
-    { id: 'songs',    label: 'Playlist',      icon: 'music' },
-    { id: 'sms',      label: 'Pear SMS',      icon: 'send' },
+    ...(!solemn && !trip
+      ? [
+          { id: 'capsule' as const, label: 'Time-capsule', icon: 'clock' },
+          { id: 'seats' as const,   label: 'Seat-mates',   icon: 'users' },
+        ]
+      : []),
+    ...(!solemn ? [{ id: 'sms' as const, label: 'Pear SMS', icon: 'send' }] : []),
   ];
+  // If a site switch hides the tab that was open, fall back home.
+  const activeTab: Tab = tabs.some((t) => t.id === tab) ? tab : 'memory';
+
+  const subtitle = solemn
+    ? 'Memory prompts and whispers — the words guests are sharing, gathered here.'
+    : 'Memory prompts, whispers, time-capsule notes, and seat-mate intros — every thread between you and your guests.';
 
   return (
     <DashLayout
       active="bridge"
-      title="The bridge"
-      subtitle="Every thread Pear is weaving between you and your guests — memories, whispers, songs, and time capsules."
+      title="Guest threads"
+      subtitle={subtitle}
     >
       <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'flex',
-            gap: 6,
-            flexWrap: 'wrap',
-            padding: 4,
-            background: 'var(--cream-2)',
-            borderRadius: 12,
-            marginBottom: 22,
-            width: 'fit-content',
-          }}
-        >
-          {tabs.map((t) => {
-            const on = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  background: on ? 'var(--ink)' : 'transparent',
-                  color: on ? 'var(--cream)' : 'var(--ink)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  border: 0,
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-ui)',
-                }}
-              >
-                <Icon name={t.icon} size={12} /> {t.label}
-              </button>
-            );
-          })}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 22 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              flexWrap: 'wrap',
+              padding: 4,
+              background: 'var(--cream-2)',
+              borderRadius: 12,
+              width: 'fit-content',
+            }}
+          >
+            {tabs.map((t) => {
+              const on = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 8,
+                    background: on ? 'var(--ink)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    border: 0,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  <Icon name={t.icon} size={12} /> {t.label}
+                </button>
+              );
+            })}
+          </div>
+          {!solemn && (
+            <Link href="/dashboard/music" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              Song requests live in Music →
+            </Link>
+          )}
         </div>
 
         {!siteId ? (
           <EmptyPicker />
         ) : (
           <>
-            {tab === 'memory' && <MemoryWeavePanel siteId={siteId} />}
-            {tab === 'whispers' && <WhispersPanel siteId={siteId} />}
-            {tab === 'capsule' && <CapsulePanel siteId={siteId} />}
-            {tab === 'seats' && <SeatIntrosPanel siteId={siteId} />}
-            {tab === 'songs' && <SongsPanel siteId={siteId} />}
-            {tab === 'sms' && <SmsPanel siteId={siteId} />}
+            {activeTab === 'memory' && <MemoryWeavePanel siteId={siteId} />}
+            {activeTab === 'whispers' && <WhispersPanel siteId={siteId} />}
+            {activeTab === 'capsule' && <CapsulePanel siteId={siteId} />}
+            {activeTab === 'seats' && <SeatIntrosPanel siteId={siteId} />}
+            {activeTab === 'sms' && <SmsPanel siteId={siteId} />}
           </>
         )}
       </div>
     </DashLayout>
+  );
+}
+
+/** Standard in-panel loading treatment — never a blank pane. */
+function PanelThreading() {
+  return (
+    <div style={{ padding: '26px 8px', textAlign: 'center', fontSize: 13, color: 'var(--ink-muted)' }}>
+      Threading…
+    </div>
   );
 }
 
@@ -232,7 +265,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
         )}
       </div>
 
-      {loading ? null : prompts.length === 0 ? (
+      {loading ? <PanelThreading /> : prompts.length === 0 ? (
         <div style={{ marginTop: 22, fontSize: 13, color: 'var(--ink-soft)' }}>
           Nothing yet — click above to draft prompts for every guest on this site.
         </div>
@@ -301,7 +334,7 @@ function WhispersPanel({ siteId }: { siteId: string }) {
         title="Whispers"
         hint="Guests leave private notes from their Passport page. Pear delivers them over the next two weeks — a slow drip instead of a firehose."
       />
-      {loading ? null : items.length === 0 ? (
+      {loading ? <PanelThreading /> : items.length === 0 ? (
         <div style={{ padding: 22, background: 'var(--card)', border: '1px dashed var(--line)', borderRadius: 14, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>
           No whispers delivered yet. They'll appear here as Pear releases each one.
         </div>
@@ -370,7 +403,7 @@ function CapsulePanel({ siteId }: { siteId: string }) {
         title="Anniversary time-capsule"
         hint="Sealed notes from guests, opened on the years they chose. Pear pings everyone on reveal day."
       />
-      {loading ? null : (
+      {loading ? <PanelThreading /> : (
         <div style={{ display: 'grid', gap: 18 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)', textTransform: 'uppercase', marginBottom: 10 }}>
@@ -468,7 +501,7 @@ function SeatIntrosPanel({ siteId }: { siteId: string }) {
         error={error ?? undefined}
       />
 
-      {loading ? null : items.length === 0 ? null : (
+      {loading ? <PanelThreading /> : items.length === 0 ? null : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 12, marginTop: 22 }}>
           {items.map((s) => (
             <div key={s.guest_id} style={{ padding: 16, background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 14 }}>
@@ -476,138 +509,6 @@ function SeatIntrosPanel({ siteId }: { siteId: string }) {
                 {s.table_label ?? 'Table'}
               </div>
               <div style={{ fontSize: 13.5, lineHeight: 1.55, color: 'var(--ink)' }}>{s.intro}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Playlist queue ──
-function SongsPanel({ siteId }: { siteId: string }) {
-  const [items, setItems] = useState<Array<{ id: string; guest_name: string; song_title: string; artist?: string | null; spotify_url?: string | null; note?: string | null; state: string }>>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    const r = await fetch(`/api/song-requests?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' });
-    if (!r.ok) return;
-    const d = await r.json();
-    setItems(d.songs ?? []);
-    setLoading(false);
-  }, [siteId]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
-  }, [load]);
-
-  async function patch(id: string, state: string) {
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, state } : x)));
-    try {
-      await fetch('/api/song-requests', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, state }),
-      });
-    } catch {}
-  }
-
-  const queued = items.filter((i) => i.state === 'queued');
-  const accepted = items.filter((i) => i.state === 'accepted');
-  const [copied, setCopied] = useState(false);
-
-  function exportList() {
-    const lines = accepted.map((s) => `${s.song_title}${s.artist ? ` — ${s.artist}` : ''}`);
-    const text = lines.join('\n');
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1400);
-      }).catch(() => {});
-    }
-  }
-
-  return (
-    <div>
-      <SectionHeader
-        title="Collaborative playlist"
-        hint="Guests add songs from their Passport. Accept what fits; copy the final list into your Spotify."
-      />
-      {accepted.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <button type="button" className="btn btn-outline btn-sm" onClick={exportList}>
-            <Icon name={copied ? 'check' : 'copy'} size={12} /> {copied ? `${accepted.length} songs copied` : `Copy ${accepted.length} songs for Spotify`}
-          </button>
-        </div>
-      )}
-      {loading ? null : (
-        <div style={{ display: 'grid', gap: 22 }}>
-          <SongColumn title={`Queued · ${queued.length}`} songs={queued} onAccept={(id) => patch(id, 'accepted')} onHide={(id) => patch(id, 'hidden')} empty="No requests yet — share your site and they'll start coming in." />
-          <SongColumn title={`Accepted · ${accepted.length}`} songs={accepted} onAccept={(id) => patch(id, 'queued')} onHide={(id) => patch(id, 'hidden')} acceptLabel="Un-accept" empty="Nothing accepted yet." />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SongColumn({
-  title,
-  songs,
-  onAccept,
-  onHide,
-  acceptLabel = 'Accept',
-  empty,
-}: {
-  title: string;
-  songs: Array<{ id: string; guest_name: string; song_title: string; artist?: string | null; spotify_url?: string | null; note?: string | null }>;
-  onAccept: (id: string) => void;
-  onHide: (id: string) => void;
-  acceptLabel?: string;
-  empty: string;
-}) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)', textTransform: 'uppercase', marginBottom: 10 }}>{title}</div>
-      {songs.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{empty}</div>
-      ) : (
-        <div style={{ display: 'grid', gap: 8 }}>
-          {songs.map((s) => (
-            <div
-              key={s.id}
-              style={{
-                padding: 12,
-                background: 'var(--card)',
-                border: '1px solid var(--card-ring)',
-                borderRadius: 12,
-                display: 'grid',
-                gridTemplateColumns: '1fr auto',
-                gap: 10,
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{s.song_title}</div>
-                <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                  {s.artist ? `${s.artist} · ` : ''}from {s.guest_name}
-                  {s.spotify_url && (
-                    <>
-                      {' · '}
-                      <a href={s.spotify_url} target="_blank" rel="noreferrer" style={{ color: 'var(--ink)' }}>
-                        Spotify ↗
-                      </a>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button type="button" className="btn btn-outline btn-sm" onClick={() => onAccept(s.id)}>
-                  <Icon name="check" size={12} /> {acceptLabel}
-                </button>
-                <button type="button" className="btn btn-outline btn-sm" onClick={() => onHide(s.id)}>
-                  <Icon name="close" size={12} />
-                </button>
-              </div>
             </div>
           ))}
         </div>
@@ -682,7 +583,7 @@ function SmsPanel({ siteId }: { siteId: string }) {
         error={error ?? undefined}
       />
 
-      {loading ? null : items.length === 0 ? null : (() => {
+      {loading ? <PanelThreading /> : items.length === 0 ? null : (() => {
         // Guests with a phone number on file come first; the rest
         // fall to the bottom with a "no phone" treatment so the
         // host can quickly see who needs a phone imported.

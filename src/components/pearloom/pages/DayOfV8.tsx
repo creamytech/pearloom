@@ -30,6 +30,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
@@ -93,7 +94,7 @@ function PulseBar({
       v: String(today),
       tone: 'sage',
       icon: 'eye',
-      trend: visits === 0 ? 'Nothing yet' : `${visits} total`,
+      trend: today === 0 ? 'Nothing yet today' : 'since midnight',
     },
     {
       k: 'Site visits',
@@ -569,48 +570,6 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
   );
 }
 
-function RequestsCard({ siteDomain, occasion }: { siteDomain?: string | null; occasion?: string | null }) {
-  // Path-based editor URL — /editor is route-grouped under
-  // [siteSlug], so the legacy ?site=… form 404s. Without a site
-  // selected we send the host to /dashboard/event so they can
-  // pick which one they want before editing.
-  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
-  // Nothing real here yet — vendor / crew messaging isn't wired. Show
-  // an honest empty state so the page doesn't lie about its state.
-  const copy =
-    occasion === 'memorial' || occasion === 'funeral'
-      ? { title: 'Coordinator notes', body: 'Heads-up from the funeral director, celebrant, or venue will land here.' }
-      : occasion === 'bachelor-party' || occasion === 'bachelorette-party'
-        ? { title: 'Crew check-ins', body: 'Reservation confirmations and activity check-ins from the group.' }
-        : { title: 'Needs your nod', body: 'Vendor check-ins — DJ, catering, photographer — land here as they come.' };
-  return (
-    <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <Icon name="bell" size={18} color="var(--gold)" />
-        <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
-          {copy.title}
-        </h3>
-      </div>
-      <div
-        style={{
-          padding: 22,
-          textAlign: 'center',
-          background: 'var(--cream-2)',
-          border: '1px dashed var(--line)',
-          borderRadius: 12,
-        }}
-      >
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
-          {copy.body} Nothing right now.
-        </div>
-        <Link href={editorDeepLink(siteDomain, 'travel')} className="btn btn-outline btn-sm">
-          <Icon name="brush" size={12} /> Add vendors
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 type GuestRow = { status?: string; attending?: boolean | null; mealPreference?: string | null };
 
 function useGuestRollup(siteId?: string | null) {
@@ -918,38 +877,123 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
   );
 }
 
-function SongQueue({ siteDomain }: { siteDomain?: string | null }) {
-  // Song requests aren't wired to an API yet. Rather than lie with
-  // fake data, invite the user to connect Spotify in the editor.
-  // Path-based editor URL — /editor is route-grouped under
-  // [siteSlug], so the legacy ?site=… form 404s. Without a site
-  // selected we send the host to /dashboard/event so they can
-  // pick which one they want before editing.
-  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
+type SongRequestRow = {
+  id: string;
+  guest_name?: string;
+  song_title?: string;
+  artist?: string | null;
+  state?: string;
+};
+
+function useSongRequests(siteId?: string | null): { items: SongRequestRow[]; loading: boolean } {
+  const [items, setItems] = useState<SongRequestRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/song-requests?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ songs: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const songs = Array.isArray(data?.songs) ? (data.songs as SongRequestRow[]) : [];
+        // Read-only day-of view: only what's pending or green-lit.
+        // Hidden requests stay in Music's audit trail.
+        setItems(songs.filter((s) => s.state === 'queued' || s.state === 'accepted'));
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function SongQueue({ siteId }: { siteId?: string | null }) {
+  // Lightweight read of the collaborative playlist — the same
+  // /api/song-requests rows the Music dashboard triages. This card
+  // is read-only; accept/hide lives in Music.
+  const { items, loading } = useSongRequests(siteId);
+  const accepted = items.filter((s) => s.state === 'accepted');
+  const queued = items.filter((s) => s.state === 'queued');
+  const shown = [...queued, ...accepted].slice(0, 6);
   return (
     <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
-        <Icon name="music" size={18} color="var(--gold)" />
-        <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
-          On the floor
-        </h3>
-      </div>
-      <div
-        style={{
-          padding: 22,
-          textAlign: 'center',
-          background: 'var(--cream-2)',
-          border: '1px dashed var(--line)',
-          borderRadius: 12,
-        }}
-      >
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
-          Connect a Spotify playlist in the editor. Guest song requests — from the RSVP form — will queue up here.
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="music" size={18} color="var(--gold)" />
+          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+            On the floor
+          </h3>
         </div>
-        <Link href={editorDeepLink(siteDomain, 'theme')} className="btn btn-outline btn-sm">
-          <Icon name="brush" size={12} /> Set up playlist
+        <Link href="/dashboard/music" style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>
+          Manage in Music →
         </Link>
       </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : shown.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
+            No song requests yet. Guests add songs from their Passport — they land here and in Music for triage.
+          </div>
+          <Link href="/dashboard/music" className="btn btn-outline btn-sm">
+            <Icon name="music" size={12} /> Open Music
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {queued.length > 0 && (
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              {queued.length} pending · {accepted.length} accepted
+            </div>
+          )}
+          {shown.map((s) => (
+            <div
+              key={s.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: 10,
+                alignItems: 'center',
+                padding: '9px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {s.song_title ?? 'Untitled'}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {s.artist ? `${s.artist} · ` : ''}from {s.guest_name ?? 'a guest'}
+                </div>
+              </div>
+              <span
+                className={s.state === 'accepted' ? 'pill pill-sage' : 'pill pill-peach'}
+                style={{ fontSize: 10, padding: '2px 8px', flexShrink: 0 }}
+              >
+                {s.state === 'accepted' ? 'Accepted' : 'Pending'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1113,7 +1157,7 @@ export function DayOfV8() {
           visits={stats.visits}
           today={stats.today}
           registryClicks={stats.registryClicks}
-          totalGuests={null}
+          totalGuests={stats.invited}
           daysUntil={daysUntil}
         />
 
@@ -1130,9 +1174,9 @@ export function DayOfV8() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <DayOfBand label="The live room" />
             <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
-            <RequestsCard siteDomain={site?.domain} occasion={occasion} />
-            {/* Song queue is wedding / birthday / bachelor-ish only — hide for solemn occasions */}
-            {occasion !== 'memorial' && occasion !== 'funeral' && <SongQueue siteDomain={site?.domain} />}
+            {/* Song queue only where music fits the occasion — the
+                registry gate hides it for memorials and the like. */}
+            {isDashSurfaceApplicable('music', occasion) && <SongQueue siteId={site?.id} />}
             <GuestWall siteId={site?.id} siteDomain={site?.domain} occasion={occasion} />
           </div>
         </div>

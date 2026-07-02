@@ -2,8 +2,8 @@
 
 /* ========================================================================
    Seating arranger — drag guests onto tables, save assignments to the
-   manifest. Auto-solver groups guests into tables minimizing constraint
-   violations (must-sit-together, must-not-sit-together, table-size).
+   manifest. Auto-solver greedily fills every open seat, table by
+   table, respecting each table's capacity.
    ======================================================================== */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -29,12 +29,6 @@ interface Table {
   capacity: number;
   /** Optional category tag to color-code the chart ('family', 'friends'). */
   group?: string;
-}
-
-interface Constraint {
-  id: string;
-  kind: 'must-sit-together' | 'avoid';
-  guestIds: string[];
 }
 
 // Neutral starter tables — no wedding-shaped "family/friends" group
@@ -64,7 +58,6 @@ export function SeatingArrangerPage() {
   // — no setLoading-in-effect cascade.
   const [fetchedSiteId, setFetchedSiteId] = useState<string | null>(null);
   const [tables, setTables] = useState<Table[]>(DEFAULT_TABLES);
-  const [constraints, setConstraints] = useState<Constraint[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   /* Tap-to-seat — the touch path. HTML5 drag never fires on
      phones/tablets, so seating was impossible there. Tap a guest
@@ -212,62 +205,21 @@ export function SeatingArrangerPage() {
   }
 
   function autoSolve() {
-    // Cheap solver: round-robin family/friends groups; keeps must-sit
-    // pairs together; respects capacity.
-    const sortable = [...guests].filter((g) => g.attending !== 'no');
-    // Build must-sit groups.
-    const groups: string[][] = [];
-    const placed = new Set<string>();
-    for (const c of constraints.filter((c) => c.kind === 'must-sit-together')) {
-      const g = c.guestIds.filter((id) => !placed.has(id));
-      if (g.length > 1) {
-        groups.push(g);
-        g.forEach((id) => placed.add(id));
-      }
-    }
-    for (const g of sortable) {
-      if (placed.has(g.id)) continue;
-      groups.push([g.id]);
-      placed.add(g.id);
-    }
-
-    // Stable sort groups largest-first so big families land first.
-    groups.sort((a, b) => b.length - a.length);
-
-    // Greedy place each group at the table that has room, avoiding
-    // 'avoid' constraints.
+    // Greedy fill: every guest who hasn't declined gets a seat,
+    // table by table, up to each table's capacity. Overflow stays
+    // unseated — add a table and run it again.
     const seatMap = new Map<string, string>();
     const tableLoad = new Map<string, number>(tables.map((t) => [t.id, 0]));
-    function avoidViolated(groupIds: string[], tableId: string): boolean {
-      for (const c of constraints.filter((c) => c.kind === 'avoid')) {
-        const inGroup = groupIds.some((id) => c.guestIds.includes(id));
-        if (!inGroup) continue;
-        // If anyone already at this table is in the avoid set, skip.
-        for (const [gid, tid] of seatMap.entries()) {
-          if (tid === tableId && c.guestIds.includes(gid) && !groupIds.includes(gid)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    for (const grp of groups) {
-      let placedHere = false;
+    for (const g of guests) {
+      if (g.attending === 'no') continue;
       for (const t of tables) {
         const used = tableLoad.get(t.id) ?? 0;
-        if (used + grp.length > t.capacity) continue;
-        if (avoidViolated(grp, t.id)) continue;
-        for (const id of grp) seatMap.set(id, t.id);
-        tableLoad.set(t.id, used + grp.length);
-        placedHere = true;
+        if (used >= t.capacity) continue;
+        seatMap.set(g.id, t.id);
+        tableLoad.set(t.id, used + 1);
         break;
       }
-      if (!placedHere) {
-        // overflow — leave unseated, user can add tables
-      }
     }
-
     setGuests((gs) => gs.map((g) => ({ ...g, table_id: seatMap.get(g.id) ?? g.table_id ?? '' })));
   }
 
@@ -278,7 +230,7 @@ export function SeatingArrangerPage() {
           pre="Day-of"
           title="Seating"
           italic="arranger."
-          sub="Drag guests onto tables. Set constraints. Pear auto-solves the rest with must-sit-together and avoid rules."
+          sub="Drag or tap guests onto tables. Auto-solve fills every open seat, table by table, up to each table's capacity."
           actions={
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button type="button" className="btn btn-primary btn-sm" onClick={autoSolve} disabled={!guests.length}>
@@ -380,7 +332,7 @@ export function SeatingArrangerPage() {
                 Tap a table to seat {guests.find((g) => g.id === armedId)?.name ?? 'them'} — or tap their name again to cancel.
               </div>
             )}
-            {loading && <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Loading guests…</div>}
+            {loading && <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Threading guests…</div>}
             {!loading && unseated.length === 0 && (
               <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
                 Everyone seated. Tap or drag a name out to unseat.
