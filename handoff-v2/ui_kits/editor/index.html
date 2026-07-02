@@ -1,0 +1,55 @@
+<!-- @dsCard group="Editor" viewport="1280x800" name="The site editor" subtitle="Four-zone editor — rail, canvas, property panel, Pear; sage/peach/lavender chrome" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Editor</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { margin: 0; height: 100%; background: var(--cream); }
+  #root { height: 100vh; }
+  .ed-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--font-ui); }
+  .ed-btn:hover { background: var(--cream-2); }
+  .pl-theme-toggle { position: fixed; bottom: 16px; right: 16px; z-index: 9000; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--pl-glass); backdrop-filter: blur(12px); color: var(--ink); font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; box-shadow: var(--pl-shadow-sm); }
+  /* ── Mobile: collapse the four-zone editor to canvas + bottom tabs;
+       the section/property/theme rails slide up as sheets over it. ── */
+  @media (max-width: 720px) {
+    .ed-shell { grid-template-columns: 1fr !important; grid-template-rows: 52px 1fr auto !important; grid-template-areas: "top" "canvas" "mbar" !important; }
+    .ed-top { gap: 8px !important; padding: 0 10px !important; height: 52px !important; }
+    .ed-top > div:first-child { min-width: 0 !important; }
+    .ed-canvas { padding: 14px !important; }
+    .ed-left, .ed-right { position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important; top: auto !important; max-height: 62vh !important; z-index: 60 !important; border-radius: 22px 22px 0 0 !important; border: 1px solid var(--line) !important; box-shadow: 0 -16px 40px rgba(40,28,12,0.18) !important; padding-bottom: calc(14px + env(safe-area-inset-bottom)) !important; }
+    .ed-right > aside { border-left: none !important; }
+    .ed-mobile-bar { display: flex !important; }
+    .ed-modepills, .ed-coverchip, .ed-savestate, .ed-hide-sm { display: none !important; }
+    .pl-theme-toggle { bottom: 78px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<button class="pl-theme-toggle" id="themeToggle">◐ <span id="themeLabel">Dark</span></button>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var saved = localStorage.getItem('pl-theme') || 'light';
+    function apply(t) { root.setAttribute('data-theme', t); var l = document.getElementById('themeLabel'); if (l) l.textContent = t === 'dark' ? 'Light' : 'Dark'; }
+    apply(saved);
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('pl-theme', next); apply(next);
+    });
+  })();
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="react" src="Editor.jsx"></script>
+<script type="text/babel" data-presets="react">
+  const Editor = window.Editor;
+  ReactDOM.createRoot(document.getElementById('root')).render(<Editor />);
+</script>
+</body>
+</html>

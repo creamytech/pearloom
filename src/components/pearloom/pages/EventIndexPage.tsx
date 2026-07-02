@@ -1,0 +1,551 @@
+'use client';
+
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
+import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
+import { parseLocalDate } from '@/lib/date-utils';
+import { DashEmpty } from '../dash/DashEmpty';
+import { DashSkeleton } from '../dash/DashSkeleton';
+import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
+import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { getTheme } from '../site/themes';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
+import { useDialog } from '@/components/ui/confirm-dialog';
+import type { SiteStat } from '@/app/api/dashboard/sites-stats/route';
+
+// Real per-site stats (coming / invited / visits) for the v2 SiteCard
+// stat row. Module-cached with a short TTL: flipping between dashboard
+// tabs doesn't refetch, but RSVPs landing / a freshly created site
+// don't stay stale for the whole SPA session either. Stale-while-
+// revalidate: paint the cached copy instantly, refresh in the effect.
+// Fails soft — a card with no stat just omits the row.
+let _statsCache: { at: number; stats: Record<string, SiteStat> } | null = null;
+const STATS_TTL_MS = 60_000;
+function useSitesStats(): Record<string, SiteStat> {
+  const [stats, setStats] = useState<Record<string, SiteStat>>(_statsCache?.stats ?? {});
+  useEffect(() => {
+    if (_statsCache && Date.now() - _statsCache.at < STATS_TTL_MS) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/dashboard/sites-stats', { cache: 'no-store' });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled && d?.stats) { _statsCache = { at: Date.now(), stats: d.stats }; setStats(d.stats); }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  return stats;
+}
+
+const fmtVisits = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n % 1000 >= 100 ? 1 : 0)}k` : String(n));
+
+function occasionLabel(o?: string) {
+  if (!o) return 'Event';
+  return o.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function siteTitle(s: SiteSummary) {
+  const [a, b] = s.names ?? [];
+  if (a && b) return `${a} & ${b}`;
+  if (a) return a;
+  return s.domain;
+}
+
+// Per-occasion accent so each card reads distinctly from the next.
+// Memorial / funeral lean plum, birthdays warm gold, weddings the
+// brand olive. Keeps the grid readable when a host has 4+ events.
+function accentFor(occasion?: string): { ribbon: string; tint: string } {
+  if (occasion === 'memorial' || occasion === 'funeral') {
+    return { ribbon: 'var(--plum, #7A2D2D)', tint: 'var(--plum-mist, rgba(122,45,45,0.10))' };
+  }
+  if (occasion === 'birthday' || occasion === 'milestone-birthday' || occasion === 'first-birthday' || occasion === 'sweet-sixteen') {
+    return { ribbon: 'var(--gold, #C19A4B)', tint: 'var(--gold-mist, rgba(184,147,90,0.10))' };
+  }
+  return { ribbon: 'var(--peach-ink, #C6703D)', tint: 'var(--peach-bg, rgba(198,112,61,0.08))' };
+}
+
+function SiteCard({
+  site,
+  tone,
+  nextPath,
+  stat,
+  onDeleted,
+}: {
+  site: SiteSummary;
+  tone: 'sage' | 'peach' | 'lavender' | 'cream';
+  nextPath: string | null;
+  stat?: SiteStat;
+  onDeleted: (domain: string) => void;
+}) {
+  const date = parseLocalDate(site.eventDate);
+  const dateLabel = date
+    ? date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'Date TBD';
+  const url = formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion));
+  const pickHref = nextPath
+    ? `${nextPath}${nextPath.includes('?') ? '&' : '?'}site=${encodeURIComponent(site.domain)}`
+    : null;
+  const accent = accentFor(site.occasion);
+  const [hovered, setHovered] = useState(false);
+  // Real theme name for the "occasion · theme" line (zip SiteCard).
+  // Resolved from the manifest's themeId; falls back to occasion only.
+  const themeId = (site.manifest as { themeId?: string } | undefined)?.themeId;
+  const themeName = themeId ? getTheme(themeId).name : null;
+  const isMemorial = site.occasion === 'memorial' || site.occasion === 'funeral';
+  const { data: session } = useSession();
+  // Host avatars (zip SiteCard) — the owner (this dashboard's user)
+  // first, then real co-hosts from the cohosts table. Initials only;
+  // no invented people.
+  const ownerInitial = ((session?.user?.name ?? session?.user?.email ?? 'You').trim()[0] ?? 'Y').toUpperCase();
+  const cohostInitials = (stat?.cohosts ?? []).map((c) => (c.email.trim()[0] ?? '?').toUpperCase());
+  const avatarTints = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)', 'var(--gold, #C19A4B)'];
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--card)',
+        border: `1px solid ${hovered ? accent.ribbon : 'var(--card-ring)'}`,
+        borderRadius: 20,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: hovered
+          ? '0 22px 50px -28px rgba(14,13,11,0.32)'
+          : '0 4px 16px rgba(61,74,31,0.06)',
+        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+        transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, border-color 200ms ease',
+        position: 'relative',
+      }}
+    >
+      {/* Quick actions menu (•••) over the cover. Always rendered —
+          hover-only hid it entirely on touch/mobile, where the
+          duplicate / edit / delete actions were unreachable. */}
+      <SiteCardMenu
+        site={site}
+        onDeleted={() => onDeleted(site.domain)}
+      />
+      <div style={{ position: 'relative' }}>
+        <PhotoPlaceholder tone={tone} aspect="16/9" src={site.coverPhoto ?? undefined} />
+        {/* Floating brand mark when there's no cover photo — keeps
+            the card from feeling empty before the host uploads. */}
+        {!site.coverPhoto && (
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
+            {isMemorial
+              ? <Heart size={48} color={accent.ribbon} />
+              : <Pear size={56} tone="sage" shadow={false} />}
+          </div>
+        )}
+        {/* Glass Live/Draft chip on the cover (zip SiteCard) — replaces
+            the badge that used to sit below the title. */}
+        <span
+          className="pl-glass-surface"
+          style={{
+            position: 'absolute', top: 12, left: 12,
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '4px 10px', borderRadius: 999,
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'var(--ink)',
+          }}
+        >
+          <span style={{ width: 7, height: 7, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--pl-gold)' }} />
+          {site.published ? 'Live' : 'Draft'}
+        </span>
+      </div>
+      <div style={{ padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
+        {/* Title + date baseline row (zip SiteCard) */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+          <div className="display" style={{ fontSize: 22, lineHeight: 1.05, minWidth: 0 }}>{siteTitle(site)}</div>
+          <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateLabel}</span>
+        </div>
+        {/* Occasion · theme, in italic lavender (zip SiteCard) */}
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--lavender-ink)', marginTop: 3 }}>
+          {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
+        </div>
+        {/* Stat row — real coming/invited + lifetime visits (zip
+            SiteCard). The row's frame renders immediately with an em
+            dash (the KPI-tile convention for "still threading") and
+            the real numbers fade in — no placeholder number, and no
+            layout jump a second after paint. */}
+        <div style={{ display: 'flex', gap: 24, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
+          {([
+            ['RSVPs', stat ? `${stat.coming} / ${stat.invited}` : '—'],
+            ['Visits', stat ? fmtVisits(stat.visits) : '—'],
+          ] as const).map(([l, v]) => (
+            <div key={l}>
+              <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
+              <div key={stat ? 'v' : 'p'} className={stat ? 'pl8-content-fade-in' : undefined} style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: stat ? 'var(--ink)' : 'var(--ink-muted)', marginTop: 2 }}>{v}</div>
+            </div>
+          ))}
+        </div>
+        {site.venue && (
+          <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
+            <Icon name="pin" size={12} /> {site.venue}
+          </div>
+        )}
+        {/* URL with a live/idle status dot (zip SiteCard domain row).
+            The stat row above always renders now, so no own divider. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
+          <span style={{ width: 6, height: 6, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--line)' }} />
+          {url}
+        </div>
+        {/* Draft nudge — the zip's peach "next thing" row, shown only
+            where we have something honest to say (an unpublished draft). */}
+        {!site.published && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px', borderRadius: 10, background: 'var(--peach-bg)', marginTop: 12 }}>
+            <span style={{ color: 'var(--peach-ink)', display: 'inline-flex' }}><Sparkle size={12} /></span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>Pear has a draft ready</span>
+          </div>
+        )}
+        {/* Host avatars — owner + real co-hosts, with an invite + that
+            opens the editor's co-host flow (zip SiteCard). */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12 }}>
+          <div style={{ display: 'flex' }}>
+            <span style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[0], border: '2px solid var(--card)', display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ownerInitial}</span>
+            {cohostInitials.map((ch, i) => (
+              <span key={i} title={(stat?.cohosts ?? [])[i]?.email} style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[(i + 1) % avatarTints.length], border: '2px solid var(--card)', marginLeft: -7, display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ch}</span>
+            ))}
+          </div>
+          <Link href={`/editor/${encodeURIComponent(site.domain)}?jump=cohost`} title="Invite a co-host" style={{ width: 24, height: 24, borderRadius: 999, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-muted)', display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
+            <Icon name="plus" size={12} />
+          </Link>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 14 }}>
+          {pickHref ? (
+            <Link href={pickHref} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+              <Icon name="check" size={12} /> Use this site
+            </Link>
+          ) : (
+            <Link href={`/editor/${encodeURIComponent(site.domain)}`} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+              <Icon name="brush" size={12} /> Open editor
+            </Link>
+          )}
+          <a
+            href={`https://${url}`}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-outline btn-sm"
+            aria-label={`Preview ${siteTitle(site)}`}
+            title="Preview"
+          >
+            Preview
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Card menu (•••) ─────────────────────────────────────────────
+// Hover-revealed kebab menu in the top-right of every site card.
+// Houses the destructive "Delete site" action that's been missing
+// from the dashboard since launch — confirmation prompt prevents
+// accidental wipes. View-live + open-editor are also exposed here
+// so heavy-keyboard users can run common actions without aiming
+// for the inline buttons in the card body.
+function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const dialog = useDialog();
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  async function handleDelete() {
+    if (busy) return;
+    // Use the dashboard's branded confirm dialog (DialogProvider
+    // mounted in ShellPersistentLayout) instead of the native
+    // window.confirm — the native chrome breaks the editorial
+    // voice and is jarring on macOS.
+    const sure = await dialog.confirm({
+      title: `Delete "${site.domain}"?`,
+      message:
+        'This removes the site, every guest record, every photo it owned. It can\'t be undone.',
+      confirmLabel: 'Delete site',
+      cancelLabel: 'Keep it',
+      variant: 'danger',
+    });
+    if (!sure) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/sites/${encodeURIComponent(site.domain)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Delete failed (${res.status})`);
+      }
+      onDeleted();
+      // Invalidate the dashboard cache so other tabs / routes see
+      // the removal on their next render too.
+      invalidateSitesCache();
+    } catch (err) {
+      await dialog.alert({
+        title: 'Delete failed',
+        message: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'error',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        zIndex: 5,
+      }}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Site actions"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 999,
+          border: 'none',
+          background: 'rgba(14,13,11,0.78)',
+          color: 'var(--cream, #FBF7EE)',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          boxShadow: '0 6px 14px rgba(14,13,11,0.30)',
+        }}
+      >
+        <Icon name="more" size={14} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="pl8-pop-in"
+          style={{
+            position: 'absolute',
+            top: 38,
+            right: 0,
+            minWidth: 200,
+            background: 'var(--card)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 12,
+            padding: 6,
+            boxShadow: '0 18px 40px rgba(14,13,11,0.18), 0 4px 10px rgba(14,13,11,0.10)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <Link
+            href={`/editor/${encodeURIComponent(site.domain)}`}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="pl8-menu-item"
+            style={menuItemStyle}
+          >
+            <Icon name="brush" size={13} /> Edit site
+          </Link>
+          <a
+            href={`https://${formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion))}`}
+            target="_blank"
+            rel="noreferrer"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="pl8-menu-item"
+            style={menuItemStyle}
+          >
+            <Icon name="arrow-ur" size={13} /> View live
+          </a>
+          <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+          <button
+            type="button"
+            role="menuitem"
+            disabled={busy}
+            onClick={handleDelete}
+            className="pl8-menu-item"
+            style={{
+              ...menuItemStyle,
+              color: '#7A2D2D',
+              background: 'transparent',
+              border: 'none',
+              textAlign: 'left',
+              fontFamily: 'inherit',
+              fontSize: 13,
+              cursor: busy ? 'wait' : 'pointer',
+              opacity: busy ? 0.6 : 1,
+            }}
+          >
+            <Icon name="close" size={13} /> {busy ? 'Deleting…' : 'Delete site'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const menuItemStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  padding: '8px 10px',
+  borderRadius: 8,
+  textDecoration: 'none',
+  color: 'var(--ink)',
+  fontSize: 13,
+  fontWeight: 500,
+};
+
+export function EventIndexPage() {
+  const { sites, loading, refresh } = useUserSites();
+  const siteStats = useSitesStats();
+  const params = useSearchParams();
+  const nextPath = params?.get('next') ?? null;
+  const tones = ['sage', 'peach', 'lavender', 'cream'] as const;
+  const pickMode = Boolean(nextPath);
+  // Local optimistic-removal set so a deleted card disappears the
+  // moment the API returns 200, without waiting for the next
+  // useUserSites refresh. The hook is invalidated in parallel so a
+  // hard reload also reflects the deletion.
+  const [removed, setRemoved] = useState<Set<string>>(new Set());
+  const visibleSites = (sites ?? []).filter((s) => !removed.has(s.domain));
+  const handleDeleted = (domain: string) => {
+    setRemoved((prev) => {
+      const next = new Set(prev);
+      next.add(domain);
+      return next;
+    });
+    void refresh();
+  };
+
+  return (
+    <DashLayout active="sites" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): eyebrow +
+            one line + a single CTA. The old hero paragraph is gone —
+            the empty state carries the pitch; the cards speak for
+            themselves. */}
+        <PageIntro
+          eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
+          title={pickMode ? 'Pick a site' : 'My sites'}
+          actions={
+            pickMode ? undefined : (
+              <Link href="/wizard/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                Start a new one <Pear size={14} tone="cream" shadow={false} />
+              </Link>
+            )
+          }
+        />
+        {loading && <DashSkeleton kind="card-grid" count={3} label="Threading your sites" />}
+        {!loading && (!sites || sites.length === 0) && (
+          <DashEmpty
+            size="page"
+            tone="pear"
+            eyebrow="No sites yet"
+            title="Begin a thread."
+            body="Pear will draft a complete site in about twenty seconds — you pick the occasion, the names, and the feeling. Edit anything afterwards."
+            examples={['Wedding · Scott & Shauna', 'Birthday · 30 in Lisbon', 'Memorial · In loving memory', 'Reunion · Class of 2010']}
+            actions={[
+              { label: 'Begin a thread', href: '/wizard/new', icon: 'sparkles', primary: true },
+              { label: 'Browse templates', href: '/templates' },
+            ]}
+          />
+        )}
+        {!loading && visibleSites.length > 0 && (
+          <div
+            className="pl8-dash-stagger"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
+              gap: 24,
+            }}
+          >
+            {visibleSites.map((s, i) => (
+              <SiteCard
+                key={s.id}
+                site={s}
+                tone={tones[i % tones.length]}
+                nextPath={nextPath}
+                stat={siteStats[s.id]}
+                onDeleted={handleDeleted}
+              />
+            ))}
+          </div>
+        )}
+        {!loading && sites && sites.length > 0 && visibleSites.length === 0 && (
+          <div style={{ padding: 56, textAlign: 'center', color: 'var(--ink-soft)' }}>
+            All cleared. <Link href="/wizard/new" style={{ color: 'var(--peach-ink)' }}>Begin a new thread</Link>.
+          </div>
+        )}
+        {/* Weekend builder discovery — it lives at a ⌘K-only route, so
+            this strip is the one place hosts planning multi-event
+            weekends will stumble onto it. Wedding-arc sites only
+            (the builder weaves rehearsal → ceremony → brunch);
+            hidden in pick mode (the host is mid-flow elsewhere). */}
+        {!loading && !pickMode && visibleSites.length > 0 &&
+          visibleSites.some((s) => isDashSurfaceApplicable('weekend', s.occasion)) && (
+          <Link
+            href="/dashboard/weekend"
+            style={{
+              marginTop: 28,
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 14,
+              padding: '16px 20px',
+              borderRadius: 14,
+              background: 'var(--sage-tint)',
+              border: '1px solid var(--line-soft)',
+              textDecoration: 'none',
+              color: 'var(--ink)',
+            }}
+          >
+            <Icon name="calendar" size={18} />
+            <span style={{ flex: 1, minWidth: 'min(220px, 100%)' }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>Planning a whole weekend?</span>{' '}
+              <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.
+              </span>
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--sage-deep)', flexShrink: 0 }}>
+              Weekend builder →
+            </span>
+          </Link>
+        )}
+      </div>
+    </DashLayout>
+  );
+}

@@ -1,0 +1,27 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Editor chrome" subtitle="The insulated panel palette — warm cream, terracotta accent, dark rail" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 22px 26px; }
+  .sw { border-radius: var(--pl-radius-md); overflow: hidden; border: 1px solid var(--pl-divider); }
+  .chip { height: 56px; }
+  .nm { font-family: var(--pl-font-mono); font-size: 9px; color: var(--pl-muted); padding: 6px 7px; background: var(--pl-cream-card); line-height: 1.3; }
+</style>
+</head>
+<body>
+<div class="grid" id="root"></div>
+<script>
+  const t = [
+    ['--pl-chrome-bg','bg'], ['--pl-chrome-surface','surface'], ['--pl-chrome-border','border'],
+    ['--pl-chrome-accent','accent · terra'], ['--pl-chrome-rail','rail'], ['--pl-chrome-success','success'],
+  ];
+  document.getElementById('root').innerHTML = t.map(([v, n]) =>
+    `<div class="sw"><div class="chip" style="background:var(${v})"></div><div class="nm">${n}</div></div>`
+  ).join('');
+</script>
+</body>
+</html>

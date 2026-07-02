@@ -1,0 +1,1749 @@
+'use client';
+
+/* ========================================================================
+   PEARLOOM — DAY-OF ROOM (v8 handoff port)
+   ======================================================================== */
+
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { buildSitePath } from '@/lib/site-urls';
+import { Icon, PhotoPlaceholder } from '../motifs';
+import { AmbientHour } from '../ambient';
+import { DashEmpty } from '../dash/DashEmpty';
+
+// Shared deep-link helper for day-of CTAs. EditorV8 reads ?focus=
+// (block key) and ?anchor= (Theme-tab anchor) on mount and fires
+// pearloom:design-jump so the host lands inside the right panel
+// instead of the editor's default block.
+function editorDeepLink(siteDomain: string | null | undefined, block?: string, anchor?: string): string {
+  if (!siteDomain) return '/dashboard/event';
+  const sp = new URLSearchParams();
+  if (block) sp.set('focus', block);
+  if (anchor) sp.set('anchor', anchor);
+  const q = sp.toString();
+  return `/editor/${encodeURIComponent(siteDomain)}${q ? `?${q}` : ''}`;
+}
+import { DashLayout } from '../dash/DashShell';
+import { PLAtmosphere } from '../dash/PLChrome';
+import { PageIntro } from '../dash/QuietDash';
+import { BroadcastComposer } from '../dash/BroadcastComposer';
+import { parseLocalDate } from '@/lib/date-utils';
+import { buildSiteUrl } from '@/lib/site-urls';
+import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
+import { useDashStats } from '@/components/marketing/v2/useDashStats';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
+import type { StoryManifest } from '@/types';
+
+function useLiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function PulseBar({
+  rsvps,
+  visits,
+  today,
+  registryClicks,
+  totalGuests,
+  daysUntil,
+}: {
+  rsvps: number;
+  visits: number;
+  today: number;
+  registryClicks: number;
+  totalGuests: number | null;
+  /** Whole days to the event: 0 = today, null = no date set. */
+  daysUntil: number | null;
+}) {
+  const now = useLiveClock();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  // "It's happening" only when it actually is. Before the day this
+  // strip is a countdown; after, a quiet recap; with no date set,
+  // an honest nudge to add one.
+  const isEventDay = daysUntil === 0;
+  const liveLabel =
+    daysUntil === null
+      ? `Preview · ${dateStr}`
+      : isEventDay
+        ? `Live · ${dateStr}`
+        : daysUntil > 0
+          ? `T-minus ${daysUntil} day${daysUntil === 1 ? '' : 's'} · ${dateStr}`
+          : `After the day · ${dateStr}`;
+  const liveAside =
+    daysUntil === null
+      ? 'set your date in the editor'
+      : isEventDay
+        ? "it's happening"
+        : daysUntil > 0
+          ? `${daysUntil} day${daysUntil === 1 ? '' : 's'} to go`
+          : 'the recap lives here';
+  const metrics = [
+    {
+      k: 'RSVPs in',
+      v: String(rsvps),
+      of: totalGuests && totalGuests > 0 ? String(totalGuests) : undefined,
+      tone: 'peach',
+      icon: 'check',
+      trend: rsvps === 0 ? 'Waiting on first reply' : `${rsvps} guest${rsvps === 1 ? '' : 's'} responded`,
+    },
+    {
+      k: 'Visits today',
+      v: String(today),
+      tone: 'sage',
+      icon: 'eye',
+      trend: today === 0 ? 'Nothing yet today' : 'since midnight',
+    },
+    {
+      k: 'Site visits',
+      v: String(visits),
+      tone: 'lavender',
+      icon: 'image',
+      trend: visits === 0 ? 'Share your link' : 'All-time',
+    },
+    {
+      k: 'Registry clicks',
+      v: String(registryClicks),
+      tone: 'cream',
+      icon: 'gift',
+      trend: registryClicks === 0 ? '—' : 'via your site',
+    },
+  ] as const;
+  return (
+    <div
+      className="pl8-dayof-pulse"
+      style={{
+        background: 'var(--ink)',
+        color: 'var(--cream)',
+        padding: '20px 24px',
+        borderRadius: 20,
+        marginBottom: 20,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', top: -16, right: -8, opacity: 0.16, pointerEvents: 'none' }}>
+        <AmbientHour size={150} color="var(--cream)" accent="var(--gold)" />
+      </div>
+      <div
+        className="pl8-pulse-layout"
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 28,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+            {isEventDay && (
+              <span
+                className="pulse-dot"
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: '#B8D66A',
+                }}
+              />
+            )}
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'rgba(241,235,221,0.6)',
+              }}
+            >
+              {liveLabel}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 46,
+                fontWeight: 600,
+                color: 'var(--cream)',
+                lineHeight: 1,
+              }}
+            >
+              {timeStr}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 18,
+                color: 'var(--peach-2)',
+              }}
+            >
+              {liveAside}
+            </span>
+          </div>
+        </div>
+        <div
+          className="pl8-pulse-stats"
+          style={{
+            flex: 1,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 18,
+            minWidth: 280,
+          }}
+        >
+          {metrics.map((m) => (
+            <div key={m.k}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 7,
+                    background:
+                      m.tone === 'sage'
+                        ? 'var(--sage-2)'
+                        : m.tone === 'peach'
+                          ? 'var(--peach-2)'
+                          : m.tone === 'lavender'
+                            ? 'var(--lavender-2)'
+                            : 'var(--cream-2)',
+                    color: '#2a2a22',
+                    display: 'grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon name={m.icon} size={13} color="#2a2a22" />
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(241,235,221,0.6)',
+                  }}
+                >
+                  {m.k}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 28,
+                    fontWeight: 600,
+                    color: 'var(--cream)',
+                    lineHeight: 1,
+                  }}
+                >
+                  {m.v}
+                </span>
+                {'of' in m && m.of && (
+                  <span style={{ fontSize: 12, color: 'rgba(241,235,221,0.5)' }}>/ {m.of}</span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(241,235,221,0.55)', marginTop: 3 }}>
+                {m.trend}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TimelineItem = { time: string; title: string; d?: string; status: 'done' | 'now' | 'next' | 'later' };
+
+function parseTimeToMinutes(t: string): number | null {
+  // Accept "4:00 PM", "16:00", "4:00PM"
+  const m = t.trim().toUpperCase().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const ampm = m[3];
+  if (ampm === 'PM' && h < 12) h += 12;
+  if (ampm === 'AM' && h === 12) h = 0;
+  return h * 60 + mm;
+}
+
+function deriveStatuses(items: { time: string }[]): TimelineItem['status'][] {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const withIdx = items.map((it, i) => ({ i, min: parseTimeToMinutes(it.time) ?? -1 }));
+  // Find the "now" item: last one whose start is <= now.
+  let currentIdx = -1;
+  for (const e of withIdx) {
+    if (e.min >= 0 && e.min <= nowMin) currentIdx = e.i;
+  }
+  return items.map((_, i) => {
+    if (currentIdx === -1) return 'later';
+    if (i < currentIdx) return 'done';
+    if (i === currentIdx) return 'now';
+    if (i === currentIdx + 1) return 'next';
+    return 'later';
+  });
+}
+
+function MomentTimeline({
+  items,
+  siteDomain,
+  occasion,
+}: {
+  items: TimelineItem[];
+  siteDomain?: string | null;
+  occasion?: string | null;
+}) {
+  const heading =
+    occasion === 'memorial' || occasion === 'funeral'
+      ? 'The service'
+      : occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion'
+        ? 'The itinerary'
+        : "Today's rundown";
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
+
+  // Occasion-appropriate sample rows for the empty state — never
+  // wedding cues ("Ceremony", "First dance") on a memorial or
+  // birthday. These are illustrative placeholders, clearly framed
+  // as examples, not real data.
+  const examples =
+    occasion === 'memorial' || occasion === 'funeral'
+      ? ['2:00 — Gathering begins', '2:30 — Words & remembrances', '3:30 — Reception']
+      : occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion'
+        ? ['Fri 6:00 — Welcome dinner', 'Sat 11:00 — Main activity', 'Sat 9:00 — Night out']
+        : ['5:00 — Doors open', '6:00 — Dinner served', '8:00 — Toasts', '9:00 — Music & dancing'];
+
+  if (items.length === 0) {
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="clock" size={18} color="var(--gold)" />
+            <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+              {heading}
+            </h3>
+          </div>
+        </div>
+        <DashEmpty
+          eyebrow={heading}
+          title="No schedule yet."
+          body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
+          examples={examples}
+          actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="clock" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+        </div>
+        <Link href={editHref} className="btn btn-outline btn-sm">
+          <Icon name="brush" size={12} /> Nudge timeline
+        </Link>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map((m, i) => {
+          const isNow = m.status === 'now';
+          const isDone = m.status === 'done';
+          return (
+            <div
+              key={i}
+              className="pl8-dayof-tlrow"
+              style={{
+                display: 'grid',
+                // Time column sizes to its content ("4:00 PM" never
+                // wraps to "4:00 / PM" — plan-2 §3.6) with a 72px
+                // floor so the rows keep a shared gutter.
+                gridTemplateColumns: '48px minmax(72px, auto) minmax(0, 1fr) auto',
+                gap: 14,
+                alignItems: 'center',
+                padding: '10px 8px',
+                borderRadius: 12,
+                background: isNow ? 'var(--peach-bg)' : 'transparent',
+                border: isNow ? '1px solid var(--peach-2)' : '1px solid transparent',
+              }}
+            >
+              <div style={{ display: 'grid', placeItems: 'center' }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: isNow ? 'var(--peach-2)' : isDone ? 'var(--sage-2)' : 'var(--card, #fff)',
+                    border: isDone || isNow ? 'none' : '2px solid var(--line)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: isDone || isNow ? 'var(--ink)' : 'var(--ink-muted)',
+                    boxShadow: isNow ? '0 0 0 6px rgba(234,178,134,0.28)' : 'none',
+                  }}
+                >
+                  {isDone ? (
+                    <Icon name="check" size={14} />
+                  ) : isNow ? (
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ink)' }} />
+                  ) : null}
+                </div>
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  color: isDone ? 'var(--ink-muted)' : 'var(--ink)',
+                }}
+              >
+                {m.time}
+              </div>
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: isDone ? 'var(--ink-soft)' : 'var(--ink)' }}>
+                  {m.title}
+                </div>
+                {'d' in m && m.d && <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 2 }}>{m.d}</div>}
+              </div>
+              <div
+                className="pl8-dayof-tlstatus"
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-muted)',
+                }}
+              >
+                {isNow && <span style={{ color: 'var(--peach-ink)' }}>Happening now</span>}
+                {m.status === 'next' && 'Up next'}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type GuestPhoto = {
+  id: string;
+  photoUrl?: string;
+  url?: string;
+  uploaderName?: string;
+  caption?: string;
+  createdAt?: string;
+};
+
+function useGuestPhotos(siteId?: string | null): { items: GuestPhoto[]; loading: boolean } {
+  const [items, setItems] = useState<GuestPhoto[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/guest-photos?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ photos: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const photos = Array.isArray(data?.photos) ? data.photos : [];
+        setItems(photos.slice(0, 9));
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function relativeTime(iso?: string): string {
+  if (!iso) return '';
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms)) return '';
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min} min`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hr`;
+  const d = Math.floor(hr / 24);
+  return `${d} d`;
+}
+
+function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId?: string | null; occasion?: string | null }) {
+  // guest_photos.site_id is the subdomain, not the uuid — fetch by
+  // domain so approved photos actually show here.
+  const { items, loading } = useGuestPhotos(siteDomain);
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
+  const heading = occasion === 'memorial' || occasion === 'funeral' ? 'What guests shared' : 'The live reel';
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="image" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+          {items.length > 0 && (
+            <span className="pill pill-sage" style={{ fontSize: 11 }}>
+              {items.length} shared
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">
+            <Icon name="eye" size={12} /> Moderate
+          </Link>
+          <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">See all</Link>
+        </div>
+      </div>
+      {loading ? (
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 24,
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
+            Turn on a guest photo wall in the editor — any photo uploaded lands here for quick moderation.
+          </div>
+          <Link href={editorDeepLink(siteDomain, 'gallery')} className="btn btn-outline btn-sm">
+            <Icon name="brush" size={12} /> Set up photo wall
+          </Link>
+        </div>
+      ) : (
+        <div className="pl8-cols-3" style={{ gap: 10 }}>
+          {items.map((it, i) => {
+            const src = it.photoUrl || it.url;
+            const tones = ['peach', 'sage', 'lavender', 'cream'] as const;
+            const tone = tones[i % tones.length];
+            return (
+              <div key={it.id ?? i} style={{ borderRadius: 12, overflow: 'hidden', position: 'relative', aspectRatio: '4/5' }}>
+                <PhotoPlaceholder tone={tone} aspect="auto" src={src} style={{ height: '100%' }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '20px 10px 8px',
+                    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.65) 100%)',
+                    color: 'white',
+                    fontSize: 11,
+                  }}
+                >
+                  <div style={{ fontWeight: 600 }}>{it.uploaderName ?? 'Guest'}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ opacity: 0.85 }}>{it.caption || '—'}</span>
+                    <span style={{ opacity: 0.7 }}>{relativeTime(it.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type GuestRow = { status?: string; attending?: boolean | null; mealPreference?: string | null };
+
+function useGuestRollup(siteId?: string | null) {
+  const [rows, setRows] = useState<GuestRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/guests?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ guests: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        setRows(Array.isArray(data?.guests) ? data.guests : []);
+      })
+      .catch(() => {
+        if (!cancelled) setRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { rows, loading };
+}
+
+function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | null; occasion?: string | null; siteDomain?: string | null }) {
+  const { rows, loading } = useGuestRollup(siteId);
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
+  const heading = occasion === 'memorial' || occasion === 'funeral' ? 'Who’s attending' : 'Who’s coming';
+
+  const buckets: Array<{ group: string; count: number; total: number; tone: 'sage' | 'peach' | 'lavender' | 'cream' }> = useMemo(() => {
+    const total = rows.length;
+    const yes = rows.filter((g) => g.status === 'attending' || g.attending === true).length;
+    const no = rows.filter((g) => g.status === 'declined' || g.attending === false).length;
+    const maybe = rows.filter((g) => g.status === 'maybe' || g.status === 'tentative').length;
+    const pending = Math.max(0, total - yes - no - maybe);
+    return [
+      { group: 'Attending', count: yes, total, tone: 'sage' },
+      { group: 'Maybe', count: maybe, total, tone: 'peach' },
+      { group: 'Pending', count: pending, total, tone: 'lavender' },
+      { group: 'Declined', count: no, total, tone: 'cream' },
+    ];
+  }, [rows]);
+
+  // Kitchen line — RSVP meal answers among attending guests, the
+  // count a caterer asks for on the morning of. Hidden when the
+  // event never asked a meal question.
+  const meals = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const g of rows) {
+      const coming = g.status === 'attending' || g.attending === true;
+      const meal = (g.mealPreference ?? '').trim();
+      if (coming && meal) m.set(meal, (m.get(meal) ?? 0) + 1);
+    }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  }, [rows]);
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="users" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+        </div>
+        <Link href="/dashboard/rsvp" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+          Open list →
+        </Link>
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : rows.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
+            No guests yet. Share your link or import a CSV to start tracking responses.
+          </div>
+          <Link href={editorDeepLink(siteDomain, 'rsvp')} className="btn btn-outline btn-sm">
+            <Icon name="brush" size={12} /> Open editor
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {buckets.map((r) => {
+            const pct = r.total > 0 ? Math.round((r.count / r.total) * 100) : 0;
+            return (
+              <div key={r.group}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>{r.group}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    {r.count} / {r.total}
+                  </span>
+                </div>
+                <div style={{ height: 8, background: 'var(--cream-2)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      background:
+                        r.tone === 'peach'
+                          ? 'var(--peach-2)'
+                          : r.tone === 'sage'
+                            ? 'var(--sage-2)'
+                            : r.tone === 'lavender'
+                              ? 'var(--lavender-2)'
+                              : 'var(--cream-3)',
+                      transition: 'width .4s',
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+          {meals.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
+                flexWrap: 'wrap',
+                paddingTop: 12,
+                borderTop: '1px solid var(--line-soft)',
+              }}
+            >
+              <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                Kitchen
+              </span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                {meals.map(([meal, n]) => `${meal} ${n}`).join(' · ')}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type GuestbookEntry = {
+  id: string;
+  guestName?: string;
+  message?: string;
+  createdAt?: string;
+  highlight?: boolean;
+};
+
+function useGuestbook(siteId?: string | null): { items: GuestbookEntry[]; loading: boolean } {
+  const [items, setItems] = useState<GuestbookEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/guestbook?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ wishes: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const wishes = Array.isArray(data?.wishes) ? data.wishes : [];
+        setItems(wishes.slice(0, 6));
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function initials(name?: string): string {
+  if (!name) return '?';
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .toUpperCase();
+}
+
+function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; siteDomain?: string | null; occasion?: string | null }) {
+  const { items, loading } = useGuestbook(siteId);
+  // Path-based editor URL — /editor is route-grouped under
+  // [siteSlug], so the legacy ?site=… form 404s. Without a site
+  // selected we send the host to /dashboard/event so they can
+  // pick which one they want before editing.
+  const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
+  const heading =
+    occasion === 'memorial' || occasion === 'funeral'
+      ? 'Notes of memory'
+      : occasion === 'retirement'
+        ? 'Notes from colleagues'
+        : 'Notes from the crowd';
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="mail" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+        </div>
+        <Link href="/dashboard/submissions" className="btn btn-outline btn-sm">
+          <Icon name="eye" size={12} /> Moderate
+        </Link>
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
+            No notes yet. Add a guestbook block on your site — any message guests leave shows up here.
+          </div>
+          <Link href={editorDeepLink(siteDomain, 'faq')} className="btn btn-outline btn-sm">
+            <Icon name="brush" size={12} /> Add guestbook
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {items.map((m, i) => {
+            const tones = ['peach', 'lavender', 'sage', 'cream'] as const;
+            const tone = tones[i % tones.length];
+            const pin = Boolean(m.highlight);
+            return (
+              <div
+                key={m.id ?? i}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '36px 1fr',
+                  gap: 12,
+                  padding: 12,
+                  background: pin ? 'var(--peach-bg)' : 'var(--cream-2)',
+                  border: pin ? '1px solid var(--peach-2)' : '1px solid var(--line-soft)',
+                  borderRadius: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background:
+                      tone === 'peach'
+                        ? 'var(--peach-2)'
+                        : tone === 'lavender'
+                          ? 'var(--lavender-2)'
+                          : tone === 'sage'
+                            ? 'var(--sage-2)'
+                            : 'var(--cream-3)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    color: 'var(--ink)',
+                  }}
+                >
+                  {initials(m.guestName)}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{m.guestName ?? 'Guest'}</span>
+                    <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{relativeTime(m.createdAt)}</span>
+                    {pin && (
+                      <span className="pill pill-peach" style={{ fontSize: 10, padding: '2px 7px' }}>
+                        Pinned
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5 }}>{m.message}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type SongRequestRow = {
+  id: string;
+  guest_name?: string;
+  song_title?: string;
+  artist?: string | null;
+  state?: string;
+};
+
+function useSongRequests(siteId?: string | null): { items: SongRequestRow[]; loading: boolean } {
+  const [items, setItems] = useState<SongRequestRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/song-requests?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ songs: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const songs = Array.isArray(data?.songs) ? (data.songs as SongRequestRow[]) : [];
+        // Read-only day-of view: only what's pending or green-lit.
+        // Hidden requests stay in Music's audit trail.
+        setItems(songs.filter((s) => s.state === 'queued' || s.state === 'accepted'));
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function SongQueue({ siteId }: { siteId?: string | null }) {
+  // Lightweight read of the collaborative playlist — the same
+  // /api/song-requests rows the Music dashboard triages. This card
+  // is read-only; accept/hide lives in Music.
+  const { items, loading } = useSongRequests(siteId);
+  const accepted = items.filter((s) => s.state === 'accepted');
+  const queued = items.filter((s) => s.state === 'queued');
+  const shown = [...queued, ...accepted].slice(0, 6);
+  return (
+    <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="music" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            On the floor
+          </h3>
+        </div>
+        <Link href="/dashboard/music" style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>
+          Manage in Music →
+        </Link>
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : shown.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
+            No song requests yet. Guests add songs from their Passport — they land here and in Music for triage.
+          </div>
+          <Link href="/dashboard/music" className="btn btn-outline btn-sm">
+            <Icon name="music" size={12} /> Open Music
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {queued.length > 0 && (
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              {queued.length} pending · {accepted.length} accepted
+            </div>
+          )}
+          {shown.map((s) => (
+            <div
+              key={s.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: 10,
+                alignItems: 'center',
+                padding: '9px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {s.song_title ?? 'Untitled'}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {s.artist ? `${s.artist} · ` : ''}from {s.guest_name ?? 'a guest'}
+                </div>
+              </div>
+              <span
+                className={s.state === 'accepted' ? 'pill pill-sage' : 'pill pill-peach'}
+                style={{ fontSize: 10, padding: '2px 8px', flexShrink: 0 }}
+              >
+                {s.state === 'accepted' ? 'Accepted' : 'Pending'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type VoiceToastRow = {
+  id: string;
+  guest_display_name?: string | null;
+  audio_url: string;
+  duration_seconds?: number | null;
+  moderation_status?: string;
+  created_at?: string;
+};
+
+function useVoiceToasts(siteId?: string | null): { items: VoiceToastRow[]; loading: boolean } {
+  const [items, setItems] = useState<VoiceToastRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/toasts?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ toasts: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const toasts = Array.isArray(data?.toasts) ? (data.toasts as VoiceToastRow[]) : [];
+        // A queue, not a feed — oldest first, so the run order matches
+        // the order guests recorded. Hidden/rejected stay out of the room.
+        const playable = toasts
+          .filter((t) => t.audio_url && t.moderation_status !== 'rejected' && t.moderation_status !== 'hidden')
+          .sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime());
+        setItems(playable);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function fmtDuration(s?: number | null): string {
+  if (!s || !Number.isFinite(s) || s <= 0) return '';
+  const m = Math.floor(s / 60);
+  const ss = Math.round(s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+function firstName(name?: string | null): string {
+  const n = (name ?? '').trim();
+  return n ? n.split(/\s+/)[0] : 'A guest';
+}
+
+function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?: string | null }) {
+  // Playback queue for the voice toasts guests record from their
+  // passports (/g/[token] → /api/toasts). One shared <audio>
+  // element, one toast at a time — a host or DJ taps through the
+  // queue over the speakers.
+  const { items, loading } = useVoiceToasts(siteId);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const solemn = occasion === 'memorial' || occasion === 'funeral';
+  const heading = solemn ? 'Words from guests' : 'Raise a glass';
+
+  const startToast = (t: VoiceToastRow) => {
+    const el = audioRef.current;
+    if (!el) return;
+    setActiveId(t.id);
+    setProgress(0);
+    el.src = t.audio_url;
+    void el.play();
+  };
+
+  const toggleToast = (t: VoiceToastRow) => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (activeId === t.id) {
+      if (el.paused) void el.play();
+      else el.pause();
+      return;
+    }
+    startToast(t);
+  };
+
+  const nextInQueue = (): VoiceToastRow | undefined => {
+    const idx = items.findIndex((t) => t.id === activeId);
+    return idx >= 0 ? items[idx + 1] : items[0];
+  };
+
+  const playNext = () => {
+    const next = nextInQueue();
+    if (next) startToast(next);
+  };
+
+  const replay = () => {
+    const el = audioRef.current;
+    if (!el || !activeId) return;
+    el.currentTime = 0;
+    void el.play();
+  };
+
+  const handleTimeUpdate = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    // MediaRecorder webm blobs sometimes report Infinity — fall
+    // back to the duration the guest's recorder measured.
+    const row = items.find((t) => t.id === activeId);
+    const dur =
+      Number.isFinite(el.duration) && el.duration > 0
+        ? el.duration
+        : row?.duration_seconds ?? 0;
+    setProgress(dur > 0 ? Math.min(1, el.currentTime / dur) : 0);
+  };
+
+  const handleEnded = () => {
+    // Run the queue — roll straight into the next toast; at the
+    // end, rest quietly with the last one ready to replay.
+    const idx = items.findIndex((t) => t.id === activeId);
+    const next = idx >= 0 ? items[idx + 1] : undefined;
+    if (next) startToast(next);
+    else setProgress(0);
+  };
+
+  const hasNext = activeId !== null && items.findIndex((t) => t.id === activeId) < items.length - 1;
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <audio
+        ref={audioRef}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        style={{ display: 'none' }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="mic" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            {heading}
+          </h3>
+          {items.length > 0 && (
+            <span className="pill pill-sage" style={{ fontSize: 11 }}>
+              {items.length} recorded
+            </span>
+          )}
+        </div>
+        {activeId && (
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button type="button" className="btn btn-outline btn-sm" onClick={replay}>
+              <Icon name="redo" size={12} /> Replay
+            </button>
+            {hasNext && (
+              <button type="button" className="btn btn-outline btn-sm" onClick={playNext}>
+                Next <Icon name="chev-right" size={12} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto' }}>
+            {solemn
+              ? 'Words guests record from their passports gather here, ready to play when the room is.'
+              : 'Toasts guests record from their passports land here.'}
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((t, i) => {
+            const isActive = t.id === activeId;
+            const dur = fmtDuration(t.duration_seconds);
+            return (
+              <button
+                type="button"
+                key={t.id}
+                onClick={() => toggleToast(t)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '28px 1fr auto',
+                  gap: 10,
+                  alignItems: 'center',
+                  padding: '9px 12px',
+                  background: isActive ? 'var(--peach-bg)' : 'var(--cream-2)',
+                  border: isActive ? '1px solid var(--peach-2)' : '1px solid var(--line-soft)',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  font: 'inherit',
+                  color: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: isActive ? 'var(--peach-2)' : 'var(--cream-3)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: 'var(--ink)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon name={isActive && isPlaying ? 'pause' : 'play'} size={12} />
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {firstName(t.guest_display_name)}
+                  </span>
+                  {isActive ? (
+                    /* Two-strand progress thread — olive over gold,
+                       growing together as the toast plays. */
+                    <span aria-hidden style={{ display: 'block', position: 'relative', height: 5, marginTop: 5 }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          height: 1,
+                          width: `${Math.round(progress * 100)}%`,
+                          background: 'var(--pl-olive, #5C6B3F)',
+                          transition: 'width .25s linear',
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          bottom: 0,
+                          height: 1,
+                          width: `${Math.round(progress * 100)}%`,
+                          background: 'var(--gold, #C19A4B)',
+                          transition: 'width .25s linear',
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                      {[dur, t.created_at ? relativeTime(t.created_at) : ''].filter(Boolean).join(' · ') || 'recorded from their passport'}
+                    </span>
+                  )}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    color: 'var(--ink-muted)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type CrewVendorRow = {
+  id: string;
+  name: string;
+  category: string;
+  phone: string | null;
+  arrivalTime: string | null;
+  status: 'considering' | 'booked' | 'paid';
+};
+
+function useBookedVendors(siteId?: string | null): { items: CrewVendorRow[]; loading: boolean } {
+  const [items, setItems] = useState<CrewVendorRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/vendors/book?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ vendors: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const vendors = Array.isArray(data?.vendors) ? (data.vendors as CrewVendorRow[]) : [];
+        // The day-of crew — only vendors actually hired, in the
+        // order they arrive (unset call times sink to the end).
+        const crew = vendors
+          .filter((v) => v.status === 'booked' || v.status === 'paid')
+          .sort(
+            (a, b) =>
+              (parseTimeToMinutes(a.arrivalTime ?? '') ?? 9999) -
+              (parseTimeToMinutes(b.arrivalTime ?? '') ?? 9999),
+          );
+        setItems(crew);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function WhoToCall({ siteId }: { siteId?: string | null }) {
+  // The day-of call sheet, host side — every booked vendor with
+  // their call time and a tap-to-dial number. Fed by the Vendor
+  // Book (/dashboard/vendors → /api/vendors/book).
+  const { items, loading } = useBookedVendors(siteId);
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <Icon name="phone" size={18} color="var(--gold)" />
+        <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+          Who to call
+        </h3>
+        {items.length > 0 && (
+          <span className="pill pill-sage" style={{ fontSize: 11 }}>
+            {items.length} on the day
+          </span>
+        )}
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto' }}>
+            Vendors you book land here with their call times.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((v) => (
+            <div
+              key={v.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: 10,
+                alignItems: 'center',
+                padding: '9px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: v.arrivalTime ? 'var(--ink)' : 'var(--ink-muted)',
+                  background: 'var(--cream-3)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 999,
+                  padding: '3px 9px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {v.arrivalTime ?? 'no time'}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {v.name}
+                </span>
+                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                  {v.category}
+                </span>
+              </span>
+              {v.phone ? (
+                <a
+                  href={`tel:${v.phone.replace(/[^\d+]/g, '')}`}
+                  className="btn btn-outline btn-sm"
+                  style={{ flexShrink: 0, textDecoration: 'none' }}
+                >
+                  <Icon name="phone" size={12} /> Call
+                </a>
+              ) : (
+                <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', flexShrink: 0 }}>no number</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ marginTop: 14, fontSize: 12.5 }}>
+        <Link href="/dashboard/vendors" style={{ color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}>
+          Open the vendor book →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/* Seating at a glance — closes the seating loop. The arranger
+   (/dashboard/seating → PATCH /api/sites/seating) writes
+   manifest.seatingPlan; until this card nothing ever read it
+   back. On the day the host wants "how full is the room" without
+   reopening the arranger. Renders nothing until a plan exists —
+   the Seating tab in the Day sub-nav is the front door. */
+function SeatingGlance({ manifest }: { manifest: unknown }) {
+  const plan = (manifest as { seatingPlan?: StoryManifest['seatingPlan'] } | null | undefined)?.seatingPlan;
+  const tables = (plan?.tables ?? []).filter((t) => t && t.id);
+
+  const seatedPerTable = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const tableId of Object.values(plan?.assignments ?? {})) {
+      m.set(tableId, (m.get(tableId) ?? 0) + 1);
+    }
+    return m;
+  }, [plan?.assignments]);
+
+  if (tables.length === 0) return null;
+
+  const capacity = tables.reduce((a, t) => a + (Number.isFinite(t.capacity) ? t.capacity : 0), 0);
+  const seated = tables.reduce((a, t) => a + (seatedPerTable.get(t.id) ?? 0), 0);
+  const SHOWN = 8;
+  const shown = tables.slice(0, SHOWN);
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="grid" size={18} color="var(--gold)" />
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
+            Seating at a glance
+          </h3>
+        </div>
+        <Link href="/dashboard/seating" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+          Open the chart →
+        </Link>
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 14 }}>
+        {tables.length} table{tables.length === 1 ? '' : 's'} · {seated} of {capacity} seats spoken for
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+        {shown.map((t) => {
+          const n = seatedPerTable.get(t.id) ?? 0;
+          const full = t.capacity > 0 && n >= t.capacity;
+          return (
+            <div
+              key={t.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 8,
+                padding: '8px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+                minWidth: 0,
+              }}
+            >
+              <span style={{ fontSize: 12.5, fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {t.name || 'Table'}
+              </span>
+              <span style={{ fontSize: 11.5, color: full ? 'var(--sage-deep)' : 'var(--ink-soft)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                {n}/{t.capacity}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {tables.length > SHOWN && (
+        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-muted)' }}>
+          + {tables.length - SHOWN} more table{tables.length - SHOWN === 1 ? '' : 's'} in the chart
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Print for the day — contextual doors to the two print-at-home
+   sheets (welcome-table QR poster, per-guest passport cards).
+   They live off-nav (⌘K / More tools) by design; the day-of room
+   is where a host actually thinks "what goes on the tables". */
+function PaperForTheDay({ occasion }: { occasion: string | null }) {
+  const qr = isDashSurfaceApplicable('qr', occasion);
+  const passport = isDashSurfaceApplicable('passport', occasion);
+  if (!qr && !passport) return null;
+  return (
+    <div className="card" style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16 }}>
+      <span
+        style={{
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        Print for the day
+      </span>
+      {qr && (
+        <Link href="/dashboard/qr-poster" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+          Welcome-table poster →
+        </Link>
+      )}
+      {passport && (
+        <Link href="/dashboard/passport-cards" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+          Guest passport cards →
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/* Quiet section label that gives the two columns a clear identity
+   ("Run the day" vs "The live room") so the page reads as two
+   intents instead of a flat stack of cards. */
+function DayOfBand({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'var(--ink-muted)',
+        margin: '2px 2px -4px',
+      }}
+    >
+      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
+      {label}
+    </div>
+  );
+}
+
+export function DayOfV8() {
+  const { site } = useSelectedSite();
+  const stats = useDashStats(site?.id, site?.domain);
+  const siteName = site ? siteDisplayName(site) : 'Your celebration';
+  const occasion = site?.occasion ?? null;
+  const [shared, setShared] = useState(false);
+
+  // Whole days until the event (0 = today, negative = past,
+  // null = no date set). Drives the headline + the pulse strip so
+  // the room never claims "it's happening" weeks early.
+  const daysUntil = (() => {
+    const d = parseLocalDate(site?.eventDate);
+    if (!d) return null;
+    const a = new Date();
+    a.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - a.getTime()) / 86_400_000);
+  })();
+
+  // "Share with crew" — hands the live site link to vendors and the
+  // wedding party. Native share sheet where it exists, clipboard
+  // fallback with inline confirmation.
+  const shareWithCrew = async () => {
+    if (!site?.domain) return;
+    const url = buildSiteUrl(site.domain, '', undefined, site.occasion);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: siteName, url });
+        return;
+      }
+    } catch {
+      // user dismissed the sheet — fall through to nothing
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShared(true);
+      setTimeout(() => setShared(false), 2200);
+    } catch {
+      /* clipboard unavailable — leave the button as-is */
+    }
+  };
+
+  // Pull events from the selected site's manifest (shaped by /api/sites).
+  const events = (() => {
+    const m = (site?.manifest ?? null) as { events?: Array<{ time?: string; name?: string; description?: string }> } | null;
+    if (!m?.events || !Array.isArray(m.events)) return [] as TimelineItem[];
+    const sorted = [...m.events].sort((a, b) => {
+      const ta = parseTimeToMinutes(a.time ?? '') ?? 9999;
+      const tb = parseTimeToMinutes(b.time ?? '') ?? 9999;
+      return ta - tb;
+    });
+    const mapped: TimelineItem[] = sorted.map((e) => ({
+      time: e.time ?? '—',
+      title: e.name ?? 'Untitled',
+      d: e.description ?? undefined,
+      status: 'later' as const,
+    }));
+    const statuses = deriveStatuses(mapped);
+    return mapped.map((it, i) => ({ ...it, status: statuses[i] }));
+  })();
+
+  const headline =
+    occasion === 'memorial' || occasion === 'funeral'
+      ? { a: 'A gathered', b: 'day.' }
+      : occasion === 'bachelor-party' || occasion === 'bachelorette-party'
+        ? { a: 'The', b: 'weekend.' }
+        : occasion === 'reunion'
+          ? { a: 'Everyone', b: 'together.' }
+          : daysUntil !== null && daysUntil > 0
+            ? { a: 'The day is', b: 'coming.' }
+            : daysUntil !== null && daysUntil < 0
+              ? { a: 'What a', b: 'day.' }
+              : { a: "Today's the", b: 'day.' };
+
+  return (
+    <DashLayout active="timeline" hideTopbar>
+      {/* Botanical underlay — olive sprigs at low opacity. Matches the
+          prototype's atmosphere layer; the DashLayout's sidebar already
+          owns the cream + nav chrome. */}
+      <PLAtmosphere />
+      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Timeline / Seating tabs come from the shell's DashSubNav —
+            no in-page duplicate strip. */}
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): mono eyebrow +
+            ONE display line + the two actions in a row. */}
+        <PageIntro
+          eyebrow={`${siteName} · Day-of room`}
+          title={
+            <>
+              {headline.a} <span className="display-italic">{headline.b}</span>
+            </>
+          }
+          actions={
+            <>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={shareWithCrew}
+                disabled={!site?.domain}
+                style={!site?.domain ? { opacity: 0.5, cursor: 'default' } : undefined}
+              >
+                <Icon name={shared ? 'check' : 'share'} size={13} /> {shared ? 'Link copied' : 'Share with crew'}
+              </button>
+              <Link
+                href={site ? buildSitePath(site.domain, '', site.occasion) : '/'}
+                className="btn btn-primary btn-sm"
+              >
+                <Icon name="eye" size={13} /> View the site
+              </Link>
+            </>
+          }
+          style={{ marginBottom: 20 }}
+        />
+
+        <PulseBar
+          rsvps={stats.rsvps}
+          visits={stats.visits}
+          today={stats.today}
+          registryClicks={stats.registryClicks}
+          totalGuests={stats.invited}
+          daysUntil={daysUntil}
+        />
+
+        <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
+          {/* Left — run the day: the schedule anchors the page, the
+              broadcast pushes a note to guests, the reel fills in. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <DayOfBand label="Run the day" />
+            <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
+            <WhoToCall siteId={site?.id} />
+            {/* Seating loop-closer — reads what /dashboard/seating
+                saved; occasion gate mirrors the Seating tab's. */}
+            {isDashSurfaceApplicable('seating', occasion) && (
+              <SeatingGlance manifest={site?.manifest} />
+            )}
+            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
+            <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
+            <PaperForTheDay occasion={occasion} />
+          </div>
+          {/* Right — the live room: what guests are doing right now. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <DayOfBand label="The live room" />
+            <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
+            {/* Song queue only where music fits the occasion — the
+                registry gate hides it for memorials and the like. */}
+            {isDashSurfaceApplicable('music', occasion) && <SongQueue siteId={site?.id} />}
+            <ToastJukebox siteId={site?.id} occasion={occasion} />
+            <GuestWall siteId={site?.id} siteDomain={site?.domain} occasion={occasion} />
+          </div>
+        </div>
+      </div>
+      {/* Phone-width timeline rows: drop the status column into a
+          second line under the title so "Happening now" never crams
+          the 1fr title track at 390px. */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .pl8-dayof-tlrow {
+            /* Time track sizes to its content — a fixed 52px forced
+               "4:00 PM" to wrap/overprint (plan-2 §3.6). */
+            grid-template-columns: 36px minmax(56px, auto) minmax(0, 1fr) !important;
+            gap: 10px !important;
+          }
+          .pl8-dayof-tlstatus {
+            grid-column: 2 / -1;
+            justify-self: start;
+          }
+          .pl8-dayof-tlstatus:empty {
+            display: none;
+          }
+        }
+      `}</style>
+    </DashLayout>
+  );
+}

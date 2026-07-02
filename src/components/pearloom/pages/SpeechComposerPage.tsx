@@ -1,0 +1,450 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
+import { Icon, Pear, Sparkle } from '../motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { getEventType } from '@/lib/event-os/event-types';
+
+/** The three analysis targets /api/pear/speech understands. */
+type Kind = 'vows' | 'toast' | 'speech';
+
+interface Analysis {
+  duration_seconds: number;
+  length_score: number;
+  specificity_score: number;
+  arc_score: number;
+  cliches: Array<{ phrase: string; count: number }>;
+  suggestions: string[];
+  summary: string;
+}
+
+interface Inspiration {
+  /** 'memory' = memory-prompt response, 'tribute' = wall post,
+   *  'guestbook' = guestbook note. All three are guests speaking
+   *  about the people being celebrated — exactly the material a
+   *  toast (or eulogy) wants. */
+  kind: 'memory' | 'tribute' | 'guestbook';
+  guest_name: string;
+  /** For memory prompts: the question the guest answered. */
+  prompt?: string;
+  body: string;
+}
+
+interface KindOption {
+  /** Local tab id — stable per occasion set. */
+  id: string;
+  /** What we send to /api/pear/speech (drives length targets + prompt). */
+  apiKind: Kind;
+  label: string;
+  range: string;
+  hint: string;
+}
+
+const WEDDING_KINDS: KindOption[] = [
+  { id: 'vows', apiKind: 'vows', label: 'Vows', range: '60–120s', hint: 'Spoken to your partner — short, specific, structured.' },
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent — one anecdote, land warm.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+];
+
+const MEMORIAL_KINDS: KindOption[] = [
+  { id: 'eulogy', apiKind: 'speech', label: 'Eulogy', range: '2–5min', hint: 'Their life, in your words — one true story, told with care.' },
+  { id: 'remembrance', apiKind: 'toast', label: 'Words of remembrance', range: '90–180s', hint: 'A single memory, told well — land gentle.' },
+  { id: 'welcome', apiKind: 'speech', label: 'Welcome', range: '2–5min', hint: 'Receiving everyone who came — warm, steady, brief.' },
+];
+
+const CELEBRATION_KINDS: KindOption[] = [
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Raise a glass to the guest of honor — one anecdote, land warm.' },
+  { id: 'tribute', apiKind: 'speech', label: 'Tribute', range: '2–5min', hint: 'The longer look back — what this person and this milestone mean.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+];
+
+/** Speech kinds follow the occasion: weddings write vows, memorials
+ *  write eulogies, everything else toasts + tributes. Unknown /
+ *  unselected sites keep the wedding set (the historic default). */
+function kindOptionsFor(occasion: string | null | undefined): KindOption[] {
+  if (getEventType(occasion)?.voice === 'solemn') return MEMORIAL_KINDS;
+  if (!occasion || occasion === 'wedding' || occasion === 'vow-renewal') return WEDDING_KINDS;
+  return CELEBRATION_KINDS;
+}
+
+export function SpeechComposerPage() {
+  const { site } = useSelectedSite();
+  const options = kindOptionsFor(site?.occasion ?? null);
+  const [kind, setKind] = useState<string>('toast');
+  // If a site switch swaps the kind set out from under the pick,
+  // fall back to the set's first option (render-time derivation —
+  // no effect needed).
+  const activeKindId = options.some((o) => o.id === kind) ? kind : options[0].id;
+  const [text, setText] = useState('');
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inspirations, setInspirations] = useState<Inspiration[] | null>(null);
+
+  // Pull guest-typed material from the memory book endpoint —
+  // memories, tributes, and guestbook entries are all things
+  // people wrote about the ones being celebrated, which is exactly
+  // what a toast or eulogy is trying to mine. Fail silently —
+  // composer still works without inspirations.
+  useEffect(() => {
+    if (!site?.id) return;
+    let cancelled = false;
+    fetch(`/api/memory-book?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: null | {
+        memories?: Array<{ guest_name: string; prompt: string; response: string }>;
+        tributes?: Array<{ guest_name: string; body: string }>;
+        guestbook?: Array<{ guest_name: string; message: string }>;
+      }) => {
+        if (cancelled || !data) return;
+        const merged: Inspiration[] = [
+          ...(data.memories ?? []).filter((m) => m.response).map((m) => ({
+            kind: 'memory' as const, guest_name: m.guest_name, prompt: m.prompt, body: m.response,
+          })),
+          ...(data.tributes ?? []).map((t) => ({
+            kind: 'tribute' as const, guest_name: t.guest_name, body: t.body,
+          })),
+          ...(data.guestbook ?? []).map((g) => ({
+            kind: 'guestbook' as const, guest_name: g.guest_name, body: g.message,
+          })),
+        ];
+        setInspirations(merged);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [site?.id]);
+
+  function quote(insp: Inspiration) {
+    const attribution = insp.guest_name ? ` — ${insp.guest_name}` : '';
+    const block = `\n\n"${insp.body.trim()}"${attribution}\n\n`;
+    setText((prev) => prev + block);
+  }
+
+  async function analyze() {
+    if (!text.trim()) return;
+    setRunning(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/pear/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.trim(), kind: meta.apiKind }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Analyze failed (${res.status})`);
+      }
+      const data = (await res.json()) as { analysis?: Analysis };
+      if (!data.analysis) throw new Error('No analysis returned');
+      setAnalysis(data.analysis);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Speech analysis failed');
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  const meta = options.find((o) => o.id === activeKindId) ?? options[0];
+
+  return (
+    <DashLayout active="speech" hideTopbar>
+      <div className="pl8" style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line —
+            the "paste a draft" pitch lives in the analysis empty
+            state, so the editor leads within the first viewport. */}
+        <PageIntro eyebrow="Speech" title="Speech composer" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 0.9fr)', gap: 28 }} className="pl8-speech-grid">
+          {/* LEFT — composer */}
+          <div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+              {options.map((o) => {
+                const active = activeKindId === o.id;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => setKind(o.id)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 999,
+                      border: active ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                      background: active ? 'var(--ink)' : 'var(--card)',
+                      color: active ? 'var(--cream)' : 'var(--ink)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
+              <span style={{ alignSelf: 'center', marginLeft: 'auto', fontSize: 12, color: 'var(--ink-muted)' }}>
+                Target: {meta.range}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 10, lineHeight: 1.5 }}>
+              {meta.hint}
+            </div>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Paste your draft here. Pear works best with a real first attempt — even rough."
+              rows={20}
+              style={{
+                width: '100%',
+                padding: '16px 18px',
+                borderRadius: 14,
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+                fontSize: 15,
+                lineHeight: 1.55,
+                color: 'var(--ink)',
+                fontFamily: 'var(--pl-font-display, Georgia, serif)',
+                resize: 'vertical',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
+                {text.split(/\s+/).filter(Boolean).length} words · {Math.ceil(text.length / 5)} chars
+              </div>
+              <button
+                type="button"
+                onClick={analyze}
+                disabled={running || !text.trim()}
+                className="btn btn-primary"
+              >
+                {running ? 'Pear is reading…' : 'Analyze with Pear'} <Sparkle size={11} />
+              </button>
+            </div>
+            {error && <div style={{ marginTop: 10, fontSize: 13, color: '#7A2D2D' }}>{error}</div>}
+          </div>
+
+          {/* RIGHT — analysis + guest material (plan rule 7: the
+              composer owns the main column; scores and "Words from
+              your guests" ride the rail, stacking below on phones). */}
+          <div style={{ position: 'sticky', top: 24, alignSelf: 'flex-start' }}>
+            {!analysis ? (
+              <div
+                style={{
+                  background: 'var(--cream-2)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 16,
+                  padding: 24,
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <Pear size={56} tone="sage" sparkle />
+                <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                  Paste a draft and tap <strong style={{ color: 'var(--ink)' }}>Analyze with Pear</strong>.
+                  Scores + suggestions land here.
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <ScoreRow label="Length" score={analysis.length_score} suffix={`${analysis.duration_seconds}s read aloud`} />
+                <ScoreRow label="Specific" score={analysis.specificity_score} suffix="concrete vs. abstract" />
+                <ScoreRow label="Arc" score={analysis.arc_score} suffix="emotional rise" />
+
+                {analysis.summary && (
+                  <div
+                    style={{
+                      padding: 14,
+                      borderRadius: 12,
+                      background: 'var(--sage-tint)',
+                      border: '1px solid var(--sage-deep)',
+                      fontSize: 13,
+                      lineHeight: 1.55,
+                      color: 'var(--ink)',
+                    }}
+                  >
+                    {analysis.summary}
+                  </div>
+                )}
+
+                {analysis.cliches.length > 0 && (
+                  <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
+                    <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A2D2D', marginBottom: 8 }}>
+                      Cliches found
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {analysis.cliches.map((c) => (
+                        <span
+                          key={c.phrase}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            background: '#F4E0D8',
+                            color: '#7A2D2D',
+                            fontSize: 12,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {c.phrase} {c.count > 1 && <span style={{ opacity: 0.7 }}>×{c.count}</span>}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
+                  <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 10 }}>
+                    Suggestions
+                  </div>
+                  <ol style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {analysis.suggestions.map((s, i) => (
+                      <li key={i} style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+                        {s}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
+
+            {/* Inspiration: guest-typed memories + advice + guestbook
+                notes. Tap "Quote" to drop the line straight into the
+                draft. The whole panel hides when there's nothing to
+                show — keeps the rail clean for hosts whose guests
+                haven't written yet. */}
+            {inspirations && inspirations.length > 0 && (
+              <div style={{
+                marginTop: 24,
+                padding: 18,
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 14,
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  marginBottom: 12,
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink)',
+                  }}>
+                    Words from your guests
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                    {inspirations.length} {inspirations.length === 1 ? 'note' : 'notes'} · tap Quote to drop in
+                  </div>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  maxHeight: 360,
+                  overflowY: 'auto',
+                }}>
+                  {inspirations.map((insp, i) => (
+                    <div key={i} style={{
+                      padding: '10px 12px',
+                      background: 'var(--card)',
+                      border: '1px solid var(--line-soft)',
+                      borderRadius: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 5,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                          <span style={{
+                            fontSize: 9.5,
+                            fontWeight: 700,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            color: 'var(--sage-deep)',
+                          }}>
+                            {insp.kind === 'memory' ? 'Memory' : insp.kind === 'tribute' ? 'Wall' : 'Guestbook'}
+                          </span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+                            {insp.guest_name}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => quote(insp)}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 999,
+                            border: '1px dashed var(--peach-ink)',
+                            background: 'transparent',
+                            color: 'var(--peach-ink)',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Quote
+                        </button>
+                      </div>
+                      {insp.prompt && (
+                        <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--ink-muted)' }}>
+                          on: {insp.prompt}
+                        </div>
+                      )}
+                      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+                        {insp.body.length > 280 ? insp.body.slice(0, 280) + '…' : insp.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <style jsx>{`
+          @media (max-width: 920px) {
+            .pl8-speech-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+      </div>
+    </DashLayout>
+  );
+}
+
+function ScoreRow({ label, score, suffix }: { label: string; score: number; suffix: string }) {
+  const color = score >= 80 ? 'var(--sage-deep)' : score >= 60 ? 'var(--peach-ink)' : '#7A2D2D';
+  return (
+    <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
+        <div style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, fontWeight: 700, color }}>
+          {Math.round(score)}
+        </div>
+      </div>
+      <div style={{ position: 'relative', height: 6, background: 'var(--cream-2)', borderRadius: 3, overflow: 'hidden' }}>
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: `${Math.max(2, Math.min(100, score))}%`,
+            background: color,
+            borderRadius: 3,
+            transition: 'width 600ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>{suffix}</div>
+    </div>
+  );
+}

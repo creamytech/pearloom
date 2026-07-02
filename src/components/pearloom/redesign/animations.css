@@ -1,0 +1,344 @@
+/* ─────────────────────────────────────────────────────────────────
+   PEARLOOM REDESIGN — ANIMATIONS
+   Smooth transitions for the new editor shell. Scoped to the
+   .pl-redesign class so they only fire inside the new module.
+
+   Easing: cubic-bezier(0.16, 1, 0.3, 1) — the "expo-out" curve the
+   prototype uses across rails, panels, and floating chrome. Matches
+   handoff/pages/editor-redesign.jsx L268 device-frame transition.
+   ───────────────────────────────────────────────────────────────── */
+
+.pl-redesign,
+.pl-redesign * {
+  --pl-redesign-ease: var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1));
+  --pl-redesign-dur-fast: var(--pl-dur-fast, 180ms);
+  --pl-redesign-dur-base: var(--pl-dur-base, 280ms);
+  --pl-redesign-dur-slow: 420ms; /* no system token between base 280 and slow 480 */
+}
+
+/* Section row — background + color + transform fade. */
+.pl-redesign .pl-rd-section-row {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    box-shadow var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+  will-change: background, transform;
+}
+.pl-redesign .pl-rd-section-row:hover:not([data-active="true"]) {
+  background: rgba(14, 13, 11, 0.04) !important;
+  transform: translateX(1px);
+}
+.pl-redesign .pl-rd-section-row[data-active="true"] {
+  box-shadow: 0 1px 4px rgba(14, 13, 11, 0.10);
+}
+
+/* Tab buttons — text + bg crossfade. */
+.pl-redesign .pl-rd-tab {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+
+/* Topbar mode pills — same crossfade. */
+.pl-redesign .pl-rd-mode-pill {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    transform var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+.pl-redesign .pl-rd-mode-pill:hover {
+  transform: scale(1.02);
+}
+
+/* Aside content — slide-in entrance when the rail mounts. */
+@keyframes pl-rd-rail-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes pl-rd-rail-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.pl-redesign .pl-rd-rail-right {
+  animation: pl-rd-rail-in var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+.pl-redesign .pl-rd-rail-left {
+  animation: pl-rd-rail-in-left var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+
+/* Tab body cross-fade — when the host flips Content/Layout/Style or
+   when the active section changes, fade the body content in. */
+@keyframes pl-rd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.pl-redesign .pl-rd-tab-body {
+  animation: pl-rd-fade-up var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+
+/* Pear bubble — bouncy spring entrance. */
+@keyframes pl-rd-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.pl-redesign .pl-rd-pop-in {
+  animation: pl-rd-pop-in var(--pl-redesign-dur-slow) var(--pl-redesign-ease) both;
+}
+
+/* Add-section button — dashed pulse on hover. */
+.pl-redesign .pl-rd-add-section {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    border-color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+.pl-redesign .pl-rd-add-section:hover {
+  background: var(--cream-2) !important;
+  border-color: var(--ink-muted) !important;
+  color: var(--ink) !important;
+}
+
+/* Drag-state — row drops to 50% with a soft shadow lift. */
+.pl-redesign .pl-rd-section-row[data-dragging="true"] {
+  opacity: 0.55;
+  transform: scale(0.98);
+  box-shadow: 0 8px 18px rgba(14, 13, 11, 0.12);
+}
+
+/* Topbar mode pill — animated highlight (sliding indicator). */
+.pl-redesign .pl-rd-mode-strip {
+  position: relative;
+}
+
+/* Reduce motion — kill all the above for accessibility. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-redesign,
+  .pl-redesign * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PEAR LOOM FX — the thread, the shuttle, the settle, the dye.
+   Driven by PearLoomFx.tsx (pearloom:pear-working events).
+   ════════════════════════════════════════════════════════════════ */
+
+/* Thread draws from Pear's corner to the working section. */
+.pl-rd-thread-draw {
+  animation: pl-rd-thread-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes pl-rd-thread-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* A short gold glint travelling the strand while the model works. */
+.pl-rd-thread-shimmer {
+  animation: pl-rd-thread-shimmer 1.4s linear 640ms infinite;
+}
+@keyframes pl-rd-thread-shimmer {
+  from { stroke-dashoffset: var(--pl-rd-thread-len, 600px); }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* The pearl shuttle breathing at the tip. */
+.pl-rd-shuttle {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: pl-rd-shuttle 1.1s ease-in-out 560ms infinite;
+  opacity: 0;
+}
+@keyframes pl-rd-shuttle {
+  0%   { opacity: 0;   transform: scale(0.6); }
+  18%  { opacity: 1;   transform: scale(1); }
+  55%  { opacity: 1;   transform: scale(1.25); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+
+/* Weave-settle — the landed change: a breath of blur sharpening,
+   plus a gold hairline bloom that fades. Gold stays a hairline
+   (BRAND.md §5), never a fill. */
+.pl-rd-weave-settle {
+  animation: pl-rd-weave-settle 950ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes pl-rd-weave-settle {
+  0%   { filter: blur(2.5px) saturate(0.92); box-shadow: inset 0 0 0 1px rgba(193, 154, 75, 0); }
+  30%  { filter: blur(0.6px) saturate(1.03); box-shadow: inset 0 0 0 1px rgba(193, 154, 75, 0.55); }
+  70%  { filter: none;                       box-shadow: inset 0 0 0 1px rgba(193, 154, 75, 0.30); }
+  100% { filter: none;                       box-shadow: inset 0 0 0 1px rgba(193, 154, 75, 0); }
+}
+
+/* Dye sweep — a theme change washes down the canvas like dye
+   through cloth: a soft gold-edged band travels top → bottom as
+   the new tokens paint underneath it. */
+.pl-rd-dye-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30%;
+  height: 26%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(253, 250, 240, 0) 0%,
+    rgba(253, 250, 240, 0.55) 38%,
+    rgba(193, 154, 75, 0.16) 62%,
+    rgba(253, 250, 240, 0) 100%
+  );
+  animation: pl-rd-dye-sweep 820ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes pl-rd-dye-sweep {
+  from { transform: translateY(0); }
+  to   { transform: translateY(520%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-rd-thread-draw,
+  .pl-rd-thread-shimmer,
+  .pl-rd-shuttle,
+  .pl-rd-dye-sweep {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .pl-rd-weave-settle {
+    animation: none !important;
+    box-shadow: inset 0 0 0 1px rgba(193, 154, 75, 0.4);
+    transition: box-shadow 600ms ease-out;
+  }
+}
+
+/* ═══ Mobile editing — kill the iOS focus-zoom + tap-zoom ═══════
+   iOS Safari zooms the page when (a) a focused form control's
+   font-size is under 16px — panel inputs are 13px — or (b) a
+   double-tap lands anywhere zoomable. Both made phone editing
+   feel like the view was "yanking around". Under the editor's
+   mobile breakpoint every text-entry surface (inputs, textareas,
+   selects, AND the canvas's contenteditable InlineEdit spans)
+   gets the 16px floor, and touch-action: manipulation drops the
+   300ms double-tap-zoom gesture on the whole editor shell.
+   Desktop is untouched. */
+@media (max-width: 767px) {
+  .pl-redesign input,
+  .pl-redesign textarea,
+  .pl-redesign select {
+    font-size: 16px !important;
+  }
+  /* Canvas InlineEdit (contenteditable) keeps its DESIGN sizes —
+     forcing 16px would shrink hero display names. The pinned
+     editor viewport (maximumScale 1) covers its focus-zoom. */
+}
+.pl-redesign,
+.pl-redesign button,
+.pl-redesign a,
+.pl-redesign input,
+.pl-redesign textarea,
+.pl-redesign [contenteditable] {
+  touch-action: manipulation;
+}
+
+/* ═══ Touch press feedback — instant on finger-DOWN ═════════════
+   Two latency sources made phone taps feel dead:
+
+   (a) iOS's grey ghost highlight was the only tap acknowledgment.
+       We remove it — and REPLACE it with our own press states
+       below (never remove without replacing).
+
+   (b) Chrome buttons/chips animate background/color over
+       160-240ms transitions tuned for mouse hover; on touch the
+       :active state inherited that ease-in, so the pressed look
+       faded in lazily. The rules below zero the transition
+       DURATION while :active only — press lands the same frame
+       the finger does; release still animates back through each
+       element's normal transition where one exists.
+
+   Scoping: everything stays inside .pl-redesign (editor chrome
+   only), and the blanket press rule excludes the site canvas
+   (`:not(.pl8-guest *)`) — the canvas gets its own section-level
+   ack below instead, so site-theme buttons never inherit chrome
+   press styling. Framer/inline-transform elements are naturally
+   unaffected (inline styles outrank the non-!important transform
+   here).
+
+   Reduced motion: the kill-switch above already strips the
+   transitions; the subtle 0.97 press scale deliberately stays —
+   it's feedback, not decoration. */
+
+.pl-redesign,
+.pl-redesign * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Rows/tiles that act as buttons (SectionRail rows, pickers) get
+   the same no-delay treatment as real controls. */
+.pl-redesign [role='button'],
+.pl-redesign select {
+  touch-action: manipulation;
+}
+
+/* The press state — buttons, links, and role=button hotspots
+   across the topbar, rails, bottom bar, sheets, and panel atoms
+   (FSuggest chips, AddCard, toggles, FDate/FSelect triggers…). */
+.pl-redesign :is(button, a, [role='button']):not(.pl8-guest *):active {
+  transition-duration: 0s !important;
+  transform: scale(0.97);
+}
+
+/* SectionRail rows carry inline transform/transition (drag state),
+   so the press needs !important to land; skip it mid-drag and keep
+   the darker wash off the ink-filled active row. */
+.pl-redesign .pl-rd-section-row:active:not([data-dragging='true']) {
+  transition-duration: 0s !important;
+  transform: scale(0.985) !important;
+}
+.pl-redesign .pl-rd-section-row:active:not([data-dragging='true']):not([data-active='true']) {
+  background: rgba(14, 13, 11, 0.07) !important;
+}
+
+/* ═══ Canvas tap acknowledgment ═════════════════════════════════
+   On phones, tapping a section runs selectFromCanvas → React
+   state → props sheet mount before any selection chrome appears —
+   the finger-down moment showed nothing. Mirror the hover chrome
+   (dashed basting outline + section label, pearloom.css
+   .pl8-guest[data-pl-editable] rules) on :active so the
+   acknowledgment is pure CSS and fires the moment the finger
+   lands. Plain scrolling stays clean: touch-scroll cancels
+   :active in Safari/Chrome. The SELECTED section's inline solid
+   outline outranks this dashed one, and the active label drops
+   the .pl8-tsec-label class, so neither rule disturbs an
+   already-selected section. */
+.pl-redesign .pl8-guest[data-pl-editable] [data-section-id]:active > .pl8-tsec-frame {
+  outline: 1.5px dashed rgba(198, 112, 61, 0.5);
+  outline-offset: -2px;
+  transition-duration: 0s;
+}
+.pl-redesign .pl8-guest[data-pl-editable] [data-section-id]:active > .pl8-tsec-label {
+  opacity: 1;
+  transition-duration: 0s;
+}

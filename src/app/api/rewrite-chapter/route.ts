@@ -7,12 +7,13 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkPearGate } from '@/lib/rate-limit';
 import type { Chapter } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 type Tone = 'polish' | 'poetic' | 'playful' | 'intimate';
 
@@ -39,7 +40,13 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  // Plan-tier Pear gate (same as /api/inline-rewrite) — free users
+  // share the monthly AI budget (PEAR_MONTHLY_LIMIT); paid plans
+  // are unlimited.
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }

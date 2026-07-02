@@ -99,10 +99,15 @@ export function ScrollRevealInjector({ animation }: ScrollRevealInjectorProps) {
     };
 
     scan();
-    const mo = new MutationObserver(scan);
+    // Debounce MutationObserver to avoid scan-on-every-mutation jank
+    let rafId: number;
+    const mo = new MutationObserver(() => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(scan);
+    });
     mo.observe(document.body, { childList: true, subtree: true });
 
-    return () => { io.disconnect(); mo.disconnect(); };
+    return () => { io.disconnect(); mo.disconnect(); cancelAnimationFrame(rafId); };
   }, [animation]);
 
   // Always emit all CSS so per-block values work even if global is 'none'
@@ -136,9 +141,13 @@ export function PerBlockRevealCSS() {
       });
     };
     scan();
-    const mo = new MutationObserver(scan);
+    let rafId: number;
+    const mo = new MutationObserver(() => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(scan);
+    });
     mo.observe(document.body, { childList: true, subtree: true });
-    return () => { io.disconnect(); mo.disconnect(); };
+    return () => { io.disconnect(); mo.disconnect(); cancelAnimationFrame(rafId); };
   }, []);
 
   return <style>{ALL_REVEAL_CSS}</style>;

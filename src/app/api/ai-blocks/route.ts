@@ -8,11 +8,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { checkPlanAccess } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 const BLOCK_SCHEMAS: Record<string, { schema: string; fallback: unknown }> = {
   events: {
@@ -131,7 +133,7 @@ Return 5-7 FAQs that are genuinely useful for guests attending a wedding. Make t
 };
 
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+  const res = await geminiRetryFetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -153,6 +155,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Plan gate: AI block generator is an Atelier (pro) feature
+  const planAccess = await checkPlanAccess('pro');
+  if (!planAccess.allowed) {
+    return NextResponse.json({
+      error: 'plan_required',
+      requiredPlan: planAccess.requiredPlan,
+      currentPlan: planAccess.currentPlan,
+      upgradeUrl: planAccess.upgradeUrl,
+      message: 'Upgrade to Atelier to generate AI blocks.',
+    }, { status: 402 });
+  }
+
   // Rate limit by user email
   const rateCheck = checkRateLimit(`ai-blocks:${session.user.email}`, RATE_LIMITS.aiBlocks);
   if (!rateCheck.allowed) {
@@ -162,7 +176,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }

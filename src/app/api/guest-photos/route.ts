@@ -56,6 +56,12 @@ export async function POST(req: NextRequest) {
     const siteId = formData.get('siteId') as string | null;
     const uploaderName = formData.get('uploaderName') as string | null;
     const caption = formData.get('caption') as string | null;
+    // Optional guest token from /sites/[domain]/upload?t=<token>.
+    // When present, we look up the pearloom_guests row and stamp
+    // guest_id on the photo so /g/[token] can surface it as "your
+    // contribution." Bad tokens fall through silently — the
+    // upload still works, attribution just doesn't link.
+    const guestToken = formData.get('guestToken') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -77,6 +83,58 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
     }
 
+    // Host gates, enforced server-side (the /sites/[domain]/upload
+    // page checks the same flags). Both fail OPEN on lookup errors so
+    // a DB blip never blocks guests mid-reception:
+    //   • guestUploads !== false — the "Guest uploads" switch.
+    //   • rsvpConfig.guestListOnly — when on, only people already on
+    //     the guest list (resolved via their personal token) may post.
+    //     This is the same invitation gate the RSVP route enforces;
+    //     it keeps a public site from becoming an open photo dump.
+    try {
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const { createClient } = await import('@supabase/supabase-js');
+        const gateDb = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY,
+        );
+        const { data: siteRow } = await gateDb
+          .from('sites')
+          .select('id, ai_manifest')
+          .eq('subdomain', siteId)
+          .maybeSingle();
+        const manifest = siteRow?.ai_manifest as
+          | { guestUploads?: boolean; rsvpConfig?: { guestListOnly?: boolean } }
+          | null;
+        const uploadsOpen = (manifest?.guestUploads) !== false;
+        if (siteRow && !uploadsOpen) {
+          return NextResponse.json(
+            { error: 'The hosts have closed photo uploads for this celebration.' },
+            { status: 403 },
+          );
+        }
+        // Invitation-only: require a token that resolves to a guest
+        // ON this site. No valid token → warm 403, same copy shape as
+        // the RSVP gate.
+        if (siteRow && manifest?.rsvpConfig?.guestListOnly) {
+          const { resolveGuestToken } = await import('@/lib/people');
+          const resolved = guestToken ? await resolveGuestToken(gateDb, guestToken) : null;
+          const onList = !!resolved && String(resolved.siteId) === String((siteRow as { id: string }).id);
+          if (!onList) {
+            return NextResponse.json(
+              {
+                error: 'This celebration is sharing photos by invitation — please open your personal invite link to add yours. If you can’t find it, reach out to your hosts.',
+                guestListOnly: true,
+              },
+              { status: 403 },
+            );
+          }
+        }
+      }
+    } catch (gateErr) {
+      console.warn('[guest-photos] uploads gate failed (failing open):', gateErr);
+    }
+
     let ext = rawExt || 'jpg';
     if (ext === 'heic' || ext === 'heif') ext = 'jpg';
 
@@ -84,6 +142,27 @@ export async function POST(req: NextRequest) {
     const filename = `guest-photos/${Date.now()}_${uuid}.${ext}`;
 
     const plaintext = Buffer.from(await file.arrayBuffer());
+
+    // ── NSFW screen ──────────────────────────────────────────────
+    // Before the photo ever touches storage or the host's queue, run
+    // it past automated moderation. Confident sexual/explicit content
+    // is rejected outright; everything else flows on to the normal
+    // pending → host-approves path. Fails open (no key / API blip) so
+    // the host queue stays the backstop.
+    try {
+      const { moderateImageBuffer } = await import('@/lib/moderation/image-moderation');
+      const verdict = await moderateImageBuffer(plaintext, file.type || 'image/jpeg');
+      if (!verdict.allowed) {
+        console.warn(`[guest-photos] rejected by moderation (${verdict.reason ?? 'explicit'}) for site ${siteId}`);
+        return NextResponse.json(
+          { error: 'That photo can’t be shared here. Please choose a different one.' },
+          { status: 422 },
+        );
+      }
+    } catch (modErr) {
+      console.warn('[guest-photos] moderation step failed (failing open):', modErr);
+    }
+
     const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     const r2 = getR2Client();
@@ -130,9 +209,28 @@ export async function POST(req: NextRequest) {
       publicUrl = supabaseUrl;
     }
 
+    // Resolve guest_id from token (if provided) — best-effort.
+    let resolvedGuestId: string | null = null;
+    if (guestToken && guestToken.trim().length >= 6) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        );
+        const { data: guestRow } = await supabase
+          .from('pearloom_guests')
+          .select('id')
+          .eq('guest_token', guestToken.trim())
+          .maybeSingle();
+        resolvedGuestId = (guestRow as { id?: string } | null)?.id ?? null;
+      } catch { /* silent — attribution is nice-to-have */ }
+    }
+
     const photo = await addGuestPhoto({
       siteId,
       uploaderName: uploaderName.trim(),
+      guestId: resolvedGuestId,
       url: publicUrl,
       thumbnailUrl: undefined,
       caption: caption?.trim() || undefined,
@@ -142,6 +240,43 @@ export async function POST(req: NextRequest) {
     if (!photo) {
       return NextResponse.json({ error: 'Failed to save photo metadata' }, { status: 500 });
     }
+
+    // Tell the host a new photo arrived (category 'content' —
+    // instant or digest per their prefs). Fire-and-forget; never
+    // blocks the upload. siteId here is the subdomain.
+    void (async () => {
+      try {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+        const { createClient } = await import('@supabase/supabase-js');
+        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: site } = await sb
+          .from('sites')
+          .select('id, subdomain, creator_email, site_config')
+          .eq('subdomain', siteId)
+          .maybeSingle();
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+        const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+        if (!site || !ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string }).subdomain ?? 'your site');
+        const who = uploaderName.trim().split(/\s+/)[0] || 'A guest';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(sb, {
+          siteId: String((site as { id: string }).id),
+          siteLabel,
+          ownerEmail,
+          category: 'content',
+          title: `${who} shared a photo`,
+          body: `A new photo is waiting for your review before it joins the wall. Approve or remove it from your Reel.`,
+          href: '/dashboard/gallery',
+          dedupeKey: `photo:${(photo as { id?: string }).id ?? Date.now()}`,
+          // Photos are time-sensitive (they want to reach the live
+          // wall during the event), so email the host right away even
+          // though guest content otherwise defaults to the digest.
+          forceInstantEmail: true,
+        });
+      } catch (e) { console.warn('[guest-photos] notifyHost failed (non-fatal):', e); }
+    })();
 
     return NextResponse.json({ success: true, photo });
   } catch (err) {

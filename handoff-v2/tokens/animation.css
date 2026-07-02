@@ -1,0 +1,141 @@
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATION — the Pearloom motion system (utilities + keyframes)
+   ───────────────────────────────────────────────────────────────
+   The brand's motion is WEAVING: things don't just fade, they thread
+   in — content settles as if drawn into place. Springs for taps,
+   expo-out for chrome, a letterpress settle for display type, and a
+   signature two-strand "weave" wipe for page/section transitions.
+
+   Pair these classes with the JS engine (assets/pearloom-motion.js),
+   which flips [data-revealed] on scroll and plays the weave wipe.
+   Everything degrades gracefully and honours prefers-reduced-motion.
+
+   Builds on the easing/duration tokens in motion.css.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────── Scroll reveals ───────────────
+   Add data-reveal="…" to any element. It starts hidden; the engine
+   adds [data-revealed] when it scrolls into view. data-reveal-delay
+   (ms) or a parent [data-reveal-stagger] sequences children. */
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity var(--pl-dur-slow) var(--pl-ease-emphasis),
+    transform var(--pl-dur-slow) var(--pl-ease-emphasis),
+    clip-path var(--pl-dur-slow) var(--pl-ease-emphasis),
+    filter var(--pl-dur-slow) var(--pl-ease-emphasis);
+  transition-delay: var(--pl-reveal-delay, 0ms);
+}
+/* Progressive enhancement: until the engine flags the root (or if JS
+   never runs), everything is fully visible — never a blank page. */
+html:not(.pl-motion-ready) [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+  filter: none !important;
+}
+[data-reveal="up"]     { transform: translateY(22px); }
+[data-reveal="down"]   { transform: translateY(-22px); }
+[data-reveal="left"]   { transform: translateX(26px); }
+[data-reveal="right"]  { transform: translateX(-26px); }
+[data-reveal="fade"]   { transform: none; }
+[data-reveal="scale"]  { transform: scale(0.94); }
+/* thread — content is unveiled between two strands opening from the center */
+[data-reveal="thread"] { clip-path: inset(0 50% 0 50%); transform: translateY(8px); }
+/* press — display type settles INTO the paper (letterpress) */
+[data-reveal="press"]  { transform: scale(1.04); filter: blur(0.4px); opacity: 0; }
+/* rise — a gentle lift used for cards/imagery */
+[data-reveal="rise"]   { transform: translateY(34px) scale(0.985); }
+
+[data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 0 0);
+  filter: none;
+}
+
+/* Stagger: the engine stamps data-reveal-delay per child. */
+
+/* ─────────────── Display letterpress settle ───────────────
+   A heading that presses in once, on load or reveal. */
+@keyframes pl-press-in {
+  0%   { opacity: 0; transform: scale(1.05) translateY(6px); letter-spacing: 0.01em; filter: blur(0.6px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; letter-spacing: inherit; }
+}
+.pl-press-in { animation: pl-press-in var(--pl-dur-slow) var(--pl-ease-emphasis) both; }
+
+/* ─────────────── The thread divider draw-in ───────────────
+   A rule that draws from the center outward. Put on a 1px-tall element
+   (or use the Thread component); reveal flips the scale. */
+.pl-rule-draw { transform: scaleX(0); transform-origin: center; transition: transform var(--pl-dur-slow) var(--pl-ease-emphasis); }
+.pl-rule-draw[data-revealed], [data-revealed] .pl-rule-draw { transform: scaleX(1); }
+
+/* ─────────────── Micro-interactions ───────────────
+   Reusable hover/press states tuned to the brand. */
+.pl-lift { transition: transform var(--pl-dur-base) var(--pl-ease-emphasis), box-shadow var(--pl-dur-base) var(--pl-ease-emphasis); }
+.pl-lift:hover { transform: translateY(-3px); box-shadow: var(--pl-shadow-lg); }
+.pl-lift:active { transform: translateY(-1px) scale(0.995); transition-duration: var(--pl-dur-quick); }
+
+.pl-tap { transition: transform var(--pl-dur-subtle) var(--pl-ease-spring); }
+.pl-tap:active { transform: scale(0.95); }
+
+/* Link with a gold thread that weaves in from the left on hover */
+.pl-link { position: relative; text-decoration: none; color: var(--pl-olive); }
+.pl-link::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1.5px;
+  background: var(--pl-gold); transform: scaleX(0); transform-origin: left;
+  transition: transform var(--pl-dur-base) var(--pl-ease-emphasis);
+}
+.pl-link:hover::after { transform: scaleX(1); }
+
+/* Image: a slow, almost-imperceptible ken-burns drift on hover */
+.pl-kenburns { overflow: hidden; }
+.pl-kenburns > img, .pl-kenburns > .pl-kb-layer {
+  transition: transform var(--pl-dur-glacial) var(--pl-ease-out);
+  transform: scale(1.01);
+}
+.pl-kenburns:hover > img, .pl-kenburns:hover > .pl-kb-layer { transform: scale(1.06); }
+
+/* ─────────────── The Pearl ───────────────
+   Iridescent shimmer + a tactile pop. */
+@keyframes pl-pearl-pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.pl-pearl-pop { animation: pl-pearl-pop var(--pl-dur-base) var(--pl-ease-spring) both; }
+
+/* ─────────────── Ambient ───────────────
+   Decorative motifs breathe; never on content, never distracting. */
+@keyframes pl-float { 0%,100% { transform: translateY(0) rotate(var(--pl-rot,0deg)); } 50% { transform: translateY(-9px) rotate(var(--pl-rot,0deg)); } }
+.pl-float { animation: pl-float var(--pl-float-dur, 7s) var(--pl-ease-in-out) infinite; }
+@keyframes pl-drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(6px,-5px); } }
+.pl-drift { animation: pl-drift 11s var(--pl-ease-in-out) infinite; }
+
+/* ─────────────── The weave page/section transition ───────────────
+   Built by the JS engine: a full-bleed paper panel sweeps up while two
+   threads (olive + gold) draw across the seam. These classes are the
+   moving parts the engine toggles. */
+.pl-weave-overlay {
+  position: fixed; inset: 0; z-index: var(--z-max, 500); pointer-events: none;
+  display: grid; grid-template-rows: 1fr auto 1fr;
+}
+.pl-weave-panel { background: var(--pl-cream); }
+.pl-weave-panel.top { transform: scaleY(0); transform-origin: top; }
+.pl-weave-panel.bot { transform: scaleY(0); transform-origin: bottom; }
+.pl-weave-seam { height: 0; position: relative; }
+@keyframes pl-weave-close-top { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes pl-weave-close-bot { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes pl-weave-open-top  { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+@keyframes pl-weave-open-bot  { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+@keyframes pl-strand-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ─────────────── Reduced motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; filter: none !important; transition: none !important; }
+  .pl-press-in, .pl-float, .pl-drift, .pl-pearl-pop { animation: none !important; }
+  .pl-rule-draw { transform: none !important; }
+  .pl-kenburns > img, .pl-kenburns > .pl-kb-layer { transition: none !important; transform: none !important; }
+}

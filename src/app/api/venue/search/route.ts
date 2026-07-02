@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,12 @@ export interface PlaceResult {
 // GET /api/venue/search?q=...&type=autocomplete
 // GET /api/venue/search?placeId=...&type=details
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`venue-search:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const { searchParams } = req.nextUrl;
   const type = searchParams.get('type');
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
@@ -30,9 +37,41 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get('q') ?? '';
     if (!q || q.length < 2) return NextResponse.json({ predictions: [] });
 
+    // Optional viewer location — `near=lat,lng` biases Google's
+    // ranking toward results within ~50km of that point. Used when
+    // the host has granted geolocation, so a search for "Hilton"
+    // surfaces nearby Hiltons before random matches in another
+    // country.
+    const near = searchParams.get('near') ?? '';
+    let biasLat: number | undefined;
+    let biasLng: number | undefined;
+    const m = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(near);
+    if (m) {
+      biasLat = parseFloat(m[1]);
+      biasLng = parseFloat(m[2]);
+    }
+
+    // `kind=hotel` restricts to lodging; `kind=airport` to airports.
+    // Used by the editor's hotel-add + airport-add rows so a host
+    // typing "JFK" doesn't get a pizza place.
+    const kind = searchParams.get('kind') ?? '';
+    const wantsHotel = kind === 'hotel';
+    const wantsAirport = kind === 'airport';
+
     // ── Primary: Google Places API ──
     if (apiKey) {
       try {
+        const reqBody: Record<string, unknown> = { input: q };
+        if (typeof biasLat === 'number' && typeof biasLng === 'number') {
+          reqBody.locationBias = {
+            circle: { center: { latitude: biasLat, longitude: biasLng }, radius: 50000 },
+          };
+        }
+        if (wantsHotel) {
+          reqBody.includedPrimaryTypes = ['lodging'];
+        } else if (wantsAirport) {
+          reqBody.includedPrimaryTypes = ['airport'];
+        }
         const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
           method: 'POST',
           headers: {
@@ -40,7 +79,7 @@ export async function GET(req: NextRequest) {
             'X-Goog-Api-Key': apiKey,
             'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
           },
-          body: JSON.stringify({ input: q }),
+          body: JSON.stringify(reqBody),
           signal: AbortSignal.timeout(5000),
         });
 
@@ -59,7 +98,7 @@ export async function GET(req: NextRequest) {
           };
 
           const predictions: PlaceResult[] = (json.suggestions ?? [])
-            .slice(0, 5)
+            .slice(0, 6)
             .map(s => ({
               id: s.placePrediction?.placeId ?? '',
               displayName: s.placePrediction?.structuredFormat?.mainText?.text

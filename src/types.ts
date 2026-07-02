@@ -1,8 +1,88 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / types.ts — canonical type system
+// Pearloom / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
-import type { VibeSkin } from '@/lib/vibe-engine';
+import type { SiteOccasion } from '@/lib/site-urls';
+
+/**
+ * Per-block style overrides.
+ * Each section can override these without touching the global theme.
+ * All fields optional — undefined means inherit from globals.
+ */
+/** Per-block-type style choice. Stored in `manifest.blockStyles[blockType]`.
+ *  The variant id is registered via registerBlockStyle() in
+ *  src/lib/block-engine/block-styles.ts; options is opaque to the
+ *  engine and validated by the variant itself. */
+export interface BlockStyleSelection {
+  style: string;
+  options?: Record<string, unknown>;
+}
+
+/** One historical AI decor draft. Lives in `manifest.decorDrafts.<slot>[]`,
+ *  most recent first, capped at 5 entries per slot. */
+export interface DecorDraft {
+  id: string;
+  url: string;
+  /** The full prompt that was sent to the model (post auto-context expansion). */
+  prompt: string;
+  /** User-provided custom hint, if any. Re-loaded into the composer
+   *  when the user reverts to this draft. */
+  customPrompt?: string;
+  /** ISO timestamp. */
+  createdAt: string;
+  /** True when alpha-channel cleanup succeeded. False = the original
+   *  opaque output is shown; the UI surfaces a "couldn't isolate" hint. */
+  isolated?: boolean;
+}
+
+/** Section stamps come back as a sheet of 6, sliced into per-section
+ *  URLs. We keep the whole set together so reverting swaps all six. */
+export interface SectionStampsDraft {
+  id: string;
+  stamps: Partial<Record<string, string>>;
+  prompt: string;
+  customPrompt?: string;
+  createdAt: string;
+}
+
+export interface BlockStyleOverride {
+  /** Vertical breathing room override: 'cozy' | 'comfortable' | 'spacious' | 'lush' */
+  spacing?: string;
+  /** Card corner radius override: 'sharp' | 'soft' | 'rounded' | 'pillow' */
+  cardRadius?: string;
+  /** Card shadow weight: 'none' | 'soft' | 'lifted' | 'floating'.
+   *  Default (omitted) keeps the card's intrinsic shadow. Hosts pick
+   *  per-section so e.g. hotels can read flat while details lift. */
+  cardShadow?: 'none' | 'soft' | 'lifted' | 'floating';
+  /** Card border treatment: 'none' | 'hairline' | 'heavy'. */
+  cardBorder?: 'none' | 'hairline' | 'heavy';
+  /** Card interior padding: 'compact' | 'default' | 'generous'. */
+  cardPadding?: 'compact' | 'default' | 'generous';
+  /** Card silhouette: 'pillow' | 'sharp' | 'scallop' | 'arch'. Different
+   *  shape language than `cardRadius` — radius rounds the corners,
+   *  shape changes the actual outline (a scalloped card has wavy
+   *  edges; an arch is rounded only at the top). Omitted = defer
+   *  to cardRadius for corners. */
+  cardShape?: 'pillow' | 'sharp' | 'scallop' | 'arch';
+  /** Card backdrop tint: 'paper' | 'cream-2' | 'vellum' | 'gold-mist'.
+   *  Cosmetic-only — doesn't change spacing or border. Layers on top
+   *  of the section background so cards stand out without shadow. */
+  cardBackdrop?: 'paper' | 'cream-2' | 'vellum' | 'gold-mist';
+  /** Horizontal alignment of section copy. */
+  textAlign?: 'left' | 'center' | 'right';
+  /** Override container max-width (px). Useful for narrowing prose-heavy
+   *  sections so reading lines stay tight. */
+  maxWidth?: number;
+  /** Pad the inside of the section by extra px. */
+  paddingY?: number;
+  /** Override text colour for this section. CSS color string. */
+  textColor?: string;
+  /** Override background. CSS color string, or 'paper' / 'wash' / 'mesh'
+   *  (which delegate to SectionBackground). */
+  background?: string;
+  /** Hide the entire section without removing it from the manifest. */
+  hidden?: boolean;
+}
 
 /**
  * Story Manifest
@@ -16,46 +96,485 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
-  // What type of life event is this site for?
-  occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+  // Couple names — mirrored into the manifest so the editor can
+  // write through without needing a separate parent-level setter.
+  // Falls back to the `coupleNames` prop when absent.
+  names?: [string, string];
+  // User-uploaded hero cover photo (overrides AI-generated art)
+  coverPhoto?: string;
+  /** Focal point of the cover photo as percentages (0-100). When
+   *  set, the hero variant uses these as `background-position` so
+   *  the most-important part of the photo stays visible across
+   *  device crops. Default { x: 50, y: 50 } when omitted. */
+  coverFocalPoint?: { x: number; y: number };
+  // Hero slideshow: multiple photos that auto-rotate in the hero section
+  heroSlideshow?: string[];
+  // What type of life event is this site for? See SiteOccasion
+  // in src/lib/site-urls.ts for the full registry (28 events as
+  // of 2026-04-22). The legacy 5 ship; the rest are in beta.
+  occasion?: SiteOccasion;
+  // Which brand family renders the published site?
+  //   'editorial' — the classic Pearloom letterpress + thread
+  //                 aesthetic. Default for weddings, anniversaries,
+  //                 memorials, funerals, religious ceremonies.
+  //   'groove'    — warm, wavy, pear-and-loom organic aesthetic.
+  //                 Default for bachelor/ette, birthdays, reunions,
+  //                 baby showers, retirements — celebratory events.
+  // Seeded by occasion voice at generation time; host can override
+  // in the editor. See src/lib/event-os/theme-family.ts.
+  themeFamily?: 'editorial' | 'groove';
+  /** Prototype theme catalog id — santorini / tuscan / garden /
+   *  editorial / midnight / coastal. When set, the renderer emits
+   *  the FULL --t-* token set from that theme via themeRootStyle()
+   *  per the integration guide §0 (the primary visual contract).
+   *  Theme-Store packs also write this (with the pack id) so the
+   *  renderer recognizes a pack-applied site. */
+  themeId?: string;
+  /** Raw --t-* var bag from an applied Theme-Store pack. Overrides
+   *  the 6-base-theme catalog when present — lets premium packs
+   *  paint their exact shadow / radius / accent-2 / gold / rsvp /
+   *  script / eyebrow-ls etc. (the 67-pack catalog carries 30+
+   *  --t-* values each; theme.colors only carries 6). */
+  themeVars?: Record<string, string>;
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
+  // Story chapter layout — controls how individual chapters render in the story section.
+  // Defaults to 'parallax' (premium cinematic) when unset. See src/components/blocks/StoryLayouts.tsx.
+  storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
+  // User-configurable date format for chapter headers. Presets are defined
+  // in CHAPTER_DATE_FORMATS in src/components/blocks/StoryLayouts.tsx.
+  // Omitted = "long" default (January 15, 2024).
+  dateFormat?: 'long' | 'short' | 'numeric' | 'iso' | 'month-year';
   logistics?: {
     venue?: string;
     venueAddress?: string;
     venuePlaceId?: string;
+    /** Cached lat/lng of the picked venue. Written when the host
+     *  selects from PlaceAutocomplete so downstream search (hotel
+     *  nearby + autocomplete bias) and the map renderer don't have
+     *  to re-geocode. Without these, "fira" or other terse venue
+     *  names fail geocoding and the hotel-suggest button errors. */
+    venueLat?: number;
+    venueLng?: number;
     date?: string;
     time?: string;
     rsvpDeadline?: string;
     dresscode?: string;
     notes?: string;
+    /** IANA timezone identifier (e.g. 'America/Los_Angeles'). When
+     *  set, the countdown + display formatters anchor on this zone
+     *  so a guest in Tokyo and a host in NYC see the same wall-clock
+     *  time for the event. Falls back to the viewer's local zone. */
+    timezone?: string;
+  };
+  /** The person a vendor calls on the day — usually the planner,
+   *  the MOH, or a parent, deliberately NOT the host mid-ceremony.
+   *  Surfaced on the vendor call sheet (/vp/[token]) as a
+   *  tap-to-call card. Optional; when unset the call sheet simply
+   *  omits the contact card — the host's account email is never
+   *  used as a fallback. */
+  dayOfContact?: {
+    name?: string;
+    phone?: string;
+  };
+  /** Optional Details-strip extensions. The default 3 cards
+   *  (ceremony, reception, dress code) are always built from
+   *  logistics + events; this opens up:
+   *    • per-card "what to expect" expand text
+   *    • host-authored custom cards beyond the preset 3 */
+  details?: {
+    /** Free-form parking & arrival blurb shown on a dedicated card. */
+    parking?: string;
+    /** Accessibility blurb shown on a dedicated card. */
+    accessibility?: string;
+    /** Per-card "what to expect" expand body. Keyed by the card id
+     *  ('ceremony' | 'reception' | 'dressCode' | the custom card's
+     *  uuid) so re-titling doesn't lose the body. */
+    expand?: Record<string, string>;
+    /** Host-authored custom cards. Render after the preset 3, in
+     *  order. Title + body are required; everything else is optional. */
+    customCards?: Array<{
+      id: string;
+      title: string;
+      body: string;
+      icon?: string;
+      tone?: 'lavender' | 'peach' | 'sage';
+      /** When set, an "Add to calendar" + "Directions" chip appears. */
+      address?: string;
+      /** Optional explicit time (e.g. "5:00 PM" — only used as
+       *  display; calendar/directions chips key off the venue
+       *  date + address). */
+      time?: string;
+    }>;
   };
   registry?: {
     enabled: boolean;
     cashFundUrl?: string;
     cashFundMessage?: string;
     message?: string;
+    /** Optional cash-fund progress display. When set, the public
+     *  registry shows a "we've raised X of Y" thread above the
+     *  cash-fund card. `target` is the dollar goal; `raised` is
+     *  the running total credited to the fund (host-edited or
+     *  webhook-incremented). Pearloom doesn't do bookkeeping —
+     *  just a presentation field. */
+    cashFundTarget?: number;
+    cashFundRaised?: number;
+    cashFundCurrency?: string;
     // Multi-registry support
-    entries?: Array<{ name: string; url: string; note?: string }>;
+    entries?: Array<{
+      name: string;
+      url: string;
+      note?: string;
+      /** Optional product / registry-host thumbnail. Renders on
+       *  the registry card + sidebar tile in the Quick Edit modal. */
+      photoUrl?: string;
+      /** Optional price hint as a free-form string ("$120", "Group
+       *  gift", "From $40"). Free-form so non-USD or "from-X"
+       *  patterns work without a number column. */
+      priceLabel?: string;
+      /** Per-row badges. The "Most loved" auto-badge lives in
+       *  hideAuto when the host wants it suppressed; custom labels
+       *  ("Couple's pick", "Group gift", "Already bought") under
+       *  custom. */
+      badges?: {
+        hideAuto?: string[];
+        custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+      };
+    }>;
   };
-  // AI-generated visual skin — cached on publish so it's not re-generated on every load
-  vibeSkin?: VibeSkin;
+  /** R2-lite cash funds — the HOST'S OWN P2P handles. Pearloom
+   *  never processes gift money; these render as "Give directly"
+   *  links on the registry section, and the honor ledger
+   *  (gift_pledges table via /api/gift-pledges) keeps the
+   *  guest-shared running thread. Normalization helpers live in
+   *  src/lib/registry-funds.ts. Written by RegistryPanel's
+   *  "Where guests can give" group (fund + donation modes). */
+  registryFunds?: {
+    /** Venmo username, stored without the @ prefix. */
+    venmo?: string;
+    /** PayPal.Me link (https enforced at link-build time). */
+    paypal?: string;
+    /** Cash App cashtag, stored without the $ prefix. */
+    cashapp?: string;
+    /** Zelle email-or-phone — display + copy only (no deep link). */
+    zelle?: string;
+    /** Optional display goal in cents — drives the pledge-driven
+     *  progress bar ("as shared by guests"). */
+    goalCents?: number;
+  };
   // Multiple wedding events (ceremony, reception, rehearsal dinner, etc.)
   events?: WeddingEvent[];
   // FAQs from the couple
   faqs?: FaqItem[];
   // Travel & lodging info
   travelInfo?: TravelInfo;
+  /** Menu section (SectionKind 'menu') — the editorial menu card.
+   *  Courses hold dishes; per-dish `tags` are dietary chips
+   *  (Vegetarian / Vegan / GF / Nut-free / Spicy). Edited by
+   *  MenuPanel; rendered by section-variants/blocks/menu.tsx. */
+  menuSection?: {
+    intro?: string;
+    courses: Array<{
+      id: string;
+      name: string;
+      items: Array<{ id: string; name: string; description?: string; tags?: string[] }>;
+    }>;
+  };
+  /** Dress code section (SectionKind 'dressCode') — `code` is the
+   *  headline ("Garden formal"), `note` one sentence, `palette`
+   *  optional hex swatches guests can dress to, `examples`
+   *  do/don't chips ("Linen suits", "No white"). Edited by
+   *  DressCodePanel; rendered by
+   *  section-variants/blocks/dress-code.tsx. */
+  dressCodeSection?: {
+    code?: string;
+    note?: string;
+    palette?: string[];
+    examples?: Array<{ label: string; hint?: string }>;
+  };
+  /** Name vote section (SectionKind 'nameVote') — the baby-shower /
+   *  gender-reveal name ballot. Host-authored `options` are the
+   *  names on the ballot; guests vote through the SAME
+   *  /api/event-os/votes contract as activityVote (block id
+   *  'name-vote', option ids slugged from the labels — see
+   *  lib/event-os/activity-votes.ts). `reveal` hides the tallies
+   *  until the guest has cast their own vote. Edited by
+   *  NameVotePanel; rendered by section-variants/blocks/name-vote.tsx. */
+  nameVote?: {
+    question?: string;
+    options?: string[];
+    reveal?: boolean;
+  };
+  /** Then & now section (SectionKind 'thenAndNow') — before/after
+   *  photo pairs for reunions, milestone birthdays, retirements,
+   *  graduations. Edited by ThenAndNowPanel; rendered by
+   *  section-variants/blocks/then-and-now.tsx. */
+  thenAndNow?: Array<{
+    id: string;
+    /** Photo URLs (R2/CDN). Either side may be empty while the host
+     *  is still gathering photos — the renderer shows what exists. */
+    then?: string;
+    now?: string;
+    /** One quiet line under the pair — "Maya · 1998 / 2026". */
+    caption?: string;
+  }>;
+  /** Per-photo gallery captions, keyed by the photo's index in
+   *  `galleryImages` (stringified number, e.g. `{ "0": "First dance" }`).
+   *  Index keying is deliberate: `galleryImages` is a plain string[] of
+   *  URLs with no per-photo id to key on, and migrating that array to
+   *  an object shape would break every existing reader — so a sidecar
+   *  record keyed by index is the simplest additive, non-breaking shape.
+   *  GalleryPanel reindexes this map when a photo is removed so captions
+   *  stay attached to the right photo. */
+  galleryCaptions?: Record<string, string>;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
+  // Legacy renderer version flag — preserved for older DB rows + any
+  // downstream consumer that still keys off it. As of 2026-06-01,
+  // ThemedSiteRenderer is the only renderer; this field has no effect
+  // on rendering and is set to 'v2' on new wizard generations purely
+  // for backwards compatibility. See CLAUDE-PRODUCT.md §10.
+  rendererVersion?: 'classic' | 'v2';
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
+  // Template-applied identifier (optional). When set, references an id in
+  // SITE_TEMPLATES — used by the renderer to look up signature motifs.
+  templateId?: string;
+  // Template-applied signature ornaments: blob, stamp, squiggle, sparkle,
+  // heart, postIt, polaroid. Rendered on the hero and page decorations.
+  motifs?: {
+    blob?: 'sage' | 'peach' | 'lavender' | 'cream' | 'dusk' | 'warm' | 'none';
+    stamp?: { text: string; icon?: string; tone?: string; rotation?: number };
+    squiggle?: 1 | 2 | 3;
+    sparkle?: boolean;
+    heart?: boolean;
+    postIt?: { text: string; tone?: string; rotation?: number };
+    polaroid?: boolean;
+  };
+  /** Hero decoration library.
+   *  - `occasion` (default): per-event shape set (disco ball for sweet-16,
+   *    candles for memorial, balloons for baby shower, etc.) drawn by
+   *    OccasionDecor. Adapts to the template palette automatically.
+   *  - `classic`: the original v8 cream-blobs + squiggle look that ships
+   *    with most wedding templates today.
+   *  - `off`: clean hero, no ambient decoration. */
+  decorStyle?: 'occasion' | 'classic' | 'off';
+  /** AI-generated hero graphic — cached PNG URL. When set, the renderer
+   *  overlays this accent alongside the OccasionDecor set. Produced by
+   *  /api/decor/ai-accent from venue + palette + occasion. */
+  aiAccentUrl?: string;
+  /** Full AI decor library — generated once per site from the palette +
+   *  occasion + venue via /api/decor/library. Each slot caches a
+   *  permanent R2 URL that the renderer composites into the real site. */
+  decorLibrary?: {
+    /** Wide divider image used between every section — breaks the flat
+     *  hairline rule with hand-drawn editorial flourish. */
+    divider?: string;
+    /** Per-section stamp URLs (wax-seal feel) keyed by block type:
+     *  story, schedule, travel, registry, rsvp, faq, gallery. Rendered
+     *  inside each section's eyebrow. */
+    sectionStamps?: Partial<Record<string, string>>;
+    /** Confetti PNG that plays on RSVP 'yes' submission — a single
+     *  burst tile, animated client-side. */
+    confetti?: string;
+    /** Editorial closing flourish rendered above the site footer. */
+    footerBouquet?: string;
+    /** ISO timestamp of the last full-library regeneration. Used by
+     *  the editor to decide whether a re-prompt is cheap or costly. */
+    updatedAt?: string;
+    /** Visual prominence of the divider band between sections.
+     *  subtle ≈ 44px, standard (default) ≈ 84px, tall ≈ 120px. */
+    dividerStrength?: 'subtle' | 'standard' | 'tall';
+    /** Host-uploaded SVG/PNG decor — stationer monograms, custom
+     *  flourishes, anything an AI pass wouldn't draw exactly. Each
+     *  entry is a permanent R2 URL plus a label the host typed in.
+     *  Surfaces on the editor's Decor tab as draggable tiles. */
+    uploads?: Array<{ id: string; url: string; label: string; mime: 'image/svg+xml' | 'image/png'; addedAt: string }>;
+  };
+  /** Hero monogram — couple/honoree initials in one of three frames.
+   *  Direct port of the prototype's MonogramTab crest generator
+   *  (ClaudeDesign/pages/decor-library.jsx). When set, the renderer
+   *  mounts a watermark in the hero's top-right corner. The editor's
+   *  Decor Library panel hosts the configurator.
+   *
+   *  - `initials`: free-text (e.g. 'E & J', 'EJ', 'Anna & Ben'). The
+   *    Monogram component normalises this to two initials at render
+   *    time. When omitted, falls back to manifest.names.
+   *  - `frame`: 'ring' (1.5px circle), 'diamond' (1.5px 45°-rotated
+   *    square), 'laurel' (curved branches with leaf ellipses), or
+   *    'none' (plain initials). */
+  monogram?: {
+    initials?: string;
+    /** Frame treatment. The renderer (site/Monogram) supports the full
+     *  MonogramFrame union (ring, diamond, laurel, none, shield, oval,
+     *  arch, sprig, seal, wreath, halo, …); typed loose here to avoid a
+     *  component→types import cycle. The Theme panel's Ornaments picker
+     *  and the Decor Library both write it. */
+    frame?: string;
+  };
+  /** Section-divider ornament (manifest-level override of the theme's
+   *  default). Read by ThemedSite as `dividerLook` → <KDivider>. Built-in
+   *  looks: sprig, thread, vine, wave, dot, diamond, brush, deckle,
+   *  arrow, seal, bow. Design-system v2 brand ornaments are prefixed
+   *  `pl-` (pl-fleuron, pl-pearl, pl-sprig, pl-diamond, pl-infinity,
+   *  pl-sun, pl-cross) and render via the brand <Divider>. Set by the
+   *  Theme panel's Ornaments picker. */
+  dividerLook?: string;
+  /** Section motif mark. Read by ThemedSite as `motifKind` → <MotifLayer>
+   *  / <MotifScatter>. Built-in botanical kinds (olive, bloom, laurel,
+   *  rose, dove, …) plus design-system v2 brand line-ornaments prefixed
+   *  `pl-` (pl-sprig, pl-rings, pl-laurel, pl-cake, …) which render via
+   *  the brand <Motif>. Set by the Theme panel's Ornaments picker. */
+  motifKind?: string;
+  /** Where motif marks live across sections — read by ThemedSite →
+   *  <MotifLayer>. Set by the Theme panel's Ornaments picker. */
+  motifLayout?: 'scattered' | 'corners' | 'margins' | 'dividers' | 'crest' | 'none';
+  /** The Sealed Arrival — how the published site opens the first
+   *  time a guest taps the link (ArrivalReveal, mounted by
+   *  PublishedSiteShell; host control in the editor's Share panel).
+   *  - 'auto' (default when unset): matched to the occasion —
+   *    solemn voices (memorial / funeral) get the quiet thread
+   *    reveal, everything else gets the sealed envelope.
+   *  - 'envelope': wax-seal envelope + curtain reveal.
+   *  - 'quiet': single thread + name, gentle fade.
+   *  - 'off': the site opens plain. */
+  arrival?: 'auto' | 'envelope' | 'quiet' | 'off';
+  /** Site-level privacy. When password is set, PublishedSiteShell
+   *  mounts the password gate before the site renders (client-side
+   *  gate — parity with the legacy PasswordGate). Edited in the
+   *  editor's Privacy panel; DashSettings deep-links ?jump=privacy. */
+  privacyGate?: { password?: string };
+  /** Tribute wall section (SectionKind 'tributeWall') host config —
+   *  written by the editor's TributeWallPanel.
+   *  - prompt: composer line ("Share a memory"); unset falls back
+   *    to memorial.tributePrompt, then the occasion copy pack.
+   *  - composerOpen (default true; memorial sites fall back to
+   *    memorial.tributeWallOpen): closes the composer without
+   *    hiding already-approved tributes.
+   *  Guest tributes themselves never live on the manifest — they
+   *  sit in Supabase `tribute_submissions` (POST
+   *  /api/event-os/submissions, blockId 'tributeWall') and reach
+   *  the wall only once approved at /dashboard/submissions. */
+  tributeWall?: { prompt?: string; composerOpen?: boolean };
+  /** Per-icon name override map. Drag any icon from the asset
+   *  library onto a canvas glyph to write
+   *  `iconOverrides[<originalName>] = <newName>`. The renderer
+   *  reads this map and renders the swapped icon everywhere the
+   *  original used to appear. Reset via the editor's Icons tab. */
+  iconOverrides?: Record<string, string>;
+  /** Per-icon animation choice keyed by the original icon name.
+   *  Modes: 'still' (no motion), 'hover' (one play on parent
+   *  hover), 'constant' (gentle continuous loop). Editorial icons
+   *  ship with a default mode that the host can override here. */
+  iconAnimations?: Record<string, 'still' | 'hover' | 'constant'>;
+  /** Block-type → variant choice map (registered via
+   *  registerBlockStyle in src/lib/block-engine/block-styles.ts).
+   *  Distinct from `blockStyles` above, which holds per-section
+   *  visual overrides (padding, divider, etc.) — `blockVariants`
+   *  picks WHICH layout shape a block renders with. */
+  blockVariants?: Partial<Record<string, BlockStyleSelection>>;
+  /** Top-of-page nav customization. Shape:
+   *    - style: registered nav variant id ('classic' default)
+   *    - icon: brand glyph customization
+   *        - kind: 'pear' (default), 'asset' (preset library),
+   *          'image' (uploaded URL), 'ai' (gpt-image-2 generated)
+   *        - assetId: when kind='asset', the entry id from
+   *          src/components/pearloom/assets/nav-icons
+   *        - imageUrl: when kind='image' or 'ai', the R2 URL
+   *  All fields optional — unset = current Pear default. */
+  nav?: {
+    /** Desktop nav layout (≥ 720px). 9 variants registered in
+     *  ThemedSiteRenderer.NavBody. */
+    style?:
+      | 'classic'
+      | 'centered'
+      | 'stacked'
+      | 'minimal'
+      | 'hairline-horizontal'
+      | 'centered-lockup'
+      | 'stacked-editorial'
+      | 'folio-page-number'
+      | 'floating-pill';
+    /** Mobile nav layout (< 720px). 4 variants registered. Optional —
+     *  when unset, the renderer falls back to the desktop variant's
+     *  responsive degradation. */
+    mobileStyle?:
+      | 'drawer-hamburger'
+      | 'sticky-bottom-pill'
+      | 'hairline-collapsing'
+      | 'folded-expand';
+    icon?: {
+      kind?: 'pear' | 'asset' | 'image' | 'ai';
+      assetId?: string;
+      imageUrl?: string;
+    };
+  };
+  /** Per-slot draft history. Every successful decor generation gets
+   *  appended (most-recent-first), capped at 5 entries per slot. The
+   *  ACTIVE asset is whatever lives in `aiAccentUrl` /
+   *  `decorLibrary.{divider,confetti,footerBouquet}` /
+   *  `decorLibrary.sectionStamps[*]` — selecting a draft just copies
+   *  its url over. Removing the active asset doesn't drop history. */
+  decorDrafts?: {
+    accent?: DecorDraft[];
+    divider?: DecorDraft[];
+    confetti?: DecorDraft[];
+    footerBouquet?: DecorDraft[];
+    /** Each entry is a full 6-stamp set (the model returns a 3×2 grid
+     *  that we slice into six). */
+    sectionStamps?: SectionStampsDraft[];
+  };
+  // (stickers array declared below — the existing StickerItem
+  // interface has been extended with optional url + blockId + scale
+  // so AI-generated stickers and library-based stickers share the
+  // same array shape.)
+  // Ordered list of block types (matches PageBlock['type']) that the
+  // renderer should follow when a template imposes a specific structure.
+  blockOrder?: string[];
+  // Block types that the template explicitly hides (e.g. minimalist templates
+  // that omit registry/faq).
+  hiddenBlocks?: string[];
+  // Site rendering mode. 'scroll' (default) renders every section on
+  // a single home page. 'multi-page' splits each section into its own
+  // route at /{occasion}/{slug}/{block}, leaving only homePageBlocks
+  // on the home page. EventNav resolves links accordingly.
+  siteMode?: 'scroll' | 'multi-page';
+  // Day-Of Mode override. 'auto' (default) auto-enables on the
+  // event day + morning after. 'on' forces live-mode chrome
+  // (rehearsals / demos). 'off' suppresses it entirely.
+  dayOfMode?: 'auto' | 'on' | 'off';
+  // Voice DNA — captured by the host once via /dashboard/voice
+  // and threaded into every Claude pass that drafts copy. Makes
+  // generated text sound like the host, not a brand.
+  voiceDNA?: {
+    tone: string;
+    formality: number;          // 1 (very casual) .. 5 (very formal)
+    vocabulary: string[];       // distinctive words they use
+    phrases: string[];          // signature short phrases
+    avoidList?: string[];
+    greetingStyle?: string;
+    signoffStyle?: string;
+    capturedAt: string;
+  };
+  // Seating plan — written by the seating arranger
+  // (/dashboard/seating → PATCH /api/sites/seating, which owns
+  // sanitization + caps) and read back there plus by the day-of
+  // room's "Seating at a glance" card. assignments maps guest id
+  // → table id.
+  seatingPlan?: {
+    tables?: Array<{ id: string; name: string; capacity: number; group?: string }>;
+    assignments?: Record<string, string>;
+  };
+  // Which sections live on the home page in multi-page mode.
+  // Defaults to ['story','gallery'] when omitted. 'details' is
+  // always included implicitly. All other sections become their
+  // own dedicated pages.
+  homePageBlocks?: string[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
   customPages?: CustomPage[];
-  // Last asset selected from the asset library (for canvas insertion)
-  lastAsset?: { id: string; type: 'dividers' | 'illustrations' | 'accents'; name: string };
   // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro, welcome statement
   poetry?: {
     heroTagline: string;         // 5-8 word poetic subtitle for the hero section
@@ -75,16 +594,28 @@ export interface StoryManifest {
   spotifyPlaylistName?: string;
   // Vibe discovery tags — shown in public vibe gallery
   vibeTags?: string[];
-  // Preview share token (unpublished preview link)
-  previewToken?: string;
-  // Anniversary mode — transforms site after wedding date passes
-  anniversaryMode?: boolean;
-  anniversaryPhotos?: ChapterImage[];
-  // Multi-language: translated content keyed by locale
-  translations?: Record<string, { chapters?: Array<{ title: string; subtitle: string; description: string }> }>;
+  // Multi-language: translated content keyed by locale (e.g. 'es',
+  // 'fr', 'ja'). Replaces the runtime DOM-walk translate hack with a
+  // proper persisted shape — published sites read from
+  // translations[locale] when ?lang=xx is set or browser language matches.
+  translations?: Record<string, {
+    /** Per-chapter translated copy. Keyed by chapter id when
+     *  available, falls back to index. */
+    chapters?: Array<{ id?: string; title?: string; subtitle?: string; description?: string }>;
+    /** Translated poetry: heroTagline, closingLine, rsvpIntro,
+     *  welcomeStatement. Each optional. */
+    poetry?: { heroTagline?: string; closingLine?: string; rsvpIntro?: string; welcomeStatement?: string };
+    /** Translated FAQ array (same shape as faq[]). */
+    faq?: Array<{ id?: string; question?: string; answer?: string }>;
+    /** Translated event names + descriptions. */
+    events?: Array<{ id?: string; name?: string; description?: string }>;
+    /** Free-form key→string for everything else (block titles,
+     *  subtitles, custom labels). */
+    strings?: Record<string, string>;
+    /** When this locale was last regenerated. */
+    updatedAt?: string;
+  }>;
   activeLocale?: string;
-  // Real-time collab: current editor session info
-  collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
   // Site analytics — lightweight view counter
   analytics?: { views: number; lastViewed?: string };
   // RSVP responses collected for this site
@@ -97,7 +628,29 @@ export interface StoryManifest {
   logoIcon?: LogoIconId;
   // AI-generated custom SVG logo icon (overrides logoIcon when present)
   logoSvg?: string;
-  // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
+  // Navigation bar style variant
+  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating' | 'centered' | 'sidebar' | 'command';
+  // Mobile-specific nav style (independent from desktop)
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden' | 'floating-island';
+  // Custom page label overrides (page id → display text in nav)
+  pageLabels?: Record<string, string>;
+  // Nav bar customization — opacity (0-100) and custom background color
+  navOpacity?: number;
+  navBackground?: string;
+  // SEO
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+  // Celebration — groups this site with sibling Pearloom sites
+  // that belong to the same real-world celebration (e.g. a
+  // wedding weekend with its own bachelor party + rehearsal +
+  // brunch sites). Sites sharing the same `id` are siblings;
+  // the group is discoverable via /api/celebrations/siblings.
+  celebration?: {
+    id: string;    // opaque grouping key (UUID or host-defined)
+    name: string;  // display name — "Emma & James's wedding weekend"
+  };
+  // Page ids to hide from nav
   hiddenPages?: string[];
   // Feature flags for optional site sections
   features?: {
@@ -108,6 +661,416 @@ export interface StoryManifest {
   };
   // Decorative SVG stickers placed on the site
   stickers?: StickerItem[];
+  // Wedding party members
+  weddingParty?: WeddingPartyMember[];
+  // Meal options for RSVP
+  mealOptions?: MealOption[];
+  /**
+   * Living atmosphere — animated background layer that gives the
+   * published site movement. Eight named kinds, three intensity
+   * levels, a host-controlled list of which sections receive it.
+   * Honours prefers-reduced-motion and pauses in background tabs.
+   * See src/components/pearloom/site/LivingAtmosphere.tsx.
+   */
+  atmosphere?: {
+    /** 'motes' | 'threads' | 'petals' | 'confetti' | 'candlelight'
+     *   | 'stars' | 'sunshimmer' | 'none' */
+    kind?: string;
+    /** 'subtle' | 'standard' | 'lush' */
+    intensity?: string;
+    /** Which sections render the atmosphere. Empty = hero only. */
+    sections?: string[];
+    /** Optional accent color override; falls back to theme accent. */
+    accent?: string;
+    /** Audio opt-in: if set, plays an ambient loop at -22dB after first
+     *  user interaction. URL points to a 30-60s seamless loop. */
+    audio?: { url?: string; label?: string; enabled?: boolean };
+  };
+  /** Per-section background overrides — 'paper' | 'wash' | 'mesh'
+   *  | 'atmosphere' | 'none'. Sections fall back to default when
+   *  not set. Section keys: 'top' | 'our-story' | 'schedule'
+   *  | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  sectionBackgrounds?: Record<string, string>;
+  /** Per-section atmosphere overrides. When the section background
+   *  is 'atmosphere', these let the host swap kind/intensity for
+   *  just that section without changing the global hero atmosphere. */
+  sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }>;
+  /** Show / hide individual decor primitives the editor renders.
+   *  Keys are the decor element ids; values are visibility flags. */
+  decorVisibility?: Record<string, boolean>;
+  /** Per-decor placement overrides — host can drag and resize any
+   *  decor element. dx/dy are pixel offsets from the slot's natural
+   *  position; scale is a 0.5–2 multiplier on the rendered size. */
+  decorPlacements?: Record<string, { dx?: number; dy?: number; scale?: number }>;
+  /** Custom palettes saved by the host — surfaced in the Theme panel
+   *  alongside the curated library. Each carries the same shape as a
+   *  curated preset so the picker treats them identically. */
+  customPalettes?: Array<{
+    id: string;
+    name: string;
+    /** [accent, secondary, tertiary, paper, deep, soft] for the swatch row. */
+    colors: string[];
+    theme: { background: string; foreground: string; accent: string; accentLight: string; muted: string; cardBg: string };
+    /** Marks AI-generated entries so the UI can label them. */
+    source?: 'ai' | 'custom';
+    rationale?: string;
+    createdAt?: string;
+  }>;
+  /** Manifest schema version — bumped when we add migration-required
+   *  fields. Editor reads this and runs migrations on open if older. */
+  schemaVersion?: number;
+  /** Last 10 manifest snapshots taken at every save. Lets the host
+   *  scrub backwards through time inside the editor without leaving
+   *  the page. Persisted with the manifest so it survives reloads. */
+  snapshots?: Array<{
+    id: string;
+    createdAt: string;
+    /** Plain-English label — auto-derived from what changed. */
+    label: string;
+    /** Compact diff: a short hash of the manifest at this point so we
+     *  can tell snapshots apart visually. The full payload lives at
+     *  the top-level manifest itself when the snapshot is restored. */
+    payload: Record<string, unknown>;
+  }>;
+  /** Per-block style overrides. Lets the host tweak any one section's
+   *  spacing, alignment, padding, or text colour without touching the
+   *  global theme. Sections fall back to global defaults when not set.
+   *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
+   *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
+  blockStyles?: Record<string, BlockStyleOverride>;
+  /** Pear's draft trail — flags which sections were auto-drafted
+   *  by the generation pipeline so the editor can show a "Pear
+   *  drafted this — accept or rewrite" affordance per section.
+   *  Hosts confirming a draft set the flag to false; rejecting
+   *  it removes the chapter entries and re-marks false. Sections
+   *  the host wrote themselves never carry this flag. Keys are
+   *  SiteBlockKey-style ids ('schedule', 'travel', 'faq',
+   *  'registry', etc.). */
+  draftedByPear?: Record<string, boolean>;
+  /** Site Texture — material identity that overlays the renderer
+   *  with paper grain, watercolor bleed, linen weave, etc. Six
+   *  options including 'smooth' (no texture, the modern default).
+   *  Driven by [data-pl-texture] on the site root + scoped CSS in
+   *  pearloom.css. Independent of Edition so any Edition can wear
+   *  any texture. */
+  texture?: 'none' | 'linen' | 'watercolor' | 'paper' | 'cotton' | 'velvet' | 'smooth' | 'letterpress' | 'vellum' | 'newsprint' | 'kraft' | 'canvas' | 'marble' | 'gilded';
+  /** Site Edition — pre-composed layout persona that picks a hero
+   *  variant, section opener style, divider rhythm, block order,
+   *  type scale, atmosphere intensity, and CTA shape in one click.
+   *  When unset, the renderer falls back to recommendEdition() per
+   *  the occasion + voice. Explicit per-block overrides
+   *  (heroVariant, atmosphere, etc.) win over Edition defaults —
+   *  Editions are READ-TIME defaults, never written back.
+   *  See src/lib/site-editions/. */
+  edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet' | 'coastal';
+  /** Whole-page layout feel — ports the prototype's LAYOUT dial.
+   *  Independent of Edition (theme) and kitId (component identity).
+   *    'classic'    — full scroll, sections stack the entire viewport
+   *    'invitation' — content sits on a card on a mat (framed)
+   *    'split'      — sidebar lockup with fixed nav column
+   *  Read by ThemedSiteRenderer as `data-pl-page-layout` on the
+   *  .pl8-guest root so CSS can scope the framing.
+   *
+   *  Legacy alias of `siteLayout` below — production code shipped
+   *  this name before the prototype was reconciled. The renderer
+   *  resolves both fields with `siteLayout` winning when both are
+   *  set, then maps to the active enum. New code should write to
+   *  `siteLayout` (prototype-native naming); reads of `pageLayout`
+   *  remain supported indefinitely for existing manifests. */
+  pageLayout?: 'classic' | 'invitation' | 'split';
+  /** Site Layout dial — direct port of the prototype's
+   *  `siteLayout` field on ThemedSite (themed-site.jsx, the LAYOUT
+   *  · WHOLE-PAGE FEEL dial). Three frames:
+   *    'stacked' — full scroll (default, unframed)
+   *    'boxed'   — the entire site sits as a single card on a mat;
+   *                root background mixes 14% ink into the section
+   *                color, inner column maxWidth 900 with rounded
+   *                corners and a 40px shadow
+   *    'split'   — sticky left sidebar lockup (35% column min 290px)
+   *                with the scrolling content on the right
+   *  Read by ThemedSiteRenderer as `data-pl-site-layout` on the
+   *  .pl8-guest root + as the class `pl8-layout-boxed` /
+   *  `pl8-layout-split` so CSS can scope both via attribute and
+   *  class. Independent of Edition (palette + fonts) and kitId
+   *  (row treatments). Collapses to 'stacked' on viewports <= 720px
+   *  (split + boxed both fold to the scroll layout on phones). */
+  siteLayout?: 'stacked' | 'boxed' | 'split' | 'magazine' | 'zine' | 'storybook' | 'gallery' | 'postcard';
+  /** Site footer treatment — port of v2 site-renderer Footer.
+   *    'signature' — centered sprig + names + date·place + "Made
+   *                  with Pearloom" (default)
+   *    'columns'   — names + date·place left, nav links right
+   *    'minimal'   — single centered line
+   *  Read by ThemedSite's <SiteFooter>. */
+  footerVariant?: 'signature' | 'columns' | 'minimal';
+  /** Motifs on/off — binary toggle the prototype's Fine-tune
+   *  section exposes. When false, the renderer suppresses
+   *  MotifScatter and per-Edition decor flourishes. */
+  motifsEnabled?: boolean;
+  /** PatternLayer — bold decorative print BEHIND content
+   *  (zIndex 0). Tinted from the theme's accent / gold via
+   *  color-mix() so it reskins per Edition. Distinct from
+   *  TextureLayer (a material grain that sits on top). Direct
+   *  port of the prototype's PatternLayer (themes.jsx §3b).
+   *  Mounted as the first child of .pl8-guest in
+   *  ThemedSiteRenderer; CSS lives in pearloom.css under the
+   *  "── PatternLayer ──" section, scoped to
+   *  .pl8-pattern-layer[data-pl-pattern="<id>"]. */
+  pattern?:
+    | 'none'
+    | 'gingham'
+    | 'stripe'
+    | 'cabana'
+    | 'diagonal'
+    | 'dots'
+    | 'grid'
+    | 'deco'
+    | 'scallop'
+    | 'wave'
+    | 'confetti'
+    | 'terrazzo'
+    | 'celestial';
+  /** Texture intensity — multiplier applied to the texture grain
+   *  overlay opacity. 0 = no grain (smooth even when a material is
+   *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts
+   *  dial back the texture if their photos clash with the grain or
+   *  they want a quieter material feel without losing the palette
+   *  + edge treatments. Bound to CSS var --pl-texture-intensity. */
+  textureIntensity?: number;
+  /** Density — controls section padding (vertical rhythm) across
+   *  the whole site. 'cozy' compresses, 'spacious' opens, default
+   *  'comfortable' matches existing layouts. Bound to CSS var
+   *  --pl-density-scale on the .pl8-guest root. */
+  density?: 'cozy' | 'comfortable' | 'spacious';
+  /** Voice override — manually overrides the AI-drafting voice that
+   *  the event type defaults to. When unset, the renderer + AI pipes
+   *  read EVENT_TYPES[occasion].voice. Use 'classic' | 'playful' |
+   *  'poetic' from the prototype's three-voice system; mapped to
+   *  Pearloom's 5-voice EVENT_TYPES vocabulary inside the AI passes.
+   *  Per the Editor Redesign brief §5: hosts should be able to set
+   *  voice independent of event type. */
+  voiceOverride?: 'classic' | 'playful' | 'poetic';
+  /** Component kit — coordinated design language for cards,
+   *  dividers, chips, badges, schedule rows, FAQ rows, gallery
+   *  tiles. Independent of Edition (per the brief's §1 SiteLook).
+   *
+   *  Six kits ported from the prototype's KITS registry
+   *  (shared/kits.jsx):
+   *    classic   - theme-native cards & rules (default)
+   *    ticket    - perforated stubs, dashed tear-lines, monospace
+   *    plate     - engraved frames, double rules, Roman counter
+   *    scrapbook - taped, tilted cards & handwritten tags
+   *    index     - ruled index cards, red margin & tab times
+   *    minimal   - borderless rows, hairlines, oversized numerals
+   *
+   *  Today (Phase 4 deferred): kit drives CSS card/divider/chip
+   *  treatments via [data-pl-kit] on the .pl8-guest root. Each
+   *  kit's CSS in pearloom.css restyles repeating components
+   *  (.pl8-schedule-row, .pl8-chapter-row, .pl8-hotel-row,
+   *  .pl8-faq-row) for the kit's personality.
+   *
+   *  Full implementation (Phase 4): per-kit SECTION renderers in
+   *  the ThemedSiteRenderer registry — KSchedule, KDetails, KFaq,
+   *  KGallery — that change BOTH styling and ARRANGEMENT
+   *  (e.g. ticket = perforated stub rows; plate = Roman-numeral
+   *  count + dotted leader; scrapbook = tilted polaroids). See
+   *  CLAUDE-PRODUCT.md §10 (2026-05-30 entry, Phase 4).
+   *
+   *  Three additional kits ported from the prototype (kits.jsx):
+   *    arch    — top-arched cards with soft domes; arched divider
+   *              halo; chip with arched top corners
+   *    stamp   — postage frame cards (border + dotted outline);
+   *              dotted-rule divider with circular postmark pin
+   *    deco    — gold triple-inset frames; three rotated gold
+   *              diamonds at the divider center; uppercase chip
+   *
+   *  Two house kits added 2026-06-09:
+   *    gallery — museum placard: square corners, ink frame on a
+   *              wide mat (double inset hairline); times as tiny
+   *              "exhibit numbers" with a short gold underline
+   *    menu    — tasting-menu card: top + bottom gold rules only,
+   *              dotted-leader uppercase times
+   */
+  /** The Theme-Store pack this look came from (applyPackToManifest
+   *  stamps it). Try-before-you-buy: unowned paid packs can be worn
+   *  in the editor but the publish flow gates on ownership. */
+  appliedPackId?: string;
+  kitId?:
+    | 'classic'
+    | 'ticket'
+    | 'plate'
+    | 'scrapbook'
+    | 'index'
+    | 'minimal'
+    | 'arch'
+    | 'stamp'
+    | 'deco'
+    | 'gallery'
+    | 'menu'
+    | 'glass'
+    /* Pack-exclusive kits — applied only via Theme-Store packs. */
+    | 'gilt'
+    | 'atelier'
+    | 'cabinet'
+    | 'scallop'
+    | 'noir'
+    /* Extended event-tuned static kits (v2 site-renderer port). */
+    | 'boarding-pass'
+    | 'marquee'
+    | 'chalkboard'
+    | 'nursery'
+    | 'kraft'
+    | 'memoriam'
+    | 'certificate'
+    | 'luggage-tag'
+    | 'linen-press'
+    | 'wax-seal'
+    | 'pennant'
+    | 'embossed'
+    /* Atelier · Motion kits — animated finishes. Each paints a full
+     *  STATIC base unconditionally; the motion layer (pearloom.css)
+     *  only animates when manifest.atelier unlocks data-pl-premium. */
+    | 'neon'
+    | 'marquee-live'
+    | 'aurora-glass'
+    | 'gold-foil'
+    | 'confetti'
+    | 'candlelight'
+    | 'pressed-bloom'
+    | 'vinyl';
+  /** Atelier premium unlock for THIS site — when true the renderer
+   *  emits data-pl-premium="on" on the .pl8-guest root, bringing the
+   *  motion kits + animated dividers/motifs to life. Per-site,
+   *  manifest-backed so published sites honour the unlock without
+   *  the editor's localStorage. Static bases always paint regardless,
+   *  so the free-tier teaser still reads. */
+  atelier?: boolean;
+  /** Motif movement (Decor Library → Motifs → Movement). Drives
+   *  data-pl-motif-anim on the .pl8-guest root; pearloom.css floats
+   *  or drifts the motif layers and pins them still under
+   *  prefers-reduced-motion. Unset reads as 'none'. */
+  motifAnimation?: 'none' | 'float' | 'drift';
+  /** Toggles for the public RSVP form. plusOnes/plusOne gate the
+   *  "Bringing a guest?" field on the site RSVP modal (default
+   *  OFF; a per-guest plus_one_allowed grant also opens it);
+   *  songRequests hides the SongCard on the /g/[token] passport
+   *  surface. plusOnes (plural) is what the wizard writes; the
+   *  editor panel writes both keys; readers accept either. */
+  rsvpConfig?: {
+    plusOnes?: boolean;
+    plusOne?: boolean;
+    songRequests?: boolean;
+    /** Invitation-only replies — when true, /api/rsvp only accepts
+     *  submissions whose email already exists on the guest list (or
+     *  that arrive via a personal guest link). Default false: open
+     *  RSVP is correct for casual / public events. */
+    guestListOnly?: boolean;
+  };
+  /** The Loom — a living tapestry on the RSVP section. Every
+   *  attending reply weaves one more thread into a generative
+   *  woven artwork (LoomTapestry, fed by /api/rsvp/weave — no
+   *  PII, just per-row seeds). Default off. */
+  rsvpLoom?: boolean;
+  /** Host-controlled RSVP button styling — pearl (default),
+   *  pill, hairline, or paper tag — plus pulse + custom label.
+   *  Read by the published-site RSVP cta. */
+  rsvpButton?: {
+    shape?: 'pearl' | 'pill' | 'hairline' | 'tag';
+    pulse?: 'none' | 'breathe' | 'urgent';
+    customLabel?: string;
+    sticky?: boolean;
+  };
+  /** Passport (guest /g/[token]) extras gated by host opt-in.
+   *  Whispers + capsule composer cards default OFF so we don't
+   *  ship empty forms to every guest. SongCard uses rsvpConfig
+   *  above (legacy default ON). */
+  passport?: {
+    allowWhispers?: boolean;
+    allowCapsule?: boolean;
+  };
+  /** Weather widget styling on the hero / details cards.
+   *  voice: how Pear phrases the forecast; glyph: icon variant;
+   *  hideOnDay: suppress on the event day so the live banner
+   *  doesn't compete with a stale forecast pill. */
+  weatherStyle?: {
+    voice?: 'poetic' | 'plain' | 'brief';
+    glyph?: 'line' | 'filled' | 'none';
+    hideOnDay?: boolean;
+  };
+  /** Per-template signature illustrated decor key (e.g. 'monolith',
+   *  'citrus', 'brushstroke'). Rendered in the hero by
+   *  TemplateSignatureDecor; gives each template a distinct visual
+   *  identity beyond palette/typography. */
+  signatureDecor?: string;
+  // Per-field inline text formatting overrides keyed by manifest path (e.g. "poetry.heroTagline")
+  textFormats?: Record<string, {
+    italic?: boolean;
+    bold?: boolean;
+    /** Relative size multiplier: sm=0.85em, md=1em(default), lg=1.2em, xl=1.5em */
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    color?: string;
+    /** Font family override — pulled from a curated picklist in the editor. */
+    fontFamily?: string;
+  }>;
+  /**
+   * Per-slot overrides for AI-generated decorative art. Live at the top
+   * level (not inside vibeSkin) so a full vibeSkin regeneration doesn't
+   * nuke user tweaks. Keys map loosely to vibeSkin art slots.
+   */
+  artSettings?: {
+    sectionBorder?: {
+      opacity?: number;       // 0..1, default 0.5
+      scale?: number;         // 0.5..2, default 1 — affects height
+      color?: string;         // CSS color override, default inherits tint
+      /** Preset variant id from separator-presets.ts, overrides the AI svg when set. */
+      variant?: string;
+      /** Where separators appear inside the story block. */
+      placement?: 'between' | 'bookend' | 'top' | 'bottom' | 'none';
+    };
+    medallion?:        { opacity?: number; scale?: number; color?: string };
+    heroBlob?:         { opacity?: number; scale?: number; color?: string };
+    cornerFlourish?:   { opacity?: number; scale?: number; color?: string };
+    accentBlob?:       { opacity?: number; scale?: number; color?: string };
+    heroPattern?:      { opacity?: number; scale?: number; color?: string };
+  };
+  // ── Wizard soft-signal fields ────────────────────────────────
+  // Captured from the wizard, persisted here so the editor + published
+  // site can honor them (visibility rails, reflective tone, date-mode
+  // phrasing, etc.). See /api/generate/stream for the rails that
+  // derive defaults from these at generation time.
+  category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
+  visibility?: 'public' | 'unlisted' | 'private';
+  tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
+  dateMode?: 'specific' | 'season' | 'year' | 'tba';
+  dateSeason?: string;
+  guestCount?: number | 'small' | 'medium' | 'large';
+  hostRole?: 'principal' | 'co-host' | 'family' | 'organizer';
+  /** Raw user words from the vibe step — preserved so the poetry pass
+   *  can quote them literally. `vibeString` is the derived composite. */
+  vibeName?: string;
+  /** Optional factual anchors the user gave the wizard. Pass 1 is
+   *  instructed to draw from these; Pass 1.5 grounds chapters against them. */
+  factSheet?: {
+    howWeMet?: string;
+    why?: string;
+    favorite?: string;
+  };
+  /** Track title/artist the user pasted on the song step, used by
+   *  vibeSkin weighting so a Bon Iver song pulls the palette muted/cool
+   *  even if the photos are warm. */
+  songMeta?: { title: string; artist?: string };
+}
+
+export type ComponentCategory = 'layout' | 'content' | 'media' | 'interactive';
+
+export interface SavedComponent {
+  id: string;
+  name: string;
+  type: BlockType;
+  category: ComponentCategory;
+  config?: Record<string, unknown>;
+  blockEffects?: PageBlock['blockEffects'];
+  createdAt: string;
+  builtIn?: boolean;
 }
 
 export interface Chapter {
@@ -119,7 +1082,7 @@ export interface Chapter {
   images: ChapterImage[];
   location: GeoLocation | null;
   mood: string; // AI-generated mood tag (e.g. "golden hour", "cozy winter")
-  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic'; // visual layout variant
+  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic' | 'bento'; // visual layout variant
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };
@@ -159,6 +1122,7 @@ export interface GeoLocation {
   lat: number;
   lng: number;
   label: string; // reverse-geocoded (e.g. "Central Park, NY")
+  needsReverseGeocode?: boolean;
 }
 
 /**
@@ -179,6 +1143,18 @@ export interface ThemeSchema {
     accentLight: string; // hex
     muted: string; // hex
     cardBg: string; // hex
+  };
+  /**
+   * Optional dark-mode palette. When omitted, ThemeProvider auto-derives
+   * a readable dark variant from `colors` via deriveDarkPalette().
+   */
+  darkColors?: {
+    background: string;
+    foreground: string;
+    accent: string;
+    accentLight: string;
+    muted: string;
+    cardBg: string;
   };
   borderRadius: string; // e.g. "0.5rem"
   // Dynamic UI Generation properties
@@ -202,16 +1178,34 @@ export interface ThemeSchema {
     };
     /** Custom cursor shape */
     customCursor?: 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
+    /** Custom cursor color override — defaults to theme accent */
+    cursorColor?: string;
     /** SVG dividers between page sections */
     sectionDivider?: {
-      style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      style:
+        // Classic shape dividers
+        | 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc'
+        // Decorative animated dividers
+        | 'botanical' | 'petals' | 'ink' | 'flourish' | 'sparkle' | 'ribbon' | 'confetti' | 'constellation';
       height: number; // px 30–200
       flip: boolean; // alternate direction every other section
+      /** Enables the built-in motion for whichever style is picked.
+       *  Always respects prefers-reduced-motion regardless of this flag.
+       *  Defaults to true when omitted. */
+      animated?: boolean;
     };
     /** Scroll-triggered entrance animations for content blocks */
     scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';
     /** Tiling texture layered over background */
     textureOverlay?: 'none' | 'paper' | 'linen' | 'concrete' | 'velvet' | 'bokeh';
+  };
+
+  /** Typographic scale — mathematical ratio for font size hierarchy */
+  typeScale?: 'minor-third' | 'major-third' | 'perfect-fourth' | 'golden-ratio';
+  /** Computed font sizes from the type scale */
+  typeSizes?: {
+    hero: string; h1: string; h2: string; h3: string;
+    body: string; caption: string; label: string;
   };
 }
 
@@ -221,10 +1215,11 @@ export interface ThemeSchema {
  */
 export interface ComingSoonConfig {
   enabled: boolean;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  message?: string;
   revealDate?: string; // ISO 8601
-  passwordProtected: boolean;
+  passwordProtected?: boolean;
   password?: string;
 }
 
@@ -339,6 +1334,12 @@ export interface WeddingEvent {
   mapUrl?: string;
   notes?: string;
   order?: number;
+  /** Multi-day events (bachelor/ette weekends, reunions,
+   *  destination weddings) group rows under day headers.
+   *  1-indexed; undefined or 1 means "Day 1". The editor +
+   *  renderer use this to split a flat events[] into per-day
+   *  sub-lists with a "Day N" divider above each. */
+  day?: number;
 
   // ── Ceremony-specific ──────────────────────
   ceremony?: {
@@ -385,6 +1386,27 @@ export interface WeddingEvent {
     foodStyle?: string;             // e.g. "Casual cocktails and bites"
     kidsWelcome?: boolean;
   };
+
+  /** Single representative photo for the event — sidebar tile in
+   *  the Quick Edit modal + the schedule strip can show it as a
+   *  thumbnail. Stored as a full URL (R2 / external). */
+  photoUrl?: string;
+
+  /** Host explicitly marks this event as the "main moment". When
+   *  set, overrides auto-detection from event type + name (which
+   *  was unreliable for non-wedding occasions like graduations or
+   *  memorials where the renderer's heuristic missed). The
+   *  renderer reads this first; falls back to auto-detect when
+   *  omitted across the whole list. */
+  isMain?: boolean;
+
+  /** Per-row badges. Auto-tagged badges (e.g. "Main moment" for
+   *  the highlighted ceremony) live under `hideAuto`; host labels
+   *  ("Optional", "After-party", "Photographer") under `custom`. */
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -392,6 +1414,7 @@ export interface WeddingEvent {
 // ─────────────────────────────────────────────────────────────
 
 export type BlockType =
+  // ── Core (shipping) ──
   | 'hero'
   | 'story'
   | 'countdown'
@@ -410,15 +1433,61 @@ export type BlockType =
   | 'spotify'
   | 'quiz'
   | 'storymap'
-  | 'hashtag';
+  | 'hashtag'
+  | 'photoWall'
+  | 'gallery'
+  | 'vibeQuote'
+  | 'welcome'
+  | 'footer'
+  | 'anniversary'
+  | 'weddingParty'
+  // ── Event-OS expansion (CLAUDE-PRODUCT.md §4, implementations pending) ──
+  | 'itinerary'       // Multi-day hourly schedule
+  | 'costSplitter'    // Shared group-trip budget
+  | 'activityVote'    // Multi-choice poll
+  | 'toastSignup'     // Rehearsal dinner / milestone toast slots
+  | 'rooms'           // Reunion / bachelor-trip bed pairing
+  | 'tributeWall'     // Memorial / retirement submissions
+  | 'adviceWall'      // Baby shower / bridal shower advice
+  | 'nameVote'        // Baby-shower name polling
+  | 'program'         // Cultural / religious ceremony order
+  | 'livestream'      // Memorial / destination-wedding livestream
+  | 'obituary'        // Memorial long-form
+  | 'dressCode'       // Visual dress-code guide
+  | 'menu'            // Course list with dietary tags
+  | 'packingList'     // Destination trip checklist
+  | 'thenAndNow'      // Before/after photo pairs (reunions, milestone)
+  | 'whosWho'         // Face cards with roles (reunion, wedding party)
+  | 'groupChat'       // Threaded chat pinned to the site
+  | 'privacyGate'     // Password / invite-list gate
+  | 'guestPhotoUpload' // Mobile-first guest photo wall uploader
+  | 'voiceToast'      // In-browser voice-toast recorder
+  // ── v8 Tier S: native registry + payments ──
+  | 'registryItems'   // Native registry — items couples list, guests pay through Pearloom
+  | 'cashGift';       // Cash gift / honey fund via Stripe Checkout
 
 export interface PageBlock {
   id: string;
   type: BlockType;
   order: number;
   visible: boolean;
-  // Optional per-block config overrides
+  /**
+   * Per-block config — every block can override its title, subtitle,
+   * and carry type-specific settings. This makes every section editable.
+   *
+   * Common fields:
+   *   title    — custom section heading (overrides vibeSkin.sectionLabels)
+   *   subtitle — custom subheading or intro text
+   *   text     — main body content (for text/quote blocks)
+   *   url      — media URL (for video/spotify/map blocks)
+   *   symbol   — decorative symbol (for quote/divider blocks)
+   *   label    — action label or countdown text
+   */
   config?: Record<string, unknown>;
+  /** Tablet-specific config overrides (layered on top of config) */
+  tabletConfig?: Record<string, unknown>;
+  /** Mobile-specific config overrides (layered on top of tabletConfig → config) */
+  mobileConfig?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {
     /** Entrance animation when this section scrolls into view */
@@ -493,21 +1562,111 @@ export interface FaqItem {
   question: string;
   answer: string;
   order: number;
+  /** Per-row badges. The FAQ section doesn't ship auto-tagged
+   *  badges yet, so `hideAuto` is unused — `custom` carries the
+   *  host's labels (e.g. "Most asked", "Important", "Update"). */
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
+}
+
+export interface AirportEntry {
+  id?: string;
+  /** Display name. "Los Angeles International" or
+   *  "Los Angeles International (LAX)". */
+  name: string;
+  /** Optional 3-letter IATA code if the host typed it in. */
+  code?: string;
+  address?: string;
+  /** Cached coords from Google Places — drive the map pin and
+   *  the closest-airport sort. */
+  lat?: number;
+  lng?: number;
+  /** Pre-formatted distance from venue, written by the editor on
+   *  pick. Example: "12 mi · ~25 min drive". */
+  distance?: string;
+  websiteUri?: string;
 }
 
 export interface TravelInfo {
-  airports: string[];
+  /** Mixed shape for backwards-compat: legacy entries are strings
+   *  ("LAX"), new entries are AirportEntry objects. The renderer
+   *  coerces strings into { name } at read time. */
+  airports: Array<string | AirportEntry>;
   hotels: HotelBlock[];
   parkingInfo?: string;
   directions?: string;
+  /** How the hotels render on the live site:
+   *    - 'photo' (default): full Google Places photos + chips
+   *    - 'icon': editorial moon-glyph cards (cleaner, no images)
+   *    - 'map': Google Static Map with venue + numbered hotel pins
+   *  Hosts switch via the Travel panel display-mode picker. */
+  hotelDisplay?: 'photo' | 'icon' | 'map';
+  /** Cap badge auto-tagging — when false, no Pear's pick / Closest /
+   *  Best value badges render. Lets minimalist hosts opt out without
+   *  disabling the toggle entirely. Default true. */
+  hotelBadges?: boolean;
 }
 
 export interface HotelBlock {
+  /** Stable identifier — round-tripped between the editor's Hotel
+   *  type and the renderer's HotelBlock type so click-to-focus,
+   *  drag-to-reorder, and per-hotel badge edits all resolve to the
+   *  same record. Optional for backward-compat; the panel + renderer
+   *  derive a content-stable fallback id from name+address when this
+   *  is missing. */
+  id?: string;
   name: string;
   address: string;
   bookingUrl?: string;
   groupRate?: string;
   notes?: string;
+  /** Google Places photo URL (or any host-supplied image). The
+   *  renderer uses this to render a real thumbnail instead of
+   *  the moon-icon placeholder. */
+  photoUrl?: string;
+  /** Up to 5 photo URLs for the live card's carousel — guests
+   *  can flip through them to see the lobby, room, pool, etc. */
+  photoUrls?: string[];
+  /** Lat/lng cached from Google Places. Powers the hotel-map
+   *  display mode (numbered pins next to the venue marker on a
+   *  static map) without an extra fetch at render time. */
+  lat?: number;
+  lng?: number;
+  /** Star rating 0-5 from Google. */
+  rating?: number;
+  /** Total review count behind that rating. */
+  ratingCount?: number;
+  /** Comma-separated short amenities line — "spa · pool · gym". */
+  amenities?: string;
+  /** Distance from venue, pre-formatted ("1.4 km · ~3 min drive"). */
+  distance?: string;
+  /** Google price level — formatted "$" / "$$" / "$$$" / "$$$$". */
+  priceLevel?: string;
+  /** Real nightly-rate range from Google Places when available
+   *  ("priceRange" field). When missing, the renderer falls back
+   *  to a priceLevel-tiered estimate. */
+  priceRange?: { start?: number; end?: number; currency?: string };
+  /** Editorial blurb or host note (12-22 words ideal). */
+  description?: string;
+  /** Per-hotel badge customization. Hosts can:
+   *    - hide any of the auto-tagged badges (top, closest, value)
+   *    - add their own — "Couple's pick", "Mom's pick", "Best for
+   *      kids", "Pet-friendly", "Walkable to ceremony", etc.
+   *  Each custom badge picks a v8 tone. Auto-badges still compute
+   *  from data; the override layer just decides what to render. */
+  badges?: {
+    /** Auto-badges to suppress on this hotel. */
+    hideAuto?: Array<'top' | 'closest' | 'value'>;
+    /** Host-authored badges that always render in addition to the
+     *  auto ones (unless hideAuto removes those). */
+    custom?: Array<{
+      id: string;
+      label: string;
+      tone?: 'peach' | 'sage' | 'lavender' | 'ink';
+    }>;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -701,12 +1860,111 @@ export interface PlaceResult {
 
 export interface StickerItem {
   id: string;
-  name: string;          // SVG component name e.g. 'RoseIllustration'
-  type: 'illustrations' | 'accents' | 'dividers';
+  /** SVG component name when `type !== 'ai'`. For AI stickers this
+   *  becomes a short label only (e.g. 'ai sticker'). For text
+   *  stickers this is the rendered string itself (legacy alias —
+   *  prefer `text` for new stickers). */
+  name?: string;
+  /** 'text' adds a free-form positionable text overlay on top of
+   *  the editorial flow — Pearloom's contained answer to free-form
+   *  positioning. The strict block flow stays intact; text stickers
+   *  are the layer above. */
+  type?: 'illustrations' | 'accents' | 'dividers' | 'ai' | 'text';
   x: number;             // left % (0-100)
   y: number;             // top % (0-100)
-  size: number;          // px size
+  size?: number;         // px size (legacy SVG stickers)
   rotation: number;      // degrees
-  opacity: number;       // 0-1
+  opacity?: number;      // 0-1
   color?: string;
+  /** AI-generated sticker PNG URL (mutually exclusive with `name`). */
+  url?: string;
+  /** Anchor block id — 'hero', 'story', 'schedule', etc. When set,
+   *  the sticker renders inside that block's layer; otherwise it
+   *  floats at the page level (legacy behaviour). */
+  blockId?: string;
+  /** 0.3–2 — proportional multiplier used by AI stickers. */
+  scale?: number;
+  /** Text content for text stickers. */
+  text?: string;
+  /** Font family for text stickers. Defaults to display Fraunces. */
+  fontFamily?: 'display' | 'body' | 'mono';
+  /** Font size in px (pre-scale). Default 32. */
+  fontSize?: number;
+  /** Font weight 100-900. Default 600. */
+  fontWeight?: number;
+  /** Italic toggle for text stickers. */
+  italic?: boolean;
+}
+
+// ── Wedding Party / Honor List ────────────────────────────────
+// The generalized honor-list roster: wedding party, quinceañera
+// court of honor (dama / chambelan), bar/bat-mitzvah candle
+// lighters. Field name stays weddingParty for zero-migration
+// compat with legacy wedding sites.
+
+export interface WeddingPartyMember {
+  id: string;
+  name: string;
+  role: 'bride' | 'groom' | 'maid-of-honor' | 'best-man' | 'bridesmaid' | 'groomsman'
+    | 'flower-girl' | 'ring-bearer' | 'officiant' | 'parent' | 'grandparent'
+    | 'dama' | 'chambelan' | 'candle-lighter' | 'other';
+  customRole?: string;
+  bio?: string;
+  photo?: string;
+  relationship?: string; // "Bride's sister", "Groom's college roommate"
+  order: number;
+}
+
+// ── Meal Options ──────────────────────────────────────────────
+
+export interface MealOption {
+  id: string;
+  name: string; // "Herb-Crusted Chicken", "Pan-Seared Salmon", "Garden Risotto"
+  description?: string;
+  dietaryTags: Array<'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'halal' | 'kosher'>;
+  /** Allergens this dish CONTAINS — surfaced as warning badges so
+   *  guests with severe allergies don't have to ask. Distinct from
+   *  dietaryTags which are positive labels (vegetarian, gluten-free).
+   *  These are negative warnings (contains nuts, contains shellfish). */
+  allergens?: Array<'nuts' | 'tree-nuts' | 'peanuts' | 'shellfish' | 'fish' | 'eggs' | 'dairy' | 'soy' | 'gluten' | 'sesame'>;
+  /** Which event this meal belongs to (ceremony, reception, brunch) */
+  eventId?: string;
+}
+
+// ── Guest Broadcasts ──────────────────────────────────────────
+
+export interface GuestBroadcast {
+  id: string;
+  message: string;
+  type: 'update' | 'thank-you' | 'reminder' | 'emergency';
+  sentAt: number;
+  /** Number of guests this was sent to */
+  recipientCount: number;
+  /** Delivery channel */
+  channel: 'email' | 'sms' | 'site-banner';
+}
+
+// ── Customization Options ─────────────────────────────────────
+
+export interface SiteCustomization {
+  /** Card border style ID */
+  cardBorder?: string;
+  /** Section background ID per section (blockId → bgId) */
+  sectionBackgrounds?: Record<string, string>;
+  /** Photo frame style ID */
+  photoFrame?: string;
+  /** Monogram style + initials */
+  monogram?: { style: string; initials: string; color: string };
+  /** Section transition style ID */
+  sectionTransition?: string;
+  /** Custom RSVP questions */
+  rsvpQuestions?: Array<{ id: string; question: string; type: 'text' | 'select' | 'radio'; options?: string[]; required: boolean }>;
+  /** Custom guestbook prompts (IDs from GUESTBOOK_PROMPTS) */
+  guestbookPrompts?: string[];
+  /** Countdown style ID */
+  countdownStyle?: string;
+  /** Text animation effect ID */
+  textEffect?: string;
+  /** Background music config */
+  backgroundMusic?: { url: string; autoPlay: boolean; volume: number; showControls: boolean; position: string; consentMessage: string };
 }

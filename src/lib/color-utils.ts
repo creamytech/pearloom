@@ -128,6 +128,169 @@ const MESH_HUE_CENTERS: Record<string, number> = {
   custom:    -1,  // uses accent color
 };
 
+// ── Auto-contrast enforcement ─────────────────────────────────
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Lighten or darken a hex color by adjusting its luminance.
+ * `amount` is 0–1 where 0.1 = 10% shift.
+ */
+function adjustLightness(hex: string, amount: number, direction: 'lighten' | 'darken'): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const [r, g, b] = rgb;
+  if (direction === 'lighten') {
+    return rgbToHex(
+      r + (255 - r) * amount,
+      g + (255 - g) * amount,
+      b + (255 - b) * amount,
+    );
+  }
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount));
+}
+
+/**
+ * Returns a text color guaranteed to have at least `minRatio` contrast
+ * against `bgHex`. If the original `textHex` already passes, returns it
+ * unchanged. Otherwise lightens or darkens it until it meets the target.
+ *
+ * @param textHex  — the text/foreground color
+ * @param bgHex   — the background color behind it
+ * @param minRatio — minimum WCAG contrast ratio (default 4.5 for AA body text)
+ */
+export function ensureContrast(textHex: string, bgHex: string, minRatio = 4.5): string {
+  const ratio = contrastRatio(textHex, bgHex);
+  if (ratio !== null && ratio >= minRatio) return textHex;
+
+  const bgLum = luminance(bgHex);
+  if (bgLum === null) return textHex;
+
+  // Decide direction: dark bg → lighten text, light bg → darken text
+  const direction: 'lighten' | 'darken' = bgLum > 0.18 ? 'darken' : 'lighten';
+
+  let adjusted = textHex;
+  for (let step = 0.05; step <= 1; step += 0.05) {
+    adjusted = adjustLightness(textHex, step, direction);
+    const newRatio = contrastRatio(adjusted, bgHex);
+    if (newRatio !== null && newRatio >= minRatio) return adjusted;
+  }
+
+  // Fallback: pure white or black
+  return direction === 'lighten' ? '#FFFFFF' : '#000000';
+}
+
+/**
+ * Enforce WCAG AA contrast minimums across a full palette.
+ * Adjusts foreground, muted, accent, and ink colors in-place
+ * so they're always readable against the background and card colors.
+ * Returns a new palette object (does not mutate the input).
+ */
+export function enforcePaletteContrast(palette: {
+  background: string; foreground: string; accent: string;
+  accent2: string; card: string; muted: string;
+  highlight: string; subtle: string; ink: string;
+}): typeof palette {
+  // Ensure foreground passes against both background and card
+  let fg = ensureContrast(palette.foreground, palette.background, 4.5);
+  const fgCardRatio = contrastRatio(fg, palette.card);
+  if (fgCardRatio !== null && fgCardRatio < 4.5) {
+    fg = ensureContrast(fg, palette.card, 4.5);
+  }
+
+  return {
+    ...palette,
+    foreground: fg,
+    // Muted text on page background — at least AA large (3:1)
+    muted: ensureContrast(palette.muted, palette.background, 3.0),
+    // Accent on page background — at least AA large for UI elements (3:1)
+    accent: ensureContrast(palette.accent, palette.background, 3.0),
+    // Ink (headings) on page background — must pass AA (4.5:1)
+    ink: ensureContrast(palette.ink, palette.background, 4.5),
+  };
+}
+
+// ── Color parsing + smart ink selection ──────────────────────
+
+/**
+ * Best-effort parse of any CSS color string into a 7-char hex.
+ * Handles `#rgb`, `#rrggbb`, `rgb(r,g,b)`, `rgba(r,g,b,a)` (alpha
+ * is dropped — composite against the parent if you need it).
+ *
+ * Returns null for `var(--token)`, `oklch(...)`, named colors,
+ * or anything else we can't resolve from a string. Callers should
+ * fall back to a sensible default when this returns null rather
+ * than guess.
+ */
+export function parseAnyColorToHex(input: string | undefined | null): string | null {
+  if (!input) return null;
+  const s = input.trim();
+  if (s.startsWith('#')) {
+    return hexToRgb(s) ? (s.length === 4 ? '#' + s.slice(1).split('').map((c) => c + c).join('') : s.toLowerCase()) : null;
+  }
+  const rgbMatch = s.match(/^rgba?\(\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)/i);
+  if (rgbMatch) {
+    const r = Math.round(parseFloat(rgbMatch[1]));
+    const g = Math.round(parseFloat(rgbMatch[2]));
+    const b = Math.round(parseFloat(rgbMatch[3]));
+    return rgbToHex(r, g, b);
+  }
+  return null;
+}
+
+/**
+ * Pick the best ink colour (warm dark or warm cream) for legibility
+ * on `bg`. Uses WCAG luminance — anything brighter than mid-grey
+ * gets dark ink, anything darker gets cream. Defaults to dark ink
+ * when the colour can't be parsed.
+ *
+ * Returns `inkOptions.dark`/`inkOptions.light` — pass overrides if
+ * you want a custom warm ink/cream pair (e.g., `--peach-ink`).
+ */
+export function pickInkForBackground(
+  bg: string | undefined | null,
+  inkOptions?: { dark?: string; light?: string },
+): string {
+  const dark = inkOptions?.dark ?? '#0E0D0B';
+  const light = inkOptions?.light ?? '#FBF7EE';
+  const hex = parseAnyColorToHex(bg);
+  if (!hex) return dark;
+  const lum = luminance(hex);
+  if (lum === null) return dark;
+  return lum > 0.45 ? dark : light;
+}
+
+/** Light/dark family of ink colours for a given background — matches
+ *  the v8 palette (ink, ink-soft, ink-muted, divider). All four flip
+ *  together so subtle text never strands as illegible grey on dark. */
+export interface InkFamily {
+  ink: string;        // primary text
+  inkSoft: string;    // body / secondary
+  inkMuted: string;   // captions / chrome
+  divider: string;    // hairlines
+}
+
+export function inkFamilyForBackground(bg: string | undefined | null): InkFamily {
+  const hex = parseAnyColorToHex(bg);
+  const isDarkBg = hex ? (luminance(hex) ?? 1) <= 0.45 : false;
+  if (isDarkBg) {
+    return {
+      ink: '#FBF7EE',
+      inkSoft: 'rgba(251, 247, 238, 0.82)',
+      inkMuted: 'rgba(251, 247, 238, 0.62)',
+      divider: 'rgba(251, 247, 238, 0.18)',
+    };
+  }
+  return {
+    ink: '#0E0D0B',
+    inkSoft: 'rgba(14, 13, 11, 0.78)',
+    inkMuted: 'rgba(14, 13, 11, 0.56)',
+    divider: 'rgba(14, 13, 11, 0.12)',
+  };
+}
+
 // ── Issue detection ───────────────────────────────────────────
 
 export type IssueSeverity = 'error' | 'warn' | 'ok';

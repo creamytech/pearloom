@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -16,15 +18,32 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** guestbook.site_id stores the site UUID. Callers may pass the
+ *  uuid (dashboard) or the subdomain (the published site only knows
+ *  its slug) — resolve either to the canonical uuid so entries land
+ *  on one key. */
+async function resolveSiteUuid(
+  supabase: ReturnType<typeof getSupabase>,
+  idOrSlug: string,
+): Promise<string | null> {
+  if (UUID_RX.test(idOrSlug)) return idOrSlug;
+  const { data } = await supabase.from('sites').select('id').eq('subdomain', idOrSlug).maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
 export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get('siteId');
   if (!siteId) return NextResponse.json({ wishes: [] });
 
   const supabase = getSupabase();
+  const siteUuid = await resolveSiteUuid(supabase, siteId);
+  if (!siteUuid) return NextResponse.json({ wishes: [] });
   const { data } = await supabase
     .from('guestbook')
     .select('*')
-    .eq('site_id', siteId)
+    .eq('site_id', siteUuid)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -51,25 +70,53 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { siteId, guestName, message } = await req.json();
+    const { siteId, guestName, message, guestToken } = await req.json() as {
+      siteId?: string;
+      guestName?: string;
+      message?: string;
+      /** Optional pearloom_guests.guest_token (12-char). When the
+       *  signer arrived via /g/[token] or ?g=<token>, the form
+       *  passes the token through so the entry gets tagged with
+       *  their pearloom_guests.id. Anonymous guestbook entries
+       *  still allowed when omitted. */
+      guestToken?: string;
+    };
     if (!siteId || !guestName || !message) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
     const supabase = getSupabase();
+    const siteUuid = await resolveSiteUuid(supabase, siteId);
+    if (!siteUuid) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    // Best-effort guest resolution. Bad/missing tokens fall through
+    // silently — attribution is nice-to-have, not gating.
+    let guestId: string | null = null;
+    if (guestToken) {
+      const { data: guestRow } = await supabase
+        .from('pearloom_guests')
+        .select('id')
+        .eq('guest_token', guestToken)
+        .maybeSingle();
+      const id = (guestRow as { id?: string } | null)?.id;
+      if (id) guestId = id;
+    }
 
     // Count existing wishes â€” first wish becomes highlighted
     const { count } = await supabase
       .from('guestbook')
       .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId);
+      .eq('site_id', siteUuid);
 
     const { data, error } = await supabase
       .from('guestbook')
       .insert({
-        site_id: siteId,
+        site_id: siteUuid,
         guest_name: guestName,
         message,
+        guest_id: guestId,
         highlighted: !count || count === 0, // first wish is highlighted until AI picks a better one
         created_at: new Date().toISOString(),
       })
@@ -83,8 +130,40 @@ export async function POST(req: NextRequest) {
 
     // Async: re-evaluate highlighted wish via Gemini after every 5th submission
     if (count && count % 5 === 4) {
-      void reHighlight(siteId);
+      void reHighlight(siteUuid);
     }
+
+    // Tell the host someone signed the guestbook (category 'content').
+    // Fire-and-forget; siteId is the site uuid.
+    void (async () => {
+      try {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+        const { createClient } = await import('@supabase/supabase-js');
+        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: site } = await sb
+          .from('sites')
+          .select('id, subdomain, creator_email, site_config')
+          .eq('id', siteUuid)
+          .maybeSingle();
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+        const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+        if (!site || !ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string }).subdomain ?? 'your site');
+        const who = String(guestName ?? '').split(/\s+/)[0] || 'A guest';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(sb, {
+          siteId: siteUuid,
+          siteLabel,
+          ownerEmail,
+          category: 'content',
+          title: `${who} signed the guestbook`,
+          body: String(message ?? '').slice(0, 200),
+          href: '/dashboard',
+          dedupeKey: `guestbook:${data.id}`,
+        });
+      } catch (e) { console.warn('[Guestbook] notifyHost failed (non-fatal):', e); }
+    })();
 
     return NextResponse.json({ success: true, id: data.id });
   } catch (err) {
@@ -93,9 +172,52 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// DELETE /api/guestbook?id=&siteId= — host removes a wish.
+// Owner-gated: the wish's site must belong to the session user.
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const id = req.nextUrl.searchParams.get('id');
+  const siteId = req.nextUrl.searchParams.get('siteId');
+  if (!id || !siteId) {
+    return NextResponse.json({ error: 'Missing id or siteId' }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+  const siteUuid = await resolveSiteUuid(supabase, siteId);
+  if (!siteUuid) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+
+  const { data: site } = await supabase
+    .from('sites')
+    .select('creator_email, site_config')
+    .eq('id', siteUuid)
+    .maybeSingle();
+  const owner = String(
+    (site as { creator_email?: string; site_config?: { creator_email?: string } } | null)?.creator_email
+    ?? (site as { site_config?: { creator_email?: string } } | null)?.site_config?.creator_email
+    ?? '',
+  ).toLowerCase().trim();
+  if (!site || owner !== session.user.email.toLowerCase().trim()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const { error } = await supabase
+    .from('guestbook')
+    .delete()
+    .eq('id', id)
+    .eq('site_id', siteUuid);
+  if (error) {
+    console.error('[Guestbook] Delete error:', error);
+    return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+  }
+  return NextResponse.json({ success: true });
+}
+
 // Re-pick the most beautiful wish using Gemini
 async function reHighlight(siteId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return;
 
   const supabase = getSupabase();
@@ -113,7 +235,7 @@ ${data.map(r => `ID: ${r.id}\nMessage: ${r.message}`).join('\n\n')}`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

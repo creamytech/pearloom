@@ -1,0 +1,6032 @@
+'use client';
+
+ 
+/* LITERAL PORT of handoff/pages/themed-site.jsx — the canonical
+   handoff canvas. Mounts inside EditorRedesign's canvas in both
+   Edit + Preview modes (handoff: same renderer in both).
+
+   Dependencies inlined or imported from production equivalents:
+     - getTheme + themeRootStyle from ../site/themes
+     - Pear + Icon from ../motifs
+     - WatercolorBloom + Motif + MotifScatter from ../site/MotifScatter
+     - TextureFilters from ../site/TextureFilters
+     - KDivider / TButton / SitePhoto / TSectionHead defined inline
+       below (handoff/shared/themes.jsx + kits.jsx atoms ported
+       verbatim, scoped to this file).
+
+   Section blocks: HeroBlock (centered/minimal/split/postcard
+   variants), StoryBlock (sidebyside default), DetailsBlock (tiles),
+   ScheduleBlock (cards), TravelBlock (rows), RegistryBlock (cards),
+   GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
+*/
+
+import { useId, useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import type { StoryManifest } from '@/types';
+import { Icon, Pear } from '../motifs';
+import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
+import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
+import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
+import { Divider as BrandDivider } from '@/components/brand/Divider';
+import { TextureFilters } from '../site/TextureFilters';
+import { readVariant, LAYOUTS, recommendedVariantFor } from './layouts';
+import type { SectionId } from './EditorRedesign';
+/* Occasion gating for the nine core sections — leaf module shared
+   with EditorRedesign / SectionRail (importing from EditorRedesign
+   here would cycle: EditorRedesign imports ThemedSite). */
+import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
+/* Occasion copy packs — fallback + demo copy routed by occasion so
+   a solo birthday never renders "How we met" (leaf data module). */
+import { occasionCopyFor } from './occasion-copy';
+import { detailsIconFor } from './details-icons';
+import { InlineEdit } from './InlineEdit';
+import dynamic from 'next/dynamic';
+import { requestRsvp } from '../site/rsvp-bus';
+import {
+  NavCentered,
+  NavSplit,
+  NavSerifBlock,
+  NavMinimalText,
+  NavIconic,
+} from './section-variants/nav';
+import {
+  NavMobileOverlay,
+  NavMobileSlideIn,
+  NavMobileBottomSheet,
+  NavMobilePill,
+} from './section-variants/nav-mobile';
+import type { RegistryFunds } from '@/lib/registry-funds';
+import type { LightboxState } from './PhotoLightbox';
+import { useIsMobile, useActiveSection } from './use-nav-hooks';
+import {
+  readSiteMode,
+  readHomePageBlocks,
+  isSiteBlockKey,
+  BLOCK_PAGE_SLUG,
+  MULTI_PAGE_BLOCKS,
+  type SiteBlockKey,
+} from '@/lib/site-mode';
+import { buildSitePath } from '@/lib/site-urls';
+
+/* ── Lazy boundaries (guest-bundle diet, 2026-07) ─────────────────
+   Everything below `dynamic()` is code-split out of the initial
+   published-site bundle and only fetched when the manifest actually
+   renders it (non-default section variants, Event-OS blocks, opt-in
+   guest features). SSR is kept (next/dynamic default), so published
+   HTML / SEO / first paint are byte-identical — only the CLIENT
+   download becomes conditional. The nav family + the default
+   in-file section renderers stay static: every site needs them at
+   first paint.
+
+   Per-section layout variants — each section block dispatches via
+   ctx.variants.<section> to one of these. Default ('tiles', 'cards',
+   'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
+   baked into the block below. */
+const RsvpSplit = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpSplit));
+const RsvpBanner = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpBanner));
+const RsvpMinimal = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpMinimal));
+const LoomTapestry = dynamic(() => import('./LoomTapestry').then((m) => m.LoomTapestry));
+const DetailsIconRow = dynamic(() => import('./section-variants/details').then((m) => m.DetailsIconRow));
+const DetailsAccordion = dynamic(() => import('./section-variants/details').then((m) => m.DetailsAccordion));
+const DetailsBento = dynamic(() => import('./section-variants/details').then((m) => m.DetailsBento));
+const DetailsLedger = dynamic(() => import('./section-variants/details').then((m) => m.DetailsLedger));
+const ScheduleTimeline = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleTimeline));
+const ScheduleStepper = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleStepper));
+const ScheduleNumbered = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleNumbered));
+const GalleryMasonry = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryMasonry));
+const GallerySlideshow = dynamic(() => import('./section-variants/gallery').then((m) => m.GallerySlideshow));
+const GalleryPolaroid = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryPolaroid));
+const GalleryFrames = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryFrames));
+const FaqTwocol = dynamic(() => import('./section-variants/faq').then((m) => m.FaqTwocol));
+const FaqNumbered = dynamic(() => import('./section-variants/faq').then((m) => m.FaqNumbered));
+const FaqCards = dynamic(() => import('./section-variants/faq').then((m) => m.FaqCards));
+const TravelMap = dynamic(() => import('./section-variants/travel').then((m) => m.TravelMap));
+const TravelTable = dynamic(() => import('./section-variants/travel').then((m) => m.TravelTable));
+const TravelCarousel = dynamic(() => import('./section-variants/travel').then((m) => m.TravelCarousel));
+const StayActions = dynamic(() => import('./section-variants/travel').then((m) => m.StayActions));
+const RegistryChips = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryChips));
+const RegistryProgress = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryProgress));
+const RegistryStoreCards = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryStoreCards));
+const StoryZigzag = dynamic(() => import('./section-variants/story').then((m) => m.StoryZigzag));
+/* Event-OS block sections — occasion-gated optional sections added
+   via the Add Section picker (see isBlockApplicable). Each owns its
+   full section frame + empty-state handling; renderKind passes the
+   shared BlockSectionProps bag so design agents only ever touch the
+   block files, never this dispatch. */
+const ItinerarySection = dynamic(() => import('./section-variants/blocks/itinerary').then((m) => m.ItinerarySection));
+const CostSplitterSection = dynamic(() => import('./section-variants/blocks/cost-splitter').then((m) => m.CostSplitterSection));
+const ActivityVoteSection = dynamic(() => import('./section-variants/blocks/activity-vote').then((m) => m.ActivityVoteSection));
+const ToastSignupSection = dynamic(() => import('./section-variants/blocks/toast-signup').then((m) => m.ToastSignupSection));
+const AdviceWallSection = dynamic(() => import('./section-variants/blocks/advice-wall').then((m) => m.AdviceWallSection));
+const ProgramSection = dynamic(() => import('./section-variants/blocks/program').then((m) => m.ProgramSection));
+const LivestreamSection = dynamic(() => import('./section-variants/blocks/livestream').then((m) => m.LivestreamSection));
+const GuestbookSection = dynamic(() => import('./GuestbookSection').then((m) => m.GuestbookSection));
+const GuestPlaylist = dynamic(() => import('./GuestPlaylist').then((m) => m.GuestPlaylist));
+const RegistryItemsGrid = dynamic(() => import('./RegistryItemsGrid').then((m) => m.RegistryItemsGrid));
+const RegistryFundCard = dynamic(() => import('./RegistryFundCard').then((m) => m.RegistryFundCard));
+const LinkedEventsStrip = dynamic(() => import('./LinkedEventsStrip').then((m) => m.LinkedEventsStrip));
+/* PhotoLightbox mounts conditionally (only while a photo is open),
+   so its chunk is fetched on the first tap, not at page load. */
+const PhotoLightbox = dynamic(() => import('./PhotoLightbox').then((m) => m.PhotoLightbox));
+const ObituarySection = dynamic(() => import('./section-variants/blocks/obituary').then((m) => m.ObituarySection));
+const PackingListSection = dynamic(() => import('./section-variants/blocks/packing-list').then((m) => m.PackingListSection));
+const HonorListSection = dynamic(() => import('./section-variants/blocks/honor-list').then((m) => m.HonorListSection));
+const TributeWallSection = dynamic(() => import('./section-variants/blocks/tribute-wall').then((m) => m.TributeWallSection));
+const MenuSection = dynamic(() => import('./section-variants/blocks/menu').then((m) => m.MenuSection));
+const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-code').then((m) => m.DressCodeSection));
+const NameVoteSection = dynamic(() => import('./section-variants/blocks/name-vote').then((m) => m.NameVoteSection));
+const RoomsSection = dynamic(() => import('./section-variants/blocks/rooms').then((m) => m.RoomsSection));
+const ThenAndNowSection = dynamic(() => import('./section-variants/blocks/then-and-now').then((m) => m.ThenAndNowSection));
+const GroupChatSection = dynamic(() => import('./section-variants/blocks/group-chat').then((m) => m.GroupChatSection));
+
+interface Props {
+  /* Editor-only props — optional so PublishedSiteShell can mount
+     this exact component in published mode without supplying any
+     editor wiring. Defaults map to "nothing selected, nothing
+     editable". (Hover chrome is pure CSS — see TSection — so hover
+     never invalidates React state.) */
+  active?: SectionId;
+  setActive?: (id: SectionId) => void;
+  editable?: boolean;
+  /* Wizard previews (the pressings, the structure phone, the
+     fitting room) — host-facing surfaces that deserve the same
+     demo dressing the editor canvas gets, WITHOUT the edit
+     affordances. Turns on buildCopy's demo fallbacks only.
+     Published sites never pass this; the honesty rule (demo
+     content never reaches guests) is untouched. */
+  demoCopy?: boolean;
+  manifest: StoryManifest;
+  names: [string, string];
+  /* Editor "mobile preview" pill renders the canvas inside a
+     390px-wide device frame on a desktop-width window. Without
+     this signal, useIsMobile() reads the browser viewport (~1920px)
+     and the canvas falls back to the desktop nav. Pass
+     forceMobile={true} from EditorCanvas when mode === 'mobile' so
+     the mobile drawer variants actually paint inside the device
+     frame. Published guests don't pass this — useIsMobile() decides
+     based on their real viewport. */
+  forceMobile?: boolean;
+  /* Round R inline-edit wiring — when set, click-to-edit text on
+     the canvas (tagline / story / details values / etc) routes
+     writes through the bridge's editField. PublishedSiteShell
+     omits both so guests never see edit chrome. */
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+  onEditNames?: (next: [string, string]) => void;
+  /* Inline-edit selection — fired when an editable field INSIDE a
+     section gains focus, so the editor can flip the property rail
+     to that section without the section-frame click (InlineEdit
+     stops click propagation to protect the caret). Separate from
+     setActive because the mobile editor opens a bottom sheet on
+     click-selection — doing that on text focus would cover the
+     keyboard mid-typing. */
+  onSectionFocus?: (id: SectionId) => void;
+  /* Multi-page routing (manifest.siteMode === 'multi-page') —
+     mirrors ThemedSiteRenderer's pageFilter semantics:
+       • undefined → render everything (scroll mode, editor canvas)
+       • 'home'    → hero + homePageBlocks ∪ {details} (+ optional /
+                     Event-OS sections, which stay home-page content)
+       • block key → that single section (nav + footer chrome kept)
+     The published routes pass this; nav links to off-page sections
+     navigate to their sub-page when siteSlug is provided. */
+  pageFilter?: 'home' | SiteBlockKey;
+  /* Canonical slug for sub-page nav links on multi-page sites.
+     The editor canvas deliberately omits it so in-canvas nav never
+     navigates the editor tab away. */
+  siteSlug?: string;
+}
+
+/* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
+
+const noop = () => {};
+
+/* Ghost placeholder for InlineEdit slots whose value is commonly
+   EMPTY (FAQ answers, schedule notes, gallery captions, chapter
+   titles). InlineEdit shows nothing for an empty contentEditable;
+   this CSS paints the aria-label (= the placeholder prop) as a
+   faded italic ghost so the click target is visible. Injected by
+   ThemedSite in edit mode only — published sites never carry it. */
+const INLINE_GHOST_CSS =
+  '[contenteditable].pl8-inline-ghost:empty::before{content:attr(aria-label);opacity:0.38;font-style:italic;pointer-events:none;}';
+
+export function ThemedSite({
+  active = null,
+  setActive = noop,
+  editable = false,
+  demoCopy = false,
+  manifest,
+  names,
+  forceMobile = false,
+  onEditField,
+  onEditNames,
+  onSectionFocus,
+  pageFilter,
+  siteSlug,
+}: Props) {
+  /* Edit-write helpers for InlineEdit components. patchManifest
+     writes a top-level (or nested via dot path) field; patchNames
+     writes the names tuple. Both no-op when the editor hasn't
+     supplied a write path (i.e. PublishedSiteShell mode). */
+  const patchTagline = onEditField
+    ? (next: string) => onEditField((m) => ({ ...(m as unknown as Record<string, unknown>), tagline: next } as unknown as StoryManifest))
+    : undefined;
+  /* Generic manifest.copy.<key> writer — used by every editable
+     eyebrow / lead / CTA / button label on the canvas. Empty
+     strings clear the override (so the default voice copy
+     re-takes the slot). */
+  const patchCopy = onEditField
+    ? (key: string, next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = (loose.copy as Record<string, string> | undefined) ?? {};
+        const nextCopy: Record<string, string> = { ...cur };
+        if (next.trim()) nextCopy[key] = next;
+        else delete nextCopy[key];
+        return { ...loose, copy: nextCopy } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchStoryField = onEditField
+    ? (field: 'headline' | 'body', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const story = (loose.storySection as Record<string, unknown> | undefined) ?? {};
+        return { ...loose, storySection: { ...story, [field]: next } } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchDetailsCard = onEditField
+    ? (idx: number, half: 'l' | 'v', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cards = Array.isArray(loose.detailsCards)
+          ? [...(loose.detailsCards as Array<[string, string, string?]>)]
+          : [];
+        const cur = cards[idx] ?? ['', ''];
+        /* Preserve the optional subline (tuple slot 3) when the
+           inline edit rewrites label/value. */
+        cards[idx] = half === 'l' ? [next, cur[1] ?? '', cur[2]] : [cur[0] ?? '', next, cur[2]];
+        return { ...loose, detailsCards: cards } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchEvent = onEditField
+    ? (idx: number, field: 'name' | 'time' | 'venue' | 'description', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const events = Array.isArray(loose.events) ? [...(loose.events as Array<Record<string, unknown>>)] : [];
+        const cur = events[idx] ?? {};
+        events[idx] = { ...cur, [field]: next };
+        return { ...loose, events } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* FAQ question + answer writer. Seeds manifest.faqs with the demo
+     questions on first touch — without the seed, editing demo row 3
+     would write a sparse one-entry faqs[] and collapse the section
+     to a single question. */
+  const patchFaq = onEditField
+    ? (idx: number, field: 'question' | 'answer', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = Array.isArray(loose.faqs) ? [...(loose.faqs as Array<Record<string, unknown>>)] : [];
+        const faqs = cur.length > 0
+          ? cur
+          : occasionCopyFor((m as unknown as { occasion?: string }).occasion)
+              .faqDemo.map((q, i) => ({ id: `faq-${i + 1}`, question: q, answer: '', order: i }));
+        while (faqs.length <= idx) faqs.push({ id: `faq-${faqs.length + 1}`, question: '', answer: '', order: faqs.length });
+        faqs[idx] = { ...(faqs[idx] ?? {}), [field]: next };
+        return { ...loose, faqs } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Story chapter title / body writer — same manifest.chapters[] path
+     StoryPanel writes + buildCopy reads (chapters[i].title /
+     chapters[i].description). Fills missing slots so editing chapter
+     3 before chapters 1-2 exist doesn't create a sparse array. */
+  const patchChapter = onEditField
+    ? (idx: number, field: 'title' | 'description', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const chapters = Array.isArray(loose.chapters) ? [...(loose.chapters as Array<Record<string, unknown>>)] : [];
+        while (chapters.length <= idx) chapters.push({ id: `chapter-${chapters.length + 1}` });
+        chapters[idx] = { ...(chapters[idx] ?? {}), [field]: next };
+        return { ...loose, chapters } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Gallery caption writer — sidecar record keyed by photo index
+     (see StoryManifest.galleryCaptions in types.ts for why index
+     keying). Empty commits clear the key so the record stays tidy. */
+  const patchGalleryCaption = onEditField
+    ? (idx: number, next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = (loose.galleryCaptions as Record<string, string> | undefined) ?? {};
+        const nextMap: Record<string, string> = { ...cur };
+        if (next.trim()) nextMap[String(idx)] = next;
+        else delete nextMap[String(idx)];
+        return { ...loose, galleryCaptions: nextMap } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Hotel blurb writer — only minted when the host has real hotels
+     saved (manifest.travelInfo.hotels). The canned demo pair stays
+     read-only: editing it would create a half-empty hotel record
+     and replace BOTH demo cards with one nameless entry. Hosts add
+     hotels via the Travel panel first. */
+  const hostHotelCount = manifest.travelInfo?.hotels?.length ?? 0;
+  const patchHotelBlurb = onEditField && hostHotelCount > 0
+    ? (idx: number, next: string) => onEditField((m) => {
+        const ti = m.travelInfo ?? { airports: [], hotels: [] };
+        const hotels = [...(ti.hotels ?? [])];
+        if (!hotels[idx]) return m;
+        hotels[idx] = { ...hotels[idx], description: next };
+        return { ...m, travelInfo: { ...ti, hotels } };
+      })
+    : undefined;
+  const patchHotelName = onEditField && hostHotelCount > 0
+    ? (idx: number, next: string) => onEditField((m) => {
+        const ti = m.travelInfo ?? { airports: [], hotels: [] };
+        const hotels = [...(ti.hotels ?? [])];
+        if (!hotels[idx]) return m;
+        hotels[idx] = { ...hotels[idx], name: next };
+        return { ...m, travelInfo: { ...ti, hotels } };
+      })
+    : undefined;
+  const patchA = onEditNames ? (a: string) => onEditNames([a, names[1] ?? '']) : undefined;
+  const patchB = onEditNames ? (b: string) => onEditNames([names[0] ?? '', b]) : undefined;
+  const themeId = ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
+  const theme = getTheme(themeId);
+  /* When a Theme Store pack has been applied, manifest.themeVars
+     carries the pack's full --t-* bag. We override theme.vars with
+     it so the pack's palette / fonts / radii / shadows actually
+     paint — without this override, getTheme() falls back to the
+     default 'garden' theme whenever themeId is a pack id (e.g.
+     'santorini-linen') instead of one of the 6 base theme ids. */
+  const themeVarsOverride = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
+  const density = (manifest.density ?? 'comfortable') as Density;
+  const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
+  const textureIntensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
+  const siteLayout = ((manifest as unknown as { siteLayout?: string }).siteLayout) ?? 'stacked';
+
+  /* Decor Library overrides — handoff themed-site.jsx L116-117 +
+     L176. Host writes manifest.motifKind / dividerLook / pattern
+     / decorColor via the Decor Library drawer; ThemedSite reads
+     them and overrides the theme's per-pack defaults. Each falls
+     back to the theme's value when not set. */
+  const decor = {
+    motif: ((manifest as unknown as { motifKind?: string }).motifKind),
+    divider: ((manifest as unknown as { dividerLook?: string }).dividerLook),
+    pattern: ((manifest as unknown as { pattern?: string }).pattern),
+    color: ((manifest as unknown as { decorColor?: string }).decorColor),
+  };
+  /* Pattern strength (0–1.5) — multiplies the PatternLayer's
+     color-mix percentages, exactly like textureIntensity scales
+     the grain. Theme Store packs + the demo look panel write it;
+     unset → 1 so existing manifests render unchanged. */
+  const patternIntensity = (manifest as unknown as { patternIntensity?: number }).patternIntensity ?? 1;
+
+  /* Names — demo fallbacks ('Scott'/'Shauna') only ever fill in
+     for COUPLE sites with a truly empty manifest (dev/demo). A
+     solo-honoree site must never grow a phantom second name
+     ("random names don't populate"). Explicit editor pick
+     (manifest.subject.kind) wins; the canonical occasion registry
+     (lib/event-os/solo-occasions.ts) is the fallback. */
+  const subjectKindPick = (manifest as unknown as { subject?: { kind?: string } }).subject?.kind;
+  const soloSite =
+    subjectKindPick === 'solo' ||
+    (subjectKindPick !== 'couple' &&
+      isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
+  /* Demo identity fallbacks are EDITOR-ONLY — published sites show
+     what the host actually set, never a fabricated date or venue
+     (a guest reading "Monday, April 26, 2027" on a site whose host
+     skipped the date field is worse than an empty line). */
+  const nameA = names[0] || (soloSite || !editable ? '' : 'Scott');
+  const nameB = soloSite ? (names[1] || '') : (names[1] || (editable ? 'Shauna' : ''));
+  const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
+  const date = formatHeroDate(rawDate) || (editable ? 'Monday, April 26, 2027' : '');
+  const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || (editable ? 'Casa Chorro' : '');
+  const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || (editable ? 'Santorini, Greece' : '');
+
+  /* Motif resolution (handoff L116-117):
+       host's Decor Library pick wins over theme default; if motifs
+       are toggled off entirely, force 'none'. */
+  const baseMotif: MotifKind = !motifsOn ? 'none' : (theme.motif !== 'none' ? (theme.motif as MotifKind) : 'olive');
+  const motif: MotifKind = decor.motif
+    ? (decor.motif === 'none' ? 'none' : (decor.motif as MotifKind))
+    : baseMotif;
+  const dividerLook = decor.divider || theme.look.divider;
+  /* Motif movement — the design system ships ambient .pl-float /
+     .pl-drift keyframes (reduced-motion aware); host opts in via the
+     Decor Library. Off unless motifs are on AND a movement is set. */
+  const motifAnim: 'none' | 'float' | 'drift' =
+    motifsOn ? (manifest.motifAnimation ?? 'none') : 'none';
+  const pad = { cozy: 0.74, comfortable: 1, spacious: 1.32 }[density] || 1;
+  /* Theme Store packs write manifest.texture to override the base
+     theme's static texture. Reading here so every TextureLayer
+     mount AND the watercolor-wash hero check pick up the pack
+     override instead of staying stuck on the base theme's
+     default. */
+  const textureOverride = ((manifest as unknown as { texture?: string }).texture);
+  /* 'none' is a REAL override — the host (TexturePick) or a Theme
+     Store pack chose bare paper. The old check treated 'none' as
+     unset and fell back to the theme's material, which made the
+     None pick (and matte packs) silently impossible. */
+  const effectiveTexture = (typeof textureOverride === 'string' && textureOverride !== '')
+    ? textureOverride
+    : theme.texture;
+  const showWashHero = textureIntensity > 0 && effectiveTexture === 'watercolor';
+
+  /* Section copy + content — pulls from manifest with prototype
+     fallbacks. Keeps the renderer data-driven per handoff L141-153. */
+  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}`, editable, demoCopy });
+  /* Per-section layout variants — manifest.layouts[section] overrides
+     the per-section default. PropertyRail's Layout tab writes here. */
+  const variants = {
+    hero: readVariant(manifest, 'hero'),
+    story: readVariant(manifest, 'story'),
+    details: readVariant(manifest, 'details'),
+    schedule: readVariant(manifest, 'schedule'),
+    travel: readVariant(manifest, 'travel'),
+    registry: readVariant(manifest, 'registry'),
+    gallery: readVariant(manifest, 'gallery'),
+    faq: readVariant(manifest, 'faq'),
+    rsvp: readVariant(manifest, 'rsvp'),
+    countdown: readVariant(manifest, 'countdown'),
+    map: readVariant(manifest, 'map'),
+    music: readVariant(manifest, 'music'),
+  };
+  const coverPhoto = ((manifest as unknown as { coverPhoto?: string }).coverPhoto) || undefined;
+  const edit: SectionCtx['edit'] = onEditField || onEditNames ? {
+    tagline: patchTagline,
+    storyHeadline: patchStoryField ? (v) => patchStoryField('headline', v) : undefined,
+    storyBody: patchStoryField ? (v) => patchStoryField('body', v) : undefined,
+    detailsValue: patchDetailsCard ? (i, v) => patchDetailsCard(i, 'v', v) : undefined,
+    detailsLabel: patchDetailsCard ? (i, v) => patchDetailsCard(i, 'l', v) : undefined,
+    eventName: patchEvent ? (i, v) => patchEvent(i, 'name', v) : undefined,
+    eventTime: patchEvent ? (i, v) => patchEvent(i, 'time', v) : undefined,
+    eventVenue: patchEvent ? (i, v) => patchEvent(i, 'venue', v) : undefined,
+    eventDescription: patchEvent ? (i, v) => patchEvent(i, 'description', v) : undefined,
+    faqQuestion: patchFaq ? (i, v) => patchFaq(i, 'question', v) : undefined,
+    faqAnswer: patchFaq ? (i, v) => patchFaq(i, 'answer', v) : undefined,
+    chapterTitle: patchChapter ? (i, v) => patchChapter(i, 'title', v) : undefined,
+    chapterBody: patchChapter ? (i, v) => patchChapter(i, 'description', v) : undefined,
+    galleryCaption: patchGalleryCaption,
+    hotelBlurb: patchHotelBlurb,
+    hotelName: patchHotelName,
+    nameA: patchA,
+    nameB: patchB,
+    copy: patchCopy,
+  } : undefined;
+  /* WHERE the motifs live — host pick wins, then the kit's default
+     (scrapbook→scattered, plate→corners, index→margins…). The old
+     system hardcoded 17 per-section scatter calls; placement is now
+     a first-class axis rendered by every TSection. */
+  const kitId = ((manifest as unknown as { kitId?: string }).kitId) ?? 'classic';
+  /* ATELIER (premium motion) unlock for THIS site. When on, the
+     root carries data-pl-premium="on" so the motion-kit animation
+     layer + animated dividers/motifs come alive (pearloom.css gates
+     all of it on this attribute + prefers-reduced-motion). Off →
+     every motion kit still paints its full STATIC base, so the
+     free-tier teaser reads correctly. Per-site, manifest-backed so
+     published sites honour it without the editor's localStorage. */
+  const premiumAttr = manifest.atelier ? 'on' : undefined;
+  /* GLASS AURORA, photographed — when the Glass kit has a cover
+     photo, the photo becomes the light behind the panes (the
+     literal liquid-glass-over-imagery effect): a sticky full-
+     viewport layer, dimmed under a paper scrim, that the panes'
+     backdrop blur liquefies. Sticky (not fixed) so it behaves in
+     editor/preview scroll containers AND on iOS, where fixed
+     backgrounds are unreliable. Without a photo, the kit's CSS
+     gradient aurora carries the light alone. */
+  const glassPhotoAurora = kitId === 'glass' && coverPhoto ? (
+    <div aria-hidden className="pl8-glass-aurora" style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'sticky', top: 0, height: '100dvh' }}>
+        { }
+        <img src={coverPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55, filter: 'saturate(1.25)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'color-mix(in srgb, var(--t-paper, #15131C) 42%, transparent)' }} />
+      </div>
+    </div>
+  ) : null;
+  /* SURFACE PATTERN (manifest.pattern ← theme packs). The CSS has
+     existed since the pattern system shipped — but only the store
+     thumbnails ever mounted .pl8-pattern-layer, so a purchased
+     gingham/celestial/deco pattern never reached the actual site
+     (2026-06-13 audit). Direct child of .pl8-guest: the :has()
+     rules lift content above it. */
+  const patternId = ((manifest as unknown as { pattern?: string }).pattern) ?? 'none';
+  const patternLayer = patternId !== 'none' ? (
+    <div className="pl8-pattern-layer" data-pl-pattern={patternId} aria-hidden="true" />
+  ) : null;
+  const motifLayout: MotifLayout = !motifsOn || motif === 'none'
+    ? 'none'
+    : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
+  const icsHref = siteSlug && manifest.logistics?.date
+    ? buildSitePath(siteSlug, '/event.ics', (manifest as unknown as { occasion?: string }).occasion)
+    : undefined;
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, onEditField, coverPhoto, edit, icsHref, siteSlug };
+  /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
+     mounted next to <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer} in every layout branch. */
+  const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
+
+  /* Scroll-rise — guest-facing sections thread into view as the
+     reader reaches them (fade + rise). Editor canvas opts out
+     (instant paint while editing); reduced-motion opts out via
+     the CSS. Two anti-blank rules learned on phones:
+       • sections in (or near) the first viewport reveal
+         SYNCHRONOUSLY — never a flash above the fold;
+       • the observer pre-triggers half a viewport EARLY
+         (rootMargin +50%), so a section has finished rising by
+         the time a fast flick brings it on screen. The old
+         -8%/0.05 trigger meant blank paper until the reader was
+         already inside the section. */
+  const revealRoot = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (editable || typeof IntersectionObserver === 'undefined') return;
+    const root = revealRoot.current;
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll('[data-section-id]')) as HTMLElement[];
+    if (!els.length) return;
+    const vh = window.innerHeight || 800;
+    const toObserve: HTMLElement[] = [];
+    for (const el of els) {
+      const top = el.getBoundingClientRect().top;
+      if (top < vh * 1.2) continue; // already on (or near) screen — stay painted
+      el.classList.add('pl8-rise-pending');
+      toObserve.push(el);
+    }
+    if (!toObserve.length) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          const el = e.target as HTMLElement;
+          el.classList.add('pl8-rise-in');
+          io.unobserve(el);
+          /* Drop both classes once the rise lands (640ms transition):
+             .pl8-rise-in leaves transform: translateY(0) on the
+             section FOREVER, and any transform makes the section the
+             containing block for position:fixed descendants — a
+             lightbox or drawer inside a risen section would anchor
+             to the section, not the viewport. Post-transition the
+             classes are pure liability; removing them is invisible. */
+          timers.push(setTimeout(() => {
+            el.classList.remove('pl8-rise-in', 'pl8-rise-pending');
+          }, 700));
+        }
+      }
+    }, { rootMargin: '0px 0px 50% 0px', threshold: 0 });
+    toObserve.forEach((el) => io.observe(el));
+    return () => { io.disconnect(); timers.forEach(clearTimeout); };
+  }, [editable]);
+
+  /* Hidden sections — host can hide any non-essential section via
+     the "Hide on the site" toggle at the bottom of each panel.
+     Stored as manifest.hiddenSections: SectionKind[]. The hero is
+     never hidden (a site without a hero is broken). */
+  const hidden = (((manifest as unknown as { hiddenSections?: string[] }).hiddenSections) ?? []) as SectionKind[];
+  /* Section ORDER — read manifest.blockOrder (set by the rail's
+     drag-to-reorder). Hero stays pinned first. Sections missing
+     from blockOrder (e.g. newly added) get appended in default
+     order; sections in blockOrder that aren't valid SectionKinds
+     get filtered out. */
+  /* allKinds = every section we know how to render. coreKinds is
+     the set that's auto-included when nothing's in blockOrder.
+     Optional kinds (countdown / map / music) only render when the
+     host adds them via the Add Section picker → they live in
+     blockOrder but aren't auto-appended. */
+  const coreKinds: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+  const allKinds: SectionKind[] = [
+    ...coreKinds, 'countdown', 'map', 'music',
+    /* Event-OS blocks — render only when present in blockOrder
+       (added via the Add Section picker); never auto-appended. */
+    'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
+    'program', 'livestream', 'obituary', 'packingList', 'honorList',
+    'tributeWall', 'menu', 'dressCode', 'nameVote', 'rooms', 'thenAndNow',
+    'groupChat',
+  ];
+  const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
+  const reorderedRest: SectionKind[] = [
+    ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
+    ...coreKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
+  ];
+  /* Occasion gate — core sections that don't fit this occasion
+     (per the EVENT_TYPES registry) AND are content-empty are
+     skipped, so e.g. a bachelorette site never renders a demo
+     Registry with placeholder stores. Sections carrying real host
+     content always render — content wins. Unknown occasion →
+     everything renders (manifests that predate the registry). */
+  const occasionId = (manifest as unknown as { occasion?: string }).occasion;
+  /* Published honesty gate — a story section with nothing authored
+     is 100% fallback copy. It still renders in the editor and the
+     wizard's demo pressings (where the ghost copy invites writing),
+     but guests never see a fabricated story. */
+  const storyAuthored = (() => {
+    const l = manifest as unknown as { chapters?: unknown[]; storySection?: { headline?: string; body?: string } };
+    return (Array.isArray(l.chapters) && l.chapters.length > 0)
+      || !!l.storySection?.body?.trim()
+      || !!l.storySection?.headline?.trim();
+  })();
+  const allSections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
+    .filter((s) => s === 'hero' || !hidden.includes(s))
+    .filter((s) => s !== 'story' || editable || demoCopy || storyAuthored)
+    .filter((s) =>
+      !coreKinds.includes(s)
+      || isCoreSectionApplicable(s, occasionId)
+      || sectionHasContent(s, manifest));
+  /* Multi-page narrowing — pageFilter mirrors ThemedSiteRenderer:
+       • undefined → render everything (scroll mode, editor canvas)
+       • 'home'    → hero + homePageBlocks ∪ {details}; optional /
+                     Event-OS sections stay (they're home content)
+       • block key → that single section, nav + footer chrome kept
+     siteMode + homeBlockSet are computed unconditionally so the
+     editor canvas can badge own-page sections while still
+     rendering everything for editing. */
+  const siteMode = readSiteMode(manifest);
+  const homeBlockSet = new Set<string>([...readHomePageBlocks(manifest), 'details']);
+  const multiPageSet = new Set<string>(MULTI_PAGE_BLOCKS);
+  const baseSections: SectionKind[] = (() => {
+    if (!pageFilter) return allSections;
+    if (pageFilter === 'home') {
+      return allSections.filter(
+        (s) => s === 'hero' || !multiPageSet.has(s) || homeBlockSet.has(s),
+      );
+    }
+    return allSections.filter((s) => s === pageFilter);
+  })();
+  /* Virtual sections appended after the real ones (home/scroll only):
+     the guestbook (opt-in) and the linked-events strip (published
+     sites that belong to a celebration — self-hides when none).
+     Never mutate baseSections/allSections in place (they back the nav). */
+  const homePage = !pageFilter || pageFilter === 'home';
+  const guestbookOn = ((manifest as unknown as { features?: { guestbook?: boolean } }).features?.guestbook) === true;
+  const virtualSections: ('guestbook' | 'linked')[] = [];
+  if (guestbookOn && homePage) virtualSections.push('guestbook');
+  if (siteSlug && homePage) virtualSections.push('linked');
+  const sections: (SectionKind | 'guestbook' | 'linked')[] =
+    virtualSections.length ? [...baseSections, ...virtualSections] : baseSections;
+  /* navItems carry section id + label so the nav can render real
+     anchors that scroll to the right block. Excludes 'hero' and
+     'rsvp' from the link list (hero is the top of the page, rsvp
+     gets its own dedicated CTA button). Built from allSections —
+     on a multi-page home the nav still lists Travel even though
+     Travel lives on its own page (the click navigates there). */
+  /* The story label routes by occasion — "Our story" belongs to
+     couples; solo honorees get "The story", memorials "Their story". */
+  const sectionLabel = (s: SectionKind): string =>
+    s === 'story' ? occasionCopyFor(occasionId).navStory : SECTION_LABEL[s];
+  const navItems = allSections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: sectionLabel(s) }));
+  const headline = C.subject.type === 'solo' ? C.subject.a : `${C.subject.a} & ${C.subject.b}`;
+
+  /* Smooth-scroll handler — every nav link + the RSVP CTA call this
+     with a section id. Uses document.getElementById because the
+     id={id} attribute now lives on every TSection's outer div. */
+  const scrollToSection = (sectionId: string) => {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  /* Living background (v2 shader wallpaper) — when set, the site root
+     goes transparent so the animated ground (mounted by the shell /
+     editor canvas behind this tree) shows through the gaps; opaque
+     section surfaces keep text legible over it. */
+  const livingBg = (manifest as unknown as { background?: string }).background;
+  const rootStyle: CSSProperties = {
+    ...themeRootStyle(theme, density, themeVarsOverride ?? null),
+    position: 'relative',
+    /* Decor color override → --t-motif scope var that the motif
+       SVGs read for their fill (handoff L176). */
+    ...(decor.color ? { ['--t-motif' as string]: `var(${decor.color})` } : {}),
+    ...(livingBg ? { background: 'transparent', zIndex: 1 } : {}),
+  };
+
+  /* Viewport detection + active-section tracking for the nav variant
+     dispatch. useIsMobile is SSR-safe (false on first render, hydrates
+     after mount); useActiveSection observes each section's id and
+     returns the one most-in-view so nav links can highlight the
+     current section. forceMobile (set by the editor's mobile preview
+     pill) wins so the mobile drawer variants paint in the 390px
+     device frame even when the browser viewport is desktop-width. */
+  const realIsMobile = useIsMobile();
+  const isMobile = forceMobile || realIsMobile;
+  /* useActiveSection lives INSIDE <SiteNav/> (below), not here — the
+     hook's setState fires on every scroll section-crossing, and at
+     the root it re-rendered this entire component (the whole site)
+     mid-scroll on published pages. Only the nav highlights care. */
+
+  /* Variant ids — manifest.layouts.nav / manifest.layouts.navMobile
+     override the per-section defaults registered in layouts.ts. */
+  const navVariant = readVariant(manifest, 'nav');
+  const navMobileVariant = readVariant(manifest, 'navMobile');
+
+  const onNavClick = (id: string) => {
+    /* Multi-page published sites — a nav item whose section isn't on
+       the current page navigates to its own page (or back to the
+       home anchor) instead of scrolling to an anchor that doesn't
+       exist here. The editor canvas never passes siteSlug, so
+       in-canvas nav clicks stay scroll-only and can't navigate the
+       editor tab away. */
+    if (
+      siteMode === 'multi-page'
+      && !editable
+      && siteSlug
+      && !sections.includes(id as SectionKind)
+    ) {
+      if (typeof window === 'undefined') return;
+      if (isSiteBlockKey(id) && !homeBlockSet.has(id)) {
+        window.location.assign(buildSitePath(siteSlug, `/${BLOCK_PAGE_SLUG[id]}`, occasionId));
+      } else {
+        window.location.assign(`${buildSitePath(siteSlug, '', occasionId)}#${id}`);
+      }
+      return;
+    }
+    scrollToSection(id);
+  };
+  const onCtaClick = (e?: { stopPropagation?: () => void }) => {
+    /* Variants wire this as onClick={onCtaClick}, so React hands us
+       the click event — stop it before the TSection frame's own
+       click handler re-selects the section the button sits in. */
+    e?.stopPropagation?.();
+    scrollToSection('rsvp');
+    if (editable) {
+      /* Edit mode — the CTA selects the RSVP section so the host
+         lands in its panel. Dispatching pl-open-rsvp here used to
+         open the GUEST RSVP modal over the editor (a guest flow
+         hijacking the host). Preview/published keep the modal. */
+      setActive?.('rsvp' as SectionId);
+      return;
+    }
+    /* Dispatch 'pl-open-rsvp' so PublishedSiteShell's GuestRsvpModal
+       opens too. */
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+    }
+  };
+
+  /* Mobile nav variants type activeId as `string | undefined`; the
+     hook returns `string | null`. Pre-normalize so both prop shapes
+     are satisfied without `as` casts at the call site. */
+  /* Monogram — when the host has built one in the Decor Library,
+     it replaces the Pear glyph in the nav logo slot. Solo-honoree
+     sites flag the nav so its headline-derived fallback crests one
+     initial (never "E & R" from a full name like Eleanor Rose). */
+  const monogramRaw = (manifest as unknown as { monogram?: { initials?: string; frame?: string } }).monogram;
+  const monogram = monogramRaw
+    ? ({ ...monogramRaw, solo: C.subject.type === 'solo' } as {
+        initials?: string;
+        frame?: import('../site/Monogram').MonogramFrame;
+        solo?: boolean;
+      })
+    : undefined;
+  const sharedNavProps = {
+    headline,
+    navItems,
+    cta: C.cta,
+    onNavClick,
+    onCtaClick,
+    monogram,
+  };
+
+  const navEl = (
+    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop>
+      <SiteNav
+        sectionIds={sections.map(String)}
+        isMobile={isMobile}
+        navVariant={navVariant}
+        navMobileVariant={navMobileVariant}
+        shared={sharedNavProps}
+      />
+    </TSection>
+  );
+
+  const sectionEl = (kind: SectionKind | 'guestbook' | 'linked') => {
+    /* Guestbook is a virtual section (not host-editable content) —
+       render the live wall + sign form directly, no TSection chrome.
+       In the editor canvas (no siteSlug) it shows a preview. */
+    if (kind === 'guestbook') {
+      return <GuestbookSection key="guestbook" siteSlug={siteSlug} preview={editable && !siteSlug} />;
+    }
+    /* Linked events — when this site is part of a celebration, the
+       other events show as a strip (published only; self-hides when
+       there are no siblings). */
+    if (kind === 'linked') {
+      return <LinkedEventsStrip key="linked" siteSlug={siteSlug} />;
+    }
+    /* Magazine (multi-page) mode in the editor — every section still
+       renders on the canvas so it stays editable, but sections that
+       live on their own page get flagged in the selection handle so
+       the host can see what the home page won't carry. */
+    const ownPage = editable
+      && siteMode === 'multi-page'
+      && multiPageSet.has(kind)
+      && !homeBlockSet.has(kind);
+    return (
+      <TSection
+        key={kind}
+        id={kind}
+        label={ownPage ? `${sectionLabel(kind)} · own page` : sectionLabel(kind)}
+        active={active}
+        setActive={setActive}
+        editable={editable}
+        onSectionFocus={onSectionFocus}
+        motifLayout={ctx.motifLayout}
+        motif={ctx.motif}
+        manifest={manifest}
+        onEditField={onEditField}
+      >
+        {renderKind(kind, ctx)}
+      </TSection>
+    );
+  };
+
+  /* Site footer — port of v2 site-renderer Footer (signature /
+     columns / minimal). Brand chrome closing every page; reads
+     manifest.footerVariant. Rendered once at the foot of each
+     layout below. */
+  const footerVariant = (manifest as unknown as { footerVariant?: 'signature' | 'columns' | 'minimal' }).footerVariant || 'signature';
+  const footerEl = (
+    /* onNavClick, not raw scrollToSection — on multi-page sites the
+       columns footer links to sections living on other pages; the
+       page-aware handler navigates there (same path as the header
+       nav) instead of preventDefault-ing into a dead anchor. */
+    <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
+  );
+
+  /* kitId hoisted above ctx for motifLayout. */
+
+  /* siteLayout — Classic stacked (default) / Invitation boxed
+     (a card on a tinted mat) / Split sticky-sidebar lockup.
+     Handoff themed-site.jsx L181-217 verbatim. */
+  if (siteLayout === 'split') {
+    return (
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-split">
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        {C.isPostEvent && <PostEventBanner />}
+        {/* Tighter, fixed-width sidebar — 290-340px instead of
+            35% — so the content column always has room to breathe
+            on narrow editor previews. Stacks to single-column on
+            mobile via pearloom.css `.pl8-guest-split` media query. */}
+        <div className="pl8-split-grid" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(280px, 340px) 1fr', alignItems: 'start' }}>
+          <div className="pl8-split-sidebar" style={{ position: 'sticky', top: 0, alignSelf: 'start' }}>
+            <SidebarHero
+              ctx={ctx}
+              headline={headline}
+              navItems={navItems}
+              scrollToSection={scrollToSection}
+              active={active}
+              setActive={setActive}
+              editable={editable}
+              onSectionFocus={onSectionFocus}
+            />
+          </div>
+          <div className="pl8-split-body" style={{ borderLeft: '1px solid var(--t-line-soft)', minWidth: 0 }}>
+            {sections.filter((s) => s !== 'hero').map(sectionEl)}
+          </div>
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>{footerEl}</div>
+      </div>
+    );
+  }
+
+  if (siteLayout === 'boxed') {
+    return (
+      <div
+        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 26px)' }}
+        data-pl-texture={effectiveTexture}
+        data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr}
+        data-pl-editable={editable ? '' : undefined}
+        ref={revealRoot}
+        className="pl8-guest pl8-guest-boxed"
+      >
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        <div
+          style={{
+            maxWidth: 900,
+            margin: '0 auto',
+            position: 'relative',
+            background: 'var(--t-paper)',
+            borderRadius: 'var(--t-radius-lg)',
+            boxShadow: '0 40px 90px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.12)',
+            border: '1px solid var(--t-line)',
+            overflow: 'hidden',
+          }}
+        >
+          {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+          <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {C.isPostEvent && <PostEventBanner />}
+            {navEl}
+            {sections.map(sectionEl)}
+            {footerEl}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Magazine — hero spans full width, then sections split into
+         a two-column scrolling spread (left col: odd-index, right
+         col: even-index). Folds to a single-column stack on mobile
+         via the @media block in pearloom.css. ───────────────────── */
+  if (siteLayout === 'magazine') {
+    const rest = sections.filter((s) => s !== 'hero');
+    const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
+    const leftCol = rest.filter((_, i) => i % 2 === 0);
+    const rightCol = rest.filter((_, i) => i % 2 === 1);
+    return (
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-magazine">
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {heroEl}
+          <div className="pl8-magazine-spread" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderTop: '1px solid var(--t-line-soft)' }}>
+            <div className="pl8-magazine-col pl8-magazine-col-left" style={{ borderRight: '1px solid var(--t-line-soft)', minWidth: 0 }}>
+              {leftCol.map(sectionEl)}
+            </div>
+            <div className="pl8-magazine-col pl8-magazine-col-right" style={{ minWidth: 0 }}>
+              {rightCol.map(sectionEl)}
+            </div>
+          </div>
+          {footerEl}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Zine — asymmetric pages with subtle per-section rotation +
+         alternating cream/cream-deep backgrounds. Feels like a hand-
+         assembled mini-magazine. Rotations drop on mobile so reading
+         doesn't suffer in narrow viewports. ───────────────────────── */
+  if (siteLayout === 'zine') {
+    return (
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-zine">
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {sections.map((kind, i) => (
+            <div
+              key={kind}
+              className="pl8-zine-page"
+              style={{
+                /* nth-child alternation via inline style — even pages
+                   tilt -0.6deg with cream-2 background, odd pages
+                   tilt +0.6deg with cream-deep. Hero stays upright. */
+                transform: kind === 'hero' ? 'none' : `rotate(${i % 2 === 0 ? '-0.6deg' : '0.6deg'})`,
+                background: kind === 'hero' ? undefined : (i % 2 === 0 ? 'var(--t-section)' : 'var(--t-paper)'),
+                margin: kind === 'hero' ? 0 : '12px auto',
+                padding: kind === 'hero' ? 0 : '6px',
+                width: kind === 'hero' ? 'auto' : '96%',
+                maxWidth: kind === 'hero' ? 'none' : 1080,
+                boxShadow: kind === 'hero' ? 'none' : '0 8px 22px rgba(40,28,12,0.10)',
+                borderRadius: kind === 'hero' ? 0 : 6,
+              }}
+            >
+              {sectionEl(kind)}
+            </div>
+          ))}
+          {footerEl}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Storybook — each section feels like a page of a bound book.
+         Folio number top-left, marginalia rule top + bottom, slight
+         inset feel. Mobile keeps the folio + tightens margins. ──── */
+  if (siteLayout === 'storybook') {
+    return (
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-storybook">
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {sections.map((kind, i) => (
+            <div
+              key={kind}
+              className="pl8-storybook-page"
+              style={{
+                position: 'relative',
+                borderTop: i === 0 ? 'none' : '1px solid var(--t-line-soft)',
+                borderBottom: '1px solid var(--t-line-soft)',
+              }}
+            >
+              {kind !== 'hero' && (
+                <span
+                  aria-hidden
+                  className="pl8-storybook-folio"
+                  style={{
+                    position: 'absolute',
+                    top: 12, left: 18,
+                    fontFamily: 'var(--t-display)',
+                    fontStyle: 'italic',
+                    fontSize: 11,
+                    color: 'var(--t-ink-muted)',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    zIndex: 2,
+                  }}
+                >
+                  · {String(i).padStart(2, '0')} ·
+                </span>
+              )}
+              {sectionEl(kind)}
+            </div>
+          ))}
+          {footerEl}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Gallery — hero full-bleed; every subsequent section sits
+         in a narrow centered column with generous whitespace.
+         A sticky right-edge progress strip dots out which section
+         the viewer is on (desktop only — hidden on mobile so it
+         doesn't crowd the canvas). ──────────────────────────────── */
+  if (siteLayout === 'gallery') {
+    const rest = sections.filter((s) => s !== 'hero');
+    const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
+    return (
+      <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest pl8-guest-gallery">
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {heroEl}
+          <div className="pl8-gallery-rail" style={{ position: 'relative' }}>
+            {/* Progress strip — right-edge dot column. One dot per
+                non-hero section. Desktop only via the CSS media
+                query below. Own component so its scrollspy state
+                re-renders the dots, not the whole site. */}
+            <SectionDotRail sectionIds={rest.map(String)} />
+            <div className="pl8-gallery-col" style={{ maxWidth: 720, margin: '0 auto' }}>
+              {rest.map(sectionEl)}
+            </div>
+          </div>
+          {footerEl}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Postcard — entire site sits on a postcard card with a stamp
+         corner + caption-strip bottom edge. Like Boxed but with a
+         keepsake frame. Mobile drops to a borderless full-bleed
+         column so the stamp doesn't crowd the viewport. ─────────── */
+  if (siteLayout === 'postcard') {
+    return (
+      <div
+        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 20%, var(--t-section))', padding: 'clamp(16px, 4vw, 56px) clamp(12px, 4vw, 40px)' }}
+        data-pl-texture={effectiveTexture}
+        data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr}
+        data-pl-editable={editable ? '' : undefined}
+        ref={revealRoot}
+        className="pl8-guest pl8-guest-postcard"
+      >
+        <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+        <div
+          className="pl8-postcard-frame"
+          style={{
+            maxWidth: 940,
+            margin: '0 auto',
+            position: 'relative',
+            background: 'var(--t-paper)',
+            borderRadius: 4,
+            boxShadow: '0 30px 70px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.12)',
+            border: '1px solid var(--t-line)',
+            overflow: 'hidden',
+            padding: 14,
+          }}
+        >
+          {/* Faux postage stamp — pinned just below the nav row.
+              Previously sat at top: 22 which collided with the nav's
+              RSVP button on the right (the nav lives inside the
+              postcard inner-card frame). Dropping it to top: 80 +
+              pointer-events:none keeps the postcard's classic
+              top-right stamp convention without intercepting nav
+              clicks. */}
+          <div
+            aria-hidden
+            className="pl8-postcard-stamp"
+            style={{
+              position: 'absolute',
+              top: 80, right: 22,
+              width: 56, height: 68,
+              background: 'var(--t-accent-bg, var(--t-section))',
+              border: '2px dashed var(--t-ink-muted)',
+              display: 'grid', placeItems: 'center',
+              transform: 'rotate(4deg)',
+              zIndex: 1,
+              fontFamily: 'var(--t-display)',
+              fontStyle: 'italic',
+              fontSize: 10,
+              color: 'var(--t-ink-soft)',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              pointerEvents: 'none',
+            }}
+          >
+            <span style={{ textAlign: 'center', lineHeight: 1.2 }}>
+              with<br/>love
+            </span>
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              background: 'var(--t-paper)',
+              border: '1px solid var(--t-line-soft)',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+            <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {C.isPostEvent && <PostEventBanner />}
+              {navEl}
+              {sections.map(sectionEl)}
+              {footerEl}
+            </div>
+          </div>
+          {/* Caption strip — bottom edge of the postcard, holds
+              the names + date so the keepsake reads as one
+              artifact even when the canvas is screenshot. */}
+          <div
+            className="pl8-postcard-caption"
+            aria-hidden
+            style={{
+              display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+              padding: '12px 6px 4px',
+              fontFamily: 'var(--t-display)',
+              fontStyle: 'italic',
+              fontSize: 13,
+              color: 'var(--t-ink-soft)',
+            }}
+          >
+            <span style={{ letterSpacing: '0.08em' }}>{headline}</span>
+            {manifest.logistics?.date && (
+              <span style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+                {manifest.logistics.date}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Classic stacked — default scroll. */
+  return (
+    <div ref={revealRoot} data-pl-editable={editable ? '' : undefined} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} data-pl-premium={premiumAttr} className="pl8-guest">
+      <TextureFilters />
+        {glassPhotoAurora}
+        {patternLayer}
+        {ghostStyleEl}
+      {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
+      <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {C.isPostEvent && <PostEventBanner />}
+        {navEl}
+        {sections.map(sectionEl)}
+        {footerEl}
+      </div>
+    </div>
+  );
+}
+
+/* Post-event banner — paints across the top of the site when the
+   event date is in the past. Soft cream-deep band with peach
+   accent type. Hosts can hide the whole RSVP / countdown surface
+   from the panel sidebar; this gives them automatic copy
+   acknowledgement without action. */
+function PostEventBanner() {
+  return (
+    <div
+      role="status"
+      style={{
+        background: 'var(--t-section)',
+        borderBottom: '1px solid var(--t-line)',
+        padding: '16px 28px',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{
+        fontSize: 10, fontWeight: 700,
+        letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: 'var(--t-accent-ink)', marginBottom: 4,
+      }}>
+        After the day
+      </div>
+      <div style={{
+        fontFamily: 'var(--t-display)', fontStyle: 'italic',
+        fontSize: 18, color: 'var(--t-ink)',
+        lineHeight: 1.3,
+      }}>
+        Thank you for joining us — every part of the day felt like family because of you.
+      </div>
+    </div>
+  );
+}
+
+/* SiteFooter — port of v2 site-renderer Footer. Brand chrome that
+   closes every page; three variants (signature / columns / minimal)
+   keyed on manifest.footerVariant. Themed entirely off the live
+   --t-* bag so it reads under any theme/pack. */
+function SiteFooter({
+  variant, headline, meta, navItems, scrollToSection,
+}: {
+  variant: 'signature' | 'columns' | 'minimal';
+  headline: string;
+  meta: { date: string; place: string };
+  navItems: { id: string; label: string }[];
+  scrollToSection: (id: string) => void;
+}) {
+  if (variant === 'minimal') {
+    return (
+      <footer style={{ padding: '26px 24px', textAlign: 'center', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)', fontSize: 12, color: 'var(--t-ink-muted)' }}>
+        <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', color: 'var(--t-ink)', fontSize: 15 }}>{headline}</span>
+        {meta.date ? ` · ${meta.date}` : ''} · Made with Pearloom
+      </footer>
+    );
+  }
+  if (variant === 'columns') {
+    return (
+      <footer style={{ padding: '36px 40px', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <OliveSprig size={26} />
+            <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--t-ink)' }}>{headline}</span>
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 6, letterSpacing: '0.06em' }}>
+            {[meta.date, meta.place].filter(Boolean).join(' · ')}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+          {navItems.map((it) => (
+            <a
+              key={it.id}
+              href={`#${it.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToSection(it.id); }}
+              style={{ fontSize: 12, color: 'var(--t-ink-soft)', textDecoration: 'none', fontFamily: 'var(--t-body)' }}
+            >
+              {it.label}
+            </a>
+          ))}
+        </div>
+      </footer>
+    );
+  }
+  /* signature (default) */
+  return (
+    <footer style={{ padding: '40px 24px 48px', textAlign: 'center', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)' }}>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <OliveSprig size={28} />
+      </div>
+      <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--t-ink)' }}>{headline}</div>
+      <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', marginTop: 8, letterSpacing: '0.08em' }}>
+        {[meta.date, meta.place].filter(Boolean).join(' · ')}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', marginTop: 18, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>
+        Made with Pearloom
+      </div>
+    </footer>
+  );
+}
+
+/* SidebarHero — handoff L221-253 verbatim. The left lockup panel for
+   the SPLIT layout. Hosts the eyebrow, names, divider, date/location,
+   nav links, and RSVP CTA in a vertical column. */
+
+function SidebarHero({
+  ctx, headline, navItems, scrollToSection, active, setActive, editable, onSectionFocus,
+}: {
+  ctx: SectionCtx;
+  headline: string;
+  navItems: { id: string; label: string }[];
+  scrollToSection: (id: string) => void;
+  active: SectionId;
+  setActive: (id: SectionId) => void;
+  editable: boolean;
+  onSectionFocus?: (id: SectionId) => void;
+}) {
+  void headline;
+  const { theme, C, motif, motifsOn } = ctx;
+  const isCouple = C.subject.type === 'couple';
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <TSection id="hero" label="Hero" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif} manifest={ctx.manifest} onEditField={ctx.onEditField}>
+      <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Pear size={24} tone="sage" shadow={false} />
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>
+            Pearloom
+          </span>
+        </div>
+        <div style={{ position: 'relative', marginTop: 'auto' }}>
+          {C.lead && (
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}>
+              {C.lead}
+            </div>
+          )}
+          <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 46, lineHeight: 1.0, margin: 0, letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+            {isCouple ? (
+              <>
+                {C.subject.a}
+                <span style={{ display: 'block', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.7em', fontWeight: 400, color: 'var(--t-ink-soft)' }}>
+                  {isEditorial ? '×' : 'and'}
+                </span>
+                {C.subject.b}
+              </>
+            ) : (
+              C.subject.a
+            )}
+          </h1>
+          {C.tagline && (
+            <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 17, color: 'var(--t-ink-soft)', marginTop: 12 }}>
+              {C.tagline}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'relative', marginTop: 4 }}>
+          <KDivider look={ctx.dividerLook} width={150} style={{ marginLeft: 0 }} />
+        </div>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 7, fontSize: 13, color: 'var(--t-ink-soft)' }}>
+          {C.meta.date && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}
+            </span>
+          )}
+          {C.meta.place && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}
+            </span>
+          )}
+        </div>
+        <nav style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: 12.5, fontWeight: 500, color: 'var(--t-ink-soft)' }}>
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
+              style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              scrollToSection('rsvp');
+              if (editable) {
+                /* Edit mode: select the section, never open the
+                   guest modal over the editor. */
+                setActive?.('rsvp' as SectionId);
+                return;
+              }
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+              }
+            }}
+            style={{
+              padding: '11px 20px', fontSize: 13, fontWeight: 700,
+              background: 'var(--t-accent)', color: 'var(--t-accent-ink, var(--t-paper))',
+              border: 'none', borderRadius: 999, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            {C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </button>
+        </div>
+      </div>
+    </TSection>
+  );
+}
+
+/* ─── Section renderer dispatch — handoff L141-153 verbatim. ─── */
+
+function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
+  switch (kind) {
+    case 'hero':     return <HeroBlock ctx={ctx} />;
+    case 'story':    return <StoryBlock ctx={ctx} />;
+    case 'details':  return <><DetailsBlock ctx={ctx} /><HostContactStrip ctx={ctx} /></>;
+    case 'schedule': return <><ScheduleBlock ctx={ctx} /><CalendarChipStrip ctx={ctx} /></>;
+    case 'travel':   return <TravelBlock ctx={ctx} />;
+    case 'registry': return <RegistryBlock ctx={ctx} />;
+    case 'gallery':  return <><GalleryBlock ctx={ctx} /><GalleryShareStrip ctx={ctx} /></>;
+    case 'rsvp':     return <RsvpBlock ctx={ctx} />;
+    case 'faq':      return <><FaqBlock ctx={ctx} /><FaqAskStrip ctx={ctx} /></>;
+    case 'countdown':return <CountdownBlock ctx={ctx} />;
+    case 'map':      return <MapBlock ctx={ctx} />;
+    case 'music':    return <MusicBlock ctx={ctx} />;
+    /* Event-OS blocks — uniform BlockSectionProps bag (manifest +
+       pad + editable + variant + copy writer). Variant resolved
+       here via readVariant so SectionCtx.variants stays scoped to
+       the core sections. Data paths are documented per block file
+       (memorial.* / bachelor.* fields are shared with the Memorial
+       + Weekend-planner tool panels). */
+    case 'itinerary':    return <ItinerarySection {...blockProps(ctx, 'itinerary')} />;
+    case 'costSplitter': return <CostSplitterSection {...blockProps(ctx, 'costSplitter')} />;
+    case 'activityVote': return <ActivityVoteSection {...blockProps(ctx, 'activityVote')} />;
+    case 'toastSignup':  return <ToastSignupSection {...blockProps(ctx, 'toastSignup')} />;
+    case 'adviceWall':   return <AdviceWallSection {...blockProps(ctx, 'adviceWall')} />;
+    case 'program':      return <ProgramSection {...blockProps(ctx, 'program')} />;
+    case 'livestream':   return <LivestreamSection {...blockProps(ctx, 'livestream')} />;
+    case 'obituary':     return <ObituarySection {...blockProps(ctx, 'obituary')} />;
+    case 'packingList':  return <PackingListSection {...blockProps(ctx, 'packingList')} />;
+    case 'honorList':    return <HonorListSection {...blockProps(ctx, 'honorList')} />;
+    case 'tributeWall':  return <TributeWallSection {...blockProps(ctx, 'tributeWall')} />;
+    case 'menu':         return <MenuSection {...blockProps(ctx, 'menu')} />;
+    case 'dressCode':    return <DressCodeSection {...blockProps(ctx, 'dressCode')} />;
+    case 'nameVote':     return <NameVoteSection {...blockProps(ctx, 'nameVote')} />;
+    case 'rooms':        return <RoomsSection {...blockProps(ctx, 'rooms')} />;
+    case 'thenAndNow':   return <ThenAndNowSection {...blockProps(ctx, 'thenAndNow')} />;
+    case 'groupChat':    return <GroupChatSection {...blockProps(ctx, 'groupChat')} />;
+  }
+}
+
+/* Shared props bag for the Event-OS block sections — see
+   section-variants/blocks/_shared.tsx for the contract. */
+function blockProps(ctx: SectionCtx, section: Exclude<SectionId, null>) {
+  return {
+    manifest: ctx.manifest,
+    pad: ctx.pad,
+    editable: ctx.editable,
+    variant: readVariant(ctx.manifest, section),
+    onEditCopy: ctx.edit?.copy,
+  };
+}
+
+/* ─── HeroBlock — handoff L256-363 centered variant verbatim. ── */
+
+function HeroBlock({ ctx }: { ctx: SectionCtx }) {
+  switch (ctx.variants.hero) {
+    case 'split':       return <HeroSplit ctx={ctx} />;
+    case 'minimal':     return <HeroMinimal ctx={ctx} />;
+    case 'fullbleed':   return <HeroFullbleed ctx={ctx} />;
+    case 'typographic': return <HeroTypographic ctx={ctx} />;
+    case 'postcard':    return <HeroPostcard ctx={ctx} />;
+    case 'crest':       return <HeroCrest ctx={ctx} />;
+    default:            return <HeroCentered ctx={ctx} />;
+  }
+}
+
+/* Default: centered (original). */
+function HeroCentered({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, editable, C, motif, motifsOn, showWashHero, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', textAlign: 'center', padding: `${64 * pad}px 40px ${52 * pad}px`, background: 'var(--t-section)', overflow: 'hidden' }}>
+      {showWashHero && (
+        <WatercolorBloom
+          size={520}
+          tone="var(--t-accent-bg)"
+          tone2="rgba(138,154,107,0.3)"
+          style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', opacity: 0.7, pointerEvents: 'none' }}
+        />
+      )}
+      <div style={{ position: 'relative', marginInline: 'auto' }}>
+        <InlineEdit
+          as="div"
+          value={C.lead}
+          onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="A small forever"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }}
+        />
+        {(C.tagline || editable) && (
+          <InlineEdit
+            as="div"
+            value={C.tagline ?? ''}
+            onChange={edit?.tagline}
+            editable={editable && !!edit?.tagline}
+            placeholder="Click to add a tagline"
+            style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', fontWeight: isEditorial ? 600 : 400, marginTop: 8 }}
+          />
+        )}
+        {C.milestone && (
+          <div style={{
+            display: 'inline-block',
+            padding: '4px 12px',
+            borderRadius: 999,
+            background: 'var(--t-card)',
+            border: '1px solid var(--t-line)',
+            fontSize: 11.5, fontWeight: 700,
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'var(--t-accent-ink)',
+            marginTop: 14,
+          }}>
+            {C.milestone}
+          </div>
+        )}
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(74px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
+              {isEditorial ? '×' : 'and'}
+            </span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}
+          </span>
+        </div>
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={200} />
+        </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit
+              as="span"
+              value={C.cta}
+              onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined}
+              editable={editable && !!edit?.copy}
+              placeholder="RSVP"
+            />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit
+              as="span"
+              value={C.ctaSecondary ?? 'Learn more'}
+              onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined}
+              editable={editable && !!edit?.copy}
+              placeholder="Learn more"
+            />
+          </TButton>
+        </div>
+        <HeroPhotos ctx={ctx} />
+      </div>
+    </div>
+  );
+}
+
+/* HeroPhotos — handoff L601-616 style: up to 4 large 3:4 cards.
+   REAL photos first (cover + gallery) — the strip used to be
+   tone-gradient placeholders even when the host had uploaded
+   photos, so the default hero read as "gradient rectangles".
+   With no photos: the editor keeps the placeholder strip as a
+   shape hint; published sites render nothing (no fake content
+   in front of guests — the honesty rule). */
+function HeroPhotos({ ctx }: { ctx: SectionCtx }) {
+  const gallery = ((ctx.manifest as unknown as { galleryImages?: string[] }).galleryImages ?? []).filter(Boolean);
+  const photos = [ctx.coverPhoto, ...gallery]
+    .filter((p, i, a): p is string => !!p && a.indexOf(p) === i)
+    .slice(0, 4);
+  if (photos.length > 0) {
+    return (
+      <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: `repeat(${Math.min(photos.length, 4)}, minmax(0, 1fr))`, gap: 14, maxWidth: photos.length < 3 ? 620 : 940, marginInline: 'auto' }}>
+        {photos.map((src, i) => (
+          <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
+            <FadeInImage src={src} eager={i === 0} style={{ width: '100%', height: '100%' }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (!ctx.editable) return null;
+  /* Empty editor state — the placeholder strip doubles as "press a
+     square to add a photo": the first tile fills the cover, the rest
+     seed the first gallery slots. */
+  return (
+    <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
+      {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
+        <EditPhotoTarget
+          key={i}
+          editable
+          slot={i === 0
+            ? { kind: 'cover', label: 'the cover' }
+            : { kind: 'gallery', index: i - 1, label: 'this tile' }}
+          style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}
+        >
+          <PhotoPlaceholder tone={t} aspect="3/4" />
+        </EditPhotoTarget>
+      ))}
+    </div>
+  );
+}
+
+/* HeroCrest — monogram lockup, no photo (2026-07-02). The
+   solemn/formal opening between 'minimal' (too plain) and
+   'typographic' (too loud): initials inside a double hairline
+   ring with a gold pearl, names beneath in display, the thread,
+   quiet CTAs. Recommended for memorial / funeral / ceremony
+   occasions via recommendedVariantFor (layouts.ts). */
+function HeroCrest({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  const initialOf = (name: string) => ((name ?? '').trim().charAt(0) || '·').toUpperCase();
+  const solo = C.subject.type !== 'couple';
+  return (
+    <div style={{ position: 'relative', textAlign: 'center', padding: `${72 * pad}px 32px ${56 * pad}px`, background: 'var(--t-section)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto' }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 22 }} />
+        {/* The crest — double hairline ring, initials pressed in
+            display italic, a gold pearl at the ring's base. */}
+        <div
+          aria-hidden={false}
+          style={{
+            position: 'relative',
+            width: 148, height: 148,
+            margin: '0 auto',
+            borderRadius: '50%',
+            border: '1px solid var(--t-line)',
+            display: 'grid', placeItems: 'center',
+            background: 'var(--t-paper)',
+          }}
+        >
+          <div aria-hidden style={{ position: 'absolute', inset: 7, borderRadius: '50%', border: '1px solid var(--t-gold)', opacity: 0.55, pointerEvents: 'none' }} />
+          <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: solo ? 62 : 46, lineHeight: 1, color: 'var(--t-ink)', letterSpacing: '0.01em' }}>
+            {initialOf(C.subject.a)}
+            {!solo && (
+              <span style={{ fontSize: '0.5em', color: 'var(--t-gold)', margin: '0 0.14em', verticalAlign: '0.28em' }}>·</span>
+            )}
+            {!solo && initialOf(C.subject.b)}
+          </div>
+          <span aria-hidden style={{ position: 'absolute', bottom: -3.5, left: '50%', transform: 'translateX(-50%)', width: 7, height: 7, borderRadius: '50%', background: 'var(--t-gold)', boxShadow: '0 0 0 4px var(--t-section)' }} />
+        </div>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(28px, 7vw, calc(44px * var(--t-hero-scale)))', lineHeight: 1.08, margin: '26px 0 0', letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {!solo && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.72em', color: 'var(--t-ink-soft)', margin: '0 0.2em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        {(C.tagline || editable) && (
+          <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 16.5, color: 'var(--t-ink-soft)', marginTop: 10 }} />
+        )}
+        {C.milestone && (
+          <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 999, background: 'var(--t-card)', border: '1px solid var(--t-line)', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginTop: 14 }}>
+            {C.milestone}
+          </div>
+        )}
+        <div style={{ marginTop: 16, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroSplit — handoff L286-298. Type left / photo right grid. */
+function HeroSplit({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div className="pl8-hero-split" style={{ position: 'relative', padding: `clamp(28px, 6vw, ${56 * pad}px) clamp(20px, 5vw, 56px)`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 'clamp(24px, 4vw, 44px)', alignItems: 'center' }}>
+      <div style={{ position: 'relative', textAlign: 'left' }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
+        {(C.tagline || editable) && (
+          <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
+        )}
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(60px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 16 }}><KDivider look={ctx.dividerLook} width={180} style={{ marginLeft: 0 }} /></div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+      <div style={{ position: 'relative' }}>
+        <EditPhotoTarget editable={ctx.editable} slot={{ kind: 'cover', label: 'the cover', current: ctx.coverPhoto }}>
+          {ctx.coverPhoto ? (
+            /* Real cover photo from manifest.coverPhoto wins over the
+               tone placeholder when the host has uploaded one. */
+            <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '3/4', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
+      </div>
+    </div>
+  );
+}
+
+/* HeroMinimal — handoff L299-308. Left-aligned, no photos. */
+function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${72 * pad}px 56px ${56 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'left' }}>
+      <div style={{ maxWidth: 840 }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
+        {(C.tagline || editable) && (
+          <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
+        )}
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(78px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 18 }}><KDivider look={ctx.dividerLook} width={200} style={{ marginLeft: 0 }} /></div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroFullbleed — handoff L310-324. Photo behind dark scrim. */
+function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
+  const { theme, C, coverPhoto, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', minHeight: 460, display: 'grid', placeItems: 'center', textAlign: 'center', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        {coverPhoto ? (
+          <FadeInImage src={coverPhoto} eager style={{ height: '100%', width: '100%' }} />
+        ) : (
+          <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
+        )}
+      </div>
+      {/* Scrim + centered text sit over the photo, so the cover gets a
+          corner "Change photo" chip rather than a click-through wrap. */}
+      <EditPhotoCorner editable={editable} slot={{ kind: 'cover', label: 'the cover', current: coverPhoto }} />
+      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
+      {/* Warm cream over the scrim (not raw #fff) so the type keeps
+          the paper warmth even over a photograph. */}
+      <div style={{ position: 'relative', color: 'var(--t-cream, #FBF7EE)', padding: '40px 24px' }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: 'var(--t-cream, #FBF7EE)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        <div style={{ marginTop: 14, fontSize: 14.5, opacity: 0.92 }}>{C.meta.date} · {C.meta.place}</div>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
+        <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          {/* Secondary CTA — parity with the other hero variants;
+              outline restyled light so it reads over the scrim. */}
+          <TButton
+            variant="outline"
+            href={C.ctaSecondaryHref}
+            style={{ color: 'var(--t-cream, #FBF7EE)', border: '1px solid color-mix(in srgb, var(--t-cream, #FBF7EE) 55%, transparent)' }}
+          >
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroTypographic — handoff L326-338. Names stacked, huge type. */
+function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${78 * pad}px 48px ${60 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'center' }}>
+      <div style={{ position: 'relative' }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {C.subject.type === 'couple' && <>
+            <br />
+            <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}>{isEditorial ? '×' : '&'}</span>
+            <br />
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          {/* Secondary CTA — parity with the other hero variants. */}
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroPostcard — handoff L340-349. Card on a tinted mat. */
+function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'color-mix(in oklab, var(--t-ink) 8%, var(--t-section))', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', position: 'relative' }}>
+        <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          {/* The postcard's photograph — the host's cover photo
+              inside the frame (it previously ignored photos and
+              rendered as a bare card on a tinted mat). */}
+          {(ctx.coverPhoto || editable) && (
+            <EditPhotoTarget editable={editable} slot={{ kind: 'cover', label: 'the cover', current: ctx.coverPhoto }} style={{ marginBottom: 18 }}>
+              {ctx.coverPhoto ? (
+                <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '16/10', borderRadius: 'calc(var(--t-radius) * 0.75)' }} />
+              ) : (
+                <PhotoPlaceholder tone="warm" aspect="16/10" style={{ borderRadius: 'calc(var(--t-radius) * 0.75)' }} />
+              )}
+            </EditPhotoTarget>
+          )}
+          <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
+          {(C.tagline || editable) && (
+            <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
+          )}
+          <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(58px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+            <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+            {C.subject.type === 'couple' && <>
+              <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+              <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+            </>}
+          </h1>
+          <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+          </div>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={180} /></div>
+          <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <TButton variant="primary" href={C.ctaHref}>
+              <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+              <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+            </TButton>
+            <TButton variant="outline" href={C.ctaSecondaryHref}>
+              <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+            </TButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── StoryBlock — handoff L366-456 sidebyside default. ──────── */
+
+function StoryBlock({ ctx }: { ctx: SectionCtx }) {
+  if (ctx.variants.story === 'zigzag') {
+    const { pad, C, editable } = ctx;
+    return <div style={{ padding: `${44 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{
+      C: C.story, pad, editable, cta: C.cta,
+      onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyEyebrow', v) : undefined,
+      onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyTitle', v) : undefined,
+      onEditChapterTitle: ctx.edit?.chapterTitle,
+      onEditChapterBody:  ctx.edit?.chapterBody,
+      eyebrowPlaceholder: C.story.eyebrow,
+      titlePlaceholder: [C.story.title, C.story.italic].filter(Boolean).join(' '),
+    }} /></div>;
+  }
+  switch (ctx.variants.story) {
+    case 'stacked':  return <StoryStacked ctx={ctx} />;
+    case 'quote':    return <StoryQuote ctx={ctx} />;
+    case 'timeline': return <StoryTimeline ctx={ctx} />;
+    case 'letter':   return <StoryLetter ctx={ctx} />;
+    default:         return <StorySideBySide ctx={ctx} />;
+  }
+}
+
+function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, editable, edit } = ctx;
+  void theme;
+  const heroPhoto = C.story.chapterImages?.[0];
+  return (
+    <div className="pl8-story-sbs" style={{ position: 'relative', padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 'clamp(24px, 5vw, 44px)', alignItems: 'center', background: 'var(--t-paper)' }}>
+      <div style={{ position: 'relative' }}>
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="4/5" />
+          )}
+        </EditPhotoTarget>
+        {motif !== 'none' && (
+          <div style={{ position: 'absolute', bottom: -18, right: -14, zIndex: 2 }} aria-hidden>
+            <Motif kind={motif} size={70} />
+          </div>
+        )}
+      </div>
+      <div>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder={C.story.eyebrow}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
+        />
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
+          <InlineEdit
+            as="span"
+            value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
+            onChange={edit?.storyHeadline}
+            editable={editable && !!edit?.storyHeadline}
+            placeholder={[C.story.title, C.story.italic].filter(Boolean).join(' ')}
+          />
+        </h2>
+        <InlineEdit
+          as="div"
+          value={C.story.body}
+          onChange={edit?.storyBody}
+          editable={editable && !!edit?.storyBody}
+          multiline
+          placeholder="Click to write your story…"
+          style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}
+        />
+        {C.story.chips && C.story.chips.length > 0 && (
+          <div style={{ marginTop: 18, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {C.story.chips.map((c, i) => (
+              <span key={i} style={{ padding: '6px 13px', borderRadius: 999, background: 'var(--t-accent-bg)', color: 'var(--t-accent-ink)', fontSize: 12, fontWeight: 600 }}>
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* Story variants — handoff L388-446. */
+
+function StoryStacked({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, edit } = ctx;
+  const heroPhoto = C.story.chapterImages?.[0];
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
+      </div>
+      <InlineEdit
+        as="div"
+        value={C.story.eyebrow}
+        onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+        editable={editable && !!edit?.copy}
+        placeholder="Two threads, one weave"
+        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
+      />
+      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
+        {editable && edit?.storyHeadline ? (
+          /* Composite edit — title + italic as one string; the canvas
+             re-splits via splitHeading on commit (same UX as the
+             sidebyside default + TSectionHead). */
+          <InlineEdit
+            as="span"
+            value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
+            onChange={edit.storyHeadline}
+            editable
+            placeholder={[C.story.title, C.story.italic].filter(Boolean).join(' ')}
+          />
+        ) : (
+          <>
+            {C.story.title}
+            {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+          </>
+        )}
+      </h2>
+      {editable && edit?.storyBody ? (
+        <InlineEdit
+          as="div"
+          value={C.story.body}
+          onChange={edit.storyBody}
+          editable
+          multiline
+          placeholder="Click to write your story…"
+          style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}
+        />
+      ) : (
+        <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>{C.story.body}</p>
+      )}
+    </div>
+  );
+}
+
+function StoryQuote({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  const heroPhoto = C.story.chapterImages?.[0];
+  return (
+    <div style={{ position: 'relative', padding: `${56 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      {(heroPhoto || editable) && (
+        /* Decorative cover above the quote — small + centered so it
+           sits as a deckle motif rather than dominating the pull. */
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }} style={{ marginInline: 'auto', marginBottom: 24, maxWidth: 320 }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/3', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="4/3" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
+      )}
+      <div style={{ position: 'relative' }}>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder={C.story.eyebrow}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 16 }}
+        />
+        <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>
+          <InlineEdit
+            as="span"
+            value={C.story.body}
+            onChange={edit?.storyBody}
+            editable={editable && !!edit?.storyBody}
+            multiline
+            placeholder="Click to write your story…"
+          />
+        </blockquote>
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={160} /></div>
+      </div>
+    </div>
+  );
+}
+
+function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, edit } = ctx;
+  /* Chip fallback routes through the occasion pack (buildCopy →
+     occasionCopyFor) — "We met / We fell / We knew" is wedding
+     voice and must never surface on a memorial or retirement. */
+  const items = C.story.chips && C.story.chips.length > 0 ? C.story.chips : C.story.chipsFallback;
+  return (
+    <div style={{ padding: `${52 * pad}px 56px`, maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder={C.story.eyebrow}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
+        />
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, color: 'var(--t-ink)' }}>
+          {C.story.title}
+          {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+        </h2>
+      </div>
+      <div style={{ position: 'relative', paddingLeft: 30 }}>
+        <div style={{ position: 'absolute', left: 7, top: 4, bottom: 4, width: 2, background: 'var(--t-line)' }} />
+        {items.map((it, i) => {
+          /* Per-row content from manifest.chapters[i] when set:
+             photo, title (overrides chip eyebrow), body. Falls back
+             to the chip eyebrow + shared body for chapters with
+             nothing authored — keeps existing manifests rendering
+             unchanged. */
+          const photo = C.story.chapterImages?.[i];
+          const chapterTitle = C.story.chapterTitles?.[i];
+          const chapterBody = C.story.chapterBodies?.[i];
+          /* Eyebrow stays the chip text; title rendered below as a
+             separate display-font line when the host wrote a
+             chapter-specific title. */
+          const eyebrowText = it;
+          const bodyText = chapterBody || C.story.body;
+          /* Per-chapter inline edit — only the first 3 rows map onto
+             manifest.chapters[0..2] (buildCopy reads exactly three),
+             so rows beyond that render read-only. */
+          const canEditChapter = editable && i < 3;
+          const titleStyle: CSSProperties = { fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'], fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 };
+          const bodyStyle: CSSProperties = { fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 };
+          return (
+            <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
+              <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
+              <div style={{ fontFamily: 'var(--t-mono)', fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)' }}>{eyebrowText}</div>
+              {canEditChapter && edit?.chapterTitle ? (
+                <InlineEdit
+                  as="div"
+                  value={chapterTitle ?? ''}
+                  onChange={(v) => edit.chapterTitle?.(i, v)}
+                  editable
+                  placeholder="Add a chapter title…"
+                  className="pl8-inline-ghost"
+                  style={titleStyle}
+                />
+              ) : chapterTitle ? (
+                <div style={titleStyle}>{chapterTitle}</div>
+              ) : null}
+              {(photo || canEditChapter) && (
+                <EditPhotoTarget editable={canEditChapter} slot={{ kind: 'chapter', index: i, label: 'this chapter photo', current: photo }} style={{ marginTop: chapterTitle ? 10 : 8, maxWidth: 480 }}>
+                  {photo ? (
+                    <FadeInImage src={photo} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
+                  ) : (
+                    <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+                  )}
+                </EditPhotoTarget>
+              )}
+              {canEditChapter && edit?.chapterBody ? (
+                /* Value falls back to the shared story body; an edit
+                   commit writes chapters[i].description so the row
+                   diverges from the shared copy from then on. */
+                <InlineEdit
+                  as="div"
+                  value={bodyText}
+                  onChange={(v) => edit.chapterBody?.(i, v)}
+                  editable
+                  multiline
+                  placeholder="Write this chapter…"
+                  className="pl8-inline-ghost"
+                  style={bodyStyle}
+                />
+              ) : (
+                <div style={bodyStyle}>{bodyText}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StoryLetter({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  const heroPhoto = C.story.chapterImages?.[0];
+  return (
+    <div style={{ position: 'relative', padding: `${52 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
+      <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: '40px 46px', textAlign: 'center' }}>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder={C.story.eyebrow}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 14 }}
+        />
+        {(heroPhoto || editable) && (
+          /* Small framed photo as a "stamp" at the top of the letter
+             card — keeps the editorial-letter feel while warming the
+             card with a real image. */
+          <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }} style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96 }}>
+            {heroPhoto ? (
+              <FadeInImage src={heroPhoto} style={{ width: 96, height: 96, borderRadius: '50%', border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+            ) : (
+              <PhotoPlaceholder tone="warm" aspect="1/1" style={{ width: 96, height: 96, borderRadius: '50%' }} />
+            )}
+          </EditPhotoTarget>
+        )}
+        {editable && edit?.storyBody ? (
+          <InlineEdit
+            as="div"
+            value={C.story.body}
+            onChange={edit.storyBody}
+            editable
+            multiline
+            placeholder="Click to write your story…"
+            style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left', margin: '16px 0' }}
+          />
+        ) : (
+          <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
+        )}
+        <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
+          {C.subject.type === 'solo' ? C.subject.a : <>{C.subject.a} &amp; {C.subject.b}</>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── DetailsBlock — handoff L459-508 tiles default. ─────────── */
+
+function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, motif, editable, variants } = ctx;
+  /* Variant dispatch — fall through to default 'tiles' block. */
+  const sub = {
+    C: C.details, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('detailsEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('detailsTitle', v) : undefined,
+    eyebrowPlaceholder: 'The fine print',
+    titlePlaceholder: 'Good to know',
+  };
+  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsIconRow ctx={sub} /></div>;
+  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsAccordion ctx={sub} /></div>;
+  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsBento ctx={sub} /></div>;
+  if (variants.details === 'ledger')    return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsLedger ctx={sub} /></div>;
+  return (
+    <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
+      
+      <TSectionHead
+        eyebrow={C.details.eyebrow}
+        title={C.details.title}
+        italic={C.details.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('detailsEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('detailsTitle', v) : undefined}
+        eyebrowPlaceholder="The fine print"
+        titlePlaceholder="Everything you should know"
+        divider={ctx.dividerLook}
+      />
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
+        {C.details.items.map((d, i) => (
+          <div key={`${i}-${d.l}`} className="pl8-detail-card pl8-card" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
+            <Icon name={d.icon} size={18} color="var(--t-gold)" />
+            <InlineEdit
+              as="div"
+              value={d.l}
+              onChange={ctx.edit?.detailsLabel ? (v) => ctx.edit?.detailsLabel?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.detailsLabel}
+              placeholder="Label"
+              style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10, marginBottom: 4 }}
+            />
+            <InlineEdit
+              as="div"
+              value={d.v}
+              onChange={ctx.edit?.detailsValue ? (v) => ctx.edit?.detailsValue?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.detailsValue}
+              placeholder="Value"
+              style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 18, color: 'var(--t-ink)' }}
+            />
+            {/* Optional subline — variant/data parity: every layout
+                that can show the panel's subline field does. */}
+            {d.s && (
+              <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--t-ink-soft)', marginTop: 4 }}>{d.s}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── ScheduleBlock — handoff L511-565 cards default. ────────── */
+
+/* "Add to your calendar" — the .ics the site has served all along
+   (/sites/[domain]/event.ics) finally gets a link where guests
+   look for times. Rides the schedule section on every variant;
+   same paper so it reads as the section's footer line. */
+function CalendarChipStrip({ ctx }: { ctx: SectionCtx }) {
+  if (!ctx.icsHref) return null;
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 40px', textAlign: 'center' }}>
+      <a
+        href={ctx.icsHref}
+        download
+        className="pl-hit44"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 18px', borderRadius: 999,
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink-soft)',
+          fontSize: 12.5, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="calendar" size={13} color="var(--t-accent)" /> Add to your calendar
+      </a>
+    </div>
+  );
+}
+
+/* ── Guest-facing section strips (2026-06-13 settings round) ──
+   Each rides its section through the dispatch, wears the
+   section's paper, and renders nothing until the host (or the
+   data) turns it on. */
+
+/* "Share your photos" — the guest-upload page has existed at
+   /[site]/upload with no link on the published site. Host can
+   hide it via manifest.galleryUploads=false (GalleryPanel). */
+function GalleryShareStrip({ ctx }: { ctx: SectionCtx }) {
+  const enabled = ((ctx.manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false;
+  // Invitation-only sites only show the share affordance to guests
+  // who arrived through their personal link (?g= / ?guest=). The
+  // token rides into /upload?t=… so the server can confirm they're
+  // on the list — open sites keep the public button.
+  const guestListOnly = Boolean(
+    (ctx.manifest as unknown as { rsvpConfig?: { guestListOnly?: boolean } }).rsvpConfig?.guestListOnly,
+  );
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        setGuestToken(sp.get('g') || sp.get('guest'));
+      } catch { /* no-op */ }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  if (!ctx.siteSlug || !enabled) return null;
+  // Hide the button for invitation-only sites until we know the
+  // visitor is a recognized guest (token in hand).
+  if (guestListOnly && !guestToken) return null;
+  const occasion = (ctx.manifest as unknown as { occasion?: string }).occasion;
+  const base = buildSitePath(ctx.siteSlug, '/upload', occasion);
+  const href = guestToken ? `${base}?t=${encodeURIComponent(guestToken)}` : base;
+  return (
+    <div style={{ background: 'var(--t-section)', padding: '0 24px 36px', textAlign: 'center' }}>
+      <a
+        href={href}
+        className="pl-hit44"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 18px', borderRadius: 999,
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink-soft)',
+          fontSize: 12.5, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="camera" size={13} color="var(--t-accent)" /> Share your photos with us
+      </a>
+    </div>
+  );
+}
+
+/* "Questions? Text the host" — manifest.hostContact { name, phone }
+   from the Details panel. sms: opens the guest's Messages with the
+   host's number; renders nowhere until a phone is set. */
+function HostContactStrip({ ctx }: { ctx: SectionCtx }) {
+  const hc = (ctx.manifest as unknown as { hostContact?: { name?: string; phone?: string } }).hostContact;
+  const phone = (hc?.phone ?? '').replace(/[^\d+]/g, '');
+  if (phone.replace(/\D/g, '').length < 7) return null;
+  const who = (hc?.name ?? '').trim();
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 40px', textAlign: 'center' }}>
+      <a
+        href={`sms:${phone}`}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '10px 20px', borderRadius: 999,
+          background: 'var(--t-card)',
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink)',
+          fontSize: 13, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="phone" size={13} color="var(--t-accent)" />
+        Questions? Text {who || 'the hosts'}
+      </a>
+    </div>
+  );
+}
+
+/* "Ask us anything" — a tiny composer under the FAQ that lands in
+   the host's Submissions dashboard (the existing public
+   /api/event-os/submissions route, blockId 'faq-questions').
+   OFF by default; FaqPanel's "Let guests ask a question" toggle
+   (manifest.faqConfig.allowQuestions) turns it on. */
+function FaqAskStrip({ ctx }: { ctx: SectionCtx }) {
+  const allow = ((ctx.manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true;
+  const [name, setName] = useState('');
+  const [q, setQ] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  if (!ctx.siteSlug || !allow) return null;
+  const send = async () => {
+    if (state === 'sending' || q.trim().length < 4) return;
+    setState('sending');
+    try {
+      const r = await fetch('/api/event-os/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: ctx.siteSlug,
+          blockId: 'faq-questions',
+          from: name.trim() || 'A guest',
+          body: q.trim(),
+        }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      setState('sent');
+    } catch {
+      setState('error');
+    }
+  };
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 44px' }}>
+      <div style={{ maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
+        {state === 'sent' ? (
+          <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)' }}>
+            Sent — your hosts will see it. ✓
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginBottom: 10 }}>
+              Didn&rsquo;t find your answer?
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name (optional)"
+                style={{ padding: '10px 14px', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line)', background: 'var(--t-card)', color: 'var(--t-ink)', fontSize: 13.5, outline: 'none', fontFamily: 'inherit' }}
+              />
+              <textarea
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                rows={2}
+                maxLength={2000}
+                placeholder="Ask the hosts anything…"
+                style={{ padding: '10px 14px', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line)', background: 'var(--t-card)', color: 'var(--t-ink)', fontSize: 13.5, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <button
+                type="button"
+                onClick={send}
+                disabled={state === 'sending' || q.trim().length < 4}
+                style={{
+                  alignSelf: 'center',
+                  padding: '9px 22px', borderRadius: 999, border: 'none',
+                  background: 'var(--t-rsvp, var(--t-ink))', color: 'var(--t-rsvp-ink, var(--t-paper))',
+                  fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  opacity: state === 'sending' || q.trim().length < 4 ? 0.6 : 1,
+                }}
+              >
+                {state === 'sending' ? 'Sending…' : 'Send your question'}
+              </button>
+              {state === 'error' && (
+                <div style={{ fontSize: 12, color: 'var(--t-ink-soft)' }}>
+                  Couldn&rsquo;t send — try again in a moment.
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, variants } = ctx;
+  const sub = {
+    C: C.schedule, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleTitle', v) : undefined,
+    onEditEventDescription: ctx.edit?.eventDescription,
+    eyebrowPlaceholder: 'The day',
+    titlePlaceholder: 'In moments',
+  };
+  if (variants.schedule === 'timeline') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleTimeline ctx={sub} /></div>;
+  if (variants.schedule === 'stepper')  return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleStepper ctx={sub} /></div>;
+  if (variants.schedule === 'numbered') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleNumbered ctx={sub} /></div>;
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={C.schedule.eyebrow}
+        title={C.schedule.title}
+        italic={C.schedule.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('scheduleEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('scheduleTitle', v) : undefined}
+        eyebrowPlaceholder="The day"
+        titlePlaceholder="In moments"
+        divider={ctx.dividerLook}
+      />
+      {(() => {
+        /* Multi-day rendering — when any row has a day>1, group
+           the rows under "Day N" headers. Single-day events
+           render exactly like before (one flat grid). */
+        const rows = C.schedule.rows;
+        const hasMultiDay = rows.some((r) => r.day && r.day > 1);
+        if (!hasMultiDay) return null;
+        const byDay = new Map<number, typeof rows>();
+        rows.forEach((r, i) => {
+          const d = r.day ?? 1;
+          const arr = byDay.get(d) ?? [];
+          arr.push({ ...r, /* preserve original i for inline-edit handlers */ } as typeof rows[number]);
+          byDay.set(d, arr);
+          void i;
+        });
+        const days = Array.from(byDay.keys()).sort((a, b) => a - b);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 26, maxWidth: 880, marginInline: 'auto' }}>
+            {days.map((d) => {
+              const dayRows = byDay.get(d) ?? [];
+              return (
+                <div key={d}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+                    <div style={{
+                      fontFamily: 'var(--t-mono)',
+                      fontSize: 11, fontWeight: 700,
+                      letterSpacing: 'var(--t-eyebrow-ls)',
+                      textTransform: 'uppercase',
+                      color: 'var(--t-accent-ink)',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      Day {d}
+                    </div>
+                    <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                    {dayRows.map((r, i) => (
+                      <div key={`${d}-${i}`} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
+                        <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as React.CSSProperties['fontWeight'], fontSize: 20, color: 'var(--t-ink)' }}>{r.t}</div>
+                        <div style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}>{r.l}</div>
+                        <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 4 }}>{r.s}</div>
+                        {/* Multi-day grouping loses the original events[]
+                            index, so the note renders read-only here —
+                            inline editing lives in the single-day grid +
+                            the variant layouts. SchedulePanel covers
+                            multi-day edits. */}
+                        {r.d && <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>}
+                        {r.addr && (
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.addr)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--t-accent-ink)', textDecoration: 'none' }}
+                          >
+                            <Icon name="pin" size={10} color="var(--t-accent)" /> Directions
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+      {/* Single-day grid — only renders when there are NO multi-day
+          rows. minmax(180px, 1fr) is the single-card minimum
+          width before the grid wraps. */}
+      <div style={{
+        display: C.schedule.rows.some((r) => r.day && r.day > 1) ? 'none' : 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, maxWidth: 880, marginInline: 'auto',
+      }}>
+        {C.schedule.rows.map((r, i) => (
+          <div key={i} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
+            <InlineEdit
+              as="div"
+              value={r.t}
+              onChange={ctx.edit?.eventTime ? (v) => ctx.edit?.eventTime?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventTime}
+              placeholder="Time"
+              style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}
+            />
+            <InlineEdit
+              as="div"
+              value={r.l}
+              onChange={ctx.edit?.eventName ? (v) => ctx.edit?.eventName?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventName}
+              placeholder="What's happening"
+              style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}
+            />
+            <InlineEdit
+              as="div"
+              value={r.s}
+              onChange={ctx.edit?.eventVenue ? (v) => ctx.edit?.eventVenue?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventVenue}
+              placeholder="Where"
+              style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 2 }}
+            />
+            {/* Quiet one-line note — edit-mode ghost when empty;
+                published renders it only when authored. */}
+            {editable && ctx.edit?.eventDescription ? (
+              <InlineEdit
+                as="div"
+                value={r.d ?? ''}
+                onChange={(v) => ctx.edit?.eventDescription?.(i, v)}
+                editable
+                placeholder="Add a note…"
+                className="pl8-inline-ghost"
+                style={SCHEDULE_NOTE_STYLE}
+              />
+            ) : r.d ? (
+              <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>
+            ) : null}
+            {r.addr && (
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.addr)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--t-accent-ink)', textDecoration: 'none' }}
+              >
+                <Icon name="pin" size={10} color="var(--t-accent)" /> Directions
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Shared quiet-note style for the schedule description line. */
+const SCHEDULE_NOTE_STYLE: CSSProperties = {
+  fontSize: 11.5,
+  fontStyle: 'italic',
+  color: 'var(--t-ink-soft)',
+  marginTop: 4,
+  lineHeight: 1.45,
+};
+
+/* ─── TravelBlock — handoff L572-647 rows default. ───────────── */
+
+function TravelBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, motif, editable, variants } = ctx;
+  const sub = {
+    C: C.travel, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelTitle', v) : undefined,
+    onEditHotelBlurb: ctx.edit?.hotelBlurb,
+    onEditHotelName: ctx.edit?.hotelName,
+    eyebrowPlaceholder: 'Travel',
+    titlePlaceholder: 'Where to stay',
+  };
+  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelMap ctx={sub} /></div>;
+  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelTable ctx={sub} /></div>;
+  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelCarousel ctx={sub} /></div>;
+  return (
+    <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
+      
+      <TSectionHead
+        eyebrow={C.travel.eyebrow}
+        title={C.travel.title}
+        italic={C.travel.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('travelEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('travelTitle', v) : undefined}
+        eyebrowPlaceholder="Getting there"
+        titlePlaceholder="Where to stay"
+        divider={ctx.dividerLook}
+      />
+      {C.travel.intro && (
+        <div style={{ maxWidth: 560, marginInline: 'auto', textAlign: 'center', fontSize: 14.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, marginBottom: 24 }}>
+          {C.travel.intro}
+        </div>
+      )}
+      <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          {C.travel.hotels.map((h, i) => (
+            <div key={i} className="pl8-hotel-row" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow)' }}>
+              <div style={{ aspectRatio: '16/9' }}>
+                {h.photoUrl ? (
+                  /* Real Google Places photo from manifest.travelInfo.hotels[].photoUrl
+                     wins over the gradient placeholder when present. */
+                  <FadeInImage src={h.photoUrl} style={{ height: '100%', width: '100%' }} />
+                ) : (
+                  <PhotoPlaceholder tone={h.tone} aspect="16/9" />
+                )}
+              </div>
+              <div style={{ padding: 15 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}>
+                    {h.name}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--t-ink-muted)', fontWeight: 600 }}>{h.price}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5, fontSize: 12.5, color: 'var(--t-ink-soft)' }}>
+                  <Stars r={h.rating} /> <b style={{ color: 'var(--t-ink)' }}>{h.rating}</b>
+                  <span style={{ color: 'var(--t-ink-muted)' }}>({h.reviews})</span>
+                  <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--t-ink-muted)' }} />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <Icon name="pin" size={11} color="var(--t-accent)" /> {h.dist}
+                  </span>
+                </div>
+                {/* Blurb — inline-editable only when the host has real
+                    hotels saved (edit.hotelBlurb is gated on that); the
+                    demo Santorini pair stays read-only. */}
+                {editable && ctx.edit?.hotelBlurb ? (
+                  <InlineEdit
+                    as="div"
+                    value={h.blurb}
+                    onChange={(v) => ctx.edit?.hotelBlurb?.(i, v)}
+                    editable
+                    multiline
+                    placeholder="Add a note about this stay…"
+                    className="pl8-inline-ghost"
+                    style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '9px 0 11px' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '9px 0 11px' }}>
+                    {h.blurb}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {h.amenities.map((a) => (
+                    <span key={a} style={{ fontSize: 11, fontWeight: 600, color: 'var(--t-accent-ink)', background: 'var(--t-accent-bg)', padding: '4px 9px', borderRadius: 999 }}>
+                      {a}
+                    </span>
+                  ))}
+                </div>
+                <StayActions h={h} />
+              </div>
+            </div>
+          ))}
+        </div>
+        {C.travel.shuttle && (
+          <div style={{
+            maxWidth: 820, margin: '22px auto 0',
+            padding: '14px 18px',
+            borderRadius: 'var(--t-radius)',
+            background: 'var(--t-card)',
+            border: '1px solid var(--t-line)',
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}>
+            <Icon name="clock" size={16} color="var(--t-accent-ink)" />
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)',
+                textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 2,
+              }}>
+                Shuttle
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+                {C.travel.shuttle}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── RegistryBlock — handoff L651-712 cards default. ────────── */
+
+function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, variants } = ctx;
+  /* Native registry items (R1-lite) — the reserve-and-link item
+     grid, rendered ABOVE the linked-store pills in every layout.
+     Published fetches by siteSlug; the editor canvas shows demo
+     cards gated by `editable` (honesty rule). Built once here so
+     the four layouts share one fetch/claim behaviour.
+
+     R2-lite rides in the same slot: when manifest.registryFunds
+     carries any P2P handle, the "Give directly" fund card (honor
+     ledger + handle links — Pearloom never touches the money)
+     renders above the item grid in every layout. */
+  const loose = ctx.manifest as unknown as { registryFunds?: RegistryFunds; registryMode?: string; occasion?: string };
+  const donationMode = loose.registryMode === 'donation'
+    || (loose.registryMode == null && (loose.occasion === 'memorial' || loose.occasion === 'funeral'));
+  const itemsSlot = (
+    <>
+      <RegistryFundCard
+        funds={loose.registryFunds}
+        siteSlug={ctx.siteSlug}
+        editable={editable}
+        title={[C.registry.title, C.registry.italic].filter(Boolean).join(' ')}
+        donation={donationMode}
+      />
+      <RegistryItemsGrid siteSlug={ctx.siteSlug} editable={editable} />
+    </>
+  );
+  /* sub carries the editable callbacks + placeholders so the
+     variant's VariantSectionHead has parity with the default
+     TSectionHead path below (click-to-edit eyebrow + composite
+     title/italic). */
+  const sub = {
+    C: C.registry, pad, editable, cta: C.cta, itemsSlot,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryTitle', v) : undefined,
+    eyebrowPlaceholder: 'Registry',
+    titlePlaceholder: 'Your presence is the gift',
+  };
+  if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
+  if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
+  /* 'logowall' is the legacy id for the same slot — manifests that
+     picked it before the 2026-07-02 storecards rebuild keep
+     resolving here. */
+  if (variants.registry === 'storecards' || variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryStoreCards ctx={sub} /></div>;
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={C.registry.eyebrow}
+        title={C.registry.title}
+        italic={C.registry.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('registryEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('registryTitle', v) : undefined}
+        eyebrowPlaceholder="Registry"
+        titlePlaceholder="Your presence is the gift"
+        divider={ctx.dividerLook}
+      />
+      <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
+        {C.registry.body}
+      </div>
+      {itemsSlot}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+        {C.registry.stores.map((s, i) => {
+          const pillStyle: CSSProperties = {
+            padding: '12px 22px', borderRadius: 'var(--t-radius)',
+            background: 'var(--t-card)', border: '1px solid var(--t-line)',
+            fontSize: 13, fontWeight: 600, color: 'var(--t-ink)',
+            display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            textDecoration: 'none', maxWidth: 260,
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast)',
+          };
+          const inner = (
+            <>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+              </span>
+              {/* Host note — "for the honeymoon fund", "home goods". */}
+              {s.note && (
+                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--t-ink-soft)', lineHeight: 1.4 }}>
+                  {s.note}
+                </span>
+              )}
+            </>
+          );
+          if (s.url) {
+            return (
+              <a key={`${s.name}-${i}`} href={s.url} target="_blank" rel="noopener noreferrer" style={pillStyle}>
+                {inner}
+              </a>
+            );
+          }
+          return (
+            <span key={`${s.name}-${i}`} style={pillStyle}>
+              {inner}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── GalleryBlock — handoff grid variant. ───────────────────── */
+
+/* Approved guest uploads (status='approved' from /api/guest-photos)
+   so photos a guest sent and the host approved actually appear in
+   the site's gallery — not just the Day-of moderation reel. Published
+   mode only; the editor canvas keeps showing just the host's set. */
+function useApprovedGuestPhotos(siteSlug: string | undefined, enabled: boolean): string[] {
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    if (!enabled || !siteSlug) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      fetch(`/api/guest-photos?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : { photos: [] }))
+        .then((d: { photos?: Array<{ url?: string }> }) => {
+          if (cancelled) return;
+          const list = (d.photos ?? []).map((p) => p?.url).filter((u): u is string => !!u);
+          if (list.length) setUrls(list);
+        })
+        .catch(() => { /* gallery still shows host photos */ });
+    }, 0);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [siteSlug, enabled]);
+  return urls;
+}
+
+function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, variants } = ctx;
+  const guestPhotos = useApprovedGuestPhotos(ctx.siteSlug, !editable);
+  const hostPhotos = C.gallery.photos ?? [];
+  const mergedPhotos = guestPhotos.length
+    ? [...hostPhotos, ...guestPhotos.filter((u) => !hostPhotos.includes(u))]
+    : hostPhotos;
+  const galleryC = mergedPhotos === hostPhotos ? C.gallery : { ...C.gallery, photos: mergedPhotos };
+  // Published-only full-screen viewer. The editor canvas keeps
+  // click-to-edit-caption, so the lightbox is gated on !editable.
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
+  const openLightbox = !editable
+    ? (idx: number) => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: idx })
+    : undefined;
+  /* Mount the (lazily-imported) lightbox only once a photo has been
+     opened — its chunk is fetched on the first tap, not at page
+     load. Stays mounted after that so the close fade (which renders
+     AFTER `lightbox` nulls) keeps working. Render-time adjustment,
+     not an effect set. */
+  const [lightboxTouched, setLightboxTouched] = useState(false);
+  if (lightbox && !lightboxTouched) setLightboxTouched(true);
+  const lightboxEl = lightboxTouched
+    ? <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
+    : null;
+  const sub = {
+    C: galleryC, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryTitle', v) : undefined,
+    onEditCaption: ctx.edit?.galleryCaption,
+    onPhotoClick: openLightbox,
+    eyebrowPlaceholder: 'Gallery',
+    titlePlaceholder: 'A few favorites',
+  };
+  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'frames')    return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryFrames ctx={sub} />{lightboxEl}</div>;
+  return (
+    <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
+      <TSectionHead
+        eyebrow={C.gallery.eyebrow}
+        title={C.gallery.title}
+        italic={C.gallery.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('galleryTitle', v) : undefined}
+        eyebrowPlaceholder="Gallery"
+        titlePlaceholder="A few favorites"
+        divider={ctx.dividerLook}
+      />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
+        {galleryC.photos && galleryC.photos.length > 0
+          /* Render the host's uploaded photos + approved guest
+             uploads as cover-image squares; the gradient
+             placeholders fall away entirely once any photo is set.
+             Each tile carries an optional caption line below —
+             inline-editable in edit mode, rendered only when
+             authored on the published site. */
+          ? galleryC.photos.map((url, i) => {
+              const caption = galleryC.captions?.[i];
+              return (
+                <div key={i}>
+                  {editable ? (
+                    <EditPhotoTarget editable slot={{ kind: 'gallery', index: i, label: 'this tile', current: url }}>
+                      <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                    </EditPhotoTarget>
+                  ) : (
+                    <div
+                      onClick={() => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: i })}
+                      style={{ cursor: 'zoom-in' }}
+                      role="button"
+                      aria-label="Open photo"
+                    >
+                      <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                    </div>
+                  )}
+                  {editable && ctx.edit?.galleryCaption ? (
+                    <InlineEdit
+                      as="div"
+                      value={caption ?? ''}
+                      onChange={(v) => ctx.edit?.galleryCaption?.(i, v)}
+                      editable
+                      placeholder="Add a caption…"
+                      className="pl8-inline-ghost"
+                      style={GALLERY_CAPTION_STYLE}
+                    />
+                  ) : caption ? (
+                    <div style={GALLERY_CAPTION_STYLE}>{caption}</div>
+                  ) : null}
+                </div>
+              );
+            })
+          : C.gallery.tones.map((t, i) => (
+              editable ? (
+                <EditPhotoTarget key={i} editable slot={{ kind: 'gallery', index: i, label: 'this tile' }}>
+                  <PhotoPlaceholder tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+                </EditPhotoTarget>
+              ) : (
+                <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+              )
+            ))}
+        {/* v2 — a trailing "add a photo" square in edit mode so the
+            host can grow the gallery straight from the canvas. */}
+        {editable && (galleryC.photos?.length ?? 0) > 0 && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: { kind: 'gallery', index: galleryC.photos?.length ?? 0, label: 'a new tile' } })); } catch { /* */ } }}
+            style={{ aspectRatio: '1/1', borderRadius: 8, border: '1.5px dashed var(--t-line)', background: 'transparent', color: 'var(--t-ink-soft)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <span style={{ fontSize: 24, lineHeight: 1, fontWeight: 300 }}>+</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>Add a photo</span>
+          </button>
+        )}
+      </div>
+      {lightboxEl}
+    </div>
+  );
+}
+
+/* Quiet caption line under gallery tiles — shared by the default
+   grid here + mirrored (per-variant voice) in gallery variants. */
+const GALLERY_CAPTION_STYLE: CSSProperties = {
+  fontFamily: 'var(--t-display)',
+  fontStyle: 'italic',
+  fontSize: 12.5,
+  color: 'var(--t-ink-soft)',
+  textAlign: 'center',
+  marginTop: 6,
+  lineHeight: 1.4,
+};
+
+/* ─── RsvpBlock — handoff centered (dark inverse). ───────────── */
+
+function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, variants, manifest } = ctx;
+  const sub = {
+    C: C.rsvp, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpTitle', v) : undefined,
+    eyebrowPlaceholder: 'RSVP',
+    titlePlaceholder: C.rsvp.title,
+  };
+  /* The Loom — manifest.rsvpLoom opt-in. One shared slot for all
+     variants: the tapestry weaves in above the RSVP intro. The
+     editor canvas previews a deterministic demo cloth; published
+     sites feed real strands from /api/rsvp/weave via siteSlug. */
+  const loom = manifest.rsvpLoom ? (
+    <LoomTapestry siteSlug={ctx.siteSlug} editable={editable} occasion={manifest.occasion} />
+  ) : null;
+  /* Card variants render bare — give the loom the same footprint
+     as the variant card so the two read as one woven unit. */
+  const withLoom = (variant: ReactNode) =>
+    loom ? <div style={{ display: 'grid', gap: 14 }}>{loom}{variant}</div> : variant;
+  /* Variant parity (2026-07-02) — the alternate layouts share the
+     default plate's behaviour instead of forking it:
+     - onOpenRsvp carries the editable guard (the canvas must never
+       pop the guest RSVP modal) and routes through requestRsvp,
+       not a raw pl-open-rsvp dispatch.
+     - socialProof lets each variant mount the same "X going" pile
+       the plate shows, themed to its own surface tokens. */
+  const variantSub = {
+    ...sub,
+    coverPhoto: ctx.coverPhoto,
+    onOpenRsvp: () => { if (!editable) requestRsvp(); },
+    socialProof: (ring: string, ink: string) => (
+      <GoingSocialProof ctx={ctx} ring={ring} ink={ink} />
+    ),
+  };
+  if (variants.rsvp === 'split')   return withLoom(<RsvpSplit ctx={variantSub} />);
+  if (variants.rsvp === 'banner')  return withLoom(<RsvpBanner ctx={variantSub} />);
+  if (variants.rsvp === 'minimal') return withLoom(<RsvpMinimal ctx={variantSub} />);
+  return (
+    <div className="pl8-rsvp-plate" style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
+        {C.rsvp.eyebrow}
+      </div>
+      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 44, margin: '8px 0 6px', color: 'var(--t-rsvp-ink)' }}>
+        {C.rsvp.title}
+      </h2>
+      <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 18, color: 'var(--t-rsvp-ink)' }}>
+        {C.rsvp.body}
+      </div>
+      {loom && <div style={{ maxWidth: 560, margin: '0 auto 22px' }}>{loom}</div>}
+      {/* Real button, not a <span> — this default ("plate") RSVP
+          variant is the fallback for most sites, and on mobile the
+          nav RSVP is just a #rsvp anchor that scrolls here, so this
+          IS the only way to open the RSVP modal. A non-interactive
+          span made the RSVP tap do nothing (esp. on phones). */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); if (!editable) requestRsvp(); }}
+        style={{ display: 'inline-block', padding: '13px 30px', minHeight: 44, borderRadius: 999, border: 'none', background: 'var(--t-rsvp-ink)', color: 'var(--t-rsvp)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--t-body)' }}
+      >
+        {C.cta} →
+      </button>
+      <GoingSocialProof ctx={ctx} />
+    </div>
+  );
+}
+
+/* ─── GoingSocialProof ────────────────────────────────────────
+   Optional "X going" + avatar pile shown under the RSVP CTA.
+   Default on for public-RSVP events (bachelor/birthday/reunion),
+   off for weddings + memorials. Host overrides via
+   manifest.rsvpShowGoing. */
+function GoingSocialProof({ ctx, ring = 'var(--t-rsvp)', ink = 'var(--t-rsvp-ink)' }: {
+  ctx: SectionCtx;
+  /** Surface the pile sits on (avatar ring + badge text colour) —
+   *  defaults to the RSVP plate tokens; variants pass their own
+   *  card/section tokens. */
+  ring?: string;
+  ink?: string;
+}) {
+  const sp = ctx.C.rsvp.socialProof;
+  if (!sp?.enabled) return null;
+  const editable = ctx.editable;
+  /* Demo names preview the pile on the editor canvas only.
+     Published sites never invent guests — without real names
+     (manifest.goingPreview) the pile simply doesn't render. */
+  const DEMO_GOING = ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
+  const liveNames = sp.names.length > 0 ? sp.names : (editable ? DEMO_GOING : []);
+  if (liveNames.length === 0) return null;
+  /* Published sites show the TRUE attending count (goingCount,
+     stamped server-side) — the names are just the first 8. The
+     editor's demo pile counts its demo names. */
+  const count = !editable && typeof sp.count === 'number' && sp.count > 0 ? sp.count : liveNames.length;
+  /* First-name initials for the pile. */
+  const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
+  const TONES = [
+    { bg: '#F4CDB4', fg: '#A4502A' }, // peach
+    { bg: '#C8D4B4', fg: '#3D4A1F' }, // sage
+    { bg: '#D4C4E8', fg: '#5A4A7C' }, // lavender
+    { bg: '#E8D4B8', fg: '#5C4A2C' }, // warm
+    { bg: '#F0C8C4', fg: '#7A4A4A' }, // rose
+  ];
+
+  return (
+    <div style={{
+      marginTop: 24,
+      display: 'inline-flex',
+      flexDirection: 'column', alignItems: 'center', gap: 8,
+    }}>
+      {/* Avatar pile — 5 overlapping circles with initials. */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {initials.map((init, i) => {
+          const tone = TONES[i % TONES.length];
+          return (
+            <span
+              key={i}
+              style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: tone.bg,
+                color: tone.fg,
+                fontWeight: 700, fontSize: 13,
+                display: 'grid', placeItems: 'center',
+                border: `2px solid ${ring}`,
+                marginLeft: i === 0 ? 0 : -10,
+                zIndex: 5 - i,
+                position: 'relative',
+                fontFamily: 'var(--t-body)',
+              }}
+              aria-hidden
+            >
+              {init}
+            </span>
+          );
+        })}
+        {count > 5 && (
+          <span style={{
+            marginLeft: -10,
+            width: 36, height: 36, borderRadius: '50%',
+            background: ink,
+            color: ring,
+            fontWeight: 700, fontSize: 12,
+            display: 'grid', placeItems: 'center',
+            border: `2px solid ${ring}`,
+            position: 'relative',
+            fontFamily: 'var(--t-body)',
+          }} aria-hidden>
+            +{count - 5}
+          </span>
+        )}
+      </div>
+      <div style={{
+        fontSize: 12, fontWeight: 600,
+        color: ink,
+        opacity: 0.85,
+        letterSpacing: '0.04em',
+      }}>
+        {count} {count === 1 ? 'person is' : 'people are'} going
+        {editable && (
+          <span style={{
+            display: 'inline-block', marginLeft: 8, padding: '2px 8px',
+            borderRadius: 999, fontSize: 10, fontWeight: 700,
+            background: 'rgba(255,255,255,0.18)',
+            opacity: 0.7,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>
+            Preview
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── FaqBlock — handoff accordion default. ──────────────────── */
+
+function FaqBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, variants } = ctx;
+  /* Accordion open state — one row open at a time. Rows with an
+     authored answer toggle for guests too (the chevron finally
+     does something); answer-less rows only expand in edit mode,
+     where the host gets the "Add an answer…" ghost. */
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const sub = {
+    C: C.faq, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqTitle', v) : undefined,
+    onEditQuestion: ctx.edit?.faqQuestion,
+    onEditAnswer:   ctx.edit?.faqAnswer,
+    eyebrowPlaceholder: 'FAQ',
+    titlePlaceholder: 'Anything else?',
+  };
+  if (variants.faq === 'twocol')   return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqTwocol ctx={sub} /></div>;
+  if (variants.faq === 'numbered') return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqNumbered ctx={sub} /></div>;
+  if (variants.faq === 'cards')    return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqCards ctx={sub} /></div>;
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={C.faq.eyebrow}
+        title={C.faq.title}
+        italic={C.faq.italic}
+        editable={editable}
+        onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('faqEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('faqTitle', v) : undefined}
+        eyebrowPlaceholder="Questions & answers"
+        titlePlaceholder="The little things"
+        divider={ctx.dividerLook}
+      />
+      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* qa[] (when the host has authored FAQs) keeps row indices
+            aligned with manifest.faqs so inline edits patch the right
+            entry; the bare demo questions fall through with no
+            answers. patchFaq seeds the demo set on first touch. */}
+        {(C.faq.qa ?? C.faq.questions.map((q) => ({ q, a: undefined as string | undefined }))).map((item, i) => {
+          const hasAnswer = !!(item.a && item.a.trim());
+          const canEdit = editable && !!ctx.edit?.faqAnswer;
+          const expandable = hasAnswer || canEdit;
+          const open = openIdx === i;
+          /* Published view skips question-less rows (matches the old
+             filter(Boolean) behaviour); edit mode keeps them so the
+             host can fill the question back in. */
+          if (!editable && !(item.q ?? '').trim()) return null;
+          return (
+            <div key={i} className="pl8-faq-row" style={{ background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)' }}>
+              <div
+                role={expandable ? 'button' : undefined}
+                aria-expanded={expandable ? open : undefined}
+                onClick={expandable ? () => setOpenIdx(open ? null : i) : undefined}
+                style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, cursor: expandable ? 'pointer' : 'default' }}
+              >
+                {/* InlineEdit stops click propagation, so editing the
+                    question never toggles the row open/closed. */}
+                <InlineEdit
+                  as="span"
+                  value={item.q ?? ''}
+                  onChange={ctx.edit?.faqQuestion ? (v) => ctx.edit?.faqQuestion?.(i, v) : undefined}
+                  editable={editable && !!ctx.edit?.faqQuestion}
+                  placeholder="Write a question…"
+                  className="pl8-inline-ghost"
+                  style={{ fontSize: 13.5, color: 'var(--t-ink)', flex: 1 }}
+                />
+                <span style={{ display: 'inline-flex', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis)', flexShrink: 0 }}>
+                  <Icon name="chev-down" size={13} color="var(--t-ink-muted)" />
+                </span>
+              </div>
+              {open && expandable && (
+                <div style={{ padding: '0 16px 12px' }}>
+                  <InlineEdit
+                    as="div"
+                    value={item.a ?? ''}
+                    onChange={ctx.edit?.faqAnswer ? (v) => ctx.edit?.faqAnswer?.(i, v) : undefined}
+                    editable={canEdit}
+                    multiline
+                    placeholder="Add an answer…"
+                    className="pl8-inline-ghost"
+                    style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── CountdownBlock — 4 layout variants. ────────────────────
+   Reads target date from manifest.logistics.date. Reads variant
+   + label override + eyebrow from manifest.countdown / manifest.copy.
+   Returns null if no date is set — keeps the published site safe
+   when a host adds the section before filling in details. */
+
+interface CountdownPieces { d: number; h: number; m: number; s: number; }
+function useCountdownPieces(target: number | null): CountdownPieces {
+  /* Date.now() on BOTH server and client — the old init used
+     `target` on the server (rendering all zeros) and Date.now()
+     on the client (rendering real numbers), so hydration of any
+     published site with a countdown threw a mismatch and React 19
+     crashed the whole tree to the error boundary. The numbers
+     still drift by the seconds between SSR and hydration, so every
+     pieces-derived text node carries suppressHydrationWarning and
+     the 1s interval corrects the display right after mount. */
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    if (target === null) return;
+    /* Tick once per second. setInterval is fine — we tear down on
+       unmount and the canvas only renders one of these at a time. */
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, [target]);
+  if (target === null) return { d: 0, h: 0, m: 0, s: 0 };
+  const diff = Math.max(0, target - now);
+  return {
+    d: Math.floor(diff / 86_400_000),
+    h: Math.floor((diff / 3_600_000) % 24),
+    m: Math.floor((diff / 60_000) % 60),
+    s: Math.floor((diff / 1_000) % 60),
+  };
+}
+
+function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable, variants } = ctx;
+  const cd = (manifest as unknown as { countdown?: { label?: string; date?: string } }).countdown ?? {};
+  /* Variant comes from manifest.layouts.countdown via the LAYOUTS
+     registry (PropertyRail's Layout tab), NOT from manifest.countdown.
+     This way the picker lives in the same Layout dispatch every
+     other section uses. */
+  const variant = variants.countdown || 'cards';
+  /* Target: the countdown's own date (CountdownPanel — count to
+     the welcome dinner, not the ceremony) wins; the hero date is
+     the default. */
+  const dateStr = (cd.date ?? '').trim() || manifest.logistics?.date || '';
+  const ms = dateStr ? Date.parse(dateStr) : NaN;
+  const target = Number.isFinite(ms) ? ms : null;
+  const pieces = useCountdownPieces(target);
+  /* Copy routes through the occasion pack — "Until we celebrate"
+     is party voice; a memorial counts down "Until we gather". */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const V = occasionCopyFor(looseM.occasion, looseM.voiceOverride);
+  const eyebrow = looseM.copy?.countdownEyebrow || V.countdownEyebrow;
+  const label = cd.label?.trim() || V.countdownLabel;
+
+  if (target === null) {
+    /* No event date — render an editor-only placeholder so the
+       host sees what they added. Published view returns null. */
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
+          Set the event date in the Hero panel to enable the countdown.
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'stripe') {
+    return (
+      <div style={{ padding: `${28 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-accent-bg, var(--t-section))', color: 'var(--t-accent-ink, var(--t-ink))' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, fontFamily: 'var(--t-display)', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7 }}>{label}</span>
+          <CountdownInlineRow pieces={pieces} />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'minimal') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+          {eyebrow}
+        </div>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
+          {pieces.d > 0 ? `${pieces.d} day${pieces.d === 1 ? '' : 's'} to go` : 'Today is the day.'}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'hero') {
+    return (
+      <div style={{ position: 'relative', padding: `${72 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)', textAlign: 'center', overflow: 'hidden' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 18 }}>
+          {eyebrow}
+        </div>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
+          {String(pieces.d).padStart(2, '0')}
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginTop: 6, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          days {label.replace(/^until\s*/i, 'until ')}
+        </div>
+        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 28, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-display)', fontSize: 18 }}>
+          <span suppressHydrationWarning>{pieces.h} hours</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span suppressHydrationWarning>{pieces.m} minutes</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span suppressHydrationWarning>{pieces.s} seconds</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'ribbon') {
+    /* Diagonal sash across the section — feels like a banner
+       stretched between two posts. */
+    return (
+      <div style={{ position: 'relative', padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', overflow: 'hidden' }}>
+        <div
+          style={{
+            position: 'relative',
+            maxWidth: 760, margin: '0 auto',
+            background: 'var(--t-accent-bg, var(--t-section))',
+            color: 'var(--t-accent-ink, var(--t-ink))',
+            padding: '22px clamp(20px, 4vw, 48px)',
+            transform: 'rotate(-1.5deg)',
+            boxShadow: '0 12px 28px rgba(40,28,12,0.10)',
+            borderRadius: 8,
+          }}
+        >
+          {/* Notched edges — the V-cut on either side that reads
+              as "ribbon" rather than rectangle. */}
+          <span aria-hidden style={{
+            position: 'absolute', top: '50%', left: -10, transform: 'translateY(-50%)',
+            width: 0, height: 0,
+            borderRight: '10px solid var(--t-accent-bg, var(--t-section))',
+            borderTop: '24px solid transparent',
+            borderBottom: '24px solid transparent',
+            filter: 'brightness(0.85)',
+          }} />
+          <span aria-hidden style={{
+            position: 'absolute', top: '50%', right: -10, transform: 'translateY(-50%)',
+            width: 0, height: 0,
+            borderLeft: '10px solid var(--t-accent-bg, var(--t-section))',
+            borderTop: '24px solid transparent',
+            borderBottom: '24px solid transparent',
+            filter: 'brightness(0.85)',
+          }} />
+          <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, textAlign: 'center', marginBottom: 8 }}>
+            {eyebrow}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 22, fontFamily: 'var(--t-display)', flexWrap: 'wrap' }}>
+            <CountdownInlineRow pieces={pieces} />
+          </div>
+          <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.65, textAlign: 'center', marginTop: 8 }}>
+            {label}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'flip') {
+    /* Split-flap "flip clock" look — paired digit cards with a
+       hairline across the middle, like a vintage train station
+       display. */
+    const FlipDigit = ({ n }: { n: number }) => {
+      const s = String(n).padStart(2, '0');
+      return (
+        <span style={{ display: 'inline-flex', gap: 2 }}>
+          {s.split('').map((d, i) => (
+            <span
+              key={i}
+              suppressHydrationWarning
+              style={{
+                position: 'relative',
+                width: 'clamp(38px, 6vw, 58px)',
+                fontFamily: 'var(--t-display)',
+                fontSize: 'clamp(34px, 6vw, 54px)',
+                /* Inverse plate — paper-on-ink resolves correctly in
+                   both light themes and editorial midnight (the old
+                   #fff fallback broke on dark palettes). */
+                color: 'var(--t-paper)',
+                background: 'var(--t-ink)',
+                borderRadius: 6,
+                padding: '8px 0',
+                textAlign: 'center',
+                boxShadow: 'inset 0 -8px 18px rgba(0,0,0,0.35), 0 4px 10px rgba(40,28,12,0.18)',
+                lineHeight: 1,
+              }}
+            >
+              {d}
+              <span aria-hidden style={{
+                position: 'absolute', left: 0, right: 0, top: '50%',
+                height: 1, background: 'rgba(0,0,0,0.35)',
+              }} />
+            </span>
+          ))}
+        </span>
+      );
+    };
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+          {label}
+        </div>
+        {/* .pl8-flip-grid (pearloom.css): 4-across on desktop, a
+            BALANCED 2×2 under 560px — free flex wrap orphaned the
+            seconds cell onto its own row at 390. */}
+        <div className="pl8-flip-grid" style={{ maxWidth: 760, margin: '0 auto' }}>
+          {[
+            { n: pieces.d, l: 'Days' },
+            { n: pieces.h, l: 'Hours' },
+            { n: pieces.m, l: 'Min' },
+            { n: pieces.s, l: 'Sec' },
+          ].map((cell) => (
+            <span key={cell.l} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <FlipDigit n={cell.n} />
+              <span style={{ fontSize: 9.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+                {cell.l}
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* cards (default) — 4 tiles. */
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+      <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+        {eyebrow}
+      </div>
+      <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+        {label}
+      </div>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {[
+          { n: pieces.d, l: 'Days' },
+          { n: pieces.h, l: 'Hours' },
+          { n: pieces.m, l: 'Min' },
+          { n: pieces.s, l: 'Sec' },
+        ].map((cell) => (
+          <div key={cell.l} className="pl8-countdown-cell pl8-card" style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+            <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
+              {String(cell.n).padStart(2, '0')}
+            </div>
+            <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 4 }}>
+              {cell.l}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
+  const cell = (n: number, l: string) => (
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+      <strong suppressHydrationWarning style={{ fontSize: 26, fontWeight: 500 }}>{String(n).padStart(2, '0')}</strong>
+      <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>{l}</span>
+    </span>
+  );
+  return (
+    <span style={{ display: 'inline-flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
+      {cell(pieces.d, 'd')}{cell(pieces.h, 'h')}{cell(pieces.m, 'm')}{cell(pieces.s, 's')}
+    </span>
+  );
+}
+
+/* ─── MapBlock — 3 layout variants. ───────────────────────────
+   Live Google Maps iframe (no API key needed for embed), static
+   pin+map graphic, or pin-only with an "Open in Maps" CTA. */
+
+function MapBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable, variants } = ctx;
+  const mapCfg = (manifest as unknown as { mapBlock?: { height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
+  const variant = variants.map || 'embed';
+  const height = mapCfg.height === 'tall' ? 560 : 320;
+  const showDirections = mapCfg.showDirections !== false;
+  const venue = manifest.logistics?.venue ?? '';
+  const place = (manifest.logistics as { place?: string } | undefined)?.place ?? '';
+  const derivedAddress = [venue, place].filter(Boolean).join(', ');
+  const address = mapCfg.addressOverride?.trim() || derivedAddress;
+  /* Occasion-routed eyebrow — "Where it's happening" reads wrong on
+     a memorial ("Where we gather"). */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const eyebrow = looseM.copy?.mapEyebrow || occasionCopyFor(looseM.occasion, looseM.voiceOverride).mapEyebrow;
+  const encodedAddress = encodeURIComponent(address);
+
+  if (!address) {
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
+          Add a venue in the Hero panel to plot the map.
+        </div>
+      </div>
+    );
+  }
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+  const mapsUrl = `https://www.google.com/maps?q=${encodedAddress}`;
+
+  if (variant === 'pin') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+        <TSectionHead
+          eyebrow={eyebrow}
+          title={venue || 'The venue'}
+          editable={false}
+          divider={ctx.dividerLook}
+        />
+        <div className="pl8-map-card pl8-card" style={{ maxWidth: 480, margin: '0 auto', padding: '32px 20px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--t-accent-bg, var(--t-section))', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
+            <Icon name="pin" size={24} color="var(--t-accent-ink, var(--t-ink))" />
+          </div>
+          <div style={{ fontFamily: 'var(--t-display)', fontSize: 20, color: 'var(--t-ink)', marginBottom: 4 }}>{venue || 'The venue'}</div>
+          {place && <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginBottom: 16 }}>{place}</div>}
+          {showDirections && (
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pl-hit44"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+            >
+              <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Open in Maps
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'split') {
+    /* Two-column split: map on the left, venue info + directions
+       on the right. Stacks on mobile (container query handles it
+       via the canvas's containerType). */
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+          <div style={{ position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+              title={`Map of ${venue || 'the venue'}`}
+              style={{ width: '100%', height: '100%', minHeight: 320, border: 0, display: 'block' }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
+            <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+              {eyebrow}
+            </div>
+            <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', lineHeight: 1.15 }}>
+              {venue || 'The venue'}
+            </div>
+            {place && (
+              <div style={{ fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+                {place}
+              </div>
+            )}
+            {showDirections && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pl-hit44"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Directions
+                </a>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pl-hit44"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Open in Maps
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'postcard') {
+    /* Postcard frame — the map sits inside a tilted, cream-bordered
+       card with a faux stamp in the corner + a caption strip below.
+       Reads as keepsake rather than utility. */
+    return (
+      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
+        <div style={{
+          maxWidth: 700, margin: '0 auto',
+          background: 'var(--t-cream, #FBF7EE)',
+          border: '1px solid var(--t-line-soft)',
+          borderRadius: 4,
+          padding: 14,
+          boxShadow: '0 14px 30px rgba(40,28,12,0.14), 0 4px 10px rgba(40,28,12,0.08)',
+          transform: 'rotate(-0.8deg)',
+          position: 'relative',
+        }}>
+          {/* Faux stamp — top-right corner. The venue's initial in
+              letterpress italic (occasion-neutral; the old heart
+              glyph read wrong on memorials + retirements). */}
+          <div aria-hidden style={{
+            position: 'absolute', top: 14, right: 14,
+            width: 52, height: 62,
+            background: 'var(--t-accent-bg, var(--t-section))',
+            border: '2px dashed var(--t-ink-muted)',
+            display: 'grid', placeItems: 'center',
+            transform: 'rotate(6deg)',
+            zIndex: 2,
+          }}>
+            {(venue || place).trim() ? (
+              <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 24, lineHeight: 1, color: 'var(--t-accent-ink, var(--t-ink))' }}>
+                {(venue || place).trim()[0].toUpperCase()}
+              </span>
+            ) : (
+              <Icon name="pin" size={18} color="var(--t-accent-ink, var(--t-ink))" />
+            )}
+          </div>
+          <div style={{ position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid var(--t-line-soft)' }}>
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+              title={`Map of ${venue || 'the venue'}`}
+              style={{ width: '100%', height, border: 0, pointerEvents: 'none', display: 'block', filter: 'sepia(0.18) saturate(0.85)' }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          {/* Caption strip — paper grain, like a postcard back. */}
+          <div style={{ paddingTop: 12, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                {eyebrow}
+              </div>
+              <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 'clamp(18px, 2.6vw, 24px)', color: 'var(--t-ink)', marginTop: 2 }}>
+                {venue || 'The venue'}
+              </div>
+              {place && (
+                <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 2 }}>
+                  {place}
+                </div>
+              )}
+            </div>
+            {showDirections && (
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pl-hit44"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--t-ink)', textDecoration: 'underline', textUnderlineOffset: 3, whiteSpace: 'nowrap' }}
+              >
+                directions →
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* The 'static' variant was cut 2026-07-02 — it was the live
+     iframe with pointer-events off pretending to be a static
+     image, and its promised load-fail fallback never existed.
+     Manifests still carrying layouts.map='static' fall through
+     to the default embed below. */
+
+  /* embed (default) — live, pannable iframe. */
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={eyebrow}
+        title={venue || 'The venue'}
+        editable={false}
+        divider={ctx.dividerLook}
+      />
+      <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+        <iframe
+          src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+          title={`Map of ${venue || 'the venue'}`}
+          style={{ width: '100%', height, border: 0, display: 'block' }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+      {showDirections && (
+        <div style={{ textAlign: 'center', marginTop: 14 }}>
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pl-hit44"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'transparent', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none', border: '1px solid var(--t-line)' }}
+          >
+            <Icon name="arrow-up" size={12} color="var(--t-ink)" /> Get directions
+          </a>
+          {' '}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginLeft: 8, fontSize: 12, color: 'var(--t-ink-muted)', textDecoration: 'underline' }}
+          >
+            Open in Google Maps
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── MusicBlock — Spotify / Apple / YouTube embed + the living
+   guest playlist. The host pastes a playlist URL; we transform it
+   into the provider's embed URL (MusicEmbed dispatches on
+   manifest.music.provider via the panel's auto-detect). Below the
+   embed, EVERY variant shares <GuestPlaylist> — accepted guest
+   suggestions as an editorial tracklist + the suggest-a-song
+   composer (hidden when manifest.music.suggestions === false).
+   Published needs ctx.siteSlug (same contract as GuestbookSection);
+   the editor canvas gets a 3-track demo gated by ctx.editable. */
+
+function MusicBlock({ ctx }: { ctx: SectionCtx }) {
+  const loose = ctx.manifest as unknown as { music?: { suggestions?: boolean }; occasion?: string; voiceOverride?: string };
+  const music = loose.music ?? {};
+  return (
+    <>
+      <MusicEmbed ctx={ctx} />
+      <GuestPlaylist
+        siteSlug={ctx.siteSlug}
+        editable={ctx.editable}
+        suggestionsOn={music.suggestions !== false}
+        composerHint={occasionCopyFor(loose.occasion, loose.voiceOverride).musicComposerHint}
+      />
+    </>
+  );
+}
+
+function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable, variants } = ctx;
+  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string } }).music ?? {};
+  const provider = cfg.provider ?? 'spotify';
+  const url = cfg.url?.trim() ?? '';
+  const variant = variants.music || 'card';
+  /* Copy routes through the occasion pack — "Songs for the dance
+     floor" is party voice; a memorial gets "Songs they loved". */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const V = occasionCopyFor(looseM.occasion, looseM.voiceOverride);
+  const eyebrow = looseM.copy?.musicEyebrow || V.musicEyebrow;
+  const title = cfg.title?.trim() || V.musicTitle;
+  const description = cfg.description?.trim();
+
+  const embedUrl = toMusicEmbedUrl(provider, url);
+
+  if (!embedUrl) {
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
+          Paste a Spotify, Apple Music, or YouTube playlist URL to embed it here.
+        </div>
+      </div>
+    );
+  }
+
+  const isSpotify = provider === 'spotify';
+  const baseHeight = isSpotify ? 380 : provider === 'apple' ? 450 : 380;
+
+  const playerIframe = (height: number, dark = false) => (
+    <iframe
+      src={embedUrl}
+      title={`${title} — playlist`}
+      style={{ width: '100%', height, border: 0, display: 'block', background: isSpotify || dark ? '#181818' : 'transparent' }}
+      loading="lazy"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
+  );
+
+  if (variant === 'minimal') {
+    return (
+      <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 4 }}>
+            {eyebrow}
+          </div>
+          <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 'clamp(20px, 2.6vw, 26px)', color: 'var(--t-ink)' }}>
+            {title}
+          </div>
+        </div>
+        <div style={{ maxWidth: 720, margin: '0 auto', borderRadius: 6, overflow: 'hidden' }}>
+          {playerIframe(baseHeight)}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'fullbleed') {
+    return (
+      <div style={{ padding: `${24 * pad}px 0`, background: 'var(--t-paper)' }}>
+        <div style={{ textAlign: 'center', padding: '0 clamp(16px, 4vw, 32px)', marginBottom: 18 }}>
+          <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+            {eyebrow}
+          </div>
+          <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(28px, 5vw, 44px)', color: 'var(--t-ink)', marginTop: 4 }}>
+            {title}
+          </div>
+        </div>
+        <div style={{ width: '100%' }}>
+          {playerIframe(Math.max(baseHeight, 460))}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'sidebar') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+          <div style={{ borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
+            {playerIframe(Math.max(baseHeight, 420))}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12 }}>
+            <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+              {eyebrow}
+            </div>
+            <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(24px, 3vw, 34px)', color: 'var(--t-ink)', lineHeight: 1.1 }}>
+              {title}
+            </div>
+            {description && (
+              <div style={{ fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.6 }}>
+                {description}
+              </div>
+            )}
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, padding: '9px 14px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', alignSelf: 'flex-start' }}
+              >
+                <Icon name="music" size={12} color="var(--t-ink)" /> Open in {provider === 'spotify' ? 'Spotify' : provider === 'apple' ? 'Apple Music' : provider === 'youtube' ? 'YouTube' : 'player'}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'jukebox') {
+    /* Dark plate + gold marquee glow. For party / bachelor-party /
+       sweet-sixteen sites. The gold now maps to the site's own
+       --t-gold and the plate carries a quiet tint of the theme's
+       accent over warm near-black — editorial midnight, never a
+       full-hex club palette foreign to the palette. */
+    const plate = 'color-mix(in oklab, var(--t-accent, #C49A6F) 12%, #0e0b09)';
+    const marquee = 'var(--t-gold, #C49A6F)';
+    const parchment = 'color-mix(in oklab, var(--t-gold, #C49A6F) 18%, #FBF1D8)';
+    return (
+      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: plate, color: parchment }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center', marginBottom: 22 }}>
+          <div style={{ fontSize: 11, color: marquee, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+            ◆ {eyebrow} ◆
+          </div>
+          <div style={{
+            fontFamily: 'var(--t-display)',
+            fontSize: 'clamp(30px, 5.5vw, 52px)',
+            color: parchment,
+            marginTop: 6,
+            textShadow: `0 0 12px color-mix(in oklab, ${marquee} 40%, transparent), 0 0 32px color-mix(in oklab, ${marquee} 20%, transparent)`,
+          }}>
+            {title}
+          </div>
+          {description && (
+            <div style={{ fontSize: 13, color: `color-mix(in oklab, ${parchment} 70%, transparent)`, marginTop: 8, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.55 }}>
+              {description}
+            </div>
+          )}
+        </div>
+        <div style={{
+          maxWidth: 720, margin: '0 auto',
+          borderRadius: 10, overflow: 'hidden',
+          border: `1px solid color-mix(in oklab, ${marquee} 40%, transparent)`,
+          boxShadow: `0 0 0 1px color-mix(in oklab, ${marquee} 18%, transparent), 0 18px 40px rgba(0,0,0,0.45), 0 0 48px color-mix(in oklab, ${marquee} 18%, transparent)`,
+        }}>
+          {playerIframe(baseHeight, true)}
+        </div>
+      </div>
+    );
+  }
+
+  /* card (default) — title + player in a card. */
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={eyebrow}
+        title={title}
+        editable={false}
+        divider={ctx.dividerLook}
+      />
+      {description && (
+        <div style={{ maxWidth: 600, margin: '0 auto 22px', textAlign: 'center', fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}>
+          {description}
+        </div>
+      )}
+      <div style={{ maxWidth: 760, margin: '0 auto', borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
+        {playerIframe(baseHeight)}
+      </div>
+    </div>
+  );
+}
+
+/* Provider-specific URL transformer. Spotify open.spotify.com URLs
+   become open.spotify.com/embed/<type>/<id>. YouTube playlist URLs
+   become youtube.com/embed/videoseries?list=<id>. Apple Music URLs
+   work as-is when their domain is embed.music.apple.com — we patch
+   the host in. Returns null if the URL is unparseable. */
+function toMusicEmbedUrl(provider: string, url: string): string | null {
+  if (!url) return null;
+  if (provider === 'spotify') {
+    /* spotify.com/playlist/<id> → spotify.com/embed/playlist/<id>
+       Also handles spotify.com/track/<id>, /album/<id>, /artist/<id>. */
+    const m = url.match(/open\.spotify\.com\/(playlist|track|album|artist|show|episode)\/([A-Za-z0-9]+)/);
+    if (!m) return null;
+    return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=pearloom`;
+  }
+  if (provider === 'apple') {
+    /* music.apple.com/<region>/playlist/... → embed.music.apple.com/<rest>. */
+    if (url.includes('embed.music.apple.com')) return url;
+    return url.replace(/^https?:\/\/music\.apple\.com/, 'https://embed.music.apple.com');
+  }
+  if (provider === 'youtube') {
+    const list = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
+    if (list) return `https://www.youtube.com/embed/videoseries?list=${list[1]}`;
+    const vid = url.match(/(?:youtu\.be\/|v=)([A-Za-z0-9_-]+)/);
+    if (vid) return `https://www.youtube.com/embed/${vid[1]}`;
+    return null;
+  }
+  /* custom — trust the host. */
+  return url;
+}
+
+/* ─── TSectionHead — handoff L75-87 verbatim. ────────────────── */
+
+function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder, divider = 'sprig' }: {
+  eyebrow: string;
+  title: string;
+  italic?: string;
+  /** When set, the eyebrow becomes click-to-edit and writes through
+   *  onEditEyebrow. Same for title — see onEditTitle. */
+  editable?: boolean;
+  onEditEyebrow?: (v: string) => void;
+  /** Title + italic edit together as one composite string. On commit
+   *  the canvas runs splitHeading() server-side so the italic accent
+   *  word still renders italicized. Passing "Where to stay" → renders
+   *  "Where to <em>stay</em>". */
+  onEditTitle?: (v: string) => void;
+  eyebrowPlaceholder?: string;
+  titlePlaceholder?: string;
+  /** Divider painted right under the title — matches the prototype
+   *  hand-off where every section header carried a sprig ornament.
+   *  Pass `'none'` to suppress (e.g. on tight sections that already
+   *  carry their own ornament). Defaults to `'sprig'` so adopting
+   *  this requires zero changes at existing call sites. */
+  divider?: string;
+}) {
+  const fullTitle = [title, italic].filter(Boolean).join(' ');
+  return (
+    <div style={{ textAlign: 'center', marginBottom: 26 }}>
+      <InlineEdit
+        as="div"
+        value={eyebrow}
+        onChange={onEditEyebrow}
+        editable={!!editable && !!onEditEyebrow}
+        placeholder={eyebrowPlaceholder ?? 'Section eyebrow'}
+        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
+      />
+      {editable && onEditTitle ? (
+        /* Edit mode — single composite string; canvas re-splits on
+           commit. Loses the live italic styling while typing, but
+           the styling re-applies as soon as the host commits. */
+        <InlineEdit
+          as="h2"
+          value={fullTitle}
+          onChange={onEditTitle}
+          editable={true}
+          placeholder={titlePlaceholder ?? 'Section title'}
+          style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(26px, 7vw, 40px)', margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}
+        />
+      ) : (
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(26px, 7vw, 40px)', margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          {title}
+          {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
+        </h2>
+      )}
+      {divider && divider !== 'none' && (
+        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={divider} width={170} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── SiteNav — nav variant dispatch + scrollspy ─────────────────
+   Owns useActiveSection so the hook's setState (which fires on every
+   scroll section-crossing) re-renders ~this component, not the whole
+   renderer tree. The variant props are exactly what ThemedSite used
+   to build inline; activeId is grafted on here. */
+function SiteNav({
+  sectionIds,
+  isMobile,
+  navVariant,
+  navMobileVariant,
+  shared,
+}: {
+  sectionIds: string[];
+  isMobile: boolean;
+  navVariant: string;
+  navMobileVariant: string;
+  shared: Omit<ComponentProps<typeof NavSplit>, 'activeId' | 'sticky'> &
+    Omit<ComponentProps<typeof NavMobileSlideIn>, 'activeId'>;
+}) {
+  const activeId = useActiveSection(sectionIds);
+  if (isMobile) {
+    const p = { ...shared, activeId: activeId ?? undefined };
+    switch (navMobileVariant) {
+      case 'overlay':      return <NavMobileOverlay {...p} />;
+      case 'bottom-sheet': return <NavMobileBottomSheet {...p} />;
+      case 'pill':         return <NavMobilePill {...p} />;
+      case 'slide-in':
+      default:             return <NavMobileSlideIn {...p} />;
+    }
+  }
+  const p = { ...shared, activeId };
+  switch (navVariant) {
+    case 'centered':     return <NavCentered {...p} sticky />;
+    case 'serif-block':  return <NavSerifBlock {...p} sticky />;
+    case 'minimal-text': return <NavMinimalText {...p} sticky />;
+    case 'iconic':       return <NavIconic {...p} sticky />;
+    case 'split':
+    default:             return <NavSplit {...p} sticky />;
+  }
+}
+
+/* ─── SectionDotRail — the gallery layout's right-edge scrollspy
+   dots. Isolated for the same reason as SiteNav: the hook's setState
+   must not invalidate the whole renderer per section-crossing. */
+function SectionDotRail({ sectionIds }: { sectionIds: string[] }) {
+  const activeId = useActiveSection(sectionIds);
+  return (
+    <div className="pl8-gallery-progress" aria-hidden style={{
+      position: 'sticky', top: '40vh', float: 'right',
+      display: 'flex', flexDirection: 'column', gap: 8,
+      padding: '6px 8px', marginRight: 16, zIndex: 2,
+    }}>
+      {sectionIds.map((s) => (
+        <span
+          key={s}
+          style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
+            transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
+
+function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, stickyTop, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
+  id: Exclude<SectionId, null>;
+  label: string;
+  children: ReactNode;
+  active: SectionId;
+  setActive: (id: SectionId) => void;
+  editable: boolean;
+  /** Fired when an editable field inside this section gains focus.
+   *  InlineEdit stops click propagation to protect the caret, so
+   *  without this the property rail never followed inline edits —
+   *  only whole-section clicks. */
+  onSectionFocus?: (id: SectionId) => void;
+  hideHandle?: boolean;
+  /** Pin this section to the top of the scroll (the nav). The nav
+   *  variants declare position:sticky INTERNALLY, but sticky can
+   *  only travel within its parent's bounds — and this wrapper is
+   *  exactly nav-height, so it never stuck. The wrapper itself has
+   *  to be the sticky element. */
+  stickyTop?: boolean;
+  /** Motif placement — every section participates by construction. */
+  motifLayout?: MotifLayout;
+  motif?: MotifKind;
+  /** Manifest + write hook for the inline Layout bar (the v2
+   *  on-canvas "≡ Layout" switcher over the selected section).
+   *  Absent on the published site — no bar there. */
+  manifest?: StoryManifest;
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+}) {
+  const isActive = active === id;
+  /* Inline Layout bar — the v2 on-canvas section-layout switcher
+     (editor.jsx InlineLayoutBar). Shows over the SELECTED section
+     when it has more than one layout, writing manifest.layouts[id]. */
+  const layoutVariants = LAYOUTS[id];
+  const showLayoutBar = editable && isActive && !!onEditField && !!manifest
+    && Array.isArray(layoutVariants) && layoutVariants.length > 1;
+  const currentVariant = manifest ? readVariant(manifest, id) : undefined;
+  /* Occasion-recommended variant (layouts.ts) — a gold pearl on the
+     pill, never an auto-apply. */
+  const recommendedId = showLayoutBar
+    ? recommendedVariantFor(id, (manifest as unknown as { occasion?: string } | undefined)?.occasion)
+    : undefined;
+  const pickLayout = (vid: string) => {
+    onEditField?.((m) => ({
+      ...(m as unknown as Record<string, unknown>),
+      layouts: {
+        ...((m as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+        [id]: vid,
+      },
+    } as unknown as StoryManifest));
+  };
+  /* Keep the inline Layout bar on screen as the host scrolls through a
+     tall section (the v2 bar tracks the section instead of sitting at a
+     fixed top that scrolls away). barTop is the bar's offset within the
+     section, pinned just below the canvas's visible top edge. */
+  const secRef = useRef<HTMLDivElement | null>(null);
+  const barRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!showLayoutBar) return;
+    const el = secRef.current;
+    if (!el) return;
+    const scroller = el.closest('[data-pl-canvas-scroll]') as HTMLElement | null;
+    /* rAF-coalesced: the raw handler did two getBoundingClientRect
+       reads + offsetHeight + a setState per scroll EVENT (several can
+       land per frame on trackpads) inside the selected section's hot
+       path. One measurement per frame is enough for a tracking bar. */
+    let rafId = 0;
+    const update = () => {
+      rafId = 0;
+      const bar = barRef.current;
+      if (!bar) return;
+      const sr = el.getBoundingClientRect();
+      const top0 = scroller ? scroller.getBoundingClientRect().top : 0;
+      const above = top0 - sr.top; // px the section top is scrolled above the visible edge
+      // Direct style write, not setState — this fires per scroll
+      // frame while a tall section is selected, and a render+commit
+      // per frame is exactly the jank the bar is meant to avoid.
+      bar.style.top = `${Math.max(8, Math.min(above + 8, el.offsetHeight - 48))}px`;
+    };
+    const schedule = () => {
+      if (!rafId) rafId = requestAnimationFrame(update);
+    };
+    schedule();
+    const target: HTMLElement | Window = scroller ?? window;
+    target.addEventListener('scroll', schedule, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('resize', schedule);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      target.removeEventListener('scroll', schedule as EventListener);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [showLayoutBar]);
+  return (
+    <div
+      ref={secRef}
+      id={id}
+      data-section-id={id}
+      onClick={(e) => {
+        if (!editable) return;
+        e.stopPropagation();
+        setActive(id);
+      }}
+      onFocusCapture={
+        editable && onSectionFocus
+          ? () => { if (active !== id) onSectionFocus(id); }
+          : undefined
+      }
+      style={{
+        position: stickyTop ? 'sticky' : 'relative',
+        ...(stickyTop ? { top: 0, zIndex: 50 } : {}),
+        cursor: editable ? 'pointer' : 'default',
+        scrollMarginTop: 80,
+      }}
+    >
+      <MotifLayer layout={motifLayout} kind={motif} sectionId={id} />
+      {children}
+      {editable && (
+        <>
+          {/* Selection chrome (design-system v2): peach is the
+              active/working accent. A solid peach hairline when the
+              section is selected, a faint dashed basting line on
+              hover, and a peach "Editing ·" label tab. Peach is
+              pinned to a literal so the .pl8-guest theme scope can't
+              remap it.
+              HOVER IS PURE CSS (.pl8-tsec-frame / .pl8-tsec-label in
+              pearloom.css) — it used to be React state at the editor
+              root, so every mouse crossing re-rendered the whole
+              canvas tree. Active keeps its inline style, which also
+              outranks the CSS hover rule. */}
+          <div
+            aria-hidden
+            className="pl8-tsec-frame"
+            style={{
+              position: 'absolute', inset: 4, borderRadius: 6,
+              outline: isActive ? '2px solid #C6703D' : undefined,
+              outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
+            }}
+          />
+          {!hideHandle && (
+            <div
+              className={isActive ? undefined : 'pl8-tsec-label'}
+              style={{
+                position: 'absolute', top: 8, left: 12, padding: '3px 9px', borderRadius: 8,
+                background: isActive ? '#C6703D' : 'var(--pl-cream-card, #FBF7EE)',
+                color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
+                border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
+                fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
+                boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
+                fontFamily: 'var(--pl-font-mono, monospace)',
+                pointerEvents: 'none',
+              }}
+            >
+              {isActive ? `Editing · ${label}` : label}
+            </div>
+          )}
+          {showLayoutBar && layoutVariants && (
+            <div
+              ref={barRef}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
+                display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
+                background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
+                border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
+                maxWidth: 'calc(100% - 24px)', overflowX: 'auto',
+                fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+              }}
+            >
+              <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)', padding: '0 7px 0 9px', whiteSpace: 'nowrap' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h10" /></svg>
+                Layout
+              </span>
+              {layoutVariants.map((v) => {
+                const on = v.id === currentVariant;
+                const rec = v.id === recommendedId;
+                const sub = v.sub ? `${v.label} — ${v.sub}` : v.label;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    title={rec ? `${sub} · Recommended for this occasion` : sub}
+                    onClick={(e) => { e.stopPropagation(); pickLayout(v.id); }}
+                    style={{
+                      padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                      fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', fontFamily: 'inherit',
+                      background: on ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
+                      color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink-soft, #3A332C)',
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                    }}
+                  >
+                    {v.label}
+                    {rec && (
+                      /* The gold pearl — occasion recommendation. */
+                      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── TButton — handoff/shared/themes.jsx variants. ─────────── */
+
+function TButton({
+  variant = 'primary',
+  children,
+  style,
+  href,
+}: {
+  variant?: 'primary' | 'outline' | 'link';
+  children: ReactNode;
+  style?: CSSProperties;
+  /** Where the button navigates. '#section' scrolls to a section,
+   *  'https://...' is an external link, '' renders a plain <span>
+   *  (decorative). 'rsvp-modal' is a sentinel handled by the
+   *  parent — we render an <a href="#rsvp"> fallback. */
+  href?: string;
+}) {
+  const base: CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '10px 22px', borderRadius: 999,
+    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+    border: 0, transition: 'all var(--pl-dur-fast) var(--pl-ease-emphasis)',
+    fontFamily: 'inherit', textDecoration: 'none',
+    /* Don't let narrow viewports break button labels character-by-
+       character ("R/S/V/P" / "Le/ar/n"). Force the label to stay on
+       one line — flex-wrap on the parent handles overflow. */
+    whiteSpace: 'nowrap',
+  };
+  const visual: CSSProperties =
+    variant === 'primary'
+      ? { background: 'var(--t-ink)', color: 'var(--t-paper)' }
+      : variant === 'outline'
+        ? { background: 'transparent', color: 'var(--t-ink)', border: '1px solid var(--t-line)' }
+        : { background: 'transparent', color: 'var(--t-accent-ink)', padding: '10px 0' };
+  const combined = { ...base, ...visual, ...style };
+
+  /* No link OR explicit "none-link" sentinel (host picked "No
+     link" in the panel) → render as <span>. */
+  if (!href || href === 'none-link') {
+    return <span style={combined}>{children}</span>;
+  }
+  /* In-site anchor — let the browser handle the hash scroll. The
+     rsvp-modal sentinel falls through to #rsvp in case the modal
+     isn't mounted on the current page variant. */
+  const resolvedHref = href === 'rsvp-modal' ? '#rsvp' : href;
+  const isExternal = /^https?:\/\//.test(resolvedHref);
+  return (
+    <a
+      href={resolvedHref}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      /* pl-hit44 — expands the tap area to ≥44px on coarse pointers
+         without inflating the pill itself (pearloom.css utility). */
+      className="pl-hit44"
+      style={combined}
+    >
+      {children}
+    </a>
+  );
+}
+
+/* ─── KDivider — handoff/shared/kits.jsx divider variants. ──── */
+
+export function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
+  const wrap: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '0 auto', width, ...style };
+  /* Design-system v2 brand divider ornaments arrive prefixed `pl-`
+     (e.g. 'pl-fleuron'), set by the Theme panel's Ornaments picker.
+     Render via the brand <Divider>, themed to the live site accent +
+     gold + hairline. Built-in looks below are untouched. */
+  if (look.startsWith('pl-')) {
+    return (
+      <BrandDivider
+        ornament={look.slice(3)}
+        width={width}
+        ink="var(--t-accent)"
+        accent="var(--t-gold, var(--gold))"
+        color="var(--t-line)"
+        style={{ margin: '0 auto', ...style }}
+      />
+    );
+  }
+  if (look === 'sprig') {
+    /* Handoff/prototype design — two olive sprigs facing inward
+       with a small accent dot between them. The previous version
+       only painted one sprig flanked by hairlines, which read as
+       a single ornament rather than the symmetric divider the
+       brand uses across every section header. */
+    return (
+      <div style={wrap}>
+        <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}>
+          <OliveSprig size={42} />
+        </span>
+        <span aria-hidden style={{
+          width: 5, height: 5, borderRadius: '50%',
+          background: 'var(--t-accent)', flexShrink: 0,
+        }} />
+        <OliveSprig size={42} />
+      </div>
+    );
+  }
+  if (look === 'brush') {
+    return (
+      <div style={wrap}>
+        <div style={{ width, height: 4, background: 'var(--t-accent)', borderRadius: 2, opacity: 0.6, transform: 'skewX(-12deg)' }} />
+      </div>
+    );
+  }
+  if (look === 'dot') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)' }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'deckle') {
+    return (
+      <div style={wrap}>
+        <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden>
+          <path d={`M0 3 ${Array.from({ length: 14 }).map((_, i) => `L${(i * width) / 14 + width / 28} ${i % 2 ? 5 : 1}`).join(' ')} L${width} 3`} stroke="var(--t-line)" strokeWidth="1" fill="none" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'wave') {
+    const cycles = Math.max(3, Math.round(width / 36));
+    const len = width / cycles;
+    let d = `M 0 7 `;
+    for (let i = 0; i < cycles; i++) {
+      const x = i * len;
+      d += `C ${x + len * 0.25} 1, ${x + len * 0.75} 13, ${x + len} 7 `;
+    }
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={d} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'arrow') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden>
+          <path d="M 0 1 L 12 5 L 0 9 Z" fill="var(--t-gold, var(--gold))" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'seal') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span style={{
+          width: 12, height: 12, borderRadius: '50%',
+          background: 'var(--t-accent)',
+          boxShadow: 'inset 0 0 0 1.5px var(--t-cream, #FBF7EE)',
+        }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'bow') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="22" height="12" viewBox="0 0 22 12" aria-hidden>
+          <path d="M 2 1 L 10 6 L 2 11 Z" fill="var(--t-accent)" opacity="0.78" />
+          <path d="M 20 1 L 12 6 L 20 11 Z" fill="var(--t-accent)" opacity="0.78" />
+          <circle cx="11" cy="6" r="1.6" fill="var(--t-gold, var(--gold))" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'diamond') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="46" height="10" viewBox="0 0 46 10" aria-hidden>
+          <path d="M 4 5 L 8 1 L 12 5 L 8 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
+          <path d="M 23 5 L 18 0 L 28 0 L 23 10 L 18 0 Z" fill="var(--t-accent)" opacity="0.85" />
+          <path d="M 42 5 L 38 1 L 34 5 L 38 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'thread') {
+    /* Two strands — accent + gold — weaving in counter-phase. The
+       brand's loom, as a rule. */
+    const cycles = Math.max(2, Math.round(width / 56));
+    const len = width / cycles;
+    const strand = (phase: number) => {
+      let d = `M 0 ${7 + phase} `;
+      for (let i = 0; i < cycles; i++) {
+        const x = i * len;
+        d += `C ${x + len * 0.25} ${7 + phase - 6}, ${x + len * 0.75} ${7 + phase + 6}, ${x + len} ${7 + phase} `;
+      }
+      return d;
+    };
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={strand(0)} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d={strand(0)} stroke="var(--t-gold, var(--gold))" strokeWidth="1.2" fill="none" strokeLinecap="round" transform={`translate(${len / 2} 0)`} opacity="0.85" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'vine') {
+    /* Leafy rule — centre stem with alternating leaf pairs. */
+    const leaves = Math.max(4, Math.round(width / 30));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={`M 0 7 L ${width} 7`} stroke="var(--t-accent)" strokeWidth="1" opacity="0.8" />
+          {Array.from({ length: leaves }).map((_, i) => {
+            const x = ((i + 0.5) / leaves) * width;
+            const up = i % 2 === 0;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={up ? 4 : 10}
+                rx="4.4"
+                ry="1.9"
+                fill="var(--t-accent)"
+                opacity="0.75"
+                transform={`rotate(${up ? -28 : 28} ${x} ${up ? 4 : 10})`}
+              />
+            );
+          })}
+          <circle cx={width} cy="7" r="1.6" fill="var(--t-gold, var(--gold))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stars') {
+    /* Three four-point stars between hairlines — gold keystone centre. */
+    const star = (cx: number, cy: number, r: number) =>
+      `M ${cx} ${cy - r} Q ${cx + r * 0.22} ${cy - r * 0.22} ${cx + r} ${cy} Q ${cx + r * 0.22} ${cy + r * 0.22} ${cx} ${cy + r} Q ${cx - r * 0.22} ${cy + r * 0.22} ${cx - r} ${cy} Q ${cx - r * 0.22} ${cy - r * 0.22} ${cx} ${cy - r} Z`;
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="56" height="16" viewBox="0 0 56 16" aria-hidden>
+          <path d={star(10, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+          <path d={star(28, 8, 6.5)} fill="var(--t-gold, var(--gold))" />
+          <path d={star(46, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'scallop') {
+    /* Lace edge — a run of shallow scallop arcs with dot finials. */
+    const n = Math.max(5, Math.round(width / 26));
+    const len = width / n;
+    let d = `M 0 9 `;
+    for (let i = 0; i < n; i++) {
+      const x = i * len;
+      d += `Q ${x + len / 2} -3, ${x + len} 9 `;
+    }
+    return (
+      <div style={wrap}>
+        <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden>
+          <path d={d} stroke="var(--t-accent)" strokeWidth="1.1" fill="none" opacity="0.8" />
+          {Array.from({ length: n - 1 }).map((_, i) => (
+            <circle key={i} cx={(i + 1) * len} cy="10.4" r="1.1" fill="var(--t-gold, var(--gold))" opacity="0.9" />
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'morse') {
+    const segs = Math.max(4, Math.round(width / 22));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden>
+          {Array.from({ length: segs }).map((_, i) => {
+            const isDash = i % 2 === 1;
+            const x = (i / segs) * width + 4;
+            return isDash ? (
+              <rect key={i} x={x} y="2" width="11" height="2" rx="1" fill="var(--t-accent)" opacity="0.75" />
+            ) : (
+              <circle key={i} cx={x + 1} cy="3" r="1.4" fill="var(--t-accent)" opacity="0.75" />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  /* ── PACK-EXCLUSIVE divider looks (2026-06-13) — never offered
+     by the Decor library's divider picker; a Theme-Store pack's
+     explicit `divider` field is the only writer. */
+  if (look === 'gilt-chain') {
+    /* Linked gold ovals — a fine jewelry chain. */
+    const links = Math.max(5, Math.round(width / 18));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: links }).map((_, i) => (
+            <ellipse
+              key={i}
+              cx={(i + 0.5) * (width / links)}
+              cy="5"
+              rx={width / links / 2 + 1.5}
+              ry="3.2"
+              fill="none"
+              stroke="var(--t-gold, var(--gold, #C19A4B))"
+              strokeWidth="1.1"
+              opacity={i % 2 === 0 ? 0.9 : 0.55}
+            />
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stitch-seam') {
+    /* Couture running stitch with a thread tail. */
+    const stitches = Math.max(6, Math.round(width / 14));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: stitches }).map((_, i) => (
+            <line
+              key={i}
+              x1={(i + 0.18) * (width / stitches)}
+              y1={i % 2 === 0 ? 6.5 : 3.5}
+              x2={(i + 0.82) * (width / stitches)}
+              y2={i % 2 === 0 ? 3.5 : 6.5}
+              stroke="var(--t-accent)"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+          ))}
+          <circle cx={width - 2} cy="5" r="1.8" fill="var(--t-gold, var(--gold, #C19A4B))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'marquee-bulbs') {
+    /* A run of theatre bulbs, center bulb lit largest. */
+    const bulbs = Math.max(7, Math.round(width / 16)) | 1;
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: bulbs }).map((_, i) => {
+            const center = Math.abs(i - (bulbs - 1) / 2) < 0.6;
+            return (
+              <circle
+                key={i}
+                cx={(i + 0.5) * (width / bulbs)}
+                cy="5"
+                r={center ? 2.6 : 1.6}
+                fill={center ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                opacity={center ? 1 : 0.45 + 0.5 * (1 - Math.abs(i - (bulbs - 1) / 2) / ((bulbs - 1) / 2))}
+              />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'crystal-drops') {
+    /* Hanging chandelier crystals from a hairline rail. */
+    const drops = Math.max(5, Math.round(width / 26));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="16" viewBox={`0 0 ${width} 16`} aria-hidden>
+          <line x1="0" y1="1.5" x2={width} y2="1.5" stroke="var(--t-line)" strokeWidth="1" />
+          {Array.from({ length: drops }).map((_, i) => {
+            const x = (i + 0.5) * (width / drops);
+            const long = i % 2 === 0;
+            return (
+              <g key={i}>
+                <line x1={x} y1="1.5" x2={x} y2={long ? 8 : 5.5} stroke="var(--t-accent)" strokeWidth="1" opacity="0.6" />
+                <path
+                  d={`M ${x} ${long ? 8 : 5.5} l 2.2 3 l -2.2 3 l -2.2 -3 Z`}
+                  fill="none"
+                  stroke={long ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                  strokeWidth="1.1"
+                  opacity={long ? 0.95 : 0.6}
+                />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  /* ── Animated dividers (Atelier) — port of v2 site.jsx KDivider.
+     Each carries a signature motion that plays ONLY when the site
+     root has data-pl-premium="on" (manifest.atelier) + motion is
+     allowed; otherwise the markup paints as a clean static divider.
+     The pl-da / pl-da-* classes are the animation hooks (pearloom.css). */
+  if (look === 'flow') {
+    const rail = (key: string) => (
+      <div key={key} style={{ position: 'relative', flex: 1, height: 2, background: 'var(--t-line)', overflow: 'hidden', borderRadius: 2 }}>
+        <span className="pl-da-gleam" aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '38%', background: 'linear-gradient(90deg, transparent, var(--t-gold, var(--gold)), transparent)' }} />
+      </div>
+    );
+    return (
+      <div className="pl-divider pl-da pl-da-flow" style={wrap}>
+        {rail('a')}
+        <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--t-gold, var(--gold))', flexShrink: 0 }} />
+        {rail('b')}
+      </div>
+    );
+  }
+  if (look === 'grow-vine') {
+    return (
+      <div className="pl-divider pl-da pl-da-vine" style={wrap}>
+        <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}><OliveSprig size={46} /></span>
+        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)', flexShrink: 0 }} />
+        <OliveSprig size={46} />
+      </div>
+    );
+  }
+  if (look === 'tide') {
+    const seg = 22; const n = Math.max(4, Math.round(width / seg)); const w = n * seg;
+    let d = 'M0 5'; for (let i = 0; i < n; i++) { const x = i * seg; d += ` Q ${x + seg / 4} 0 ${x + seg / 2} 5 T ${x + seg} 5`; }
+    return (
+      <div className="pl-divider pl-da pl-da-tide" style={wrap}>
+        <svg width={w} height="10" viewBox={`0 0 ${w} 10`} aria-hidden>
+          <path d={d} fill="none" stroke="var(--t-accent)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'twinkle') {
+    return (
+      <div className="pl-divider pl-da pl-da-twinkle" style={{ ...wrap, gap: 9 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span className="pl-da-star" aria-hidden style={{ width: 9, height: 9, background: 'var(--t-gold, var(--gold))', transform: 'rotate(45deg)', flexShrink: 0 }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  /* rule (default) */
+  return (
+    <div style={wrap}>
+      <div style={{ width, height: 1, background: 'var(--t-line)' }} />
+    </div>
+  );
+}
+
+/* ─── Stars (Travel ratings). ───────────────────────────────── */
+
+/* Stars — 5-star rating bar with proper gold FILL (not stroke
+   outline like the icon library's star). Handles fractional
+   ratings via clip-path on the partial star so 4.7 reads as
+   "4 full + 1 ~70% filled" instead of rounding to 5.
+
+   Was previously rendering via <Icon name="star">, but the icon
+   library uses fill:none + stroke:color which made filled and
+   empty stars look nearly identical (both gold outlines). */
+function Stars({ r, size = 12 }: { r: number; size?: number }) {
+  /* Clamp 0-5; treat anything below 0.05 as no rating (don't
+     paint a totally-empty 5-star strip for hotels with no
+     rating data). */
+  const rating = Math.max(0, Math.min(5, r ?? 0));
+  return (
+    <span style={{ display: 'inline-flex', gap: 1.5 }} aria-label={`${rating.toFixed(1)} out of 5`}>
+      {[0, 1, 2, 3, 4].map((i) => {
+        /* Per-star fill fraction: 1.0 for stars fully under
+           rating, 0.0 above, fractional for the boundary one. */
+        const frac = Math.max(0, Math.min(1, rating - i));
+        return <Star key={i} size={size} fill={frac} />;
+      })}
+    </span>
+  );
+}
+
+function Star({ size, fill }: { size: number; fill: number }) {
+  /* Two stacked SVGs — the bottom is the muted outline (always
+     visible), the top is the gold fill clipped to `fill` of its
+     width. Pixel-aligned so half-stars don't shimmer. */
+  const path = "M12 3l2.7 5.6 6.3.9-4.5 4.4 1 6.1L12 17.3 6.5 20l1-6.1L3 9.5l6.3-.9z";
+  /* useId — stable across SSR/hydration. Math.random() here
+     caused server/client mismatches when the same fill landed
+     on different IDs. */
+  const reactId = useId();
+  const clipId = `star-clip-${reactId.replace(/[^a-z0-9]/gi, '')}-${Math.round(fill * 100)}`;
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', width: size, height: size, lineHeight: 0 }}>
+      {/* Empty/outline star — always painted as the bottom layer. */}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        style={{ position: 'absolute', inset: 0 }}
+        aria-hidden
+      >
+        <path d={path} fill="var(--t-line)" />
+      </svg>
+      {/* Gold-fill star — clipped to `fill` of the width. */}
+      {fill > 0 && (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          style={{ position: 'absolute', inset: 0 }}
+          aria-hidden
+        >
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={0} y={0} width={24 * fill} height={24} />
+            </clipPath>
+          </defs>
+          <path d={path} fill="var(--t-gold)" clipPath={`url(#${clipId})`} />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+/* ─── EditPhotoTarget — v2 canvas photo editing. When editable,
+   wraps a photo surface so clicking it opens the canvas gallery
+   drawer (EditorRedesign listens for `pearloom:open-photo`). A hover
+   hint names the action. On the published site (editable=false) it's
+   a pure passthrough — no overlay, no listener. ─────────────────── */
+
+interface CanvasPhotoSlotDetail {
+  kind: 'cover' | 'gallery' | 'chapter';
+  index?: number;
+  label?: string;
+  current?: string | null;
+}
+
+function EditPhotoTarget({
+  editable, slot, children, style,
+}: {
+  editable: boolean;
+  slot: CanvasPhotoSlotDetail;
+  children: ReactNode;
+  style?: CSSProperties;
+}) {
+  if (!editable) return <>{children}</>;
+  return (
+    <div
+      className="pl-photo-edit"
+      role="button"
+      tabIndex={0}
+      title="Change photo"
+      onClick={(e) => {
+        e.stopPropagation();
+        try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+        }
+      }}
+      style={{ position: 'relative', cursor: 'pointer', ...style }}
+    >
+      {children}
+      <span aria-hidden className="pl-photo-edit-hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
+        Change photo
+      </span>
+    </div>
+  );
+}
+
+/* ─── EditPhotoCorner — for full-bleed photo surfaces where a scrim +
+   centered text overlay sits ON TOP of the image, so a click-through
+   wrapper (EditPhotoTarget) can't catch the tap. Renders a floating
+   "Change photo" chip in the corner instead. Editable-only; same
+   `pearloom:open-photo` dispatch + slot contract. ──────────────── */
+function EditPhotoCorner({ editable, slot }: { editable: boolean; slot: CanvasPhotoSlotDetail }) {
+  if (!editable) return null;
+  const open = () => {
+    try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+  };
+  return (
+    <button
+      type="button"
+      title="Change photo"
+      onClick={(e) => { e.stopPropagation(); open(); }}
+      style={{
+        position: 'absolute', top: 14, right: 14, zIndex: 6,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '7px 12px', borderRadius: 999, border: 'none',
+        background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',
+        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11.5, fontWeight: 700,
+        cursor: 'pointer', WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
+      Change photo
+    </button>
+  );
+}
+
+/* ─── PhotoPlaceholder — gradient stand-in for image-slot. ─── */
+
+type PhotoTone = 'lavender' | 'peach' | 'sage' | 'cream' | 'warm' | 'field' | 'dusk';
+
+const PHOTO_BGS: Record<PhotoTone, string> = {
+  lavender: 'linear-gradient(135deg, #D7CCE5, #B7A4D0)',
+  peach: 'linear-gradient(135deg, #F7DDC2, #EAB286)',
+  sage: 'linear-gradient(135deg, #E3E6C8, #8B9C5A)',
+  cream: 'linear-gradient(135deg, #F3E9D4, #E0D3B3)',
+  warm: 'linear-gradient(135deg, #F0C9A8, #C4B5D9)',
+  field: 'linear-gradient(160deg, #CBD29E 0%, #8B9C5A 55%, #F0C9A8 100%)',
+  dusk: 'linear-gradient(200deg, #C4B5D9 0%, #F0C9A8 70%, #CBD29E 100%)',
+};
+
+function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: { tone?: PhotoTone; aspect?: string; style?: CSSProperties }) {
+  return (
+    <div style={{ width: '100%', aspectRatio: aspect, background: PHOTO_BGS[tone] ?? PHOTO_BGS.lavender, ...style }} />
+  );
+}
+
+/* ─── FadeInImage — blur-up loading for host photos. ──────────
+   The wrapper paints the section's tonal paper (var(--t-section))
+   immediately; the real <img> sits on top at opacity 0 and fades
+   to 1 over 400ms once decoded. Cheapest credible blur-up: no
+   dominant-color extraction, no LQIP — the paper IS the
+   placeholder. Lazy + async-decode by default; pass `eager` for
+   above-the-fold heroes. Reduced-motion guests get an instant
+   swap (no fade). */
+
+function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (!window.matchMedia) return () => {};
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    () => (window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false),
+    () => false, // SSR — assume motion; CSS media queries still guard
+  );
+}
+
+function FadeInImage({
+  src,
+  alt = '',
+  eager = false,
+  style = {},
+  imgStyle = {},
+}: {
+  src: string;
+  alt?: string;
+  /** Above-the-fold heroes skip lazy loading. */
+  eager?: boolean;
+  /** Layout styles for the wrapper (aspectRatio, borderRadius, margins…). */
+  style?: CSSProperties;
+  /** Extra styles on the <img> itself (rarely needed). */
+  imgStyle?: CSSProperties;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  /* SSR / cache guard — if the browser finished the image before
+     React attached (server-rendered markup, cached asset), onLoad
+     never fires; the ref callback checks .complete at attach time. */
+  const attachImg = (node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
+  };
+  return (
+    <div
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        /* Tonal paper base — the wait shows paper, not white. */
+        backgroundColor: 'var(--t-section)',
+        ...style,
+      }}
+    >
+      <img
+        ref={attachImg}
+        src={src}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        /* Eager = the hero/cover = the LCP candidate — tell the
+           browser to fetch it ahead of the below-fold queue. */
+        fetchPriority={eager ? 'high' : undefined}
+        onLoad={() => setLoaded(true)}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: loaded ? 1 : 0,
+          transition: reduced ? 'none' : 'opacity 400ms var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+          ...imgStyle,
+        }}
+      />
+    </div>
+  );
+}
+
+/* ─── Date formatter. ───────────────────────────────────────── */
+
+function formatHeroDate(raw: string | undefined): string {
+  if (!raw) return '';
+  if (!/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+/* ─── Copy / data — pulls from manifest with prototype fallbacks. ─── */
+
+type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'
+                 | 'countdown' | 'map' | 'music'
+                 | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup' | 'adviceWall'
+                 | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList'
+                 | 'tributeWall' | 'menu' | 'dressCode'
+                 | 'nameVote' | 'rooms' | 'thenAndNow' | 'groupChat';
+
+const SECTION_LABEL: Record<SectionKind, string> = {
+  hero: 'Opening', story: 'Our story', details: 'Details', schedule: 'Schedule',
+  travel: 'Travel', registry: 'Registry', gallery: 'Gallery', rsvp: 'RSVP', faq: 'FAQ',
+  countdown: 'Countdown', map: 'Map', music: 'Music',
+  itinerary: 'Itinerary', costSplitter: 'Costs', activityVote: 'Group vote',
+  toastSignup: 'Toasts', adviceWall: 'Advice wall', program: 'Program',
+  livestream: 'Livestream', obituary: 'Obituary', packingList: 'Packing list',
+  honorList: 'Honor list', tributeWall: 'Tribute wall',
+  menu: 'Menu', dressCode: 'Dress code',
+  nameVote: 'Name vote', rooms: 'Rooms', thenAndNow: 'Then & now',
+  groupChat: 'Group chat',
+};
+
+interface SectionCtx {
+  /** Published-only "Add to your calendar" link (the .ics route
+   *  the site already serves). Undefined in the editor canvas
+   *  (no siteSlug) and when no event date is set. */
+  icsHref?: string;
+  /** The published slug — undefined on the editor canvas. Gates
+   *  the guest-facing strips (photo uploads, ask-a-question). */
+  siteSlug?: string;
+  theme: Theme;
+  pad: number;
+  editable: boolean;
+  motif: MotifKind;
+  motifsOn: boolean;
+  /** WHERE the motifs live (MotifLayer) — host pick or kit default. */
+  motifLayout: MotifLayout;
+  textureIntensity: number;
+  showWashHero: boolean;
+  /** Decor Library divider override OR theme.look.divider fallback. */
+  dividerLook: string;
+  /** Per-section layout variant resolved from manifest.layouts[section]
+   *  with default fallback. Used by the section blocks to dispatch. */
+  variants: {
+    hero: string;
+    story: string;
+    details: string;
+    schedule: string;
+    travel: string;
+    registry: string;
+    gallery: string;
+    faq: string;
+    rsvp: string;
+    countdown: string;
+    map: string;
+    music: string;
+  };
+  C: Copy;
+  /** Full manifest reference — most blocks read C (the derived
+   *  copy struct), but optional blocks (countdown / map / music)
+   *  need direct access to fresh manifest fields that aren't
+   *  worth threading through Copy. */
+  manifest: StoryManifest;
+  /** Raw manifest patch hook (editor only) — powers the inline
+   *  Layout bar on sections rendered outside the generic loop (hero).
+   *  Undefined on the published site. */
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+  /** Host-uploaded cover photo URL (manifest.coverPhoto). When set,
+   *  hero variants render it instead of the gradient placeholder. */
+  coverPhoto?: string;
+  /** Round R inline-edit handlers — when set on the canvas (editor
+   *  mode only), section blocks render InlineEdit-wrapped text that
+   *  writes through these callbacks. Each is undefined in published
+   *  mode so guests see plain text with no edit chrome. */
+  edit?: {
+    tagline?: (v: string) => void;
+    storyHeadline?: (v: string) => void;
+    storyBody?: (v: string) => void;
+    detailsValue?: (idx: number, v: string) => void;
+    detailsLabel?: (idx: number, v: string) => void;
+    eventName?: (idx: number, v: string) => void;
+    eventTime?: (idx: number, v: string) => void;
+    eventVenue?: (idx: number, v: string) => void;
+    /** Quiet one-line note under the time/venue row — writes
+     *  manifest.events[idx].description. */
+    eventDescription?: (idx: number, v: string) => void;
+    /** FAQ in-place editing — writes manifest.faqs[idx].question /
+     *  .answer (seeding the demo questions on first touch). */
+    faqQuestion?: (idx: number, v: string) => void;
+    faqAnswer?: (idx: number, v: string) => void;
+    /** Per-chapter story editing (timeline / zigzag variants) —
+     *  writes manifest.chapters[idx].title / .description. */
+    chapterTitle?: (idx: number, v: string) => void;
+    chapterBody?: (idx: number, v: string) => void;
+    /** Gallery photo caption — writes manifest.galleryCaptions[idx]. */
+    galleryCaption?: (idx: number, v: string) => void;
+    /** Hotel blurb — writes manifest.travelInfo.hotels[idx].description.
+     *  Undefined when the host has no real hotels saved (demo cards
+     *  stay read-only). */
+    hotelBlurb?: (idx: number, v: string) => void;
+    hotelName?: (idx: number, v: string) => void;
+    nameA?: (v: string) => void;
+    nameB?: (v: string) => void;
+    /** Generic manifest.copy.<key> writer. Used for every editable
+     *  eyebrow / lead / CTA / button-label slot on the canvas. */
+    copy?: (key: string, v: string) => void;
+  };
+}
+
+interface Copy {
+  subject: { type: 'couple' | 'solo'; a: string; b: string };
+  lead: string;
+  tagline: string;
+  cta: string;
+  /** Where the primary CTA navigates. '#section' anchor, full URL,
+   *  or '' for no link. From manifest.copy.heroCtaHref (default
+   *  '#rsvp' when blank — matches the legacy hardcoded behaviour). */
+  ctaHref?: string;
+  /** Secondary CTA label ("Learn more" default). Host-overridable
+   *  via manifest.copy.heroCtaSecondary. */
+  ctaSecondary?: string;
+  /** Where the secondary CTA navigates. From manifest.copy.heroCtaSecondaryHref
+   *  (default '#story' when blank). */
+  ctaSecondaryHref?: string;
+  /** Optional milestone marker (Turning 40 / 10 years / Class of '95).
+   *  Renders as a small badge above the names. Empty / missing → not
+   *  rendered. */
+  milestone?: string;
+  /** Set to true when buildCopy detects today's date is past the
+   *  event date. Drives the post-event banner + "Thank you for
+   *  joining us" reskin. */
+  isPostEvent?: boolean;
+  meta: { date: string; place: string };
+  story: {
+    eyebrow: string;
+    title: string;
+    italic?: string;
+    body: string;
+    chips?: string[];
+    /** Occasion-routed fallback chips for the timeline rail when
+     *  the host authored none (occasionCopyFor().storyChips). */
+    chipsFallback: [string, string, string];
+    /** Up to 3 host-uploaded chapter photos. Variants that render
+     *  per-chapter cards (timeline / zigzag) read these instead of
+     *  the gradient PhotoPlaceholder when set. */
+    chapterImages?: (string | undefined)[];
+    /** Per-chapter titles. When set, multi-chapter variants use
+     *  these instead of the shared C.story.title for each card. */
+    chapterTitles?: (string | undefined)[];
+    /** Per-chapter body text. When set, multi-chapter variants
+     *  use these instead of the shared C.story.body. */
+    chapterBodies?: (string | undefined)[];
+  };
+  details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string; s?: string }[] };
+  /** Schedule rows — t(ime) / l(abel) / s(ubtitle = venue) / d(escription,
+   *  the optional quiet note under the venue line) / day. */
+  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; d?: string; addr?: string; day?: number }[] };
+  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[]; shuttle?: string };
+  registry: {
+    eyebrow: string; title: string; italic?: string; body: string;
+    /** Rich registry stores — name + optional URL. The renderer
+     *  wraps each in <a href> when a URL is present, otherwise
+     *  shows a plain pill. Legacy string[] entries from old
+     *  manifests are normalized to { name } in buildCopy. */
+    stores: { name: string; url?: string; note?: string }[];
+  };
+  gallery: {
+    eyebrow: string;
+    title: string;
+    italic?: string;
+    tones: PhotoTone[];
+    /** Host-uploaded photo URLs (manifest.galleryImages[]). When
+     *  non-empty, the canvas renders these instead of the gradient
+     *  tone placeholders. */
+    photos?: string[];
+    /** Per-photo captions aligned to `photos` by index — derived
+     *  from manifest.galleryCaptions (index-keyed sidecar record).
+     *  Undefined entries mean "no caption". */
+    captions?: (string | undefined)[];
+  };
+  rsvp: {
+    eyebrow: string; title: string; body: string;
+    /** Optional "X going" social proof — shown under the CTA
+     *  when manifest.rsvpShowGoing is true (or undefined +
+     *  event type defaults to public). */
+    socialProof?: { enabled: boolean; names: string[]; count?: number };
+  };
+  faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
+}
+
+/* ─── TextureLayer — handoff/shared/themes.jsx L239-351 verbatim.
+       Per-theme material grain painted on top of content (zIndex 6).
+       Noise (t-weave / t-grain / t-mottle) is baked into repeating
+       SVG tiles below; only the displacement filters (t-wash /
+       t-watercolor, via TextureFilters) still run live. */
+
+/* Noise layer, baked. The feTurbulence filters (t-weave / t-grain /
+   t-mottle) used to run LIVE — `filter: url(#…)` on a 100dvh sticky
+   div. iOS Safari re-rasterizes live SVG filters asynchronously
+   while scrolling, so the grain visibly caught up a beat behind the
+   paper. Instead we bake each filter into a small seamless SVG tile
+   (same baseFrequency / octaves / seed, stitchTiles='stitch' so the
+   repeat is invisible) and paint it as a repeating background-image:
+   rasterized once, cached, zero per-frame filter work. The grain now
+   scrolls WITH the page — which reads more like real paper than the
+   old viewport-glued noise anyway. Positional layers (marble veins,
+   watercolor washes, the gilded sweep) keep their live displacement
+   filters — displacement genuinely needs the filter, and those are
+   document-anchored by design. */
+const svgTile = (size: number, pipeline: string) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><filter id='f' x='0' y='0' width='100%' height='100%'>${pipeline}</filter><rect width='100%' height='100%' filter='url(#f)'/></svg>`,
+  )}")`;
+
+/* Grayscale + fully-opaque alpha — the t-mottle / t-weave tail
+   (feColorMatrix saturate 0 → feComponentTransfer alpha to 1). */
+const TILE_OPAQUE_GRAY =
+  "<feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>";
+
+/* The three noise tiles, mirroring TextureFilters.tsx's t-grain /
+   t-mottle / t-weave defs exactly. Tile sizes: grain 160 (fine
+   speckle), weave 200 (tight directional tooth), mottle 640 (the
+   blotches are long-wavelength — the tile must be big enough that
+   the repeat never registers). */
+const NOISE_TILES = {
+  't-grain': svgTile(
+    160,
+    "<feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0'/>",
+  ),
+  't-mottle': svgTile(
+    640,
+    `<feTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='11' stitchTiles='stitch'/>${TILE_OPAQUE_GRAY}`,
+  ),
+  't-weave': svgTile(
+    200,
+    `<feTurbulence type='fractalNoise' baseFrequency='0.5 0.85' numOctaves='2' seed='6' stitchTiles='stitch'/>${TILE_OPAQUE_GRAY}`,
+  ),
+} as const;
+
+function StickyNoise({ filter, opacity, blend }: {
+  filter: keyof typeof NOISE_TILES;
+  opacity: number;
+  blend: CSSProperties['mixBlendMode'];
+}) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        backgroundImage: NOISE_TILES[filter],
+        backgroundRepeat: 'repeat',
+        opacity,
+        mixBlendMode: blend,
+      }}
+    />
+  );
+}
+
+function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?: number }) {
+  if (!texture || texture === 'none') return null;
+  const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 };
+
+  if (texture === 'linen') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
+          backgroundImage: `repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 2px)`,
+          backgroundSize: '2px 2px, 2px 2px',
+        }} />
+        <StickyNoise filter="t-weave" opacity={0.4 * intensity} blend="soft-light" />
+      </div>
+    );
+  }
+  if (texture === 'paper') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-mottle" opacity={0.16 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.1 * intensity} blend="multiply" />
+      </div>
+    );
+  }
+  if (texture === 'cotton') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <StickyNoise filter="t-mottle" opacity={0.34 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-weave" opacity={0.42 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.16 * intensity} blend="multiply" />
+      </div>
+    );
+  }
+  if (texture === 'velvet') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'soft-light', opacity: 0.6 * intensity,
+          backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.16 * intensity,
+          background: 'linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.12) 50%, transparent 72%)',
+        }} />
+        <StickyNoise filter="t-mottle" opacity={0.3 * intensity} blend="soft-light" />
+      </div>
+    );
+  }
+  if (texture === 'watercolor') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={{ ...base, overflow: 'hidden' }}>
+        <WatercolorWash tone="rgba(194,105,62,0.30)" style={{ top: '-6%', left: '-12%', width: 720, height: 580, mixBlendMode: 'multiply' }} seed={0} opacity={0.7 * intensity} />
+        <WatercolorWash tone="rgba(138,154,107,0.34)" style={{ top: '30%', right: '-14%', width: 640, height: 540, mixBlendMode: 'multiply' }} seed={1} opacity={0.7 * intensity} />
+        <WatercolorWash tone="rgba(217,154,106,0.30)" style={{ bottom: '-8%', left: '24%', width: 600, height: 500, mixBlendMode: 'multiply' }} seed={2} opacity={0.6 * intensity} />
+        <WatercolorWash tone="rgba(201,154,78,0.26)" style={{ top: '52%', left: '-8%', width: 460, height: 420, mixBlendMode: 'multiply' }} seed={1} opacity={0.55 * intensity} />
+        <StickyNoise filter="t-weave" opacity={0.2 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.08 * intensity} blend="multiply" />
+      </div>
+    );
+  }
+  if (texture === 'kraft') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <StickyNoise filter="t-mottle" opacity={0.28 * intensity} blend="multiply" />
+        <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.2 * intensity} blend="multiply" />
+      </div>
+    );
+  }
+  if (texture === 'canvas') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.55 * intensity,
+          backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px)',
+          backgroundSize: '3px 3px, 3px 3px',
+        }} />
+        <StickyNoise filter="t-weave" opacity={0.35 * intensity} blend="soft-light" />
+      </div>
+    );
+  }
+  if (texture === 'marble') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={{ ...base, overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', inset: '-20%', filter: 'url(#t-wash)', opacity: 0.5 * intensity, mixBlendMode: 'multiply',
+          background: 'repeating-linear-gradient(58deg, transparent 0 26px, color-mix(in oklab, var(--t-ink) 12%, transparent) 26px 27px, transparent 27px 62px), radial-gradient(42% 30% at 30% 24%, color-mix(in oklab, var(--t-ink) 9%, transparent), transparent 70%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: '-20%', filter: 'url(#t-watercolor)', opacity: 0.4 * intensity, mixBlendMode: 'soft-light',
+          background: 'repeating-linear-gradient(58deg, transparent 0 46px, rgba(255,255,255,0.55) 46px 48px, transparent 48px 94px)',
+        }} />
+      </div>
+    );
+  }
+  if (texture === 'gilded') {
+    return (
+      <div aria-hidden className="pl8-texture-layer" style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
+          background: 'linear-gradient(120deg, transparent 22%, color-mix(in oklab, var(--t-gold) 62%, transparent) 48%, transparent 64%)',
+        }} />
+        <StickyNoise filter="t-mottle" opacity={0.18 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.12 * intensity} blend="multiply" />
+      </div>
+    );
+  }
+  return null;
+}
+
+function WatercolorWash({ tone = 'var(--t-accent-bg)', style = {}, seed = 0, opacity = 0.6 }: { tone?: string; style?: CSSProperties; seed?: number; opacity?: number }) {
+  return (
+    <div aria-hidden style={{ position: 'absolute', opacity, ...style }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        filter: 'url(#t-wash)',
+        background: `radial-gradient(60% 55% at ${40 + seed * 12}% ${44 - seed * 8}%, ${tone} 0%, transparent 70%), radial-gradient(50% 60% at ${64 - seed * 10}% ${60 + seed * 6}%, ${tone} 0%, transparent 72%)`,
+      }} />
+    </div>
+  );
+}
+
+/* ─── PatternLayer — handoff/shared/themes.jsx L360-385 verbatim.
+       Decorative print BEHIND content (zIndex 0). Tinted from the
+       theme's own accent/gold via color-mix. */
+
+function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?: number }) {
+  if (!pattern || pattern === 'none') return null;
+  const k = intensity;
+  const a = (p: number) => `color-mix(in oklab, var(--t-accent) ${p * k}%, transparent)`;
+  const a2 = (p: number) => `color-mix(in oklab, var(--t-accent-2) ${p * k}%, transparent)`;
+  const g = (p: number) => `color-mix(in oklab, var(--t-gold) ${p * k}%, transparent)`;
+  const ink = (p: number) => `color-mix(in oklab, var(--t-ink) ${p * k}%, transparent)`;
+  const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 };
+  let bg: string | null = null;
+  let size: string = 'auto';
+  let extra: CSSProperties = {};
+  switch (pattern) {
+    case 'gingham':  bg = `repeating-linear-gradient(0deg, ${a(13)} 0 14px, transparent 14px 28px), repeating-linear-gradient(90deg, ${a(13)} 0 14px, transparent 14px 28px)`; break;
+    case 'stripe':   bg = `repeating-linear-gradient(90deg, ${a(12)} 0 10px, transparent 10px 22px)`; break;
+    case 'cabana':   bg = `repeating-linear-gradient(90deg, ${a(15)} 0 28px, transparent 28px 56px)`; break;
+    case 'diagonal': bg = `repeating-linear-gradient(45deg, ${a(11)} 0 12px, transparent 12px 26px)`; break;
+    case 'dots':     bg = `radial-gradient(${a(22)} 22%, transparent 24%)`; size = '20px 20px'; break;
+    case 'grid':     bg = `repeating-linear-gradient(0deg, var(--t-line) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, var(--t-line) 0 1px, transparent 1px 26px)`; break;
+    case 'deco':     bg = `repeating-linear-gradient(135deg, ${a(13)} 0 14px, transparent 14px 28px, ${g(13)} 28px 42px, transparent 42px 56px)`; break;
+    case 'scallop':  bg = `radial-gradient(circle at 50% 0, transparent 11px, ${a(13)} 12px 13px, transparent 14px)`; size = '30px 30px'; break;
+    case 'wave':     bg = `radial-gradient(circle at 50% 100%, transparent 13px, ${a(12)} 14px 15px, transparent 16px)`; size = '34px 17px'; break;
+    case 'confetti': bg = `radial-gradient(${a(42)} 30%, transparent 32%), radial-gradient(${a2(42)} 30%, transparent 32%), radial-gradient(${g(42)} 30%, transparent 32%)`; size = '46px 46px, 62px 62px, 38px 38px'; extra = { backgroundPosition: '0 0, 18px 24px, 32px 8px' }; break;
+    case 'terrazzo': bg = `radial-gradient(${a(34)} 18%, transparent 20%), radial-gradient(${a2(30)} 16%, transparent 18%), radial-gradient(${g(30)} 14%, transparent 16%), radial-gradient(${ink(12)} 12%, transparent 14%)`; size = '52px 52px, 72px 72px, 44px 44px, 90px 90px'; extra = { backgroundPosition: '0 0, 26px 30px, 40px 12px, 60px 50px' }; break;
+    case 'celestial':bg = `radial-gradient(${g(75)} 6%, transparent 8%), radial-gradient(rgba(255,255,255,0.65) 5%, transparent 7%), radial-gradient(rgba(255,255,255,0.4) 4%, transparent 6%)`; size = '88px 88px, 118px 118px, 152px 152px'; extra = { backgroundPosition: '0 0, 34px 48px, 86px 24px' }; break;
+    /* ─── New custom patterns ──────────────────────────────────── */
+    case 'herringbone': {
+      /* Alternating diagonal short bars — woven-cloth read. */
+      const tile = `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'>` +
+        `<line x1='0' y1='12' x2='12' y2='0' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='12' y1='24' x2='24' y2='12' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='12' y1='0' x2='24' y2='12' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='0' y1='12' x2='12' y2='24' stroke='currentColor' stroke-width='1.5'/>` +
+        `</svg>`,
+      )}`;
+      bg = `url("${tile}")`;
+      size = '24px 24px';
+      extra = { color: a(38) };
+      break;
+    }
+    case 'chevron': {
+      /* Zigzag bands — alternating accent + gold for variety. */
+      bg = `repeating-linear-gradient(135deg, ${a(14)} 0 12px, transparent 12px 24px), repeating-linear-gradient(45deg, ${g(10)} 0 12px, transparent 12px 24px)`;
+      size = '34px 34px';
+      break;
+    }
+    case 'hexagons': {
+      /* Honeycomb hexagonal mesh — formed by three offset
+         repeating gradients. */
+      bg = `radial-gradient(${a(20)} 14%, transparent 16%) 0 0/40px 40px, radial-gradient(${a(20)} 14%, transparent 16%) 20px 20px/40px 40px, linear-gradient(120deg, transparent 18%, ${a(8)} 18% 22%, transparent 22%), linear-gradient(60deg, transparent 18%, ${a(8)} 18% 22%, transparent 22%)`;
+      size = '40px 40px, 40px 40px, 40px 70px, 40px 70px';
+      break;
+    }
+    case 'argyle': {
+      /* Diamond grid with hairline crosshatch — preppy
+         knitwear feel. */
+      bg = `linear-gradient(135deg, ${a(16)} 25%, transparent 25%, transparent 75%, ${a(16)} 75%), linear-gradient(135deg, ${a(16)} 25%, transparent 25%, transparent 75%, ${a(16)} 75%), repeating-linear-gradient(45deg, ${ink(10)} 0 1px, transparent 1px 18px), repeating-linear-gradient(-45deg, ${ink(10)} 0 1px, transparent 1px 18px)`;
+      size = '40px 40px, 40px 40px, auto, auto';
+      extra = { backgroundPosition: '0 0, 20px 20px, 0 0, 0 0' };
+      break;
+    }
+    case 'crosshatch': {
+      /* Cross-hatched pen-and-ink lines at +/- 30°. */
+      bg = `repeating-linear-gradient(30deg, ${ink(14)} 0 1px, transparent 1px 8px), repeating-linear-gradient(-30deg, ${ink(14)} 0 1px, transparent 1px 8px)`;
+      break;
+    }
+    case 'lattice': {
+      /* Wide diagonal lattice — garden gate / trellis look. */
+      bg = `repeating-linear-gradient(45deg, ${a(18)} 0 2px, transparent 2px 28px), repeating-linear-gradient(-45deg, ${a(18)} 0 2px, transparent 2px 28px)`;
+      break;
+    }
+    case 'starfield': {
+      /* Sparse 4-pointed stars + tiny dots — night-sky / celebration. */
+      const star = `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' width='20' height='20'>` +
+        `<path d='M10 4 L11 9 L16 10 L11 11 L10 16 L9 11 L4 10 L9 9 Z' fill='currentColor'/></svg>`,
+      )}`;
+      bg = `url("${star}"), radial-gradient(${g(60)} 1.4px, transparent 2px)`;
+      size = '90px 90px, 32px 32px';
+      extra = { color: g(80), backgroundPosition: '12px 18px, 0 0' };
+      break;
+    }
+    default: return null;
+  }
+  return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;
+}
+
+/* `editable` gates every DEMO content fallback below — the editor
+   canvas previews a fully-dressed site, but published pages render
+   only host-authored content. No fabricated hotels, dates, stores,
+   or questions ever reach a guest. */
+function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string; editable?: boolean; demoCopy?: boolean }): Copy {
+  const demo = args.editable === true || args.demoCopy === true;
+  void theme;
+  /* Loose-typed reads — the right-rail panels write to a wider
+     manifest shape than StoryManifest officially declares (tagline,
+     storySection, detailsCards, registryIntro, registryStores,
+     rsvpDeadline, etc. — every one a field a section panel writes). */
+  const loose = manifest as unknown as Record<string, unknown>;
+  const storySection = (loose.storySection as { headline?: string; body?: string; chips?: string[] } | undefined) ?? {};
+  const galleryTones = (loose.galleryTones as PhotoTone[] | undefined);
+  /* Third tuple slot is the optional subline (2026-07-02). */
+  const detailsCards = (loose.detailsCards as Array<[string, string, string?]> | undefined) ?? [];
+  const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; address?: string; description?: string }> | undefined) ?? [];
+  const faqsRaw = (loose.faqs as Array<{ question?: string; answer?: string }> | undefined) ?? [];
+  /* manifest.registryStores may be legacy string[] OR new
+     { name, url? }[]. Normalize to the rich shape for buildCopy. */
+  const registryStoresRaw = (() => {
+    const raw = loose.registryStores as Array<string | { name?: string; url?: string }> | undefined;
+    if (!raw) return undefined;
+    return raw
+      .map((entry) => typeof entry === 'string'
+        ? { name: entry }
+        : { name: entry.name ?? '', url: entry.url })
+      .filter((entry) => entry.name.trim().length > 0);
+  })();
+  const registryIntro = (loose.registryIntro as string | undefined);
+  const rsvpDeadline = (loose.rsvpDeadline as string | undefined);
+  const tagline = (loose.tagline as string | undefined);
+  /* DetailsPanel writes manifest.kidsWelcome / adultsOnly booleans.
+     The host's intent is binary — either kids are welcome or it's an
+     adults-only evening. We surface the active one as a synthesized
+     "Kids" card when the host hasn't authored their own detailsCards.
+     `kidsWelcomeRaw === undefined` means the panel was never opened
+     (preserve the cream default "Kids welcome · Ages 10 +"). */
+  const kidsWelcomeRaw = loose.kidsWelcome as boolean | undefined;
+  const adultsOnlyRaw = loose.adultsOnly as boolean | undefined;
+  const occasion = (loose.occasion as string | undefined) ?? 'wedding';
+  /* Occasion copy pack — every fallback + demo string below routes
+     through this so a solo birthday never renders "How we met" and
+     a memorial never renders "Honeymoon fund". Wedding-arc packs
+     still respond to the host's Pear-voice pick. */
+  const V = occasionCopyFor(occasion, (loose.voiceOverride as string | undefined) ?? 'classic');
+  /* Host-authored copy overrides for every visible label on the
+     canvas — eyebrows, CTAs, section titles. Each falls through
+     to the voice-defaulted V.* or hardcoded value when unset so
+     existing manifests render unchanged. Round T wires HeroPanel
+     + section panels to write here. */
+  const copyOverrides = (loose.copy as Record<string, string> | undefined) ?? {};
+  const co = (key: string, fallback: string): string => {
+    const v = copyOverrides[key];
+    return typeof v === 'string' && v.trim() ? v : fallback;
+  };
+  /* Section titles ship as a (head, italic) tuple — see splitHeading
+     below. Hosts override the whole string via manifest.copy.<section>Title;
+     we splitHeading() the override at read time so the italic part
+     still renders italicized. Pass the original fallback head/italic
+     so unset overrides preserve the existing default exactly. */
+  const coTitle = (key: string, fallbackHead: string, fallbackItalic?: string): { head: string; italic: string } => {
+    const v = copyOverrides[key];
+    if (typeof v === 'string' && v.trim()) return splitHeading(v);
+    return { head: fallbackHead, italic: fallbackItalic ?? '' };
+  };
+
+  return {
+    subject: (() => {
+      /* Solo-honoree mode — an explicit editor pick
+         (manifest.subject.kind, Hero panel) always wins. With no
+         pick, solo occasions (canonical registry:
+         lib/event-os/solo-occasions.ts) and any site with an
+         empty second name render solo — one name, no '&' glyph,
+         no dangling ampersand. */
+      const sub = (loose.subject as { kind?: 'couple' | 'solo' } | undefined);
+      const kind =
+        sub?.kind === 'solo' ||
+        (sub?.kind !== 'couple' && (isSoloOccasion(occasion) || !(args.nameB ?? '').trim()))
+          ? 'solo' as const
+          : 'couple' as const;
+      return { type: kind, a: args.nameA, b: kind === 'solo' ? '' : args.nameB };
+    })(),
+    lead: co('heroLead', V.lead),
+    tagline: tagline || V.tagline,
+    cta: co('heroCta', V.cta),
+    ctaHref: co('heroCtaHref', '#rsvp'),
+    ctaSecondary: co('heroCtaSecondary', 'Learn more'),
+    ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
+    isPostEvent: (() => {
+      /* Parse the manifest date and compare to today. Accepts ISO
+         or any string Date.parse handles. Returns false on invalid
+         input so legacy manifests don't accidentally show the
+         post-event banner. */
+      if (!args.date) return false;
+      const ms = Date.parse(args.date);
+      if (Number.isNaN(ms)) return false;
+      const eventDay = new Date(ms);
+      eventDay.setHours(23, 59, 59, 999); // forgiving — banner kicks in the day after
+      return Date.now() > eventDay.getTime();
+    })(),
+    milestone: (() => {
+      /* Read manifest.milestone and format per kind. */
+      const ms = loose.milestone as { kind?: string; value?: string } | undefined;
+      if (!ms || !ms.value || !ms.kind) return '';
+      const v = ms.value.trim();
+      if (!v) return '';
+      switch (ms.kind) {
+        case 'turning':   return `Turning ${v}`;
+        case 'years':     return `${v} years`;
+        case 'class-of':  return `Class of ${v}`;
+        case 'in-memory': return v;
+        case 'custom':    return v;
+        default:          return v;
+      }
+    })(),
+    meta: { date: args.date, place: args.place },
+    story: (() => {
+      /* Pull up to 3 chapter photos + titles + bodies from the
+         canonical manifest.chapters[] path. StoryPanel writes here
+         when the host fills in a chapter slot. */
+      const chapters = (loose.chapters as Array<{ title?: string; description?: string; images?: Array<{ url?: string }> }> | undefined) ?? [];
+      const chapterImages = [0, 1, 2].map((i) => chapters[i]?.images?.[0]?.url || undefined);
+      const chapterTitles = [0, 1, 2].map((i) => (chapters[i]?.title || '').trim() || undefined);
+      const chapterBodies = [0, 1, 2].map((i) => (chapters[i]?.description || '').trim() || undefined);
+      return {
+        eyebrow: co('storyEyebrow', V.storyEyebrow),
+        title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
+        italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
+        /* Demo-gated — the fabricated story body must never reach a
+           published page (it used to: every generated site without
+           an authored story shipped a fake couple anecdote). */
+        body: storySection.body || (demo ? V.storyBodyDemo : ''),
+        chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
+        chipsFallback: V.storyChips,
+        chapterImages: chapterImages.some(Boolean) ? chapterImages : undefined,
+        chapterTitles: chapterTitles.some(Boolean) ? chapterTitles : undefined,
+        chapterBodies: chapterBodies.some(Boolean) ? chapterBodies : undefined,
+      };
+    })(),
+    details: (() => {
+      const t = coTitle('detailsTitle', 'Everything you', 'should know');
+      return {
+      eyebrow: co('detailsEyebrow', 'The fine print'),
+      title: t.head,
+      italic: t.italic,
+      items: detailsCards.length > 0
+        ? detailsCards
+            /* Drop entries where both halves are empty — old manifests
+               accumulated stray empty rows during testing and they
+               rendered as ghost cards on the canvas. */
+            .filter(([l, v]) => (l ?? '').trim() !== '' || (v ?? '').trim() !== '')
+            /* Cap raised 3 → 6 (2026-07-02, with DetailsPanel) —
+               bento wants 4-6 tiles and the old invisible cap
+               silently ate hosts' 4th card. */
+            .slice(0, 6)
+            .map(([l, v, s], i) => ({
+              l: l ?? '',
+              v: v ?? '',
+              /* Optional third tuple slot — the subline the iconrow /
+                 bento / accordion / ledger variants render. Written
+                 by DetailsPanel's "A quieter second line" field. */
+              s: (s ?? '').trim() || undefined,
+              /* Content-aware, not positional — Parking wears a car
+                 even when it's the third card (details-icons.ts). */
+              icon: detailsIconFor(l ?? '', i),
+            }))
+        : !demo
+          ? []
+          : [
+            { l: 'Dress code', v: V.detailsDressDemo, icon: 'sparkles' },
+            /* Kids card responds to DetailsPanel's binary toggles.
+               kidsWelcome=true wins; adultsOnly=true forces an
+               adults-only label; neither set leaves the cream default. */
+            kidsWelcomeRaw === true
+              ? { l: 'Kids welcome', v: 'All ages — bring the little ones', icon: 'users' }
+              : adultsOnlyRaw === true
+                ? { l: 'Adults-only evening', v: 'Reception is 18+', icon: 'users' }
+                : { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
+            { l: V.detailsGiftsCard[0], v: V.detailsGiftsCard[1], icon: 'gift' },
+          ],
+      };
+    })(),
+    schedule: (() => {
+      const t = coTitle('scheduleTitle', 'In', 'moments');
+      return {
+      eyebrow: co('scheduleEyebrow', 'The day'),
+      title: t.head,
+      italic: t.italic,
+      /* Multi-day events: when any event has day>1, render ALL
+         rows (not just first 4) so guests see the full weekend.
+         Otherwise keep the legacy 4-row cap. */
+      rows: eventsRaw.length > 0
+        ? (() => {
+            const hasMultiDay = eventsRaw.some((e) => (e as { day?: number }).day && (e as { day?: number }).day! > 1);
+            const list = hasMultiDay ? eventsRaw : eventsRaw.slice(0, 4);
+            return list.map((e) => ({
+              t: e.time ?? '',
+              l: e.name ?? '',
+              /* s carries the venue line; d carries the optional quiet
+                 description note. Pre-description-support manifests
+                 sometimes have venue: undefined with description set —
+                 keep showing that description (now on its own quieter
+                 line) so no content disappears. */
+              s: e.venue ?? '',
+              d: (e.description ?? '').trim() || undefined,
+              addr: (e.address ?? '').trim() || undefined,
+              day: (e as { day?: number }).day,
+            }));
+          })()
+        : !demo
+          ? []
+          : V.scheduleDemo,
+      };
+    })(),
+    travel: (() => {
+      /* Read host-authored hotels from manifest.travelInfo.hotels[]
+         (the canonical HotelBlock schema, populated by TravelPanel's
+         Google Places search). Map each HotelBlock onto the renderer's
+         compact shape with sensible fallbacks so old manifests or
+         partial Places hits still display cleanly. Only fall through
+         to the canned Santorini sample pair when the host has zero
+         hotels saved. */
+      const hostHotels = manifest.travelInfo?.hotels ?? [];
+      const TONES: PhotoTone[] = ['warm', 'lavender', 'sage', 'peach', 'dusk', 'cream'];
+      /* Normalize Google Places priceLevel enum strings into the
+         $/$$/$$$/$$$$ format hosts (and guests) actually read. */
+      const formatPrice = (raw?: string, range?: { start?: number; end?: number; currency?: string }): string => {
+        if (raw) {
+          switch (raw) {
+            case 'PRICE_LEVEL_FREE':           return '';
+            case 'PRICE_LEVEL_INEXPENSIVE':    return '$';
+            case 'PRICE_LEVEL_MODERATE':       return '$$';
+            case 'PRICE_LEVEL_EXPENSIVE':      return '$$$';
+            case 'PRICE_LEVEL_VERY_EXPENSIVE': return '$$$$';
+            default:
+              /* Already formatted as $$$ or similar — pass through. */
+              if (/^\$+$/.test(raw)) return raw;
+          }
+        }
+        if (range?.start && range?.end) {
+          return `${range.currency ?? '$'}${range.start}–${range.end}`;
+        }
+        return '—';
+      };
+      const mapped = hostHotels.map((h, i) => ({
+        name: h.name || 'Hotel',
+        price: formatPrice(h.priceLevel, h.priceRange),
+        rating: typeof h.rating === 'number' ? h.rating : 0,
+        reviews: typeof h.ratingCount === 'number' ? h.ratingCount : 0,
+        dist: h.distance || '',
+        tone: TONES[i % TONES.length],
+        blurb: h.description || h.notes || h.address || '',
+        amenities: h.amenities
+          ? h.amenities.split(/[·,]/).map((s) => s.trim()).filter(Boolean)
+          : [],
+        photoUrl: h.photoUrl || h.photoUrls?.[0],
+        bookingUrl: h.bookingUrl,
+        groupRate: (h.groupRate ?? '').trim() || undefined,
+        lat: typeof h.lat === 'number' ? h.lat : undefined,
+        lng: typeof h.lng === 'number' ? h.lng : undefined,
+      }));
+      /* Venue coordinates (wizard autocomplete stamps these on
+         logistics) anchor TravelMap's real-geometry pin layout. */
+      const venuePin = (() => {
+        const lg = manifest.logistics as { venue?: string; venueLat?: number; venueLng?: number } | undefined;
+        if (typeof lg?.venueLat !== 'number' || typeof lg?.venueLng !== 'number') return undefined;
+        return { name: lg.venue || 'The venue', lat: lg.venueLat, lng: lg.venueLng };
+      })();
+      const t = coTitle('travelTitle', 'Where to', 'stay');
+      return {
+        eyebrow: co('travelEyebrow', 'Getting there'),
+        title: t.head,
+        italic: t.italic,
+        /* Host-authored arrival blurb from TravelPanel — populated
+           when the host has typed into the "Getting there" field;
+           otherwise undefined so the default travel section stays
+           visually unchanged. */
+        intro: manifest.travelInfo?.directions || undefined,
+        shuttle: (() => {
+          const s = (manifest.travelInfo as { shuttle?: { enabled?: boolean; note?: string } } | undefined)?.shuttle;
+          if (!s?.enabled) return undefined;
+          return s.note?.trim() || 'Shuttle service from the host hotel to the venue. Details to follow.';
+        })(),
+        venuePin,
+        /* Fabricated hotels (with invented star ratings + review
+           counts) must never reach guests — editor preview only. */
+        hotels: mapped.length > 0 ? mapped : !demo ? [] : [
+          { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
+          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A quiet cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
+        ],
+      };
+    })(),
+    registry: (() => {
+      const t = coTitle('registryTitle', V.registryTitleHead, V.registryTitleItalic);
+      /* Note: legacy manifest.fundPct / fundSub are deliberately NOT
+         read any more — the invented host-set percentage rendered a
+         second, fake progress bar beside the real pledge-driven
+         RegistryFundCard. The fields stay on old manifests (harmless)
+         but nothing renders them. */
+      return {
+      eyebrow: co('registryEyebrow', 'Registry'),
+      title: t.head,
+      italic: t.italic,
+      body: registryIntro || V.registryBody,
+      stores: registryStoresRaw && registryStoresRaw.length > 0
+        ? registryStoresRaw.slice(0, 6)
+        : !demo ? [] : V.registryDemoStores.map((name) => ({ name })),
+      };
+    })(),
+    gallery: (() => {
+      const t = coTitle('galleryTitle', 'A few', 'favorites');
+      /* Host-uploaded gallery photos from manifest.galleryImages[].
+         When set, canvas renders these instead of tone gradients. */
+      const galleryPhotos = (loose.galleryImages as string[] | undefined) ?? [];
+      /* Captions live in manifest.galleryCaptions — an index-keyed
+         sidecar record (see types.ts). Flatten to an array aligned
+         with photos so renderers can zip them by index. */
+      const captionsRec = (loose.galleryCaptions as Record<string, string> | undefined) ?? {};
+      return {
+        eyebrow: co('galleryEyebrow', 'Gallery'),
+        title: t.head,
+        italic: t.italic,
+        tones: galleryTones && galleryTones.length > 0
+          ? galleryTones
+          : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
+        photos: galleryPhotos.length > 0 ? galleryPhotos : undefined,
+        captions: galleryPhotos.length > 0
+          ? galleryPhotos.map((_, i) => {
+              const c = captionsRec[String(i)];
+              return typeof c === 'string' && c.trim() ? c : undefined;
+            })
+          : undefined,
+      };
+    })(),
+    rsvp: (() => {
+      const t = coTitle('rsvpTitle', V.rsvpTitle, '');
+      /* Social-proof "X going" pile — default ON for public-RSVP
+         events (bachelor, birthday, reunion, etc.), default OFF
+         for weddings + memorials (private guest list expectation).
+         Host can override via manifest.rsvpShowGoing. */
+      const PUBLIC_RSVP_OCCASIONS = new Set([
+        'bachelor-party', 'bachelorette-party', 'bridal-shower', 'baby-shower',
+        'reunion', 'milestone-birthday', 'birthday', 'sweet-sixteen',
+        'engagement', 'housewarming', 'gender-reveal', 'sip-and-see',
+      ]);
+      const occ = (loose.occasion as string | undefined) ?? 'wedding';
+      const defaultEnabled = PUBLIC_RSVP_OCCASIONS.has(occ);
+      const enabled = (loose.rsvpShowGoing as boolean | undefined) ?? defaultEnabled;
+      /* No fabricated guests on published sites — the demo pile is
+         edit-mode-only (GoingSocialProof supplies it). Real names
+         arrive via manifest.goingPreview when wired. */
+      const previewNames = (loose.goingPreview as string[] | undefined) ?? [];
+      const goingCount = (loose.goingCount as number | undefined);
+      return {
+      eyebrow: co('rsvpEyebrow', rsvpDeadline
+        ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}`
+        : demo ? 'RSVP by April 28' : 'RSVP'),
+      title: t.head,
+      body: co('rsvpBody', V.rsvpBody),
+      socialProof: { enabled, names: previewNames, count: goingCount },
+      };
+    })(),
+    faq: (() => {
+      const t = coTitle('faqTitle', 'The', 'little things');
+      return {
+      eyebrow: co('faqEyebrow', 'Questions & answers'),
+      title: t.head,
+      italic: t.italic,
+      /* NO cap: the old slice(0, 6) silently dropped a host's 7th+
+         question on every layout. Long lists are the LAYOUTS' job
+         now — accordion collapses, twocol/cards clamp to 8 with a
+         "Show all N" pill (section-variants/faq.tsx). */
+      questions: faqsRaw.length > 0
+        ? faqsRaw.map((q) => q.question ?? '').filter(Boolean)
+        : demo ? V.faqDemo : [],
+      /* qa[] carries the host-authored answers (FaqPanel writes
+         manifest.faqs[].answer). Variants twocol/numbered/cards
+         read ctx.C.qa[i].a and fall through to placeholder when
+         empty. Without this, answers were silently dropped. */
+      qa: faqsRaw.length > 0
+        ? faqsRaw.map((q) => ({ q: q.question ?? '', a: q.answer ?? '' }))
+        : undefined,
+      };
+    })(),
+  };
+}
+
+/* Story headline ("How we met") into ["How we", "met"] so the
+   italic accent word reads like the handoff. Falls through to the
+   whole heading when no obvious split point exists. */
+function splitHeading(s: string): { head: string; italic: string } {
+  const parts = s.trim().split(/\s+/);
+  if (parts.length <= 1) return { head: s, italic: '' };
+  const italic = parts.pop() ?? '';
+  return { head: parts.join(' '), italic };
+}

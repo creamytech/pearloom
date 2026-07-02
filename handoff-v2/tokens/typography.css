@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════════
+   TYPOGRAPHY — Pearloom type system
+   ───────────────────────────────────────────────────────────────
+   Display/heading = Fraunces (italic = brand voice). Body = Geist.
+   Mono labels = Geist Mono, ALWAYS uppercase, 0.18–0.28em tracking,
+   9–11px, paired with a 1px gold rule (BRAND §4).
+   Scale = perfect fourth (1.25).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Families ── */
+  --pl-font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
+  --pl-font-heading: "Fraunces", Georgia, serif;
+  --pl-font-body:    "Geist", system-ui, -apple-system, sans-serif;
+  --pl-font-mono:    "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  --pl-font-script:  "Caveat", "Segoe Script", cursive;
+
+  /* ── Size scale ── */
+  --pl-text-2xs:  0.75rem;   /* 12px — micro labels (age-inclusive floor) */
+  --pl-text-xs:   0.82rem;   /* 13px — tiny hints   */
+  --pl-text-sm:   0.88rem;   /* 14px — small labels */
+  --pl-text-base: 1rem;      /* 16px — body         */
+  --pl-text-md:   1rem;      /* 16px — card titles  */
+  --pl-text-lg:   1.13rem;   /* 18px — section heads*/
+  --pl-text-xl:   1.32rem;   /* 21px — panel titles */
+  --pl-text-2xl:  1.6rem;    /* 26px — page titles  */
+  --pl-text-3xl:  clamp(2rem, 4vw, 2.6rem);
+  --pl-text-display: clamp(2.8rem, 6vw, 4.6rem);  /* hero display */
+  --pl-text-marquee: clamp(4rem, 12vw, 9rem);     /* large editorial */
+
+  /* ── Label tracking ── */
+  --pl-label-tracking: 0.18em;   /* @kind other */
+
+  /* ── Variable-font axis presets (Fraunces) ── */
+  --pl-fvs-display: "opsz" 144, "SOFT" 50, "WONK" 0;          /* @kind font */
+  --pl-fvs-display-italic: "opsz" 144, "SOFT" 80, "WONK" 1;   /* @kind font */
+  --pl-fvs-heading: "opsz" 96, "SOFT" 50, "WONK" 0;           /* @kind font */
+  --pl-fvs-wordmark: "opsz" 60, "SOFT" 40, "WONK" 0;          /* @kind font */
+  --pl-fvs-wordmark-italic: "opsz" 60, "SOFT" 80, "WONK" 1;   /* @kind font */
+}
+
+/* ─── Display utilities ─── */
+
+/* Letterpress display — glyphs pressed INTO the paper (BRAND §3). */
+.pl-display {
+  font-family: var(--pl-font-display);
+  font-weight: 400;
+  font-variation-settings: var(--pl-fvs-display);
+  letter-spacing: -0.02em;
+  line-height: 0.96;
+  color: var(--pl-ink);
+}
+.pl-display-italic {
+  font-family: var(--pl-font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: var(--pl-fvs-display-italic);
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  color: var(--pl-olive);
+}
+
+/* The soft inset shadow that makes display type feel letterpressed
+   into warm paper. Apply on light surfaces only. */
+.pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(255,255,255,0.55),
+    0 -1px 1px rgba(40,28,12,0.18);
+}
+[data-theme='dark'] .pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.45),
+    0 -1px 1px rgba(245,239,226,0.10);
+}
+
+.pl-heading {
+  font-family: var(--pl-font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--pl-ink-soft);
+}
+
+.pl-body {
+  font-family: var(--pl-font-body);
+  color: var(--pl-ink);
+  line-height: 1.6;
+}
+
+.pl-script {
+  font-family: var(--pl-font-script);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ─── Mono editorial label / eyebrow (BRAND §4) ─── */
+.pl-label,
+.pl-eyebrow {
+  font-family: var(--pl-font-mono);
+  font-size: var(--pl-text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--pl-label-tracking);
+  text-transform: uppercase;
+  color: var(--pl-muted);
+}
+
+/* ─── Size utility classes ─── */
+.pl-text-2xs { font-size: var(--pl-text-2xs); }
+.pl-text-xs  { font-size: var(--pl-text-xs); }
+.pl-text-sm  { font-size: var(--pl-text-sm); }
+.pl-text-base{ font-size: var(--pl-text-base); }
+.pl-text-lg  { font-size: var(--pl-text-lg); }
+.pl-text-xl  { font-size: var(--pl-text-xl); }
+.pl-text-2xl { font-size: var(--pl-text-2xl); }
+.pl-text-3xl { font-size: var(--pl-text-3xl); }
+.pl-text-display { font-size: var(--pl-text-display); }
+.pl-text-marquee { font-size: var(--pl-text-marquee); }
