@@ -43,6 +43,7 @@ import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketin
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
+import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
 import type { StoryManifest } from '@/types';
 import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type StatTileData, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
@@ -1138,13 +1139,12 @@ function AnniversaryCard({
 // sibling occasions the host doesn't have a site for yet; each
 // deep-links the wizard with ?occasion= prefilled.
 // ─────────────────────────────────────────────────────────────
+/* Weekend-anchor occasions (wedding, quinceañera, bar/bat mitzvah,
+   big birthdays, reunions…) derive their suggestions from the same
+   arc catalog the Weekend Builder uses — one source, every
+   occasion. This hand list only covers occasions that AREN'T
+   anchors but still have obvious next threads. */
 const SIBLING_EVENTS: Record<string, Array<{ occasion: string; label: string; blurb: string }>> = {
-  wedding: [
-    { occasion: 'rehearsal-dinner', label: 'Rehearsal dinner', blurb: 'The night before — toasts, a long table.' },
-    { occasion: 'welcome-party', label: 'Welcome party', blurb: 'For everyone arriving early.' },
-    { occasion: 'bachelorette-party', label: 'Bachelorette weekend', blurb: 'Itinerary, votes, one shared plan.' },
-    { occasion: 'brunch', label: 'Morning-after brunch', blurb: 'Eggs before everyone flies home.' },
-  ],
   engagement: [
     { occasion: 'wedding', label: 'The wedding itself', blurb: 'When you’re ready — same names, new thread.' },
     { occasion: 'bridal-shower', label: 'Bridal shower', blurb: 'Often someone else hosts — send them here.' },
@@ -1161,7 +1161,14 @@ function SiblingEventsCard({
   origin: { domain?: string; names?: [string, string] | null; manifest?: unknown } | null;
 }) {
   const have = new Set(sites.map((s) => s.occasion).filter(Boolean));
-  const suggestions = (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
+  const arc = WEEKEND_ANCHORS.find((a) => a.id === occasion);
+  const suggestions = arc
+    ? arc.events
+        .filter((e) => e.sluffix !== '' && !have.has(e.kind))
+        .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
+        .map((e) => ({ occasion: e.kind, label: e.label, blurb: e.description }))
+        .slice(0, 3)
+    : (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
   /* Celebration linkage — the new site should arrive already woven
      into THIS celebration: same celebration id (reuse the origin's
      if it has one), shared name, and the LinkedEventsStrip lights
@@ -1207,6 +1214,17 @@ function SiblingEventsCard({
           </Link>
         ))}
       </div>
+      {arc && (
+        <Link
+          href="/dashboard/weekend"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, marginTop: 10,
+            fontSize: 12, fontWeight: 600, color: 'var(--peach-ink)', textDecoration: 'none',
+          }}
+        >
+          Planning several at once? Open the Weekend builder <span aria-hidden>→</span>
+        </Link>
+      )}
     </section>
   );
 }
