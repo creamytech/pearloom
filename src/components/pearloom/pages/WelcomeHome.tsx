@@ -42,7 +42,8 @@ import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
-import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
+import { nextStepFor, rsvpMomentumFor, isManifestPublished, type RsvpMomentum } from '@/lib/next-step';
+import { FirstThreadCard } from '../dash/FirstThreadCard';
 import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
@@ -256,6 +257,36 @@ export function WelcomeHome() {
     [manifest, guestCounts, now],
   );
 
+  // ── The first thread — self-checking guided path for brand-new
+  //    hosts (≤ 1 site). Step-done booleans derive from data this
+  //    page already holds; the card itself stays presentational.
+  //    'pl-first-thread-done' is the woven-state Dismiss persist. ─
+  const [firstThreadDismissed, setFirstThreadDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try { return window.localStorage.getItem('pl-first-thread-done') === '1'; } catch { return false; }
+  });
+  const dismissFirstThread = () => {
+    setFirstThreadDismissed(true);
+    try { window.localStorage.setItem('pl-first-thread-done', '1'); } catch { /* best-effort */ }
+  };
+  const firstThreadDone = useMemo(() => {
+    const chapters = manifest && Array.isArray(manifest.chapters) ? manifest.chapters : [];
+    return {
+      site: Boolean(site),
+      madeYours: Boolean(
+        (manifest?.coverPhoto ?? '').trim()
+        || chapters.some((c) => (c?.description ?? '').trim()),
+      ),
+      invited: (guestCounts?.invited ?? 0) > 0,
+      published: Boolean(site?.published) || (manifest ? isManifestPublished(manifest) : false),
+      dayArrived: rawDaysUntil != null && rawDaysUntil <= 0,
+    };
+  }, [site, manifest, guestCounts, rawDaysUntil]);
+  // `sites != null` also keeps SSR + first client paint in
+  // agreement (server snapshot is null), so the lazy localStorage
+  // read above can't hydration-mismatch.
+  const showFirstThread = !firstThreadDismissed && sites != null && sites.length <= 1;
+
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(
     () => buildMilestones({
@@ -390,6 +421,16 @@ export function WelcomeHome() {
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* The first thread — brand-new hosts only. Steps check
+                themselves off from the same data the cockpit reads. */}
+            {showFirstThread && (
+              <FirstThreadCard
+                done={firstThreadDone}
+                siteSlug={site?.domain ?? null}
+                solemn={getEventType(occasion)?.voice === 'solemn'}
+                onDismiss={dismissFirstThread}
+              />
+            )}
             <NeedsYouNow rows={pearTodos} phaseLabel={phaseLabel} phaseNote={phaseNote} />
             <Lately items={latelyItems} />
           </div>
