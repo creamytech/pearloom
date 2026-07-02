@@ -61,7 +61,7 @@ export const DEMO_MANIFEST = {
       details: 'bento',       // hero card + tiles
       schedule: 'cards',      // default — has the Day 1 / Day 2 grouping
       travel: 'rows',         // photo cards per hotel
-      registry: 'progress',   // honeymoon-fund bar
+      registry: 'progress',   // fund-forward layout (real fund card)
       gallery: 'masonry',     // varied row heights
       faq: 'twocol',
       rsvp: 'centered',
@@ -248,7 +248,7 @@ export const DEMO_MANIFEST = {
       '6': 'The zeibekiko lesson',
     },
 
-    // ── Registry — progress variant shows the fund bar.
+    // ── Registry ─────────────────────────────────────────────
     registryIntro:
       'You’re crossing an ocean for us — that is the gift. If you’d like to add to something anyway, this is what we’re building toward.',
     registryStores: [
@@ -256,8 +256,6 @@ export const DEMO_MANIFEST = {
       { name: 'Our first kitchen', url: 'https://example.com/kitchen' },
       { name: 'Zola', url: 'https://zola.com/elena-theo' },
     ],
-    fundPct: 64,
-    fundSub: '64% of the sailboat charter funded',
 
     // ── RSVP ─────────────────────────────────────────────────
     mealOptions: [

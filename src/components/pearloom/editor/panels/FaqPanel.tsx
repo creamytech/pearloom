@@ -122,7 +122,14 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
     write(cur.map((f, idx) => idx === i ? { ...f, ...p } : f));
   };
   const remove = (i: number) => write(faqs.filter((_, idx) => idx !== i));
-  const add = () => write([...faqs, { id: `f-${Date.now()}`, question: 'New question', answer: '', order: faqs.length }]);
+  /* Empty seed, not a literal 'New question' — hosts published that
+     string verbatim. The published renderer skips question-less
+     rows, and the row opens immediately so the host types theirs. */
+  const add = () => {
+    const id = `f-${Date.now()}`;
+    write([...faqs, { id, question: '', answer: '', order: faqs.length }]);
+    setOpenId(id);
+  };
   /* "Quick-add" — tap a curated question; appends it with an
      empty answer so the host can fill in details. Skipped if a
      question with that text already exists. */
@@ -174,8 +181,10 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                     onClick={() => setOpenId(isOpen ? null : f.id)}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                   >
-                    <Icon name="drag" size={13} color="var(--ink-muted)" />
-                    <span style={{ flex: 1, fontSize: 12.5 }}>{f.question || '(empty question)'}</span>
+                    {/* (The old drag glyph here was decorative — no
+                        reorder was wired. Removed rather than lie;
+                        real reorder is the Wave-2 shared primitive.) */}
+                    <span style={{ flex: 1, fontSize: 12.5 }}>{f.question || 'Write your question…'}</span>
                     <Icon name={isOpen ? 'chev-up' : 'chev-down'} size={13} color="var(--ink-muted)" />
                   </button>
                   {isOpen && (

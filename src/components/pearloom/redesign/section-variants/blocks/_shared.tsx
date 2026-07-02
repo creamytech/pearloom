@@ -77,10 +77,11 @@ export function BlockEmpty({ hint }: { hint?: string }) {
         lineHeight: 1.55,
       }}
     >
+      {/* BRAND §7 empty-state key. */}
       <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 17, color: 'var(--t-ink-soft)', marginBottom: 4 }}>
-        Nothing here yet — open the panel to begin
+        Nothing yet. Begin a thread.
       </div>
-      {hint && <div>{hint}</div>}
+      <div>{hint ?? 'Open the panel to begin.'}</div>
     </div>
   );
 }

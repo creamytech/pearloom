@@ -28,6 +28,18 @@ describe('occasionCopyFor', () => {
       expect(c.detailsDressDemo, e.id).toBeTruthy();
       expect(c.detailsGiftsCard[0], e.id).toBeTruthy();
       expect(c.detailsGiftsCard[1], e.id).toBeTruthy();
+      /* Chrome fields for the optional sections (countdown / music /
+         map) + the story-timeline chip fallback — added 2026-07-02
+         when those blocks' hardcoded copy was routed through the
+         packs. */
+      expect(c.storyChips.length, e.id).toBe(3);
+      c.storyChips.forEach((chip) => expect(chip, e.id).toBeTruthy());
+      expect(c.countdownEyebrow, e.id).toBeTruthy();
+      expect(c.countdownLabel, e.id).toBeTruthy();
+      expect(c.musicEyebrow, e.id).toBeTruthy();
+      expect(c.musicTitle, e.id).toBeTruthy();
+      expect(c.musicComposerHint, e.id).toBeTruthy();
+      expect(c.mapEyebrow, e.id).toBeTruthy();
     }
   });
 
@@ -38,13 +50,37 @@ describe('occasionCopyFor', () => {
       const all = [
         c.lead, c.tagline, c.storyEyebrow, c.storyTitle, c.storyItalic,
         c.storyBodyDemo, c.navStory, c.rsvpTitle, c.rsvpBody, c.registryBody,
-        ...c.registryDemoStores, ...c.faqDemo,
+        ...c.registryDemoStores, ...c.faqDemo, ...c.storyChips,
         ...c.scheduleDemo.flatMap((r) => [r.t, r.l, r.s]),
       ].join(' · ').toLowerCase();
       for (const phrase of COUPLE_PHRASES) {
         expect(all, `${e.id} leaks "${phrase}"`).not.toContain(phrase);
       }
+      /* "We met / We fell / We knew" is the wedding-arc chip rail;
+         it must never surface on non-couple occasions. */
+      expect(c.storyChips.join(' '), e.id).not.toContain('We met');
     }
+  });
+
+  it('routes the countdown / music / map chrome by occasion voice', () => {
+    /* Wedding keeps the party voice. */
+    const w = occasionCopyFor('wedding');
+    expect(w.storyChips).toEqual(['We met', 'We fell', 'We knew']);
+    expect(w.countdownLabel).toBe('Until we celebrate');
+    expect(w.musicTitle).toBe('Songs for the dance floor');
+    expect(w.musicComposerHint).toBe('The dance floor takes requests.');
+    /* Solemn occasions read gathered, not celebratory. */
+    for (const id of ['memorial', 'funeral']) {
+      const c = occasionCopyFor(id);
+      expect(c.countdownLabel, id).toBe('Until we gather');
+      expect(c.musicTitle.toLowerCase(), id).not.toContain('dance floor');
+      expect(c.musicComposerHint.toLowerCase(), id).not.toContain('dance floor');
+      expect(c.mapEyebrow, id).toBe('Where we gather');
+      expect(c.storyChips.join(' '), id).not.toContain('We met');
+    }
+    /* Party occasions never inherit solemn copy. */
+    expect(occasionCopyFor('bachelor-party').countdownLabel).toBe('Until the weekend');
+    expect(occasionCopyFor('birthday').mapEyebrow).toBe('Where it’s happening');
   });
 
   it('solo occasions never say "Our story"', () => {

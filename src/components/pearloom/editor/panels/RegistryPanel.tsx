@@ -93,21 +93,12 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
     ? "A note under it — 'for the honeymoon' (optional)"
     : 'A note under it (optional)';
 
-  /* Layout-aware extras — only the Progress variant uses fundPct
-     and fundSub. When the host's on Progress, expose the slider
-     and the subtitle field; otherwise hide them. */
+  /* The old fundPct slider (a host-invented "64% funded" number)
+     was removed 2026-07-02 — the Fund layout now promotes the REAL
+     pledge-driven fund card, whose bar fills only as guests share
+     what they gave. The legacy manifest fields stay unread. */
   const activeVariant = readVariant(manifest, 'registry');
   const isProgress = activeVariant === 'progress';
-  const fundPct = ((manifest as unknown as { fundPct?: number }).fundPct) ?? 0;
-  const fundSub = ((manifest as unknown as { fundSub?: string }).fundSub) ?? '';
-  const setFundPct = (n: number) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    fundPct: Math.max(0, Math.min(100, Math.round(n))),
-  } as unknown as StoryManifest);
-  const setFundSub = (v: string) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    fundSub: v,
-  } as unknown as StoryManifest);
   const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? modeCopy.intro;
   /* Normalize legacy string[] manifests into { name, url } on read
      so the panel only ever deals with the rich shape. */
@@ -247,7 +238,7 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — registry kind, eyebrow, progress
+            <Icon name="chev-down" size={12} /> More — registry kind, eyebrow
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
@@ -268,53 +259,12 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder={modeCopy.section} />
             </FGroup>
 
-            {/* Layout-aware: the Progress variant renders a fund
-                progress bar. Surface its inputs ONLY when that
-                variant is active — keeps the panel uncluttered for
-                the other 3 layouts. */}
-            {isProgress && (
-              <FGroup label="Progress bar" hint="Shown on the Progress layout only.">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-                  <div style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 26, fontWeight: 700,
-                    color: 'var(--peach-ink)',
-                    lineHeight: 1, minWidth: 50,
-                    fontVariantNumeric: 'tabular-nums',
-                  }}>
-                    {fundPct}%
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={fundPct}
-                    onChange={(e) => setFundPct(Number(e.target.value))}
-                    style={{
-                      flex: 1,
-                      accentColor: 'var(--peach-ink)',
-                      height: 4,
-                    }}
-                  />
-                </div>
-                <div style={{ height: 6 }} />
-                <FInput
-                  value={fundSub}
-                  onChange={setFundSub}
-                  placeholder={`${fundPct}% funded`}
-                />
-                <div style={{ marginTop: 5, fontSize: 10.5, color: 'var(--ink-muted)' }}>
-                  Subtitle below the fund name. Defaults to “{fundPct}% funded” if blank.
-                </div>
-              </FGroup>
-            )}
-
             {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
-              /* Discoverability hint for the Progress layout. Hosts on
+              /* Discoverability hint for the Fund layout. Hosts on
                  cards/chips/logo-wall layouts don't realize the fund
-                 modes have a dedicated visual with a real progress bar.
-                 Only surfaced for fund/tip-jar modes since the bar
-                 makes no sense for gifts/wishlist. */
+                 modes have a dedicated fund-forward visual. Only
+                 surfaced for fund/tip-jar modes since it makes no
+                 sense for gifts/wishlist. */
               <div
                 style={{
                   display: 'flex', gap: 10, alignItems: 'flex-start',
@@ -325,10 +275,10 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               >
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
-                    Show a progress bar?
+                    Put the fund front and center?
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                    The <strong>Progress</strong> layout adds a fund-funded percentage and a peach bar to this section. Switch in the Layout tab to enable it.
+                    The <strong>Fund</strong> layout leads with your Give-directly card — its progress fills in as guests share what they gave. Switch in the Layout tab.
                   </div>
                 </div>
               </div>

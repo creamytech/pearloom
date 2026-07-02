@@ -17,6 +17,7 @@ import { useState, type CSSProperties } from 'react';
 import type { Hotel, TravelVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
 import { InlineEdit } from '../InlineEdit';
+import { Icon } from '../../motifs';
 
 /* Edit-context extension — per-hotel blurb writer. Indices align
    with manifest.travelInfo.hotels[] (ThemedSite maps them 1:1 and
@@ -49,6 +50,48 @@ function headProps(ctx: TravelVariantCtxEditable) {
     onEditEyebrow: ctx.onEditEyebrow, onEditTitle: ctx.onEditTitle,
     eyebrowPlaceholder: ctx.eyebrowPlaceholder, titlePlaceholder: ctx.titlePlaceholder,
   };
+}
+
+/** Host-authored "Getting there" intro (manifest.travelInfo.directions).
+ *  Every variant renders it right under the head — parity with the
+ *  default rows layout so no layout pick silently drops it. */
+function TravelIntro({ C }: { C: TravelVariantCtxEditable['C'] }) {
+  if (!C.intro) return null;
+  return (
+    <div style={{ maxWidth: 560, marginInline: 'auto', textAlign: 'center', fontSize: 14.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, marginBottom: 24 }}>
+      {C.intro}
+    </div>
+  );
+}
+
+/** Shuttle callout (manifest.travelInfo.shuttle) — mirrors the
+ *  default rows layout's card so the note survives every layout. */
+function ShuttleCallout({ C }: { C: TravelVariantCtxEditable['C'] }) {
+  if (!C.shuttle) return null;
+  return (
+    <div style={{
+      maxWidth: 820, margin: '22px auto 0',
+      padding: '14px 18px',
+      borderRadius: 'var(--t-radius)',
+      background: 'var(--t-card)',
+      border: '1px solid var(--t-line)',
+      display: 'flex', alignItems: 'center', gap: 12,
+      textAlign: 'left',
+    }}>
+      <Icon name="clock" size={16} color="var(--t-accent-ink)" />
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)',
+          textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 2,
+        }}>
+          Shuttle
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+          {C.shuttle}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** Photo box that prefers a real URL, falls back to the tone
@@ -246,6 +289,7 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      <TravelIntro C={C} />
       <div
         aria-hidden
         style={{
@@ -367,6 +411,7 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
           </div>
         ))}
       </div>
+      <ShuttleCallout C={C} />
     </>
   );
 }
@@ -377,6 +422,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtxEditable }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      <TravelIntro C={C} />
       {/* Mobile stack: below 500px the 88px-photo / text / rating
           three-column row collapses to a 64px inline photo + text,
           with the rating/price meta wrapping onto its own full-width
@@ -455,6 +501,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtxEditable }) {
           </HotelWrap>
         ))}
       </div>
+      <ShuttleCallout C={C} />
     </>
   );
 }
@@ -465,6 +512,7 @@ export function TravelCarousel({ ctx }: { ctx: TravelVariantCtxEditable }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      <TravelIntro C={C} />
       <div
         style={{
           display: 'flex',
@@ -479,6 +527,7 @@ export function TravelCarousel({ ctx }: { ctx: TravelVariantCtxEditable }) {
           <HotelCard key={i} h={h} idx={i} ctx={ctx} style={{ flex: '0 0 300px', scrollSnapAlign: 'start' }} />
         ))}
       </div>
+      <ShuttleCallout C={C} />
     </>
   );
 }

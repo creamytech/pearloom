@@ -1023,7 +1023,7 @@ export function ThemedSite({
                   style={{
                     position: 'absolute',
                     top: 12, left: 18,
-                    fontFamily: 'var(--t-font-display)',
+                    fontFamily: 'var(--t-display)',
                     fontStyle: 'italic',
                     fontSize: 11,
                     color: 'var(--t-ink-muted)',
@@ -1131,7 +1131,7 @@ export function ThemedSite({
               display: 'grid', placeItems: 'center',
               transform: 'rotate(4deg)',
               zIndex: 1,
-              fontFamily: 'var(--t-font-display)',
+              fontFamily: 'var(--t-display)',
               fontStyle: 'italic',
               fontSize: 10,
               color: 'var(--t-ink-soft)',
@@ -1171,7 +1171,7 @@ export function ThemedSite({
             style={{
               display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
               padding: '12px 6px 4px',
-              fontFamily: 'var(--t-font-display)',
+              fontFamily: 'var(--t-display)',
               fontStyle: 'italic',
               fontSize: 13,
               color: 'var(--t-ink-soft)',
@@ -1724,9 +1724,11 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
           corner "Change photo" chip rather than a click-through wrap. */}
       <EditPhotoCorner editable={editable} slot={{ kind: 'cover', label: 'the cover', current: coverPhoto }} />
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
-      <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
+      {/* Warm cream over the scrim (not raw #fff) so the type keeps
+          the paper warmth even over a photograph. */}
+      <div style={{ position: 'relative', color: 'var(--t-cream, #FBF7EE)', padding: '40px 24px' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
-        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: 'var(--t-cream, #FBF7EE)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
@@ -1734,10 +1736,23 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
           </>}
         </h1>
         <div style={{ marginTop: 14, fontSize: 14.5, opacity: 0.92 }}>{C.meta.date} · {C.meta.place}</div>
-        <div style={{ marginTop: 22 }}>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
+        <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          {/* Secondary CTA — parity with the other hero variants;
+              outline restyled light so it reads over the scrim. */}
+          <TButton
+            variant="outline"
+            href={C.ctaSecondaryHref}
+            style={{ color: 'var(--t-cream, #FBF7EE)', border: '1px solid color-mix(in srgb, var(--t-cream, #FBF7EE) 55%, transparent)' }}
+          >
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
           </TButton>
         </div>
       </div>
@@ -1766,10 +1781,18 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
         </div>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          {/* Secondary CTA — parity with the other hero variants. */}
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
           </TButton>
         </div>
       </div>
@@ -2018,7 +2041,10 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
 
 function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, edit } = ctx;
-  const items = C.story.chips && C.story.chips.length > 0 ? C.story.chips : ['We met', 'We fell', 'We knew'];
+  /* Chip fallback routes through the occasion pack (buildCopy →
+     occasionCopyFor) — "We met / We fell / We knew" is wedding
+     voice and must never surface on a memorial or retirement. */
+  const items = C.story.chips && C.story.chips.length > 0 ? C.story.chips : C.story.chipsFallback;
   return (
     <div style={{ padding: `${52 * pad}px 56px`, maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
@@ -2977,9 +3003,24 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
      as the variant card so the two read as one woven unit. */
   const withLoom = (variant: ReactNode) =>
     loom ? <div style={{ display: 'grid', gap: 14 }}>{loom}{variant}</div> : variant;
-  if (variants.rsvp === 'split')   return withLoom(<RsvpSplit ctx={sub} />);
-  if (variants.rsvp === 'banner')  return withLoom(<RsvpBanner ctx={sub} />);
-  if (variants.rsvp === 'minimal') return withLoom(<RsvpMinimal ctx={sub} />);
+  /* Variant parity (2026-07-02) — the alternate layouts share the
+     default plate's behaviour instead of forking it:
+     - onOpenRsvp carries the editable guard (the canvas must never
+       pop the guest RSVP modal) and routes through requestRsvp,
+       not a raw pl-open-rsvp dispatch.
+     - socialProof lets each variant mount the same "X going" pile
+       the plate shows, themed to its own surface tokens. */
+  const variantSub = {
+    ...sub,
+    coverPhoto: ctx.coverPhoto,
+    onOpenRsvp: () => { if (!editable) requestRsvp(); },
+    socialProof: (ring: string, ink: string) => (
+      <GoingSocialProof ctx={ctx} ring={ring} ink={ink} />
+    ),
+  };
+  if (variants.rsvp === 'split')   return withLoom(<RsvpSplit ctx={variantSub} />);
+  if (variants.rsvp === 'banner')  return withLoom(<RsvpBanner ctx={variantSub} />);
+  if (variants.rsvp === 'minimal') return withLoom(<RsvpMinimal ctx={variantSub} />);
   return (
     <div className="pl8-rsvp-plate" style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
       <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
@@ -3014,7 +3055,14 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
    Default on for public-RSVP events (bachelor/birthday/reunion),
    off for weddings + memorials. Host overrides via
    manifest.rsvpShowGoing. */
-function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
+function GoingSocialProof({ ctx, ring = 'var(--t-rsvp)', ink = 'var(--t-rsvp-ink)' }: {
+  ctx: SectionCtx;
+  /** Surface the pile sits on (avatar ring + badge text colour) —
+   *  defaults to the RSVP plate tokens; variants pass their own
+   *  card/section tokens. */
+  ring?: string;
+  ink?: string;
+}) {
   const sp = ctx.C.rsvp.socialProof;
   if (!sp?.enabled) return null;
   const editable = ctx.editable;
@@ -3057,7 +3105,7 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
                 color: tone.fg,
                 fontWeight: 700, fontSize: 13,
                 display: 'grid', placeItems: 'center',
-                border: '2px solid var(--t-rsvp)',
+                border: `2px solid ${ring}`,
                 marginLeft: i === 0 ? 0 : -10,
                 zIndex: 5 - i,
                 position: 'relative',
@@ -3073,11 +3121,11 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
           <span style={{
             marginLeft: -10,
             width: 36, height: 36, borderRadius: '50%',
-            background: 'var(--t-rsvp-ink)',
-            color: 'var(--t-rsvp)',
+            background: ink,
+            color: ring,
             fontWeight: 700, fontSize: 12,
             display: 'grid', placeItems: 'center',
-            border: '2px solid var(--t-rsvp)',
+            border: `2px solid ${ring}`,
             position: 'relative',
             fontFamily: 'var(--t-body)',
           }} aria-hidden>
@@ -3087,7 +3135,7 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
       </div>
       <div style={{
         fontSize: 12, fontWeight: 600,
-        color: 'var(--t-rsvp-ink)',
+        color: ink,
         opacity: 0.85,
         letterSpacing: '0.04em',
       }}>
@@ -3247,8 +3295,12 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
   const ms = dateStr ? Date.parse(dateStr) : NaN;
   const target = Number.isFinite(ms) ? ms : null;
   const pieces = useCountdownPieces(target);
-  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.countdownEyebrow) || 'The big day';
-  const label = cd.label?.trim() || 'Until we celebrate';
+  /* Copy routes through the occasion pack — "Until we celebrate"
+     is party voice; a memorial counts down "Until we gather". */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const V = occasionCopyFor(looseM.occasion, looseM.voiceOverride);
+  const eyebrow = looseM.copy?.countdownEyebrow || V.countdownEyebrow;
+  const label = cd.label?.trim() || V.countdownLabel;
 
   if (target === null) {
     /* No event date — render an editor-only placeholder so the
@@ -3259,7 +3311,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
           {eyebrow}
         </div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
           Set the event date in the Hero panel to enable the countdown.
         </div>
       </div>
@@ -3269,7 +3321,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
   if (variant === 'stripe') {
     return (
       <div style={{ padding: `${28 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-accent-bg, var(--t-section))', color: 'var(--t-accent-ink, var(--t-ink))' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, fontFamily: 'var(--t-font-display)', flexWrap: 'wrap' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, fontFamily: 'var(--t-display)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7 }}>{label}</span>
           <CountdownInlineRow pieces={pieces} />
         </div>
@@ -3283,7 +3335,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
           {eyebrow}
         </div>
-        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
           {pieces.d > 0 ? `${pieces.d} day${pieces.d === 1 ? '' : 's'} to go` : 'Today is the day.'}
         </div>
       </div>
@@ -3296,13 +3348,13 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 18 }}>
           {eyebrow}
         </div>
-        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
           {String(pieces.d).padStart(2, '0')}
         </div>
         <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginTop: 6, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           days {label.replace(/^until\s*/i, 'until ')}
         </div>
-        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 28, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-font-display)', fontSize: 18 }}>
+        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 28, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-display)', fontSize: 18 }}>
           <span suppressHydrationWarning>{pieces.h} hours</span>
           <span style={{ opacity: 0.4 }}>·</span>
           <span suppressHydrationWarning>{pieces.m} minutes</span>
@@ -3351,7 +3403,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
           <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, textAlign: 'center', marginBottom: 8 }}>
             {eyebrow}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 22, fontFamily: 'var(--t-font-display)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 22, fontFamily: 'var(--t-display)', flexWrap: 'wrap' }}>
             <CountdownInlineRow pieces={pieces} />
           </div>
           <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.65, textAlign: 'center', marginTop: 8 }}>
@@ -3377,9 +3429,12 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
               style={{
                 position: 'relative',
                 width: 'clamp(38px, 6vw, 58px)',
-                fontFamily: 'var(--t-font-display)',
+                fontFamily: 'var(--t-display)',
                 fontSize: 'clamp(34px, 6vw, 54px)',
-                color: 'var(--t-cream, #fff)',
+                /* Inverse plate — paper-on-ink resolves correctly in
+                   both light themes and editorial midnight (the old
+                   #fff fallback broke on dark palettes). */
+                color: 'var(--t-paper)',
                 background: 'var(--t-ink)',
                 borderRadius: 6,
                 padding: '8px 0',
@@ -3403,7 +3458,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
           {eyebrow}
         </div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
           {label}
         </div>
         <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -3412,17 +3467,12 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
             { n: pieces.h, l: 'Hours' },
             { n: pieces.m, l: 'Min' },
             { n: pieces.s, l: 'Sec' },
-          ].map((cell, i) => (
+          ].map((cell) => (
             <span key={cell.l} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <FlipDigit n={cell.n} />
               <span style={{ fontSize: 9.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
                 {cell.l}
               </span>
-              {i < 3 && (
-                <span aria-hidden style={{
-                  position: 'absolute', display: 'none',
-                }} />
-              )}
             </span>
           ))}
         </div>
@@ -3436,7 +3486,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
         {eyebrow}
       </div>
-      <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+      <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
         {label}
       </div>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
@@ -3447,7 +3497,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
           { n: pieces.s, l: 'Sec' },
         ].map((cell) => (
           <div key={cell.l} className="pl8-countdown-cell pl8-card" style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
-            <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
+            <div suppressHydrationWarning style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
               {String(cell.n).padStart(2, '0')}
             </div>
             <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 4 }}>
@@ -3488,7 +3538,10 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
   const place = (manifest.logistics as { place?: string } | undefined)?.place ?? '';
   const derivedAddress = [venue, place].filter(Boolean).join(', ');
   const address = mapCfg.addressOverride?.trim() || derivedAddress;
-  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.mapEyebrow) || 'Where it’s happening';
+  /* Occasion-routed eyebrow — "Where it's happening" reads wrong on
+     a memorial ("Where we gather"). */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const eyebrow = looseM.copy?.mapEyebrow || occasionCopyFor(looseM.occasion, looseM.voiceOverride).mapEyebrow;
   const encodedAddress = encodeURIComponent(address);
 
   if (!address) {
@@ -3496,7 +3549,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
     return (
       <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
         <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
           Add a venue in the Hero panel to plot the map.
         </div>
       </div>
@@ -3519,7 +3572,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--t-accent-bg, var(--t-section))', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
             <Icon name="pin" size={24} color="var(--t-accent-ink, var(--t-ink))" />
           </div>
-          <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 20, color: 'var(--t-ink)', marginBottom: 4 }}>{venue || 'The venue'}</div>
+          <div style={{ fontFamily: 'var(--t-display)', fontSize: 20, color: 'var(--t-ink)', marginBottom: 4 }}>{venue || 'The venue'}</div>
           {place && <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginBottom: 16 }}>{place}</div>}
           {showDirections && (
             <a
@@ -3557,7 +3610,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
             <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
               {eyebrow}
             </div>
-            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', lineHeight: 1.15 }}>
+            <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', lineHeight: 1.15 }}>
               {venue || 'The venue'}
             </div>
             {place && (
@@ -3609,7 +3662,9 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
           transform: 'rotate(-0.8deg)',
           position: 'relative',
         }}>
-          {/* Faux stamp — top-right corner. */}
+          {/* Faux stamp — top-right corner. The venue's initial in
+              letterpress italic (occasion-neutral; the old heart
+              glyph read wrong on memorials + retirements). */}
           <div aria-hidden style={{
             position: 'absolute', top: 14, right: 14,
             width: 52, height: 62,
@@ -3619,7 +3674,13 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
             transform: 'rotate(6deg)',
             zIndex: 2,
           }}>
-            <Icon name="heart" size={18} color="var(--t-accent-ink, var(--t-ink))" />
+            {(venue || place).trim() ? (
+              <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 24, lineHeight: 1, color: 'var(--t-accent-ink, var(--t-ink))' }}>
+                {(venue || place).trim()[0].toUpperCase()}
+              </span>
+            ) : (
+              <Icon name="pin" size={18} color="var(--t-accent-ink, var(--t-ink))" />
+            )}
           </div>
           <div style={{ position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid var(--t-line-soft)' }}>
             <iframe
@@ -3636,7 +3697,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
               <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                 {eyebrow}
               </div>
-              <div style={{ fontFamily: 'var(--t-font-display)', fontStyle: 'italic', fontSize: 'clamp(18px, 2.6vw, 24px)', color: 'var(--t-ink)', marginTop: 2 }}>
+              <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 'clamp(18px, 2.6vw, 24px)', color: 'var(--t-ink)', marginTop: 2 }}>
                 {venue || 'The venue'}
               </div>
               {place && (
@@ -3662,42 +3723,11 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
     );
   }
 
-  if (variant === 'static') {
-    /* Static map — uses the public maps.googleapis.com staticmap
-       endpoint pattern via the dynamic iframe wrapped in a frame
-       with no interaction. Falls back to an attractive pin card
-       when the iframe fails to load. */
-    return (
-      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
-        <TSectionHead
-          eyebrow={eyebrow}
-          title={venue || 'The venue'}
-          editable={false}
-          divider={ctx.dividerLook}
-        />
-        <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
-          <iframe
-            src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
-            title={`Map of ${venue || 'the venue'}`}
-            style={{ width: '100%', height, border: 0, pointerEvents: 'none', display: 'block', filter: 'saturate(0.85) brightness(1.02)' }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-          {showDirections && (
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pl-hit44"
-              style={{ position: 'absolute', bottom: 16, right: 16, padding: '9px 14px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', boxShadow: 'var(--t-shadow)' }}
-            >
-              Directions →
-            </a>
-          )}
-        </div>
-      </div>
-    );
-  }
+  /* The 'static' variant was cut 2026-07-02 — it was the live
+     iframe with pointer-events off pretending to be a static
+     image, and its promised load-fail fallback never existed.
+     Manifests still carrying layouts.map='static' fall through
+     to the default embed below. */
 
   /* embed (default) — live, pannable iframe. */
   return (
@@ -3754,7 +3784,8 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
    the editor canvas gets a 3-track demo gated by ctx.editable. */
 
 function MusicBlock({ ctx }: { ctx: SectionCtx }) {
-  const music = (ctx.manifest as unknown as { music?: { suggestions?: boolean } }).music ?? {};
+  const loose = ctx.manifest as unknown as { music?: { suggestions?: boolean }; occasion?: string; voiceOverride?: string };
+  const music = loose.music ?? {};
   return (
     <>
       <MusicEmbed ctx={ctx} />
@@ -3762,6 +3793,7 @@ function MusicBlock({ ctx }: { ctx: SectionCtx }) {
         siteSlug={ctx.siteSlug}
         editable={ctx.editable}
         suggestionsOn={music.suggestions !== false}
+        composerHint={occasionCopyFor(loose.occasion, loose.voiceOverride).musicComposerHint}
       />
     </>
   );
@@ -3773,8 +3805,12 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
   const provider = cfg.provider ?? 'spotify';
   const url = cfg.url?.trim() ?? '';
   const variant = variants.music || 'card';
-  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.musicEyebrow) || 'The soundtrack';
-  const title = cfg.title?.trim() || 'Songs for the dance floor';
+  /* Copy routes through the occasion pack — "Songs for the dance
+     floor" is party voice; a memorial gets "Songs they loved". */
+  const looseM = manifest as unknown as { occasion?: string; voiceOverride?: string; copy?: Record<string, string> };
+  const V = occasionCopyFor(looseM.occasion, looseM.voiceOverride);
+  const eyebrow = looseM.copy?.musicEyebrow || V.musicEyebrow;
+  const title = cfg.title?.trim() || V.musicTitle;
   const description = cfg.description?.trim();
 
   const embedUrl = toMusicEmbedUrl(provider, url);
@@ -3784,7 +3820,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
     return (
       <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
         <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
           Paste a Spotify, Apple Music, or YouTube playlist URL to embed it here.
         </div>
       </div>
@@ -3812,7 +3848,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
           <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 4 }}>
             {eyebrow}
           </div>
-          <div style={{ fontFamily: 'var(--t-font-display)', fontStyle: 'italic', fontSize: 'clamp(20px, 2.6vw, 26px)', color: 'var(--t-ink)' }}>
+          <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 'clamp(20px, 2.6vw, 26px)', color: 'var(--t-ink)' }}>
             {title}
           </div>
         </div>
@@ -3830,7 +3866,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
           <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
             {eyebrow}
           </div>
-          <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 44px)', color: 'var(--t-ink)', marginTop: 4 }}>
+          <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(28px, 5vw, 44px)', color: 'var(--t-ink)', marginTop: 4 }}>
             {title}
           </div>
         </div>
@@ -3852,7 +3888,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
             <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
               {eyebrow}
             </div>
-            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(24px, 3vw, 34px)', color: 'var(--t-ink)', lineHeight: 1.1 }}>
+            <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(24px, 3vw, 34px)', color: 'var(--t-ink)', lineHeight: 1.1 }}>
               {title}
             </div>
             {description && (
@@ -3877,25 +3913,31 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
   }
 
   if (variant === 'jukebox') {
-    /* Dark plate + neon accent. For party / bachelor-party / sweet-
-       sixteen sites — looks like a club marquee. */
+    /* Dark plate + gold marquee glow. For party / bachelor-party /
+       sweet-sixteen sites. The gold now maps to the site's own
+       --t-gold and the plate carries a quiet tint of the theme's
+       accent over warm near-black — editorial midnight, never a
+       full-hex club palette foreign to the palette. */
+    const plate = 'color-mix(in oklab, var(--t-accent, #C49A6F) 12%, #0e0b09)';
+    const marquee = 'var(--t-gold, #C49A6F)';
+    const parchment = 'color-mix(in oklab, var(--t-gold, #C49A6F) 18%, #FBF1D8)';
     return (
-      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: '#0c0a0a', color: '#FBF1D8' }}>
+      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: plate, color: parchment }}>
         <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center', marginBottom: 22 }}>
-          <div style={{ fontSize: 11, color: '#C49A6F', letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 11, color: marquee, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
             ◆ {eyebrow} ◆
           </div>
           <div style={{
-            fontFamily: 'var(--t-font-display)',
+            fontFamily: 'var(--t-display)',
             fontSize: 'clamp(30px, 5.5vw, 52px)',
-            color: '#FBF1D8',
+            color: parchment,
             marginTop: 6,
-            textShadow: '0 0 12px rgba(196,154,111,0.4), 0 0 32px rgba(196,154,111,0.2)',
+            textShadow: `0 0 12px color-mix(in oklab, ${marquee} 40%, transparent), 0 0 32px color-mix(in oklab, ${marquee} 20%, transparent)`,
           }}>
             {title}
           </div>
           {description && (
-            <div style={{ fontSize: 13, color: 'rgba(251,241,216,0.7)', marginTop: 8, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.55 }}>
+            <div style={{ fontSize: 13, color: `color-mix(in oklab, ${parchment} 70%, transparent)`, marginTop: 8, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.55 }}>
               {description}
             </div>
           )}
@@ -3903,8 +3945,8 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
         <div style={{
           maxWidth: 720, margin: '0 auto',
           borderRadius: 10, overflow: 'hidden',
-          border: '1px solid rgba(196,154,111,0.4)',
-          boxShadow: '0 0 0 1px rgba(196,154,111,0.18), 0 18px 40px rgba(0,0,0,0.45), 0 0 48px rgba(196,154,111,0.18)',
+          border: `1px solid color-mix(in oklab, ${marquee} 40%, transparent)`,
+          boxShadow: `0 0 0 1px color-mix(in oklab, ${marquee} 18%, transparent), 0 18px 40px rgba(0,0,0,0.45), 0 0 48px color-mix(in oklab, ${marquee} 18%, transparent)`,
         }}>
           {playerIframe(baseHeight, true)}
         </div>
@@ -5134,6 +5176,9 @@ interface Copy {
     italic?: string;
     body: string;
     chips?: string[];
+    /** Occasion-routed fallback chips for the timeline rail when
+     *  the host authored none (occasionCopyFor().storyChips). */
+    chipsFallback: [string, string, string];
     /** Up to 3 host-uploaded chapter photos. Variants that render
      *  per-chapter cards (timeline / zigzag) read these instead of
      *  the gradient PhotoPlaceholder when set. */
@@ -5157,12 +5202,6 @@ interface Copy {
      *  shows a plain pill. Legacy string[] entries from old
      *  manifests are normalized to { name } in buildCopy. */
     stores: { name: string; url?: string; note?: string }[];
-    /** Honeymoon-fund progress (0–100). Only consumed by the
-     *  RegistryProgress variant. */
-    fundPct?: number;
-    /** Subtitle below the fund name in RegistryProgress. Falls
-     *  back to "{fundPct}% funded" when blank. */
-    fundSub?: string;
   };
   gallery: {
     eyebrow: string;
@@ -5605,6 +5644,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
            an authored story shipped a fake couple anecdote). */
         body: storySection.body || (demo ? V.storyBodyDemo : ''),
         chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
+        chipsFallback: V.storyChips,
         chapterImages: chapterImages.some(Boolean) ? chapterImages : undefined,
         chapterTitles: chapterTitles.some(Boolean) ? chapterTitles : undefined,
         chapterBodies: chapterBodies.some(Boolean) ? chapterBodies : undefined,
@@ -5756,8 +5796,11 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
     registry: (() => {
       const t = coTitle('registryTitle', V.registryTitleHead, V.registryTitleItalic);
-      const fundPct = (loose.fundPct as number | undefined);
-      const fundSub = (loose.fundSub as string | undefined);
+      /* Note: legacy manifest.fundPct / fundSub are deliberately NOT
+         read any more — the invented host-set percentage rendered a
+         second, fake progress bar beside the real pledge-driven
+         RegistryFundCard. The fields stay on old manifests (harmless)
+         but nothing renders them. */
       return {
       eyebrow: co('registryEyebrow', 'Registry'),
       title: t.head,
@@ -5766,8 +5809,6 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
         : !demo ? [] : V.registryDemoStores.map((name) => ({ name })),
-      fundPct: typeof fundPct === 'number' ? fundPct : undefined,
-      fundSub: fundSub && fundSub.trim() ? fundSub : undefined,
       };
     })(),
     gallery: (() => {

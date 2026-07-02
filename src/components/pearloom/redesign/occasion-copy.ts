@@ -54,6 +54,21 @@ export interface OccasionCopy {
   /** Tribute wall post-submit line. Must say the words wait for
    *  host approval before they appear on the wall. */
   tributeConfirm: string;
+  /** Story-timeline milestone chips — the rail's fallback eyebrows
+   *  when the host authored no chips (chrome — safe published, but
+   *  must read right per occasion: never "We met" on a memorial). */
+  storyChips: [string, string, string];
+  /** Countdown section eyebrow + label (chrome). */
+  countdownEyebrow: string;
+  countdownLabel: string;
+  /** Music section eyebrow + default title (chrome). */
+  musicEyebrow: string;
+  musicTitle: string;
+  /** Guest-playlist composer subline ("The dance floor takes
+   *  requests." is wedding-party voice — chrome). */
+  musicComposerHint: string;
+  /** Map section eyebrow (chrome). */
+  mapEyebrow: string;
 }
 
 const BASE: OccasionCopy = {
@@ -88,6 +103,13 @@ const BASE: OccasionCopy = {
   ],
   tributePrompt: 'Leave a few words',
   tributeConfirm: 'Woven in — the hosts will read it before it joins the wall.',
+  storyChips: ['The beginning', 'Along the way', 'This day'],
+  countdownEyebrow: 'The big day',
+  countdownLabel: 'Until we celebrate',
+  musicEyebrow: 'The soundtrack',
+  musicTitle: 'Songs for the night',
+  musicComposerHint: 'The playlist takes requests.',
+  mapEyebrow: 'Where it’s happening',
 };
 
 /* Wedding voices — the host's Pear-voice pick (classic / playful /
@@ -143,6 +165,9 @@ const WEDDING: OccasionCopy = {
     'Are kids welcome at the ceremony?',
     'Where should we stay?',
   ],
+  storyChips: ['We met', 'We fell', 'We knew'],
+  musicTitle: 'Songs for the dance floor',
+  musicComposerHint: 'The dance floor takes requests.',
 };
 
 const CEREMONIAL_FAQ = [
@@ -184,6 +209,13 @@ const SOLEMN: OccasionCopy = {
   ],
   tributePrompt: 'Share a memory',
   tributeConfirm: 'Woven in — the family will see it soon. It appears here once they’ve read it.',
+  storyChips: ['The early years', 'A life in full', 'Remembered'],
+  countdownEyebrow: 'The day',
+  countdownLabel: 'Until we gather',
+  musicEyebrow: 'The music',
+  musicTitle: 'Songs they loved',
+  musicComposerHint: 'Share a song that brings them back.',
+  mapEyebrow: 'Where we gather',
 };
 
 const PACKS: Record<string, OccasionCopy> = {
@@ -227,6 +259,7 @@ const PACKS: Record<string, OccasionCopy> = {
       { t: '8:30 pm', l: 'Toasts', s: 'To the years' },
       { t: '9:30 pm', l: 'Dancing', s: 'Until late' },
     ],
+    storyChips: ['Where it began', 'The years between', 'Today'],
   },
   'bachelor-party': {
     ...BASE,
@@ -252,6 +285,7 @@ const PACKS: Record<string, OccasionCopy> = {
       'When should I book travel?',
       'Where are we staying?',
     ],
+    countdownLabel: 'Until the weekend',
   },
   get 'bachelorette-party'() {
     return {
@@ -407,6 +441,7 @@ const PACKS: Record<string, OccasionCopy> = {
       { t: '8:00 pm', l: 'Toasts & stories', s: 'Open mic' },
       { t: '9:00 pm', l: 'Send-off', s: 'One last round' },
     ],
+    storyChips: ['The first day', 'The career', 'What comes next'],
   },
   graduation: {
     ...BASE,
@@ -590,6 +625,8 @@ const PACKS: Record<string, OccasionCopy> = {
       'Are kids welcome?',
       "What's the T-shirt situation?",
     ],
+    storyChips: ['Back then', 'The years between', 'Now'],
+    countdownLabel: 'Until we’re all together',
   },
 };
 

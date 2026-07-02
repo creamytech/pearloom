@@ -280,9 +280,7 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'map/embed': (
     <><P x={5} y={5} w={46} h={30} f={AB} o={1} /><Ln x1={8} y1={13} x2={50} y2={22} /><Ln x1={16} y1={35} x2={32} y2={5} /><D cx={28} cy={19} r={3} f={A} /><circle cx={28} cy={19} r={1.1} fill={CARD} /></>
   ),
-  'map/static': (
-    <><P x={5} y={5} w={46} h={30} f={AB} o={1} /><Ln x1={8} y1={14} x2={50} y2={20} dash="2.5 2" /><Ln x1={18} y1={35} x2={30} y2={5} dash="2.5 2" /><D cx={28} cy={19} r={2.6} f={A} /></>
-  ),
+  /* 'map/static' glyph removed with the variant (2026-07-02). */
   'map/pin': (
     <><Card x={10} y={7} w={36} h={26} /><D cx={28} cy={15} r={3.2} f={A} /><path d="M28 18 l-2.4 4.6 h4.8 z" fill={A} /><B x={20} y={26.5} w={16} h={3.4} f={G} rx={1.7} /></>
   ),

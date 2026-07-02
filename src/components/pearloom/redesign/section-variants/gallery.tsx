@@ -4,7 +4,7 @@
    lives in ThemedSite.tsx; these are the alternative layouts the
    LAYOUTS registry can dispatch into. */
 
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { GalleryVariantCtx, PhotoTone } from './types';
 import { VariantSectionHead } from './_section-head';
 import { InlineEdit } from '../InlineEdit';
@@ -149,12 +149,19 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
   const { C } = ctx;
   const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'warm'];
   const hasPhotos = !!(C.photos && C.photos.length > 0);
-  const thumbs = hasPhotos ? C.photos!.slice(1, 7) : tones.slice(1, 7);
+  const photos = C.photos ?? [];
+  /* Real paging (2026-07-02): every photo is a thumb, tapping a
+     thumb brings it onto the stage, and the stage opens the
+     lightbox at the active photo. The old version hard-capped the
+     strip at photos 1-6 — a 30-photo gallery silently showed 7. */
+  const [active, setActive] = useState(0);
+  const stageIdx = hasPhotos ? Math.min(active, photos.length - 1) : 0;
+  const thumbTones = tones.slice(1, 7);
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
       <div
-        onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(0) : undefined}
+        onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(stageIdx) : undefined}
         role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
         aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
         style={{
@@ -168,38 +175,55 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
           cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
         }}
       >
-        {hasPhotos && <LazyPhoto url={C.photos![0]} />}
+        {hasPhotos && <LazyPhoto key={stageIdx} url={photos[stageIdx]} />}
       </div>
-      {/* Caption for the stage photo (photos[0]) — under the stage,
+      {/* Caption for the ACTIVE stage photo — under the stage,
           centered, in the variant's editorial voice. */}
       {hasPhotos && (
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <CaptionSlot
             ctx={ctx}
-            i={0}
+            i={stageIdx}
             style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 13.5, color: 'var(--t-ink-soft)', textAlign: 'center', marginTop: 10, lineHeight: 1.4 }}
           />
         </div>
       )}
-      <div style={{ maxWidth: 760, margin: '14px auto 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 8 }}>
-        {thumbs.map((item, i) => (
-          <div
-            key={i}
-            onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(i + 1) : undefined}
-            role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
-            aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
-            style={{
-              aspectRatio: '1',
-              position: 'relative',
-              overflow: 'hidden',
-              background: hasPhotos ? 'var(--t-section)' : TONE_BG[item as PhotoTone],
-              borderRadius: 'var(--t-radius)',
-              cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
-            }}
-          >
-            {hasPhotos && <LazyPhoto url={item as string} />}
-          </div>
-        ))}
+      <div style={{ maxWidth: 760, margin: '14px auto 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }}>
+        {hasPhotos
+          ? photos.map((url, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`Show photo ${i + 1}`}
+                aria-current={i === stageIdx || undefined}
+                style={{
+                  aspectRatio: '1',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background: 'var(--t-section)',
+                  border: i === stageIdx ? '2px solid var(--t-accent)' : '2px solid transparent',
+                  borderRadius: 'var(--t-radius)',
+                  padding: 0,
+                  cursor: 'pointer',
+                  opacity: i === stageIdx ? 1 : 0.85,
+                }}
+              >
+                <LazyPhoto url={url} />
+              </button>
+            ))
+          : thumbTones.map((tone, i) => (
+              <div
+                key={i}
+                style={{
+                  aspectRatio: '1',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background: TONE_BG[tone],
+                  borderRadius: 'var(--t-radius)',
+                }}
+              />
+            ))}
       </div>
     </>
   );
@@ -224,7 +248,10 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
             key={i}
             style={{
               width: 150,
-              background: '#fffdf7',
+              /* Theme card token, not a hardcoded light-mode hex —
+                 editorial midnight keeps its warmth (BRAND §10) and
+                 the caption ink below stays legible on the frame. */
+              background: 'var(--t-card)',
               /* The bottom band is the polaroid's handwritten label
                  slot — previously dead 28px padding, now hosting the
                  caption. The caption row's minHeight keeps blank
@@ -255,7 +282,7 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
                     fontStyle: 'italic',
                     fontSize: 13,
                     lineHeight: 1.3,
-                    color: 'var(--t-ink-soft, #54493a)',
+                    color: 'var(--t-ink-soft)',
                     textAlign: 'center',
                   }}
                 />

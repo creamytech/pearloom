@@ -47,6 +47,10 @@ interface Props {
   editable?: boolean;
   /** manifest.music.suggestions !== false — hides the composer. */
   suggestionsOn: boolean;
+  /** Composer subline, routed by occasion (occasionCopyFor —
+   *  "The dance floor takes requests." is wedding-party voice and
+   *  reads wrong on a memorial). */
+  composerHint?: string;
 }
 
 /* Demo dressing for the editor canvas only (the honesty rule:
@@ -80,7 +84,7 @@ const PLGP_CSS = `
 }
 `;
 
-export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn }: Props) {
+export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn, composerHint }: Props) {
   const [tracks, setTracks] = useState<Track[]>(editable ? DEMO_TRACKS : []);
   const listboxId = useId();
 
@@ -318,7 +322,7 @@ export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn }: Pro
               Suggest a song
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--t-ink-muted, var(--t-ink-soft))', marginTop: 2, marginBottom: 12 }}>
-              The dance floor takes requests.
+              {composerHint ?? 'The playlist takes requests.'}
             </div>
 
             {sendState === 'sent' && sentCopy ? (

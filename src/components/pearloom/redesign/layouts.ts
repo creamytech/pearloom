@@ -55,7 +55,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   registry: [
     { id: 'cards',    label: 'Cards',    sub: 'Pill row beneath blurb' },
     { id: 'chips',    label: 'Chips',    sub: 'Tight pill cluster' },
-    { id: 'progress', label: 'Progress', sub: 'Highlighted fund bar' },
+    { id: 'progress', label: 'Fund', sub: 'Fund card front and center' },
     { id: 'logowall', label: 'Logo wall', sub: 'Logo grid' },
   ],
   gallery: [
@@ -100,9 +100,11 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'ribbon',  label: 'Ribbon',    sub: 'Diagonal sash banner' },
     { id: 'flip',    label: 'Flip clock', sub: 'Split-flap digit cards' },
   ],
+  /* 'static' was cut 2026-07-02 — it was the live iframe with
+     clicks disabled masquerading as a static image. Old manifests
+     with layouts.map='static' fall through to the embed default. */
   map: [
     { id: 'embed',    label: 'Live embed',   sub: 'Pannable Google Maps iframe' },
-    { id: 'static',   label: 'Static',       sub: 'Non-interactive map graphic' },
     { id: 'pin',      label: 'Pin only',     sub: 'Card with pin + Open in Maps' },
     { id: 'split',    label: 'Split',        sub: 'Map left · venue info right' },
     { id: 'postcard', label: 'Postcard',     sub: 'Tilted frame + faux stamp' },

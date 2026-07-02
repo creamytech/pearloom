@@ -13,19 +13,32 @@ export const dynamic = 'force-dynamic';
 export default async function SiteDevPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string; divider?: string; footer?: string }>;
+  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string; divider?: string; footer?: string; layouts?: string; occasion?: string }>;
 }) {
   if (process.env.NODE_ENV === 'production') notFound();
-  const { motifLayout, motifKind, kit, atelier, divider, footer } = await searchParams;
+  const { motifLayout, motifKind, kit, atelier, divider, footer, layouts, occasion } = await searchParams;
 
+  /* ?layouts=rsvp:split,schedule:timeline — per-section variant
+     overrides for visual QA of the alternate layouts. */
+  const layoutOverrides: Record<string, string> = {};
+  for (const pair of (layouts ?? '').split(',')) {
+    const [section, variant] = pair.split(':').map((s) => s.trim());
+    if (section && variant) layoutOverrides[section] = variant;
+  }
+
+  const demo = DEMO_MANIFEST as unknown as Record<string, unknown>;
   const manifest = {
-    ...(DEMO_MANIFEST as unknown as Record<string, unknown>),
+    ...demo,
     ...(motifLayout ? { motifLayout } : {}),
     ...(motifKind ? { motifKind } : {}),
     ...(kit ? { kitId: kit } : {}),
     ...(atelier === '1' ? { atelier: true } : {}),
     ...(divider ? { dividerLook: divider } : {}),
     ...(footer ? { footerVariant: footer } : {}),
+    ...(occasion ? { occasion } : {}),
+    ...(Object.keys(layoutOverrides).length
+      ? { layouts: { ...(demo.layouts as Record<string, string>), ...layoutOverrides } }
+      : {}),
   } as unknown as StoryManifest;
 
   return (

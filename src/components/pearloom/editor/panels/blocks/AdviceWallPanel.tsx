@@ -109,6 +109,33 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
+        {/* Moderation door — same backend + affordance as the
+            tribute wall (TributeWallPanel), which had this link
+            while adviceWall only hinted at it in copy. */}
+        <a
+          href="/dashboard/submissions"
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 12px', borderRadius: 10,
+            background: 'var(--lavender-bg, var(--cream-2))',
+            border: '1px solid var(--line-soft)',
+            textDecoration: 'none', width: '100%',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <Icon name="arrow-ur" size={13} color="var(--lavender-ink, var(--ink-soft))" />
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+              Review what guests have written →
+            </span>
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)', marginTop: 1, lineHeight: 1.4 }}>
+              Approve, hide, or flag notes from Dashboard → Submissions. Only approved words reach the wall.
+            </span>
+          </span>
+        </a>
+
         {isMemorialOccasion(readOccasion(manifest)) && (
           <ToolPointerCard
             toolId="memorial"

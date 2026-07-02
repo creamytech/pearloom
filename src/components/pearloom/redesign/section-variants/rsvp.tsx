@@ -1,11 +1,29 @@
 'use client';
  
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { RsvpVariantCtx } from './types';
 import { InlineEdit } from '../InlineEdit';
 
-function openRsvp() {
+/* Edit-context extension — parity with the default plate variant
+   (ThemedSite's RsvpBlock passes all of these):
+   - onOpenRsvp carries the editable guard + routes through the
+     shared requestRsvp bus, so the canvas never pops the guest
+     modal and variants can't drift on a raw event dispatch.
+   - socialProof mounts the same "X going" pile the plate shows,
+     themed by each variant to its own surface (ring = the surface
+     the avatars sit on, ink = the text colour beside them).
+   - coverPhoto dresses the split variant's mat with the host's
+     real photo instead of a hardcoded gradient. */
+export interface RsvpVariantCtxExtended extends RsvpVariantCtx {
+  onOpenRsvp?: () => void;
+  socialProof?: (ring: string, ink: string) => ReactNode;
+  coverPhoto?: string;
+}
+
+/* Legacy fallback only — kept so a variant mounted without the
+   extended ctx still opens the RSVP flow on published sites. */
+function openRsvpFallback() {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
 }
@@ -36,7 +54,7 @@ function EditableTitle({ value, onEdit, editable, style }: { value: string; onEd
   );
 }
 
-export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
+export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtxExtended }) {
   const { pad, C, cta, editable, onEditEyebrow, onEditTitle } = ctx;
   return (
     <div
@@ -52,7 +70,12 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
       <div
         aria-hidden
         style={{
-          background: 'linear-gradient(135deg, #c8b6e8 0%, #9b88c9 100%)',
+          /* The host's cover photo when set; otherwise a mat mixed
+             from the site's own accent tokens (the old hardcoded
+             lavender gradient ignored the palette entirely). */
+          background: ctx.coverPhoto
+            ? `var(--t-section) center / cover no-repeat url("${ctx.coverPhoto.replace(/"/g, '%22')}")`
+            : 'linear-gradient(135deg, var(--t-accent-bg, var(--t-section)) 0%, color-mix(in oklab, var(--t-accent) 65%, var(--t-accent-bg, var(--t-section))) 100%)',
           minHeight: 240,
         }}
       />
@@ -95,7 +118,7 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
         <div>
           <button
             type="button"
-            onClick={openRsvp}
+            onClick={ctx.onOpenRsvp ?? openRsvpFallback}
             style={{
               background: 'var(--t-accent)',
               color: 'var(--t-accent-ink)',
@@ -110,12 +133,17 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
             {cta}
           </button>
         </div>
+        {ctx.socialProof && (
+          <div style={{ display: 'flex' }}>
+            {ctx.socialProof('var(--t-card)', 'var(--t-ink)')}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
+export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtxExtended }) {
   const { pad, C, cta, theme, editable, onEditEyebrow, onEditTitle } = ctx;
   const foil = !!theme?.foil;
   const bg = foil ? 'var(--t-foil)' : 'var(--t-section-deep)';
@@ -165,10 +193,15 @@ export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
             {C.body}
           </p>
         )}
+        {ctx.socialProof && (
+          <div style={{ display: 'flex', marginTop: 4 }}>
+            {ctx.socialProof(bg, ink)}
+          </div>
+        )}
       </div>
       <button
         type="button"
-        onClick={openRsvp}
+        onClick={ctx.onOpenRsvp ?? openRsvpFallback}
         style={{
           background: foil ? '#1a1410' : 'var(--t-accent)',
           color: foil ? '#f5efe2' : 'var(--t-accent-ink)',
@@ -186,7 +219,7 @@ export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
   );
 }
 
-export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
+export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtxExtended }) {
   const { pad, C, cta, editable, onEditEyebrow, onEditTitle } = ctx;
   return (
     <div
@@ -230,7 +263,7 @@ export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
       ) : null}
       <button
         type="button"
-        onClick={openRsvp}
+        onClick={ctx.onOpenRsvp ?? openRsvpFallback}
         style={{
           background: 'var(--t-accent)',
           color: 'var(--t-accent-ink)',
@@ -245,6 +278,7 @@ export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
       >
         {cta}
       </button>
+      {ctx.socialProof?.('var(--t-section)', 'var(--t-ink)')}
     </div>
   );
 }
