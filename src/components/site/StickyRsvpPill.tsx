@@ -165,6 +165,21 @@ export function StickyRsvpPill({
     return () => mq.removeEventListener('change', update);
   }, []);
 
+  /* Phones don't get the floating pill at all (host feedback,
+     2026-07-02): on a small screen it crowds the reading column and
+     duplicates paths guests already have — the sticky nav's RSVP
+     button and the inline RSVP section. Desktop keeps it. */
+  const [phone, setPhone] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  });
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setPhone(mq.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   // (Mobile scroll-direction hiding lives in the merged scroll
   // handler above.)
 
@@ -191,6 +206,7 @@ export function StickyRsvpPill({
   }
 
   const visible =
+    !phone &&
     show && !dismissed && !overRsvp && !nearFooter && !scrollingDown &&
     !(dockOpen && smallViewport);
 

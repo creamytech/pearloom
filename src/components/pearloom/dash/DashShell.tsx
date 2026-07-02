@@ -1458,26 +1458,14 @@ export function DashTopbar({
           </Link>
         )}
       </div>
-      {/* Phones only: the page's single primary CTA repeated as a
-          floating pill in thumb range, riding above the bottom tab
-          bar. Only when the CTA is the page's ONE registered action
-          (a free-form `actions` cluster means several — no pill). */}
-      {ctaText && ctaHref && !actions && <MobileCtaPill href={ctaHref} label={ctaText} />}
+      {/* NO floating CTA duplicate on phones. A fixed bottom-right
+          pill was tried here (2026-07-02) and removed same-day: it
+          duplicated the in-flow header CTA, and the page wrapper's
+          .pl8-dash-page-enter animation makes it a containing block
+          for fixed descendants — the pill rendered mid-page. If a
+          thumb-range action returns, mount it OUTSIDE the animated
+          page wrapper (ShellPersistentLayout level). */}
     </div>
-  );
-}
-
-/** Fixed ink pill, bottom-right on phones (hidden ≥960px via
- *  .pl8-dash-cta-pill in globals.css). Mirrors the topbar CTA so
- *  the page's primary action is reachable one-handed; stands down
- *  while the drawer is open so it never floats over the scrim. */
-function MobileCtaPill({ href, label }: { href: string; label: string }) {
-  const { open: drawerOpen } = useDashDrawer();
-  if (drawerOpen) return null;
-  return (
-    <Link href={href} className="pl8-dash-cta-pill">
-      {label} <Pear size={14} tone="cream" shadow={false} />
-    </Link>
   );
 }
 

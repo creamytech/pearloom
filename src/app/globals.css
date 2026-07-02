@@ -2679,33 +2679,6 @@ button:not(:disabled):active,
   }
 }
 
-/* ── Floating primary-action pill (MobileCtaPill) ────────────────
-   The page's single registered CTA repeated in thumb range, riding
-   above the tab bar. Ink pill — not glass. Hidden on desktop where
-   the topbar CTA is fine where it is. */
-.pl8-dash-cta-pill {
-  display: none;
-}
-@media (max-width: 960px) {
-  .pl8-dash-cta-pill {
-    position: fixed;
-    right: 16px;
-    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
-    z-index: 69;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 18px;
-    border-radius: 999px;
-    background: var(--ink);
-    color: var(--cream);
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 10px 24px rgba(14, 13, 11, 0.28);
-  }
-}
-
 /* ── Mobile top-bar touch targets ────────────────────────────────
    The strip's round controls paint at 32-38px; a transparent
    ::after extends each hit area to ≥44px without inflating the

@@ -224,26 +224,49 @@ export function MobileSheet({
        capture it once so the cleanup resets the SAME element. */
     const el = sheetRef.current;
     if (!vv || !el) return;
+    /* FOCUS-GATED (2026-07-02 field report): mobile browsers emit
+       visualViewport deltas for URL-bar collapse, overscroll, and
+       stale keyboard transitions — an ungated lift left the sheet
+       stranded ~500px up the screen while idle. The lift now applies
+       ONLY while a form control inside the sheet holds focus (the
+       only moment a keyboard can be covering it), needs a real
+       keyboard-sized inset (>120px), and always clears on blur. */
+    let focused = false;
+    const reset = () => {
+      el.style.bottom = '';
+      el.style.maxHeight = '';
+    };
     const apply = () => {
+      if (!focused) { reset(); return; }
       const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-      /* Treat sub-keyboard jitter (URL-bar collapse etc.) as zero
-         so the sheet doesn't hover a few px off the bottom edge. */
-      if (inset > 40) {
+      if (inset > 120) {
         el.style.bottom = `${inset}px`;
         el.style.maxHeight = `${Math.max(Math.round(vv.height) - 12, 160)}px`;
       } else {
-        el.style.bottom = '';
-        el.style.maxHeight = '';
+        reset();
       }
     };
-    apply();
+    const onFocusIn = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      focused = !!t && !!t.closest('input, textarea, select, [contenteditable]');
+      apply();
+    };
+    const onFocusOut = () => {
+      focused = false;
+      /* Blur fires before the keyboard finishes retracting — clear
+         immediately; a follow-up vv resize is a no-op once unfocused. */
+      reset();
+    };
+    el.addEventListener('focusin', onFocusIn);
+    el.addEventListener('focusout', onFocusOut);
     vv.addEventListener('resize', apply);
     vv.addEventListener('scroll', apply);
     return () => {
+      el.removeEventListener('focusin', onFocusIn);
+      el.removeEventListener('focusout', onFocusOut);
       vv.removeEventListener('resize', apply);
       vv.removeEventListener('scroll', apply);
-      el.style.bottom = '';
-      el.style.maxHeight = '';
+      reset();
     };
   }, [open, seeThrough]);
 
