@@ -231,6 +231,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Song answer → the song_requests table, so RSVP-form picks
+    // land in the same queue the Music dashboard and the site's
+    // guest playlist read (they used to die on the guest row —
+    // half of what hosts collected never reached the queue).
+    // Fire-and-forget: a queue hiccup never blocks the RSVP.
+    if (songRequest && String(songRequest).trim()) {
+      void (async () => {
+        try {
+          await supabase.from('song_requests').insert({
+            site_id: resolvedSiteId,
+            guest_name: guestName,
+            song_title: String(songRequest).trim().slice(0, 120),
+            note: 'From the RSVP form',
+          });
+        } catch (err) {
+          console.warn('[RSVP] song_requests insert failed:', err);
+        }
+      })();
+    }
+
     // Notify the site owner per their notification prefs.
     // Declines default to an instant email (they change plans);
     // yeses default to the daily digest so a happy day never

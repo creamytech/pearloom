@@ -89,15 +89,17 @@ export type SectionId =
   | 'toasts' | 'privacy' | 'cohost'
   | null;
 
-/* Occasion → which optional canvas sections fit. Countdown reads
-   the event date so it works for any forward-looking occasion;
-   memorials use it in "X years since" mode but the read path is
-   identical. Map needs a venue. Music is celebratory by default —
-   suppress on memorial/funeral unless the host opts in via the
-   Add Section picker. */
+/* Occasion → which optional canvas sections fit. These follow the
+   EVENT_TYPES registry's hiddenBlocks the same way the Event-OS
+   blocks do — the picker used to offer a countdown on funerals
+   because this only special-cased music. Map has no BlockType
+   equivalent (every occasion has a venue) and stays universal. */
 export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'music', occasion?: string): boolean {
-  if (section === 'music') return occasion !== 'memorial' && occasion !== 'funeral';
-  return true;
+  if (section === 'map') return true;
+  const event = getEventType(occasion);
+  if (!event) return true;
+  const gateId = section === 'music' ? 'spotify' : 'countdown';
+  return !(event.hiddenBlocks as readonly string[]).includes(gateId);
 }
 
 /* The ten Event-OS canvas blocks the Add Section picker can offer. */
