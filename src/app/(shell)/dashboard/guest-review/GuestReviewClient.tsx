@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { Icon } from '@/components/pearloom/motifs';
@@ -88,27 +89,29 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
     }
   }
 
-  return (
-    <DashLayout
-      active="guests"
-      title="Pear's review"
-      subtitle="Duplicates, VIPs, stale RSVPs, missing addresses — caught before they bite. Pear runs the pass; you decide what to apply."
-    >
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+  // Quiet StatStrip (plan rule 3) — replaces the 4-tile stat grid;
+  // zero-value stats collapse into one muted trailing chip.
+  const statItems: StatStripItem[] = [
+    { label: 'Guests', value: data?.guestCount ?? 0 },
+    { label: 'Attending', value: data?.attendingCount ?? 0, tone: 'sage' },
+    { label: 'Pending', value: data?.pendingCount ?? 0, tone: 'peach' },
+    { label: 'Declined', value: data?.declinedCount ?? 0 },
+  ];
 
-        {data && data.guestCount > 0 && (
-          <div className="pl8-dash-stagger" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: 10,
-            marginBottom: 24,
-          }}>
-            <Stat label="Guests" value={data.guestCount} />
-            <Stat label="Attending" value={data.attendingCount} tone="#3D4A1F" />
-            <Stat label="Pending" value={data.pendingCount} tone="#5C4F2E" />
-            <Stat label="Declined" value={data.declinedCount} tone="#7A2D2D" />
-          </div>
-        )}
+  return (
+    <DashLayout active="guests" hideTopbar>
+      {/* Quiet header (plan rule 1): one line; the "duplicates,
+          VIPs, stale RSVPs" explainer is gone — the insight cards
+          and the empty state say it where it matters. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1100, margin: '0 auto' }}>
+        <PageIntro
+          eyebrow="Guests"
+          title="Pear's review."
+          meta={data && data.guestCount > 0 ? <StatStrip items={statItems} /> : undefined}
+          style={{ marginBottom: 14 }}
+        />
+      </div>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1100, margin: '0 auto' }}>
 
         {loading ? (
           <>
@@ -147,24 +150,6 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
         )}
       </div>
     </DashLayout>
-  );
-}
-
-function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
-  return (
-    <div className="pl8-card-lift" style={{
-      padding: '14px 16px',
-      background: 'var(--cream-2)',
-      borderRadius: 12,
-      border: '1px solid var(--line-soft)',
-    }}>
-      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: tone ?? 'var(--peach-ink, #C6703D)' }}>
-        {label}
-      </div>
-      <div className="display pl8-stat-rise" style={{ fontSize: 28, color: 'var(--ink)', marginTop: 4 }}>
-        {value}
-      </div>
-    </div>
   );
 }
 

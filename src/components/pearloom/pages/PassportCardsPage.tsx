@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro, HintChip } from '../dash/QuietDash';
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
@@ -87,19 +88,36 @@ export function PassportCardsPage() {
   const dateLabel = fmtDate(data?.site?.date ?? null);
 
   return (
-    <DashLayout
-      active="passport-cards"
-      title="Passport cards"
-      subtitle="One personal card per guest — their name, their QR, their private view of the site. Print 4-up on card stock for the welcome bag."
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }} className="pl8-no-print">
-          <button type="button" className="btn btn-primary" onClick={print} disabled={!guests.length}>
-            <Icon name="sparkles" size={14} /> Print / save as PDF
-          </button>
-          <span style={{ alignSelf: 'center', fontSize: 13, color: 'var(--ink-soft)' }}>
-            {guests.length > 0 ? `${guests.length} cards · 4 per page` : '—'}
-          </span>
+    <DashLayout active="passport-cards" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line +
+            the print action; the pitch paragraph became a HintChip
+            and the sheet leads right below. */}
+        <div className="pl8-no-print" style={{ marginBottom: 18 }}>
+          <PageIntro
+            eyebrow="Print"
+            title="Passport cards"
+            actions={
+              <button type="button" className="btn btn-primary" onClick={print} disabled={!guests.length}>
+                <Icon name="sparkles" size={14} /> Print / save as PDF
+              </button>
+            }
+            meta={
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {guests.length > 0 && (
+                  <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                    {guests.length} cards · 4 per page
+                  </span>
+                )}
+                <HintChip
+                  storageKey="pl-hint-passport-cards"
+                  hint="One card per guest — their name, their QR, their view of the site."
+                  detail="Each card carries a QR that scans to that guest's private passport view of your site. Print 4-up on card stock for the welcome bag."
+                />
+              </div>
+            }
+            style={{ marginBottom: 0 }}
+          />
         </div>
 
         {loading && <div style={{ color: 'var(--ink-soft)' }}>Threading QR codes…</div>}

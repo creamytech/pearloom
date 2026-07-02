@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { Icon } from '@/components/pearloom/motifs';
@@ -69,12 +70,22 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
   }, [reload]);
 
   return (
-    <DashLayout
-      active="guests"
-      title="Send timeline"
-      subtitle="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you. Approve, edit copy, or schedule."
-    >
+    <DashLayout active="guests" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
+            the explainer paragraph became a HintChip so the
+            timeline rail leads. */}
+        <PageIntro
+          eyebrow="Guests"
+          title="Send timeline"
+          meta={
+            <HintChip
+              storageKey="pl-hint-cadence"
+              hint="Pear suggests every send your event needs."
+              detail="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you — anchored to your event date. Approve, edit copy, or schedule each one."
+            />
+          }
+        />
 
         {!eventDate && !loading && (
           <DashEmpty

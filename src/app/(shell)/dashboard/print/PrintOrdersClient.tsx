@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
@@ -140,10 +141,14 @@ export function PrintOrdersClient({
       /* Print is keepsake fulfillment — "memory" is the closest real
          sidebar id (the shell has no print/sites entry). */
       active="memory"
-      title="Print orders"
-      subtitle="Every postcard, invitation, and thank-you card sent through Pearloom Print, with delivery tracking."
+      hideTopbar
     >
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      {/* Quiet header (plan rule 1): one line; the tracking prose
+          lives in the empty state. Batches lead; composer second. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1100, margin: '0 auto' }}>
+        <PageIntro eyebrow="Pearloom Print" title="Print orders." style={{ marginBottom: 14 }} />
+      </div>
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1100, margin: '0 auto' }}>
 
         {orderBanner === 'success' && (
           <div role="status" style={{
@@ -164,12 +169,8 @@ export function PrintOrdersClient({
           </div>
         )}
 
-        <NewBatchComposer
-          siteFilter={siteFilter}
-          checkoutInfo={checkoutInfo}
-          onFulfilled={onFulfilled}
-        />
-
+        {/* Batches lead (plan: "Batches lead; composer second") —
+            the ledger is what the host came to check. */}
         {loading ? (
           <DashSkeleton kind="list" count={4} label="Threading print orders" />
         ) : error ? (
@@ -183,12 +184,18 @@ export function PrintOrdersClient({
             actions={[{ label: 'Open the Studio', href: '/dashboard/invite' }]}
           />
         ) : (
-          <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
             {batches.map((b) => (
               <BatchCard key={b.batchId} batch={b} />
             ))}
           </div>
         )}
+
+        <NewBatchComposer
+          siteFilter={siteFilter}
+          checkoutInfo={checkoutInfo}
+          onFulfilled={onFulfilled}
+        />
       </div>
     </DashLayout>
   );

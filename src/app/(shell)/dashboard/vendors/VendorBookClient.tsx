@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { Icon } from '@/components/pearloom/motifs';
 import {
   useSelectedSite,
@@ -407,27 +408,48 @@ export function VendorBookClient() {
     { status: 'paid', label: 'Paid', rows: vendors.filter((v) => v.status === 'paid') },
   ];
 
+  // Quiet StatStrip (plan rule 3) — roster totals as 40px chips;
+  // zeros collapse into one muted trailing chip. Past-due counts
+  // every unpaid deposit/balance whose date has slipped.
+  const overdueCount = vendors.reduce(
+    (n, v) =>
+      n +
+      (v.depositDue && !v.depositPaid && v.depositDue < today ? 1 : 0) +
+      (v.balanceDue && !v.balancePaid && v.balanceDue < today ? 1 : 0),
+    0,
+  );
+  const statItems: StatStripItem[] = [
+    { label: 'Booked', value: groups[1].rows.length, tone: 'sage' },
+    { label: 'Paid', value: groups[2].rows.length },
+    { label: 'Considering', value: groups[0].rows.length },
+    { label: 'Past due', value: overdueCount, tone: 'plum' },
+  ];
+
   return (
-    <DashLayout
-      active="vendors"
-      eyebrow="The vendor book"
-      title={
-        <span>
-          The people{' '}
-          <i
-            style={{
-              color: 'var(--peach-ink, #C6703D)',
-              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-            }}
-          >
-            running the day
-          </i>
-          .
-        </span>
-      }
-      subtitle="Everyone you've hired, what they cost, and when they arrive — one book."
-    >
+    <DashLayout active="vendors" hideTopbar>
       <PLAtmosphere />
+      {/* Quiet header (plan rules 1 + 6): one line + StatStrip; the
+          "everyone you've hired…" prose is gone (the empty state
+          carries the invitation) and Add a vendor rides the
+          actions row. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <PageIntro
+          eyebrow="Vendors"
+          title="The vendor book."
+          meta={!loading && !listLoading && vendors.length > 0 ? <StatStrip items={statItems} /> : undefined}
+          actions={
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              disabled={!site?.id}
+              onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}
+            >
+              Add a vendor
+            </button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      </div>
       <div
         style={{
           padding: '0 clamp(20px, 4vw, 40px) 60px',
@@ -546,8 +568,9 @@ export function VendorBookClient() {
               </PLCard>
             )}
 
-            {/* ── Add / edit form ── */}
-            {form ? (
+            {/* ── Add / edit form — opened from the header's
+                Add a vendor action (plan rule 6). ── */}
+            {form && (
               <VendorForm
                 key={form.mode === 'edit' ? form.vendor.id : 'add'}
                 initial={form.mode === 'edit' ? draftFrom(form.vendor) : EMPTY_DRAFT}
@@ -558,27 +581,6 @@ export function VendorBookClient() {
                 onCancel={() => { setForm(null); setFormError(null); }}
                 onSave={saveDraft}
               />
-            ) : (
-              <button
-                type="button"
-                onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}
-                style={{
-                  border: '1px dashed var(--line)',
-                  borderRadius: 16,
-                  background: 'transparent',
-                  color: 'var(--ink-soft)',
-                  padding: '16px 18px',
-                  fontSize: 13.5,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  justifyContent: 'center',
-                }}
-              >
-                <Icon name="plus" size={13} /> Add a vendor
-              </button>
             )}
 
             {budgetError && (

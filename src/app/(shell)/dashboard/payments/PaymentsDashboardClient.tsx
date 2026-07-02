@@ -3,21 +3,21 @@
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { PaymentsPanel } from '@/components/dashboard/PaymentsPanel';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead, PLCard } from '@/components/pearloom/dash/PLChrome';
+import { PLCard } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 
 export function PaymentsDashboardClient() {
   const { site, loading } = useSelectedSite();
 
   return (
     <DashLayout active="guests" hideTopbar>
-      <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
-        <PLHead
-          align="center"
-          pre="Receiving gifts"
-          title="Gifts &"
-          italic="payments"
-          sub="Stripe payments received through your Pearloom site — your guests' gifts, in real time."
-          style={{ marginBottom: 28 }}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
+        {/* Quiet header (plan rule 1): one line; the Stripe prose
+            is gone — the panel's empty state explains itself. */}
+        <PageIntro
+          eyebrow="Receiving gifts"
+          title="Gifts & payments."
+          style={{ marginBottom: 18 }}
         />
 
         {loading ? (

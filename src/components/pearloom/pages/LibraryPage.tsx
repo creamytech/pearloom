@@ -12,6 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
 import { Icon } from '../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { useDialog } from '@/components/ui/confirm-dialog';
@@ -209,37 +210,38 @@ export function LibraryPage() {
   const pickerBusy = picker.state === 'creating' || picker.state === 'waiting' || picker.state === 'fetching';
 
   return (
-    <DashLayout
-      active="library"
-      title="Photo library"
-      subtitle="Every photo you've uploaded to Pearloom, in one place. Add more, caption them, and drop them into any site you're building."
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Cross-link to the Reel — DashSubNav no longer surfaces
-            /dashboard/gallery directly (audit #6 trim), so this
-            link keeps the cross-site view discoverable from the
-            canonical Photos page. Audit #7 partial. */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-          <a
-            href="/dashboard/gallery"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              borderRadius: 999,
-              background: 'transparent',
-              border: '1px solid var(--line)',
-              color: 'var(--ink-soft)',
-              fontSize: 12,
-              fontWeight: 600,
-              fontFamily: 'var(--font-ui)',
-              textDecoration: 'none',
-            }}
-          >
-            See photos across all your sites →
-          </a>
-        </div>
+    <DashLayout active="library" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
+            the sub paragraph is gone — the empty state carries it.
+            The Reel cross-link (DashSubNav no longer surfaces
+            /dashboard/gallery — audit #6 trim) rides the actions
+            row so the upload tiles lead. */}
+        <PageIntro
+          eyebrow="Photos"
+          title="Photo library"
+          actions={
+            <a
+              href="/dashboard/gallery"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: 'transparent',
+                border: '1px solid var(--line)',
+                color: 'var(--ink-soft)',
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: 'var(--font-ui)',
+                textDecoration: 'none',
+              }}
+            >
+              See photos across all your sites →
+            </a>
+          }
+        />
         <div
           style={{
             display: 'grid',

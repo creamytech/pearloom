@@ -25,6 +25,7 @@ function editorDeepLink(siteDomain: string | null | undefined, block?: string, a
 }
 import { DashLayout } from '../dash/DashShell';
 import { PLAtmosphere } from '../dash/PLChrome';
+import { PageIntro } from '../dash/QuietDash';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
@@ -1536,50 +1537,35 @@ export function DayOfV8() {
       <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Timeline / Seating tabs come from the shell's DashSubNav —
             no in-page duplicate strip. */}
-        <div
-          className="pl8-dayof-header"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 16,
-            marginBottom: 20,
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                color: 'var(--peach-ink)',
-                textTransform: 'uppercase',
-                marginBottom: 6,
-              }}
-            >
-              {siteName} · Day-of room
-            </div>
-            <h1 className="display" style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', margin: 0, letterSpacing: '-0.01em' }}>
-              {headline.a} <span className="display-italic" style={{ color: 'var(--lavender-ink)' }}>{headline.b}</span>
-            </h1>
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={shareWithCrew}
-              disabled={!site?.domain}
-              style={!site?.domain ? { opacity: 0.5, cursor: 'default' } : undefined}
-            >
-              <Icon name={shared ? 'check' : 'share'} size={13} /> {shared ? 'Link copied' : 'Share with crew'}
-            </button>
-            <Link
-              href={site ? buildSitePath(site.domain, '', site.occasion) : '/'}
-              className="btn btn-primary btn-sm"
-            >
-              <Icon name="eye" size={13} /> View the site
-            </Link>
-          </div>
-        </div>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): mono eyebrow +
+            ONE display line + the two actions in a row. */}
+        <PageIntro
+          eyebrow={`${siteName} · Day-of room`}
+          title={
+            <>
+              {headline.a} <span className="display-italic">{headline.b}</span>
+            </>
+          }
+          actions={
+            <>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={shareWithCrew}
+                disabled={!site?.domain}
+                style={!site?.domain ? { opacity: 0.5, cursor: 'default' } : undefined}
+              >
+                <Icon name={shared ? 'check' : 'share'} size={13} /> {shared ? 'Link copied' : 'Share with crew'}
+              </button>
+              <Link
+                href={site ? buildSitePath(site.domain, '', site.occasion) : '/'}
+                className="btn btn-primary btn-sm"
+              >
+                <Icon name="eye" size={13} /> View the site
+              </Link>
+            </>
+          }
+          style={{ marginBottom: 20 }}
+        />
 
         <PulseBar
           rsvps={stats.rsvps}

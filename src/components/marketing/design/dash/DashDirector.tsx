@@ -11,7 +11,7 @@ import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
 import { parseLocalDate, todayLocal } from '@/lib/date-utils';
@@ -292,13 +292,16 @@ export function DashDirector() {
     return (
       <DashLayout active="studio" hideTopbar>
         <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
-          <PLHead
-            align="center"
-            pre="The Director"
-            title="Pear is"
-            italic="waiting."
-            sub="Create a site first — Pear needs something to plan."
-            style={{ marginBottom: 28 }}
+          {/* Quiet header (plan rules 1 + 5): one line; the empty
+              card below carries the sentence — no duplicate prose. */}
+          <PageIntro
+            eyebrow="The Director"
+            title={
+              <>
+                Pear is <span className="display-italic">waiting.</span>
+              </>
+            }
+            style={{ marginBottom: 20 }}
           />
           <EmptyShell message="Create a site first — Pear needs something to plan." />
         </div>
@@ -309,13 +312,14 @@ export function DashDirector() {
     return (
       <DashLayout active="studio" hideTopbar>
         <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
-          <PLHead
-            align="center"
-            pre="The Director"
-            title="Pick a"
-            italic="celebration."
-            sub="Pick a site from the top-right menu to start planning."
-            style={{ marginBottom: 28 }}
+          <PageIntro
+            eyebrow="The Director"
+            title={
+              <>
+                Pick a <span className="display-italic">celebration.</span>
+              </>
+            }
+            style={{ marginBottom: 20 }}
           />
           <EmptyShell message="Pick a site from the top-right menu to start planning." />
         </div>
@@ -336,19 +340,22 @@ export function DashDirector() {
   return (
     <DashLayout active="studio" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
-        <PLHead
-          pre="The Director"
+        {/* Quiet header (plan rule 1): one line + the two actions.
+            The "Pear holds your budget…" pitch is gone — the chat's
+            empty state already says it. */}
+        <PageIntro
+          eyebrow="The Director"
           title={
             daysToGo !== null ? (
-              <span>
-                {daysToGo} days to the
-              </span>
+              <>
+                {daysToGo} days to the <span className="display-italic">day.</span>
+              </>
             ) : (
-              <span>Tell Pear what you&rsquo;re</span>
+              <>
+                Tell Pear what you&rsquo;re <span className="display-italic">planning.</span>
+              </>
             )
           }
-          italic={daysToGo !== null ? 'day.' : 'planning.'}
-          sub="Pear holds your budget, city, guest count, timeline, and every conversation so far. Ask, plan, or just think out loud."
           actions={
             <>
               <Link href={`/editor/${site.domain}`} className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none' }}>
@@ -359,7 +366,7 @@ export function DashDirector() {
               </button>
             </>
           }
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 20 }}
         />
       </div>
 

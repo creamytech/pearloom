@@ -22,6 +22,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro, HintChip } from '../dash/QuietDash';
 import { Icon, Pear, Sparkle } from '../motifs';
 import { DatePicker } from '../editor/v8-forms';
 import { WEEKEND_ANCHORS, weekendArcFor, type WeekendEventDef } from '@/lib/event-os/weekend-arcs';
@@ -150,12 +151,21 @@ export function WeekendBuilderPage() {
   const eventLabel = (kind: string) => arc.events.find((a) => a.kind === kind)?.label ?? kind;
 
   return (
-    <DashLayout
-      active="weekend"
-      title="Weekend builder"
-      subtitle="Big days rarely come alone. Plan every event around yours — each becomes its own site, already linked to the others."
-    >
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1080, margin: '0 auto' }}>
+    <DashLayout active="weekend" hideTopbar>
+      <div className="pl8" style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1080, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
+            the explainer paragraph became a HintChip. */}
+        <PageIntro
+          eyebrow="Weekend"
+          title="Weekend builder"
+          meta={
+            <HintChip
+              storageKey="pl-hint-weekend-builder"
+              hint="Each event becomes its own site, already linked to the others."
+              detail="Big days rarely come alone. Plan every event around yours — each becomes its own site with its own guest list, already linked to the others. All drafts stay private until you publish each one."
+            />
+          }
+        />
         {created ? (
           <div
             style={{

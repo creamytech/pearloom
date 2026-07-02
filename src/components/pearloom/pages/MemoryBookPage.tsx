@@ -18,7 +18,8 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { Icon } from '../motifs';
-import { PLChrome, PLHead } from '../dash/PLChrome';
+import { PLChrome } from '../dash/PLChrome';
+import { PageIntro } from '../dash/QuietDash';
 import { getRememberHeadline, occasionLabel } from '@/lib/event-os/dashboard-presets';
 
 type Chapter = { id?: string; title: string; subtitle?: string; description: string };
@@ -311,13 +312,17 @@ export function MemoryBookPage() {
 
   return (
     <PLChrome active="memory" maxWidth={1080}>
+      {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line +
+          the two actions. The book's own frontispiece + empty state
+          carry the prose; the sub paragraph is gone. */}
       <div className="pl8-no-print">
-        <PLHead
-          align="center"
-          pre="The memory book"
-          title={headline.title}
-          italic={headline.italic}
-          sub="Chapters, memories, tributes, songs — gathered for the printer. Save as PDF, send to your letterpress, or order a printed edition from Pearloom."
+        <PageIntro
+          eyebrow="The memory book"
+          title={
+            <>
+              {headline.title} <span className="display-italic">{headline.italic}</span>
+            </>
+          }
           actions={
             <>
               <button

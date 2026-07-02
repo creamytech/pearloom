@@ -14,7 +14,7 @@ import { Bloom, Sparkle } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useUserSites, resolveStickySite, type SiteSummary } from './hooks';
 
 interface CelebrationRef {
@@ -126,13 +126,16 @@ export function DashConnections() {
     return (
       <DashLayout active="connections" hideTopbar>
         <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
-          <PLHead
-            align="center"
-            pre="Connections"
-            title="One weekend,"
-            italic="many threads."
-            sub="Create two sites first and you can weave them together here."
-            style={{ marginBottom: 28 }}
+          {/* Quiet header (plan rules 1 + 5): one line; the empty
+              card below carries the sentence — no duplicate prose. */}
+          <PageIntro
+            eyebrow="Connections"
+            title={
+              <>
+                One weekend, <span className="display-italic">many threads.</span>
+              </>
+            }
+            style={{ marginBottom: 20 }}
           />
           <EmptyShell message="Create two sites first and you can weave them together here." />
         </div>
@@ -143,32 +146,49 @@ export function DashConnections() {
   return (
     <DashLayout active="connections" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
-        <PLHead
-          pre="Connections"
-          title="One weekend,"
-          italic="many threads."
-          sub="Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A memorial with a family directory. A reunion split across three days. Each site still has its own host, its own guests, its own voice — but they link into one story."
+        {/* Quiet header (plan rule 1): one line + one action; the
+            explainer paragraph and the co-host pointer both fold
+            into a single HintChip. */}
+        <PageIntro
+          eyebrow="Connections"
+          title={
+            <>
+              One weekend, <span className="display-italic">many threads.</span>
+            </>
+          }
           actions={
             <Link href="/wizard/new" className="pl8-btnfx" style={{ ...btnInk, textDecoration: 'none' }}>
               ✦ New site
             </Link>
           }
-          style={{ marginBottom: 24 }}
+          meta={
+            <HintChip
+              storageKey="pl-hint-connections"
+              hint="Celebrations group sibling sites into one story."
+              detail={
+                <>
+                  Pearloom celebrations group sibling sites together — a wedding weekend with a
+                  rehearsal dinner + brunch, a memorial with a family directory, a reunion split
+                  across three days. Each site keeps its own host, guests, and voice, but they
+                  link into one story.
+                  {sites && sites.length > 0 && (
+                    <>
+                      {' '}Looking to add a co-host who can edit with you? That lives in the
+                      editor&rsquo;s Share panel —{' '}
+                      <Link
+                        href={`/editor/${(resolveStickySite(sites) ?? sites[0]).domain}?jump=share`}
+                        style={{ color: PD.olive, fontWeight: 600 }}
+                      >
+                        invite a co-host →
+                      </Link>
+                    </>
+                  )}
+                </>
+              }
+            />
+          }
+          style={{ marginBottom: 20 }}
         />
-        {/* This page links SITES into celebrations — people who
-            arrive looking for the co-host flow (a person, not a
-            site) get pointed at the editor's Share panel. */}
-        {sites && sites.length > 0 && (
-          <p style={{ fontSize: 12.5, color: PD.inkSoft, margin: '-12px 0 24px' }}>
-            Looking to add a co-host who can edit with you? That lives in the editor&rsquo;s Share panel —{' '}
-            <Link
-              href={`/editor/${(resolveStickySite(sites) ?? sites[0]).domain}?jump=share`}
-              style={{ color: PD.olive, fontWeight: 600 }}
-            >
-              invite a co-host →
-            </Link>
-          </p>
-        )}
       </div>
 
       <main

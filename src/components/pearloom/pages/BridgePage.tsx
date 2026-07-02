@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
 import { Icon } from '../motifs';
 import { AIHint, AISuggestButton, useAICall } from '../editor/ai';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -50,17 +51,13 @@ export function BridgePage() {
   // If a site switch hides the tab that was open, fall back home.
   const activeTab: Tab = tabs.some((t) => t.id === tab) ? tab : 'memory';
 
-  const subtitle = solemn
-    ? 'Memory prompts and whispers — the words guests are sharing, gathered here.'
-    : 'Memory prompts, whispers, time-capsule notes, and seat-mate intros — every thread between you and your guests.';
-
   return (
-    <DashLayout
-      active="bridge"
-      title="Guest threads"
-      subtitle={subtitle}
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+    <DashLayout active="bridge" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line —
+            the tabs right below name the features, so the old
+            enumerating paragraph is gone. */}
+        <PageIntro eyebrow="Guests" title="Guest threads" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 22 }}>
           <div
             style={{

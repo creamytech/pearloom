@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
-import { PLHead } from '../dash/PLChrome';
+import { PageIntro, StatStrip, HintChip } from '../dash/QuietDash';
 import { Icon, Pear } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { NumberInput } from '../editor/v8-forms';
@@ -226,39 +226,58 @@ export function SeatingArrangerPage() {
   return (
     <DashLayout active="seating" hideTopbar>
       <div className="pl8" style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
-        <PLHead
-          pre="Day-of"
-          title="Seating"
-          italic="arranger."
-          sub="Drag or tap guests onto tables. Auto-solve fills every open seat, table by table, up to each table's capacity."
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rules 1 + 3): one
+            line + actions; counts ride a StatStrip and the drag/tap
+            explainer became a HintChip. */}
+        <PageIntro
+          eyebrow="Day-of"
+          title={
+            <>
+              Seating <span className="display-italic">arranger.</span>
+            </>
+          }
           actions={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <>
               <button type="button" className="btn btn-primary btn-sm" onClick={autoSolve} disabled={!guests.length}>
                 <Pear size={12} tone="cream" shadow={false} /> Auto-solve
               </button>
               <button type="button" className="btn btn-outline btn-sm" onClick={addTable}>
                 <Icon name="plus" size={12} /> Add table
               </button>
+            </>
+          }
+          meta={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <StatStrip
+                  items={[
+                    { label: 'Guests', value: guests.length },
+                    { label: 'Tables', value: tables.length },
+                    { label: 'Unseated', value: unseated.length, tone: 'peach' },
+                  ]}
+                />
+                <span
+                  aria-live="polite"
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: saveState === 'saving' ? 'var(--ink-muted)' : 'var(--sage-deep)',
+                  }}
+                >
+                  {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Saved' : ''}
+                </span>
+              </div>
+              <HintChip
+                storageKey="pl-hint-seating-arranger"
+                hint="Drag a guest onto a table — or tap the guest, then the table."
+                detail="Drag guests onto tables, or tap a guest and then tap a table to seat them (the touch path). Auto-solve fills every open seat, table by table, up to each table's capacity — add a table and run it again for the overflow."
+              />
             </div>
           }
           style={{ marginBottom: 18 }}
         />
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 18,
-          fontSize: 10.5,
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: 'var(--ink-muted)',
-        }}>
-          <span>{guests.length} guests · {tables.length} tables · {unseated.length} unseated</span>
-          <span aria-live="polite" style={{ color: saveState === 'saving' ? 'var(--ink-muted)' : 'var(--sage-deep)', fontWeight: 700 }}>
-            {saveState === 'saving' ? '· Saving…' : saveState === 'saved' ? '· Saved' : ''}
-          </span>
-        </div>
 
         {/* Kitchen count — only when at least one meal answer
             exists, so wedding-shaped events get it and events

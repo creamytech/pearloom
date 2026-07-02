@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead, PLCard } from '@/components/pearloom/dash/PLChrome';
+import { PLCard } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro, StatStrip, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { Icon, Pear } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -200,13 +201,49 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
     <DashLayout active="studio" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
 
-        <PLHead
-          align="center"
-          pre="Pear's voice"
-          title="Capture your"
-          italic="voice"
-          sub="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you."
-          style={{ marginBottom: 28 }}
+        {/* Quiet header (plan rules 1 + 3): one line + the analyze
+            action; "N of 8" rides a StatStrip chip and the pitch
+            paragraph became a HintChip. Recorder rows lead. */}
+        <PageIntro
+          eyebrow="Pear's voice"
+          title={
+            <>
+              Capture your <span className="display-italic">voice.</span>
+            </>
+          }
+          actions={
+            <button
+              type="button"
+              onClick={() => void handleAnalyze()}
+              disabled={analyzing || recordedCount < 2}
+              className={recordedCount >= 2 ? 'pl-pearl-accent' : ''}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: recordedCount >= 2 ? 'pointer' : 'not-allowed',
+                border: 'none',
+                fontFamily: 'var(--font-ui)',
+                opacity: recordedCount >= 2 ? 1 : 0.5,
+                background: recordedCount >= 2 ? undefined : '#0E0D0B',
+                color: recordedCount >= 2 ? undefined : '#F1EBDC',
+              }}
+            >
+              {analyzing ? 'Analysing…' : profile ? 'Re-analyse' : 'Build my voice profile'}
+            </button>
+          }
+          meta={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <StatStrip items={[{ label: `of ${prompts.length} captured`, value: recordedCount, tone: 'sage' }]} />
+              <HintChip
+                storageKey="pl-hint-voice-dna"
+                hint="Record a few prompts — Pear drafts in your voice from then on."
+                detail="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you. Record at least two prompts to build the profile."
+              />
+            </div>
+          }
+          style={{ marginBottom: 22 }}
         />
 
         {profile && (
@@ -257,32 +294,6 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
             </div>
           </PLCard>
         )}
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-            {recordedCount} of {prompts.length} captured
-          </div>
-          <button
-            type="button"
-            onClick={() => void handleAnalyze()}
-            disabled={analyzing || recordedCount < 2}
-            className={recordedCount >= 2 ? 'pl-pearl-accent' : ''}
-            style={{
-              padding: '10px 22px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: recordedCount >= 2 ? 'pointer' : 'not-allowed',
-              border: 'none',
-              fontFamily: 'var(--font-ui)',
-              opacity: recordedCount >= 2 ? 1 : 0.5,
-              background: recordedCount >= 2 ? undefined : '#0E0D0B',
-              color: recordedCount >= 2 ? undefined : '#F1EBDC',
-            }}
-          >
-            {analyzing ? 'Analysing…' : profile ? 'Re-analyse' : 'Build my voice profile'}
-          </button>
-        </div>
 
         {error && (
           <div style={{ padding: '10px 12px', background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 10, fontSize: 12, marginBottom: 14 }}>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
 import { Icon, Pear, Sparkle } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -148,8 +149,12 @@ export function SpeechComposerPage() {
   const meta = options.find((o) => o.id === activeKindId) ?? options[0];
 
   return (
-    <DashLayout active="speech" title="Speech composer" subtitle="Paste a draft. Pear scores length, sentiment arc, and specificity, then suggests surgical edits.">
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+    <DashLayout active="speech" hideTopbar>
+      <div className="pl8" style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line —
+            the "paste a draft" pitch lives in the analysis empty
+            state, so the editor leads within the first viewport. */}
+        <PageIntro eyebrow="Speech" title="Speech composer" />
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 0.9fr)', gap: 28 }} className="pl8-speech-grid">
           {/* LEFT — composer */}
           <div>
@@ -216,11 +221,98 @@ export function SpeechComposerPage() {
               </button>
             </div>
             {error && <div style={{ marginTop: 10, fontSize: 13, color: '#7A2D2D' }}>{error}</div>}
+          </div>
+
+          {/* RIGHT — analysis + guest material (plan rule 7: the
+              composer owns the main column; scores and "Words from
+              your guests" ride the rail, stacking below on phones). */}
+          <div style={{ position: 'sticky', top: 24, alignSelf: 'flex-start' }}>
+            {!analysis ? (
+              <div
+                style={{
+                  background: 'var(--cream-2)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 16,
+                  padding: 24,
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <Pear size={56} tone="sage" sparkle />
+                <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                  Paste a draft and tap <strong style={{ color: 'var(--ink)' }}>Analyze with Pear</strong>.
+                  Scores + suggestions land here.
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <ScoreRow label="Length" score={analysis.length_score} suffix={`${analysis.duration_seconds}s read aloud`} />
+                <ScoreRow label="Specific" score={analysis.specificity_score} suffix="concrete vs. abstract" />
+                <ScoreRow label="Arc" score={analysis.arc_score} suffix="emotional rise" />
+
+                {analysis.summary && (
+                  <div
+                    style={{
+                      padding: 14,
+                      borderRadius: 12,
+                      background: 'var(--sage-tint)',
+                      border: '1px solid var(--sage-deep)',
+                      fontSize: 13,
+                      lineHeight: 1.55,
+                      color: 'var(--ink)',
+                    }}
+                  >
+                    {analysis.summary}
+                  </div>
+                )}
+
+                {analysis.cliches.length > 0 && (
+                  <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
+                    <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A2D2D', marginBottom: 8 }}>
+                      Cliches found
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {analysis.cliches.map((c) => (
+                        <span
+                          key={c.phrase}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            background: '#F4E0D8',
+                            color: '#7A2D2D',
+                            fontSize: 12,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {c.phrase} {c.count > 1 && <span style={{ opacity: 0.7 }}>×{c.count}</span>}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
+                  <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 10 }}>
+                    Suggestions
+                  </div>
+                  <ol style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {analysis.suggestions.map((s, i) => (
+                      <li key={i} style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+                        {s}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
 
             {/* Inspiration: guest-typed memories + advice + guestbook
                 notes. Tap "Quote" to drop the line straight into the
                 draft. The whole panel hides when there's nothing to
-                show — keeps the composer clean for hosts whose guests
+                show — keeps the rail clean for hosts whose guests
                 haven't written yet. */}
             {inspirations && inspirations.length > 0 && (
               <div style={{
@@ -310,91 +402,6 @@ export function SpeechComposerPage() {
                       </p>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT — analysis */}
-          <div style={{ position: 'sticky', top: 24, alignSelf: 'flex-start' }}>
-            {!analysis ? (
-              <div
-                style={{
-                  background: 'var(--cream-2)',
-                  border: '1px solid var(--line-soft)',
-                  borderRadius: 16,
-                  padding: 24,
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 10,
-                }}
-              >
-                <Pear size={56} tone="sage" sparkle />
-                <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                  Paste a draft and tap <strong style={{ color: 'var(--ink)' }}>Analyze with Pear</strong>.
-                  Scores + suggestions land here.
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <ScoreRow label="Length" score={analysis.length_score} suffix={`${analysis.duration_seconds}s read aloud`} />
-                <ScoreRow label="Specific" score={analysis.specificity_score} suffix="concrete vs. abstract" />
-                <ScoreRow label="Arc" score={analysis.arc_score} suffix="emotional rise" />
-
-                {analysis.summary && (
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 12,
-                      background: 'var(--sage-tint)',
-                      border: '1px solid var(--sage-deep)',
-                      fontSize: 13,
-                      lineHeight: 1.55,
-                      color: 'var(--ink)',
-                    }}
-                  >
-                    {analysis.summary}
-                  </div>
-                )}
-
-                {analysis.cliches.length > 0 && (
-                  <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
-                    <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A2D2D', marginBottom: 8 }}>
-                      Cliches found
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {analysis.cliches.map((c) => (
-                        <span
-                          key={c.phrase}
-                          style={{
-                            padding: '4px 10px',
-                            borderRadius: 999,
-                            background: '#F4E0D8',
-                            color: '#7A2D2D',
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {c.phrase} {c.count > 1 && <span style={{ opacity: 0.7 }}>×{c.count}</span>}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12, padding: 14 }}>
-                  <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 10 }}>
-                    Suggestions
-                  </div>
-                  <ol style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {analysis.suggestions.map((s, i) => (
-                      <li key={i} style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.55 }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ol>
                 </div>
               </div>
             )}

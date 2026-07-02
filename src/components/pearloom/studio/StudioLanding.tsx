@@ -12,6 +12,7 @@
 
 import Link from 'next/link';
 import { Icon, Pear } from '../motifs';
+import { PageIntro } from '../dash/QuietDash';
 import type { StationeryType } from './studio-constants';
 
 interface CardSpec {
@@ -60,15 +61,18 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
       </div>
 
       <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px clamp(20px, 5vw, 48px) 64px' }}>
-        {/* Headline — v2 studio.png */}
-        <div style={{ marginBottom: 'clamp(24px, 4vw, 40px)' }}>
-          <h1 className="display" style={{ fontSize: 'clamp(34px, 5.5vw, 52px)', lineHeight: 1.02, margin: 0, color: 'var(--ink)' }}>
-            Design the <span className="display-italic" style={{ fontStyle: 'italic', color: 'var(--peach-ink, #8C6E3D)' }}>invitation.</span>
-          </h1>
-          <p style={{ fontSize: 'clamp(14px, 1.6vw, 16px)', color: 'var(--ink-soft)', lineHeight: 1.6, marginTop: 12, maxWidth: 620 }}>
-            Save-the-date, invitation, thank-you — Pear drafts a card in your voice. Edit the words, palette, type and photo, then send it the way your guests will see it.
-          </p>
-        </div>
+        {/* Headline — quiet PageIntro (DASHBOARD-LAYOUT-PLAN rule 1):
+            one display line; the three cards below name their own
+            jobs, so the old paragraph is gone. */}
+        <PageIntro
+          eyebrow="Stationery"
+          title={
+            <>
+              Design the <span className="display-italic" style={{ color: 'var(--peach-ink, #8C6E3D)' }}>invitation.</span>
+            </>
+          }
+          style={{ marginBottom: 'clamp(18px, 3vw, 28px)' }}
+        />
 
         {/* Stationery cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'clamp(14px, 2vw, 22px)' }}>

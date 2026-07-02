@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
@@ -209,16 +210,24 @@ export function DashSubmissions() {
     }
   };
 
+  // ONE empty state (plan rule 5): the card carries the sentence;
+  // the header never restates it.
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
-      <DashLayout active="submissions" title="Submissions" subtitle="Create a site first — Pear needs somewhere for submissions to land.">
+      <DashLayout active="submissions" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+          <PageIntro eyebrow="Submissions" title="What guests sent." />
+        </div>
         <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
       </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashLayout active="submissions" title="Submissions" subtitle="Pick a site from the top-right menu to see its submissions.">
+      <DashLayout active="submissions" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+          <PageIntro eyebrow="Submissions" title="What guests sent." />
+        </div>
         <EmptyShell message="Pick a site from the top-right menu to see its submissions." />
       </DashLayout>
     );
@@ -227,36 +236,32 @@ export function DashSubmissions() {
   const siteName = siteDisplayName(site);
 
   return (
-    <DashLayout
-      active="submissions"
-      eyebrow="Submissions"
-      title={
-        subs.length > 0 ? (
-          <span>
-            Friends are{' '}
-            <i style={{ color: PD.terra, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              weaving
-            </i>{' '}
-            the reel.
-          </span>
-        ) : (
-          <span>
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              Nothing yet.
-            </i>{' '}
-            Guests submit from your site.
-          </span>
-        )
-      }
-      subtitle={submissionsBody}
-      actions={
-        // No standalone submission URL exists — guests submit from
-        // the advice/tribute/toast blocks on the published site.
-        <button className="pl8-btnfx" style={btnInk} onClick={() => void loadAll(site.domain)}>
-          ↻ Refresh
-        </button>
-      }
-    >
+    <DashLayout active="submissions" hideTopbar>
+      {/* Quiet header (plan rules 1 + 4): one line + a HintChip
+          carrying the occasion-aware "how moderation works" prose.
+          The old title restated emptiness — the empty card owns
+          that now (rule 5). */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+        <PageIntro
+          eyebrow={siteName ? `Submissions · ${siteName}` : 'Submissions'}
+          title="What guests sent."
+          meta={
+            <HintChip
+              storageKey="pl-hint-submissions"
+              hint="Approve what fits; hide the rest."
+              detail={submissionsBody}
+            />
+          }
+          actions={
+            // No standalone submission URL exists — guests submit from
+            // the advice/tribute/toast blocks on the published site.
+            <button className="pl8-btnfx" style={btnInk} onClick={() => void loadAll(site.domain)}>
+              ↻ Refresh
+            </button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      </div>
 
       <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {error && (

@@ -9,6 +9,7 @@ import { Swirl } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getAnalyticsCopy, getAnalyticsSectionsToWatch } from '@/lib/event-os/dashboard-presets';
 import { normaliseRsvpStatus } from '@/lib/rsvp-status';
@@ -143,16 +144,24 @@ export function DashAnalytics() {
     }));
   }, [sections]);
 
+  // ONE empty state (plan rule 5): the card carries the sentence;
+  // the header never restates it.
   if (!sitesLoading && (!sites || sites.length === 0)) {
     return (
-      <DashLayout active="analytics" title="Analytics" subtitle="Publish a site first — analytics light up once guests visit.">
+      <DashLayout active="analytics" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+          <PageIntro eyebrow="Analytics" title="The reading of the room." />
+        </div>
         <EmptyShell message="Publish a site first — analytics light up once guests visit." />
       </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashLayout active="analytics" title="Analytics" subtitle="Pick a site to see its analytics.">
+      <DashLayout active="analytics" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+          <PageIntro eyebrow="Analytics" title="The reading of the room." />
+        </div>
         <EmptyShell message="Pick a site from the top-right menu to see its analytics." />
       </DashLayout>
     );
@@ -204,26 +213,38 @@ export function DashAnalytics() {
     URL.revokeObjectURL(url);
   };
 
+  // Quiet StatStrip (plan rule 3) — replaces the four 40px-display
+  // KPI tiles. Honesty rule holds: a failed read contributes NO
+  // chip (the soft banner explains) instead of a real-looking 0.
+  const statItems: StatStripItem[] = [
+    ...(visit
+      ? [
+          { label: 'visits', value: visit.visits },
+          { label: 'today', value: visit.today },
+          { label: 'mobile %', value: mobileShare },
+        ]
+      : []),
+    ...(funnel && funnel.invited > 0
+      ? [{ label: 'replied %', value: conversionPct, tone: 'sage' as const }]
+      : []),
+  ];
+
   return (
-    <DashLayout
-      active="analytics"
-      eyebrow="Analytics"
-      title={
-        <span>
-          <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-            {copy.title}
-          </i>
-          {' '}
-          <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-            {copy.italic}
-          </i>
-        </span>
-      }
-      subtitle={copy.body}
-      actions={
-        <button className="pl8-btnfx" style={btnGhost} onClick={exportCsv}>Export CSV</button>
-      }
-    >
+    <DashLayout active="analytics" hideTopbar>
+      {/* Quiet header (plan rule 1): occasion title in ONE line;
+          the body paragraph is gone — the panels speak for
+          themselves and the strip carries the numbers. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+        <PageIntro
+          eyebrow={siteName ? `Analytics · ${siteName}` : 'Analytics'}
+          title={<span>{copy.title} <i style={{ color: PD.olive }}>{copy.italic}</i></span>}
+          meta={!loading && statItems.length > 0 ? <StatStrip items={statItems} /> : undefined}
+          actions={
+            <button className="pl8-btnfx" style={btnGhost} onClick={exportCsv}>Export CSV</button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      </div>
 
       <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         {error && (
@@ -231,67 +252,6 @@ export function DashAnalytics() {
             {error}
           </Panel>
         )}
-
-        {/* KPIs */}
-        <div
-          className="pd-analytics-kpi pl8-dash-stagger"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}
-        >
-          {[
-            {
-              l: 'Site visits · all time',
-              v: loading || !visit ? '—' : visit.visits.toLocaleString(),
-              delta: visit?.today ? `${visit.today} today` : 'Since launch',
-              c: PD.olive,
-            },
-            {
-              l: 'Today',
-              v: loading || !visit ? '—' : visit.today.toLocaleString(),
-              delta: 'Since midnight',
-              c: PD.gold,
-            },
-            {
-              l: 'Mobile share',
-              v: loading || !visit ? '—' : `${mobileShare}%`,
-              delta: visit
-                ? `${visit.mobile} mobile · ${visit.desktop} desktop`
-                : '',
-              c: PD.plum,
-            },
-            {
-              l: 'RSVP conversion',
-              v: loading || !funnel ? '—' : (funnel.invited > 0 ? `${conversionPct}%` : '—'),
-              delta: funnel && funnel.invited > 0
-                ? `${funnel.replied} of ${funnel.invited} invited`
-                : funnel ? 'No guests yet' : '',
-              c: PD.terra,
-            },
-          ].map((k) => (
-            <Panel key={k.l} bg={PD.paperCard} style={{ padding: '18px 20px' }}>
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 8 }}>
-                {k.l.toUpperCase()}
-              </div>
-              {/* keyed remount when the real number lands so it fades
-                  in over the '—' instead of snapping. */}
-              <div
-                key={loading ? 'loading' : 'loaded'}
-                className={loading ? undefined : 'pl8-content-fade-in'}
-                style={{
-                  ...DISPLAY_STYLE,
-                  fontSize: 40,
-                  lineHeight: 1,
-                  fontWeight: 400,
-                  letterSpacing: '-0.025em',
-                }}
-              >
-                {k.v}
-              </div>
-              <div style={{ fontSize: 11.5, color: k.c, marginTop: 8, fontWeight: 500 }}>
-                {k.delta}
-              </div>
-            </Panel>
-          ))}
-        </div>
 
         {/* RSVP funnel + (still quiet · how they arrived) — v2
             Analytics row, all from real guest + referrer data. */}
@@ -522,9 +482,6 @@ export function DashAnalytics() {
 
       <style jsx>{`
         @media (max-width: 1100px) {
-          :global(.pd-analytics-kpi) {
-            grid-template-columns: 1fr 1fr !important;
-          }
           :global(.pd-analytics-charts),
           :global(.pd-analytics-scroll) {
             grid-template-columns: 1fr !important;
@@ -536,13 +493,6 @@ export function DashAnalytics() {
           :global(.pd-analytics-depthrow) {
             grid-template-columns: 96px 1fr 40px !important;
             gap: 8px !important;
-          }
-        }
-        /* The narrowest phones: two 40px display numbers side by
-           side squeeze — stack the KPI tiles. */
-        @media (max-width: 380px) {
-          :global(.pd-analytics-kpi) {
-            grid-template-columns: 1fr !important;
           }
         }
       `}</style>

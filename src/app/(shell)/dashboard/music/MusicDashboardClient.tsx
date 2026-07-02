@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 interface SongRow {
@@ -122,12 +123,11 @@ export function MusicDashboardClient() {
   })();
 
   return (
-    <DashLayout
-      active="music"
-      title="Music"
-      subtitle="Triage what your guests added. Accepted songs surface on your site and in the memory book."
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <DashLayout active="music" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line —
+            the column hints below already explain the triage. */}
+        <PageIntro eyebrow="Music" title="The guest playlist" style={{ marginBottom: 0 }} />
         {loading ? (
           <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)' }}>Threading…</div>
         ) : !site?.id ? (

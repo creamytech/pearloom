@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro, HintChip } from '../dash/QuietDash';
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -260,14 +261,44 @@ export function QrPosterPage() {
   }
 
   return (
-    <DashLayout
-      active="qr-poster"
-      title="QR poster"
-      subtitle="A printable scan-to-site poster — drop on the welcome table, the bar, or by the RSVP card so guests open the site without typing a link."
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Controls — hidden when printing */}
-        <div className="pl8-no-print" style={{ marginBottom: 24, display: 'grid', gap: 14 }}>
+    <DashLayout active="qr-poster" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line +
+            the print action; the pitch paragraph became a HintChip. */}
+        <div className="pl8-no-print">
+          <PageIntro
+            eyebrow="Print"
+            title="QR poster"
+            actions={
+              <button type="button" className="btn btn-primary" onClick={print} disabled={!qrUrl}>
+                <Icon name="sparkles" size={14} /> Print / save as PDF
+              </button>
+            }
+            meta={
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                  {site?.domain ? <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></> : 'No site selected'}
+                </span>
+                <HintChip
+                  storageKey="pl-hint-qr-poster"
+                  hint="Guests scan the poster to open the site — no typing."
+                  detail="A printable scan-to-site poster — drop it on the welcome table, the bar, or by the RSVP card so guests open the site without typing a link. Pick a size, a copy preset, and (optionally) let Pear paint a themed background."
+                />
+              </div>
+            }
+          />
+        </div>
+
+        {/* Poster leads; controls ride the right rail on desktop and
+            stack BELOW the preview on phones (plan rules 2 + 7). */}
+        <div
+          className="pl8-qr-layout"
+          style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}
+        >
+        {/* Controls rail — hidden when printing. Placed AFTER the
+            poster visually: column 2 on desktop, below it on phones
+            (grid-row rules in the styled-jsx block). */}
+        <div className="pl8-no-print pl8-qr-controls" style={{ display: 'grid', gap: 14, alignContent: 'start', minWidth: 0 }}>
           {/* Mode toggle: classic editorial vs AI-themed */}
           <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2, alignSelf: 'flex-start' }}>
             {(
@@ -298,15 +329,6 @@ export function QrPosterPage() {
                 </button>
               );
             })}
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="btn btn-primary" onClick={print} disabled={!qrUrl}>
-              <Icon name="sparkles" size={14} /> Print / save as PDF
-            </button>
-            <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-              {site?.domain ? <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></> : 'No site selected'}
-            </span>
           </div>
 
           {/* Print-size presets — pure client-side layout scaling;
@@ -521,6 +543,7 @@ export function QrPosterPage() {
         {/* Poster — printable. In themed mode + when a themed poster
             URL is set, the AI painting fills the entire surface and
             the QR is composited at center. */}
+        <div className="pl8-qr-main" style={{ minWidth: 0 }}>
         <div
           className="pl8-qr-poster"
           style={{
@@ -676,9 +699,37 @@ export function QrPosterPage() {
             </div>
           )}
         </div>
+        </div>
+        </div>
       </div>
       {/* Painting toast — same bottom-right pill the InviteDesigner uses. */}
       <DecorGenerationToast />
+
+      {/* Layout rules — poster column first (reading order), controls
+          in the right rail on desktop, stacked below on phones. */}
+      <style jsx global>{`
+        .pl8-qr-main {
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .pl8-qr-controls {
+          grid-column: 2;
+          grid-row: 1;
+        }
+        @media (max-width: 980px) {
+          .pl8-qr-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .pl8-qr-main {
+            grid-column: 1;
+            grid-row: 1;
+          }
+          .pl8-qr-controls {
+            grid-column: 1;
+            grid-row: 2;
+          }
+        }
+      `}</style>
 
       {/* Print rules — single page, no chrome */}
       <style jsx global>{`

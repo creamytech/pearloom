@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite } from './hooks';
 import { useMessagePings } from '@/lib/messages-realtime';
 
@@ -115,13 +115,20 @@ export function DashMessages() {
 
   return (
     <DashLayout active="guests" hideTopbar>
-      <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
-        <PLHead
-          pre="Messages"
-          title="One thread,"
-          italic="every guest."
-          sub="The guest thread is the space everyone with an invite link shares — you can post and moderate. Direct messages are each guest's private logistics line to you."
-          style={{ marginBottom: 24 }}
+      {/* Quiet header (plan rule 1): one line; the two-paragraph
+          explainer lives behind a HintChip. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+        <PageIntro
+          eyebrow="Messages"
+          title="One thread, every guest."
+          meta={
+            <HintChip
+              storageKey="pl-hint-messages"
+              hint="The guest thread is shared; direct messages are private."
+              detail="The guest thread is the space everyone with an invite link shares — you can post and moderate. Direct messages are each guest's private logistics line to you."
+            />
+          }
+          style={{ marginBottom: 18 }}
         />
       </div>
 
