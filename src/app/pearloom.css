@@ -1591,6 +1591,42 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pd-guests-row { transition: background var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease); }
 .pd-guests-row:hover { background: color-mix(in oklab, var(--ink, #0E0D0B) 3%, transparent); }
 
+/* Row action chips (Invite / +1 / Resend / Remove) reveal on row
+   hover or keyboard focus at desktop — always-visible chips made
+   every row a 3-line 150px stack (plan-2 §2 rsvp). On phones the
+   chips hide entirely; the row sheet (⋯ / row tap) carries the
+   same actions. */
+.pd-guests-rowmore { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pd-guests-row { position: relative; }
+  /* Out of flow so rows compact to two lines; the chips float in
+     as a card-backed cluster on the row's right edge. */
+  .pd-guests-row .pd-guests-rowactions {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    background: var(--card, #FBF7EE);
+    border: 1px solid var(--line-soft, rgba(31,36,24,0.1));
+    border-radius: 999px;
+    padding: 4px 8px;
+    box-shadow: 0 8px 20px -10px rgba(40,28,12,0.35);
+    transition: opacity var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease);
+    z-index: 2;
+  }
+  .pd-guests-row:hover .pd-guests-rowactions,
+  .pd-guests-row:focus-within .pd-guests-rowactions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+@media (max-width: 760px) {
+  .pd-guests-row .pd-guests-rowactions { display: none; }
+  .pd-guests-rowmore { display: inline-flex; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pl8-dash-stagger > *,
   .pl8-card-lift, .pl8-tile-lift,
@@ -1782,6 +1818,14 @@ button.pl8-mobile-only { display: none !important; }
      the blanket rule — guest heroes are the rule's real target. */
   .pl8 h1.display, .pl8 h2.display, .pl8 h3.display,
   .pl8-guest .display { font-size: clamp(32px, 9vw, 56px) !important; }
+
+  /* Dashboard CARD titles (plan-2 §1-C) — h2/h3.display card
+     headings ("Today's rundown", "Who's coming") are card-scale
+     type, not page titles; the clamp above wrapped them to 2–3
+     lines inside 358px cards. .display-card pins them at card
+     scale on phones; desktop keeps the inline size. Higher
+     specificity (three classes) so it wins over the clamp. */
+  .pl8 .display.display-card { font-size: 21px !important; }
 }
 
 /* Container safety net — prevents horizontal scroll from inline
@@ -8659,12 +8703,49 @@ html { scroll-behavior: smooth; }
 .pl8-cockpit-hero { display: grid; grid-template-columns: 1.5fr 1fr; }
 .pl8-cockpit-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .pl8-cockpit-timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+.pl8-cockpit-hero-slot { min-height: 200px; }
 @media (max-width: 860px) {
   .pl8-cockpit-stats { grid-template-columns: repeat(2, 1fr); }
   .pl8-cockpit-timeline { grid-template-columns: repeat(2, 1fr); gap: 18px 0; }
 }
 @media (max-width: 760px) {
   .pl8-cockpit-hero { grid-template-columns: 1fr; }
+  /* Collapsed hero: the cover/crest slot becomes a 96px strip under
+     the CTA row instead of a ~340px dead band (plan-2 §1-F). */
+  .pl8-cockpit-hero-slot { min-height: 0; height: 96px; }
+}
+
+/* ── Home cards sized by their CONTAINER, not the window (plan-2
+   §1-B). The Milestones roadmap + GuestPulse legend can live in the
+   ~850px main column or the 320px rail — a window breakpoint can't
+   tell those apart, which is how "Final menu" collided with its
+   caterer note. The card is the container; rows re-stack when the
+   CARD is narrow. */
+.pl8-home-milestones,
+.pl8-home-pulse { container-type: inline-size; }
+
+.pl8-milestone-row {
+  display: grid;
+  grid-template-columns: 76px 22px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+.pl8-milestone-sub-inline { display: none; }
+@container (max-width: 480px) {
+  .pl8-milestone-row { grid-template-columns: 64px 22px minmax(0, 1fr); gap: 10px; }
+  .pl8-milestone-sub-col { display: none; }
+  .pl8-milestone-sub-inline { display: block; }
+}
+@container (max-width: 320px) {
+  .pl8-milestone-row { grid-template-columns: 48px 18px minmax(0, 1fr); gap: 8px; }
+}
+
+.pl8-pulse-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+@container (max-width: 480px) {
+  .pl8-pulse-legend { grid-template-columns: repeat(2, 1fr); }
+}
+@container (max-width: 320px) {
+  .pl8-pulse-legend { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════════════════════════════

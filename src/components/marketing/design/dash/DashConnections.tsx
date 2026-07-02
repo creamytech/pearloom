@@ -194,8 +194,8 @@ export function DashConnections() {
       <main
         className="pd-connections-main"
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 32px',
-          maxWidth: 1240,
+          padding: '0 var(--pl-dash-pad) 32px',
+          maxWidth: 'var(--pl-dash-maxw)',
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '1.4fr 1fr',
@@ -204,7 +204,9 @@ export function DashConnections() {
         }}
       >
         {/* LEFT — celebrations graph */}
-        <Panel bg={PD.paperCard} style={{ padding: 0, overflow: 'hidden', minHeight: 520 }}>
+        {/* Height follows content (plan-2 §2 connections) — the old
+            minHeight: 520 left ~200px of hollow paper under 2 rows. */}
+        <Panel bg={PD.paperCard} style={{ padding: 0, overflow: 'hidden' }}>
           <div
             style={{
               padding: '16px 22px',
@@ -268,7 +270,6 @@ export function DashConnections() {
             style={{
               position: 'relative',
               padding: 'clamp(16px, 5vw, 40px)',
-              minHeight: 440,
               background: `linear-gradient(180deg, ${PD.paperCard} 0%, ${PD.paper3} 100%)`,
             }}
           >

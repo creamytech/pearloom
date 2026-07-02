@@ -47,9 +47,27 @@ export function DashGallery() {
     let cancelled = false;
     fetch('/api/dashboard/reel?limit=300', { cache: 'no-store' })
       .then((r) => r.json())
-      .then((data: { photos?: ReelPhoto[] }) => {
+      .then((data: { photos?: Array<Partial<ReelPhoto>> }) => {
         if (cancelled) return;
-        setResult({ photos: data.photos ?? [] });
+        // Harden every row (plan-2 §3.7): an unknown `source` or a
+        // missing `id` on ONE photo used to kill the whole page to
+        // the error boundary. Unknown sources bucket as 'guest',
+        // the key falls back to the url, and rows with no url at
+        // all are skipped.
+        const KNOWN = new Set<ReelPhoto['source']>(['cover', 'hero', 'chapter', 'guest']);
+        const photos: ReelPhoto[] = (data.photos ?? [])
+          .filter((p): p is Partial<ReelPhoto> & { url: string } => typeof p?.url === 'string' && p.url.length > 0)
+          .map((p) => ({
+            id: typeof p.id === 'string' && p.id.length > 0 ? p.id : p.url,
+            url: p.url,
+            siteDomain: p.siteDomain ?? '',
+            siteName: p.siteName ?? null,
+            alt: p.alt ?? null,
+            source: p.source && KNOWN.has(p.source) ? p.source : 'guest',
+            uploadedBy: p.uploadedBy ?? null,
+            uploadedAt: p.uploadedAt ?? null,
+          }));
+        setResult({ photos });
       })
       .catch((e) => {
         if (cancelled) return;

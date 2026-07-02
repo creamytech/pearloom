@@ -145,10 +145,10 @@ export function PrintOrdersClient({
     >
       {/* Quiet header (plan rule 1): one line; the tracking prose
           lives in the empty state. Batches lead; composer second. */}
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         <PageIntro eyebrow="Pearloom Print" title="Print orders." style={{ marginBottom: 14 }} />
       </div>
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: '0 var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
 
         {orderBanner === 'success' && (
           <div role="status" style={{

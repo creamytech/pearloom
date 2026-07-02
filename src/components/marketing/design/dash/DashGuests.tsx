@@ -384,6 +384,11 @@ function NudgeStrip({
           display: 'flex',
           alignItems: 'center',
           gap: 10,
+          // Wraps below ~480px so the sentence keeps its full width
+          // and the CTAs drop underneath — instead of the text
+          // fragmenting into a five-word column beside the button
+          // (plan-2 §2 rsvp phone).
+          flexWrap: 'wrap',
           padding: '10px 14px',
           background: 'linear-gradient(135deg, rgba(251,232,214,0.85) 0%, rgba(232,224,240,0.65) 100%)',
           border: '1px solid rgba(198,112,61,0.28)',
@@ -400,7 +405,7 @@ function NudgeStrip({
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
+        <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: '1 1 220px', minWidth: 0 }}>
           {deadline ? (
             <>
               Your RSVP deadline ({deadline.label}) is <strong style={{ fontWeight: 700 }}>{deadlineWhen}</strong>
@@ -1032,7 +1037,7 @@ export function DashGuests() {
     // the header never restates it.
     return (
       <DashLayout active="guests" hideTopbar>
-        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
           <PageIntro eyebrow="Guests" title="The guest list." />
         </div>
         <EmptyShell message="Create a site first, then invite guests." />
@@ -1042,7 +1047,7 @@ export function DashGuests() {
   if (!site) {
     return (
       <DashLayout active="guests" hideTopbar>
-        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
           <PageIntro eyebrow="Guests" title="The guest list." />
         </div>
         <EmptyShell message="Pick a site from the top-right menu to see its guests." />
@@ -1122,6 +1127,15 @@ export function DashGuests() {
     { label: 'Maybe', value: counts.maybe, tone: 'gold' },
     ...(solemn ? [] : [{ label: 'Stale', value: counts.stale, tone: 'plum' as const }]),
     { label: 'Declined', value: counts.no },
+    // Per-event headcounts fold into the same strip (plan-2 §1-G)
+    // instead of a second "BY EVENT" chip row above the roster.
+    ...(showPerEvent
+      ? events.map((ev) => ({
+          label: `${(ev.name ?? 'Event').slice(0, 18)} · yes`,
+          value: (perEventCounts[ev.id] ?? { yes: 0, maybe: 0 }).yes,
+          tone: 'sage' as const,
+        }))
+      : []),
   ];
 
   return (
@@ -1130,7 +1144,7 @@ export function DashGuests() {
       {/* Quiet header (plan rules 1 + 6): one line + StatStrip; the
           prose subtitle is gone (Pear's follow-up note lives in the
           rail). Secondary actions fold into the ⋯ menu. */}
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         <PageIntro
           eyebrow={siteName ? `Guests · ${siteName}` : 'Guests'}
           title="The guest list."
@@ -1174,8 +1188,8 @@ export function DashGuests() {
       <main
         className="pd-guests-main"
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 32px',
-          maxWidth: 1180,
+          padding: '0 var(--pl-dash-pad) 32px',
+          maxWidth: 'var(--pl-dash-maxw)',
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1fr) 300px',
@@ -1184,42 +1198,6 @@ export function DashGuests() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* PER-EVENT HEADCOUNT — one compact chip row (plan:
-              by-event cards → chips), hscroll on phones so the
-              roster stays inside the first viewport. Only when
-              there are 2+ events. */}
-          {showPerEvent && (
-            <div className="pl-hscroll" style={{ gap: 8, alignItems: 'center' }}>
-              <span style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, flexShrink: 0 }}>BY EVENT</span>
-              {events.map((ev) => {
-                const c = perEventCounts[ev.id] ?? { yes: 0, maybe: 0 };
-                return (
-                  <span
-                    key={ev.id}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'baseline',
-                      gap: 6,
-                      padding: '8px 12px',
-                      borderRadius: 999,
-                      background: PD.paperCard,
-                      border: '1px solid rgba(31,36,24,0.10)',
-                      fontSize: 12,
-                    }}
-                  >
-                    <span style={{ fontWeight: 600, color: PD.ink, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {ev.name ?? 'Event'}
-                    </span>
-                    <span style={{ color: PD.olive, fontWeight: 700, whiteSpace: 'nowrap' }}>{c.yes} yes</span>
-                    {c.maybe > 0 && (
-                      <span style={{ color: PD.gold, whiteSpace: 'nowrap' }}>· {c.maybe} maybe</span>
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
           {/* NUDGE — when N guests opened the invite but haven't
               replied, surface a one-line peach pill. Tapping
               "Send a nudge" opens the composer with Pear's draft
@@ -1292,6 +1270,7 @@ export function DashGuests() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
+                flexWrap: 'wrap',
                 padding: '10px 14px',
                 background: 'var(--lavender-bg, rgba(232,224,240,0.6))',
                 border: '1px solid var(--lavender-ink, rgba(124,108,150,0.3))',
@@ -1299,7 +1278,7 @@ export function DashGuests() {
               }}
             >
               <span aria-hidden style={{ fontSize: 15, fontWeight: 700, color: 'var(--lavender-ink, #6E5E86)' }}>≈</span>
-              <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
+              <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: '1 1 220px', minWidth: 0 }}>
                 <strong style={{ fontWeight: 700 }}>{duplicateIds.size}</strong>{' '}
                 {duplicateIds.size === 1 ? 'guest looks' : 'guests look'} like possible duplicates — same email or a near-identical name.
               </span>
@@ -1380,7 +1359,7 @@ export function DashGuests() {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search by name, tag, or note"
+                  placeholder="Search guests"
                   style={{
                     border: 'none',
                     background: 'transparent',
@@ -1553,32 +1532,66 @@ export function DashGuests() {
                             }}
                           >
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{g.em}</span>
-                            {guestLink(g) && (
-                              <button
-                                type="button"
-                                onClick={() => setShareGuest(g)}
-                                title="Share this guest's personal invite link"
-                                style={{
-                                  flexShrink: 0,
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  color: 'var(--sage-deep, #5C6B3F)',
-                                  background: 'transparent',
-                                  cursor: 'pointer',
-                                  fontFamily: 'inherit',
-                                  border: '1px solid rgba(92,107,63,0.35)',
-                                  borderRadius: 999,
-                                  padding: '1px 8px',
-                                }}
-                              >
-                                Invite ↗
-                              </button>
-                            )}
-                            <GuestRowActions
-                              siteId={site.id}
-                              guest={g}
-                              onChanged={() => setRefreshKey((k) => k + 1)}
-                            />
+                            {/* Action chips reveal on row hover/focus at
+                                desktop and hide on phones (the row sheet
+                                carries the same actions) — always-visible
+                                chips made every row a 3-line, 150px stack
+                                (plan-2 §2 rsvp). CSS: .pd-guests-rowactions
+                                in pearloom.css. */}
+                            <span
+                              className="pd-guests-rowactions"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', rowGap: 4 }}
+                            >
+                              {guestLink(g) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setShareGuest(g)}
+                                  title="Share this guest's personal invite link"
+                                  style={{
+                                    flexShrink: 0,
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    color: 'var(--sage-deep, #5C6B3F)',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit',
+                                    border: '1px solid rgba(92,107,63,0.35)',
+                                    borderRadius: 999,
+                                    padding: '1px 8px',
+                                  }}
+                                >
+                                  Invite ↗
+                                </button>
+                              )}
+                              <GuestRowActions
+                                siteId={site.id}
+                                guest={g}
+                                onChanged={() => setRefreshKey((k) => k + 1)}
+                              />
+                            </span>
+                            {/* Phone: one quiet opener for the row sheet in
+                                place of the chip run. */}
+                            <button
+                              type="button"
+                              className="pd-guests-rowmore"
+                              aria-label={`Open actions for ${g.n}`}
+                              onClick={() => setDetailGuest(g)}
+                              style={{
+                                flexShrink: 0,
+                                fontSize: 14,
+                                lineHeight: 1,
+                                fontWeight: 700,
+                                color: 'var(--ink-muted, #6A6A56)',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
+                                border: '1px solid rgba(31,36,24,0.18)',
+                                borderRadius: 999,
+                                padding: '1px 9px 4px',
+                              }}
+                            >
+                              &hellip;
+                            </button>
                           </div>
                           {(g.invitedAt || g.respondedAt) && (
                             <div
@@ -1634,7 +1647,9 @@ export function DashGuests() {
                           )}
                         </div>
                       </div>
-                      <div style={{ fontSize: 13 }}>{g.party}</div>
+                      {/* Blank when the party is just the guest again
+                          (plan-2 §2 rsvp: no duplicated name column). */}
+                      <div style={{ fontSize: 13 }}>{g.party === g.n ? '' : g.party}</div>
                       <div>
                         <span
                           style={{
@@ -3182,13 +3197,13 @@ function WhoCanReplyPanel({
             <strong style={{ fontWeight: 700, color: PD.ink }}>
               {guestCount} {guestCount === 1 ? 'person is' : 'people are'} on your list.
             </strong>{' '}
-            Switch to <em>Invited only</em> so strangers with the link can&rsquo;t RSVP — only
+            Switch to <em>Invited only</em>{' '}so strangers with the link can&rsquo;t RSVP — only
             guests who find their name on your list get through.
           </>
         ) : value && guestCount === 0 ? (
           <>
             <strong style={{ fontWeight: 700, color: PD.terra }}>Your guest list is empty.</strong>{' '}
-            With <em>Invited only</em> on and no guests, <strong>no one can reply yet</strong>. Add
+            With <em>Invited only</em>{' '}on and no guests, <strong>no one can reply yet</strong>. Add
             guests (or import a list) so they can find their name — or switch back to <em>Anyone</em>.
           </>
         ) : value ? (

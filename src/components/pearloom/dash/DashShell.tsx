@@ -602,7 +602,7 @@ const CREST_TINTS = {
   plum:     { bg: 'rgba(122,45,45,0.10)',          fg: 'var(--pl-plum, #7A2D2D)' },
 } as const;
 
-function crestTint(occasion?: string): { bg: string; fg: string } {
+export function crestTint(occasion?: string): { bg: string; fg: string } {
   switch (occasion) {
     case 'wedding': case 'engagement': case 'anniversary': case 'vow-renewal':
       return CREST_TINTS.peach;
@@ -1362,14 +1362,14 @@ export function DashTopbar({
         // average viewports — pushing 6-card grids below the fold
         // unnecessarily. New scale (16-28 top / 8-12 bottom) keeps
         // the editorial feel without forcing a scroll.
-        padding: 'clamp(16px, 2.6vw, 28px) clamp(20px, 4vw, 40px) clamp(8px, 1.4vw, 12px)',
+        padding: 'clamp(16px, 2.6vw, 28px) var(--pl-dash-pad) clamp(8px, 1.4vw, 12px)',
         // Match page content maxWidth (1240) so the title aligns
         // with the content rail beneath it. Left-aligned with an
         // in-flow action cluster — the old centered title +
         // absolute right cluster could overlap at mid widths, and
         // split the dashboard into two title paradigms (Home was
         // already left-aligned).
-        maxWidth: 1240,
+        maxWidth: 'var(--pl-dash-maxw)',
         margin: '0 auto',
         width: '100%',
         display: 'flex',

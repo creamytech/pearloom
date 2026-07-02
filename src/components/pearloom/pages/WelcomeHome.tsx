@@ -166,6 +166,26 @@ export function WelcomeHome() {
   const occasion = site?.occasion ?? 'wedding';
   /* Work-zone breakpoint — inline (see the grid comment below). */
   const workZoneNarrow = useIsMobile(920);
+  /* Sticky rail (plan-2 §1-A #4) — but only while the rail actually
+     FITS the viewport: a pinned rail taller than the window traps
+     its bottom cards off-screen (sticky stops scrolling them into
+     view). Measured, not assumed. Callback-ref state so the
+     observer re-attaches across conditional mounts. */
+  const [railEl, setRailEl] = useState<HTMLDivElement | null>(null);
+  const [railFits, setRailFits] = useState(false);
+  useEffect(() => {
+    if (railEl == null) return;
+    const update = () => setRailFits(railEl.offsetHeight <= window.innerHeight - 32);
+    const raf = requestAnimationFrame(update);
+    const ro = new ResizeObserver(update);
+    ro.observe(railEl);
+    window.addEventListener('resize', update);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [railEl]);
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
 
@@ -407,11 +427,11 @@ export function WelcomeHome() {
           // the "Ask Pear to plan" action when the Director doesn't
           // apply to the occasion (cockpit handles a missing askHref).
           askHref={isDashSurfaceApplicable('director', occasion) ? '/dashboard/director' : undefined}
+          coverPhoto={(manifest?.coverPhoto ?? '').trim() || site?.coverPhoto || null}
+          occasion={occasion}
         />
 
         <StatStrip items={statItems} />
-
-        <QuickJumps jumps={quickJumps} />
 
         {/* Two-column work zone — same shape as the design.
             Stacks below 920px so phones get a single column.
@@ -442,10 +462,40 @@ export function WelcomeHome() {
                 onDismiss={dismissFirstThread}
               />
             )}
-            <NeedsYouNow rows={pearTodos} phaseLabel={phaseLabel} phaseNote={phaseNote} />
-            <Lately items={latelyItems} />
+            {/* Sparse activity (<3 items) folds into the decision
+                queue as a footer list — a full-width Lately card
+                holding one line was dead paper (plan-2 §2 home). */}
+            <NeedsYouNow
+              rows={pearTodos}
+              phaseLabel={phaseLabel}
+              phaseNote={phaseNote}
+              lately={latelyItems.length > 0 && latelyItems.length < 3 ? latelyItems : undefined}
+            />
+            {/* Quick jumps ride BELOW the decision queue (plan-2 §1-G)
+                so the first decision card lands inside viewport 1 on
+                phones instead of a wall of nav tiles. */}
+            <QuickJumps jumps={quickJumps} />
+            {latelyItems.length >= 3 && <Lately items={latelyItems} />}
+            {/* Plan-2 §1-A: the roadmap + sibling suggestions live in
+                the MAIN column (they're list-heavy), and the long-view
+                timeline closes the column at content width — the rail
+                keeps only the glanceable cards, so the two columns
+                bottom out together instead of leaving ~950px of empty
+                paper beside the rail. */}
+            <Milestones milestones={milestones} dateShort={eventDateShort} />
+            <SiblingEventsCard occasion={occasion} sites={sites ?? []} origin={site ?? null} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div
+            ref={setRailEl}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              // Sticky rail (plan-2 §1-A #4) — a short rail rides along
+              // instead of leaving dead paper as the main column grows.
+              ...(workZoneNarrow || !railFits ? {} : { position: 'sticky' as const, top: 16 }),
+            }}
+          >
             {site?.domain && (
               <HomeSitePreview
                 names={namesArr}
@@ -486,12 +536,15 @@ export function WelcomeHome() {
                 card stands down. */}
             {rsvpMomentum && nextStep?.id !== 'nudge' && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
-            <Milestones milestones={milestones} dateShort={eventDateShort} />
-            <SiblingEventsCard occasion={occasion} sites={sites ?? []} origin={site ?? null} />
+          </div>
+          {/* The long view closes the page at CONTENT width — a grid
+              child pinned to column 1 (plan-2 §1-A #2: "gridColumn: 1
+              width, not full-bleed"), so it rides below whichever
+              column runs longer instead of stretching under the rail. */}
+          <div style={workZoneNarrow ? undefined : { gridColumn: 1 }}>
+            <TheLongView dateShort={eventDateShort} solemn={occasion === 'memorial' || occasion === 'funeral'} />
           </div>
         </div>
-
-        <TheLongView dateShort={eventDateShort} solemn={occasion === 'memorial' || occasion === 'funeral'} />
       </div>
 
     </DashLayout>
@@ -653,11 +706,10 @@ function GuestPulse({
   loading: boolean;
 }) {
   void domain;
-  // Narrow: the 4-up legend squeezes "PENDING" past its column —
-  // fall back to a 2×2 grid. Tiny (≤360, SE-class phones): even
-  // 2-up clips — single column.
-  const isNarrow = useIsMobile(720);
-  const isTiny = useIsMobile(360);
+  // Legend columns follow the CARD's width, not the window's — the
+  // card lives in the 320px rail at desktop where a 4-up legend
+  // squeezed "PENDING" past its column (plan-2 §1-B). @container
+  // rules in pearloom.css (.pl8-home-pulse / .pl8-pulse-legend).
   if (loading) {
     return (
       <div className="card" style={{ padding: 20, borderRadius: 20 }}>
@@ -715,7 +767,7 @@ function GuestPulse({
   ];
 
   return (
-    <div className="card" style={{ padding: 20, borderRadius: 20 }}>
+    <div className="card pl8-home-pulse" style={{ padding: 20, borderRadius: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="users" size={15} color="var(--gold)" />
@@ -758,7 +810,7 @@ function GuestPulse({
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isTiny ? '1fr' : isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 6 }}>
+      <div className="pl8-pulse-legend">
         {segs.map((s) => (
           <div key={s.label} style={{ padding: '8px 6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -1016,14 +1068,15 @@ function buildMilestones({
 }
 
 function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
-  // Narrow: the date/dot/title/annotation 4-column row wraps
-  // awkwardly — drop the annotation onto its own muted line under
-  // the title and tighten the date gutter. Tiny (≤360): tighten
-  // the date gutter further so the title keeps a readable column.
-  const isNarrow = useIsMobile(720);
-  const isTiny = useIsMobile(360);
+  // Container-sized rows (plan-2 §1-B): the card renders the wide
+  // 4-column row (annotation in a trailing column) only when the
+  // CARD itself has room — not when the window does. In a narrow
+  // container (the 320px rail, a phone column) the annotation drops
+  // onto its own muted line under the title and the date gutter
+  // tightens. CSS @container rules live in pearloom.css
+  // (.pl8-home-milestones / .pl8-milestone-row).
   return (
-    <div className="card" style={{ padding: 20, borderRadius: 20 }}>
+    <div className="card pl8-home-milestones" style={{ padding: 20, borderRadius: 20 }}>
       <SectionHeader icon="calendar">
         {dateShort ? <>The road to {dateShort}</> : 'Your timeline'}
       </SectionHeader>
@@ -1034,11 +1087,8 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
           return (
             <div
               key={i}
+              className="pl8-milestone-row"
               style={{
-                display: 'grid',
-                gridTemplateColumns: isTiny ? '48px 18px 1fr' : isNarrow ? '64px 22px 1fr' : '76px 22px 1fr auto',
-                gap: isTiny ? 8 : isNarrow ? 10 : 12,
-                alignItems: 'center',
                 padding: '12px 0',
                 borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',
               }}
@@ -1080,13 +1130,11 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
                 >
                   {m.label}
                 </div>
-                {isNarrow && m.sub && (
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{m.sub}</div>
+                {m.sub && (
+                  <div className="pl8-milestone-sub-inline" style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{m.sub}</div>
                 )}
               </div>
-              {!isNarrow && (
-                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
-              )}
+              <div className="pl8-milestone-sub-col" style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
             </div>
           );
         })}
@@ -1374,9 +1422,12 @@ function SiblingEventsCard({
               border: '1px dashed var(--line)', textDecoration: 'none',
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' }}>{e.label}</span>
-            <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.blurb}</span>
-            <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
+            {/* Label may wrap; the blurb owns the leftover width and
+                ellipsizes — nowrap-on-both overprinted in narrow
+                columns (plan-2 §1-B). */}
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', flexShrink: 0, maxWidth: '60%' }}>{e.label}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.blurb}</span>
+            <span aria-hidden style={{ color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
           </Link>
         ))}
       </div>

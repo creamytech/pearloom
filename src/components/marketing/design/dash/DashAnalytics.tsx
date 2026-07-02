@@ -461,7 +461,7 @@ export function DashAnalytics() {
               }}
             >
               {depth.length === 0
-                ? '"Your site&rsquo;s quiet for now. Every visit tells us a little more."'
+                ? '"Your site’s quiet for now. Every visit tells us a little more."'
                 : depth.length >= 4 && depth[3].pct < 50
                 ? '"Guests drop off around the middle sections. Want me to tighten them?"'
                 : '"Your top sections are holding attention. Keep the thread going."'}
@@ -469,7 +469,10 @@ export function DashAnalytics() {
             <div style={{ display: 'flex', gap: 8, position: 'relative', flexWrap: 'wrap' }}>
               <button
                 className="pl8-btnfx"
-                style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
+                // Dark-panel ghost: btnGhost's cream --card fill +
+                // cream text rendered a blank pill on the ink panel
+                // (plan-2 §3.2) — transparent fill, cream hairline.
+                style={{ ...btnGhost, background: 'transparent', color: PD.paper, borderColor: 'rgba(244,236,216,0.4)' }}
                 onClick={() => setReadingDismissed(true)}
               >
                 Dismiss

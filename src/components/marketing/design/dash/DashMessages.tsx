@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
+import { PageIntro, HintChip, RailCard } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite } from './hooks';
 import { useMessagePings } from '@/lib/messages-realtime';
 
@@ -117,7 +117,7 @@ export function DashMessages() {
     <DashLayout active="guests" hideTopbar>
       {/* Quiet header (plan rule 1): one line; the two-paragraph
           explainer lives behind a HintChip. */}
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         <PageIntro
           eyebrow="Messages"
           title="One thread, every guest."
@@ -133,20 +133,20 @@ export function DashMessages() {
       </div>
 
       {!loading && !site ? (
-        <div style={{ padding: '0 clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
+        <div style={{ padding: '0 var(--pl-dash-pad) 60px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
           <EmptyShell message="Create a site first — its guest thread starts the moment invites go out." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       ) : (
         <main
           className="pd-messages-main"
           style={{
-            padding: '0 clamp(20px, 4vw, 40px) 40px',
-            maxWidth: 1240, margin: '0 auto',
-            display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 20, alignItems: 'flex-start',
+            padding: '0 var(--pl-dash-pad) 40px',
+            maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto',
+            display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 20, alignItems: 'start',
           }}
         >
           {/* ── The guest thread ── */}
-          <Panel bg={PD.paperCard} style={{ padding: 22 }}>
+          <Panel bg={PD.paperCard} style={{ padding: 22, display: 'flex', flexDirection: 'column' }}>
             <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 12 }}>THE GUEST THREAD</div>
             {hideError && (
               <div
@@ -160,7 +160,7 @@ export function DashMessages() {
                 {hideError}
               </div>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 460, overflowY: 'auto', marginBottom: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, maxHeight: 460, overflowY: 'auto', marginBottom: 14 }}>
               {party === null ? (
                 <div style={{ fontSize: 13, fontStyle: 'italic', color: PD.inkSoft }}>Threading…</div>
               ) : party.length === 0 ? (
@@ -226,9 +226,9 @@ export function DashMessages() {
             </form>
           </Panel>
 
-          {/* ── Direct messages ── */}
-          <Panel bg={PD.paper2} style={{ padding: 22 }}>
-            <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 12 }}>DIRECT MESSAGES</div>
+          {/* ── Direct messages — RailCard chrome so both columns
+              read as one system (plan-2 §2 messages). ── */}
+          <RailCard title="Direct messages">
             {dms.length === 0 ? (
               <div style={{ fontSize: 13, color: PD.inkSoft, lineHeight: 1.55 }}>
                 When a guest writes to you privately from their passport page, the conversation lands here.
@@ -314,7 +314,7 @@ export function DashMessages() {
                 Replies reach guests on their passport page — and a bell ping lands here when they write back.
               </div>
             )}
-          </Panel>
+          </RailCard>
         </main>
       )}
 

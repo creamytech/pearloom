@@ -330,7 +330,7 @@ function MomentTimeline({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="clock" size={18} color="var(--gold)" />
-            <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+            <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
               {heading}
             </h3>
           </div>
@@ -351,7 +351,7 @@ function MomentTimeline({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="clock" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             {heading}
           </h3>
         </div>
@@ -369,7 +369,10 @@ function MomentTimeline({
               className="pl8-dayof-tlrow"
               style={{
                 display: 'grid',
-                gridTemplateColumns: '48px 60px minmax(0, 1fr) auto',
+                // Time column sizes to its content ("4:00 PM" never
+                // wraps to "4:00 / PM" — plan-2 §3.6) with a 72px
+                // floor so the rows keep a shared gutter.
+                gridTemplateColumns: '48px minmax(72px, auto) minmax(0, 1fr) auto',
                 gap: 14,
                 alignItems: 'center',
                 padding: '10px 8px',
@@ -404,6 +407,7 @@ function MomentTimeline({
                   fontFamily: 'var(--font-display)',
                   fontSize: 18,
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
                   color: isDone ? 'var(--ink-muted)' : 'var(--ink)',
                 }}
               >
@@ -501,7 +505,7 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="image" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             {heading}
           </h3>
           {items.length > 0 && (
@@ -643,7 +647,7 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="users" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             {heading}
           </h3>
         </div>
@@ -791,7 +795,7 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="mail" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             {heading}
           </h3>
         </div>
@@ -931,7 +935,7 @@ function SongQueue({ siteId }: { siteId?: string | null }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="music" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             On the floor
           </h3>
         </div>
@@ -1143,7 +1147,7 @@ function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?:
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="mic" size={18} color="var(--gold)" />
-          <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
             {heading}
           </h3>
           {items.length > 0 && (
@@ -1338,7 +1342,7 @@ function WhoToCall({ siteId }: { siteId?: string | null }) {
     <div className="card" style={{ padding: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <Icon name="phone" size={18} color="var(--gold)" />
-        <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+        <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
           Who to call
         </h3>
         {items.length > 0 && (
@@ -1604,7 +1608,9 @@ export function DayOfV8() {
       <style jsx global>{`
         @media (max-width: 640px) {
           .pl8-dayof-tlrow {
-            grid-template-columns: 36px 52px minmax(0, 1fr) !important;
+            /* Time track sizes to its content — a fixed 52px forced
+               "4:00 PM" to wrap/overprint (plan-2 §3.6). */
+            grid-template-columns: 36px minmax(56px, auto) minmax(0, 1fr) !important;
             gap: 10px !important;
           }
           .pl8-dayof-tlstatus {

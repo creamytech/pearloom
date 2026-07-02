@@ -212,7 +212,9 @@ export function BroadcastComposer({ subdomain }: Props) {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+      {/* Wraps below ~480px so the input stacks above Send instead of
+          squeezing to ~150px beside it (plan-2 day-of row). */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -220,7 +222,8 @@ export function BroadcastComposer({ subdomain }: Props) {
           rows={2}
           maxLength={200}
           style={{
-            flex: 1,
+            flex: '1 1 260px',
+            minWidth: 0,
             padding: '10px 12px',
             borderRadius: 10,
             border: '1px solid var(--line)',

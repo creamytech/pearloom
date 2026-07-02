@@ -298,7 +298,11 @@ export function QrPosterPage() {
         {/* Controls rail — hidden when printing. Placed AFTER the
             poster visually: column 2 on desktop, below it on phones
             (grid-row rules in the styled-jsx block). */}
-        <div className="pl8-no-print pl8-qr-controls" style={{ display: 'grid', gap: 14, alignContent: 'start', minWidth: 0 }}>
+        {/* Sticky (plan-2 §2 qr-poster): the ~620px control stack
+            rides along the 1290px poster instead of leaving ~670px
+            of dead rail. The phone stack (grid-row rules) is
+            unaffected — sticky is inert in a single column. */}
+        <div className="pl8-no-print pl8-qr-controls" style={{ display: 'grid', gap: 14, alignContent: 'start', minWidth: 0, position: 'sticky', top: 16 }}>
           {/* Mode toggle: classic editorial vs AI-themed */}
           <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2, alignSelf: 'flex-start' }}>
             {(

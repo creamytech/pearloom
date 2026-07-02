@@ -290,7 +290,7 @@ export function NotificationBell() {
               justifyContent: 'space-between',
             }}
           >
-            <h3 className="display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
+            <h3 className="display display-card" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
               Activity
             </h3>
             <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>

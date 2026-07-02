@@ -218,7 +218,7 @@ export function TwoTapThanks() {
       <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>
         Two-tap thanks
       </div>
-      <h3 className="display" style={{ margin: 0, fontSize: 26 }}>
+      <h3 className="display display-card" style={{ margin: 0, fontSize: 26 }}>
         Drafted from <span className="display-italic">what they did.</span>
       </h3>
       {/* The old always-mounted how-to card is now a dismissible
@@ -256,6 +256,9 @@ export function TwoTapThanks() {
         </div>
       ) : (
         <>
+          {/* Scroll cue (plan-2 §3.9): the grid clipped mid-row at
+              maxHeight 220 with zero affordance — a bottom fade +
+              a count line under it say "there's more". */}
           <div
             style={{
               display: 'grid',
@@ -264,6 +267,12 @@ export function TwoTapThanks() {
               maxHeight: 220,
               overflowY: 'auto',
               paddingRight: 4,
+              ...(top.length > 8
+                ? {
+                    WebkitMaskImage: 'linear-gradient(to top, transparent 0, black 28px)',
+                    maskImage: 'linear-gradient(to top, transparent 0, black 28px)',
+                  }
+                : {}),
             }}
           >
             {top.map((g) => {
@@ -300,6 +309,11 @@ export function TwoTapThanks() {
               );
             })}
           </div>
+          {top.length > 8 && (
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: -6 }}>
+              {visibleGuests.length} {visibleGuests.length === 1 ? 'guest' : 'guests'} in the list — scroll for more
+            </div>
+          )}
 
           {current && (
             <div style={{ background: 'var(--cream-2)', borderRadius: 12, padding: 14 }}>

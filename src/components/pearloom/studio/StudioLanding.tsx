@@ -60,7 +60,7 @@ export function StudioLanding({ onPick }: { onPick: (t: StationeryType) => void 
         </Link>
       </div>
 
-      <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px clamp(20px, 5vw, 48px) 64px' }}>
+      <div style={{ maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', padding: '12px var(--pl-dash-pad) 64px' }}>
         {/* Headline — quiet PageIntro (DASHBOARD-LAYOUT-PLAN rule 1):
             one display line; the three cards below name their own
             jobs, so the old paragraph is gone. */}

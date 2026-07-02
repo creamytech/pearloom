@@ -13,6 +13,7 @@
 // ──────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
+import { StatStrip } from '@/components/pearloom/dash/QuietDash';
 
 interface Payment {
   id: string;
@@ -63,17 +64,16 @@ export function PaymentsPanel({ siteId }: Props) {
   // PLHead) owns the "Gifts & payments" title.
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 12,
-        }}
-      >
-        <Stat label="Total received" value={`$${formatPrice(totals.gross / 100)}`} sub={`${totals.count} ${totals.count === 1 ? 'gift' : 'gifts'}`} />
-        <Stat label="Your net" value={`$${formatPrice(totals.net / 100)}`} sub="After platform fee" />
-        <Stat label="Platform fee" value={`$${formatPrice(totals.fee / 100)}`} sub="3% of gross" muted />
-      </div>
+      {/* Quiet StatStrip (plan rule 3, plan-2 §2 payments) — the
+          three 120px KPI cards showing $0.00 pre-launch collapse to
+          one short chip; with money moving they read as 40px chips. */}
+      <StatStrip
+        items={[
+          { label: 'received', value: totals.gross, display: `$${formatPrice(totals.gross / 100)}`, tone: 'sage' },
+          { label: 'your net', value: totals.net, display: `$${formatPrice(totals.net / 100)}`, tone: 'gold' },
+          { label: totals.count === 1 ? 'gift' : 'gifts', value: totals.count },
+        ]}
+      />
 
       {loading ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>Threading…</div>
@@ -166,27 +166,6 @@ export function PaymentsPanel({ siteId }: Props) {
           }
         }
       `}</style>
-    </div>
-  );
-}
-
-function Stat({ label, value, sub, muted }: { label: string; value: string; sub?: string; muted?: boolean }) {
-  return (
-    <div
-      style={{
-        background: 'var(--card, #FBF7EE)',
-        border: '1px solid var(--card-ring, rgba(61,74,31,0.14))',
-        borderRadius: 12, padding: 16,
-        opacity: muted ? 0.85 : 1,
-      }}
-    >
-      <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600 }}>
-        {label}
-      </div>
-      <div style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 28, marginTop: 6, color: 'var(--ink)' }}>
-        {value}
-      </div>
-      {sub && <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }

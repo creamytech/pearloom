@@ -432,7 +432,7 @@ export function VendorBookClient() {
           "everyone you've hired…" prose is gone (the empty state
           carries the invitation) and Add a vendor rides the
           actions row. */}
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <PageIntro
           eyebrow="Vendors"
           title="The vendor book."
@@ -452,8 +452,8 @@ export function VendorBookClient() {
       </div>
       <div
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 60px',
-          maxWidth: 1180,
+          padding: '0 var(--pl-dash-pad) 60px',
+          maxWidth: 'var(--pl-dash-maxw)',
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',

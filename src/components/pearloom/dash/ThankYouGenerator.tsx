@@ -44,7 +44,7 @@ export function ThankYouGenerator() {
       }}
     >
       <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>After the event</div>
-      <h3 className="display" style={{ margin: 0, fontSize: 26 }}>
+      <h3 className="display display-card" style={{ margin: 0, fontSize: 26 }}>
         Thank-you notes, <span className="display-italic">drafted.</span>
       </h3>
       <AIHint>

@@ -98,7 +98,7 @@ export function AnniversaryPreview() {
         <Heart size={22} color="var(--peach-ink)" />
         <div style={{ flex: 1 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>Anniversary nudges</div>
-          <h3 className="display" style={{ margin: 0, fontSize: 26 }}>
+          <h3 className="display display-card" style={{ margin: 0, fontSize: 26 }}>
             A chapter on <span className="display-italic">the day.</span>
           </h3>
         </div>

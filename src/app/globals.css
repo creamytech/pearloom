@@ -862,6 +862,16 @@ input:focus, textarea:focus, select:focus {
   border-radius: 4px;
 }
 
+/* ── Dashboard content clamp + gutter (plan-2 §1-D) — ONE pair of
+   tokens for every /dashboard route. The audit measured four
+   different max-widths (1080/1160/1180/1240) and three gutters
+   across sibling pages; DashLayout, PLChrome, and the standalone
+   clients all consume these instead of hardcoding their own. */
+:root {
+  --pl-dash-maxw: 1240px;
+  --pl-dash-pad: clamp(20px, 4vw, 40px);
+}
+
 /* ── Horizontal scroll strip — tab / chip rows that would otherwise
    wrap into cramped multi-row stacks on mobile. Single row, swipe to
    reveal the rest, no visible scrollbar. */

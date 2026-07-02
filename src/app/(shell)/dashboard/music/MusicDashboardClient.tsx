@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
+import { EmptyState } from '@/components/shell/EmptyState';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 interface SongRow {
@@ -124,7 +125,7 @@ export function MusicDashboardClient() {
 
   return (
     <DashLayout active="music" hideTopbar>
-      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ padding: '20px var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line —
             the column hints below already explain the triage. */}
         <PageIntro eyebrow="Music" title="The guest playlist" style={{ marginBottom: 0 }} />
@@ -211,27 +212,44 @@ export function MusicDashboardClient() {
               </div>
             )}
 
-            {/* Three columns: pending / accepted / hidden. Each
-                has an empty state so the host can tell when there
-                are no rows in that bucket vs. data still loading. */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 16,
-              }}
-            >
-              {(['queued', 'accepted', 'hidden'] as State[]).map((s) => (
-                <Column
-                  key={s}
-                  state={s}
-                  rows={grouped[s]}
-                  loading={songs === null}
-                  busyId={busyId}
-                  onSetState={setState}
+            {/* Three columns: pending / accepted / hidden. When ALL
+                three lanes are empty, ONE EmptyState stands in for the
+                board — three side-by-side "nothing yet" sentences on
+                one screen violated plan rule 5 (plan-2 §2 music). */}
+            {songs !== null && songs.length === 0 ? (
+              <section
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 16,
+                }}
+              >
+                <EmptyState
+                  eyebrow="The guest playlist"
+                  title="Nothing yet. Begin a thread."
+                  description="When guests suggest songs on your site, they land here — approve them onto the playlist or tuck them away."
                 />
-              ))}
-            </div>
+              </section>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: 16,
+                }}
+              >
+                {(['queued', 'accepted', 'hidden'] as State[]).map((s) => (
+                  <Column
+                    key={s}
+                    state={s}
+                    rows={grouped[s]}
+                    loading={songs === null}
+                    busyId={busyId}
+                    onSetState={setState}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Pear pulls accepted songs from this surface into
                 the memory book. Surface that connection so hosts

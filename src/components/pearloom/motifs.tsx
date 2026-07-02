@@ -913,22 +913,52 @@ export function PhotoPlaceholder({
     field: 'linear-gradient(160deg, #CBD29E 0%, #8B9C5A 55%, #F0C9A8 100%)',
     dusk: 'linear-gradient(200deg, #C4B5D9 0%, #F0C9A8 70%, #CBD29E 100%)',
   };
+  // A cover that fails to load falls back to the tone gradient
+  // (plan-2 §3.8) — the old CSS background url() showed a flat
+  // blank slot with no error signal. The <img> gives us onError;
+  // it also naturally quotes/escapes URLs with spaces or parens.
+  const [failed, setFailed] = React.useState(false);
+  const [prevSrc, setPrevSrc] = React.useState(src);
+  if (prevSrc !== src) {
+    // Render-time adjustment (not setState-in-effect): a new src
+    // gets a fresh chance to load.
+    setPrevSrc(src);
+    setFailed(false);
+  }
+  const showImg = Boolean(src) && !failed;
   return (
     <div
       className={className}
       style={{
         width,
         aspectRatio: aspect,
-        background: src ? `#e8e4d5 url(${src}) center/cover no-repeat` : bgs[tone] ?? bgs.lavender,
+        background: showImg ? '#e8e4d5' : bgs[tone] ?? bgs.lavender,
         display: 'grid',
         placeItems: 'center',
         color: 'rgba(61,74,31,0.5)',
         fontFamily: 'var(--font-script)',
         fontSize: 22,
+        position: 'relative',
+        overflow: 'hidden',
         ...style,
       }}
     >
-      {!src && label}
+      {showImg && (
+        <img
+          src={src}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+      )}
+      {!showImg && label}
     </div>
   );
 }

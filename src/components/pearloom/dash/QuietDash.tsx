@@ -26,6 +26,34 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 
+/** True while `el` still has content hidden past its right edge —
+ *  drives the StatStrip's edge-fade affordance (plan-2 §1-E). Kept
+ *  fresh via scroll + ResizeObserver; the initial measure rides a
+ *  rAF so there's no synchronous setState-in-effect. */
+export function useRightOverflow<T extends HTMLElement>() {
+  // State (callback-ref) rather than a ref object so the observer
+  // re-attaches if the scroller mounts on a later render (e.g. a
+  // strip that starts all-zeros and gains live chips after fetch).
+  const [el, setEl] = useState<T | null>(null);
+  const [clipped, setClipped] = useState(false);
+  useEffect(() => {
+    if (el == null) return;
+    const update = () => {
+      setClipped(el.scrollWidth - el.clientWidth - el.scrollLeft > 4);
+    };
+    const raf = requestAnimationFrame(update);
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+    };
+  }, [el]);
+  return { ref: setEl, clipped };
+}
+
 // ── PageIntro ────────────────────────────────────────────────
 
 export function PageIntro({
@@ -104,6 +132,9 @@ export function PageIntro({
 export interface StatStripItem {
   label: string;
   value: number;
+  /** Formatted value to render (e.g. "$1,240") — `value` still
+   *  drives the zero-collapse behaviour. */
+  display?: string;
   tone?: 'sage' | 'peach' | 'plum' | 'gold';
   href?: string;
 }
@@ -129,11 +160,52 @@ const CHIP_BASE: CSSProperties = {
 };
 
 export function StatStrip({ items, style }: { items: StatStripItem[]; style?: CSSProperties }) {
+  const { ref, clipped } = useRightOverflow<HTMLDivElement>();
   if (items.length === 0) return null;
   const live = items.filter((i) => i.value !== 0);
   const zeros = items.filter((i) => i.value === 0);
+  // Pre-launch strips (every stat zero) collapse to one short chip
+  // instead of a 470px "0 LISTED · 0 CLAIMED · …" run-on that can
+  // never fit a phone (plan-2 §1-E).
+  if (live.length === 0) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', ...style }}>
+        <span style={{ ...CHIP_BASE, background: 'transparent' }}>
+          <span
+            style={{
+              fontFamily: MONO,
+              fontSize: 9,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+            }}
+          >
+            Nothing yet
+          </span>
+        </span>
+      </div>
+    );
+  }
   return (
-    <div className="pl-hscroll" style={{ gap: 8, alignItems: 'center', ...style }}>
+    <div
+      ref={ref}
+      className="pl-hscroll"
+      style={{
+        gap: 8,
+        alignItems: 'center',
+        scrollPaddingRight: 24,
+        // Right-edge fade while chips are clipped mid-glyph — the
+        // cue that the strip scrolls (plan-2 §1-E). Removed once
+        // the strip is scrolled to its end.
+        ...(clipped
+          ? {
+              WebkitMaskImage: 'linear-gradient(to left, transparent 0, black 24px)',
+              maskImage: 'linear-gradient(to left, transparent 0, black 24px)',
+            }
+          : {}),
+        ...style,
+      }}
+    >
       {live.map((i) => {
         const inner = (
           <>
@@ -146,7 +218,7 @@ export function StatStrip({ items, style }: { items: StatStripItem[]; style?: CS
                 color: i.tone ? TONE_COLOR[i.tone] : 'var(--ink)',
               }}
             >
-              {i.value}
+              {i.display ?? i.value}
             </span>
             <span
               style={{
@@ -186,6 +258,9 @@ export function StatStrip({ items, style }: { items: StatStripItem[]; style?: CS
           </span>
         </span>
       )}
+      {/* Trailing spacer — lets the last chip scroll fully clear of
+          the fade mask. */}
+      <span aria-hidden style={{ flex: '0 0 16px' }} />
     </div>
   );
 }

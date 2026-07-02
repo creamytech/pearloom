@@ -738,9 +738,9 @@ export function Topbar({ subtitle, title, actions, children }: TopbarProps) {
         // dashboard pages don't tower over the v8 ones when the
         // user navigates between them. Same vertical scale + same
         // 1240 maxWidth as the rest of the dashboard.
-        padding: 'clamp(16px, 2.6vw, 28px) clamp(20px, 4vw, 40px) clamp(8px, 1.4vw, 12px)',
+        padding: 'clamp(16px, 2.6vw, 28px) var(--pl-dash-pad) clamp(8px, 1.4vw, 12px)',
         textAlign: 'center',
-        maxWidth: 1240,
+        maxWidth: 'var(--pl-dash-maxw)',
         margin: '0 auto',
         width: '100%',
         fontFamily: 'var(--font-ui)',

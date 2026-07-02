@@ -373,8 +373,8 @@ export function DashDirector() {
       <main
         className="pd-director-main"
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 32px',
-          maxWidth: 1240,
+          padding: '0 var(--pl-dash-pad) 32px',
+          maxWidth: 'var(--pl-dash-maxw)',
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '1fr 380px',
@@ -383,7 +383,10 @@ export function DashDirector() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Open topics */}
+          {/* Open topics — hidden while the director session holds
+              zero givens (a header-only hollow card said nothing;
+              plan-2 §2 director). */}
+          {openTopics.length > 0 && (
           <Panel bg={PD.paperCard} style={{ padding: 22 }}>
             <SectionTitle
               eyebrow="WHAT PEAR KNOWS"
@@ -417,6 +420,7 @@ export function DashDirector() {
               ))}
             </div>
           </Panel>
+          )}
 
           {/* From your vendor book — the ledger beside the budget */}
           {bookSummary && (
@@ -786,10 +790,15 @@ export function DashDirector() {
         {/* RIGHT: Chat */}
         <div
           className="pd-director-chat"
+          data-empty={conversation.length === 0 ? 'true' : undefined}
           style={{
             position: 'sticky',
             top: 72,
-            height: 'calc(100vh - 96px)',
+            // Empty conversations collapse to content height — a
+            // full-viewport card with ~350px of hollow paper between
+            // the intro and the chips read broken (plan-2 §2).
+            height: conversation.length > 0 ? 'calc(100vh - 96px)' : 'auto',
+            maxHeight: 'calc(100vh - 96px)',
             background: PD.paper3,
             borderRadius: 20,
             border: '1px solid rgba(31,36,24,0.12)',
@@ -1004,6 +1013,10 @@ export function DashDirector() {
             top: auto !important;
             height: 600px !important;
           }
+          /* Empty chat collapses to its intro + chips (plan-2 §2). */
+          :global(.pd-director-chat[data-empty='true']) {
+            height: auto !important;
+          }
           :global(.pd-week-weave) {
             grid-template-columns: 1fr !important;
           }
@@ -1018,6 +1031,10 @@ export function DashDirector() {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            /* Edge fade — the cue that the loom keeps going
+               (plan-2 §1-E; static CSS fallback). */
+            -webkit-mask-image: linear-gradient(to left, transparent 0, black 28px);
+            mask-image: linear-gradient(to left, transparent 0, black 28px);
           }
           :global(.pd-loom-scroll::-webkit-scrollbar) {
             display: none;

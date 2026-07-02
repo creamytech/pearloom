@@ -199,7 +199,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
 
   return (
     <DashLayout active="studio" hideTopbar>
-      <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 3vw, 32px) var(--pl-dash-pad) 60px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
 
         {/* Quiet header (plan rules 1 + 3): one line + the analyze
             action; "N of 8" rides a StatStrip chip and the pitch

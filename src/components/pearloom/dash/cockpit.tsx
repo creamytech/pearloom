@@ -18,9 +18,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon, PearloomGlyph, Sprig } from '../motifs';
+import { Icon, Sprig } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
+import { crestTint } from './DashShell';
 
 /** Eased count-up number, reduced-motion aware (renders the target
  *  directly when motion is reduced). */
@@ -91,6 +92,10 @@ export interface CountdownHeroProps {
   editorHref: string;
   /** Optional "Ask Pear" destination (the planning advisor). */
   askHref?: string;
+  /** The site's cover photo — fills the hero's right slot when set. */
+  coverPhoto?: string | null;
+  /** Occasion id — tints the crest fallback when there's no cover. */
+  occasion?: string;
 }
 
 const MARK_COLORS = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)'];
@@ -106,6 +111,8 @@ export function CountdownHero({
   liveHref,
   editorHref,
   askHref,
+  coverPhoto,
+  occasion,
 }: CountdownHeroProps) {
   // The hero is a fixed deep-ink surface in BOTH themes (a warm
   // near-black, not the --ink token, which flips to a light value in
@@ -225,22 +232,98 @@ export function CountdownHero({
           </div>
         </div>
 
-        {/* RIGHT — warm wash + laid texture + pear watermark */}
-        <div
-          aria-hidden
-          style={{
-            position: 'relative',
-            minHeight: 200,
-            background: 'linear-gradient(140deg, rgba(240,201,168,0.22), rgba(196,181,217,0.16))',
-            borderLeft: `1px solid ${hairline}`,
-            display: 'grid',
-            placeItems: 'center',
-          }}
-        >
-          <div className="pl-tx-laid" style={{ position: 'absolute', inset: 0, opacity: 0.5 }} />
-          <PearloomGlyph size={92} color="rgba(245,239,226,0.5)" />
-        </div>
+        {/* RIGHT — the site's cover photo in a hairline frame, or the
+            SiteCrest recipe (occasion-tinted paper + display-italic
+            initial + gold pearl). The old grey wash + ghost pear read
+            as a broken placeholder (plan-2 §1-F). */}
+        {coverPhoto ? (
+          <div
+            aria-hidden
+            className="pl8-cockpit-hero-slot"
+            style={{
+              position: 'relative',
+              borderLeft: `1px solid ${hairline}`,
+              padding: 10,
+            }}
+          >
+            <img
+              src={coverPhoto}
+              alt=""
+              style={{
+                position: 'absolute',
+                inset: 10,
+                width: 'calc(100% - 20px)',
+                height: 'calc(100% - 20px)',
+                objectFit: 'cover',
+                borderRadius: 10,
+                border: '1px solid var(--pl-gold, #C19A4B)',
+                display: 'block',
+              }}
+            />
+          </div>
+        ) : (
+          <CockpitCrestSlot names={names} occasion={occasion} hairline={hairline} />
+        )}
       </div>
+    </div>
+  );
+}
+
+// ── CockpitCrestSlot ─────────────────────────────────────────
+// The hero's right slot when there's no cover photo — the same
+// recipe as the sidebar's SiteCrest (occasion-tinted paper, the
+// celebration's initial in display italic, the gold pearl), scaled
+// to the slot. Never the grey wash + ghost watermark (plan-2 §1-F).
+
+function CockpitCrestSlot({
+  names,
+  occasion,
+  hairline,
+}: {
+  names: string[];
+  occasion?: string;
+  hairline: string;
+}) {
+  const tint = crestTint(occasion);
+  const letter = (names[0] ?? 'P').trim().charAt(0).toUpperCase() || 'P';
+  return (
+    <div
+      aria-hidden
+      className="pl8-cockpit-hero-slot"
+      style={{
+        position: 'relative',
+        borderLeft: `1px solid ${hairline}`,
+        display: 'grid',
+        placeItems: 'center',
+        background: tint.bg,
+        overflow: 'hidden',
+      }}
+    >
+      <div className="pl-tx-laid" style={{ position: 'absolute', inset: 0, opacity: 0.4 }} />
+      <span
+        style={{
+          position: 'relative',
+          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
+          fontWeight: 600,
+          fontSize: 'clamp(44px, 6vw, 72px)',
+          lineHeight: 1,
+          color: tint.fg,
+        }}
+      >
+        {letter}
+      </span>
+      <span
+        style={{
+          position: 'absolute',
+          right: 18,
+          bottom: 16,
+          width: 10,
+          height: 10,
+          borderRadius: 999,
+          background: 'var(--pl-gold, #C19A4B)',
+        }}
+      />
     </div>
   );
 }
@@ -297,10 +380,15 @@ export function NeedsYouNow({
   rows,
   phaseLabel,
   phaseNote,
+  lately,
 }: {
   rows: NeedRow[];
   phaseLabel?: string;
   phaseNote?: string;
+  /** Sparse recent-activity items (<3) fold in as a quiet footer
+   *  list instead of a full-width one-line Lately card (plan-2 §2
+   *  home). */
+  lately?: LatelyItem[];
 }) {
   if (rows.length === 0) return null;
   return (
@@ -356,6 +444,21 @@ export function NeedsYouNow({
           );
         })}
       </div>
+      {lately && lately.length > 0 && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
+          <span className="eyebrow" style={{ margin: 0, color: 'var(--ink-muted)' }}>Lately</span>
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {lately.map((f, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 12.5, color: 'var(--ink)' }}>
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <strong style={{ fontWeight: 600 }}>{f.name}</strong> {f.action}
+                </span>
+                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

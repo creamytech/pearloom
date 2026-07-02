@@ -152,7 +152,7 @@ export function WeekendBuilderPage() {
 
   return (
     <DashLayout active="weekend" hideTopbar>
-      <div className="pl8" style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1080, margin: '0 auto' }}>
+      <div className="pl8" style={{ padding: '20px var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
             the explainer paragraph became a HintChip. */}
         <PageIntro
@@ -213,7 +213,10 @@ export function WeekendBuilderPage() {
               {/* ── Step 1 · the celebration ─────────────────── */}
               <Card>
                 <StepEyebrow n={1} label="What are you planning?" />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
+                {/* Phones: 2-up compact cards (plan-2 §2 weekend) —
+                    nine full-width anchor cards pushed the basics
+                    ~2000px down the page. */}
+                <div className="pl8-weekend-anchors" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
                   {WEEKEND_ANCHORS.map((a) => {
                     const on = a.id === anchorId;
                     return (
@@ -234,7 +237,7 @@ export function WeekendBuilderPage() {
                         }}
                       >
                         <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{a.label}</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 3, lineHeight: 1.4 }}>{a.blurb}</div>
+                        <div className="pl8-weekend-anchor-blurb" style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 3, lineHeight: 1.4 }}>{a.blurb}</div>
                       </button>
                     );
                   })}
@@ -413,6 +416,16 @@ export function WeekendBuilderPage() {
           }
           :global(.pl8-weekend-basics) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          /* 2-up compact anchor cards; the blurb yields to the
+             label so the picker fits ~3 rows, not 9 (plan-2 §2). */
+          :global(.pl8-weekend-anchors) {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          :global(.pl8-weekend-anchor-blurb) {
+            display: none;
           }
         }
       `}</style>

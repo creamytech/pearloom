@@ -71,7 +71,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
 
   return (
     <DashLayout active="guests" hideTopbar>
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 3vw, 32px) var(--pl-dash-pad)', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
             the explainer paragraph became a HintChip so the
             timeline rail leads. */}

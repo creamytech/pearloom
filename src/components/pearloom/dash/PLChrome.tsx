@@ -659,9 +659,10 @@ export function PLCard({
 
 export interface PLChromeProps {
   active?: string;
-  /** Centered max-width for the main column. Default 1180. */
-  maxWidth?: number;
-  /** Horizontal main padding. Default '24px 36px 60px'. */
+  /** Centered max-width for the main column. Defaults to the shared
+   *  dashboard clamp token --pl-dash-maxw (plan-2 §1-D). */
+  maxWidth?: number | string;
+  /** Horizontal main padding. Defaults to the shared gutter token. */
   pad?: string;
   /** Mount the sticky PLSidebar (default true). Set false when the
    *  page is already inside a shell that owns the sidebar (e.g. the
@@ -674,8 +675,8 @@ export interface PLChromeProps {
 
 export function PLChrome({
   active,
-  maxWidth = 1180,
-  pad = '24px 36px 60px',
+  maxWidth = 'var(--pl-dash-maxw)',
+  pad = '24px var(--pl-dash-pad) 60px',
   sidebar = true,
   atmosphere = true,
   children,

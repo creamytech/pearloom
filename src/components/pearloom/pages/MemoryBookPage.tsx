@@ -311,7 +311,7 @@ export function MemoryBookPage() {
   const occLabel = data?.site?.occasion ? occasionLabel(data.site.occasion) : 'celebration';
 
   return (
-    <PLChrome active="memory" maxWidth={1080}>
+    <PLChrome active="memory">
       {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line +
           the two actions. The book's own frontispiece + empty state
           carry the prose; the sub paragraph is gone. */}

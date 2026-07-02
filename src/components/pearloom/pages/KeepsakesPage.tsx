@@ -85,7 +85,7 @@ export function KeepsakesPage() {
   const tools = getKeepsakeTools(occasion);
 
   return (
-    <PLChrome active="memory" maxWidth={1080}>
+    <PLChrome active="memory">
       {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): the two-line
           display + occasion paragraph became one line — the cards
           below name their own jobs. */}

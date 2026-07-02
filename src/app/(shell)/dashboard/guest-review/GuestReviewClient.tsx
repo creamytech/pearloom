@@ -103,7 +103,7 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
       {/* Quiet header (plan rule 1): one line; the "duplicates,
           VIPs, stale RSVPs" explainer is gone — the insight cards
           and the empty state say it where it matters. */}
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         <PageIntro
           eyebrow="Guests"
           title="Pear's review."
@@ -111,7 +111,7 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
           style={{ marginBottom: 14 }}
         />
       </div>
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: '0 var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
 
         {loading ? (
           <>

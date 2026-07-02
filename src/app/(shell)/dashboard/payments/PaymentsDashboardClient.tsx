@@ -11,7 +11,7 @@ export function PaymentsDashboardClient() {
 
   return (
     <DashLayout active="guests" hideTopbar>
-      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
+      <div style={{ padding: '16px var(--pl-dash-pad) 60px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
         {/* Quiet header (plan rule 1): one line; the Stripe prose
             is gone — the panel's empty state explains itself. */}
         <PageIntro
