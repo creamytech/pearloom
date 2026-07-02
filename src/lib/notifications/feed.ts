@@ -20,12 +20,33 @@ import type { NotificationCategory } from './prefs';
 
 export interface FeedItem {
   id: string;
-  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry';
+  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor';
   category: NotificationCategory;
   label: string;
   preview?: string;
   href: string;
   createdAt: string;
+}
+
+// ── Vendor-due helpers ─────────────────────────────────────────
+// Host-entered cents → "$1,200" (matches the Vendor Book's fmt).
+function fmtVendorCents(cents: number): string {
+  const whole = cents % 100 === 0;
+  return '$' + (cents / 100).toLocaleString('en-US', {
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
+  });
+}
+
+// "today" / "tomorrow" / "Fri" for the week ahead; "Jul 9" beyond.
+function vendorDueLabel(due: string, todayIso: string): string {
+  if (due === todayIso) return 'today';
+  const dueMs = Date.parse(`${due}T00:00:00Z`);
+  const days = Math.round((dueMs - Date.parse(`${todayIso}T00:00:00Z`)) / 86_400_000);
+  if (days === 1) return 'tomorrow';
+  const d = new Date(dueMs);
+  if (days < 7) return d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 export async function fetchNotificationFeed(
@@ -257,6 +278,63 @@ export async function fetchNotificationFeed(
       });
     }
   } catch { /* table missing or RLS blocked — silently skip */ }
+
+  // ── Vendor payments coming due ─────────────────────────
+  // Derived reminders, not stored events: an unpaid deposit or
+  // balance in the Vendor Book (site_vendors) due within the next
+  // 7 days — or past due — surfaces as a feed item. `createdAt` is
+  // the deterministic moment the reminder FIRES: 7 days before the
+  // due date, then the due date itself once it's past. So the
+  // bell's read-state semantics hold (the same due date never
+  // re-badges after the host has seen it, though going past due
+  // re-fires once as escalation) and the 24h digest picks each due
+  // date up at most twice. Paid rows never surface; marking paid
+  // removes the item on the next pull.
+  try {
+    const { data: vendorRows } = await supabase
+      .from('site_vendors')
+      .select('id, name, category, cost_cents, deposit_cents, deposit_due, balance_due, deposit_paid, balance_paid')
+      .eq('site_id', siteId)
+      .or('deposit_due.not.is.null,balance_due.not.is.null')
+      .limit(120);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const horizonIso = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
+    for (const v of (vendorRows ?? []) as Array<{
+      id: string; name: string; category: string;
+      cost_cents: number | null; deposit_cents: number | null;
+      deposit_due: string | null; balance_due: string | null;
+      deposit_paid: boolean; balance_paid: boolean;
+    }>) {
+      const dues: Array<{ kind: 'deposit' | 'balance'; due: string; amountCents: number | null }> = [];
+      if (v.deposit_due && !v.deposit_paid) {
+        dues.push({ kind: 'deposit', due: v.deposit_due, amountCents: v.deposit_cents });
+      }
+      if (v.balance_due && !v.balance_paid) {
+        const remaining = v.cost_cents == null ? null : Math.max(0, v.cost_cents - (v.deposit_cents ?? 0));
+        dues.push({ kind: 'balance', due: v.balance_due, amountCents: remaining });
+      }
+      for (const d of dues) {
+        if (d.due > horizonIso) continue; // not near yet
+        const pastDue = d.due < todayIso;
+        const firedAt = pastDue
+          ? `${d.due}T00:00:00.000Z`
+          : new Date(Date.parse(`${d.due}T00:00:00.000Z`) - 7 * 86_400_000).toISOString();
+        if (firedAt < since) continue; // already surfaced in an earlier window
+        const amount = d.amountCents != null ? ` · ${fmtVendorCents(d.amountCents)}` : '';
+        items.push({
+          id: `vendor-${v.id}-${d.kind}-${d.due}`,
+          kind: 'vendor',
+          category: 'gifts',
+          label: pastDue
+            ? `${v.category} ${d.kind} past due${amount}`
+            : `${v.category} ${d.kind} due ${vendorDueLabel(d.due, todayIso)}${amount}`,
+          preview: v.name,
+          href: `/dashboard/vendors`,
+          createdAt: firedAt,
+        });
+      }
+    }
+  } catch { /* table missing on this deployment — silent skip */ }
 
   // Sort all sources together so the timeline reads naturally.
   items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));

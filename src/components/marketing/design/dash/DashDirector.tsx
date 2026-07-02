@@ -14,7 +14,12 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLHead } from '@/components/pearloom/dash/PLChrome';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
-import { parseLocalDate } from '@/lib/date-utils';
+import { parseLocalDate, todayLocal } from '@/lib/date-utils';
+import {
+  summarizeVendorBook,
+  fmtCentsPlain,
+  type VendorBookEntry,
+} from '@/lib/vendor-book-summary';
 
 interface DirectorMsg {
   role: 'pear' | 'me';
@@ -148,6 +153,39 @@ export function DashDirector() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const siteId = site?.id ?? null;
+
+  // Today as a local YYYY-MM-DD, computed once at mount (React
+  // Compiler: no Date.now() in render — lazy init only).
+  const [today] = useState(() => todayLocal());
+
+  // The Vendor Book — real committed money, shown beside the
+  // Director's budget so both read from the same truth. Tagged
+  // with the siteId it was fetched for (the VendorBookClient
+  // pattern) so a site switch never shows a stale ledger.
+  const [book, setBook] = useState<{ siteId: string; vendors: VendorBookEntry[] } | null>(null);
+
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    fetch(`/api/vendors/book?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('book load failed'))))
+      .then((data: { vendors?: VendorBookEntry[] }) => {
+        if (!cancelled) setBook({ siteId, vendors: data.vendors ?? [] });
+      })
+      .catch(() => {
+        // The panel simply doesn't render — the Director works without it.
+        if (!cancelled) setBook({ siteId, vendors: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+
+  const bookSummary = useMemo(() => {
+    if (!book || book.siteId !== siteId || book.vendors.length === 0) return null;
+    const s = summarizeVendorBook(book.vendors, today);
+    return s.perCategory.length > 0 ? s : null;
+  }, [book, siteId, today]);
 
   useEffect(() => {
     if (!siteId) {
@@ -372,6 +410,73 @@ export function DashDirector() {
               ))}
             </div>
           </Panel>
+
+          {/* From your vendor book — the ledger beside the budget */}
+          {bookSummary && (
+            <Panel bg={PD.paperCard} style={{ padding: 22 }}>
+              <SectionTitle
+                eyebrow="FROM YOUR VENDOR BOOK"
+                title="The ledger,"
+                italic="so far."
+                style={{ marginBottom: 14 }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {bookSummary.perCategory.slice(0, 8).map((l, i) => (
+                  <div
+                    key={l.category}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      padding: '7px 2px',
+                      borderBottom:
+                        i < Math.min(bookSummary.perCategory.length, 8) - 1
+                          ? '1px solid rgba(31,36,24,0.08)'
+                          : 'none',
+                      fontSize: 13,
+                      fontFamily: 'var(--pl-font-body)',
+                      color: PD.ink,
+                    }}
+                  >
+                    <span style={{ fontWeight: 500 }}>{l.category}</span>
+                    <span style={{ ...MONO_STYLE, fontSize: 11, letterSpacing: '0.04em' }}>
+                      {fmtCentsPlain(l.costCents)}
+                      <span style={{ color: '#6A6A56' }}>
+                        {' '}· {l.paidCents >= l.costCents && l.costCents > 0 ? 'paid' : `${fmtCentsPlain(l.paidCents)} paid`}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div
+                style={{
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTop: '1px solid rgba(31,36,24,0.12)',
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  fontSize: 12.5,
+                  fontFamily: 'var(--pl-font-body)',
+                }}
+              >
+                <span style={{ color: PD.inkSoft }}>
+                  Booked {fmtCentsPlain(bookSummary.totalBookedCents)}
+                  {bookSummary.unpaidCents > 0
+                    ? ` · ${fmtCentsPlain(bookSummary.unpaidCents)} still to pay`
+                    : ' · all paid'}
+                </span>
+                <Link
+                  href="/dashboard/vendors"
+                  style={{ color: PD.terra, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  The book →
+                </Link>
+              </div>
+            </Panel>
+          )}
 
           {/* TIMELINE */}
           <Panel bg={PD.paperCard} style={{ padding: '28px 32px 32px' }}>

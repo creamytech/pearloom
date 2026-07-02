@@ -391,7 +391,16 @@ export function VendorBookClient() {
   }, [siteId, budgetLines]);
 
   // ── Derived views ──
+  // `dues` recomputes from `vendors`, so a "Mark paid" (patchVendor
+  // → setVendors) drops the entry from the strip immediately.
   const dues = useMemo(() => upcomingDues(vendors, today), [vendors, today]);
+  // A payment schedule exists (some due date was ever entered) —
+  // when it does and nothing is left unpaid, the strip rests on a
+  // quiet "All paid" instead of vanishing.
+  const hasSchedule = useMemo(
+    () => vendors.some((v) => v.depositDue || v.balanceDue),
+    [vendors],
+  );
   const groups: Array<{ status: VendorStatus; label: string; rows: BookVendor[] }> = [
     { status: 'considering', label: 'Considering', rows: vendors.filter((v) => v.status === 'considering') },
     { status: 'booked', label: 'Booked', rows: vendors.filter((v) => v.status === 'booked') },
@@ -472,6 +481,22 @@ export function VendorBookClient() {
             )}
 
             {/* ── Payment-schedule strip — what's due next ── */}
+            {dues.length === 0 && hasSchedule && (
+              <PLCard tone="paper" title="Due next" icon="calendar">
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: 'var(--sage-deep)',
+                  }}
+                >
+                  <Icon name="check" size={13} /> All paid — nothing on the schedule.
+                </div>
+              </PLCard>
+            )}
             {dues.length > 0 && (
               <PLCard tone="paper" title="Due next" icon="calendar">
                 <div className="pd-vb-strip" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 2 }}>

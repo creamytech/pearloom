@@ -17,7 +17,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
-type NotificationKind = 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry';
+type NotificationKind = 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor';
 
 interface Notification {
   id: string;
@@ -62,6 +62,7 @@ const KIND_ICON: Record<NotificationKind, string> = {
   whisper: 'sparkles',
   message: 'mail',
   registry: 'gift',
+  vendor: 'calendar',
 };
 const KIND_TINT: Record<NotificationKind, string> = {
   rsvp: 'var(--sage-tint)',
@@ -70,6 +71,7 @@ const KIND_TINT: Record<NotificationKind, string> = {
   whisper: 'var(--peach-bg)',
   message: 'var(--cream-2)',
   registry: 'var(--peach-bg)',
+  vendor: 'var(--peach-bg)',
 };
 const KIND_INK: Record<NotificationKind, string> = {
   rsvp: 'var(--sage-deep)',
@@ -78,6 +80,7 @@ const KIND_INK: Record<NotificationKind, string> = {
   whisper: 'var(--peach-ink)',
   message: 'var(--ink-soft)',
   registry: 'var(--peach-ink)',
+  vendor: 'var(--peach-ink)',
 };
 
 export function NotificationBell() {

@@ -23,6 +23,7 @@ import {
   updateDirectorSession,
   searchVendors,
 } from '@/lib/event-os/db';
+import { summarizeVendorBook, describeNextDue } from '@/lib/vendor-book-summary';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -44,6 +45,7 @@ How you work:
 - When you add a checklist item, make it specific and dated if possible.
 - When you shortlist a vendor, explain in one sentence why they fit.
 - Budgets: always reason in rough percentage splits (venue 40%, food 25%, photo 10%, etc) until real numbers come in.
+- When SESSION CONTEXT carries vendorBook numbers, those ARE the real numbers — answer money questions ("what's still unpaid?", "what's due this week?") from the ledger, plainly, naming the vendor, amount, and date. Never invent a vendor figure.
 - Never invent vendors. Only shortlist vendors you got from search_vendors.
 - Keep replies concise (< 220 words) unless the user asks for detail.
 - Never use emojis.`;
@@ -154,9 +156,53 @@ export async function POST(req: NextRequest) {
   // Append the new user turn
   convo.push({ role: 'user', content: message, ts: new Date().toISOString() });
 
+  // The Vendor Book — real committed money, folded into the session
+  // context so budget answers come from the ledger, not percentage
+  // guesses. Missing table / empty book → context goes without it.
+  let vendorBook: Record<string, unknown> | null = null;
+  try {
+    const { data: vendorRows } = await sb()
+      .from('site_vendors')
+      .select('name, category, status, cost_cents, deposit_cents, deposit_due, balance_due, deposit_paid, balance_paid, arrival_time')
+      .eq('site_id', siteId)
+      .limit(120);
+    if (vendorRows && vendorRows.length > 0) {
+      const book = summarizeVendorBook(
+        (vendorRows as Array<{
+          name: string; category: string; status: string;
+          cost_cents: number | null; deposit_cents: number | null;
+          deposit_due: string | null; balance_due: string | null;
+          deposit_paid: boolean; balance_paid: boolean; arrival_time: string | null;
+        }>).map((r) => ({
+          name: r.name,
+          category: r.category,
+          status: r.status,
+          costCents: r.cost_cents,
+          depositCents: r.deposit_cents,
+          depositDue: r.deposit_due,
+          balanceDue: r.balance_due,
+          depositPaid: r.deposit_paid,
+          balancePaid: r.balance_paid,
+          arrivalTime: r.arrival_time,
+        })),
+        new Date().toISOString().slice(0, 10),
+      );
+      vendorBook = {
+        bookedCount: book.bookedCount,
+        paidCount: book.paidCount,
+        totalBookedCents: book.totalBookedCents,
+        paidCents: book.paidCents,
+        unpaidCents: book.unpaidCents,
+        perCategory: book.perCategory.slice(0, 16),
+        nextDue: book.nextDue ? describeNextDue(book.nextDue) : null,
+      };
+    }
+  } catch { /* book unavailable on this deployment — skip */ }
+
   const contextSummary = JSON.stringify({
     siteSubdomain: site.subdomain,
     budgetCents: s.budget_cents,
+    vendorBook,
     targetDate: s.target_date,
     targetCity: s.target_city,
     guestCountEstimate: s.guest_count_estimate,

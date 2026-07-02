@@ -109,7 +109,10 @@ export async function GET(req: NextRequest) {
       const counts = [
         { n: digestItems.filter((i) => i.category === 'replies').length, noun: 'replies' },
         { n: digestItems.filter((i) => i.category === 'declines').length, noun: 'regrets' },
-        { n: digestItems.filter((i) => i.category === 'gifts').length, noun: 'gifts claimed' },
+        // Vendor payment reminders ride the 'gifts' (money) category
+        // but aren't claims — count them under their own noun.
+        { n: digestItems.filter((i) => i.category === 'gifts' && i.kind !== 'vendor').length, noun: 'gifts claimed' },
+        { n: digestItems.filter((i) => i.kind === 'vendor').length, noun: 'vendor payments coming due' },
         { n: digestItems.filter((i) => i.category === 'content').length, noun: 'notes & photos' },
       ];
       const theme = site.ai_manifest

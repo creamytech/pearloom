@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { condensedFaqForPrompt } from '@/lib/help-faq';
+import {
+  summarizeVendorBook,
+  describeNextDue,
+  fmtCentsPlain,
+  type VendorBookSummary,
+} from '@/lib/vendor-book-summary';
 import type { StoryManifest } from '@/types';
 
 // ─────────────────────────────────────────────────────────────
@@ -68,6 +74,8 @@ Style guide:
 - Lowercase first-letter sentences only when the host writes that way; otherwise sentence case.
 
 When LIVE ACTIVITY counts are present in the site state, treat them as up-to-date facts. If the host asks "what should I focus on?" or "what's left?", lead with the most actionable number — e.g. "12 guests still haven't RSVP'd; want me to draft a nudge?" — instead of generic copy advice. Don't fabricate counts that aren't shown.
+
+When a VENDOR BOOK block is present, money questions ("what's still unpaid?", "what's due this week?", "how much have we spent?") are answered from those numbers, plainly — name the vendor, the amount, and the date. Never invent a vendor figure that isn't shown; if the book has no answer, say so.
 
 When the host explicitly asks you to SEND a nudge to pending guests ("yes send the nudge", "draft and send to the pending ones", "nudge them", "send a reminder to the holdouts"), emit an ACTION envelope instead of a field-edit patch:
 
@@ -201,6 +209,9 @@ interface ActivityStats {
   claims: number;
   guestbook: number;
   submissions: number;
+  /** Vendor Book aggregates (site_vendors) — null when the book is
+   *  empty or the table is missing on this deployment. */
+  vendors: VendorBookSummary | null;
 }
 
 const STATS_TTL_MS = 30_000;
@@ -240,6 +251,38 @@ async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | nul
       return null;
     }
   }
+  // Vendor Book rows → pure aggregation. Full rows (not a count)
+  // because Pear needs sums, the next due item, and arrival times.
+  async function vendorBookOf(): Promise<VendorBookSummary | null> {
+    try {
+      const { data, error } = await sb!
+        .from('site_vendors')
+        .select('name, category, status, cost_cents, deposit_cents, deposit_due, balance_due, deposit_paid, balance_paid, arrival_time')
+        .eq('site_id', siteId)
+        .limit(120);
+      if (error || !data || data.length === 0) return null;
+      const rows = (data as Array<{
+        name: string; category: string; status: string;
+        cost_cents: number | null; deposit_cents: number | null;
+        deposit_due: string | null; balance_due: string | null;
+        deposit_paid: boolean; balance_paid: boolean; arrival_time: string | null;
+      }>).map((r) => ({
+        name: r.name,
+        category: r.category,
+        status: r.status,
+        costCents: r.cost_cents,
+        depositCents: r.deposit_cents,
+        depositDue: r.deposit_due,
+        balanceDue: r.balance_due,
+        depositPaid: r.deposit_paid,
+        balancePaid: r.balance_paid,
+        arrivalTime: r.arrival_time,
+      }));
+      return summarizeVendorBook(rows, new Date().toISOString().slice(0, 10));
+    } catch {
+      return null;
+    }
+  }
   const [
     attendingRes,
     declinedRes,
@@ -248,6 +291,7 @@ async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | nul
     claimsRes,
     gbRes,
     subsRes,
+    vendorBook,
   ] = await Promise.all([
     countOf(sb.from('guests').select('id', { count: 'exact', head: true }).eq('site_id', siteId).eq('status', 'attending')),
     countOf(sb.from('guests').select('id', { count: 'exact', head: true }).eq('site_id', siteId).eq('status', 'declined')),
@@ -256,6 +300,7 @@ async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | nul
     countOf(sb.from('registry_link_claims').select('id', { count: 'exact', head: true }).eq('site_id', siteId).is('revoked_at', null)),
     countOf(sb.from('guestbook').select('id', { count: 'exact', head: true }).eq('site_id', siteId)),
     countOf(sb.from('tribute_submissions').select('id', { count: 'exact', head: true }).eq('site_id', siteId)),
+    vendorBookOf(),
   ]);
 
   const c = (r: CountResult): number => r?.count ?? 0;
@@ -270,18 +315,30 @@ async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | nul
     claims: c(claimsRes),
     guestbook: c(gbRes),
     submissions: c(subsRes),
+    vendors: vendorBook,
   };
   statsCache.set(siteSlug, { at: Date.now(), stats });
   return stats;
 }
 
 function summariseStats(stats: ActivityStats): string {
-  return `LIVE ACTIVITY (current state, source-of-truth):
+  let block = `LIVE ACTIVITY (current state, source-of-truth):
   - RSVPs: ${stats.rsvp.attending} attending, ${stats.rsvp.declined} declined, ${stats.rsvp.pending} pending of ${stats.rsvp.total} invited
   - Guest photos uploaded: ${stats.photos}
   - Registry gift claims: ${stats.claims}
   - Guestbook entries: ${stats.guestbook}
   - Wall submissions (advice/tribute): ${stats.submissions}`;
+  const v = stats.vendors;
+  if (v) {
+    block += `
+
+VENDOR BOOK (host-entered ledger, source-of-truth for money):
+  - ${v.bookedCount} booked, ${v.paidCount} fully paid
+  - Total booked cost: ${fmtCentsPlain(v.totalBookedCents)} · paid so far: ${fmtCentsPlain(v.paidCents)} · unpaid remainder: ${fmtCentsPlain(v.unpaidCents)}`;
+    if (v.nextDue) block += `\n  - Next due: ${describeNextDue(v.nextDue)}`;
+    if (v.arrivals.length) block += `\n  - Arrivals on the day: ${v.arrivals.join('; ')}`;
+  }
+  return block;
 }
 
 // Default tagline shipped by the wizard. Kept in sync with the
