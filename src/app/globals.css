@@ -2556,3 +2556,195 @@ button:not(:disabled):active,
   --pd-slab:      #1A1610;
   --pd-slabInk:   #F1EBDC;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   MOBILE DASHBOARD CHROME — phone-only shell upgrades (2026-07-02).
+   Everything below is scoped to the dashboard shell (.pl8-dashshell
+   and its chrome classes); the published site (.pl8-guest) and the
+   editor are untouched. Breakpoint 960px matches .pl8-dash-mobilebar
+   / the sidebar drawer (pearloom.css).
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Bottom tab bar (DashTabBar) ─────────────────────────────────
+   Paper chrome, not glass — it's persistent structure (BRAND §9).
+   Hidden ≥960px; the spacer keeps page content clear of the fixed
+   bar. z 70 sits with the mobile top bar, under the drawer scrim
+   (80) so the open drawer covers both. */
+.pl8-dash-tabbar,
+.pl8-dash-tabbar-spacer {
+  display: none;
+}
+@media (max-width: 960px) {
+  .pl8-dash-tabbar-spacer {
+    display: block;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+  .pl8-dash-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    display: flex;
+    align-items: stretch;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--cream);
+    border-top: 1px solid var(--line-soft);
+  }
+  .pl8-dash-tab {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-family: var(--font-ui, inherit);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pl8-dash-tab[data-on] {
+    color: var(--ink);
+  }
+  .pl8-dash-tab-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .pl8-dash-tab[data-on] .pl8-dash-tab-label {
+    font-weight: 700;
+  }
+  /* Two-strand olive + gold thread under the bar's hairline — the
+     active marker (mirrors DashSubNav's baseline thread). Both
+     strands stay mounted and draw in via scaleX. */
+  .pl8-dash-tab-thread {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 28px;
+    height: 5px;
+    margin-left: -14px;
+    pointer-events: none;
+  }
+  .pl8-dash-tab-thread > span:first-child {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--sage-deep, var(--pl-olive, #5c6b3f));
+    opacity: 0;
+    transform: scaleX(0.4);
+    transform-origin: left;
+    transition:
+      opacity 180ms var(--pl-ease-out, ease),
+      transform 240ms var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .pl8-dash-tab-thread > span:last-child {
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    right: 2px;
+    height: 1px;
+    border-radius: 2px;
+    background: var(--gold, #c19a4b);
+    opacity: 0;
+    transform: scaleX(0.4);
+    transform-origin: left;
+    transition:
+      opacity 180ms var(--pl-ease-out, ease) 40ms,
+      transform 240ms var(--pl-ease-emphasis, cubic-bezier(0.16, 1, 0.3, 1)) 40ms;
+  }
+  .pl8-dash-tab[data-on] .pl8-dash-tab-thread > span:first-child {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  .pl8-dash-tab[data-on] .pl8-dash-tab-thread > span:last-child {
+    opacity: 0.65;
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-dash-tab-thread > span {
+    transition: none !important;
+  }
+}
+
+/* ── Floating primary-action pill (MobileCtaPill) ────────────────
+   The page's single registered CTA repeated in thumb range, riding
+   above the tab bar. Ink pill — not glass. Hidden on desktop where
+   the topbar CTA is fine where it is. */
+.pl8-dash-cta-pill {
+  display: none;
+}
+@media (max-width: 960px) {
+  .pl8-dash-cta-pill {
+    position: fixed;
+    right: 16px;
+    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+    z-index: 69;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(14, 13, 11, 0.28);
+  }
+}
+
+/* ── Mobile top-bar touch targets ────────────────────────────────
+   The strip's round controls paint at 32-38px; a transparent
+   ::after extends each hit area to ≥44px without inflating the
+   visuals. Scoped to the bar's direct control slots only (the
+   bell popover's inner rows are deeper and unaffected). overflow
+   must be visible or the inline overflow:hidden on the theme
+   toggle / avatar clips the pseudo-element. */
+@media (max-width: 960px) {
+  .pl8-dash-mobilebar > button,
+  .pl8-dash-mobilebar > a,
+  .pl8-dash-mobilebar > div > button,
+  .pl8-dash-mobilebar > div > a,
+  .pl8-dash-mobilebar > div > div > button {
+    position: relative;
+    overflow: visible !important;
+  }
+  .pl8-dash-mobilebar > button::after,
+  .pl8-dash-mobilebar > a::after,
+  .pl8-dash-mobilebar > div > button::after,
+  .pl8-dash-mobilebar > div > a::after,
+  .pl8-dash-mobilebar > div > div > button::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 999px;
+  }
+  /* Loosen the gap:8 crowding between the right-cluster controls. */
+  .pl8-dash-mobilebar > div {
+    gap: 10px !important;
+  }
+}
+
+/* ── Kill the iOS input zoom on dashboard forms ──────────────────
+   Safari zooms any focused field under 16px; dashboard inputs sit
+   at 12.5-13.5px. Force 16px on phones, dashboard scope only —
+   the published-site / Studio card scope (.pl8-guest) keeps its
+   own typography, and the editor never mounts .pl8-dashshell. */
+@media (max-width: 640px) {
+  .pl8-dashshell :is(input, textarea, select):not(.pl8-guest *) {
+    font-size: 16px !important;
+  }
+}

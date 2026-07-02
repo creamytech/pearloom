@@ -17,6 +17,7 @@ import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useDashDrawer } from './useDashDrawer';
+import { DashTabBar } from './DashTabBar';
 import { AskPearTrigger, DashAskPear } from './DashAskPear';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
@@ -1210,6 +1211,29 @@ export function DashMobileBar() {
           so phones had no bell or theme toggle at all. The cluster
           is pushed right; the avatar opens the settings modal. */}
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Search — the ⌘K palette, reachable by touch. Desktop has
+            the utility-bar jump pill; phones had no way in at all. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('pl-open-command'))}
+          aria-label="Search"
+          title="Search"
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 999,
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            color: 'var(--ink)',
+            cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
+            flexShrink: 0,
+            padding: 0,
+          }}
+        >
+          <Icon name="search" size={16} />
+        </button>
         {/* Ask Pear (sheet mounts once, from DashUtilityBar). */}
         <AskPearTrigger variant="icon" />
         <ThemeToggle size="md" />
@@ -1434,7 +1458,26 @@ export function DashTopbar({
           </Link>
         )}
       </div>
+      {/* Phones only: the page's single primary CTA repeated as a
+          floating pill in thumb range, riding above the bottom tab
+          bar. Only when the CTA is the page's ONE registered action
+          (a free-form `actions` cluster means several — no pill). */}
+      {ctaText && ctaHref && !actions && <MobileCtaPill href={ctaHref} label={ctaText} />}
     </div>
+  );
+}
+
+/** Fixed ink pill, bottom-right on phones (hidden ≥960px via
+ *  .pl8-dash-cta-pill in globals.css). Mirrors the topbar CTA so
+ *  the page's primary action is reachable one-handed; stands down
+ *  while the drawer is open so it never floats over the scrim. */
+function MobileCtaPill({ href, label }: { href: string; label: string }) {
+  const { open: drawerOpen } = useDashDrawer();
+  if (drawerOpen) return null;
+  return (
+    <Link href={href} className="pl8-dash-cta-pill">
+      {label} <Pear size={14} tone="cream" shadow={false} />
+    </Link>
   );
 }
 
@@ -1531,6 +1574,9 @@ export function DashLayout({
             {children}
           </div>
         </div>
+        {/* Phone-only bottom tab bar (Home · Guests · Day · Studio
+            · More). Matches the persistent-shell mount. */}
+        <DashTabBar />
       </main>
     </div>
   );

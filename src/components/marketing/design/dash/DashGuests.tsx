@@ -18,6 +18,7 @@ import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { findDuplicateGroups } from '@/lib/guest-dedupe';
 import { normaliseRsvpStatus } from '@/lib/rsvp-status';
 import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
+import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
 // defaults when an occasion isn't recognised.
@@ -870,6 +871,12 @@ export function DashGuests() {
   // Per-guest invite-link sharing (copy / email / text / QR).
   const [shareGuest, setShareGuest] = useState<Guest | null>(null);
   const [copyAllNote, setCopyAllNote] = useState<string | null>(null);
+  /* Phone tap-through: the ≤760px roster collapses to name +
+     status (party / meal / note columns hide), so tapping a row
+     opens a bottom sheet with the guest's full details. Matches
+     the /rsvps mobile-card → drawer pattern. */
+  const isPhone = useIsMobile(760);
+  const [detailGuest, setDetailGuest] = useState<Guest | null>(null);
 
   useEffect(() => {
     if (!site?.id) return;
@@ -1571,6 +1578,18 @@ export function DashGuests() {
                     <div
                       key={g.id}
                       className="pd-guests-row"
+                      onClick={
+                        isPhone
+                          ? (e) => {
+                              // Taps on the row's own controls
+                              // (Invite / +1 / Resend / Remove /
+                              // the guest-page link) keep their
+                              // jobs — only paper opens the sheet.
+                              if ((e.target as HTMLElement).closest('button, a')) return;
+                              setDetailGuest(g);
+                            }
+                          : undefined
+                      }
                       style={{
                         display: 'grid',
                         gridTemplateColumns: rosterColumns,
@@ -1578,6 +1597,7 @@ export function DashGuests() {
                         borderBottom:
                           i < filtered.length - 1 ? '1px solid rgba(31,36,24,0.06)' : 'none',
                         alignItems: 'center',
+                        cursor: isPhone ? 'pointer' : undefined,
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -2054,6 +2074,20 @@ export function DashGuests() {
           }}
         />
       )}
+      {detailGuest && site?.id && (
+        <GuestDetailSheet
+          siteId={site.id}
+          guest={detailGuest}
+          events={events}
+          link={guestLink(detailGuest)}
+          onClose={() => setDetailGuest(null)}
+          onChanged={() => setRefreshKey((k) => k + 1)}
+          onShare={() => {
+            setDetailGuest(null);
+            setShareGuest(detailGuest);
+          }}
+        />
+      )}
       {shareGuest && guestLink(shareGuest) && (
         <InviteShareDialog
           name={shareGuest.n}
@@ -2213,6 +2247,225 @@ function GuestRowActions({
   );
 }
 
+// ── GuestDetailSheet ──────────────────────────────────────────
+// Phone bottom sheet opened by tapping a roster row. The ≤760px
+// roster collapses to name + status, so this is where the rest of
+// the record lives: party, meal, dietary, note, plus-one grant,
+// events, invited/replied timestamps, email tracking — plus the
+// same per-row actions (invite link, +1 grant, resend, remove).
+// Reads only what the row already carries; no extra fetch.
+function GuestDetailSheet({
+  siteId,
+  guest,
+  events,
+  link,
+  onClose,
+  onChanged,
+  onShare,
+}: {
+  siteId: string;
+  guest: Guest;
+  events: ManifestEvent[];
+  link: string | null;
+  onClose: () => void;
+  onChanged: () => void;
+  onShare: () => void;
+}) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const r = rsvpMap[guest.rsvp];
+  const chosenEvents =
+    guest.eventIds.length > 0 && guest.eventIds.length < events.length
+      ? events.filter((ev) => guest.eventIds.includes(ev.id))
+      : null;
+
+  const details: Array<{ label: string; value: string }> = [];
+  if (guest.party && guest.party !== guest.n) details.push({ label: 'Party', value: guest.party });
+  if (guest.meal && guest.meal !== '—') details.push({ label: 'Meal', value: guest.meal });
+  if (guest.dietary) details.push({ label: 'Dietary', value: guest.dietary });
+  if (guest.note) details.push({ label: 'Note', value: guest.note });
+  if (guest.phone) details.push({ label: 'Phone', value: guest.phone });
+  details.push({
+    label: 'Plus-one',
+    value: guest.plusOneAllowed
+      ? guest.tags.includes('plus-one')
+        ? 'Allowed · bringing someone'
+        : 'Allowed'
+      : 'Not offered',
+  });
+  if (chosenEvents) {
+    details.push({ label: 'Events', value: chosenEvents.map((ev) => ev.name ?? 'Event').join(', ') });
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Details for ${guest.n}`}
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.46)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        zIndex: 600,
+        animation: 'pl-enter-fade-in 200ms ease both',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(560px, 100%)',
+          maxHeight: 'calc(100dvh - 48px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          background: PD.paperCard,
+          borderRadius: '18px 18px 0 0',
+          borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+          boxShadow: '0 -18px 48px rgba(14,13,11,0.28)',
+          padding: '18px 20px calc(20px + env(safe-area-inset-bottom, 0px))',
+          fontFamily: 'var(--pl-font-body)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        {/* Header — name, status, email. */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ ...DISPLAY_STYLE, fontSize: 21, fontWeight: 600, letterSpacing: '-0.01em' }}>
+              {guest.n}
+            </div>
+            {guest.em && guest.em !== '—' && (
+              <div style={{ fontSize: 12, color: PD.inkSoft, marginTop: 2, overflowWrap: 'anywhere' }}>
+                {guest.em}
+              </div>
+            )}
+          </div>
+          <span
+            style={{
+              ...MONO_STYLE,
+              flexShrink: 0,
+              fontSize: 10,
+              padding: '4px 10px',
+              borderRadius: 999,
+              background: r.bg,
+              color: r.fg,
+              border: `1px solid color-mix(in oklab, ${r.fg} 15%, transparent)`,
+            }}
+          >
+            {r.label}
+          </span>
+        </div>
+
+        {/* Detail rows. */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {details.map((d, i) => (
+            <div
+              key={d.label}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '92px 1fr',
+                gap: 10,
+                padding: '9px 0',
+                borderTop: i > 0 ? '1px solid rgba(31,36,24,0.06)' : 'none',
+                alignItems: 'baseline',
+              }}
+            >
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6 }}>{d.label.toUpperCase()}</div>
+              <div style={{ fontSize: 13, color: PD.ink, lineHeight: 1.45, overflowWrap: 'anywhere' }}>
+                {d.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Timeline + email tracking. */}
+        {(guest.invitedAt || guest.respondedAt) && (
+          <div style={{ fontSize: 11.5, color: guest.stale ? PD.terra : PD.inkSoft, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {guest.invitedAt && <span>Invited {relativeTime(guest.invitedAt)}</span>}
+            {guest.invitedAt && guest.respondedAt && <span aria-hidden>·</span>}
+            {guest.respondedAt && <span>Replied {relativeTime(guest.respondedAt)}</span>}
+            {guest.stale && !guest.respondedAt && (
+              <span style={{ color: PD.terra, fontWeight: 700 }}>· stale</span>
+            )}
+          </div>
+        )}
+        {(guest.emailSentAt || guest.emailDeliveredAt || guest.emailOpenedAt || guest.emailBouncedAt) && (
+          <EmailTrackingStrip
+            sentAt={guest.emailSentAt}
+            deliveredAt={guest.emailDeliveredAt}
+            openedAt={guest.emailOpenedAt}
+            bouncedAt={guest.emailBouncedAt}
+          />
+        )}
+
+        {/* Actions — the same set the row carries. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', rowGap: 8 }}>
+          {guest.token && (
+            <a
+              href={`/g/${guest.token}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'var(--sage-deep, #5C6B3F)',
+                textDecoration: 'none',
+                border: '1px solid rgba(92,107,63,0.35)',
+                borderRadius: 999,
+                padding: '5px 10px',
+              }}
+            >
+              Guest page ↗
+            </a>
+          )}
+          {link && (
+            <button
+              type="button"
+              onClick={onShare}
+              style={{
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'var(--sage-deep, #5C6B3F)',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                border: '1px solid rgba(92,107,63,0.35)',
+                borderRadius: 999,
+                padding: '5px 10px',
+              }}
+            >
+              Invite ↗
+            </button>
+          )}
+          <GuestRowActions siteId={siteId} guest={guest} onChanged={onChanged} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="pl8-btnfx"
+            style={{ ...btnGhost, marginLeft: 'auto', fontSize: 12 }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── AddGuestDialog ────────────────────────────────────────────
 // Lightweight modal that posts to POST /api/guests with the host's
 // inputs and asks DashGuests to refresh on success. Kept local to
@@ -2357,6 +2610,11 @@ function AddGuestDialog({
         onClick={(e) => e.stopPropagation()}
         style={{
           width: 'min(440px, 100%)',
+          // Couple mode on short viewports used to clip both ends —
+          // the card itself scrolls once it outgrows the screen.
+          maxHeight: 'calc(100dvh - 32px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
           background: PD.paperCard,
           borderRadius: 18,
           padding: '24px 24px 20px',

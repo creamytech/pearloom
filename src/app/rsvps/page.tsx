@@ -691,7 +691,8 @@ function GuestDetailDrawer({
           background: 'var(--cream)',
           borderLeft: '1px solid var(--line)',
           overflowY: 'auto',
-          padding: '32px 28px 48px',
+          // Safe-area inset so the last rows clear the iOS home bar.
+          padding: '32px 28px calc(48px + env(safe-area-inset-bottom, 0px))',
           boxShadow: 'var(--pl-shadow-xl)',
         }}
       >

@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { DASH_SECTIONS, sectionForHref } from './DashShell';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -27,6 +27,15 @@ export function DashSubNav({ section }: Props) {
   const pathname = usePathname();
   const { site } = useSelectedSite();
   const [hovered, setHovered] = useState<string | null>(null);
+  // Keep the active tab visible inside the .pl-hscroll strip on
+  // phones — on mount and whenever the route changes. behavior
+  // 'auto' (instant) doubles as the reduced-motion guard: no
+  // smooth scroll to suppress. block 'nearest' avoids vertical
+  // page jumps.
+  const activeTabRef = useRef<HTMLAnchorElement | null>(null);
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+  }, [pathname]);
   const sectionId = (section ?? sectionForHref(pathname || '')) as keyof typeof DASH_SECTIONS | null;
   if (!sectionId) return null;
   const meta = DASH_SECTIONS[sectionId];
@@ -66,6 +75,7 @@ export function DashSubNav({ section }: Props) {
             key={tab.id}
             href={tab.href}
             prefetch
+            ref={on ? activeTabRef : undefined}
             aria-current={on ? 'page' : undefined}
             onMouseEnter={() => setHovered(tab.id)}
             onMouseLeave={() => setHovered((h) => (h === tab.id ? null : h))}

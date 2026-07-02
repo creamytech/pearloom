@@ -643,8 +643,10 @@ function GuestPulse({
 }) {
   void domain;
   // Narrow: the 4-up legend squeezes "PENDING" past its column —
-  // fall back to a 2×2 grid.
+  // fall back to a 2×2 grid. Tiny (≤360, SE-class phones): even
+  // 2-up clips — single column.
   const isNarrow = useIsMobile(720);
+  const isTiny = useIsMobile(360);
   if (loading) {
     return (
       <div className="card" style={{ padding: 20, borderRadius: 20 }}>
@@ -745,7 +747,7 @@ function GuestPulse({
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTiny ? '1fr' : isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 6 }}>
         {segs.map((s) => (
           <div key={s.label} style={{ padding: '8px 6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -1005,8 +1007,10 @@ function buildMilestones({
 function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
   // Narrow: the date/dot/title/annotation 4-column row wraps
   // awkwardly — drop the annotation onto its own muted line under
-  // the title and tighten the date gutter.
+  // the title and tighten the date gutter. Tiny (≤360): tighten
+  // the date gutter further so the title keeps a readable column.
   const isNarrow = useIsMobile(720);
+  const isTiny = useIsMobile(360);
   return (
     <div className="card" style={{ padding: 20, borderRadius: 20 }}>
       <SectionHeader icon="calendar">
@@ -1021,8 +1025,8 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
               key={i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: isNarrow ? '64px 22px 1fr' : '76px 22px 1fr auto',
-                gap: isNarrow ? 10 : 12,
+                gridTemplateColumns: isTiny ? '48px 18px 1fr' : isNarrow ? '64px 22px 1fr' : '76px 22px 1fr auto',
+                gap: isTiny ? 8 : isNarrow ? 10 : 12,
                 alignItems: 'center',
                 padding: '12px 0',
                 borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',

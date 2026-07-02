@@ -241,7 +241,9 @@ export function DashCommandPalette() {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: 'clamp(48px, 8vh, 120px) 16px 16px',
+        // Top-aligned with a safe margin; 12px gutters keep the
+        // sheet ≥ calc(100vw - 24px) wide on phones.
+        padding: 'clamp(32px, 8vh, 120px) 12px 16px',
         animation: 'pl8-dash-page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
       }}
       onClick={(e) => {
@@ -307,7 +309,9 @@ export function DashCommandPalette() {
             Esc
           </span>
         </div>
-        <div role="listbox" aria-label="Command results" style={{ maxHeight: 420, overflowY: 'auto', padding: 6 }}>
+        {/* dvh clamp keeps the footer + a few rows on short phone
+            viewports (keyboard up) instead of overflowing. */}
+        <div role="listbox" aria-label="Command results" style={{ maxHeight: 'min(420px, 62dvh)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: 6 }}>
           {filtered.length === 0 ? (
             <div style={{ padding: '24px 18px', fontSize: 13, color: 'var(--ink-muted)', textAlign: 'center' }}>
               Nothing matches “{query}”. Try a different word.
@@ -327,6 +331,8 @@ export function DashCommandPalette() {
                     alignItems: 'center',
                     gap: 10,
                     padding: '10px 12px',
+                    minHeight: 44, // touch-sized rows
+                    boxSizing: 'border-box',
                     borderRadius: 10,
                     background: active ? 'var(--cream-2, #FBF7EE)' : 'transparent',
                     border: active ? '1.5px solid var(--ink, #0E0D0B)' : '1.5px solid transparent',

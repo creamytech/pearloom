@@ -498,7 +498,21 @@ export function DashDirector() {
               />
             </div>
 
-            <div style={{ position: 'relative', padding: '40px 0 20px' }}>
+            {/* ≤720px the equal-column grid squeezed labels to
+                illegibility — the loom becomes a horizontal strip
+                with fixed ~140px segments (pd-loom-* rules in the
+                styled-jsx block below). Desktop is unchanged. */}
+            <div className="pd-loom-scroll">
+              <div
+                className="pd-loom-track"
+                style={
+                  {
+                    position: 'relative',
+                    padding: '40px 0 20px',
+                    '--loom-n': String(timeline.length),
+                  } as CSSProperties
+                }
+              >
               <svg
                 width="100%"
                 height="120"
@@ -566,6 +580,7 @@ export function DashDirector() {
                     </div>
                   );
                 })}
+              </div>
               </div>
             </div>
           </Panel>
@@ -984,6 +999,25 @@ export function DashDirector() {
           }
           :global(.pd-week-weave) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 720px) {
+          /* The loom: equal 1fr columns squeeze the 110px labels
+             into vertical slivers on phones. Swipeable strip with
+             fixed ~140px segments instead; the track carries its
+             own vertical padding so the overflow container doesn't
+             clip the above/below labels. */
+          :global(.pd-loom-scroll) {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          :global(.pd-loom-scroll::-webkit-scrollbar) {
+            display: none;
+          }
+          :global(.pd-loom-track) {
+            min-width: calc(var(--loom-n, 6) * 140px);
+            padding: 96px 10px 100px !important;
           }
         }
       `}</style>

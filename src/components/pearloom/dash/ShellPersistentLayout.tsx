@@ -13,6 +13,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { DashSidebar, DashMobileBar, DashUtilityBar } from './DashShell';
+import { DashTabBar } from './DashTabBar';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
 import { DashOrientation } from './DashOrientation';
@@ -65,6 +66,11 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
               {children}
             </div>
           </div>
+          {/* Phone-only bottom tab bar (Home · Guests · Day ·
+              Studio · More) — the drawer stops being the only nav.
+              Suppresses itself on routes with their own bottom
+              chrome (Studio). */}
+          <DashTabBar />
         </main>
       </div>
       </UserSettingsProvider>
