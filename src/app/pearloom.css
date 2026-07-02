@@ -3941,6 +3941,26 @@ html { scroll-behavior: smooth; }
   mix-blend-mode: multiply;
 }
 
+/* ── Baked noise tiles ──
+   These used to be live SVG reference filters (filter: url(#t-grain
+   | #t-mottle | #t-weave) from TextureFilters.tsx) on the texture
+   pseudo-elements. iOS Safari rasterizes live filters ASYNCHRONOUSLY
+   while scrolling, so the grain visibly lagged a beat behind the
+   paper. Each filter is now baked into a small seamless tile (same
+   baseFrequency / octaves / seed; stitchTiles='stitch' hides the
+   seams) used as a repeating background-image — pre-rasterized once,
+   cached, zero per-frame filter cost, and the grain scrolls WITH the
+   page like real paper. Displacement filters (t-wash / t-watercolor
+   on marble, the wc- and lp- text treatments) stay live:
+   displacement genuinely needs the filter, and those are positional
+   by design.
+   Mirrors NOISE_TILES in redesign/ThemedSite.tsx — keep in sync. */
+.pl8-guest {
+  --pl-tile-grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --pl-tile-mottle: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --pl-tile-weave: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5 0.85' numOctaves='2' seed='6' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+
 /* Per-texture grain signatures. Each is a real SVG filter result
    (feTurbulence + feDiffuseLighting / feColorMatrix) tuned to
    suggest the material. baseFrequency lower = larger features
@@ -3971,10 +3991,9 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  /* Tooth + grain. The SVG filters mounted by TextureFilters.tsx
-     register t-weave (soft-light 0.2) and t-grain (multiply 0.08). */
-  background: var(--cream, transparent);
-  filter: url(#t-weave);
+  /* Tooth — baked t-weave tile (soft-light 0.2). */
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.20 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -3996,8 +4015,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-weave);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.4 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4013,8 +4032,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-weave);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.30 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4024,8 +4043,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 101;
-  filter: url(#t-mottle);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.16 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4040,8 +4059,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-mottle);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.34 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4051,8 +4070,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 101;
-  filter: url(#t-weave);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.42 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4074,8 +4093,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-mottle);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.30 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4095,8 +4114,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-mottle);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.28 * var(--pl-texture-intensity, 1));
   mix-blend-mode: multiply;
 }
@@ -4106,8 +4125,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 101;
-  filter: url(#t-weave);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.30 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4135,8 +4154,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 101;
-  filter: url(#t-weave);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.35 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -4197,8 +4216,8 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 101;
-  filter: url(#t-mottle);
-  background: var(--cream, transparent);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.18 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
@@ -5383,11 +5402,13 @@ html { scroll-behavior: smooth; }
 /* ─────────────────────────────────────────────────────────
    Prototype-parity textures — paper, cotton, velvet.
    Each composes multiple ::before/::after layers with
-   different SVG filters + mix-blend-mode, matching the
+   different noise tiles + mix-blend-mode, matching the
    prototype's TextureLayer pattern exactly.
 
-   Filters t-weave, t-mottle, t-grain are registered in
-   TextureFilters.tsx (mounted in ThemedSiteRenderer).
+   The noise comes from the baked --pl-tile-* data-URI tiles
+   (see the "Baked noise tiles" block above) — formerly the
+   live t-weave / t-mottle SVG filters, which lagged behind
+   scrolling on iOS.
    ───────────────────────────────────────────────────────── */
 
 /* PAPER — handmade cotton paper. Fine fibre + light specks +
@@ -5406,10 +5427,10 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-weave);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.3 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
-  background: rgba(0, 0, 0, 0.001);
 }
 .pl8-guest[data-pl-texture="paper"]::after {
   content: '';
@@ -5417,10 +5438,10 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-mottle);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.16 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
-  background: rgba(0, 0, 0, 0.001);
 }
 
 /* COTTON — cold-press cotton / watercolour paper. Coarser tooth.
@@ -5436,10 +5457,10 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-mottle);
+  background-image: var(--pl-tile-mottle);
+  background-repeat: repeat;
   opacity: calc(0.34 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
-  background: rgba(0, 0, 0, 0.001);
 }
 .pl8-guest[data-pl-texture="cotton"]::after {
   content: '';
@@ -5447,10 +5468,10 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  filter: url(#t-weave);
+  background-image: var(--pl-tile-weave);
+  background-repeat: repeat;
   opacity: calc(0.42 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
-  background: rgba(0, 0, 0, 0.001);
 }
 
 /* VELVET — pile stripes + raking sheen. Reads on DARK paper
@@ -7252,19 +7273,16 @@ html { scroll-behavior: smooth; }
 }
 
 /* ── Mobile texture parity ──
-   Audit 2026-06-03 against user feedback: textures rendered via
-   `filter: url(#t-mottle)` etc. look weaker on real mobile devices
-   than they do in the editor's desktop canvas preview. Two causes:
-   (1) iOS Safari rasterizes SVG filters at lower quality unless the
-   element is GPU-composited, and (2) smaller physical screen pixels
-   reduce the perceived contrast of subtle grain. The fix below
-   forces GPU compositing on every texture overlay so Safari renders
-   the filter at full quality, and adds a `will-change` hint so the
-   GPU pre-allocates a buffer instead of falling back to a downsized
-   raster. Applies to every device < 900px so it covers tablets too. */
+   Audit 2026-06-03: textures rendered via live SVG filters looked
+   weaker on real mobile devices unless the layer was GPU-composited.
+   The noise textures have since moved to baked --pl-tile-* tiles
+   (no live filter, nothing to composite — and promoting those
+   document-height layers would only burn GPU memory), so this hack
+   now applies ONLY to marble, the one texture whose pseudo-layers
+   still run live displacement filters on non-iOS mobile. */
 @media (max-width: 900px) {
-  .pl8-guest[data-pl-texture]:not([data-pl-texture="none"])::before,
-  .pl8-guest[data-pl-texture]:not([data-pl-texture="none"])::after {
+  .pl8-guest[data-pl-texture="marble"]::before,
+  .pl8-guest[data-pl-texture="marble"]::after {
     transform: translateZ(0);
     will-change: filter, opacity;
     -webkit-backface-visibility: hidden;
@@ -7489,27 +7507,15 @@ html { scroll-behavior: smooth; }
    in iOS WebKit: a failing reference blanks the LAYER entirely
    (marble — whose every layer is filtered — vanished outright,
    2026-06-12). -webkit-touch-callout only exists on iOS, so this
-   strips the displacement filters there; the gradient + noise
-   backgrounds still carry each material, just without the
-   displaced-stroke nicety desktop keeps. Newsprint's contrast()
-   halftone is a plain filter and stays untouched. */
+   strips the displacement filters there; the gradient backgrounds
+   still carry the material, just without the displaced-stroke
+   nicety desktop keeps. Only marble's pseudo-layers still ride
+   live filters — the noise textures moved to baked --pl-tile-*
+   background tiles, which iOS renders fine. Newsprint's
+   contrast() halftone is a plain filter and stays untouched. */
 @supports (-webkit-touch-callout: none) {
-  .pl8-guest[data-pl-texture="paper"]::before,
-  .pl8-guest[data-pl-texture="paper"]::after,
-  .pl8-guest[data-pl-texture="linen"]::before,
-  .pl8-guest[data-pl-texture="linen"]::after,
-  .pl8-guest[data-pl-texture="cotton"]::before,
-  .pl8-guest[data-pl-texture="cotton"]::after,
-  .pl8-guest[data-pl-texture="kraft"]::before,
-  .pl8-guest[data-pl-texture="kraft"]::after,
-  .pl8-guest[data-pl-texture="canvas"]::before,
-  .pl8-guest[data-pl-texture="canvas"]::after,
-  .pl8-guest[data-pl-texture="velvet"]::before,
-  .pl8-guest[data-pl-texture="velvet"]::after,
   .pl8-guest[data-pl-texture="marble"]::before,
-  .pl8-guest[data-pl-texture="marble"]::after,
-  .pl8-guest[data-pl-texture="watercolor"]::before,
-  .pl8-guest[data-pl-texture="watercolor"]::after {
+  .pl8-guest[data-pl-texture="marble"]::after {
     filter: none !important;
   }
   /* Letterpress headings ride filter: url(#lp-text-press) — an

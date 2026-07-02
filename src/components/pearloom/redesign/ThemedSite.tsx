@@ -5088,28 +5088,71 @@ interface Copy {
 
 /* ─── TextureLayer — handoff/shared/themes.jsx L239-351 verbatim.
        Per-theme material grain painted on top of content (zIndex 6).
-       Uses SVG filter ids from TextureFilters (t-weave / t-grain /
-       t-mottle / t-wash). */
+       Noise (t-weave / t-grain / t-mottle) is baked into repeating
+       SVG tiles below; only the displacement filters (t-wash /
+       t-watercolor, via TextureFilters) still run live. */
 
-/* Viewport-sized noise layer. The feTurbulence filters (t-weave /
-   t-grain / t-mottle) used to paint absolute inset-0 divs spanning
-   the WHOLE document (5–15k px on long sites) — filter + blend
-   output computed over the full area, defeating cheap scroll
-   compositing on low-end devices. The noise is position-independent,
-   so pinning it to a 100dvh sticky box (the glassPhotoAurora
-   pattern) is visually identical at a fraction of the paint cost.
-   Positional layers (marble veins, watercolor washes, the gilded
-   sweep) stay document-anchored — pinning those WOULD read as the
-   pattern sliding against the paper. */
+/* Noise layer, baked. The feTurbulence filters (t-weave / t-grain /
+   t-mottle) used to run LIVE — `filter: url(#…)` on a 100dvh sticky
+   div. iOS Safari re-rasterizes live SVG filters asynchronously
+   while scrolling, so the grain visibly caught up a beat behind the
+   paper. Instead we bake each filter into a small seamless SVG tile
+   (same baseFrequency / octaves / seed, stitchTiles='stitch' so the
+   repeat is invisible) and paint it as a repeating background-image:
+   rasterized once, cached, zero per-frame filter work. The grain now
+   scrolls WITH the page — which reads more like real paper than the
+   old viewport-glued noise anyway. Positional layers (marble veins,
+   watercolor washes, the gilded sweep) keep their live displacement
+   filters — displacement genuinely needs the filter, and those are
+   document-anchored by design. */
+const svgTile = (size: number, pipeline: string) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><filter id='f' x='0' y='0' width='100%' height='100%'>${pipeline}</filter><rect width='100%' height='100%' filter='url(#f)'/></svg>`,
+  )}")`;
+
+/* Grayscale + fully-opaque alpha — the t-mottle / t-weave tail
+   (feColorMatrix saturate 0 → feComponentTransfer alpha to 1). */
+const TILE_OPAQUE_GRAY =
+  "<feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>";
+
+/* The three noise tiles, mirroring TextureFilters.tsx's t-grain /
+   t-mottle / t-weave defs exactly. Tile sizes: grain 160 (fine
+   speckle), weave 200 (tight directional tooth), mottle 640 (the
+   blotches are long-wavelength — the tile must be big enough that
+   the repeat never registers). */
+const NOISE_TILES = {
+  't-grain': svgTile(
+    160,
+    "<feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0'/>",
+  ),
+  't-mottle': svgTile(
+    640,
+    `<feTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='11' stitchTiles='stitch'/>${TILE_OPAQUE_GRAY}`,
+  ),
+  't-weave': svgTile(
+    200,
+    `<feTurbulence type='fractalNoise' baseFrequency='0.5 0.85' numOctaves='2' seed='6' stitchTiles='stitch'/>${TILE_OPAQUE_GRAY}`,
+  ),
+} as const;
+
 function StickyNoise({ filter, opacity, blend }: {
-  filter: string;
+  filter: keyof typeof NOISE_TILES;
   opacity: number;
   blend: CSSProperties['mixBlendMode'];
 }) {
   return (
-    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100dvh', filter: `url(#${filter})`, opacity, mixBlendMode: blend }} />
-    </div>
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        backgroundImage: NOISE_TILES[filter],
+        backgroundRepeat: 'repeat',
+        opacity,
+        mixBlendMode: blend,
+      }}
+    />
   );
 }
 

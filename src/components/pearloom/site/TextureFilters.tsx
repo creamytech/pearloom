@@ -94,14 +94,23 @@ export function TextureFilters() {
 
         {/* ─── Prototype texture filter set ─────────────────
             Direct port of the prototype's ThemeDefs filters
-            (themed-site.jsx ~line 177). These are the building
-            blocks the per-texture CSS layers in pearloom.css use
-            to compose paper / cotton / velvet textures from
-            multiple ::before/::after layers with mix-blend-mode.
-            Each filter is a feTurbulence noise source piped
-            through feColorMatrix to make grayscale + opaque
-            alpha so the layer can be blended over the underlying
-            paper. */}
+            (themed-site.jsx ~line 177). Each noise filter is a
+            feTurbulence source piped through feColorMatrix to
+            make grayscale + opaque alpha so the layer can be
+            blended over the underlying paper.
+
+            NOTE (2026-07): the three NOISE filters below
+            (t-grain / t-mottle / t-weave) no longer have live
+            `filter: url(#…)` consumers — iOS Safari rasterizes
+            live filters asynchronously while scrolling, which
+            made the grain lag behind the paper. The texture
+            layers now use pre-baked seamless SVG tiles with the
+            SAME turbulence parameters (NOISE_TILES in
+            redesign/ThemedSite.tsx + the --pl-tile-* custom
+            properties in pearloom.css — keep parameters in sync
+            with the defs here). The displacement filters
+            (t-watercolor / t-wash / wc-* / lp-*) are still live
+            consumers and must stay. */}
 
         {/* t-grain — fine paper grain with dark specks. Used in
             paper / cotton / watercolor textures at low opacity
