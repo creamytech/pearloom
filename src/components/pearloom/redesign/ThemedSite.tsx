@@ -78,11 +78,15 @@ import { AdviceWallSection } from './section-variants/blocks/advice-wall';
 import { ProgramSection } from './section-variants/blocks/program';
 import { LivestreamSection } from './section-variants/blocks/livestream';
 import { GuestbookSection } from './GuestbookSection';
+import { GuestPlaylist } from './GuestPlaylist';
 import { LinkedEventsStrip } from './LinkedEventsStrip';
 import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
 import { ObituarySection } from './section-variants/blocks/obituary';
 import { PackingListSection } from './section-variants/blocks/packing-list';
 import { HonorListSection } from './section-variants/blocks/honor-list';
+import { TributeWallSection } from './section-variants/blocks/tribute-wall';
+import { MenuSection } from './section-variants/blocks/menu';
+import { DressCodeSection } from './section-variants/blocks/dress-code';
 import { useIsMobile, useActiveSection } from './use-nav-hooks';
 import {
   readSiteMode,
@@ -518,6 +522,7 @@ export function ThemedSite({
        (added via the Add Section picker); never auto-appended. */
     'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
     'program', 'livestream', 'obituary', 'packingList', 'honorList',
+    'tributeWall', 'menu', 'dressCode',
   ];
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const reorderedRest: SectionKind[] = [
@@ -1386,6 +1391,9 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'obituary':     return <ObituarySection {...blockProps(ctx, 'obituary')} />;
     case 'packingList':  return <PackingListSection {...blockProps(ctx, 'packingList')} />;
     case 'honorList':    return <HonorListSection {...blockProps(ctx, 'honorList')} />;
+    case 'tributeWall':  return <TributeWallSection {...blockProps(ctx, 'tributeWall')} />;
+    case 'menu':         return <MenuSection {...blockProps(ctx, 'menu')} />;
+    case 'dressCode':    return <DressCodeSection {...blockProps(ctx, 'dressCode')} />;
   }
 }
 
@@ -3620,12 +3628,31 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
   );
 }
 
-/* ─── MusicBlock — Spotify / Apple / YouTube embed. ────────────
-   The host pastes a playlist URL; we transform it into the
-   provider's embed URL. Provider auto-detect happens in the
-   panel; this block just dispatches on manifest.music.provider. */
+/* ─── MusicBlock — Spotify / Apple / YouTube embed + the living
+   guest playlist. The host pastes a playlist URL; we transform it
+   into the provider's embed URL (MusicEmbed dispatches on
+   manifest.music.provider via the panel's auto-detect). Below the
+   embed, EVERY variant shares <GuestPlaylist> — accepted guest
+   suggestions as an editorial tracklist + the suggest-a-song
+   composer (hidden when manifest.music.suggestions === false).
+   Published needs ctx.siteSlug (same contract as GuestbookSection);
+   the editor canvas gets a 3-track demo gated by ctx.editable. */
 
 function MusicBlock({ ctx }: { ctx: SectionCtx }) {
+  const music = (ctx.manifest as unknown as { music?: { suggestions?: boolean } }).music ?? {};
+  return (
+    <>
+      <MusicEmbed ctx={ctx} />
+      <GuestPlaylist
+        siteSlug={ctx.siteSlug}
+        editable={ctx.editable}
+        suggestionsOn={music.suggestions !== false}
+      />
+    </>
+  );
+}
+
+function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
   const { pad, manifest, editable, variants } = ctx;
   const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string } }).music ?? {};
   const provider = cfg.provider ?? 'spotify';
@@ -4847,7 +4874,8 @@ function formatHeroDate(raw: string | undefined): string {
 type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'
                  | 'countdown' | 'map' | 'music'
                  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup' | 'adviceWall'
-                 | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList';
+                 | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList'
+                 | 'tributeWall' | 'menu' | 'dressCode';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
   hero: 'Opening', story: 'Our story', details: 'Details', schedule: 'Schedule',
@@ -4856,7 +4884,8 @@ const SECTION_LABEL: Record<SectionKind, string> = {
   itinerary: 'Itinerary', costSplitter: 'Costs', activityVote: 'Group vote',
   toastSignup: 'Toasts', adviceWall: 'Advice wall', program: 'Program',
   livestream: 'Livestream', obituary: 'Obituary', packingList: 'Packing list',
-  honorList: 'Honor list',
+  honorList: 'Honor list', tributeWall: 'Tribute wall',
+  menu: 'Menu', dressCode: 'Dress code',
 };
 
 interface SectionCtx {

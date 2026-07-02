@@ -19,6 +19,14 @@ interface MusicData {
   url?: string;
   title?: string;
   description?: string;
+  /** Guests can suggest songs from the site's guest playlist
+   *  composer. Default ON when the section exists — the public
+   *  POST treats anything but `false` as open. */
+  suggestions?: boolean;
+  /** Suggestions land on the tracklist immediately ('accepted')
+   *  instead of waiting in the /dashboard/music queue. Default
+   *  OFF — the host approves first. */
+  autoAdd?: boolean;
 }
 
 export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -33,6 +41,8 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
      passport song composer actually honor (defaults ON, matching
      their behavior). music.acceptSubmissions was write-only. */
   const acceptSubmissions = ((manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests) ?? true;
+  const suggestions = data.suggestions ?? true;
+  const autoAdd = data.autoAdd ?? false;
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'musicEyebrow');
 
   const patch = (next: Partial<MusicData>) => onChange({
@@ -96,6 +106,47 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
             onChange={(v) => patch({ description: v })}
             placeholder="What we listen to when we're together."
           />
+        </FGroup>
+
+        {/* Guest suggestions — the living playlist on the site
+            itself. Accepted requests render as "The guest playlist"
+            under the embed; the composer posts to /api/song-requests
+            which reads these two fields for gating + initial state. */}
+        <FGroup
+          label="Guest suggestions"
+          hint={suggestions
+            ? (autoAdd
+              ? 'Suggestions are woven straight into the guest playlist.'
+              : 'Suggestions wait in your queue until you weave them in.')
+            : 'Off — the guest playlist shows accepted songs only, with no composer.'}
+          action={(
+            <a
+              href="/dashboard/music"
+              style={{ fontSize: 11, fontWeight: 600, color: 'var(--pl-chrome-text-muted)', textDecoration: 'underline', textUnderlineOffset: 2 }}
+            >
+              Manage requests →
+            </a>
+          )}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <FToggleStandalone
+              label="Let guests suggest songs on the site"
+              sub="A suggest-a-song composer under the playlist embed."
+              def={suggestions}
+              onChange={(v) => patch({ suggestions: v })}
+            />
+            {suggestions && (
+              <FSelect
+                value={autoAdd ? 'auto' : 'approve'}
+                onChange={(v) => patch({ autoAdd: v === 'auto' })}
+                options={[
+                  { value: 'approve', label: "I'll approve first",     hint: 'Requests wait in your queue' },
+                  { value: 'auto',    label: 'Weave in automatically', hint: 'New songs appear right away' },
+                ]}
+                icon="music"
+              />
+            )}
+          </div>
         </FGroup>
 
         {/* Wired to rsvpConfig.songRequests — the field the RSVP form
