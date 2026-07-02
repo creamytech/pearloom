@@ -21,6 +21,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
 let isOpen = false;
+/* Shared scroll-lock bookkeeping — the body-lock effect below has
+   multiple consumers, so the FIRST lock snapshots the real
+   overflow value and the LAST unlock restores it. */
+let lockCount = 0;
+let prevOverflow = '';
 const subs = new Set<() => void>();
 function notify() {
   subs.forEach((fn) => fn());
@@ -58,13 +63,24 @@ export function useDashDrawer(): { open: boolean; setOpen: (v: boolean) => void;
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-  // Lock body scroll while the drawer is open.
+  // Lock body scroll while the drawer is open. COUNTED, because
+  // this hook has multiple consumers (DashSidebar + the mobile
+  // bar both mount it): with a naive per-consumer lock, the
+  // second consumer snapshots prev='hidden' and its cleanup
+  // restored 'hidden' — the page stayed unscrollable after the
+  // drawer closed or a nav tap changed routes.
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockCount += 1;
+    if (lockCount === 1) {
+      prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
     return () => {
-      document.body.style.overflow = prev;
+      lockCount = Math.max(0, lockCount - 1);
+      if (lockCount === 0) {
+        document.body.style.overflow = prevOverflow;
+      }
     };
   }, [open]);
   return { open, setOpen: setDashDrawerOpen, toggle: toggleDashDrawer };

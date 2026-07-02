@@ -497,6 +497,16 @@ export function UserSettingsModal({
     return { name, email, initials, joined: 'Member of Pearloom', image: session?.user?.image ?? null };
   }, [session]);
 
+  /* Body scroll-lock while open — without it, touch-scrolling the
+     modal also scrolled (and rubber-banded) the dashboard behind
+     it on phones; closing could land you somewhere else entirely. */
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
   useEffect(() => {
     if (!open || typeof window === 'undefined') return;
     fetch('/api/ai-usage', { credentials: 'include' })
@@ -579,7 +589,9 @@ export function UserSettingsModal({
         </div>
         )}
         {/* content */}
-        <div style={{ position: 'relative', overflow: 'auto', minHeight: 0, padding: isPhone ? '18px 16px 20px' : '24px 28px' }}>
+        {/* overscrollBehavior contain — reaching the end of the pane
+            must not hand the scroll to the page behind (iOS chain). */}
+        <div style={{ position: 'relative', overflow: 'auto', minHeight: 0, overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: isPhone ? '18px 16px calc(20px + env(safe-area-inset-bottom))' : '24px 28px' }}>
           <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', zIndex: 2, border: 'none', cursor: 'pointer' }}><Icon name="close" size={15} color="var(--ink-soft)" /></button>
           {/* key={tab} + pl8-tab-enter: tab switches crossfade instead
               of hard-swapping. */}

@@ -2820,10 +2820,16 @@ html { scroll-behavior: smooth; }
    first paint isn't deferred.
    NOTE: the current renderer (redesign/ThemedSite) emits
    `div[data-section-id]`, not `section[id]` — the old selector
-   matched nothing and long pages rendered everything at once. */
-.pl8-guest [data-section-id]:not([data-section-id='hero']):not([data-section-id='nav']) {
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 800px;
+   matched nothing and long pages rendered everything at once.
+   DESKTOP ONLY — on phones, rendering sections on demand showed
+   blank paper mid-scroll while the browser laid each one out
+   (a fast flick outruns the on-demand paint). Phones paint
+   everything up front; desktop keeps the long-page win. */
+@media (min-width: 761px) {
+  .pl8-guest [data-section-id]:not([data-section-id='hero']):not([data-section-id='nav']) {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+  }
 }
 /* The editor canvas keeps everything rendered — content-visibility
    would fight the section-jump scroll sync + selection chrome. */

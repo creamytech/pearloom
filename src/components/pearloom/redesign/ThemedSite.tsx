@@ -477,10 +477,16 @@ export function ThemedSite({
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
   /* Scroll-rise — guest-facing sections thread into view as the
-     reader reaches them (fade + 18px rise, 600ms). Editor canvas
-     opts out (instant paint while editing); reduced-motion opts
-     out via the CSS. Sections already in the first viewport get
-     the class immediately so there's no above-the-fold flash. */
+     reader reaches them (fade + rise). Editor canvas opts out
+     (instant paint while editing); reduced-motion opts out via
+     the CSS. Two anti-blank rules learned on phones:
+       • sections in (or near) the first viewport reveal
+         SYNCHRONOUSLY — never a flash above the fold;
+       • the observer pre-triggers half a viewport EARLY
+         (rootMargin +50%), so a section has finished rising by
+         the time a fast flick brings it on screen. The old
+         -8%/0.05 trigger meant blank paper until the reader was
+         already inside the section. */
   const revealRoot = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (editable || typeof IntersectionObserver === 'undefined') return;
@@ -488,7 +494,15 @@ export function ThemedSite({
     if (!root) return;
     const els = Array.from(root.querySelectorAll('[data-section-id]')) as HTMLElement[];
     if (!els.length) return;
-    els.forEach((el) => el.classList.add('pl8-rise-pending'));
+    const vh = window.innerHeight || 800;
+    const toObserve: HTMLElement[] = [];
+    for (const el of els) {
+      const top = el.getBoundingClientRect().top;
+      if (top < vh * 1.2) continue; // already on (or near) screen — stay painted
+      el.classList.add('pl8-rise-pending');
+      toObserve.push(el);
+    }
+    if (!toObserve.length) return;
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.isIntersecting) {
@@ -496,8 +510,8 @@ export function ThemedSite({
           io.unobserve(e.target);
         }
       }
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
-    els.forEach((el) => io.observe(el));
+    }, { rootMargin: '0px 0px 50% 0px', threshold: 0 });
+    toObserve.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [editable]);
 
