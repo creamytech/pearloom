@@ -12,6 +12,7 @@
 
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { moveItem, ReorderHandle } from '../_reorder';
 import { isMemorialOccasion, mkId, readOccasion, RemoveButton, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface ProgramRow { id: string; name: string; detail?: string }
@@ -55,6 +56,12 @@ export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {program.map((row, i) => (
               <div key={row.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
+                <ReorderHandle
+                  index={i}
+                  count={program.length}
+                  label={row.name || 'moment'}
+                  onMove={(from, to) => write(moveItem(program, from, to))}
+                />
                 <span
                   title={`Moment ${i + 1}`}
                   style={{

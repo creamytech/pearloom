@@ -293,6 +293,32 @@ export interface StoryManifest {
     palette?: string[];
     examples?: Array<{ label: string; hint?: string }>;
   };
+  /** Name vote section (SectionKind 'nameVote') — the baby-shower /
+   *  gender-reveal name ballot. Host-authored `options` are the
+   *  names on the ballot; guests vote through the SAME
+   *  /api/event-os/votes contract as activityVote (block id
+   *  'name-vote', option ids slugged from the labels — see
+   *  lib/event-os/activity-votes.ts). `reveal` hides the tallies
+   *  until the guest has cast their own vote. Edited by
+   *  NameVotePanel; rendered by section-variants/blocks/name-vote.tsx. */
+  nameVote?: {
+    question?: string;
+    options?: string[];
+    reveal?: boolean;
+  };
+  /** Then & now section (SectionKind 'thenAndNow') — before/after
+   *  photo pairs for reunions, milestone birthdays, retirements,
+   *  graduations. Edited by ThenAndNowPanel; rendered by
+   *  section-variants/blocks/then-and-now.tsx. */
+  thenAndNow?: Array<{
+    id: string;
+    /** Photo URLs (R2/CDN). Either side may be empty while the host
+     *  is still gathering photos — the renderer shows what exists. */
+    then?: string;
+    now?: string;
+    /** One quiet line under the pair — "Maya · 1998 / 2026". */
+    caption?: string;
+  }>;
   /** Per-photo gallery captions, keyed by the photo's index in
    *  `galleryImages` (stringified number, e.g. `{ "0": "First dance" }`).
    *  Index keying is deliberate: `galleryImages` is a plain string[] of

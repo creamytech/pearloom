@@ -127,6 +127,9 @@ import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
 import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
 import { MenuPanel } from '../editor/panels/blocks/MenuPanel';
 import { DressCodePanel } from '../editor/panels/blocks/DressCodePanel';
+import { NameVotePanel } from '../editor/panels/blocks/NameVotePanel';
+import { RoomsPanel } from '../editor/panels/blocks/RoomsPanel';
+import { ThenAndNowPanel } from '../editor/panels/blocks/ThenAndNowPanel';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
@@ -196,6 +199,9 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   tributeWall:  { id: 'tributeWall',  label: 'Tribute wall',  desc: 'Memories, gathered from your guests' },
   menu:         { id: 'menu',         label: 'Menu',          desc: 'Dinner, course by course' },
   dressCode:    { id: 'dressCode',    label: 'Dress code',    desc: 'What to wear' },
+  nameVote:     { id: 'nameVote',     label: 'Name vote',     desc: 'Guests pick their favorite name' },
+  rooms:        { id: 'rooms',        label: 'Rooms',         desc: 'Who sleeps where' },
+  thenAndNow:   { id: 'thenAndNow',   label: 'Then & now',    desc: 'Photo pairs, years apart' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -325,7 +331,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
       'countdown', 'map', 'music',
       'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
       'program', 'livestream', 'obituary', 'packingList', 'honorList',
-      'tributeWall', 'menu', 'dressCode',
+      'tributeWall', 'menu', 'dressCode', 'nameVote', 'rooms', 'thenAndNow',
     ];
     const allReorderable = [...coreReorderable, ...optionalReorderable];
     const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
@@ -902,6 +908,9 @@ function renderSectionEditor(
     case 'tributeWall':  return <TributeWallPanel {...props} />;
     case 'menu':         return <MenuPanel {...props} />;
     case 'dressCode':    return <DressCodePanel {...props} />;
+    case 'nameVote':     return <NameVotePanel {...props} />;
+    case 'rooms':        return <RoomsPanel {...props} />;
+    case 'thenAndNow':   return <ThenAndNowPanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

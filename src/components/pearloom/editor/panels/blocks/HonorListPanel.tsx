@@ -16,6 +16,7 @@
 import type { StoryManifest, WeddingPartyMember } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
 import { FSelect } from '../_form-atoms';
+import { moveItem, ReorderHandle } from '../_reorder';
 import { PhotoUploadSlot, collectPhotoPool } from '../_photo-upload';
 import { mkId, readOccasion, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
@@ -135,6 +136,14 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
             {members.map((m, i) => (
               <RowCard key={m.id ?? i}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  {/* Processional order — write() reindexes `order`
+                      from array position, so a move IS the order. */}
+                  <ReorderHandle
+                    index={i}
+                    count={members.length}
+                    label={m.name || 'person'}
+                    onMove={(from, to) => write(moveItem(members, from, to))}
+                  />
                   {/* Portrait slot — square; the canvas crops to its
                       variant's shape (portrait card / circle / row). */}
                   <div style={{ width: 64, flexShrink: 0 }}>

@@ -29,6 +29,7 @@ import {
   useSectionHidden,
 } from './_section-atoms';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { moveItem, ReorderHandle } from './_reorder';
 import { travelDirectionsSuggestions, smartContext } from './_suggestions';
 
 /* Place-search result shape from /api/places/search/route.ts. */
@@ -393,13 +394,26 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                           <span style={{ fontSize: 13.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
-                          <button
-                            onClick={() => removeHotel(key)}
-                            aria-label={`Remove ${h.name}`}
-                            style={{ width: 22, height: 22, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', border: 'none', cursor: 'pointer', flexShrink: 0 }}
-                          >
-                            <Icon name="close" size={11} color="var(--ink-muted)" />
-                          </button>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                            {/* First hotel = the lead card in every
+                                travel layout — order is a real pick. */}
+                            <ReorderHandle
+                              index={i}
+                              count={hotels.length}
+                              label={h.name || 'hotel'}
+                              onMove={(from, to) => {
+                                const next = moveItem(hotels, from, to);
+                                if (next !== hotels) patchTravel({ hotels: next });
+                              }}
+                            />
+                            <button
+                              onClick={() => removeHotel(key)}
+                              aria-label={`Remove ${h.name}`}
+                              style={{ width: 22, height: 22, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+                            >
+                              <Icon name="close" size={11} color="var(--ink-muted)" />
+                            </button>
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 2, fontSize: 11.5, color: 'var(--ink-soft)' }}>
                           {typeof h.rating === 'number' && (

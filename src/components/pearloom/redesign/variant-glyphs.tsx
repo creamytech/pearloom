@@ -395,6 +395,10 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'honorList/rows': (
     <><circle cx={11} cy={10} r={2.6} fill={A} opacity={0.6} /><B x={17} y={8} w={18} /><B x={17} y={11.5} w={10} h={1.5} o={0.45} /><circle cx={11} cy={21} r={2.6} fill={A} opacity={0.6} /><B x={17} y={19} w={15} /><B x={17} y={22.5} w={11} h={1.5} o={0.45} /><circle cx={11} cy={32} r={2.6} fill={A} opacity={0.6} /><B x={17} y={30} w={17} /></>
   ),
+  /* who's-who voice — face + relationship line leads, in 2 cols. */
+  'honorList/relationships': (
+    <><circle cx={10} cy={12} r={3.4} fill={A} opacity={0.65} /><B x={16} y={9.5} w={11} /><B x={16} y={13.5} w={8} h={1.5} o={0.45} /><circle cx={34} cy={12} r={3.4} fill={A} opacity={0.5} /><B x={40} y={9.5} w={10} /><B x={40} y={13.5} w={7} h={1.5} o={0.45} /><circle cx={10} cy={28} r={3.4} fill={A} opacity={0.8} /><B x={16} y={25.5} w={10} /><B x={16} y={29.5} w={8} h={1.5} o={0.45} /><circle cx={34} cy={28} r={3.4} fill={A} opacity={0.6} /><B x={40} y={25.5} w={11} /><B x={40} y={29.5} w={6} h={1.5} o={0.45} /></>
+  ),
 
   /* tributeWall — framed cards, gold pearl beside the signer. */
   'tributeWall/columns': (
@@ -415,6 +419,24 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   /* dressCode — eyebrow, code line, swatch circles, example chips. */
   'dressCode/centered': (
     <><B x={22} y={6} w={12} h={1.6} f={G} /><B x={15} y={11} w={26} h={3.2} /><circle cx={19} cy={22} r={3} fill={A} opacity={0.7} /><circle cx={28} cy={22} r={3} fill={A} opacity={0.45} /><circle cx={37} cy={22} r={3} fill={G} opacity={0.55} /><rect x={12} y={29} width={13} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /><rect x={29} y={29} width={15} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /></>
+  ),
+
+  /* nameVote — display-face names in tappable rows, gold tally. */
+  'nameVote/ballot': (
+    <><Card x={10} y={6} w={36} h={8} rx={4} /><B x={14} y={9} w={13} h={2.2} /><D cx={41} cy={10} r={1.4} /><rect x={10} y={16} width={36} height={8} rx={4} fill={A} opacity={0.55} /><B x={14} y={19} w={16} h={2.2} f={CARD} /><Card x={10} y={26} w={36} h={8} rx={4} /><B x={14} y={29} w={11} h={2.2} /><D cx={41} cy={30} r={1.4} /></>
+  ),
+
+  /* rooms — room cards with guest chips / a ruled board. */
+  'rooms/assignments': (
+    <><Card x={6} y={7} w={21} h={26} /><B x={9} y={10.5} w={13} h={2.2} /><rect x={9} y={17} width={12} height={4} rx={2} fill={AB} /><rect x={9} y={23} width={9} height={4} rx={2} fill={AB} /><Card x={29} y={7} w={21} h={26} /><B x={32} y={10.5} w={11} h={2.2} /><rect x={32} y={17} width={10} height={4} rx={2} fill={AB} /><rect x={32} y={23} width={13} height={4} rx={2} fill={AB} /></>
+  ),
+  'rooms/board': (
+    <><B x={8} y={8} w={14} /><B x={30} y={8.4} w={18} h={1.6} o={0.5} /><Ln x1={8} y1={15} x2={48} y2={15} /><B x={8} y={19} w={12} /><B x={33} y={19.4} w={15} h={1.6} o={0.5} /><Ln x1={8} y1={26} x2={48} y2={26} /><B x={8} y={30} w={15} /><B x={36} y={30.4} w={12} h={1.6} o={0.5} /></>
+  ),
+
+  /* thenAndNow — two framed plates in one card, mono corner tags. */
+  'thenAndNow/pairs': (
+    <><Card x={8} y={6} w={40} h={28} /><P x={10} y={8} w={17.5} h={19} o={0.4} /><P x={28.5} y={8} w={17.5} h={19} o={0.7} /><rect x={11.5} y={22.5} width={6} height={3} rx={1.5} fill="currentColor" opacity={0.75} /><rect x={30} y={22.5} width={6} height={3} rx={1.5} fill="currentColor" opacity={0.75} /><B x={20} y={30} w={16} h={1.6} o={0.5} /></>
   ),
 };
 

@@ -12,6 +12,7 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { moveIndexKeyed, moveItem, ReorderHandle } from './_reorder';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -66,6 +67,15 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const addPhoto = (url: string) => {
     if (!url) return;
     setPhotos([...photos, url]);
+  };
+
+  /* Reorder — the grid reads left-to-right, so ▲ = earlier, ▼ =
+     later. Captions are index-keyed, so they move WITH the photo
+     (moveIndexKeyed remaps the sidecar in the same write). */
+  const movePhoto = (from: number, to: number) => {
+    const next = moveItem(photos, from, to);
+    if (next === photos) return;
+    setPhotos(next, moveIndexKeyed(captions, from, to));
   };
 
   const setGuestUploads = (v: boolean) => onChange({
@@ -124,13 +134,23 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
                     size="sm"
                     pool={photoPool}
                   />
-                  {/* Caption input — only for filled slots. */}
+                  {/* Caption + order — only for filled slots. The
+                      grid reads left-to-right; ▲ moves the photo
+                      earlier, ▼ later, caption riding along. */}
                   {photos[i] && (
-                    <FInput
-                      value={captions[String(i)] ?? ''}
-                      onChange={(v) => setCaption(i, v)}
-                      placeholder="Caption"
-                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <ReorderHandle
+                        index={i}
+                        count={photos.length}
+                        label={captions[String(i)] || `photo ${i + 1}`}
+                        onMove={movePhoto}
+                      />
+                      <FInput
+                        value={captions[String(i)] ?? ''}
+                        onChange={(v) => setCaption(i, v)}
+                        placeholder="Caption"
+                      />
+                    </div>
                   )}
                 </div>
               ))}

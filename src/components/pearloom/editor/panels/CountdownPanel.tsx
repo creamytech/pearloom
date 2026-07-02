@@ -15,6 +15,9 @@ import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibility
    section uses. */
 interface CountdownData {
   label?: string;
+  /** Optional alternate target — count to the welcome dinner, not
+   *  the ceremony. Empty → the hero date (logistics.date). */
+  date?: string;
 }
 
 export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -51,6 +54,25 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
 
         <FGroup label="Custom label" hint='Optional — e.g. "Until we say I do" or "Until we celebrate."'>
           <FInput value={label} onChange={(v) => patch({ label: v })} placeholder="Until we say I do" />
+        </FGroup>
+
+        <FGroup
+          label="Count to a different date"
+          hint={heroDate
+            ? 'Optional — count down to the welcome dinner instead of the main day. Leave empty to use the event date.'
+            : 'Optional — a target date just for this countdown.'}
+        >
+          <FInput
+            value={data.date ?? ''}
+            onChange={(v) => patch({ date: v })}
+            icon="calendar"
+            placeholder="2026-06-12 or June 12, 2026"
+          />
+          {(data.date ?? '').trim() !== '' && !Number.isFinite(Date.parse((data.date ?? '').trim())) && (
+            <div style={{ marginTop: 6, padding: '5px 9px', borderRadius: 6, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+              That date didn’t read — try “2026-06-12” or “June 12, 2026”.
+            </div>
+          )}
         </FGroup>
 
         {/* The "Also show under the hero" toggle is gone — it wrote

@@ -13,6 +13,7 @@ import { Icon } from '../../motifs';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { AddCard, FGroup, FInput, FToggle, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
+import { moveItem, ReorderHandle } from './_reorder';
 import { PhotoUploadSlot } from './_photo-upload';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
@@ -181,9 +182,17 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ width: 32, height: 32, borderRadius: 8, background: `var(--${TONES[i % TONES.length]}-2)`, display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 2 }}>
-                      <Icon name="gift" size={14} color="#3D4A1F" />
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, marginTop: 2 }}>
+                      <span style={{ width: 32, height: 32, borderRadius: 8, background: `var(--${TONES[i % TONES.length]}-2)`, display: 'grid', placeItems: 'center' }}>
+                        <Icon name="gift" size={14} color="#3D4A1F" />
+                      </span>
+                      <ReorderHandle
+                        index={i}
+                        count={stores.length}
+                        label={s.name || 'registry link'}
+                        onMove={(from, to) => writeStores(moveItem(stores, from, to))}
+                      />
+                    </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                       <FSelect
                         value={presetId}

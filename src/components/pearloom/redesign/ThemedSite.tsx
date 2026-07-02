@@ -131,6 +131,9 @@ const HonorListSection = dynamic(() => import('./section-variants/blocks/honor-l
 const TributeWallSection = dynamic(() => import('./section-variants/blocks/tribute-wall').then((m) => m.TributeWallSection));
 const MenuSection = dynamic(() => import('./section-variants/blocks/menu').then((m) => m.MenuSection));
 const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-code').then((m) => m.DressCodeSection));
+const NameVoteSection = dynamic(() => import('./section-variants/blocks/name-vote').then((m) => m.NameVoteSection));
+const RoomsSection = dynamic(() => import('./section-variants/blocks/rooms').then((m) => m.RoomsSection));
+const ThenAndNowSection = dynamic(() => import('./section-variants/blocks/then-and-now').then((m) => m.ThenAndNowSection));
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -582,7 +585,7 @@ export function ThemedSite({
        (added via the Add Section picker); never auto-appended. */
     'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
     'program', 'livestream', 'obituary', 'packingList', 'honorList',
-    'tributeWall', 'menu', 'dressCode',
+    'tributeWall', 'menu', 'dressCode', 'nameVote', 'rooms', 'thenAndNow',
   ];
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const reorderedRest: SectionKind[] = [
@@ -1454,6 +1457,9 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'tributeWall':  return <TributeWallSection {...blockProps(ctx, 'tributeWall')} />;
     case 'menu':         return <MenuSection {...blockProps(ctx, 'menu')} />;
     case 'dressCode':    return <DressCodeSection {...blockProps(ctx, 'dressCode')} />;
+    case 'nameVote':     return <NameVoteSection {...blockProps(ctx, 'nameVote')} />;
+    case 'rooms':        return <RoomsSection {...blockProps(ctx, 'rooms')} />;
+    case 'thenAndNow':   return <ThenAndNowSection {...blockProps(ctx, 'thenAndNow')} />;
   }
 }
 
@@ -3285,13 +3291,16 @@ function useCountdownPieces(target: number | null): CountdownPieces {
 
 function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, manifest, editable, variants } = ctx;
-  const cd = (manifest as unknown as { countdown?: { label?: string } }).countdown ?? {};
+  const cd = (manifest as unknown as { countdown?: { label?: string; date?: string } }).countdown ?? {};
   /* Variant comes from manifest.layouts.countdown via the LAYOUTS
      registry (PropertyRail's Layout tab), NOT from manifest.countdown.
      This way the picker lives in the same Layout dispatch every
      other section uses. */
   const variant = variants.countdown || 'cards';
-  const dateStr = manifest.logistics?.date ?? '';
+  /* Target: the countdown's own date (CountdownPanel — count to
+     the welcome dinner, not the ceremony) wins; the hero date is
+     the default. */
+  const dateStr = (cd.date ?? '').trim() || manifest.logistics?.date || '';
   const ms = dateStr ? Date.parse(dateStr) : NaN;
   const target = Number.isFinite(ms) ? ms : null;
   const pieces = useCountdownPieces(target);
@@ -3461,7 +3470,10 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontFamily: 'var(--t-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
           {label}
         </div>
-        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        {/* .pl8-flip-grid (pearloom.css): 4-across on desktop, a
+            BALANCED 2×2 under 560px — free flex wrap orphaned the
+            seconds cell onto its own row at 390. */}
+        <div className="pl8-flip-grid" style={{ maxWidth: 760, margin: '0 auto' }}>
           {[
             { n: pieces.d, l: 'Days' },
             { n: pieces.h, l: 'Hours' },
@@ -5046,7 +5058,8 @@ type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'regis
                  | 'countdown' | 'map' | 'music'
                  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup' | 'adviceWall'
                  | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList'
-                 | 'tributeWall' | 'menu' | 'dressCode';
+                 | 'tributeWall' | 'menu' | 'dressCode'
+                 | 'nameVote' | 'rooms' | 'thenAndNow';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
   hero: 'Opening', story: 'Our story', details: 'Details', schedule: 'Schedule',
@@ -5057,6 +5070,7 @@ const SECTION_LABEL: Record<SectionKind, string> = {
   livestream: 'Livestream', obituary: 'Obituary', packingList: 'Packing list',
   honorList: 'Honor list', tributeWall: 'Tribute wall',
   menu: 'Menu', dressCode: 'Dress code',
+  nameVote: 'Name vote', rooms: 'Rooms', thenAndNow: 'Then & now',
 };
 
 interface SectionCtx {
@@ -5870,15 +5884,19 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       eyebrow: co('faqEyebrow', 'Questions & answers'),
       title: t.head,
       italic: t.italic,
+      /* NO cap: the old slice(0, 6) silently dropped a host's 7th+
+         question on every layout. Long lists are the LAYOUTS' job
+         now — accordion collapses, twocol/cards clamp to 8 with a
+         "Show all N" pill (section-variants/faq.tsx). */
       questions: faqsRaw.length > 0
-        ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
+        ? faqsRaw.map((q) => q.question ?? '').filter(Boolean)
         : demo ? V.faqDemo : [],
       /* qa[] carries the host-authored answers (FaqPanel writes
          manifest.faqs[].answer). Variants twocol/numbered/cards
          read ctx.C.qa[i].a and fall through to placeholder when
          empty. Without this, answers were silently dropped. */
       qa: faqsRaw.length > 0
-        ? faqsRaw.slice(0, 6).map((q) => ({ q: q.question ?? '', a: q.answer ?? '' }))
+        ? faqsRaw.map((q) => ({ q: q.question ?? '', a: q.answer ?? '' }))
         : undefined,
       };
     })(),

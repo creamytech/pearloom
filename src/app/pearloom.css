@@ -8823,6 +8823,34 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* 2a · Countdown flip clock — 4 cells across on desktop, a
+      BALANCED 2×2 under 560px. The old flex-wrap row broke
+      unevenly at 390 (seconds orphaned onto a second row). */
+.pl8-flip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  justify-content: center;
+  gap: 14px;
+}
+@media (max-width: 560px) {
+  .pl8-flip-grid {
+    grid-template-columns: repeat(2, max-content);
+    gap: 16px 22px;
+  }
+}
+
+/* 2b · Reorder-handle buttons (editor panels, _reorder.tsx). Two
+      stacked .pl-hit44 targets would overlap, so the ▲/▼ pair
+      grows its REAL geometry on coarse pointers instead — a 44px-
+      wide, 30px-tall button each (60px column total), no overlap.
+      Fine pointers keep the dense 26×20 chrome. */
+@media (pointer: coarse) {
+  .pl8-reorder-btn {
+    width: 44px !important;
+    height: 30px !important;
+  }
+}
+
 /* 3 · FDate day cells — hover AND press feedback (the old JS
       onMouseEnter pair never fired on touch). !important beats the
       inline background; selected / disabled cells keep their

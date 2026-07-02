@@ -11,7 +11,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { StoryManifest } from '@/types';
-import { optionIdsFor, readVotes, voteBlockId, votePollsWithIds } from './activity-votes';
+import { NAME_VOTE_BLOCK_ID, nameVotePollWithId, optionIdsFor, readNameVote, readVotes, voteBlockId, votePollsWithIds } from './activity-votes';
 
 describe('readVotes', () => {
   it('reads manifest.bachelor.votes and returns [] otherwise', () => {
@@ -45,6 +45,37 @@ describe('votePollsWithIds', () => {
       },
     } as unknown as StoryManifest;
     expect(votePollsWithIds(manifest).map((e) => e.blockId)).toEqual(['vote-0', 'vote-1', 'named']);
+  });
+});
+
+describe('nameVotePollWithId', () => {
+  it('exposes the name ballot under the constant block id with trimmed options', () => {
+    const manifest = {
+      nameVote: { question: 'Help us pick', options: [' Juniper ', '', 'Wren'] },
+    } as unknown as StoryManifest;
+    expect(nameVotePollWithId(manifest)).toEqual({
+      poll: { id: NAME_VOTE_BLOCK_ID, question: 'Help us pick', options: ['Juniper', 'Wren'] },
+      blockId: NAME_VOTE_BLOCK_ID,
+    });
+  });
+
+  it('returns null when the host authored no name options (nothing renders, nothing tallies)', () => {
+    expect(nameVotePollWithId({} as StoryManifest)).toBeNull();
+    expect(nameVotePollWithId({ nameVote: { question: 'Names?' } } as unknown as StoryManifest)).toBeNull();
+    expect(nameVotePollWithId({ nameVote: { options: ['  '] } } as unknown as StoryManifest)).toBeNull();
+    expect(nameVotePollWithId(null)).toBeNull();
+  });
+
+  it('the block id is pinned — changing it orphans live tallies', () => {
+    expect(NAME_VOTE_BLOCK_ID).toBe('name-vote');
+  });
+});
+
+describe('readNameVote', () => {
+  it('reads manifest.nameVote, null otherwise', () => {
+    expect(readNameVote({ nameVote: { reveal: true } } as unknown as StoryManifest)).toEqual({ reveal: true });
+    expect(readNameVote({} as StoryManifest)).toBeNull();
+    expect(readNameVote(null)).toBeNull();
   });
 });
 

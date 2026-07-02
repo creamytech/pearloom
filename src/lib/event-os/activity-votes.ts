@@ -55,6 +55,39 @@ export function votePollsWithIds(manifest: StoryManifest | null | undefined): Vo
     .map((poll, index) => ({ poll, blockId: voteBlockId(poll, index) }));
 }
 
+/* ── Name vote (baby-shower / gender-reveal ballot) ──────────
+   Same tally backend, one fixed poll: manifest.nameVote holds the
+   host's name options; votes land in activity_votes under the
+   constant block id below. The renderer (section-variants/blocks/
+   name-vote.tsx) and the host tally on /dashboard/submissions both
+   read through these helpers so the ids can never fork. */
+
+export const NAME_VOTE_BLOCK_ID = 'name-vote';
+
+export interface NameVoteData {
+  question?: string;
+  options?: string[];
+  reveal?: boolean;
+}
+
+/** The manifest's name-vote config, or null when unset. */
+export function readNameVote(manifest: StoryManifest | null | undefined): NameVoteData | null {
+  const nv = manifest?.nameVote;
+  return nv && typeof nv === 'object' ? nv : null;
+}
+
+/** The name ballot as a tally-ready poll — null when the host has
+ *  authored no name options (nothing renders, nothing tallies). */
+export function nameVotePollWithId(manifest: StoryManifest | null | undefined): VotePollWithId | null {
+  const nv = readNameVote(manifest);
+  const options = (nv?.options ?? []).map((o) => o.trim()).filter(Boolean);
+  if (options.length === 0) return null;
+  return {
+    poll: { id: NAME_VOTE_BLOCK_ID, question: nv?.question ?? '', options },
+    blockId: NAME_VOTE_BLOCK_ID,
+  };
+}
+
 /** Stable option ids from labels — the redesign data carries plain
  *  strings (no ids), so the server-side option_id is a slug of the
  *  label, index-deduped. Renaming an option therefore resets its

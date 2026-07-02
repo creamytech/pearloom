@@ -171,6 +171,17 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
 
 /* ─── ScheduleStepper — horizontal numbered circles + connectors ── */
 
+/** Chunk a day's rows into stepper LINES of at most `size` moments.
+ *  One endless horizontal scroll broke past ~5 moments (audit #10);
+ *  a long day now wraps onto stacked lines — connectors run within
+ *  a line only, and the running step number carries across. */
+export function chunkStepperRows<T>(rows: readonly T[], size = 5): T[][] {
+  if (rows.length === 0) return [];
+  const out: T[][] = [];
+  for (let i = 0; i < rows.length; i += size) out.push(rows.slice(i, i + size));
+  return out;
+}
+
 export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
   const { C, pad } = ctx;
   const { multiDay, groups } = groupRowsByDay(C.rows);
@@ -184,32 +195,34 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
       {groups.map((g, groupIdx) => (
         <div key={g.day} style={{ maxWidth: 880, margin: '0 auto' }}>
           {multiDay && <DayRule day={g.day} />}
-          <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 0, minWidth: 'min-content', padding: `0 ${Math.round(16 * pad)}px` }}>
-              {g.rows.map(({ row, idx }, gi) => {
-                const step = stepOffsets[groupIdx] + gi + 1;
-                return (
-                  <div key={idx} className="pl8-schedule-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120 }}>
-                      <div style={{ width: 44, height: 44, background: 'var(--t-accent)', color: 'var(--t-accent-ink)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15, borderRadius: 999 }}>
-                        {step}
+          {chunkStepperRows(g.rows).map((line, lineIdx) => (
+            <div key={lineIdx} style={{ overflowX: 'auto', paddingBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 0, minWidth: 'min-content', padding: `0 ${Math.round(16 * pad)}px`, marginTop: lineIdx > 0 ? 18 : 0 }}>
+                {line.map(({ row, idx }, li) => {
+                  const step = stepOffsets[groupIdx] + lineIdx * 5 + li + 1;
+                  return (
+                    <div key={idx} className="pl8-schedule-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120 }}>
+                        <div style={{ width: 44, height: 44, background: 'var(--t-accent)', color: 'var(--t-accent-ink)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15, borderRadius: 999 }}>
+                          {step}
+                        </div>
+                        <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10 }}>
+                          {row.t}{row.m ? ' ' + row.m : ''}
+                        </div>
+                        <div style={{ fontFamily: 'var(--t-display)', fontSize: 16, color: 'var(--t-ink)', marginTop: 4, textAlign: 'center' }}>{row.l}</div>
+                        <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', marginTop: 2, textAlign: 'center' }}>{row.s}</div>
+                        <RowNote ctx={ctx} i={idx} row={row} style={{ textAlign: 'center', maxWidth: 150 }} />
+                        <RowDirections row={row} />
                       </div>
-                      <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10 }}>
-                        {row.t}{row.m ? ' ' + row.m : ''}
-                      </div>
-                      <div style={{ fontFamily: 'var(--t-display)', fontSize: 16, color: 'var(--t-ink)', marginTop: 4, textAlign: 'center' }}>{row.l}</div>
-                      <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', marginTop: 2, textAlign: 'center' }}>{row.s}</div>
-                      <RowNote ctx={ctx} i={idx} row={row} style={{ textAlign: 'center', maxWidth: 150 }} />
-                      <RowDirections row={row} />
+                      {li < line.length - 1 && (
+                        <div style={{ width: 50, height: 2, background: 'var(--t-line)', marginTop: 21 }} />
+                      )}
                     </div>
-                    {gi < g.rows.length - 1 && (
-                      <div style={{ width: 50, height: 2, background: 'var(--t-line)', marginTop: 21 }} />
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       ))}
     </>

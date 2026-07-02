@@ -15,7 +15,7 @@ import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
-import { optionIdsFor, votePollsWithIds } from '@/lib/event-os/activity-votes';
+import { nameVotePollWithId, optionIdsFor, votePollsWithIds } from '@/lib/event-os/activity-votes';
 import type { StoryManifest } from '@/types';
 
 function submissionsBodyFor(occasion?: string | null): string {
@@ -528,13 +528,15 @@ function VotesTally({ manifest, siteDomain }: { manifest: unknown; siteDomain: s
   // filtered list (ids can't drift); question-only polls carry no
   // options to tally, so they drop out for display AFTER ids are
   // assigned.
-  const polls = useMemo(
-    () =>
-      votePollsWithIds(manifest as StoryManifest | null).filter(
-        ({ poll }) => (poll.options ?? []).some((o) => o.trim()),
-      ),
-    [manifest],
-  );
+  const polls = useMemo(() => {
+    const group = votePollsWithIds(manifest as StoryManifest | null).filter(
+      ({ poll }) => (poll.options ?? []).some((o) => o.trim()),
+    );
+    // The name ballot (manifest.nameVote) tallies through the same
+    // backend under its constant block id — surface it alongside.
+    const nameBallot = nameVotePollWithId(manifest as StoryManifest | null);
+    return nameBallot ? [...group, nameBallot] : group;
+  }, [manifest]);
   // The votes table keys site_id by the published slug — the same
   // value the renderer sends (manifest.subdomain, = domain).
   const siteId =
@@ -594,7 +596,7 @@ function VotesTally({ manifest, siteDomain }: { manifest: unknown; siteDomain: s
                   fontFamily: '"Fraunces", Georgia, serif',
                 }}
               >
-                {poll.question?.trim() || 'Group vote'}
+                {poll.question?.trim() || (blockId === 'name-vote' ? 'The name vote' : 'Group vote')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {labels.map((label, i) => {

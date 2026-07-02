@@ -11,6 +11,7 @@
 
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { moveItem, ReorderHandle } from '../_reorder';
 import { FTextArea, mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 const DIETARY_TAGS = ['Vegetarian', 'Vegan', 'GF', 'Nut-free', 'Spicy'] as const;
@@ -63,6 +64,13 @@ export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
             {courses.map((course, ci) => (
               <RowCard key={course.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {/* Menus are a sequence — courses reorder. */}
+                  <ReorderHandle
+                    index={ci}
+                    count={courses.length}
+                    label={course.name || 'course'}
+                    onMove={(from, to) => write({ courses: moveItem(courses, from, to) })}
+                  />
                   <FInput
                     value={course.name}
                     onChange={(v) => patchCourse(ci, { name: v })}

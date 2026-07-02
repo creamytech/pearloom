@@ -1,13 +1,19 @@
 'use client';
  
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { FaqVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
 import { InlineEdit } from '../InlineEdit';
 
 const PLACEHOLDER = 'A short, friendly answer goes here.';
+
+/* twocol / cards render every answer OPEN — a wall of text past a
+   handful of questions. Both clamp to this many rows and offer a
+   quiet "Show all N" pill (accordion/numbered stay unclamped:
+   accordion collapses, numbered is an index). */
+const LONG_FAQ_CAP = 8;
 
 /* Edit-context extension — the canvas quick-wins tier threads
    per-row question/answer writers through the variant ctx. Kept
@@ -43,6 +49,38 @@ function SectionHead({ ctx }: { ctx: FaqVariantCtxEditable }) {
    keeps them so the host can fill the question back in. */
 function rowsFor(ctx: FaqVariantCtxEditable): Array<{ q: string; a?: string }> {
   return ctx.C.qa ?? ctx.C.questions.map((q) => ({ q, a: undefined }));
+}
+
+/** Renderable rows with their MANIFEST index attached (inline-edit
+ *  writers must keep patching the right faqs[] entry even after
+ *  the published-view filter drops question-less rows). */
+function entriesFor(ctx: FaqVariantCtxEditable): Array<{ item: { q: string; a?: string }; i: number }> {
+  return rowsFor(ctx)
+    .map((item, i) => ({ item, i }))
+    .filter(({ item }) => ctx.editable || (item.q ?? '').trim());
+}
+
+/** Centered "Show all N questions" pill under a clamped grid. */
+function ShowAllPill({ total, onClick }: { total: number; onClick: () => void }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          padding: '9px 20px', borderRadius: 999,
+          background: 'transparent',
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-accent-ink, var(--t-ink))',
+          fontFamily: 'var(--t-mono)', fontSize: 10.5, fontWeight: 700,
+          letterSpacing: '0.16em', textTransform: 'uppercase',
+          cursor: 'pointer',
+        }}
+      >
+        Show all {total} questions
+      </button>
+    </div>
+  );
 }
 
 /** Question slot — InlineEdit in edit mode (stops click propagation
@@ -85,6 +123,10 @@ function AnswerText({ ctx, i, value, style }: { ctx: FaqVariantCtxEditable; i: n
 }
 
 export function FaqTwocol({ ctx }: { ctx: FaqVariantCtxEditable }) {
+  const entries = entriesFor(ctx);
+  const [showAll, setShowAll] = useState(false);
+  const clamped = !showAll && entries.length > LONG_FAQ_CAP;
+  const visible = clamped ? entries.slice(0, LONG_FAQ_CAP) : entries;
   return (
     <div>
       <SectionHead ctx={ctx} />
@@ -97,32 +139,30 @@ export function FaqTwocol({ ctx }: { ctx: FaqVariantCtxEditable }) {
           gap: '16px 28px',
         }}
       >
-        {rowsFor(ctx).map((item, i) => {
-          if (!ctx.editable && !(item.q ?? '').trim()) return null;
-          return (
-            <div key={i} className="pl8-faq-row">
-              <QuestionText
-                ctx={ctx}
-                i={i}
-                value={item.q}
-                style={{
-                  fontFamily: 'var(--t-display)',
-                  fontStyle: 'italic',
-                  fontSize: 14,
-                  color: 'var(--t-accent-ink, var(--t-ink))',
-                  marginBottom: 4,
-                }}
-              />
-              <AnswerText
-                ctx={ctx}
-                i={i}
-                value={item.a}
-                style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
-              />
-            </div>
-          );
-        })}
+        {visible.map(({ item, i }) => (
+          <div key={i} className="pl8-faq-row">
+            <QuestionText
+              ctx={ctx}
+              i={i}
+              value={item.q}
+              style={{
+                fontFamily: 'var(--t-display)',
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: 'var(--t-accent-ink, var(--t-ink))',
+                marginBottom: 4,
+              }}
+            />
+            <AnswerText
+              ctx={ctx}
+              i={i}
+              value={item.a}
+              style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
+            />
+          </div>
+        ))}
       </div>
+      {clamped && <ShowAllPill total={entries.length} onClick={() => setShowAll(true)} />}
     </div>
   );
 }
@@ -184,6 +224,10 @@ export function FaqNumbered({ ctx }: { ctx: FaqVariantCtxEditable }) {
 }
 
 export function FaqCards({ ctx }: { ctx: FaqVariantCtxEditable }) {
+  const entries = entriesFor(ctx);
+  const [showAll, setShowAll] = useState(false);
+  const clamped = !showAll && entries.length > LONG_FAQ_CAP;
+  const visible = clamped ? entries.slice(0, LONG_FAQ_CAP) : entries;
   return (
     <div>
       <SectionHead ctx={ctx} />
@@ -196,40 +240,41 @@ export function FaqCards({ ctx }: { ctx: FaqVariantCtxEditable }) {
           gap: 14,
         }}
       >
-        {rowsFor(ctx).map((item, i) => {
-          if (!ctx.editable && !(item.q ?? '').trim()) return null;
-          return (
-            <div
-              key={i}
-              className="pl8-faq-row"
+        {visible.map(({ item, i }) => (
+          <div
+            key={i}
+            className="pl8-faq-row"
+            style={{
+              background: 'var(--t-card)',
+              padding: 16,
+              borderRadius: 'var(--t-radius)',
+              border: '1px solid var(--t-line)',
+            }}
+          >
+            <QuestionText
+              ctx={ctx}
+              i={i}
+              value={item.q}
               style={{
-                background: 'var(--t-card)',
-                padding: 16,
-                borderRadius: 'var(--t-radius)',
-                border: '1px solid var(--t-line)',
+                /* The display italic its sibling variants wear —
+                   the bold-sans question broke the Fraunces voice. */
+                fontFamily: 'var(--t-display)',
+                fontStyle: 'italic',
+                fontSize: 14.5,
+                color: 'var(--t-ink)',
+                marginBottom: 6,
               }}
-            >
-              <QuestionText
-                ctx={ctx}
-                i={i}
-                value={item.q}
-                style={{
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  color: 'var(--t-ink)',
-                  marginBottom: 6,
-                }}
-              />
-              <AnswerText
-                ctx={ctx}
-                i={i}
-                value={item.a}
-                style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
-              />
-            </div>
-          );
-        })}
+            />
+            <AnswerText
+              ctx={ctx}
+              i={i}
+              value={item.a}
+              style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
+            />
+          </div>
+        ))}
       </div>
+      {clamped && <ShowAllPill total={entries.length} onClick={() => setShowAll(true)} />}
     </div>
   );
 }

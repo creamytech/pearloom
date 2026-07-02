@@ -68,7 +68,7 @@ function subscribeReducedMotion(onChange: () => void): () => void {
   return () => mq.removeEventListener('change', onChange);
 }
 
-function usePrefersReducedMotion(): boolean {
+export function usePrefersReducedMotion(): boolean {
   return useSyncExternalStore(
     subscribeReducedMotion,
     () => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(REDUCED_MOTION_QUERY).matches : false),
@@ -78,8 +78,10 @@ function usePrefersReducedMotion(): boolean {
 
 /** Per-poll vote sync — exact port of the legacy block's fetch /
  *  POST shapes, scoped to one (siteId, blockId) pair. `enabled`
- *  is false on the editor canvas: no reads, no writes, no key. */
-function useActivityVote(siteId: string, blockId: string, enabled: boolean) {
+ *  is false on the editor canvas: no reads, no writes, no key.
+ *  Exported: the name-vote section (blocks/name-vote.tsx) rides the
+ *  exact same plumbing under its own block id. */
+export function useActivityVote(siteId: string, blockId: string, enabled: boolean) {
   const canSync = enabled && Boolean(siteId && blockId);
   const storeKey = `pearloom:vote:${siteId || 'draft'}:${blockId}`;
   // Lazy useState init reads localStorage once on mount — the key

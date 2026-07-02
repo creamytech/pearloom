@@ -14,36 +14,10 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { moveItem, ReorderHandle } from '../_reorder';
 import { isBachelorOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface VotePoll { id: string; question: string; options: string[] }
-
-/** Tiny ▲/▼ pair for list-row reorder (mirrors the inline-button
- *  language of RemoveButton). */
-function ReorderButtons({ index, count, onMove }: { index: number; count: number; onMove: (from: number, to: number) => void }) {
-  const btn = (dir: -1 | 1, disabled: boolean) => (
-    <button
-      type="button"
-      aria-label={dir === -1 ? 'Move up' : 'Move down'}
-      disabled={disabled}
-      onClick={() => onMove(index, index + dir)}
-      style={{
-        width: 20, height: 14, display: 'grid', placeItems: 'center',
-        background: 'transparent', border: 'none',
-        cursor: disabled ? 'default' : 'pointer',
-        color: 'var(--ink-muted)', opacity: disabled ? 0.3 : 1, padding: 0,
-      }}
-    >
-      <Icon name={dir === -1 ? 'chev-up' : 'chev-down'} size={11} />
-    </button>
-  );
-  return (
-    <span style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-      {btn(-1, index === 0)}
-      {btn(1, index === count - 1)}
-    </span>
-  );
-}
 
 export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'activityVote');
@@ -60,11 +34,9 @@ export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
 
   const moveOption = (i: number, from: number, to: number) => {
     const poll = votes[i];
-    if (!poll || to < 0 || to >= poll.options.length) return;
-    const options = [...poll.options];
-    const [moved] = options.splice(from, 1);
-    options.splice(to, 0, moved);
-    patchPoll(i, { options });
+    if (!poll) return;
+    const options = moveItem(poll.options, from, to);
+    if (options !== poll.options) patchPoll(i, { options });
   };
 
   return (
@@ -77,15 +49,23 @@ export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {votes.map((poll, i) => (
               <RowCard key={poll.id}>
-                <FInput
-                  value={poll.question}
-                  onChange={(v) => patchPoll(i, { question: v })}
-                  icon="sparkles"
-                  placeholder="Which bar Friday night?"
-                />
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <ReorderHandle
+                    index={i}
+                    count={votes.length}
+                    label={poll.question || 'poll'}
+                    onMove={(from, to) => write(moveItem(votes, from, to))}
+                  />
+                  <FInput
+                    value={poll.question}
+                    onChange={(v) => patchPoll(i, { question: v })}
+                    icon="sparkles"
+                    placeholder="Which bar Friday night?"
+                  />
+                </div>
                 {poll.options.map((opt, j) => (
                   <div key={j} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <ReorderButtons index={j} count={poll.options.length} onMove={(from, to) => moveOption(i, from, to)} />
+                    <ReorderHandle index={j} count={poll.options.length} label={opt || 'option'} onMove={(from, to) => moveOption(i, from, to)} />
                     <FInput
                       value={opt}
                       onChange={(v) => patchPoll(i, { options: poll.options.map((o, k) => (k === j ? v : o)) })}

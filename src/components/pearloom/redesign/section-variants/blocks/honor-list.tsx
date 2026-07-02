@@ -20,7 +20,13 @@
    beneath. Solo occasions — where the panel writes role 'other' +
    customRole — never trip the grouping and get one flow.
 
-   Variants (layouts.ts): cards (default) | circle | rows. */
+   Variants (layouts.ts): cards (default) | circle | rows |
+   relationships. `relationships` is the whosWho block from the
+   EVENT_TYPES registry — same store, reunion-voiced: the
+   relationship line leads ("Your cousin — Reno") so a guest who
+   hasn't seen the family in 20 years can put names to faces. The
+   registry's 'whosWho' gate id resolves to this section (see
+   isBlockApplicable in EditorRedesign.tsx). */
 
 import type { CSSProperties } from 'react';
 import type { WeddingPartyMember } from '@/types';
@@ -279,15 +285,60 @@ function HonorRows({ members }: { members: WeddingPartyMember[] }) {
   );
 }
 
+/* ─── relationships — the whosWho voice: who they are TO YOU. ──
+   Face + name + relationship as the lead line ("Your cousin from
+   Reno"); the formal role steps back to a quiet tag. Built for
+   reunions and multi-family gatherings where the roster question
+   is "who is that?", not "what's their title?". */
+
+function HonorRelationships({ members }: { members: WeddingPartyMember[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: '14px 18px', maxWidth: 720, margin: '0 auto' }}>
+      {members.map((m, i) => (
+        <div key={m.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '10px 0' }}>
+          {m.photo?.trim() ? (
+            <img
+              src={m.photo}
+              alt={m.name}
+              style={{ width: 58, height: 58, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--t-paper)', boxShadow: '0 3px 9px rgba(0,0,0,0.09)' }}
+            />
+          ) : (
+            <InitialTile name={m.name} size={58} round fontSize={17} />
+          )}
+          <div style={{ minWidth: 0 }}>
+            <MemberName name={m.name} size={15.5} />
+            {(m.relationship?.trim() || m.bio?.trim()) && (
+              <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.4, marginTop: 2 }}>
+                {m.relationship?.trim() || m.bio?.trim()}
+              </div>
+            )}
+            <MemberRole role={honorRoleLabel(m)} size={9} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Section ────────────────────────────────────────────────── */
+
+/* Occasion-voiced fallback head — the reunion shape asks "who's
+   who", the default shape honors the people standing beside the
+   honoree. Explicit copy overrides always win. */
+const WHOS_WHO_OCCASIONS = new Set(['reunion', 'housewarming']);
 
 export function HonorListSection({ manifest, pad, editable, variant, onEditCopy }: BlockSectionProps) {
   const members = readHonorList(manifest).filter((m) => (m.name ?? '').trim());
   const empty = members.length === 0;
   if (empty && !editable) return null;
 
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const whosWhoVoice = variant === 'relationships' || WHOS_WHO_OCCASIONS.has(occasion ?? '');
   const groups = groupHonorMembers(members);
-  const Flow = variant === 'circle' ? HonorCircle : variant === 'rows' ? HonorRows : HonorCards;
+  const Flow = variant === 'circle' ? HonorCircle
+    : variant === 'rows' ? HonorRows
+    : variant === 'relationships' ? HonorRelationships
+    : HonorCards;
   /* The two side groups sit as columns on wide viewports ("Her
      people" / "His people"); a trailing neutral group spans full
      width beneath. Rows reads better stacked — keep it single-col. */
@@ -298,8 +349,8 @@ export function HonorListSection({ manifest, pad, editable, variant, onEditCopy 
   return (
     <BlockFrame pad={pad}>
       <VariantSectionHead
-        eyebrow={blockCopy(manifest, 'honorListEyebrow', 'With us')}
-        title={blockCopy(manifest, 'honorListTitle', 'The people beside us')}
+        eyebrow={blockCopy(manifest, 'honorListEyebrow', whosWhoVoice ? 'Putting names to faces' : 'With us')}
+        title={blockCopy(manifest, 'honorListTitle', whosWhoVoice ? "Who's who" : 'The people beside us')}
         editable={editable}
         onEditEyebrow={onEditCopy ? (v) => onEditCopy('honorListEyebrow', v) : undefined}
         onEditTitle={onEditCopy ? (v) => onEditCopy('honorListTitle', v) : undefined}

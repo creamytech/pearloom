@@ -166,6 +166,9 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'cards',  label: 'Cards',  sub: 'Portrait card per person' },
     { id: 'circle', label: 'Circle', sub: 'Round portraits in a row' },
     { id: 'rows',   label: 'Rows',   sub: 'Compact name + role rows' },
+    /* The whosWho block from the EVENT_TYPES registry — reunion-
+       voiced: faces + how you know them lead, roles step back. */
+    { id: 'relationships', label: 'Who’s who', sub: 'Faces + how you know them' },
   ],
   tributeWall: [
     { id: 'columns', label: 'Columns', sub: 'Masonry of framed tributes' },
@@ -177,6 +180,16 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   ],
   dressCode: [
     { id: 'centered', label: 'Centered', sub: 'Code, tones, example chips' },
+  ],
+  nameVote: [
+    { id: 'ballot', label: 'Ballot', sub: 'Names in display type, tap to vote' },
+  ],
+  rooms: [
+    { id: 'assignments', label: 'Rooms', sub: 'Room cards + guest chips' },
+    { id: 'board',       label: 'Board', sub: 'One ruled room / guests list' },
+  ],
+  thenAndNow: [
+    { id: 'pairs', label: 'Pairs', sub: 'Then / now, side by side' },
   ],
 };
 
@@ -209,6 +222,9 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   tributeWall: 'columns',
   menu: 'card',
   dressCode: 'centered',
+  nameVote: 'ballot',
+  rooms: 'assignments',
+  thenAndNow: 'pairs',
   /* Tool panels (guests, savetheDate, share, dayof, memorial,
      bachelor) have no layout variants — they're host workspaces.
      Partial<> lets the type compile without forcing stub entries

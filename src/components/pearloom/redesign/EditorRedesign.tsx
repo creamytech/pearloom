@@ -87,6 +87,7 @@ export type SectionId =
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
   | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode'
+  | 'nameVote' | 'rooms' | 'thenAndNow'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
@@ -111,19 +112,24 @@ export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'musi
 export type BlockSectionId =
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
-  | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode';
+  | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode'
+  | 'nameVote' | 'rooms' | 'thenAndNow';
 
 export const BLOCK_SECTION_IDS: readonly BlockSectionId[] = [
   'itinerary', 'costSplitter', 'activityVote', 'toastSignup',
   'adviceWall', 'program', 'livestream', 'obituary',
   'packingList', 'honorList', 'tributeWall', 'menu', 'dressCode',
+  'nameVote', 'rooms', 'thenAndNow',
 ];
 
 /* honorList is the generalized weddingParty (wedding party / court
    of honor / candle-lighters) — the EVENT_TYPES registry gates it
-   under the legacy 'weddingParty' BlockType id. */
-const BLOCK_GATE_ALIAS: Partial<Record<BlockSectionId, string>> = {
-  honorList: 'weddingParty',
+   under the legacy 'weddingParty' BlockType id, AND under 'whosWho'
+   (the reunion face-cards block resolves to honorList's
+   `relationships` variant rather than a second block over the same
+   people store). */
+const BLOCK_GATE_ALIASES: Partial<Record<BlockSectionId, readonly string[]>> = {
+  honorList: ['weddingParty', 'whosWho'],
 };
 
 /* Occasion → which Event-OS blocks are addable. A block is addable
@@ -133,9 +139,10 @@ const BLOCK_GATE_ALIAS: Partial<Record<BlockSectionId, string>> = {
 export function isBlockApplicable(blockId: BlockSectionId, occasion?: string): boolean {
   const event = getEventType(occasion);
   if (!event) return true;
-  const gateId = BLOCK_GATE_ALIAS[blockId] ?? blockId;
-  return (event.defaultBlocks as readonly string[]).includes(gateId)
-      || (event.optionalBlocks as readonly string[]).includes(gateId);
+  const gateIds = BLOCK_GATE_ALIASES[blockId] ?? [blockId];
+  return gateIds.some((gateId) =>
+    (event.defaultBlocks as readonly string[]).includes(gateId)
+    || (event.optionalBlocks as readonly string[]).includes(gateId));
 }
 
 /* Occasion → whether each of the nine CORE sections fits, plus the

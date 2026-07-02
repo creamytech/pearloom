@@ -11,10 +11,11 @@
    day: number (1-indexed). The canvas renders the same grouping
    when 2+ days are present. */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { moveItem, ReorderHandle, swapItems } from './_reorder';
 import { scheduleEventSuggestions, typicalTimeFor } from './_suggestions';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
@@ -268,6 +269,16 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                 eventNames={eventNameSet.options}
                 onPatch={(p) => patchEventByIndex(i, p)}
                 onRemove={() => removeEventByIndex(i)}
+                reorder={(
+                  /* Reorder never mints ids — rows travel with the
+                     id mintEventId gave them. */
+                  <ReorderHandle
+                    index={i}
+                    count={events.length}
+                    label={e.name || 'moment'}
+                    onMove={(from, to) => writeEvents(moveItem(events, from, to))}
+                  />
+                )}
               />)}
               <AddCard label="Add a moment" onClick={() => addEvent()} />
             </div>
@@ -305,6 +316,22 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                     eventNames={eventNameSet.options}
                     onPatch={(p) => patchEventByIndex(item.i, p)}
                     onRemove={() => removeEventByIndex(item.i)}
+                    reorder={(
+                      /* Within-day move — the neighbors in this day
+                         group may not be adjacent in the flat
+                         events[] array, so this SWAPS the two flat
+                         positions (each row keeps its own `day`). */
+                      <ReorderHandle
+                        index={j}
+                        count={rows.length}
+                        label={item.e.name || 'moment'}
+                        onMove={(fromJ, toJ) => {
+                          const other = rows[toJ];
+                          if (!other) return;
+                          writeEvents(swapItems(events, item.i, other.i));
+                        }}
+                      />
+                    )}
                   />
                 ))}
                 <AddCard label={`Add to day ${d}`} onClick={() => addEvent(d)} />
@@ -446,19 +473,24 @@ function TemplateStrip({ occasion, onPick }: { occasion?: string; onPick: (key: 
 
 /* Single row — name + time + venue + remove. */
 function ScheduleRow({
-  event: e, tone, eventNames, onPatch, onRemove,
+  event: e, tone, eventNames, onPatch, onRemove, reorder,
 }: {
   event: WeddingEvent;
   tone: 'peach' | 'lavender' | 'sage';
   eventNames: string[];
   onPatch: (p: Partial<WeddingEvent>) => void;
   onRemove: () => void;
+  /** Shared ReorderHandle from the parent (it owns the list write). */
+  reorder?: ReactNode;
 }) {
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
-      <span style={{ width: 32, height: 32, borderRadius: 8, background: `var(--${tone}-2)`, display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 4 }}>
-        <Icon name="clock" size={14} color="#3D4A1F" />
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, marginTop: 4 }}>
+        <span style={{ width: 32, height: 32, borderRadius: 8, background: `var(--${tone}-2)`, display: 'grid', placeItems: 'center' }}>
+          <Icon name="clock" size={14} color="#3D4A1F" />
+        </span>
+        {reorder}
+      </div>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <FSuggest
           value={e.name ?? ''}

@@ -9,6 +9,7 @@ import { useRef, useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { moveItem, ReorderHandle } from './_reorder';
 import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
@@ -176,17 +177,25 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
               const isOpen = openId === f.id;
               return (
                 <div key={f.id} style={{ borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)', overflow: 'hidden' }}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(isOpen ? null : f.id)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-                  >
-                    {/* (The old drag glyph here was decorative — no
-                        reorder was wired. Removed rather than lie;
-                        real reorder is the Wave-2 shared primitive.) */}
-                    <span style={{ flex: 1, fontSize: 12.5 }}>{f.question || 'Write your question…'}</span>
-                    <Icon name={isOpen ? 'chev-up' : 'chev-down'} size={13} color="var(--ink-muted)" />
-                  </button>
+                  {/* Header row is a DIV wrapping the toggle button so
+                      the reorder handle (real buttons, unlike the old
+                      decorative drag glyph) never nests inside it. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 8 }}>
+                    <ReorderHandle
+                      index={i}
+                      count={faqs.length}
+                      label={f.question || 'question'}
+                      onMove={(from, to) => write(moveItem(faqs, from, to))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(isOpen ? null : f.id)}
+                      style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px 11px 4px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <span style={{ flex: 1, fontSize: 12.5 }}>{f.question || 'Write your question…'}</span>
+                      <Icon name={isOpen ? 'chev-up' : 'chev-down'} size={13} color="var(--ink-muted)" />
+                    </button>
+                  </div>
                   {isOpen && (
                     <div style={{ padding: 10, borderTop: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <FSuggest

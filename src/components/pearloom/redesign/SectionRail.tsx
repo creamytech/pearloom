@@ -140,6 +140,9 @@ const OPTIONAL_SECTIONS: SectionDef[] = [
   { id: 'tributeWall',  label: 'Tribute wall', icon: 'heart-icon',     desc: 'Memories, gathered from your guests' },
   { id: 'menu',         label: 'Menu',         icon: 'fleuron',        desc: 'Dinner, course by course' },
   { id: 'dressCode',    label: 'Dress code',   icon: 'palette',        desc: 'What to wear' },
+  { id: 'nameVote',     label: 'Name vote',    icon: 'sparkles',       desc: 'Guests pick their favorite name' },
+  { id: 'rooms',        label: 'Rooms',        icon: 'home',           desc: 'Who sleeps where' },
+  { id: 'thenAndNow',   label: 'Then & now',   icon: 'image',          desc: 'Photo pairs, years apart' },
 ];
 
 /* One gate for everything the Add Section picker offers — the
