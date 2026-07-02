@@ -22,6 +22,24 @@
 
 let modalReady = false;
 let pendingOpen = false;
+let modalLoader: (() => void) | null = null;
+
+/** LazyGuestRsvpModal registers a loader on mount so the first RSVP
+ *  request can pull the modal's code chunk in on demand (the modal
+ *  is no longer in the initial guest bundle). Pass null on unmount. */
+export function registerRsvpLoader(loader: (() => void) | null): void {
+  modalLoader = loader;
+}
+
+/** Queue an open for a modal that hasn't mounted yet and kick its
+ *  lazy load. Used by LazyGuestRsvpModal's raw `pl-open-rsvp`
+ *  listener — once the modal is live it owns that event itself, so
+ *  this is a no-op when ready. */
+export function queueRsvpOpen(): void {
+  if (modalReady) return;
+  pendingOpen = true;
+  modalLoader?.();
+}
 
 /** GuestRsvpModal calls this on mount. Returns true when a tap was
  *  queued before the modal came online, so the caller can open now. */
@@ -52,10 +70,14 @@ export function requestRsvp(): void {
     return;
   }
   pendingOpen = true;
+  /* Lazy modal: the tap also has to pull the modal chunk over the
+     network, so give it a longer grace before declaring failure. */
+  const grace = modalLoader ? 4000 : 1200;
+  modalLoader?.();
   window.setTimeout(() => {
     if (!modalReady) {
       pendingOpen = false;
       siteToast('RSVP isn’t open yet — check back once the hosts have finished setting up.');
     }
-  }, 1200);
+  }, grace);
 }

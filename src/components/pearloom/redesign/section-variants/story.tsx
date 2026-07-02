@@ -46,7 +46,9 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtxEditable }) {
   const fallbackBody = C.body || 'A short, friendly answer goes here.';
 
   return (
-    <div style={{ maxWidth: 920, margin: '0 auto', padding: `${48 * pad}px 72px` }}>
+    /* pl8-story-zigzag: pearloom.css drops the 72px desktop gusset
+       on phones so the chapter measure isn't squeezed to ~200px. */
+    <div className="pl8-story-zigzag" style={{ maxWidth: 920, margin: '0 auto', padding: `${48 * pad}px 72px` }}>
       <VariantSectionHead {...headProps(ctx)} />
       {[0, 1, 2].map((i) => {
         const reverse = i % 2 === 1;

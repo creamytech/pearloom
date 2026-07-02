@@ -90,6 +90,7 @@ export function StayActions({ h, compact }: { h: Hotel; compact?: boolean }) {
           href={h.bookingUrl}
           target="_blank"
           rel="noopener noreferrer"
+          className="pl-hit44"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: compact ? '6px 13px' : '8px 16px',

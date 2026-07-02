@@ -39,20 +39,8 @@ import { isCoreSectionApplicable, sectionHasContent } from './section-applicabil
    a solo birthday never renders "How we met" (leaf data module). */
 import { occasionCopyFor } from './occasion-copy';
 import { InlineEdit } from './InlineEdit';
-/* Per-section layout variants — each section block dispatches via
-   ctx.variants.<section> to one of these. Default ('tiles', 'cards',
-   'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
-   baked into the block below. */
-import { RsvpSplit, RsvpBanner, RsvpMinimal } from './section-variants/rsvp';
-import { LoomTapestry } from './LoomTapestry';
+import dynamic from 'next/dynamic';
 import { requestRsvp } from '../site/rsvp-bus';
-import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-variants/details';
-import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
-import { GalleryMasonry, GallerySlideshow, GalleryPolaroid } from './section-variants/gallery';
-import { FaqTwocol, FaqNumbered, FaqCards } from './section-variants/faq';
-import { TravelMap, TravelTable, TravelCarousel, StayActions } from './section-variants/travel';
-import { RegistryChips, RegistryProgress, RegistryLogoWall } from './section-variants/registry';
-import { StoryZigzag } from './section-variants/story';
 import {
   NavCentered,
   NavSplit,
@@ -66,31 +54,8 @@ import {
   NavMobileBottomSheet,
   NavMobilePill,
 } from './section-variants/nav-mobile';
-/* Event-OS block sections — occasion-gated optional sections added
-   via the Add Section picker (see isBlockApplicable). Each owns its
-   full section frame + empty-state handling; renderKind passes the
-   shared BlockSectionProps bag so design agents only ever touch the
-   block files, never this dispatch. */
-import { ItinerarySection } from './section-variants/blocks/itinerary';
-import { CostSplitterSection } from './section-variants/blocks/cost-splitter';
-import { ActivityVoteSection } from './section-variants/blocks/activity-vote';
-import { ToastSignupSection } from './section-variants/blocks/toast-signup';
-import { AdviceWallSection } from './section-variants/blocks/advice-wall';
-import { ProgramSection } from './section-variants/blocks/program';
-import { LivestreamSection } from './section-variants/blocks/livestream';
-import { GuestbookSection } from './GuestbookSection';
-import { GuestPlaylist } from './GuestPlaylist';
-import { RegistryItemsGrid } from './RegistryItemsGrid';
-import { RegistryFundCard } from './RegistryFundCard';
 import type { RegistryFunds } from '@/lib/registry-funds';
-import { LinkedEventsStrip } from './LinkedEventsStrip';
-import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
-import { ObituarySection } from './section-variants/blocks/obituary';
-import { PackingListSection } from './section-variants/blocks/packing-list';
-import { HonorListSection } from './section-variants/blocks/honor-list';
-import { TributeWallSection } from './section-variants/blocks/tribute-wall';
-import { MenuSection } from './section-variants/blocks/menu';
-import { DressCodeSection } from './section-variants/blocks/dress-code';
+import type { LightboxState } from './PhotoLightbox';
 import { useIsMobile, useActiveSection } from './use-nav-hooks';
 import {
   readSiteMode,
@@ -101,6 +66,71 @@ import {
   type SiteBlockKey,
 } from '@/lib/site-mode';
 import { buildSitePath } from '@/lib/site-urls';
+
+/* ── Lazy boundaries (guest-bundle diet, 2026-07) ─────────────────
+   Everything below `dynamic()` is code-split out of the initial
+   published-site bundle and only fetched when the manifest actually
+   renders it (non-default section variants, Event-OS blocks, opt-in
+   guest features). SSR is kept (next/dynamic default), so published
+   HTML / SEO / first paint are byte-identical — only the CLIENT
+   download becomes conditional. The nav family + the default
+   in-file section renderers stay static: every site needs them at
+   first paint.
+
+   Per-section layout variants — each section block dispatches via
+   ctx.variants.<section> to one of these. Default ('tiles', 'cards',
+   'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
+   baked into the block below. */
+const RsvpSplit = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpSplit));
+const RsvpBanner = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpBanner));
+const RsvpMinimal = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpMinimal));
+const LoomTapestry = dynamic(() => import('./LoomTapestry').then((m) => m.LoomTapestry));
+const DetailsIconRow = dynamic(() => import('./section-variants/details').then((m) => m.DetailsIconRow));
+const DetailsAccordion = dynamic(() => import('./section-variants/details').then((m) => m.DetailsAccordion));
+const DetailsBento = dynamic(() => import('./section-variants/details').then((m) => m.DetailsBento));
+const ScheduleTimeline = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleTimeline));
+const ScheduleStepper = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleStepper));
+const ScheduleNumbered = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleNumbered));
+const GalleryMasonry = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryMasonry));
+const GallerySlideshow = dynamic(() => import('./section-variants/gallery').then((m) => m.GallerySlideshow));
+const GalleryPolaroid = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryPolaroid));
+const FaqTwocol = dynamic(() => import('./section-variants/faq').then((m) => m.FaqTwocol));
+const FaqNumbered = dynamic(() => import('./section-variants/faq').then((m) => m.FaqNumbered));
+const FaqCards = dynamic(() => import('./section-variants/faq').then((m) => m.FaqCards));
+const TravelMap = dynamic(() => import('./section-variants/travel').then((m) => m.TravelMap));
+const TravelTable = dynamic(() => import('./section-variants/travel').then((m) => m.TravelTable));
+const TravelCarousel = dynamic(() => import('./section-variants/travel').then((m) => m.TravelCarousel));
+const StayActions = dynamic(() => import('./section-variants/travel').then((m) => m.StayActions));
+const RegistryChips = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryChips));
+const RegistryProgress = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryProgress));
+const RegistryLogoWall = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryLogoWall));
+const StoryZigzag = dynamic(() => import('./section-variants/story').then((m) => m.StoryZigzag));
+/* Event-OS block sections — occasion-gated optional sections added
+   via the Add Section picker (see isBlockApplicable). Each owns its
+   full section frame + empty-state handling; renderKind passes the
+   shared BlockSectionProps bag so design agents only ever touch the
+   block files, never this dispatch. */
+const ItinerarySection = dynamic(() => import('./section-variants/blocks/itinerary').then((m) => m.ItinerarySection));
+const CostSplitterSection = dynamic(() => import('./section-variants/blocks/cost-splitter').then((m) => m.CostSplitterSection));
+const ActivityVoteSection = dynamic(() => import('./section-variants/blocks/activity-vote').then((m) => m.ActivityVoteSection));
+const ToastSignupSection = dynamic(() => import('./section-variants/blocks/toast-signup').then((m) => m.ToastSignupSection));
+const AdviceWallSection = dynamic(() => import('./section-variants/blocks/advice-wall').then((m) => m.AdviceWallSection));
+const ProgramSection = dynamic(() => import('./section-variants/blocks/program').then((m) => m.ProgramSection));
+const LivestreamSection = dynamic(() => import('./section-variants/blocks/livestream').then((m) => m.LivestreamSection));
+const GuestbookSection = dynamic(() => import('./GuestbookSection').then((m) => m.GuestbookSection));
+const GuestPlaylist = dynamic(() => import('./GuestPlaylist').then((m) => m.GuestPlaylist));
+const RegistryItemsGrid = dynamic(() => import('./RegistryItemsGrid').then((m) => m.RegistryItemsGrid));
+const RegistryFundCard = dynamic(() => import('./RegistryFundCard').then((m) => m.RegistryFundCard));
+const LinkedEventsStrip = dynamic(() => import('./LinkedEventsStrip').then((m) => m.LinkedEventsStrip));
+/* PhotoLightbox mounts conditionally (only while a photo is open),
+   so its chunk is fetched on the first tap, not at page load. */
+const PhotoLightbox = dynamic(() => import('./PhotoLightbox').then((m) => m.PhotoLightbox));
+const ObituarySection = dynamic(() => import('./section-variants/blocks/obituary').then((m) => m.ObituarySection));
+const PackingListSection = dynamic(() => import('./section-variants/blocks/packing-list').then((m) => m.PackingListSection));
+const HonorListSection = dynamic(() => import('./section-variants/blocks/honor-list').then((m) => m.HonorListSection));
+const TributeWallSection = dynamic(() => import('./section-variants/blocks/tribute-wall').then((m) => m.TributeWallSection));
+const MenuSection = dynamic(() => import('./section-variants/blocks/menu').then((m) => m.MenuSection));
+const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-code').then((m) => m.DressCodeSection));
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -2195,6 +2225,7 @@ function CalendarChipStrip({ ctx }: { ctx: SectionCtx }) {
       <a
         href={ctx.icsHref}
         download
+        className="pl-hit44"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '9px 18px', borderRadius: 999,
@@ -2247,6 +2278,7 @@ function GalleryShareStrip({ ctx }: { ctx: SectionCtx }) {
     <div style={{ background: 'var(--t-section)', padding: '0 24px 36px', textAlign: 'center' }}>
       <a
         href={href}
+        className="pl-hit44"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '9px 18px', borderRadius: 999,
@@ -2807,7 +2839,16 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   const openLightbox = !editable
     ? (idx: number) => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: idx })
     : undefined;
-  const lightboxEl = <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />;
+  /* Mount the (lazily-imported) lightbox only once a photo has been
+     opened — its chunk is fetched on the first tap, not at page
+     load. Stays mounted after that so the close fade (which renders
+     AFTER `lightbox` nulls) keeps working. Render-time adjustment,
+     not an effect set. */
+  const [lightboxTouched, setLightboxTouched] = useState(false);
+  if (lightbox && !lightboxTouched) setLightboxTouched(true);
+  const lightboxEl = lightboxTouched
+    ? <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
+    : null;
   const sub = {
     C: galleryC, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
@@ -2897,7 +2938,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
           </button>
         )}
       </div>
-      <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
+      {lightboxEl}
     </div>
   );
 }
@@ -3485,6 +3526,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
+              className="pl-hit44"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
             >
               <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Open in Maps
@@ -3529,6 +3571,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
                   href={directionsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="pl-hit44"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
                 >
                   <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Directions
@@ -3537,6 +3580,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
                   href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="pl-hit44"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
                 >
                   Open in Maps
@@ -3606,6 +3650,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
                 href={directionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="pl-hit44"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--t-ink)', textDecoration: 'underline', textUnderlineOffset: 3, whiteSpace: 'nowrap' }}
               >
                 directions →
@@ -3643,6 +3688,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
+              className="pl-hit44"
               style={{ position: 'absolute', bottom: 16, right: 16, padding: '9px 14px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', boxShadow: 'var(--t-shadow)' }}
             >
               Directions →
@@ -3677,6 +3723,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
             href={directionsUrl}
             target="_blank"
             rel="noopener noreferrer"
+            className="pl-hit44"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'transparent', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none', border: '1px solid var(--t-line)' }}
           >
             <Icon name="arrow-up" size={12} color="var(--t-ink)" /> Get directions
@@ -4291,6 +4338,9 @@ function TButton({
       href={resolvedHref}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
+      /* pl-hit44 — expands the tap area to ≥44px on coarse pointers
+         without inflating the pill itself (pearloom.css utility). */
+      className="pl-hit44"
       style={combined}
     >
       {children}

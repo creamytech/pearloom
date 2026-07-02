@@ -20,13 +20,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   theme: Record<string, string>;
+  /** A toast that fired while this component's lazy chunk was still
+   *  loading (see LazySiteToast) — shown immediately on mount with
+   *  the same 5s self-dismiss. */
+  initialMessage?: string | null;
 }
 
-export function SiteToast({ theme }: Props) {
-  const [msg, setMsg] = useState<string | null>(null);
+export function SiteToast({ theme, initialMessage = null }: Props) {
+  const [msg, setMsg] = useState<string | null>(initialMessage);
 
   useEffect(() => {
     let timer: number | undefined;
+    if (initialMessage) {
+      timer = window.setTimeout(() => setMsg(null), 5000);
+    }
     const onToast = (e: Event) => {
       const detail = (e as CustomEvent<{ message?: string }>).detail;
       const message = typeof detail?.message === 'string' ? detail.message.trim() : '';
@@ -40,7 +47,7 @@ export function SiteToast({ theme }: Props) {
       window.removeEventListener('pl-site-toast', onToast);
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [initialMessage]);
 
   const card = theme['--t-card'] ?? '#FFFEF7';
   const ink = theme['--t-ink'] ?? '#0E0D0B';

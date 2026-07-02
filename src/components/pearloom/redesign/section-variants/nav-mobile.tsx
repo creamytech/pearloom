@@ -258,6 +258,9 @@ export function NavMobileOverlay(props: NavProps) {
                     onNavClick(item.id);
                     close();
                   }}
+                  /* pl-hit44 — ≥44px tap area on coarse pointers
+                     without inflating the drawer row visuals. */
+                  className="pl-hit44"
                   style={{
                     textAlign: 'center',
                     fontSize: 28,
@@ -373,6 +376,7 @@ export function NavMobileSlideIn(props: NavProps) {
                       onNavClick(item.id);
                       close();
                     }}
+                    className="pl-hit44"
                     style={{
                       fontSize: 15,
                       fontFamily: 'var(--t-body)',
@@ -485,7 +489,9 @@ export function NavMobileBottomSheet(props: NavProps) {
                 margin: '0 auto 6px',
               }}
             />
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* gap 16 keeps the pl-hit44 44px hit areas from
+                overlapping between rows (row ~28px + 16 = 44 pitch). */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {navItems.map((item) => {
                 const active = activeId === item.id;
                 return (
@@ -497,6 +503,7 @@ export function NavMobileBottomSheet(props: NavProps) {
                       onNavClick(item.id);
                       close();
                     }}
+                    className="pl-hit44"
                     style={{
                       fontSize: 16,
                       fontFamily: 'var(--t-body)',

@@ -22,12 +22,16 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
 import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
-import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
+/* Interaction-gated overlays — each Lazy* wrapper keeps a feather-
+   weight trigger mounted and only downloads the real component
+   (and its framer-motion / RSVP-form freight) when the guest
+   actually needs it. See each wrapper's header for its trigger. */
+import { LazyGuestRsvpModal } from '@/components/pearloom/site/LazyGuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
-import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
-import { ArrivalReveal } from '@/components/pearloom/site/ArrivalReveal';
+import { LazyStickyRsvpPill } from '@/components/pearloom/site/LazyStickyRsvpPill';
+import { LazyArrivalReveal } from '@/components/pearloom/site/LazyArrivalReveal';
 import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
-import { SiteToast } from '@/components/pearloom/site/SiteToast';
+import { LazySiteToast } from '@/components/pearloom/site/LazySiteToast';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
 import { LivingBackground } from '@/components/pearloom/site/LivingBackground';
@@ -179,24 +183,39 @@ export function PublishedSiteShell(props: Props) {
       {/* Overlays — keep the product features ThemedSiteRenderer
           used to provide before the swap, so published sites
           don't lose RSVP backend / sticky CTA / engagement
-          analytics. GuestRsvpModal listens for the 'pl-open-rsvp'
-          window event ThemedSite dispatches from its RSVP CTA. */}
-      <StickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
+          analytics. The RSVP modal loads on demand via rsvp-bus /
+          the 'pl-open-rsvp' window event ThemedSite dispatches from
+          its RSVP CTA (see LazyGuestRsvpModal).
+          Each lazy overlay gets its OWN empty-fragment boundary: a
+          chunk that 404s mid-session (deploy rotation) must cost the
+          guest that overlay, never the whole site via the outer
+          GuestCrashFallback boundary. */}
+      <ErrorBoundary fallback={<></>}>
+        <LazyStickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
+      </ErrorBoundary>
       <AnalyticsBeacon siteId={props.siteSlug} />
-      <GuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
-      <SiteToast theme={themeBag} />
+      <ErrorBoundary fallback={<></>}>
+        <LazyGuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
+      </ErrorBoundary>
+      <ErrorBoundary fallback={<></>}>
+        <LazySiteToast theme={themeBag} />
+      </ErrorBoundary>
       {/* The Sealed Arrival — envelope-opening first-visit reveal.
           Home route only (sub-pages of multi-page sites are working
           surfaces, not arrivals). Client overlay over the already-
-          rendered site; crawlers and reduced-motion are unaffected. */}
+          rendered site; crawlers and reduced-motion are unaffected
+          (LazyArrivalReveal skips the download entirely for repeat
+          visitors / reduced motion / automation). */}
       {(!props.pageFilter || props.pageFilter === 'home') && (
-        <ArrivalReveal
-          manifest={hydrated}
-          names={props.names}
-          siteSlug={props.siteSlug}
-          theme={themeBag}
-          rsvpLabel={rsvpLabel}
-        />
+        <ErrorBoundary fallback={<></>}>
+          <LazyArrivalReveal
+            manifest={hydrated}
+            names={props.names}
+            siteSlug={props.siteSlug}
+            theme={themeBag}
+            rsvpLabel={rsvpLabel}
+          />
+        </ErrorBoundary>
       )}
     </ErrorBoundary>
   );

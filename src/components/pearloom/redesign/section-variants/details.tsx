@@ -174,7 +174,12 @@ export function DetailsBento({ ctx }: { ctx: DetailsVariantCtx }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      {/* pl8-details-bento: the hero tile's `span 2` forces two
+          implicit tracks even when auto-fit resolves to one, so
+          pearloom.css stacks this grid to a single column on
+          phones (one-word-per-line tiles otherwise). */}
       <div
+        className="pl8-details-bento"
         style={{
           maxWidth: 640,
           margin: '0 auto',
