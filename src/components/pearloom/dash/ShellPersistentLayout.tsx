@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { DashSidebar, DashMobileBar, DashUtilityBar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
+import { DashOrientation } from './DashOrientation';
 import { UserSettingsProvider } from './UserSettingsModal';
 import { DialogProvider } from '@/components/ui/confirm-dialog';
 
@@ -32,6 +33,7 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
       <UserSettingsProvider>
       <div className="pl8 pl8-dashshell">
         <DashCommandPalette />
+        <DashOrientation />
         <DashSidebar />
         <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           {/* Mobile-only nav strip (hamburger / wordmark / account).

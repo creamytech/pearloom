@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { condensedFaqForPrompt } from '@/lib/help-faq';
 import type { StoryManifest } from '@/types';
 
 // ─────────────────────────────────────────────────────────────
@@ -146,7 +147,12 @@ After your prose response, you MAY include up to 3 short follow-up suggestions i
 
 Each suggestion is a short imperative (under 36 chars). Skip the block when nothing useful comes to mind.
 
-Keep responses under 180 words unless the host explicitly asks for more.`;
+Keep responses under 180 words unless the host explicitly asks for more.
+
+PRODUCT FAQ — answer product how-to questions ("how do I add a section?", "how do I publish?") from this:
+${condensedFaqForPrompt()}
+
+If the host asks a product question the FAQ doesn't cover, say so plainly and point them to /dashboard/help — never invent product behavior that isn't listed above.`;
 
 // Guest-mode system prompt. The same Pear voice but pivoted from
 // "edit the site" to "help a visitor find what they need." No

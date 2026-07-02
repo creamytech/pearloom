@@ -17,6 +17,7 @@ import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useDashDrawer } from './useDashDrawer';
+import { AskPearTrigger, DashAskPear } from './DashAskPear';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
 import { useSelectedSite, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
@@ -1068,6 +1069,7 @@ function NavLink({
       data-nav-active={isActive ? '1' : undefined}
       data-on={isActive ? '1' : undefined}
       data-nav-pending={pending ? '1' : undefined}
+      data-orient={item.id === 'site' || item.id === 'guests' || item.id === 'day' || item.id === 'memory' ? item.id : undefined}
       href={item.href}
       onClick={handleClick}
       className="pl8-dash-navlink dash-navbtn"
@@ -1207,6 +1209,8 @@ export function DashMobileBar() {
           so phones had no bell or theme toggle at all. The cluster
           is pushed right; the avatar opens the settings modal. */}
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Ask Pear (sheet mounts once, from DashUtilityBar). */}
+        <AskPearTrigger variant="icon" />
         <ThemeToggle size="md" />
         <NotificationBell />
         <TopbarAvatarButton />
@@ -1241,9 +1245,14 @@ export function DashUtilityBar() {
         <span className="pl8-dash-ask-kbd">⌘K</span>
       </button>
       <span style={{ flex: 1 }} aria-hidden />
+      {/* Ask Pear — the dashboard's help desk. The pear leads the
+          global cluster; the sheet itself mounts once here (portal
+          to body, so the bar's mobile display:none can't hide it). */}
+      <AskPearTrigger variant="labeled" />
       <ThemeToggle size="md" />
       <NotificationBell />
       <TopbarAvatarButton />
+      <DashAskPear />
     </div>
   );
 }
