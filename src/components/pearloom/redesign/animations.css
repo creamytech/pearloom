@@ -262,3 +262,83 @@
 .pl-redesign [contenteditable] {
   touch-action: manipulation;
 }
+
+/* ═══ Touch press feedback — instant on finger-DOWN ═════════════
+   Two latency sources made phone taps feel dead:
+
+   (a) iOS's grey ghost highlight was the only tap acknowledgment.
+       We remove it — and REPLACE it with our own press states
+       below (never remove without replacing).
+
+   (b) Chrome buttons/chips animate background/color over
+       160-240ms transitions tuned for mouse hover; on touch the
+       :active state inherited that ease-in, so the pressed look
+       faded in lazily. The rules below zero the transition
+       DURATION while :active only — press lands the same frame
+       the finger does; release still animates back through each
+       element's normal transition where one exists.
+
+   Scoping: everything stays inside .pl-redesign (editor chrome
+   only), and the blanket press rule excludes the site canvas
+   (`:not(.pl8-guest *)`) — the canvas gets its own section-level
+   ack below instead, so site-theme buttons never inherit chrome
+   press styling. Framer/inline-transform elements are naturally
+   unaffected (inline styles outrank the non-!important transform
+   here).
+
+   Reduced motion: the kill-switch above already strips the
+   transitions; the subtle 0.97 press scale deliberately stays —
+   it's feedback, not decoration. */
+
+.pl-redesign,
+.pl-redesign * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Rows/tiles that act as buttons (SectionRail rows, pickers) get
+   the same no-delay treatment as real controls. */
+.pl-redesign [role='button'],
+.pl-redesign select {
+  touch-action: manipulation;
+}
+
+/* The press state — buttons, links, and role=button hotspots
+   across the topbar, rails, bottom bar, sheets, and panel atoms
+   (FSuggest chips, AddCard, toggles, FDate/FSelect triggers…). */
+.pl-redesign :is(button, a, [role='button']):not(.pl8-guest *):active {
+  transition-duration: 0s !important;
+  transform: scale(0.97);
+}
+
+/* SectionRail rows carry inline transform/transition (drag state),
+   so the press needs !important to land; skip it mid-drag and keep
+   the darker wash off the ink-filled active row. */
+.pl-redesign .pl-rd-section-row:active:not([data-dragging='true']) {
+  transition-duration: 0s !important;
+  transform: scale(0.985) !important;
+}
+.pl-redesign .pl-rd-section-row:active:not([data-dragging='true']):not([data-active='true']) {
+  background: rgba(14, 13, 11, 0.07) !important;
+}
+
+/* ═══ Canvas tap acknowledgment ═════════════════════════════════
+   On phones, tapping a section runs selectFromCanvas → React
+   state → props sheet mount before any selection chrome appears —
+   the finger-down moment showed nothing. Mirror the hover chrome
+   (dashed basting outline + section label, pearloom.css
+   .pl8-guest[data-pl-editable] rules) on :active so the
+   acknowledgment is pure CSS and fires the moment the finger
+   lands. Plain scrolling stays clean: touch-scroll cancels
+   :active in Safari/Chrome. The SELECTED section's inline solid
+   outline outranks this dashed one, and the active label drops
+   the .pl8-tsec-label class, so neither rule disturbs an
+   already-selected section. */
+.pl-redesign .pl8-guest[data-pl-editable] [data-section-id]:active > .pl8-tsec-frame {
+  outline: 1.5px dashed rgba(198, 112, 61, 0.5);
+  outline-offset: -2px;
+  transition-duration: 0s;
+}
+.pl-redesign .pl8-guest[data-pl-editable] [data-section-id]:active > .pl8-tsec-label {
+  opacity: 1;
+  transition-duration: 0s;
+}

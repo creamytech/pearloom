@@ -20,7 +20,7 @@
    on the visual shell.
 */
 
-import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
@@ -610,6 +610,14 @@ export default function EditorRedesign({
    The prototype wraps a 1100px (390px mobile) device frame on a cream-3
    paper backdrop with a radial-grid dot pattern. */
 
+/* Memoized canvas renderer — pairs with the useDeferredValue calls in
+   EditorCanvas. Without memo, deferring manifest/active only changes
+   WHICH values the urgent render passes down; the full ThemedSite tree
+   still re-renders synchronously. With it, the urgent render (sheet
+   open, section select, panel keystroke) sees identical props and
+   bails out; the canvas repaints on the deferred pass. */
+const CanvasThemedSite = memo(ThemedSite);
+
 function EditorCanvas({
   active, setActive, onSectionFocus,
   mode, manifest, names, siteSlug, onEditField, onEditNames,
@@ -713,6 +721,19 @@ function EditorCanvas({
      InlineEdit on the canvas is uncontrolled (commits on blur), so
      the deferral never lags text the host is actively typing. */
   const canvasManifest = useDeferredValue(manifest);
+  /* Tap responsiveness — same pattern for the ACTIVE section. On a
+     phone, tapping a section sets active + opens the props sheet in
+     one urgent render; passing the fresh `active` straight into
+     ThemedSite made that urgent render pay for the full canvas tree
+     before the sheet's slide-in could start. Deferring `active` (and
+     memoizing ThemedSite below) lets the urgent render bail out of
+     the canvas entirely — the sheet animates immediately, then the
+     selection chrome paints on the deferred pass. On the deferred
+     pass every other ThemedSite prop is referentially stable for a
+     selection-only change (bridge memoizes names/editField/setNames),
+     so CanvasThemedSite's shallow compare only fails when something
+     really changed. */
+  const canvasActive = useDeferredValue(active);
   /* In the handoff, the canvas content is IDENTICAL between Edit and
      Preview modes — Preview just hides the section-frame chrome.
      Production now does the same: FullSite renders in both modes;
@@ -814,8 +835,8 @@ function EditorCanvas({
             fixed={false}
           />
         )}
-        <ThemedSite
-          active={active}
+        <CanvasThemedSite
+          active={canvasActive}
           setActive={setActive}
           onSectionFocus={isPreview ? undefined : onSectionFocus}
           editable={!isPreview}
