@@ -5,8 +5,19 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLHead, PLCard } from '@/components/pearloom/dash/PLChrome';
 import { Icon, Pear } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 
-const PROMPTS = [
+interface VoicePrompt {
+  id: string;
+  label: string;
+  body: string;
+}
+
+// Three prompt sets, one voice tool. The ids stay identical across
+// sets so recorded samples survive a site switch — only the label
+// and framing change with the occasion.
+const COUPLE_PROMPTS: VoicePrompt[] = [
   { id: 'meet', label: 'How did you meet?', body: 'Tell me the story — the version you tell at parties.' },
   { id: 'three-words', label: 'Three words', body: 'How would your closest friends describe you?' },
   { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
@@ -15,6 +26,28 @@ const PROMPTS = [
   { id: 'today', label: 'Today, in your voice', body: 'Tell me what today felt like, in your normal voice.' },
   { id: 'thanks', label: 'Saying thank you', body: 'How would you thank someone who travelled to be there?' },
   { id: 'wish', label: 'A wish', body: 'A wish for the person being celebrated.' },
+];
+
+const SOLO_PROMPTS: VoicePrompt[] = [
+  { id: 'meet', label: 'A favorite story', body: 'Tell a favorite story about the guest of honor — the version you tell at parties.' },
+  { id: 'three-words', label: 'Three words', body: 'How would your closest friends describe you?' },
+  { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
+  { id: 'love', label: 'Why this celebration', body: 'What makes the guest of honor — and this milestone — worth celebrating?' },
+  { id: 'guests', label: 'Why these guests', body: 'Why these particular people get invited?' },
+  { id: 'today', label: 'Today, in your voice', body: 'Tell me what today felt like, in your normal voice.' },
+  { id: 'thanks', label: 'Saying thank you', body: 'How would you thank someone who travelled to be there?' },
+  { id: 'wish', label: 'A wish', body: 'A wish for the person being celebrated.' },
+];
+
+const MEMORIAL_PROMPTS: VoicePrompt[] = [
+  { id: 'meet', label: 'How you knew them', body: 'Tell me how you came to know them — the version you find yourself telling.' },
+  { id: 'three-words', label: 'Three words', body: 'How would the people who loved them describe them?' },
+  { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
+  { id: 'love', label: 'What you want remembered', body: 'What do you most want people to carry with them about their life?' },
+  { id: 'guests', label: 'Why these guests', body: 'Why these particular people are gathering to remember them.' },
+  { id: 'today', label: 'The gathering, in your voice', body: 'Tell me what you hope the day feels like, in your normal voice.' },
+  { id: 'thanks', label: 'Saying thank you', body: 'How would you thank someone who travelled to be there?' },
+  { id: 'wish', label: 'A memory to keep', body: 'A memory of them you never want to lose.' },
 ];
 
 interface Sample {
@@ -40,6 +73,16 @@ interface VoiceProfile {
 export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | null }) {
   const { site } = useSelectedSite();
   const siteSlug = urlSiteSlug ?? site?.domain ?? '';
+  // Occasion-aware prompt set: couple occasions keep the classic
+  // eight; solo celebrations ask about the guest of honor; solemn
+  // voices get gentle remembrance prompts.
+  const occasion = site?.occasion ?? null;
+  const solemn = getEventType(occasion)?.voice === 'solemn';
+  const solo = isSoloSubject({
+    occasion,
+    subject: (site?.manifest as { subject?: { kind?: string | null } } | null | undefined)?.subject ?? null,
+  });
+  const prompts = solemn ? MEMORIAL_PROMPTS : solo ? SOLO_PROMPTS : COUPLE_PROMPTS;
   const [samples, setSamples] = useState<Record<string, Sample>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [recordingForId, setRecordingForId] = useState<string | null>(null);
@@ -154,7 +197,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
   const recordedCount = Object.values(samples).filter((s) => s.text.trim().length > 0).length;
 
   return (
-    <DashLayout active="creative" hideTopbar>
+    <DashLayout active="studio" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
 
         <PLHead
@@ -217,7 +260,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-            {recordedCount} of {PROMPTS.length} captured
+            {recordedCount} of {prompts.length} captured
           </div>
           <button
             type="button"
@@ -248,7 +291,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
         )}
 
         <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {PROMPTS.map((p) => {
+          {prompts.map((p) => {
             const s = samples[p.id];
             const isRecording = recordingForId === p.id;
             const isExpanded = activeId === p.id || s?.text || isRecording;

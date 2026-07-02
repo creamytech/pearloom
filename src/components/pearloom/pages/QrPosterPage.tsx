@@ -14,6 +14,7 @@ import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { getEventType } from '@/lib/event-os/event-types';
 import { QR_THEMES, suggestThemesForOccasion, type QrThemeId } from '@/lib/qr-engine/themes';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { DecorGenerationToast } from '../editor/DecorGenerationToast';
@@ -53,12 +54,22 @@ async function pollQrPosterJob(jobId: string): Promise<{ url: string | null; qrD
   throw new Error('Pear is still painting — check back in a minute or try again.');
 }
 
-const COPY_PRESETS: Array<{ id: string; label: string; kicker: string; hint: string }> = [
-  { id: 'tabletop', label: 'Welcome table', kicker: 'Scan to open', hint: 'our wedding site' },
-  { id: 'rsvp', label: 'RSVP reminder', kicker: 'Scan to RSVP', hint: 'kindly reply by the deadline inside' },
-  { id: 'photos', label: 'Live photo wall', kicker: 'Scan to share photos', hint: 'add yours to the wall' },
-  { id: 'menu', label: 'Dinner menu', kicker: 'Scan to see the menu', hint: 'allergens + dietary tags inside' },
-];
+// The tabletop hint names the site — derive it from the occasion so
+// a memorial poster never reads "our wedding site".
+function siteHintFor(occasion?: string | null): string {
+  if (getEventType(occasion)?.voice === 'solemn') return 'the memorial site';
+  if (occasion === 'wedding') return 'our wedding site';
+  return 'our celebration site';
+}
+
+function copyPresetsFor(siteHint: string): Array<{ id: string; label: string; kicker: string; hint: string }> {
+  return [
+    { id: 'tabletop', label: 'Welcome table', kicker: 'Scan to open', hint: siteHint },
+    { id: 'rsvp', label: 'RSVP reminder', kicker: 'Scan to RSVP', hint: 'kindly reply by the deadline inside' },
+    { id: 'photos', label: 'Live photo wall', kicker: 'Scan to share photos', hint: 'add yours to the wall' },
+    { id: 'menu', label: 'Dinner menu', kicker: 'Scan to see the menu', hint: 'allergens + dietary tags inside' },
+  ];
+}
 
 // ── Print-size presets (Suite Phase 5) ───────────────────
 // The AI route paints one fixed portrait artwork (1024×1536, no
@@ -128,7 +139,9 @@ export function QrPosterPage() {
   const occasion = site?.occasion;
   const suggestedThemes = useMemo(() => suggestThemesForOccasion(occasion), [occasion]);
 
-  const preset = COPY_PRESETS.find((p) => p.id === presetId) ?? COPY_PRESETS[0];
+  const siteHint = siteHintFor(occasion);
+  const copyPresets = useMemo(() => copyPresetsFor(siteHintFor(occasion)), [occasion]);
+  const preset = copyPresets.find((p) => p.id === presetId) ?? copyPresets[0];
   const sizePreset = POSTER_SIZES.find((s) => s.id === posterSizeId) ?? POSTER_SIZES[0];
 
   const targetUrl = useMemo(() => {
@@ -240,7 +253,7 @@ export function QrPosterPage() {
     : '';
 
   const finalKicker = headline.trim() || preset?.kicker || 'Scan to open';
-  const finalHint = subhead.trim() || preset?.hint || 'our wedding site';
+  const finalHint = subhead.trim() || preset?.hint || siteHint;
 
   function print() {
     if (typeof window !== 'undefined') window.print();
@@ -329,7 +342,7 @@ export function QrPosterPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {COPY_PRESETS.map((p) => (
+            {copyPresets.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -364,7 +377,7 @@ export function QrPosterPage() {
               type="text"
               value={subhead}
               onChange={(e) => setSubhead(e.target.value)}
-              placeholder={preset?.hint ?? 'our wedding site'}
+              placeholder={preset?.hint ?? siteHint}
               style={poseInput}
             />
           </div>

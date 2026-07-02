@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear, Sparkle } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { getEventType } from '@/lib/event-os/event-types';
 
+/** The three analysis targets /api/pear/speech understands. */
 type Kind = 'vows' | 'toast' | 'speech';
 
 interface Analysis {
@@ -20,7 +22,8 @@ interface Analysis {
 interface Inspiration {
   /** 'memory' = memory-prompt response, 'tribute' = wall post,
    *  'guestbook' = guestbook note. All three are guests speaking
-   *  about the couple — exactly the material a toast wants. */
+   *  about the people being celebrated — exactly the material a
+   *  toast (or eulogy) wants. */
   kind: 'memory' | 'tribute' | 'guestbook';
   guest_name: string;
   /** For memory prompts: the question the guest answered. */
@@ -28,15 +31,51 @@ interface Inspiration {
   body: string;
 }
 
-const KIND_LABELS: Record<Kind, { label: string; range: string; hint: string }> = {
-  vows: { label: 'Vows', range: '60–120s', hint: 'Spoken to your partner — short, specific, structured.' },
-  toast: { label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent — one anecdote, land warm.' },
-  speech: { label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
-};
+interface KindOption {
+  /** Local tab id — stable per occasion set. */
+  id: string;
+  /** What we send to /api/pear/speech (drives length targets + prompt). */
+  apiKind: Kind;
+  label: string;
+  range: string;
+  hint: string;
+}
+
+const WEDDING_KINDS: KindOption[] = [
+  { id: 'vows', apiKind: 'vows', label: 'Vows', range: '60–120s', hint: 'Spoken to your partner — short, specific, structured.' },
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent — one anecdote, land warm.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+];
+
+const MEMORIAL_KINDS: KindOption[] = [
+  { id: 'eulogy', apiKind: 'speech', label: 'Eulogy', range: '2–5min', hint: 'Their life, in your words — one true story, told with care.' },
+  { id: 'remembrance', apiKind: 'toast', label: 'Words of remembrance', range: '90–180s', hint: 'A single memory, told well — land gentle.' },
+  { id: 'welcome', apiKind: 'speech', label: 'Welcome', range: '2–5min', hint: 'Receiving everyone who came — warm, steady, brief.' },
+];
+
+const CELEBRATION_KINDS: KindOption[] = [
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Raise a glass to the guest of honor — one anecdote, land warm.' },
+  { id: 'tribute', apiKind: 'speech', label: 'Tribute', range: '2–5min', hint: 'The longer look back — what this person and this milestone mean.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+];
+
+/** Speech kinds follow the occasion: weddings write vows, memorials
+ *  write eulogies, everything else toasts + tributes. Unknown /
+ *  unselected sites keep the wedding set (the historic default). */
+function kindOptionsFor(occasion: string | null | undefined): KindOption[] {
+  if (getEventType(occasion)?.voice === 'solemn') return MEMORIAL_KINDS;
+  if (!occasion || occasion === 'wedding' || occasion === 'vow-renewal') return WEDDING_KINDS;
+  return CELEBRATION_KINDS;
+}
 
 export function SpeechComposerPage() {
   const { site } = useSelectedSite();
-  const [kind, setKind] = useState<Kind>('toast');
+  const options = kindOptionsFor(site?.occasion ?? null);
+  const [kind, setKind] = useState<string>('toast');
+  // If a site switch swaps the kind set out from under the pick,
+  // fall back to the set's first option (render-time derivation —
+  // no effect needed).
+  const activeKindId = options.some((o) => o.id === kind) ? kind : options[0].id;
   const [text, setText] = useState('');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [running, setRunning] = useState(false);
@@ -45,9 +84,9 @@ export function SpeechComposerPage() {
 
   // Pull guest-typed material from the memory book endpoint —
   // memories, tributes, and guestbook entries are all things
-  // people wrote about the couple, which is exactly what a toast
-  // is trying to mine. Fail silently — composer still works
-  // without inspirations.
+  // people wrote about the ones being celebrated, which is exactly
+  // what a toast or eulogy is trying to mine. Fail silently —
+  // composer still works without inspirations.
   useEffect(() => {
     if (!site?.id) return;
     let cancelled = false;
@@ -90,7 +129,7 @@ export function SpeechComposerPage() {
       const res = await fetch('/api/pear/speech', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text.trim(), kind }),
+        body: JSON.stringify({ text: text.trim(), kind: meta.apiKind }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -106,7 +145,7 @@ export function SpeechComposerPage() {
     }
   }
 
-  const meta = KIND_LABELS[kind];
+  const meta = options.find((o) => o.id === activeKindId) ?? options[0];
 
   return (
     <DashLayout active="speech" title="Speech composer" subtitle="Paste a draft. Pear scores length, sentiment arc, and specificity, then suggests surgical edits.">
@@ -114,14 +153,14 @@ export function SpeechComposerPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 0.9fr)', gap: 28 }} className="pl8-speech-grid">
           {/* LEFT — composer */}
           <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              {(Object.keys(KIND_LABELS) as Kind[]).map((k) => {
-                const active = kind === k;
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+              {options.map((o) => {
+                const active = activeKindId === o.id;
                 return (
                   <button
-                    key={k}
+                    key={o.id}
                     type="button"
-                    onClick={() => setKind(k)}
+                    onClick={() => setKind(o.id)}
                     style={{
                       padding: '8px 16px',
                       borderRadius: 999,
@@ -134,7 +173,7 @@ export function SpeechComposerPage() {
                       transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
                     }}
                   >
-                    {KIND_LABELS[k].label}
+                    {o.label}
                   </button>
                 );
               })}

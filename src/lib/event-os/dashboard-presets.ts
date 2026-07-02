@@ -783,10 +783,12 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
   const preset = e?.rsvpPreset ?? 'wedding';
   switch (preset) {
     case 'memorial':
+      // Only tools with a real destination. The donation letter and
+      // the annual-remembrance nudge were cards pointing at anchors
+      // that never existed — return them when a surface ships.
       return [
         { id: 'memoriam',  title: 'In-memoriam card',   body: 'A printed keepsake with the obituary and favourite photos.',      actionLabel: 'Design card',    actionHref: '/dashboard/invite',    tone: 'lavender' },
-        { id: 'donations', title: 'Donation letter',    body: 'A short letter of thanks for anyone who gave in their memory.',   actionLabel: 'Draft letter',   actionHref: '#donations',           tone: 'cream' },
-        { id: 'anniversary-nudge', title: 'Anniversary remembrance', body: 'Pear writes a short note each year on the date.', actionLabel: 'Preview this year', actionHref: '#anniversary', tone: 'peach' },
+        { id: 'photobook', title: 'Book of memories',   body: 'Gather the photos and the words guests shared into a printable keepsake.', actionLabel: 'Build the book', actionHref: '/dashboard/memory-book', tone: 'cream' },
       ];
     case 'bachelor':
       return [
@@ -799,9 +801,11 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
         { id: 'advicecard',title: 'Advice keepsake card', body: 'Every piece of advice, printed as a card for the couple.',      actionLabel: 'Design card',    actionHref: '/dashboard/invite',    tone: 'lavender' },
       ];
     case 'reunion':
+      // The yearbook-export card pointed at a '#yearbook' anchor
+      // that never existed; the memory book is the real printable.
       return [
         { id: 'thanks',    title: 'Thanks + save-the-date',body: 'Thank this year’s group + save the date for next year.',       actionLabel: 'Draft both',     actionHref: '#thanks',              tone: 'peach' },
-        { id: 'yearbook',  title: 'Yearbook export',      body: 'Print the who’s-who and then-and-now as a PDF booklet.',        actionLabel: 'Export',         actionHref: '#yearbook',            tone: 'sage' },
+        { id: 'photobook', title: 'Photo book',           body: 'Gather the gallery + the notes guests left into a printable keepsake.', actionLabel: 'Build the book', actionHref: '/dashboard/memory-book', tone: 'sage' },
       ];
     case 'milestone':
       return [

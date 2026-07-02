@@ -77,19 +77,21 @@ export function KeepsakesPage() {
   const preset = getEventType(occasion as never)?.rsvpPreset ?? 'wedding';
 
   const showThanks = ['wedding', 'shower', 'bachelor', 'reunion', 'milestone', 'casual', 'cultural'].includes(preset);
-  const showAnniversary = ['wedding', 'cultural'].includes(preset) || occasion === 'anniversary';
+  // Anniversary nudges frame a wedding anniversary — only weddings
+  // and anniversary sites get the preview card.
+  const showAnniversary = preset === 'wedding' || occasion === 'anniversary';
 
   const tools = getKeepsakeTools(occasion);
 
   const subtitle =
     preset === 'memorial'
-      ? 'In-memoriam cards, donation letters, and anniversary remembrances — drafted with care.'
+      ? 'An in-memoriam card and a book of what guests shared — drafted with care.'
       : preset === 'bachelor'
         ? 'Thank-yous from the guest of honor and a clean settle-up — close the weekend out right.'
         : preset === 'shower'
           ? 'Thank-yous and a keepsake card of the advice guests left.'
           : preset === 'reunion'
-            ? 'Thank-yous, the yearbook export, and a head start on next year.'
+            ? 'Thank-yous, a printable photo book, and a head start on next year.'
             // Anniversary nudges only fit a wedding; everything else
             // (birthday, graduation, retirement, cultural, casual…)
             // gets a neutral after-the-day line.
@@ -108,10 +110,13 @@ export function KeepsakesPage() {
       />
 
       {/* Headline two-tap composer — renders its own intro header,
-          so no editorial card above it. */}
-      <div style={{ marginBottom: 22 }}>
-        <TwoTapThanks />
-      </div>
+          so no editorial card above it. Follows the same gate as
+          ThankYouGenerator: thank-you blasts don't fit a memorial. */}
+      {showThanks && (
+        <div style={{ marginBottom: 22 }}>
+          <TwoTapThanks />
+        </div>
+      )}
 
       <div
         className="pl8-keepsakes-grid pl8-dash-stagger"

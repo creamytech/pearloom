@@ -74,6 +74,21 @@ function diffDays(iso: string): number {
 // Derive a set of T-minus milestones from targetDate + checklist.
 // If the user has no targetDate set we still show the timeline
 // labels but skip the dates.
+// Quick replies follow the occasion — a birthday host never needs
+// a Save-the-Date, a bachelor trip needs the itinerary + the split.
+// (Solemn occasions never reach the Director; it's gated upstream.)
+function quickRepliesFor(occasion: string | null | undefined): string[] {
+  const trip =
+    occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion';
+  if (trip) {
+    return ['Check the budget', 'Plan the itinerary', 'Split the costs', 'What should I do this week?'];
+  }
+  if (!occasion || occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal') {
+    return ['Check the budget', 'Find a photographer', 'Draft the Save-the-Date', 'What should I do this week?'];
+  }
+  return ['Check the budget', 'Draft the invitation', 'Plan the timeline', 'What should I do this week?'];
+}
+
 function accentColor(a: TimelineStage['accent']): string {
   switch (a) {
     case 'olive': return PD.olive;
@@ -773,7 +788,7 @@ export function DashDirector() {
             }}
           >
             <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-              {['Check the budget', 'Find a photographer', 'Draft the Save-the-Date', 'What should I do this week?'].map((q) => (
+              {quickRepliesFor(site?.occasion).map((q) => (
                 <button
                   key={q}
                   onClick={() => send(q)}
