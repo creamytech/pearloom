@@ -229,7 +229,120 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
   );
 }
 
-/* ── (c) Polaroid — scattered tilted cards ─────────────────────── */
+/* ── (c) Frames — hairline-framed asymmetric editorial rows ─────
+   BRAND §10 bans symmetrical full-bleed photography without a
+   hairline frame; this is the gallery variant that leans INTO the
+   rule. Photos sit on card mats inside a 1px hairline, arranged in
+   asymmetric two-up rows (wide + narrow, alternating), with a
+   small gold pearl punctuating each row's gutter. Captions read as
+   plate labels — mono small caps under the frame. */
+
+export function GalleryFrames({ ctx }: { ctx: GalleryVariantCtxEditable }) {
+  const { C } = ctx;
+  const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender'];
+  const hasPhotos = !!(C.photos && C.photos.length > 0);
+  const items: Array<{ url?: string; tone?: PhotoTone }> = hasPhotos
+    ? C.photos!.map((url) => ({ url }))
+    : tones.slice(0, 4).map((tone) => ({ tone }));
+
+  /* Pair the photos into rows; every other row flips the wide
+     side. Odd trailing photo gets a centered single frame. */
+  const rows: Array<Array<{ item: { url?: string; tone?: PhotoTone }; idx: number }>> = [];
+  for (let i = 0; i < items.length; i += 2) {
+    rows.push(items.slice(i, i + 2).map((item, j) => ({ item, idx: i + j })));
+  }
+
+  const frame = (entry: { item: { url?: string; tone?: PhotoTone }; idx: number }, aspect: string) => (
+    <figure key={entry.idx} style={{ margin: 0, minWidth: 0 }}>
+      <div
+        onClick={entry.item.url && ctx.onPhotoClick ? () => ctx.onPhotoClick!(entry.idx) : undefined}
+        role={entry.item.url && ctx.onPhotoClick ? 'button' : undefined}
+        aria-label={entry.item.url && ctx.onPhotoClick ? 'Open photo' : undefined}
+        style={{
+          /* The hairline frame — mat + rule, the plate the brand
+             asks every photograph to wear. */
+          background: 'var(--t-card)',
+          border: '1px solid var(--t-line)',
+          padding: 'clamp(6px, 1.2vw, 12px)',
+          cursor: entry.item.url && ctx.onPhotoClick ? 'zoom-in' : undefined,
+        }}
+      >
+        <div
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            aspectRatio: aspect,
+            background: entry.item.url ? 'var(--t-section)' : TONE_BG[entry.item.tone ?? 'warm'],
+            /* Inner hairline so the photo reads set INTO the mat. */
+            boxShadow: 'inset 0 0 0 1px var(--t-line-soft)',
+          }}
+        >
+          {entry.item.url && <LazyPhoto url={entry.item.url} />}
+        </div>
+      </div>
+      {entry.item.url && (
+        <CaptionSlot
+          ctx={ctx}
+          i={entry.idx}
+          style={{
+            fontFamily: 'var(--t-mono, ui-monospace, monospace)',
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--t-ink-muted)',
+            textAlign: 'center',
+            marginTop: 8,
+          }}
+        />
+      )}
+    </figure>
+  );
+
+  return (
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
+      <div style={{ maxWidth: 880, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'clamp(18px, 3vw, 34px)' }}>
+        {rows.map((row, r) => {
+          if (row.length === 1) {
+            return (
+              <div key={r} style={{ maxWidth: 560, width: '100%', margin: '0 auto' }}>
+                {frame(row[0], '4/3')}
+              </div>
+            );
+          }
+          const wideFirst = r % 2 === 0;
+          return (
+            <div
+              key={r}
+              className="pl8-gallery-frames-row"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: wideFirst ? '1.5fr auto 1fr' : '1fr auto 1.5fr',
+                gap: 'clamp(10px, 2vw, 20px)',
+                alignItems: 'center',
+              }}
+            >
+              {frame(row[0], wideFirst ? '4/3' : '3/4')}
+              {/* Gold pearl in the gutter — the row's punctuation. */}
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-gold)', flexShrink: 0 }} />
+              {frame(row[1], wideFirst ? '3/4' : '4/3')}
+            </div>
+          );
+        })}
+      </div>
+      {/* Phones: rows stack, pearls step aside. */}
+      <style>{`
+        @media (max-width: 560px) {
+          .pl8-gallery-frames-row { grid-template-columns: 1fr !important; }
+          .pl8-gallery-frames-row > span[aria-hidden] { display: none; }
+        }
+      `}</style>
+    </>
+  );
+}
+
+/* ── (d) Polaroid — scattered tilted cards ─────────────────────── */
 
 export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
   const { C } = ctx;

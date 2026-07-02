@@ -12,6 +12,7 @@
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
+import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 const DIETARY_TAGS = ['Vegetarian', 'Vegan', 'GF', 'Nut-free', 'Spicy'] as const;
@@ -54,6 +55,16 @@ export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
             rows={2}
             placeholder="Dinner is served family-style under the oaks."
           />
+          {(data.intro ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                fxSection="menu"
+                value={data.intro ?? ''}
+                onCommit={(v) => write({ intro: v })}
+                context="menu intro line — one welcoming sentence above the courses"
+              />
+            </div>
+          )}
         </FGroup>
 
         <FGroup

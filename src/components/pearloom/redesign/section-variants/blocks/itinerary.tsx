@@ -244,16 +244,46 @@ function DaysBody({ days, setDayRef }: BodyProps) {
   );
 }
 
-/* ─── flow — one continuous thread down the left ──────────────── */
+/* ─── flow ("Thread") — the two-strand weave down the left ─────
+   The spine is the brand's thread atom made vertical: two strands
+   (accent + gold) crossing in a repeating weave, not the old
+   single accent line at half opacity. SVG pattern tiles cleanly
+   at any plan height; static by construction, so
+   prefers-reduced-motion needs no branch. */
+
+function VerticalThread() {
+  return (
+    <svg
+      aria-hidden
+      width={12}
+      height="100%"
+      preserveAspectRatio="none"
+      style={{ position: 'absolute', left: 1, top: 6, bottom: 6, height: 'calc(100% - 12px)', display: 'block' }}
+    >
+      <defs>
+        {/* One weave tile — the strands cross at the middle, like
+            Thread.tsx's crossing cubics rotated to run downward. */}
+        <pattern id="pl8-itin-thread" width="12" height="56" patternUnits="userSpaceOnUse">
+          <path
+            d="M 3.5 0 C 3.5 14, 8.5 14, 8.5 28 S 3.5 42, 3.5 56"
+            fill="none" stroke="var(--t-accent)" strokeWidth="1" strokeLinecap="round" opacity="0.85"
+          />
+          <path
+            d="M 8.5 0 C 8.5 14, 3.5 14, 3.5 28 S 8.5 42, 8.5 56"
+            fill="none" stroke="var(--t-gold)" strokeWidth="1" strokeLinecap="round" opacity="0.85"
+          />
+        </pattern>
+      </defs>
+      <rect x="0" y="0" width="12" height="100%" fill="url(#pl8-itin-thread)" />
+    </svg>
+  );
+}
 
 function FlowBody({ days, pad, setDayRef }: BodyProps & { pad: number }) {
   return (
     <div style={{ position: 'relative', maxWidth: 540, margin: '0 auto', paddingLeft: 32 }}>
-      {/* The loom thread — a single accent line through every day. */}
-      <div
-        aria-hidden
-        style={{ position: 'absolute', left: 6, top: 6, bottom: 6, width: 1, background: 'var(--t-accent)', opacity: 0.5 }}
-      />
+      {/* The loom thread — two strands woven through every day. */}
+      <VerticalThread />
       {days.map((day, di) => (
         <div key={day.id ?? di} ref={setDayRef(di)} style={{ scrollMarginTop: 24 }}>
           {/* Day node — a larger gold knot on the thread. */}

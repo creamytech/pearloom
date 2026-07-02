@@ -37,11 +37,16 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const url = data.url ?? '';
   const title = data.title ?? '';
   const description = data.description ?? '';
-  /* Reads rsvpConfig.songRequests — the field the RSVP form and
-     passport song composer actually honor (defaults ON, matching
-     their behavior). music.acceptSubmissions was write-only. */
+  /* ONE guest-songs toggle (2026-07-02) — the panel used to stack
+     two near-identical switches ("Let guests suggest songs on the
+     site" = music.suggestions vs "Accept song requests from
+     guests" = rsvpConfig.songRequests) that hosts had to decode.
+     Merged: the single toggle writes BOTH fields; it reads OFF
+     when a legacy manifest turned either one off explicitly. The
+     RSVP panel's "Song request" form-field toggle still exists for
+     the RSVP form specifically — same field, same state. */
   const acceptSubmissions = ((manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests) ?? true;
-  const suggestions = data.suggestions ?? true;
+  const suggestions = (data.suggestions ?? true) && acceptSubmissions;
   const autoAdd = data.autoAdd ?? false;
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'musicEyebrow');
 
@@ -108,17 +113,17 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
           />
         </FGroup>
 
-        {/* Guest suggestions — the living playlist on the site
-            itself. Accepted requests render as "The guest playlist"
-            under the embed; the composer posts to /api/song-requests
-            which reads these two fields for gating + initial state. */}
+        {/* Guest songs — ONE switch for every way a guest can hand
+            you a song: the on-site composer (music.suggestions),
+            the RSVP form's song field + the passport composer
+            (rsvpConfig.songRequests). One decision, both fields. */}
         <FGroup
-          label="Guest suggestions"
+          label="Guest songs"
           hint={suggestions
             ? (autoAdd
               ? 'Suggestions are woven straight into the guest playlist.'
               : 'Suggestions wait in your queue until you weave them in.')
-            : 'Off — the guest playlist shows accepted songs only, with no composer.'}
+            : 'Off — no composer on the site, no song field on the RSVP form.'}
           action={(
             <a
               href="/dashboard/music"
@@ -130,10 +135,17 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <FToggleStandalone
-              label="Let guests suggest songs on the site"
-              sub="A suggest-a-song composer under the playlist embed."
+              label="Let guests suggest songs"
+              sub="A composer under the playlist, plus the song field on the RSVP form and guest passports."
               def={suggestions}
-              onChange={(v) => patch({ suggestions: v })}
+              onChange={(v) => {
+                const looseM = manifest as unknown as { rsvpConfig?: Record<string, unknown>; music?: Record<string, unknown> };
+                onChange({
+                  ...(manifest as unknown as Record<string, unknown>),
+                  music: { ...(looseM.music ?? {}), suggestions: v },
+                  rsvpConfig: { ...(looseM.rsvpConfig ?? {}), songRequests: v },
+                } as unknown as StoryManifest);
+              }}
             />
             {suggestions && (
               <FSelect
@@ -148,24 +160,6 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
             )}
           </div>
         </FGroup>
-
-        {/* Wired to rsvpConfig.songRequests — the field the RSVP form
-            and the guest passport's song composer ACTUALLY read. The
-            old write (music.acceptSubmissions) went nowhere. */}
-        <FToggleStandalone
-          label="Accept song requests from guests"
-          sub={acceptSubmissions
-            ? 'The RSVP form asks for a song, and passport guests get a request composer.'
-            : 'Off — the player is one-way listening only.'}
-          def={acceptSubmissions}
-          onChange={(v) => {
-            const loose = manifest as unknown as { rsvpConfig?: Record<string, unknown> };
-            onChange({
-              ...(manifest as unknown as Record<string, unknown>),
-              rsvpConfig: { ...(loose.rsvpConfig ?? {}), songRequests: v },
-            } as unknown as StoryManifest);
-          }}
-        />
 
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Music" />
       </div>

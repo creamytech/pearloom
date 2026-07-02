@@ -87,7 +87,7 @@ export type SectionId =
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
   | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode'
-  | 'nameVote' | 'rooms' | 'thenAndNow'
+  | 'nameVote' | 'rooms' | 'thenAndNow' | 'groupChat'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
@@ -113,13 +113,13 @@ export type BlockSectionId =
   | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
   | 'adviceWall' | 'program' | 'livestream' | 'obituary'
   | 'packingList' | 'honorList' | 'tributeWall' | 'menu' | 'dressCode'
-  | 'nameVote' | 'rooms' | 'thenAndNow';
+  | 'nameVote' | 'rooms' | 'thenAndNow' | 'groupChat';
 
 export const BLOCK_SECTION_IDS: readonly BlockSectionId[] = [
   'itinerary', 'costSplitter', 'activityVote', 'toastSignup',
   'adviceWall', 'program', 'livestream', 'obituary',
   'packingList', 'honorList', 'tributeWall', 'menu', 'dressCode',
-  'nameVote', 'rooms', 'thenAndNow',
+  'nameVote', 'rooms', 'thenAndNow', 'groupChat',
 ];
 
 /* honorList is the generalized weddingParty (wedding party / court

@@ -17,6 +17,7 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, isMemorialOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface AdviceEntryRow { id: string; from?: string; body?: string }
@@ -83,6 +84,16 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
             rows={2}
             placeholder={memorialFallback || 'Your best advice for the years ahead.'}
           />
+          {(data.prompt ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                fxSection="adviceWall"
+                value={data.prompt ?? ''}
+                onCommit={(v) => patch({ prompt: v })}
+                context="advice-wall prompt — one warm line inviting guests to write"
+              />
+            </div>
+          )}
         </FGroup>
 
         <FGroup

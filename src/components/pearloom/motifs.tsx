@@ -1258,6 +1258,10 @@ function renderIconBody(
     case 'mic-wave':      return <svg {...common}><rect x="10" y="3" width="4" height="10" rx="2"/><path d="M6 11a6 6 0 0012 0M12 17v4"/></svg>;
     case 'cart':          return <svg {...common}><circle cx="9" cy="20" r="1.4" fill={color}/><circle cx="18" cy="20" r="1.4" fill={color}/><path d="M3 4h2l2.5 12.5a2 2 0 002 1.5h8.5a2 2 0 002-1.6L21 8H6"/></svg>;
     case 'trash':         return <svg {...common}><path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13M10 11v6M14 11v6"/></svg>;
+    /* Content-aware details icons (2026-07-02) — Parking→car,
+       Dress code→hanger; see redesign/details-icons.ts. */
+    case 'car':           return <svg {...common}><path d="M5 16l1.2-4.5A2 2 0 018.1 10h7.8a2 2 0 011.9 1.5L19 16M5 16h14M5 16v3M19 16v3"/><circle cx="8" cy="16" r="1.3" fill={color}/><circle cx="16" cy="16" r="1.3" fill={color}/><path d="M7 10l1-3h8l1 3"/></svg>;
+    case 'hanger':        return <svg {...common}><path d="M12 7a2 2 0 112-2M12 7v2M12 9L3.5 15.5A1.5 1.5 0 004.4 18h15.2a1.5 1.5 0 00.9-2.5L12 9z"/></svg>;
     default:              return <svg {...common}><circle cx="12" cy="12" r="9"/></svg>;
   }
 }

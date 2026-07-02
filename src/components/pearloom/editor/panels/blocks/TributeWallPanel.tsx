@@ -18,6 +18,7 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from '../_section-atoms';
+import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, isMemorialOccasion, readOccasion, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface TributeWallData { prompt?: string; composerOpen?: boolean }
@@ -58,6 +59,19 @@ export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
             rows={2}
             placeholder={promptFallback}
           />
+          {(data.prompt ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                fxSection="tributeWall"
+                value={data.prompt ?? ''}
+                onCommit={(v) => patch({ prompt: v })}
+                context={solemn
+                  ? 'tribute-wall prompt on a memorial site — gentle, solemn register'
+                  : 'tribute-wall prompt — one warm line inviting guests to write'}
+                tones={solemn ? ['shorten', 'warmer', 'poetic'] : undefined}
+              />
+            </div>
+          )}
         </FGroup>
 
         <FToggleStandalone

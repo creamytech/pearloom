@@ -12,9 +12,14 @@ import type { StoryManifest } from '@/types';
 import { FGroup, FSuggest, AddCard, SectionPanelShell, SectionVisibilityFooter, useSectionHidden, FInput } from '../_section-atoms';
 import { dressCodeSuggestions } from '../_suggestions';
 import { PlColorPicker } from '../../../redesign/PlColorPicker';
+import { PhotoUploadSlot } from '../_photo-upload';
+import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, readOccasion, RemoveButton, type BlockPanelProps } from './_shared';
 
-interface DressExample { label: string; hint?: string }
+/* `photo` powers the Wardrobe layout's "Wear this" plates —
+   examples with a photo hang as hairline-framed plates there;
+   the Centered layout ignores photos and keeps its chips. */
+interface DressExample { label: string; hint?: string; photo?: string }
 interface DressData { code?: string; note?: string; palette?: string[]; examples?: DressExample[] }
 
 /** Neutral linen tone — the starting value for a new swatch. */
@@ -55,6 +60,16 @@ export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
             rows={2}
             placeholder="The ceremony is on a lawn — leave the stilettos home."
           />
+          {(data.note ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                fxSection="dressCode"
+                value={data.note ?? ''}
+                onCommit={(v) => write({ note: v })}
+                context="dress-code guidance note"
+              />
+            </div>
+          )}
         </FGroup>
 
         <FGroup
@@ -95,21 +110,32 @@ export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label={`Examples · ${examples.length}`}
-          hint={'Do / don’t chips — "Linen suits", "No white".'}
+          hint={'Do / don’t chips — "Linen suits", "No white". Add a photo and the Wardrobe layout hangs it as a "Wear this" plate.'}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {examples.map((ex, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <FInput
-                  value={ex.label}
-                  onChange={(v) => patchExample(idx, { label: v })}
-                  placeholder="Linen suits"
-                />
-                <FInput
-                  value={ex.hint ?? ''}
-                  onChange={(v) => patchExample(idx, { hint: v })}
-                  placeholder="Hint (optional)"
-                />
+              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                {/* Paired photo slot — powers the Wardrobe plates. */}
+                <div style={{ width: 52, flexShrink: 0 }}>
+                  <PhotoUploadSlot
+                    url={ex.photo ?? ''}
+                    onChange={(url) => patchExample(idx, { photo: url || undefined })}
+                    aspectRatio="3/4"
+                    size="sm"
+                  />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <FInput
+                    value={ex.label}
+                    onChange={(v) => patchExample(idx, { label: v })}
+                    placeholder="Linen suits"
+                  />
+                  <FInput
+                    value={ex.hint ?? ''}
+                    onChange={(v) => patchExample(idx, { hint: v })}
+                    placeholder="Hint (optional)"
+                  />
+                </div>
                 <RemoveButton
                   label="Remove example"
                   onClick={() => write({ examples: examples.filter((_, i) => i !== idx) })}

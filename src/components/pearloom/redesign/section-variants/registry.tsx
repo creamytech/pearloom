@@ -122,8 +122,36 @@ export function RegistryProgress({ ctx }: { ctx: RegistryVariantCtx }) {
   );
 }
 
-/* (c) Logo wall — grid of square-ish gift cards, one per store. */
-export function RegistryLogoWall({ ctx }: { ctx: RegistryVariantCtx }) {
+/* (c) Store cards — typographic plates, one per store (2026-07-02;
+   replaces 'logowall', which showed the same gift glyph on every
+   card — "a logo wall with no logos"). Real store presence WITHOUT
+   fake logos: the store's initials as a display-type mark on a
+   hairline plate, the name in mono small caps, the link's domain
+   as the quiet ground line. Legacy layouts.registry='logowall'
+   picks dispatch here too (alias in ThemedSite's RegistryBlock). */
+
+/** "Crate & Barrel" → "CB", "Zola" → "Z" — at most two initials,
+ *  articles skipped. Exported for the unit test. */
+export function storeMark(name: string): string {
+  const words = (name ?? '')
+    .split(/[\s&+·]+/)
+    .map((w) => w.trim())
+    .filter((w) => w && !/^(the|and|of|for|a|an)$/i.test(w));
+  const letters = words.slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
+  return letters || '·';
+}
+
+/** Quiet ground line under the mark — the link's hostname. */
+function storeDomain(url?: string): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return undefined;
+  }
+}
+
+export function RegistryStoreCards({ ctx }: { ctx: RegistryVariantCtx }) {
   const { C, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder } = ctx;
   return (
     <>
@@ -146,30 +174,65 @@ export function RegistryLogoWall({ ctx }: { ctx: RegistryVariantCtx }) {
         }}
       >
         {C.stores.map((s, i) => {
+          const domain = storeDomain(s.url);
           const cardStyle = {
-            padding: 22,
+            padding: '22px 16px 18px',
             background: 'var(--t-card)',
             border: '1px solid var(--t-line)',
             borderRadius: 'var(--t-radius)',
             display: 'flex',
             flexDirection: 'column' as const,
             alignItems: 'center' as const,
-            justifyContent: 'center' as const,
+            justifyContent: 'flex-start' as const,
             gap: 10,
             textDecoration: 'none' as const,
             color: 'inherit',
           };
           const body = (
             <>
-              <Icon name="gift" size={28} color="var(--t-accent-ink)" />
-              <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 14, color: 'var(--t-ink)', textAlign: 'center', lineHeight: 1.2 }}>
+              {/* The typographic mark — a small framed plate with
+                  the store's initials in display italic + a gold
+                  baseline rule. Never a fake logo. */}
+              <span
+                aria-hidden
+                style={{
+                  width: 52, height: 52,
+                  display: 'grid', placeItems: 'center',
+                  border: '1px solid var(--t-line)',
+                  borderRadius: 'calc(var(--t-radius) * 0.6)',
+                  background: 'var(--t-paper)',
+                  position: 'relative',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontWeight: 'var(--t-display-wght)' as never, fontSize: 21, lineHeight: 1, color: 'var(--t-ink)' }}>
+                  {storeMark(s.name)}
+                </span>
+                <span style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', width: 16, height: 1, background: 'var(--t-gold)', opacity: 0.8 }} />
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--t-mono, ui-monospace, monospace)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  color: 'var(--t-ink)',
+                  textAlign: 'center',
+                  lineHeight: 1.45,
+                }}
+              >
                 {s.name}
-              </div>
+              </span>
+              {domain && (
+                <span style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {domain} <Icon name="arrow-ur" size={10} color="var(--t-accent-ink)" />
+                </span>
+              )}
               {/* Host note — parity with the default cards layout. */}
               {s.note && (
-                <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--t-ink-soft)', textAlign: 'center', lineHeight: 1.4 }}>
+                <span style={{ fontSize: 11, fontStyle: 'italic', fontWeight: 500, color: 'var(--t-ink-soft)', textAlign: 'center', lineHeight: 1.4 }}>
                   {s.note}
-                </div>
+                </span>
               )}
             </>
           );

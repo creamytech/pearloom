@@ -120,6 +120,9 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'hero/postcard': (
     <><P x={4} y={4} w={48} h={32} f={AB} o={1} rx={0} /><Card x={11} y={9} w={34} h={22} /><Ln x1={14} y1={12} x2={42} y2={12} /><Ln x1={14} y1={28} x2={42} y2={28} /><B x={19} y={16} w={18} h={2.6} /><B x={23} y={22} w={10} o={0.5} /></>
   ),
+  'hero/crest': (
+    <><circle cx={28} cy={14} r={9.5} fill={CARD} stroke={L} strokeWidth="0.8" /><circle cx={28} cy={14} r={7.2} fill="none" stroke={G} strokeWidth="0.7" opacity={0.6} /><B x={23.5} y={12} w={3.4} h={4.2} /><D cx={28.4} cy={14} r={0.9} /><B x={29.6} y={12} w={3.4} h={4.2} /><D cx={28} cy={24} r={1.4} /><B x={17} y={28} w={22} h={2.6} /><B x={22} y={33} w={12} o={0.5} /></>
+  ),
 
   /* story */
   'story/sidebyside': (
@@ -147,6 +150,9 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
     <><D cx={13} cy={13} r={3.2} f={G} /><B x={8} y={21} w={10} h={1.8} o={0.6} /><D cx={28} cy={13} r={3.2} f={G} /><B x={23} y={21} w={10} h={1.8} o={0.6} /><D cx={43} cy={13} r={3.2} f={G} /><B x={38} y={21} w={10} h={1.8} o={0.6} /><B x={18} y={28} w={20} o={0.4} /></>
   ),
   'details/accordion': ACCORDION,
+  'details/ledger': (
+    <><B x={7} y={7} w={11} h={1.8} o={0.55} /><B x={36} y={6.5} w={13} h={2.6} /><Ln x1={7} y1={13.5} x2={49} y2={13.5} /><B x={7} y={17} w={9} h={1.8} o={0.55} /><B x={39} y={16.5} w={10} h={2.6} /><Ln x1={7} y1={23.5} x2={49} y2={23.5} /><B x={7} y={27} w={12} h={1.8} o={0.55} /><B x={34} y={26.5} w={15} h={2.6} /><B x={40} y={31} w={9} h={1.6} o={0.4} /></>
+  ),
   'details/bento': (
     <><Card x={6} y={6} w={27} h={28} /><B x={10} y={12} w={16} h={2.4} /><B x={10} y={18} w={18} o={0.5} /><Card x={36} y={6} w={14} h={13} /><D cx={43} cy={12.5} f={G} /><Card x={36} y={21} w={14} h={13} /><D cx={43} cy={27.5} f={A} /></>
   ),
@@ -185,8 +191,10 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'registry/progress': (
     <><B x={14} y={9} w={28} o={0.6} /><rect x={8} y={17} width={40} height={6} rx={3} fill={AB} /><rect x={8} y={17} width={26} height={6} rx={3} fill={A} /><D cx={34} cy={20} r={2.2} /><B x={20} y={29} w={16} h={1.8} o={0.5} /></>
   ),
-  'registry/logowall': (
-    <><Card x={7} y={9} w={12} h={10} /><Card x={22} y={9} w={12} h={10} /><Card x={37} y={9} w={12} h={10} /><Card x={7} y={22} w={12} h={10} /><Card x={22} y={22} w={12} h={10} /><Card x={37} y={22} w={12} h={10} /><B x={10} y={13} w={6} h={2} o={0.4} /><B x={25} y={13} w={6} h={2} o={0.4} /><B x={40} y={13} w={6} h={2} o={0.4} /><B x={10} y={26} w={6} h={2} o={0.4} /><B x={25} y={26} w={6} h={2} o={0.4} /><B x={40} y={26} w={6} h={2} o={0.4} /></>
+  /* storecards — typographic plates: initial mark + gold baseline
+     rule + mono name bar per store (replaced 'logowall'). */
+  'registry/storecards': (
+    <><Card x={7} y={8} w={12} h={13} /><B x={11.5} y={11} w={3} h={4} /><Ln x1={10} y1={17.5} x2={16} y2={17.5} f={G} w={0.9} /><Card x={22} y={8} w={12} h={13} /><B x={26.5} y={11} w={3} h={4} /><Ln x1={25} y1={17.5} x2={31} y2={17.5} f={G} w={0.9} /><Card x={37} y={8} w={12} h={13} /><B x={41.5} y={11} w={3} h={4} /><Ln x1={40} y1={17.5} x2={46} y2={17.5} f={G} w={0.9} /><B x={8.5} y={24} w={9} h={1.7} o={0.5} /><B x={23.5} y={24} w={9} h={1.7} o={0.5} /><B x={38.5} y={24} w={9} h={1.7} o={0.5} /></>
   ),
 
   /* gallery */
@@ -198,6 +206,11 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   ),
   'gallery/slideshow': (
     <><P x={6} y={5} w={44} h={22} /><P x={9} y={30} w={9} h={6} o={0.9} /><P x={20} y={30} w={9} h={6} o={0.45} /><P x={31} y={30} w={9} h={6} o={0.45} /><P x={42} y={30} w={6} h={6} o={0.45} /></>
+  ),
+  /* frames — asymmetric hairline-framed plates + a gold pearl in
+     the gutter (BRAND §10: photography wears a hairline frame). */
+  'gallery/frames': (
+    <><Card x={5} y={7} w={26} h={22} /><P x={8} y={10} w={20} h={16} o={0.6} /><D cx={34.5} cy={18} r={1.2} /><Card x={38} y={5} w={13} h={26} /><P x={40.5} y={8} w={8} h={20} o={0.45} /><B x={13} y={32} w={10} h={1.5} o={0.4} /></>
   ),
   'gallery/polaroid': (
     <><g transform="rotate(-6 16 18)"><Card x={7} y={8} w={17} h={19} /><P x={9} y={10} w={13} h={12} /></g><g transform="rotate(5 38 22)"><Card x={30} y={12} w={17} h={19} /><P x={32} y={14} w={13} h={12} /></g></>
@@ -312,8 +325,9 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'itinerary/days': (
     <><Card x={5} y={6} w={14} h={28} /><B x={7} y={9} w={9} h={2} f={G} /><B x={7} y={15} w={9} h={1.5} o={0.5} /><B x={7} y={19} w={7} h={1.5} o={0.5} /><Card x={21} y={6} w={14} h={28} /><B x={23} y={9} w={9} h={2} f={G} /><B x={23} y={15} w={9} h={1.5} o={0.5} /><B x={23} y={19} w={8} h={1.5} o={0.5} /><Card x={37} y={6} w={14} h={28} /><B x={39} y={9} w={9} h={2} f={G} /><B x={39} y={15} w={8} h={1.5} o={0.5} /></>
   ),
+  /* flow ("Thread") — the two-strand weave as the spine. */
   'itinerary/flow': (
-    <><Ln x1={12} y1={4} x2={12} y2={36} /><B x={9} y={6} w={6} h={2.4} f={G} rx={1.2} /><D cx={12} cy={14} r={1.8} f={A} /><B x={18} y={13} w={24} /><D cx={12} cy={20} r={1.8} f={A} /><B x={18} y={19} w={18} o={0.6} /><B x={9} y={25} w={6} h={2.4} f={G} rx={1.2} /><D cx={12} cy={32} r={1.8} f={A} /><B x={18} y={31} w={22} /></>
+    <><path d="M 10.5 4 C 10.5 12, 13.5 12, 13.5 20 S 10.5 28, 10.5 36" fill="none" stroke={A} strokeWidth="0.9" /><path d="M 13.5 4 C 13.5 12, 10.5 12, 10.5 20 S 13.5 28, 13.5 36" fill="none" stroke={G} strokeWidth="0.9" /><D cx={12} cy={12} r={1.8} /><B x={19} y={11} w={24} /><D cx={12} cy={20} r={1.8} /><B x={19} y={19} w={18} o={0.6} /><D cx={12} cy={30} r={1.8} /><B x={19} y={29} w={22} /></>
   ),
   'itinerary/tickets': (
     <><Card x={6} y={7} w={44} h={12} /><Ln x1={36} y1={7} x2={36} y2={19} dash="2 2" /><B x={10} y={11.5} w={20} h={2.2} /><B x={40} y={11.5} w={6} h={2.6} f={G} /><Card x={6} y={22} w={44} h={12} /><Ln x1={36} y1={22} x2={36} y2={34} dash="2 2" /><B x={10} y={26.5} w={16} h={2.2} /><B x={40} y={26.5} w={6} h={2.6} f={G} /></>
@@ -412,6 +426,11 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'menu/card': (
     <><Card x={13} y={4} w={30} h={32} /><Ln x1={17} y1={9.5} x2={23} y2={9.5} f={G} w={1} /><B x={25} y={8.6} w={6} h={1.6} f={G} /><Ln x1={33} y1={9.5} x2={39} y2={9.5} f={G} w={1} /><B x={20} y={14} w={16} /><B x={22} y={18} w={12} h={1.5} o={0.45} /><Ln x1={17} y1={24.5} x2={23} y2={24.5} f={G} w={1} /><B x={25} y={23.6} w={6} h={1.6} f={G} /><Ln x1={33} y1={24.5} x2={39} y2={24.5} f={G} w={1} /><B x={20} y={29} w={16} /><B x={22} y={32.5} w={12} h={1.5} o={0.45} /></>
   ),
+  /* bill-of-fare — one tall double-framed sheet, roman-numeral
+     course openers in gold, pearl dot between courses. */
+  'menu/bill-of-fare': (
+    <><Card x={17} y={3} w={22} h={34} rx={0} /><rect x={19} y={5} width={18} height={30} fill="none" stroke={L} strokeWidth="0.5" /><B x={27} y={8} w={2} h={2.6} f={G} /><B x={23} y={13} w={10} /><B x={24.5} y={16.5} w={7} h={1.4} o={0.45} /><D cx={28} cy={21.5} r={1} /><B x={26} y={24.5} w={4} h={2.6} f={G} o={0.9} /><B x={23} y={29.5} w={10} /></>
+  ),
   'menu/twocol': (
     <><Card x={6} y={7} w={21} h={26} /><B x={11} y={11} w={11} h={1.6} f={G} /><B x={9} y={16} w={15} /><B x={10.5} y={20} w={12} h={1.5} o={0.45} /><B x={9} y={25} w={15} /><Card x={29} y={7} w={21} h={26} /><B x={34} y={11} w={11} h={1.6} f={G} /><B x={32} y={16} w={15} /><B x={33.5} y={20} w={12} h={1.5} o={0.45} /><B x={32} y={25} w={15} /></>
   ),
@@ -419,6 +438,16 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   /* dressCode — eyebrow, code line, swatch circles, example chips. */
   'dressCode/centered': (
     <><B x={22} y={6} w={12} h={1.6} f={G} /><B x={15} y={11} w={26} h={3.2} /><circle cx={19} cy={22} r={3} fill={A} opacity={0.7} /><circle cx={28} cy={22} r={3} fill={A} opacity={0.45} /><circle cx={37} cy={22} r={3} fill={G} opacity={0.55} /><rect x={12} y={29} width={13} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /><rect x={29} y={29} width={15} height={4} rx={2} fill="none" stroke={L} strokeWidth="0.8" /></>
+  ),
+
+  /* wardrobe — "Wear this" photo plates in hairline frames. */
+  'dressCode/wardrobe': (
+    <><Card x={8} y={5} w={13} h={20} /><P x={10} y={7} w={9} h={13} o={0.55} /><B x={10.5} y={22} w={8} h={1.4} o={0.5} /><Card x={24} y={5} w={13} h={20} /><P x={26} y={7} w={9} h={13} o={0.7} /><B x={26.5} y={22} w={8} h={1.4} o={0.5} /><Card x={40} y={5} w={13} h={20} /><P x={42} y={7} w={9} h={13} o={0.4} /><B x={42.5} y={22} w={8} h={1.4} o={0.5} /><B x={15} y={30} w={12} h={4} rx={2} f={AB} /><B x={30} y={30} w={10} h={4} rx={2} f={AB} /></>
+  ),
+
+  /* groupChat — the link-out card: platform word + join pill. */
+  'groupChat/card': (
+    <><Card x={10} y={7} w={36} h={26} /><B x={20} y={12} w={16} h={2.8} /><B x={17} y={17.5} w={22} h={1.5} o={0.45} /><B x={19} y={23} w={18} h={5} f={A} rx={2.5} /><path d="M40 11 l3.5 -3.5 M43.5 7.5 h-3 M43.5 7.5 v3" stroke={G} strokeWidth="0.9" fill="none" /></>
   ),
 
   /* nameVote — display-face names in tappable rows, gold tally. */

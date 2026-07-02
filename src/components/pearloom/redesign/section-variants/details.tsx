@@ -6,7 +6,7 @@
    'details'). Each variant takes ctx: DetailsVariantCtx and renders
    a shared <SectionHead /> followed by its own layout body. */
 
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { DetailsVariantCtx } from './types';
 import { Icon } from '../../motifs';
 import { VariantSectionHead } from './_section-head';
@@ -86,79 +86,186 @@ export function DetailsIconRow({ ctx }: { ctx: DetailsVariantCtx }) {
   );
 }
 
-/* ─── DetailsAccordion — vertical stack of rows; icon + label/value
-   on the left, chevron glyph on the right. ──────────────── */
+/* ─── DetailsAccordion — a REAL accordion (2026-07-02). Rows with
+   a subline collapse/expand; the expanded body is the subline's
+   home. Rows without a subline render flat (no lying chevron —
+   the old version drew a decorative ⌄ on rows that never opened).
+   No height animation, so prefers-reduced-motion needs no branch. */
 
 export function DetailsAccordion({ ctx }: { ctx: DetailsVariantCtx }) {
   const { C } = ctx;
+  /* First expandable row starts open so the variant reads as an
+     accordion at a glance (editor and published alike). */
+  const [open, setOpen] = useState<number | null>(() => {
+    const i = C.items.findIndex((d) => (d.s ?? '').trim());
+    return i >= 0 ? i : null;
+  });
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {C.items.map((d) => (
+        {C.items.map((d, i) => {
+          const expandable = !!(d.s ?? '').trim();
+          const isOpen = expandable && open === i;
+          const head = (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: 'var(--t-accent-bg)',
+                    color: 'var(--t-accent-ink)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon name={d.icon} size={14} />
+                </div>
+                <div style={{ minWidth: 0, textAlign: 'left' }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontFamily: 'var(--t-mono)',
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: 'var(--t-ink-muted)',
+                      marginBottom: 2,
+                    }}
+                  >
+                    {d.l}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--t-display)',
+                      fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+                      fontSize: 14.5,
+                      color: 'var(--t-ink)',
+                    }}
+                  >
+                    {d.v}
+                  </div>
+                </div>
+              </div>
+              {expandable && (
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-flex',
+                    color: 'var(--t-ink-muted)',
+                    paddingLeft: 12,
+                    flexShrink: 0,
+                    transform: isOpen ? 'rotate(180deg)' : 'none',
+                  }}
+                >
+                  <Icon name="chev-down" size={14} />
+                </span>
+              )}
+            </>
+          );
+          const cardStyle: CSSProperties = {
+            background: 'var(--t-card)',
+            border: '1px solid var(--t-line)',
+            borderRadius: 'var(--t-radius)',
+            overflow: 'hidden',
+          };
+          const headStyle: CSSProperties = {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            padding: '14px 16px',
+            background: 'transparent',
+            border: 'none',
+            font: 'inherit',
+            color: 'inherit',
+          };
+          return (
+            <div key={`${i}-${d.l}`} style={cardStyle}>
+              {expandable ? (
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  style={{ ...headStyle, cursor: 'pointer' }}
+                >
+                  {head}
+                </button>
+              ) : (
+                <div style={headStyle}>{head}</div>
+              )}
+              {isOpen && (
+                <div
+                  style={{
+                    padding: '0 16px 14px 60px',
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    color: 'var(--t-ink-soft)',
+                  }}
+                >
+                  {d.s}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/* ─── DetailsLedger — a quiet ruled label/value list for the
+   almanac / quiet editions: mono small-caps label, hairline rule,
+   display value right-aligned, subline beneath. No icon chrome at
+   all — the variant for hosts who find circles too loud. ──── */
+
+export function DetailsLedger({ ctx }: { ctx: DetailsVariantCtx }) {
+  const { C } = ctx;
+  return (
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+        {C.items.map((d, i) => (
           <div
-            key={d.l}
+            key={`${i}-${d.l}`}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '14px 16px',
-              background: 'var(--t-card)',
-              border: '1px solid var(--t-line)',
-              borderRadius: 'var(--t-radius)',
+              padding: '13px 2px',
+              borderTop: i === 0 ? 'none' : '1px solid var(--t-line-soft)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 18 }}>
+              <span
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: 'var(--t-accent-bg)',
-                  color: 'var(--t-accent-ink)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
+                  fontFamily: 'var(--t-mono)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'var(--t-ink-muted)',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <Icon name={d.icon} size={14} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontFamily: 'var(--t-mono)',
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    color: 'var(--t-ink-muted)',
-                    marginBottom: 2,
-                  }}
-                >
-                  {d.l}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--t-display)',
-                    fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
-                    fontSize: 14.5,
-                    color: 'var(--t-ink)',
-                  }}
-                >
-                  {d.v}
-                </div>
-              </div>
+                {d.l}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--t-display)',
+                  fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+                  fontSize: 16,
+                  color: 'var(--t-ink)',
+                  textAlign: 'right',
+                }}
+              >
+                {d.v}
+              </span>
             </div>
-            <span
-              aria-hidden
-              style={{
-                fontSize: 14,
-                color: 'var(--t-ink-muted)',
-                lineHeight: 1,
-                paddingLeft: 12,
-              }}
-            >
-              ⌄
-            </span>
+            {(d.s ?? '').trim() && (
+              <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.55, color: 'var(--t-ink-soft)', textAlign: 'right' }}>
+                {d.s}
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -124,6 +124,8 @@ export function MenuSection({ manifest, pad, editable, variant, onEditCopy }: Bl
       )}
       {variant === 'twocol' ? (
         <MenuTwoCol courses={courses} />
+      ) : variant === 'bill-of-fare' ? (
+        <MenuBillOfFare courses={courses} />
       ) : (
         <MenuCard courses={courses} />
       )}
@@ -244,6 +246,75 @@ function MenuCard({ courses }: { courses: MenuCourseData[] }) {
           ))}
         </div>,
       )}
+    </div>
+  );
+}
+
+/* ─── bill-of-fare — one tall prix-fixe sheet (2026-07-02) ──────
+   The third menu idea (card + twocol shared one CourseBlock and
+   read as one idea): a narrow printed sheet with a double hairline
+   frame, courses opened by roman numerals in gold, a pearl dot
+   between courses. Reads as the menu card at the place setting. */
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+function MenuBillOfFare({ courses }: { courses: MenuCourseData[] }) {
+  return (
+    <div
+      style={{
+        maxWidth: 420,
+        margin: '0 auto',
+        background: 'var(--t-paper)',
+        border: '1px solid var(--t-line)',
+        padding: 'clamp(26px, 5vw, 44px) clamp(20px, 4vw, 36px)',
+        position: 'relative',
+      }}
+    >
+      {/* Inner hairline — the double rule of a printed bill. */}
+      <div aria-hidden style={{ position: 'absolute', inset: 6, border: '1px solid var(--t-line-soft)', pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 26 }}>
+        {courses.map((course, i) => (
+          <div key={course.id ?? i}>
+            {i > 0 && (
+              <div aria-hidden style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-gold)' }} />
+              </div>
+            )}
+            <div style={{ textAlign: 'center', marginBottom: 14 }}>
+              <div
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.3em',
+                  color: 'var(--t-gold)',
+                  marginBottom: 4,
+                }}
+              >
+                {ROMAN[i] ?? String(i + 1)}
+              </div>
+              {(course.name ?? '').trim() && (
+                <div
+                  style={{
+                    fontFamily: 'var(--t-display)',
+                    fontStyle: 'italic',
+                    fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+                    fontSize: 19,
+                    color: 'var(--t-ink)',
+                  }}
+                >
+                  {course.name}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {(course.items ?? []).map((dish, di) => (
+                <DishRow key={dish.id ?? di} dish={dish} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

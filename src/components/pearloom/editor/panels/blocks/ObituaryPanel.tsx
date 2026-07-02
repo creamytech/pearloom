@@ -1,13 +1,21 @@
 'use client';
 
- 
+/* eslint-disable no-restricted-syntax */
 /* ObituaryPanel — Content tab for the Obituary section. THIN editor
    over manifest.memorial.obituary — the SAME field the Memorial
    workspace (MemorialPanel "Obituary" group) owns. Edits here show
-   up there and vice versa. */
+   up there and vice versa.
+
+   Pear helps IN PLACE (2026-07-02) — a grieving host at an empty
+   remembrance box used to be pointed away to the Memorial
+   workspace. The inline rewriter runs preview-before-apply
+   (mandatory review — CLAUDE-PRODUCT Q5: a gentle draft, never an
+   auto-write), in the gentle register ('funnier' never offered
+   here). */
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, isMemorialOccasion, readOccasion, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface ObituaryData { dates?: string; body?: string }
@@ -47,6 +55,20 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
             rows={8}
             placeholder="A short remembrance."
           />
+          {(obituary.body ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                fxSection="obituary"
+                value={obituary.body ?? ''}
+                onCommit={(v) => patch({ body: v })}
+                context="obituary remembrance — solemn, gentle register; plain and true, never flowery"
+                tones={['shorten', 'warmer', 'poetic']}
+              />
+              <div style={{ marginTop: 5, fontSize: 10.5, lineHeight: 1.5, color: 'var(--ink-muted)' }}>
+                Pear only suggests — nothing changes until you keep it. Read every word before it reaches the family.
+              </div>
+            </div>
+          )}
         </FGroup>
 
         {isMemorialOccasion(readOccasion(manifest)) && (

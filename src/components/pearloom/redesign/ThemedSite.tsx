@@ -29,7 +29,7 @@ import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/Moti
 import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
-import { readVariant, LAYOUTS } from './layouts';
+import { readVariant, LAYOUTS, recommendedVariantFor } from './layouts';
 import type { SectionId } from './EditorRedesign';
 /* Occasion gating for the nine core sections — leaf module shared
    with EditorRedesign / SectionRail (importing from EditorRedesign
@@ -38,6 +38,7 @@ import { isCoreSectionApplicable, sectionHasContent } from './section-applicabil
 /* Occasion copy packs — fallback + demo copy routed by occasion so
    a solo birthday never renders "How we met" (leaf data module). */
 import { occasionCopyFor } from './occasion-copy';
+import { detailsIconFor } from './details-icons';
 import { InlineEdit } from './InlineEdit';
 import dynamic from 'next/dynamic';
 import { requestRsvp } from '../site/rsvp-bus';
@@ -88,12 +89,14 @@ const LoomTapestry = dynamic(() => import('./LoomTapestry').then((m) => m.LoomTa
 const DetailsIconRow = dynamic(() => import('./section-variants/details').then((m) => m.DetailsIconRow));
 const DetailsAccordion = dynamic(() => import('./section-variants/details').then((m) => m.DetailsAccordion));
 const DetailsBento = dynamic(() => import('./section-variants/details').then((m) => m.DetailsBento));
+const DetailsLedger = dynamic(() => import('./section-variants/details').then((m) => m.DetailsLedger));
 const ScheduleTimeline = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleTimeline));
 const ScheduleStepper = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleStepper));
 const ScheduleNumbered = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleNumbered));
 const GalleryMasonry = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryMasonry));
 const GallerySlideshow = dynamic(() => import('./section-variants/gallery').then((m) => m.GallerySlideshow));
 const GalleryPolaroid = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryPolaroid));
+const GalleryFrames = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryFrames));
 const FaqTwocol = dynamic(() => import('./section-variants/faq').then((m) => m.FaqTwocol));
 const FaqNumbered = dynamic(() => import('./section-variants/faq').then((m) => m.FaqNumbered));
 const FaqCards = dynamic(() => import('./section-variants/faq').then((m) => m.FaqCards));
@@ -103,7 +106,7 @@ const TravelCarousel = dynamic(() => import('./section-variants/travel').then((m
 const StayActions = dynamic(() => import('./section-variants/travel').then((m) => m.StayActions));
 const RegistryChips = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryChips));
 const RegistryProgress = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryProgress));
-const RegistryLogoWall = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryLogoWall));
+const RegistryStoreCards = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryStoreCards));
 const StoryZigzag = dynamic(() => import('./section-variants/story').then((m) => m.StoryZigzag));
 /* Event-OS block sections — occasion-gated optional sections added
    via the Add Section picker (see isBlockApplicable). Each owns its
@@ -134,6 +137,7 @@ const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-c
 const NameVoteSection = dynamic(() => import('./section-variants/blocks/name-vote').then((m) => m.NameVoteSection));
 const RoomsSection = dynamic(() => import('./section-variants/blocks/rooms').then((m) => m.RoomsSection));
 const ThenAndNowSection = dynamic(() => import('./section-variants/blocks/then-and-now').then((m) => m.ThenAndNowSection));
+const GroupChatSection = dynamic(() => import('./section-variants/blocks/group-chat').then((m) => m.GroupChatSection));
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -250,10 +254,12 @@ export function ThemedSite({
     ? (idx: number, half: 'l' | 'v', next: string) => onEditField((m) => {
         const loose = m as unknown as Record<string, unknown>;
         const cards = Array.isArray(loose.detailsCards)
-          ? [...(loose.detailsCards as Array<[string, string]>)]
+          ? [...(loose.detailsCards as Array<[string, string, string?]>)]
           : [];
         const cur = cards[idx] ?? ['', ''];
-        cards[idx] = half === 'l' ? [next, cur[1] ?? ''] : [cur[0] ?? '', next];
+        /* Preserve the optional subline (tuple slot 3) when the
+           inline edit rewrites label/value. */
+        cards[idx] = half === 'l' ? [next, cur[1] ?? '', cur[2]] : [cur[0] ?? '', next, cur[2]];
         return { ...loose, detailsCards: cards } as unknown as StoryManifest;
       })
     : undefined;
@@ -586,6 +592,7 @@ export function ThemedSite({
     'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
     'program', 'livestream', 'obituary', 'packingList', 'honorList',
     'tributeWall', 'menu', 'dressCode', 'nameVote', 'rooms', 'thenAndNow',
+    'groupChat',
   ];
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const reorderedRest: SectionKind[] = [
@@ -1460,6 +1467,7 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'nameVote':     return <NameVoteSection {...blockProps(ctx, 'nameVote')} />;
     case 'rooms':        return <RoomsSection {...blockProps(ctx, 'rooms')} />;
     case 'thenAndNow':   return <ThenAndNowSection {...blockProps(ctx, 'thenAndNow')} />;
+    case 'groupChat':    return <GroupChatSection {...blockProps(ctx, 'groupChat')} />;
   }
 }
 
@@ -1484,6 +1492,7 @@ function HeroBlock({ ctx }: { ctx: SectionCtx }) {
     case 'fullbleed':   return <HeroFullbleed ctx={ctx} />;
     case 'typographic': return <HeroTypographic ctx={ctx} />;
     case 'postcard':    return <HeroPostcard ctx={ctx} />;
+    case 'crest':       return <HeroCrest ctx={ctx} />;
     default:            return <HeroCentered ctx={ctx} />;
   }
 }
@@ -1624,6 +1633,82 @@ function HeroPhotos({ ctx }: { ctx: SectionCtx }) {
           <PhotoPlaceholder tone={t} aspect="3/4" />
         </EditPhotoTarget>
       ))}
+    </div>
+  );
+}
+
+/* HeroCrest — monogram lockup, no photo (2026-07-02). The
+   solemn/formal opening between 'minimal' (too plain) and
+   'typographic' (too loud): initials inside a double hairline
+   ring with a gold pearl, names beneath in display, the thread,
+   quiet CTAs. Recommended for memorial / funeral / ceremony
+   occasions via recommendedVariantFor (layouts.ts). */
+function HeroCrest({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, editable, edit } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  const initialOf = (name: string) => ((name ?? '').trim().charAt(0) || '·').toUpperCase();
+  const solo = C.subject.type !== 'couple';
+  return (
+    <div style={{ position: 'relative', textAlign: 'center', padding: `${72 * pad}px 32px ${56 * pad}px`, background: 'var(--t-section)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto' }}>
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 22 }} />
+        {/* The crest — double hairline ring, initials pressed in
+            display italic, a gold pearl at the ring's base. */}
+        <div
+          aria-hidden={false}
+          style={{
+            position: 'relative',
+            width: 148, height: 148,
+            margin: '0 auto',
+            borderRadius: '50%',
+            border: '1px solid var(--t-line)',
+            display: 'grid', placeItems: 'center',
+            background: 'var(--t-paper)',
+          }}
+        >
+          <div aria-hidden style={{ position: 'absolute', inset: 7, borderRadius: '50%', border: '1px solid var(--t-gold)', opacity: 0.55, pointerEvents: 'none' }} />
+          <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: solo ? 62 : 46, lineHeight: 1, color: 'var(--t-ink)', letterSpacing: '0.01em' }}>
+            {initialOf(C.subject.a)}
+            {!solo && (
+              <span style={{ fontSize: '0.5em', color: 'var(--t-gold)', margin: '0 0.14em', verticalAlign: '0.28em' }}>·</span>
+            )}
+            {!solo && initialOf(C.subject.b)}
+          </div>
+          <span aria-hidden style={{ position: 'absolute', bottom: -3.5, left: '50%', transform: 'translateX(-50%)', width: 7, height: 7, borderRadius: '50%', background: 'var(--t-gold)', boxShadow: '0 0 0 4px var(--t-section)' }} />
+        </div>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(28px, 7vw, calc(44px * var(--t-hero-scale)))', lineHeight: 1.08, margin: '26px 0 0', letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          {!solo && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.72em', color: 'var(--t-ink-soft)', margin: '0 0.2em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
+        </h1>
+        {(C.tagline || editable) && (
+          <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 16.5, color: 'var(--t-ink-soft)', marginTop: 10 }} />
+        )}
+        {C.milestone && (
+          <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 999, background: 'var(--t-card)', border: '1px solid var(--t-line)', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginTop: 14 }}>
+            {C.milestone}
+          </div>
+        )}
+        <div style={{ marginTop: 16, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        {/* The thread — every hero carries the divider atom. */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={ctx.dividerLook} width={180} />
+        </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2203,6 +2288,7 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
   if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsIconRow ctx={sub} /></div>;
   if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsAccordion ctx={sub} /></div>;
   if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsBento ctx={sub} /></div>;
+  if (variants.details === 'ledger')    return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsLedger ctx={sub} /></div>;
   return (
     <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
       
@@ -2237,6 +2323,11 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
               placeholder="Value"
               style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 18, color: 'var(--t-ink)' }}
             />
+            {/* Optional subline — variant/data parity: every layout
+                that can show the panel's subline field does. */}
+            {d.s && (
+              <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--t-ink-soft)', marginTop: 4 }}>{d.s}</div>
+            )}
           </div>
         ))}
       </div>
@@ -2772,7 +2863,10 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
   };
   if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
   if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
-  if (variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryLogoWall ctx={sub} /></div>;
+  /* 'logowall' is the legacy id for the same slot — manifests that
+     picked it before the 2026-07-02 storecards rebuild keep
+     resolving here. */
+  if (variants.registry === 'storecards' || variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryStoreCards ctx={sub} /></div>;
   return (
     <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}>
       <TSectionHead
@@ -2893,6 +2987,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} />{lightboxEl}</div>;
   if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} />{lightboxEl}</div>;
   if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'frames')    return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryFrames ctx={sub} />{lightboxEl}</div>;
   return (
     <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
       <TSectionHead
@@ -4183,6 +4278,11 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
   const showLayoutBar = editable && isActive && !!onEditField && !!manifest
     && Array.isArray(layoutVariants) && layoutVariants.length > 1;
   const currentVariant = manifest ? readVariant(manifest, id) : undefined;
+  /* Occasion-recommended variant (layouts.ts) — a gold pearl on the
+     pill, never an auto-apply. */
+  const recommendedId = showLayoutBar
+    ? recommendedVariantFor(id, (manifest as unknown as { occasion?: string } | undefined)?.occasion)
+    : undefined;
   const pickLayout = (vid: string) => {
     onEditField?.((m) => ({
       ...(m as unknown as Record<string, unknown>),
@@ -4316,20 +4416,27 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
               </span>
               {layoutVariants.map((v) => {
                 const on = v.id === currentVariant;
+                const rec = v.id === recommendedId;
+                const sub = v.sub ? `${v.label} — ${v.sub}` : v.label;
                 return (
                   <button
                     key={v.id}
                     type="button"
-                    title={v.sub ? `${v.label} — ${v.sub}` : v.label}
+                    title={rec ? `${sub} · Recommended for this occasion` : sub}
                     onClick={(e) => { e.stopPropagation(); pickLayout(v.id); }}
                     style={{
                       padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
                       fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', fontFamily: 'inherit',
                       background: on ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
                       color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink-soft, #3A332C)',
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
                     }}
                   >
                     {v.label}
+                    {rec && (
+                      /* The gold pearl — occasion recommendation. */
+                      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+                    )}
                   </button>
                 );
               })}
@@ -5059,7 +5166,7 @@ type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'regis
                  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup' | 'adviceWall'
                  | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList'
                  | 'tributeWall' | 'menu' | 'dressCode'
-                 | 'nameVote' | 'rooms' | 'thenAndNow';
+                 | 'nameVote' | 'rooms' | 'thenAndNow' | 'groupChat';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
   hero: 'Opening', story: 'Our story', details: 'Details', schedule: 'Schedule',
@@ -5071,6 +5178,7 @@ const SECTION_LABEL: Record<SectionKind, string> = {
   honorList: 'Honor list', tributeWall: 'Tribute wall',
   menu: 'Menu', dressCode: 'Dress code',
   nameVote: 'Name vote', rooms: 'Rooms', thenAndNow: 'Then & now',
+  groupChat: 'Group chat',
 };
 
 interface SectionCtx {
@@ -5204,7 +5312,7 @@ interface Copy {
      *  use these instead of the shared C.story.body. */
     chapterBodies?: (string | undefined)[];
   };
-  details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
+  details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string; s?: string }[] };
   /** Schedule rows — t(ime) / l(abel) / s(ubtitle = venue) / d(escription,
    *  the optional quiet note under the venue line) / day. */
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; d?: string; addr?: string; day?: number }[] };
@@ -5539,7 +5647,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const loose = manifest as unknown as Record<string, unknown>;
   const storySection = (loose.storySection as { headline?: string; body?: string; chips?: string[] } | undefined) ?? {};
   const galleryTones = (loose.galleryTones as PhotoTone[] | undefined);
-  const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
+  /* Third tuple slot is the optional subline (2026-07-02). */
+  const detailsCards = (loose.detailsCards as Array<[string, string, string?]> | undefined) ?? [];
   const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; address?: string; description?: string }> | undefined) ?? [];
   const faqsRaw = (loose.faqs as Array<{ question?: string; answer?: string }> | undefined) ?? [];
   /* manifest.registryStores may be legacy string[] OR new
@@ -5676,11 +5785,20 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
                accumulated stray empty rows during testing and they
                rendered as ghost cards on the canvas. */
             .filter(([l, v]) => (l ?? '').trim() !== '' || (v ?? '').trim() !== '')
-            .slice(0, 3)
-            .map(([l, v], i) => ({
+            /* Cap raised 3 → 6 (2026-07-02, with DetailsPanel) —
+               bento wants 4-6 tiles and the old invisible cap
+               silently ate hosts' 4th card. */
+            .slice(0, 6)
+            .map(([l, v, s], i) => ({
               l: l ?? '',
               v: v ?? '',
-              icon: ['sparkles', 'users', 'gift'][i] ?? 'sparkles',
+              /* Optional third tuple slot — the subline the iconrow /
+                 bento / accordion / ledger variants render. Written
+                 by DetailsPanel's "A quieter second line" field. */
+              s: (s ?? '').trim() || undefined,
+              /* Content-aware, not positional — Parking wears a car
+                 even when it's the third card (details-icons.ts). */
+              icon: detailsIconFor(l ?? '', i),
             }))
         : !demo
           ? []

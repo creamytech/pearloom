@@ -18,7 +18,14 @@ import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'gallery');
   const photos: string[] = ((manifest as unknown as { galleryImages?: string[] }).galleryImages) ?? [];
-  const guestUploads = ((manifest as unknown as { guestUploads?: boolean }).guestUploads) ?? true;
+  /* ONE guest-photos toggle (2026-07-02) — the panel used to carry
+     two: "Guest photo uploads" (guestUploads — the QR poster's
+     upload page) and "Invite guest photos" (galleryUploads — the
+     'Share your photos' link under the gallery), a pair nobody
+     could tell apart. Merged: one switch writes BOTH fields; it
+     reads OFF when a legacy manifest turned either off. */
+  const looseUp = manifest as unknown as { guestUploads?: boolean; galleryUploads?: boolean };
+  const guestUploads = (looseUp.guestUploads ?? true) && (looseUp.galleryUploads !== false);
   const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
 
   /* Captions live in manifest.galleryCaptions — an index-keyed
@@ -69,6 +76,14 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
     setPhotos([...photos, url]);
   };
 
+  /* Multi-file drop / pick — one write for the whole batch so undo
+     treats "added 12 photos" as one step. */
+  const addPhotos = (urls: string[]) => {
+    const next = urls.filter(Boolean);
+    if (next.length === 0) return;
+    setPhotos([...photos, ...next]);
+  };
+
   /* Reorder — the grid reads left-to-right, so ▲ = earlier, ▼ =
      later. Captions are index-keyed, so they move WITH the photo
      (moveIndexKeyed remaps the sidecar in the same write). */
@@ -80,7 +95,10 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
 
   const setGuestUploads = (v: boolean) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
+    /* One decision, both surfaces — the QR poster's upload page
+       AND the 'Share your photos' link under the gallery. */
     guestUploads: v,
+    galleryUploads: v,
   } as unknown as StoryManifest);
 
   /* Render at least 6 slots (a 2×3 grid) so empty galleries still
@@ -111,10 +129,12 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
             <PhotoUploadSlot
               url=""
               onChange={addPhoto}
+              onAddMany={addPhotos}
+              multiple
               aspectRatio="3/2"
               size="md"
               pool={photoPool}
-              hint="Drag a photo in, or click to browse your device. Any image up to 12 MB, one at a time — we'll line them up on the canvas."
+              hint="Drag photos in, or click to browse — pick a whole batch at once, up to 12 MB each. We'll line them up on the canvas."
             />
             {photoPool.length > 0 && (
               <div style={{ marginTop: 6, fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
@@ -123,13 +143,18 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
             )}
           </FGroup>
         ) : (
-          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device. Captions show under each photo on the site.">
+          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in — several at once works — or click any slot to pick from your device. Captions show under each photo on the site.">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {Array.from({ length: renderCount }).map((_, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <PhotoUploadSlot
                     url={photos[i] ?? ''}
                     onChange={(url) => setPhoto(i, url)}
+                    /* Empty slots accept a batch; filled slots stay
+                       single-swap so a multi-pick can't clobber a
+                       photo the host meant to keep. */
+                    onAddMany={photos[i] ? undefined : addPhotos}
+                    multiple={!photos[i]}
                     aspectRatio="1/1"
                     size="sm"
                     pool={photoPool}
@@ -159,6 +184,8 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
                   key="add-more"
                   url=""
                   onChange={addPhoto}
+                  onAddMany={addPhotos}
+                  multiple
                   aspectRatio="1/1"
                   size="sm"
                   pool={photoPool}
@@ -169,7 +196,9 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
         )}
         <FToggleStandalone
           label="Guest photo uploads"
-          sub="Guests can add photos via your QR poster's upload page; off closes it"
+          sub={guestUploads
+            ? "On — a 'Share your photos' link under the gallery, plus your QR poster's upload page"
+            : 'Off — no share link on the site and the upload page is closed'}
           def={guestUploads}
           onChange={setGuestUploads}
         />
@@ -183,19 +212,11 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, guest invite, visibility
+            <Icon name="chev-down" size={12} /> More — eyebrow
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
               <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
-            </FGroup>
-            <FGroup label="Guest photos" hint="A 'Share your photos' link under the gallery — guests upload straight to your library.">
-              <FToggleStandalone
-                label="Invite guest photos"
-                sub="Links the upload page under the gallery"
-                def={((manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false}
-                onChange={(v) => onChange({ ...(manifest as unknown as Record<string, unknown>), galleryUploads: v } as unknown as StoryManifest)}
-              />
             </FGroup>
           </div>
         </details>

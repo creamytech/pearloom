@@ -130,6 +130,7 @@ import { DressCodePanel } from '../editor/panels/blocks/DressCodePanel';
 import { NameVotePanel } from '../editor/panels/blocks/NameVotePanel';
 import { RoomsPanel } from '../editor/panels/blocks/RoomsPanel';
 import { ThenAndNowPanel } from '../editor/panels/blocks/ThenAndNowPanel';
+import { GroupChatPanel } from '../editor/panels/blocks/GroupChatPanel';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
@@ -202,6 +203,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   nameVote:     { id: 'nameVote',     label: 'Name vote',     desc: 'Guests pick their favorite name' },
   rooms:        { id: 'rooms',        label: 'Rooms',         desc: 'Who sleeps where' },
   thenAndNow:   { id: 'thenAndNow',   label: 'Then & now',    desc: 'Photo pairs, years apart' },
+  groupChat:    { id: 'groupChat',    label: 'Group chat',    desc: 'Link out to the thread' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -332,6 +334,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
       'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
       'program', 'livestream', 'obituary', 'packingList', 'honorList',
       'tributeWall', 'menu', 'dressCode', 'nameVote', 'rooms', 'thenAndNow',
+      'groupChat',
     ];
     const allReorderable = [...coreReorderable, ...optionalReorderable];
     const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
@@ -911,6 +914,7 @@ function renderSectionEditor(
     case 'nameVote':     return <NameVotePanel {...props} />;
     case 'rooms':        return <RoomsPanel {...props} />;
     case 'thenAndNow':   return <ThenAndNowPanel {...props} />;
+    case 'groupChat':    return <GroupChatPanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

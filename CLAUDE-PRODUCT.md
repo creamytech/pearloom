@@ -444,6 +444,66 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-02 — Editor sections, three waves (docs/EDITOR-SECTIONS-PLAN.md executed in full)
+
+The 29-section audit's plan shipped as three waves on
+`claude/post-fable-code-review-lj8e4o`:
+
+**Wave 1 — correctness & honesty.** No layout switch loses host
+content anymore (schedule day-grouping + Directions, travel
+intro/shuttle, RSVP social proof + guarded open, registry notes,
+gallery slideshow un-capped); occasion voice routed through
+`occasionCopyFor` for story chips / countdown / music / map; the
+host-invented registry `fundPct` bar deleted (the `progress`
+variant is rebuilt fund-forward around the real pledge bar);
+thread + secondary CTA on fullbleed/typographic heroes; token +
+dark-hex sweep; the fake `static` map variant cut.
+
+**Wave 2 — host ergonomics.** Shared `ReorderHandle` across 8 list
+panels (gallery captions travel with their photo); the promised
+blocks shipped — `nameVote`, `rooms`, `thenAndNow`, `whosWho` (as
+honorList's `relationships` variant); FAQ twocol/cards clamp +
+show-all (and the silent 7th-FAQ drop fixed); stepper wraps; flip
+countdown balances at 390; countdown gains its own target date.
+
+**Wave 3 — signature variants + the rest.**
+- Six signature variants a template tool can't copy: hero `crest`
+  (monogram in a double hairline ring — solemn-recommended),
+  gallery `frames` (hairline-framed asymmetric editorial, BRAND
+  §10), dressCode `wardrobe` ("Wear this" photo plates; panel
+  gains per-example photo slots), itinerary `flow` re-rendered as
+  the two-strand thread spine (id kept, label now "Thread"), menu
+  `bill-of-fare` (prix-fixe sheet, roman-numeral courses),
+  registry `storecards` (typographic initial plates + real
+  domains replace the logo-less "logo wall"; legacy `logowall`
+  picks alias through).
+- Occasion recommendations: `recommendedVariantFor` in layouts.ts
+  → a gold pearl on the on-canvas Layout bar pill. Lookup only —
+  never auto-applied.
+- Details overhaul: real collapsing accordion (subline is the
+  expanded body; no lying chevrons), content-aware label→icon map
+  (`details-icons.ts` — Parking wears a car; new `car`/`hanger`
+  glyphs), writable subline (third `detailsCards` tuple slot,
+  rendered by every variant), cap raised 3→6 and said out loud,
+  new `ledger` variant (quiet ruled rows, no icon chrome).
+- Pear in the block panels: inline rewrite (preview-before-apply)
+  in Obituary (gentle register, mandatory-review note per Q5),
+  AdviceWall + TributeWall prompts (solemn-aware), Menu intro,
+  DressCode note.
+- `groupChat` shipped — the last promised block: link-out card
+  over the existing `bachelor.groupChatUrl` (platform named
+  typographically, never embedded), thin panel, occasion-gated.
+- Gallery multi-file upload (one batch POST, one undo step);
+  duplicate-toggle merges (music suggestions + RSVP song requests
+  → one "Guest songs" switch writing both fields; gallery's
+  guestUploads/galleryUploads pair → one switch).
+
+Named leftovers from the plan (each scoped in the doc): travel
+manual-hotel entry + `postcard` stays, map second venue, RSVP
+custom questions (the one L), story `newspaper` variant,
+livestream `chapel`. vitest 909/909 · tsc clean · build passes.
+Screenshots: `docs/audit-shots/editor/wave3-*.png`.
+
 ### 2026-07-02 — Dashboard host pass: three write-only loops closed + dead-end sweep
 
 Walked all 31 /dashboard routes as a host. Nav needed no surgery

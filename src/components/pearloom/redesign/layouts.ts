@@ -25,6 +25,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'fullbleed',   label: 'Full photo',   sub: 'Your photo, edge to edge' },
     { id: 'typographic', label: 'Big type',     sub: 'Names stacked, huge type' },
     { id: 'postcard',    label: 'Postcard',     sub: 'Card on a tinted mat' },
+    { id: 'crest',       label: 'Crest',        sub: 'Monogram · no photo' },
   ],
   story: [
     { id: 'sidebyside', label: 'Side by side', sub: 'Photo + body in 2 cols' },
@@ -35,10 +36,11 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'letter',     label: 'Letter',       sub: 'A handwritten note' },
   ],
   details: [
-    { id: 'tiles',     label: 'Tiles',     sub: '3 card grid' },
+    { id: 'tiles',     label: 'Tiles',     sub: 'Card grid' },
     { id: 'iconrow',   label: 'Icon row',  sub: 'Centered glyph row' },
-    { id: 'accordion', label: 'Accordion', sub: 'Stacked rows' },
+    { id: 'accordion', label: 'Accordion', sub: 'Tap a row to open' },
     { id: 'bento',     label: 'Bento',     sub: 'Hero + tiles' },
+    { id: 'ledger',    label: 'Ledger',    sub: 'Quiet ruled rows, no icons' },
   ],
   schedule: [
     { id: 'cards',    label: 'Cards',    sub: '4 time cards in a row' },
@@ -56,13 +58,20 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'cards',    label: 'Cards',    sub: 'Pill row beneath blurb' },
     { id: 'chips',    label: 'Chips',    sub: 'Tight pill cluster' },
     { id: 'progress', label: 'Fund', sub: 'Fund card front and center' },
-    { id: 'logowall', label: 'Logo wall', sub: 'Logo grid' },
+    /* 'storecards' replaced 'logowall' (2026-07-02) — the old grid
+       showed the same gift glyph for every store ("a logo wall with
+       no logos"). Storecards are typographic plates: the store's
+       initials in display type on a hairline plate, never a fake
+       logo. Legacy manifests with layouts.registry='logowall' fall
+       through to the same renderer (RegistryBlock aliases the id). */
+    { id: 'storecards', label: 'Store cards', sub: 'A plate per store' },
   ],
   gallery: [
     { id: 'grid',      label: 'Grid',      sub: '6-col mosaic' },
     { id: 'masonry',   label: 'Masonry',   sub: 'Varied row heights' },
     { id: 'slideshow', label: 'Slideshow', sub: 'Single hero + thumbs' },
     { id: 'polaroid',  label: 'Polaroid',  sub: 'Tilted scrapbook' },
+    { id: 'frames',    label: 'Frames',    sub: 'Hairline-framed editorial' },
   ],
   faq: [
     { id: 'accordion', label: 'Accordion', sub: 'Stacked rows' },
@@ -125,7 +134,11 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
      that was true pre-2026-06-09 and misled an audit since.) */
   itinerary: [
     { id: 'days',    label: 'Days',    sub: 'One card per day, hour rows' },
-    { id: 'flow',    label: 'Flow',    sub: 'Continuous rail across days' },
+    /* 'flow' evolved into the thread treatment (2026-07-02): the
+       spine is the brand's two-strand weave (accent + gold), not a
+       single faded accent line. Id unchanged so existing manifests
+       keep resolving; only the label/rendering moved. */
+    { id: 'flow',    label: 'Thread',  sub: 'Two strands down the plan' },
     { id: 'tickets', label: 'Tickets', sub: 'Perforated stub per slot' },
   ],
   costSplitter: [
@@ -177,9 +190,11 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   menu: [
     { id: 'card',   label: 'Card',    sub: 'One centered menu card' },
     { id: 'twocol', label: 'Columns', sub: 'A card per course' },
+    { id: 'bill-of-fare', label: 'Bill of fare', sub: 'One tall prix-fixe sheet' },
   ],
   dressCode: [
     { id: 'centered', label: 'Centered', sub: 'Code, tones, example chips' },
+    { id: 'wardrobe', label: 'Wardrobe', sub: '"Wear this" photo plates' },
   ],
   nameVote: [
     { id: 'ballot', label: 'Ballot', sub: 'Names in display type, tap to vote' },
@@ -190,6 +205,12 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   ],
   thenAndNow: [
     { id: 'pairs', label: 'Pairs', sub: 'Then / now, side by side' },
+  ],
+  /* Link-out only — the thread lives where the group already talks
+     (WhatsApp / Signal / GroupMe…). Never an embed (livestream is
+     the template for the link-never-embed rationale). */
+  groupChat: [
+    { id: 'card', label: 'Card', sub: 'Link out to the app' },
   ],
 };
 
@@ -225,6 +246,7 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   nameVote: 'ballot',
   rooms: 'assignments',
   thenAndNow: 'pairs',
+  groupChat: 'card',
   /* Tool panels (guests, savetheDate, share, dayof, memorial,
      bachelor) have no layout variants — they're host workspaces.
      Partial<> lets the type compile without forcing stub entries
@@ -243,6 +265,38 @@ export function readVariant(
   const editionFallback = EDITION_LAYOUT_DEFAULTS[m?.edition ?? ''];
   if (editionFallback && editionFallback[section]) return editionFallback[section] ?? '';
   return DEFAULT_VARIANT[section] ?? '';
+}
+
+/* ── Occasion recommendations ─────────────────────────────────
+   A variant can be RECOMMENDED for a set of occasions — surfaced
+   as a gold mark in the on-canvas Layout bar (never auto-applied;
+   Editions + explicit picks stay the resolution chain). Keyed
+   `${section}` → { variantId, occasions }. Kept deliberately
+   small: only the signature variants the audit named. */
+const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, { id: string; occasions: readonly string[] }>> = {
+  /* Monogram crest — the solemn/formal opening (no photo, no
+     scale). Recommended where a photograph-led hero reads wrong. */
+  hero: { id: 'crest', occasions: ['memorial', 'funeral', 'baptism', 'first-communion', 'confirmation'] },
+  /* Hairline frames — BRAND §10 bans unframed symmetric
+     photography; the frames variant is the on-brand gallery for
+     the formal occasions. */
+  gallery: { id: 'frames', occasions: ['wedding', 'vow-renewal', 'anniversary', 'rehearsal-dinner'] },
+  /* Prix-fixe sheet for the seated-dinner occasions. */
+  menu: { id: 'bill-of-fare', occasions: ['rehearsal-dinner', 'wedding', 'retirement', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera'] },
+  /* Wardrobe plates where dress guidance is the point. */
+  dressCode: { id: 'wardrobe', occasions: ['wedding', 'quinceanera', 'sweet-sixteen', 'bar-mitzvah', 'bat-mitzvah'] },
+};
+
+/** The variant id recommended for this section + occasion, or
+ *  undefined. Pure lookup — never writes, never wins over an
+ *  explicit pick or an Edition default. */
+export function recommendedVariantFor(
+  section: Exclude<SectionId, null>,
+  occasion?: string,
+): string | undefined {
+  const rec = VARIANT_RECOMMENDATIONS[section];
+  if (!rec || !occasion) return undefined;
+  return rec.occasions.includes(occasion) ? rec.id : undefined;
 }
 
 /* Read-time mirror of EditionDefinition.layoutDefaults from

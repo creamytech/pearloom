@@ -143,6 +143,7 @@ const OPTIONAL_SECTIONS: SectionDef[] = [
   { id: 'nameVote',     label: 'Name vote',    icon: 'sparkles',       desc: 'Guests pick their favorite name' },
   { id: 'rooms',        label: 'Rooms',        icon: 'home',           desc: 'Who sleeps where' },
   { id: 'thenAndNow',   label: 'Then & now',   icon: 'image',          desc: 'Photo pairs, years apart' },
+  { id: 'groupChat',    label: 'Group chat',   icon: 'send',           desc: 'Link out to the thread' },
 ];
 
 /* One gate for everything the Add Section picker offers — the

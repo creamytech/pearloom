@@ -32,9 +32,17 @@ interface Props {
   /** When present + non-empty, renders a "Pick from gallery" link
    *  under the slot. Click → opens the gallery picker modal. */
   pool?: string[];
+  /** Multi-file mode (2026-07-02): the OS picker + drag-drop accept
+   *  several images at once; they upload as ONE batch POST (the
+   *  upload API already takes a photos[] array) and land via
+   *  `onAddMany`. The first URL still goes through `onChange` when
+   *  `onAddMany` is absent. Used by GalleryPanel — 30 photos no
+   *  longer means 30 round trips through the picker. */
+  multiple?: boolean;
+  onAddMany?: (urls: string[]) => void;
 }
 
-export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, size = 'md', pool }: Props) {
+export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, size = 'md', pool, multiple, onAddMany }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -86,8 +94,61 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
     }
   }
 
+  async function uploadMany(files: File[]) {
+    const good = files.filter((f) => f.type.startsWith('image/') && f.size <= 12 * 1024 * 1024);
+    if (good.length === 0) {
+      setErr(files.length ? 'Those files aren’t images under the 12 MB limit.' : null);
+      return;
+    }
+    if (good.length < files.length) {
+      setErr(`${files.length - good.length} skipped — images up to 12 MB only.`);
+    } else {
+      setErr(null);
+    }
+    setBusy(true);
+    try {
+      const photos = await Promise.all(good.map(async (file, i) => {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Couldn’t read the file.'));
+          reader.readAsDataURL(file);
+        });
+        return {
+          id: `up-${Date.now().toString(36)}-${i}`,
+          filename: file.name, mimeType: file.type, base64,
+          capturedAt: new Date(file.lastModified || Date.now()).toISOString(),
+        };
+      }));
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photos }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        console.error('[photo-upload] batch upload failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take — try again?');
+      }
+      const data = await res.json() as { photos?: { baseUrl?: string }[] };
+      const urls = (data.photos ?? []).map((p) => p.baseUrl).filter((u): u is string => !!u);
+      if (urls.length === 0) throw new Error('Upload finished but no URLs were returned.');
+      if (onAddMany) onAddMany(urls);
+      else onChange(urls[0]);
+    } catch (e) {
+      console.error('[photo-upload] batch upload error:', e);
+      setErr(pearErrorMessage(e, 'The upload didn’t take — try again?'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function onFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
+    if (multiple && files.length > 1) {
+      void uploadMany(Array.from(files));
+      return;
+    }
     void uploadFile(files[0]);
   }
 
@@ -133,6 +194,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple={multiple}
           onChange={(e) => onFiles(e.target.files)}
           style={{ display: 'none' }}
         />

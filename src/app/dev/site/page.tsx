@@ -41,6 +41,55 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
       { id: 'p3', name: 'June Bishop', role: 'other', relationship: 'The reason we all showed up', order: 2 },
     ],
   },
+  groupChat: {
+    bachelor: { groupChatUrl: 'https://chat.whatsapp.com/AbC123demo' },
+  },
+  itinerary: {
+    itinerary: {
+      days: [
+        { id: 'd1', label: 'The arrival', date: 'Fri June 12', slots: [
+          { id: 's1', time: '3:00 pm', title: 'Check in', detail: 'Keys at the front desk', location: 'The Lodge' },
+          { id: 's2', time: '6:30 pm', title: 'Welcome drinks', location: 'The terrace' },
+          { id: 's3', time: '9:00 pm', title: 'Bonfire', detail: 'Bring a layer' },
+        ] },
+        { id: 'd2', label: 'The big day', date: 'Sat June 13', slots: [
+          { id: 's4', time: '10:00 am', title: 'Hike to the point', detail: 'Optional — 3 miles' },
+          { id: 's5', time: '5:00 pm', title: 'Dinner', location: 'Under the oaks' },
+        ] },
+      ],
+    },
+  },
+  menu: {
+    menuSection: {
+      intro: 'Dinner is served family-style under the oaks.',
+      courses: [
+        { id: 'c1', name: 'To begin', items: [
+          { id: 'c1a', name: 'Garden greens', description: 'Shaved fennel, citrus, toasted seeds', tags: ['Vegan', 'GF'] },
+          { id: 'c1b', name: 'Warm sourdough', description: 'Cultured butter, flaked salt', tags: ['Vegetarian'] },
+        ] },
+        { id: 'c2', name: 'The main', items: [
+          { id: 'c2a', name: 'Roast chicken', description: 'Spring vegetables, pan jus', tags: ['GF'] },
+          { id: 'c2b', name: 'Wild mushroom risotto', description: 'Parmesan, thyme', tags: ['Vegetarian'] },
+        ] },
+        { id: 'c3', name: 'To finish', items: [
+          { id: 'c3a', name: 'Lemon olive-oil cake', description: 'Whipped mascarpone' },
+        ] },
+      ],
+    },
+  },
+  dressCode: {
+    dressCodeSection: {
+      code: 'Garden formal',
+      note: 'The ceremony is on a lawn — leave the stilettos home.',
+      palette: ['#7A8A5C', '#C9BFA9', '#C19A4B'],
+      examples: [
+        { label: 'Linen suits', hint: 'light colors', photo: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600' },
+        { label: 'Midi dresses', photo: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600' },
+        { label: 'Block heels', hint: 'lawn-proof', photo: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600' },
+        { label: 'No white' },
+      ],
+    },
+  },
 };
 
 /* ?long=1 — stress fixture for the long-content paths: pads the
@@ -65,10 +114,10 @@ const LONG_EVENTS = Array.from({ length: 8 }, (_, i) => ({
 export default async function SiteDevPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string; divider?: string; footer?: string; layouts?: string; occasion?: string; add?: string; long?: string }>;
+  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string; divider?: string; footer?: string; layouts?: string; occasion?: string; add?: string; long?: string; sub?: string }>;
 }) {
   if (process.env.NODE_ENV === 'production') notFound();
-  const { motifLayout, motifKind, kit, atelier, divider, footer, layouts, occasion, add, long } = await searchParams;
+  const { motifLayout, motifKind, kit, atelier, divider, footer, layouts, occasion, add, long, sub } = await searchParams;
 
   /* ?layouts=rsvp:split,schedule:timeline — per-section variant
      overrides for visual QA of the alternate layouts. */
@@ -95,6 +144,18 @@ export default async function SiteDevPreview({
     ...(occasion ? { occasion } : {}),
     ...(added.length
       ? { ...addedSeeds, blockOrder: [...(demo.blockOrder as string[]), ...added] }
+      : {}),
+    /* ?sub=1 — details cards with the optional third-tuple subline
+       (QA for the accordion/ledger/iconrow/bento subline paths). */
+    ...(sub === '1'
+      ? {
+          detailsCards: [
+            ['Dress code', 'Garden formal', 'Linen and light colors — the lawn is real grass.'],
+            ['Parking', 'Valet on-site', 'Enter from Vine St; the lot opens at 3 pm.'],
+            ['Kids welcome', 'Ages 10 +'],
+            ['Gifts', 'Your presence is plenty', 'If you insist, the registry has ideas.'],
+          ],
+        }
       : {}),
     ...(long === '1'
       ? {

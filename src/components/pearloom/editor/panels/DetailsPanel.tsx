@@ -16,8 +16,17 @@ import {
   detailsCardLabelSuggestions,
 } from './_suggestions';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { detailsIconFor } from '../../redesign/details-icons';
 
-type Card = [string, string];
+/* Third tuple slot is the optional subline — the quieter second
+   line the accordion opens onto (also rendered by tiles / iconrow /
+   bento / ledger). Legacy 2-tuples stay valid. */
+type Card = [string, string, string?];
+
+/* Cap raised 3 → 6 (2026-07-02, with buildCopy in ThemedSite) —
+   bento wants 4-6 tiles, and the old cap was invisible: the Add
+   button just vanished at three. Both sides slice to the same max. */
+const MAX_CARDS = 6;
 
 export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'details');
@@ -25,10 +34,9 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const dressSet = dressCodeSuggestions(occasion);
   const labelSet = detailsCardLabelSuggestions(occasion);
   const [detailsEyebrow, setDetailsEyebrow] = useCopyOverride(manifest, onChange, 'detailsEyebrow');
-  /* Slice to 3 on read so legacy manifests that accumulated 4+
-     cards from earlier sessions (before the cap was enforced)
-     don't bleed extra rows into the rail. The canvas already
-     slices to 3 too — both sides agree on the max. */
+  /* Slice to MAX_CARDS on read so legacy manifests that accumulated
+     extra rows don't bleed into the rail. The canvas slices to the
+     same max — both sides agree. */
   /* The panel's starter rows MATCH the canvas's editor demo cards
      ('Aegean formal' here vs 'Garden formal' on the canvas left
      hosts unsure which was real) — both sides read
@@ -40,7 +48,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
     ['Kids welcome', 'Ages 10 +'],
     [oc.detailsGiftsCard[0], oc.detailsGiftsCard[1]],
   ];
-  const cards: Card[] = rawCards.slice(0, 3);
+  const cards: Card[] = rawCards.slice(0, MAX_CARDS);
 
   const setCards = (next: Card[]) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
@@ -49,16 +57,21 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
 
   const setCardValue = (i: number, value: string) => {
     const next = [...cards];
-    next[i] = [next[i]?.[0] ?? 'Detail', value];
+    next[i] = [next[i]?.[0] ?? 'Detail', value, next[i]?.[2]];
     setCards(next);
   };
   const setCardLabel = (i: number, label: string) => {
     const next = [...cards];
-    next[i] = [label, next[i]?.[1] ?? ''];
+    next[i] = [label, next[i]?.[1] ?? '', next[i]?.[2]];
+    setCards(next);
+  };
+  const setCardSub = (i: number, sub: string) => {
+    const next = [...cards];
+    next[i] = [next[i]?.[0] ?? 'Detail', next[i]?.[1] ?? '', sub || undefined];
     setCards(next);
   };
   const addCard = () => {
-    if (cards.length >= 3) return;
+    if (cards.length >= MAX_CARDS) return;
     setCards([...cards, ['New detail', '']]);
   };
 
@@ -150,15 +163,18 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
           def={plusOnesWelcome}
           onChange={setPlusOnesWelcome}
         />
-        <FGroup label="Good-to-know cards" hint="Up to three quick facts.">
+        <FGroup label={`Good-to-know cards · ${cards.length} of ${MAX_CARDS}`} hint="Up to six quick facts. The second line shows where the layout has room — and opens the Accordion rows.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {cards.map(([l, v], i) => (
+            {cards.map(([l, v, s], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
+                {/* Content-aware glyph — the same label→icon map the
+                    canvas uses (details-icons.ts), so the rail
+                    previews the icon guests will see. */}
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--cream-2)', display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 8 }}>
-                  <Icon name="sparkles" size={13} color="var(--ink-soft)" />
+                  <Icon name={detailsIconFor(l, i)} size={13} color="var(--ink-soft)" />
                 </span>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {/* Show curated label suggestions only on cards 2 + 3
+                  {/* Show curated label suggestions only on cards 2+
                       (i >= 1) — card 0 is the dedicated "Dress code" card
                       whose label shouldn't be re-pickable. */}
                   {i === 0 ? (
@@ -172,10 +188,19 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                     />
                   )}
                   <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
+                  <FInput value={s ?? ''} onChange={(next) => setCardSub(i, next)} placeholder="Second line (optional — e.g. Enter from Vine St)" />
                 </div>
               </div>
             ))}
-            {cards.length < 3 && <AddCard label="Add a detail" onClick={addCard} />}
+            {cards.length < MAX_CARDS ? (
+              <AddCard label="Add a detail" onClick={addCard} />
+            ) : (
+              /* The cap, said out loud — it used to be invisible
+                 (the Add button just vanished). */
+              <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', padding: '4px 0' }}>
+                Six is the cap — the grid stays scannable.
+              </div>
+            )}
           </div>
         </FGroup>
 
