@@ -444,6 +444,79 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-02 — Registry + Vendor Book (launch-mode, no money transmission)
+
+The two launch-blocking features, built in three waves on the
+**"Pearloom never touches the money"** principle: no payment
+processing, no held funds, no escrow — so no money-transmitter
+licensing. Stripe checkout code stays parked behind absent env
+keys (`hasStripe()` gates); everything below works with zero
+payment config.
+
+**Registry:**
+- **Reserve-and-link items** — the native registry
+  (`/api/registry-items` + new `RegistryItemsGrid` on the site's
+  registry section, all four layouts) lets guests *reserve* an
+  item (atomic optimistic-concurrency claim, first-name-only
+  public view) and buy it at the merchant's own link. With Stripe
+  keys present the old pay path still exists; without them,
+  reserve is the only mode.
+- **Give directly** (`manifest.registryFunds` +
+  `RegistryFundCard` + `src/lib/registry-funds.ts`) — host's own
+  Venmo/PayPal/CashApp/Zelle handles rendered as deep-link
+  buttons + QR; optional goal with pledge-driven progress
+  ("as shared by guests").
+- **Honor ledger** (`gift_pledges` table + `/api/gift-pledges`)
+  — guests self-report what they gave; public aggregates are
+  first-names-and-count only, amounts owner-only.
+- **Chip-in group gifting** (`registry_items.allow_group_gift`,
+  migration `20260703_group_gifts.sql`) — several guests pledge
+  toward one big item; woven progress line; chip-ins never mark
+  the item spoken for.
+- **Add by URL** — `/api/registry-items/from-url` +
+  `src/lib/product-page.ts` (OG/JSON-LD title/photo/price
+  prefill, SSRF-guarded: private-IP/host rejection pre-fetch and
+  post-DNS, re-vetted redirects, 512KB/10s caps).
+- **Unified ledger** — `RegistryClaimsFeed` +
+  `/dashboard/registry` merge link claims, item reservations,
+  payments, and pledges with kind chips, a "Given directly"
+  stat, and the **thank-you ledger**: `thanked_at` on all three
+  gift tables, "Mark thanked" pill, "Still to thank · N" stat,
+  "Open in Studio →" deep link (`/dashboard/invite?thankTo=&gift=`)
+  to a pre-addressed thank-you card. Drafting never sets
+  thanked_at — only the explicit toggle.
+
+**Vendor Book** (`/dashboard/vendors`, `site_vendors` table,
+`/api/vendors/book`):
+- Roster grouped considering/booked/paid with occasion-aware
+  category chips; cost/deposit/balance with due dates (null cost
+  stays null — never $0); due-next strip (overdue in plum,
+  "All paid ✓" sage resting state); budget linkage
+  (merge-by-name into `/api/sites/budget`).
+- **Vendor call sheets** — `/vp/{token}` (packet_token via
+  `20260703_vendor_packets.sql`): public print-friendly page
+  shaped by `shapeVendorPacket` (privacy contract: no money, no
+  notes, no other vendors, no guests, never the host account
+  email); `manifest.dayOfContact` for the day-of phone.
+- **Day-of "Who to call"** card in DayOfV8 (booked vendors by
+  arrival time, tap-to-dial).
+- **Due-date reminders** in the notification bell (`'vendor'`
+  feed kind, deterministic createdAt so read-state sticks, one
+  escalation at past-due; digest gets its own count line).
+- **Pear + Director read the book** —
+  `src/lib/vendor-book-summary.ts` aggregates feed
+  `/api/pear-chat` host stats (VENDOR BOOK block) and
+  `/api/director` contextSummary; DashDirector shows a "From
+  your vendor book" ledger panel.
+
+Migrations applied to prod + recorded: `20260702_site_vendors`,
+`20260703_vendor_packets`, `20260703_gift_pledges`,
+`20260703_group_gifts` (plus `20260702_song_request_art`,
+`20260702_lock_link_guests_rpc` earlier in the session).
+vitest 840/840. Named follow-ups: `allow_group_gift` toggle in
+the dashboard RegistryItemsManager form (editor RegistryPanel
+has it), Spotify env keys for playlist search.
+
 ### 2026-07-02 — Section gaps closed + the living playlist + the Loom
 
 - **Three new addable sections** in the redesign renderer: `menu`

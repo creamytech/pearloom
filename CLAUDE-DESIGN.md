@@ -40,6 +40,8 @@
 | Gemini client | `src/lib/memory-engine/gemini-client.ts` | `GEMINI_PRO` (3.1-pro-preview), `GEMINI_FLASH` (3.5-flash) + image gen. |
 | Image routing | `src/lib/memory-engine/image-router.ts` | `openai \| gemini \| auto` per use-case (stylize, decor, QR posters). |
 | Guest identity / event graph | `src/lib/people.ts` | Persistent guest identity, token resolution, opt-in connections. Privacy contract in module header. |
+| Registry (launch-mode) | `/api/registry-items` (+ `[id]/claim`, `from-url`, `claims`), `/api/gift-pledges`, `/api/registry-link-claims` | Reserve-and-link when `hasStripe()` is false; `redesign/RegistryItemsGrid` (site) + `registry/RegistryClaimsFeed` (ledger); `src/lib/registry-funds.ts` (P2P handle normalization, `manifest.registryFunds`); `src/lib/product-page.ts` (SSRF-guarded add-by-URL). Pearloom never touches the money. |
+| Vendor Book | `/api/vendors/book` (+ `gate.ts`, `packet`), `/dashboard/vendors/VendorBookClient.tsx` | `site_vendors` table; `src/lib/vendor-packet.ts` (`shapeVendorPacket` privacy contract) → public call sheet `/vp/[token]`; `src/lib/vendor-book-summary.ts` feeds pear-chat, director, and the bell's vendor due-date reminders. |
 | Rate limit | `src/lib/rate-limit.ts` (+ `rate-limit-redis.ts`) | `checkRateLimit(key, { max, windowMs })`, `getClientIp`. |
 | R2 / storage | `src/lib/r2.ts` | `uploadToR2`, `getR2Url`. |
 | Auth | `src/lib/auth.ts` + `src/lib/password.ts` | Google OAuth + DB-backed credentials (scrypt `s2$` format), `/welcome` onboarding gate. |
