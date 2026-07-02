@@ -81,6 +81,8 @@ import { LivestreamSection } from './section-variants/blocks/livestream';
 import { GuestbookSection } from './GuestbookSection';
 import { GuestPlaylist } from './GuestPlaylist';
 import { RegistryItemsGrid } from './RegistryItemsGrid';
+import { RegistryFundCard } from './RegistryFundCard';
+import type { RegistryFunds } from '@/lib/registry-funds';
 import { LinkedEventsStrip } from './LinkedEventsStrip';
 import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
 import { ObituarySection } from './section-variants/blocks/obituary';
@@ -2660,8 +2662,27 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
      grid, rendered ABOVE the linked-store pills in every layout.
      Published fetches by siteSlug; the editor canvas shows demo
      cards gated by `editable` (honesty rule). Built once here so
-     the four layouts share one fetch/claim behaviour. */
-  const itemsSlot = <RegistryItemsGrid siteSlug={ctx.siteSlug} editable={editable} />;
+     the four layouts share one fetch/claim behaviour.
+
+     R2-lite rides in the same slot: when manifest.registryFunds
+     carries any P2P handle, the "Give directly" fund card (honor
+     ledger + handle links — Pearloom never touches the money)
+     renders above the item grid in every layout. */
+  const loose = ctx.manifest as unknown as { registryFunds?: RegistryFunds; registryMode?: string; occasion?: string };
+  const donationMode = loose.registryMode === 'donation'
+    || (loose.registryMode == null && (loose.occasion === 'memorial' || loose.occasion === 'funeral'));
+  const itemsSlot = (
+    <>
+      <RegistryFundCard
+        funds={loose.registryFunds}
+        siteSlug={ctx.siteSlug}
+        editable={editable}
+        title={[C.registry.title, C.registry.italic].filter(Boolean).join(' ')}
+        donation={donationMode}
+      />
+      <RegistryItemsGrid siteSlug={ctx.siteSlug} editable={editable} />
+    </>
+  );
   /* sub carries the editable callbacks + placeholders so the
      variant's VariantSectionHead has parity with the default
      TSectionHead path below (click-to-edit eyebrow + composite

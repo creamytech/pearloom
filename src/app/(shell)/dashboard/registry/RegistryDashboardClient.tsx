@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
 import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/components/registry/RegistryClaimsFeed';
+import { formatCents } from '@/lib/registry-funds';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
 import type { StoryManifest } from '@/types';
@@ -27,9 +28,22 @@ interface ItemClaim {
   kind: 'reserved' | 'paid';
 }
 
+/* Honor-ledger side — "gave directly" pledges from the R2-lite
+   fund card (/api/gift-pledges host view). Amounts are the
+   guest's own claim, host-visible only. */
+interface PledgeRow {
+  id: string;
+  guestName: string;
+  amountCents: number | null;
+  note: string | null;
+  createdAt: string;
+  itemName: string | null;
+}
+
 function useItemLedger(siteId: string | undefined) {
   const [itemCount, setItemCount] = useState(0);
   const [itemClaims, setItemClaims] = useState<ItemClaim[]>([]);
+  const [pledges, setPledges] = useState<PledgeRow[]>([]);
 
   useEffect(() => {
     if (!siteId) return;
@@ -46,10 +60,16 @@ function useItemLedger(siteId: string | undefined) {
         if (!cancelled && Array.isArray(d?.claims)) setItemClaims(d.claims);
       })
       .catch(() => { /* silent */ });
+    void fetch(`/api/gift-pledges?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pledges?: PledgeRow[] } | null) => {
+        if (!cancelled && Array.isArray(d?.pledges)) setPledges(d.pledges);
+      })
+      .catch(() => { /* silent */ });
     return () => { cancelled = true; };
   }, [siteId]);
 
-  return { itemCount, itemClaims };
+  return { itemCount, itemClaims, pledges };
 }
 
 export function RegistryDashboardClient() {
@@ -58,7 +78,7 @@ export function RegistryDashboardClient() {
   // Read claims for the section header. Hides the whole panel
   // when there's nothing to show.
   const { rows: claimRows } = useRegistryClaims(subdomain || undefined);
-  const { itemCount, itemClaims } = useItemLedger(site?.id);
+  const { itemCount, itemClaims, pledges } = useItemLedger(site?.id);
 
   // Pull manifest off the site summary so RegistryClaimsFeed has
   // access to couple names + occasion + entries for the
@@ -91,8 +111,25 @@ export function RegistryDashboardClient() {
     itemLabel: c.itemName,
   }));
 
-  /* Total gifts = link claims + item reservations/purchases. */
-  const totalGifts = claimsCount + itemClaims.length;
+  /* "Gave directly" pledges (honor ledger) shaped as ClaimRows —
+     amount rides along, visible to the HOST only. */
+  const pledgeRows: ClaimRow[] = pledges.map((p) => ({
+    id: p.id,
+    entry_url: '',
+    claimer_name: p.guestName,
+    claimer_email: '',
+    message: p.note,
+    quantity: 1,
+    created_at: p.createdAt,
+    kind: 'pledge',
+    itemLabel: p.itemName ?? 'the fund',
+    amountCents: p.amountCents,
+  }));
+  const pledgedCents = pledges.reduce((sum, p) => sum + (p.amountCents ?? 0), 0);
+
+  /* Total gifts = link claims + item reservations/purchases +
+     gave-directly pledges. */
+  const totalGifts = claimsCount + itemClaims.length + pledges.length;
 
   return (
     <DashLayout
@@ -171,15 +208,28 @@ export function RegistryDashboardClient() {
               {/* Registry stats — real listed / claimed / still-open. */}
               <PLCard tone="paper" title="The registry">
                 {/* Combined counts — link-out entries + native items,
-                    link claims + item reservations/purchases. */}
-                {([['Listed', entries.length + itemCount], ['Claimed', totalGifts], ['Still open', Math.max(0, entries.length + itemCount - totalGifts)]] as const).map(([l, v]) => (
+                    link claims + item reservations/purchases. The
+                    "Still open" math stays claims-only; pledges are
+                    fund gifts, not claims on listed things. */}
+                {([['Listed', entries.length + itemCount], ['Claimed', claimsCount + itemClaims.length], ['Still open', Math.max(0, entries.length + itemCount - claimsCount - itemClaims.length)]] as const).map(([l, v]) => (
                   <div key={l} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
                     <span style={{ fontSize: 13, color: 'var(--ink)' }}>{l}</span>
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>{v}</span>
                   </div>
                 ))}
+                {/* The honor ledger — "gave directly" pledges from
+                    the fund card, as shared by guests. */}
+                {pledges.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
+                    <span style={{ fontSize: 13, color: 'var(--ink)' }}>Given directly</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>
+                      {pledgedCents > 0 ? formatCents(pledgedCents) : pledges.length}
+                    </span>
+                  </div>
+                )}
                 <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginTop: 6 }}>
-                  Cash funds settle straight to your account. No fees on gifts.
+                  Cash gifts go straight to your own Venmo / PayPal / Cash App —
+                  Pearloom never touches the money. Amounts are as shared by guests.
                 </div>
                 <Link
                   href="/dashboard/payments"
@@ -230,7 +280,7 @@ export function RegistryDashboardClient() {
                     subdomain={subdomain}
                     items={entries}
                     manifest={manifest}
-                    extraClaims={itemClaimRows}
+                    extraClaims={[...itemClaimRows, ...pledgeRows]}
                   />
                 </PLCard>
               )}

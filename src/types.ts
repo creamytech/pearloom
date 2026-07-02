@@ -167,6 +167,16 @@ export interface StoryManifest {
      *  time for the event. Falls back to the viewer's local zone. */
     timezone?: string;
   };
+  /** The person a vendor calls on the day — usually the planner,
+   *  the MOH, or a parent, deliberately NOT the host mid-ceremony.
+   *  Surfaced on the vendor call sheet (/vp/[token]) as a
+   *  tap-to-call card. Optional; when unset the call sheet simply
+   *  omits the contact card — the host's account email is never
+   *  used as a fallback. */
+  dayOfContact?: {
+    name?: string;
+    phone?: string;
+  };
   /** Optional Details-strip extensions. The default 3 cards
    *  (ceremony, reception, dress code) are always built from
    *  logistics + events; this opens up:
@@ -232,6 +242,26 @@ export interface StoryManifest {
         custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
       };
     }>;
+  };
+  /** R2-lite cash funds — the HOST'S OWN P2P handles. Pearloom
+   *  never processes gift money; these render as "Give directly"
+   *  links on the registry section, and the honor ledger
+   *  (gift_pledges table via /api/gift-pledges) keeps the
+   *  guest-shared running thread. Normalization helpers live in
+   *  src/lib/registry-funds.ts. Written by RegistryPanel's
+   *  "Where guests can give" group (fund + donation modes). */
+  registryFunds?: {
+    /** Venmo username, stored without the @ prefix. */
+    venmo?: string;
+    /** PayPal.Me link (https enforced at link-build time). */
+    paypal?: string;
+    /** Cash App cashtag, stored without the $ prefix. */
+    cashapp?: string;
+    /** Zelle email-or-phone — display + copy only (no deep link). */
+    zelle?: string;
+    /** Optional display goal in cents — drives the pledge-driven
+     *  progress bar ("as shared by guests"). */
+    goalCents?: number;
   };
   // Multiple wedding events (ceremony, reception, rehearsal dinner, etc.)
   events?: WeddingEvent[];

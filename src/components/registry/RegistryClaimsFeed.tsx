@@ -31,11 +31,15 @@ export interface ClaimRow {
   quantity: number;
   created_at: string;
   /** What kind of gift this is — link-out claim (default), a
-   *  no-payment item reservation, or a paid Stripe purchase. */
-  kind?: 'link' | 'reserved' | 'paid';
+   *  no-payment item reservation, a paid Stripe purchase, or an
+   *  honor-ledger "gave directly" pledge (R2-lite cash funds). */
+  kind?: 'link' | 'reserved' | 'paid' | 'pledge';
   /** Native-item claims resolve their label server-side (the item
    *  name) — takes precedence over entry_url matching. */
   itemLabel?: string;
+  /** Pledge rows only — the guest's OWN claimed amount, in cents.
+   *  Host-visible here; the public site only ever sees aggregates. */
+  amountCents?: number | null;
 }
 
 export interface RegistryEntryLite {
@@ -134,8 +138,9 @@ export function RegistryClaimsFeed({ subdomain, items, manifest, maxRows = 10, e
           manifest={manifest}
           entryLabel={labelFor(c) || 'a gift'}
           /* Revoke applies to link claims only — item reservations
-             are edited from the registry panel. */
-          onRevoke={c.kind === 'reserved' || c.kind === 'paid' ? undefined : () => revoke(c.id)}
+             are edited from the registry panel; pledges are the
+             guest's own honor-ledger entries. */
+          onRevoke={(c.kind ?? 'link') === 'link' ? () => revoke(c.id) : undefined}
         />
       ))}
       {merged.length > maxRows && (
@@ -234,8 +239,21 @@ export function ClaimCard({
         </div>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
-        {claim.kind === 'reserved' ? 'reserved' : 'got'} <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
-        {claim.quantity > 1 ? ` × ${claim.quantity}` : ''}
+        {claim.kind === 'pledge' ? (
+          /* Honor-ledger row — amount is the guest's own claim,
+             visible to the HOST only (the site sees aggregates). */
+          <>
+            gave directly toward <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
+            {typeof claim.amountCents === 'number' && claim.amountCents > 0
+              ? <> — <strong style={{ fontWeight: 600 }}>{formatDollars(claim.amountCents)}</strong></>
+              : null}
+          </>
+        ) : (
+          <>
+            {claim.kind === 'reserved' ? 'reserved' : 'got'} <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
+            {claim.quantity > 1 ? ` × ${claim.quantity}` : ''}
+          </>
+        )}
       </div>
       {claim.claimer_email && (
         <a
@@ -349,12 +367,26 @@ export function ClaimCard({
   );
 }
 
+/** Whole dollars stay whole ("$1,250"); fractional cents keep two
+ *  places. Local copy — this component predates lib/registry-funds
+ *  and stays dependency-light. */
+function formatDollars(cents: number): string {
+  const dollars = cents / 100;
+  return `$${dollars.toLocaleString('en-US', {
+    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 /* Tiny mono chip naming the row's kind — "reserved" (no-payment
-   item reservation), "paid" (Stripe purchase), "claimed link"
-   (link-out store claim). */
-function KindChip({ kind }: { kind: 'link' | 'reserved' | 'paid' }) {
-  const label = kind === 'reserved' ? 'reserved' : kind === 'paid' ? 'paid' : 'claimed link';
-  const ink = kind === 'paid' ? 'var(--sage-deep, #3D4A1F)' : 'var(--peach-ink, #C6703D)';
+   item reservation), "paid" (Stripe purchase), "gave directly"
+   (honor-ledger pledge), "claimed link" (link-out store claim). */
+function KindChip({ kind }: { kind: 'link' | 'reserved' | 'paid' | 'pledge' }) {
+  const label = kind === 'reserved' ? 'reserved'
+    : kind === 'paid' ? 'paid'
+      : kind === 'pledge' ? 'gave directly'
+        : 'claimed link';
+  const ink = kind === 'paid' || kind === 'pledge' ? 'var(--sage-deep, #3D4A1F)' : 'var(--peach-ink, #C6703D)';
   return (
     <span
       style={{

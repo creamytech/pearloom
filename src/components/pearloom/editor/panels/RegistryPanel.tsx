@@ -16,6 +16,7 @@ import { FSelect } from './_form-atoms';
 import { PhotoUploadSlot } from './_photo-upload';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { cleanCashtag, cleanVenmo, type RegistryFunds } from '@/lib/registry-funds';
 import { useVoicePack } from './_voice-pack';
 import { readVariant } from '../../redesign/layouts';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
@@ -162,6 +163,14 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
             </div>
           )}
         </FGroup>
+        {/* ── R2-lite cash funds — the host's OWN P2P handles.
+              Pearloom never processes gift money; these render as
+              "Give directly" links on the site with an honor-system
+              pledge thread. Fund + donation modes only. */}
+        {(mode === 'fund' || mode === 'donation') && (
+          <FundHandlesGroup manifest={manifest} onChange={onChange} donation={mode === 'donation'} />
+        )}
+
         {/* ── Native items — the reserve-and-link registry. Hidden in
               donation mode (charity links have nothing to reserve). */}
         {mode !== 'donation' && siteSlug && <RegistryItemsGroup siteSlug={siteSlug} />}
@@ -333,6 +342,82 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
   );
 }
 
+/* ─── "Where guests can give" — R2-lite fund handles ────────────
+   Writes manifest.registryFunds. Light validation only: @ / $
+   prefixes are stripped as the host types; the PayPal link is
+   upgraded to https; the goal is dollars in → cents stored.
+   Launch constraint: these are the host's OWN handles — Pearloom
+   never processes the money. */
+
+function FundHandlesGroup({ manifest, onChange, donation }: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+  donation: boolean;
+}) {
+  const funds: RegistryFunds = ((manifest as unknown as { registryFunds?: RegistryFunds }).registryFunds) ?? {};
+
+  const write = (patch: Partial<RegistryFunds>) => {
+    const next: RegistryFunds = { ...funds, ...patch };
+    // Drop empty fields so the manifest stays clean.
+    (Object.keys(next) as Array<keyof RegistryFunds>).forEach((k) => {
+      const v = next[k];
+      if (v === undefined || v === '' || (k === 'goalCents' && !(typeof v === 'number' && v > 0))) {
+        delete next[k];
+      }
+    });
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      registryFunds: Object.keys(next).length > 0 ? next : undefined,
+    } as unknown as StoryManifest);
+  };
+
+  return (
+    <FGroup
+      label={donation ? 'Where donations go' : 'Where guests can give'}
+      hint={donation
+        ? 'The receiving handles — donations go straight where you point them. Pearloom never touches the money.'
+        : 'Your own Venmo / PayPal / Cash App / Zelle — gifts go straight to you. Pearloom never touches the money.'}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <FInput
+          value={funds.venmo ?? ''}
+          onChange={(v) => write({ venmo: cleanVenmo(v) || undefined })}
+          placeholder="Venmo username (no @)"
+        />
+        <FInput
+          value={funds.paypal ?? ''}
+          onChange={(v) => write({ paypal: v.trim().replace(/^http:\/\//i, 'https://') || undefined })}
+          type="url"
+          placeholder="PayPal.Me link (paypal.me/yourname)"
+        />
+        <FInput
+          value={funds.cashapp ?? ''}
+          onChange={(v) => write({ cashapp: cleanCashtag(v) || undefined })}
+          placeholder="Cash App cashtag (no $)"
+        />
+        <FInput
+          value={funds.zelle ?? ''}
+          onChange={(v) => write({ zelle: v.trim() || undefined })}
+          placeholder="Zelle — email or phone"
+        />
+        <FInput
+          value={funds.goalCents != null ? String(funds.goalCents / 100) : ''}
+          onChange={(v) => {
+            const n = parseFloat(v);
+            write({ goalCents: Number.isFinite(n) && n > 0 ? Math.round(n * 100) : undefined });
+          }}
+          type="number"
+          placeholder={donation ? 'Goal in dollars (optional)' : 'Goal in dollars (optional) — e.g. 3000'}
+        />
+        <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+          With a goal set, the site shows a progress thread from what guests
+          share after giving — &ldquo;as shared by guests&rdquo;, never invented.
+        </div>
+      </div>
+    </FGroup>
+  );
+}
+
 /* ─── Native items manager ──────────────────────────────────────
    Real registry_items rows (the reserve-and-link flow on the
    published site) — NOT manifest state. Fetches the owner view on
@@ -381,6 +466,12 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
   const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
+  /* Add-by-URL — paste a product link, Pear reads the page and
+     prefills the add-item form. The host edits, then saves through
+     the normal items POST. */
+  const [pasteUrl, setPasteUrl] = useState('');
+  const [reading, setReading] = useState(false);
+  const [pasteError, setPasteError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     try {
@@ -403,6 +494,42 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
     setDraft(EMPTY_DRAFT);
     setOpen('new');
     setError(null);
+  }
+
+  async function readProductUrl() {
+    const url = pasteUrl.trim();
+    if (!url || reading) return;
+    setReading(true);
+    setPasteError(null);
+    try {
+      const r = await fetch('/api/registry-items/from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const d = (await r.json().catch(() => ({}))) as {
+        ok?: boolean; title?: string | null; imageUrl?: string | null;
+        price?: number | null; store?: string | null; error?: string;
+      };
+      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Couldn’t read that page — add it by hand.');
+      // Prefill the add form — the host edits, then "Set it" saves
+      // through the normal items API.
+      setDraft({
+        name: d.title ?? '',
+        price: typeof d.price === 'number' ? String(d.price) : '',
+        quantity: '1',
+        imageUrl: d.imageUrl ?? '',
+        itemUrl: url,
+        description: '',
+      });
+      setOpen('new');
+      setError(null);
+      setPasteUrl('');
+    } catch (e) {
+      setPasteError(e instanceof Error ? e.message : 'Couldn’t read that page — add it by hand.');
+    } finally {
+      setReading(false);
+    }
   }
   function startEdit(item: OwnerItem) {
     setDraft(draftFrom(item));
@@ -484,6 +611,37 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
       label={count > 0 ? `Items · ${count}` : 'Items'}
       hint="Real gifts guests reserve right on the site — they render above your linked stores."
     >
+      {/* Paste a product link — Pear reads the page + prefills. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <FInput
+              value={pasteUrl}
+              onChange={(v) => { setPasteUrl(v); if (pasteError) setPasteError(null); }}
+              type="url"
+              icon="link"
+              placeholder="Paste a product link — Pear reads the page"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => { void readProductUrl(); }}
+            disabled={reading || !pasteUrl.trim()}
+            style={{
+              padding: '0 14px', borderRadius: 10, flexShrink: 0,
+              background: 'var(--ink)', color: 'var(--cream)', border: 'none',
+              fontSize: 11.5, fontWeight: 700,
+              cursor: reading || !pasteUrl.trim() ? 'default' : 'pointer',
+              opacity: reading || !pasteUrl.trim() ? 0.55 : 1,
+            }}
+          >
+            {reading ? 'Threading…' : 'Read it'}
+          </button>
+        </div>
+        {pasteError && (
+          <div style={{ fontSize: 11, color: 'var(--plum, #7A2D2D)' }}>{pasteError}</div>
+        )}
+      </div>
       {items === null ? (
         <div style={{ display: 'grid', placeItems: 'center', padding: '14px 0' }}>
           <WeaveLoader size="sm" ariaLabel="Threading" />

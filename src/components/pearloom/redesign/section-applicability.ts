@@ -65,6 +65,7 @@ export function sectionHasContent(sectionId: string, manifest: StoryManifest): b
   const loose = manifest as unknown as {
     galleryImages?: string[];
     registryStores?: Array<string | { name?: string; url?: string }>;
+    registryFunds?: { venmo?: string; paypal?: string; cashapp?: string; zelle?: string };
   };
   switch (sectionId) {
     case 'story':
@@ -75,8 +76,13 @@ export function sectionHasContent(sectionId: string, manifest: StoryManifest): b
       return (manifest.faqs ?? []).some((f) => (f.answer ?? '').trim().length > 0);
     case 'gallery':
       return (loose.galleryImages ?? []).filter(Boolean).length > 0;
-    case 'registry':
-      return (loose.registryStores ?? []).length > 0;
+    case 'registry': {
+      if ((loose.registryStores ?? []).length > 0) return true;
+      /* R2-lite fund handles count as registry content too — a
+         host may set ONLY "Give directly" P2P handles. */
+      const f = loose.registryFunds;
+      return Boolean(f && (f.venmo?.trim() || f.paypal?.trim() || f.cashapp?.trim() || f.zelle?.trim()));
+    }
     case 'travel':
       return (manifest.travelInfo?.hotels ?? []).length > 0;
     default:

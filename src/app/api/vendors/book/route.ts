@@ -11,34 +11,26 @@
 //   POST   /api/vendors/book                   — create (owner only)
 //   PATCH  /api/vendors/book                   — update (owner only)
 //   DELETE /api/vendors/book?siteId=...&id=... — delete (owner only)
+//   POST   /api/vendors/book/packet            — mint a call-sheet
+//          token (sibling route; shares ./gate)
 //
 // Ownership = site_config.creator_email, case-insensitive (the
-// /api/toasts pattern). All money fields are host-entered cents —
-// this is a ledger, never a payment surface.
+// /api/toasts pattern; the gate lives in ./gate.ts). All money
+// fields are host-entered cents — this is a ledger, never a
+// payment surface.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { gate, UUID_RX } from './gate';
 
 export const dynamic = 'force-dynamic';
 
-const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_RX = /^\d{4}-\d{2}-\d{2}$/;
 const STATUSES = ['considering', 'booked', 'paid'] as const;
 type VendorStatus = (typeof STATUSES)[number];
 // Cents ceiling — $10M is comfortably above any real event vendor.
 const MAX_CENTS = 1_000_000_000;
 const MAX_VENDORS_PER_SITE = 120;
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
 
 interface VendorRow {
   id: string;
@@ -59,6 +51,9 @@ interface VendorRow {
   arrival_time: string | null;
   notes: string | null;
   directory_vendor_id: string | null;
+  /** Call-sheet token (nullable until the host mints one via
+   *  ./packet). Column lands with 20260703_vendor_packets.sql. */
+  packet_token?: string | null;
   created_at: string;
 }
 
@@ -135,63 +130,9 @@ function view(row: VendorRow) {
     arrivalTime: row.arrival_time,
     notes: row.notes,
     directoryVendorId: row.directory_vendor_id,
+    packetToken: row.packet_token ?? null,
     createdAt: row.created_at,
   };
-}
-
-// ── Session + ownership resolution ────────────────────────────
-
-type Gate =
-  | { ok: true; email: string; supabase: SupabaseClient; siteId: string }
-  | { ok: false; res: NextResponse };
-
-/** getServerSession → checkRateLimit → resolve the site (uuid or
- *  subdomain) → case-insensitive owner check against
- *  site_config.creator_email. Returns the site's canonical uuid id
- *  (what site_vendors.site_id stores). */
-async function gate(rawSiteId: string | null | undefined, write: boolean): Promise<Gate> {
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email?.toLowerCase().trim();
-  if (!email) {
-    return { ok: false, res: NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) };
-  }
-
-  const rate = checkRateLimit(`vendor-book:${write ? 'w' : 'r'}:${email}`, {
-    max: write ? 30 : 120,
-    windowMs: 60_000,
-  });
-  if (!rate.allowed) {
-    return { ok: false, res: NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 }) };
-  }
-
-  const siteId = rawSiteId?.trim();
-  if (!siteId) {
-    return { ok: false, res: NextResponse.json({ ok: false, error: 'siteId required' }, { status: 400 }) };
-  }
-
-  const supabase = getSupabase();
-  if (!supabase) {
-    // Env-less deploys degrade softly, matching /api/sites/budget.
-    return { ok: false, res: NextResponse.json({ ok: true, stored: false, vendors: [] }) };
-  }
-
-  const lookup = supabase.from('sites').select('id, site_config, creator_email');
-  const { data: site, error } = await (UUID_RX.test(siteId)
-    ? lookup.eq('id', siteId)
-    : lookup.eq('subdomain', siteId)
-  ).maybeSingle();
-  if (error || !site) {
-    return { ok: false, res: NextResponse.json({ ok: false, error: 'Site not found' }, { status: 404 }) };
-  }
-
-  // Case-insensitive owner check — IdP casing variance, see /api/toasts.
-  const cfg = site.site_config as { creator_email?: string } | null;
-  const ownerEmail = String(site.creator_email ?? cfg?.creator_email ?? '').toLowerCase().trim();
-  if (!ownerEmail || ownerEmail !== email) {
-    return { ok: false, res: NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 }) };
-  }
-
-  return { ok: true, email, supabase, siteId: String(site.id) };
 }
 
 // ── GET: list the book ────────────────────────────────────────

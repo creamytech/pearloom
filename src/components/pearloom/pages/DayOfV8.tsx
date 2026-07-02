@@ -1279,6 +1279,152 @@ function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?:
   );
 }
 
+type CrewVendorRow = {
+  id: string;
+  name: string;
+  category: string;
+  phone: string | null;
+  arrivalTime: string | null;
+  status: 'considering' | 'booked' | 'paid';
+};
+
+function useBookedVendors(siteId?: string | null): { items: CrewVendorRow[]; loading: boolean } {
+  const [items, setItems] = useState<CrewVendorRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(Boolean(siteId));
+  useEffect(() => {
+    if (!siteId) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    fetch(`/api/vendors/book?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ vendors: [] })))
+      .then((data) => {
+        if (cancelled) return;
+        const vendors = Array.isArray(data?.vendors) ? (data.vendors as CrewVendorRow[]) : [];
+        // The day-of crew — only vendors actually hired, in the
+        // order they arrive (unset call times sink to the end).
+        const crew = vendors
+          .filter((v) => v.status === 'booked' || v.status === 'paid')
+          .sort(
+            (a, b) =>
+              (parseTimeToMinutes(a.arrivalTime ?? '') ?? 9999) -
+              (parseTimeToMinutes(b.arrivalTime ?? '') ?? 9999),
+          );
+        setItems(crew);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId]);
+  return { items, loading };
+}
+
+function WhoToCall({ siteId }: { siteId?: string | null }) {
+  // The day-of call sheet, host side — every booked vendor with
+  // their call time and a tap-to-dial number. Fed by the Vendor
+  // Book (/dashboard/vendors → /api/vendors/book).
+  const { items, loading } = useBookedVendors(siteId);
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <Icon name="phone" size={18} color="var(--gold)" />
+        <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
+          Who to call
+        </h3>
+        {items.length > 0 && (
+          <span className="pill pill-sage" style={{ fontSize: 11 }}>
+            {items.length} on the day
+          </span>
+        )}
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+      ) : items.length === 0 ? (
+        <div
+          style={{
+            padding: 22,
+            textAlign: 'center',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto' }}>
+            Vendors you book land here with their call times.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((v) => (
+            <div
+              key={v.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: 10,
+                alignItems: 'center',
+                padding: '9px 12px',
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 10,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: v.arrivalTime ? 'var(--ink)' : 'var(--ink-muted)',
+                  background: 'var(--cream-3)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 999,
+                  padding: '3px 9px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {v.arrivalTime ?? 'no time'}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {v.name}
+                </span>
+                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                  {v.category}
+                </span>
+              </span>
+              {v.phone ? (
+                <a
+                  href={`tel:${v.phone.replace(/[^\d+]/g, '')}`}
+                  className="btn btn-outline btn-sm"
+                  style={{ flexShrink: 0, textDecoration: 'none' }}
+                >
+                  <Icon name="phone" size={12} /> Call
+                </a>
+              ) : (
+                <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', flexShrink: 0 }}>no number</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ marginTop: 14, fontSize: 12.5 }}>
+        <Link href="/dashboard/vendors" style={{ color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}>
+          Open the vendor book →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 /* Quiet section label that gives the two columns a clear identity
    ("Run the day" vs "The live room") so the page reads as two
    intents instead of a flat stack of cards. */
@@ -1448,6 +1594,7 @@ export function DayOfV8() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <DayOfBand label="Run the day" />
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
+            <WhoToCall siteId={site?.id} />
             {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
           </div>

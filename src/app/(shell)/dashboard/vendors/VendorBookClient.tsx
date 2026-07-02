@@ -48,6 +48,8 @@ interface BookVendor {
   arrivalTime: string | null;
   notes: string | null;
   directoryVendorId: string | null;
+  /** Call-sheet token — null until the host mints one. */
+  packetToken: string | null;
   createdAt: string;
 }
 
@@ -284,6 +286,37 @@ export function VendorBookClient() {
         setVendors((prev) => prev.map((v) => (v.id === saved.id ? saved : v)));
       }
     } catch { /* leave the row as-is — nothing was presented as saved */ }
+  }, [siteId, setVendors]);
+
+  // ── The call sheet ──
+  // First tap mints the vendor's packet token (idempotent server-
+  // side), then copies /vp/{token}; later taps just copy — the
+  // token rides the roster after the first mint.
+  const copyCallSheet = useCallback(async (v: BookVendor): Promise<boolean> => {
+    if (!siteId) return false;
+    let token = v.packetToken;
+    if (!token) {
+      try {
+        const res = await fetch('/api/vendors/book/packet', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ siteId, id: v.id }),
+        });
+        const data = (await res.json().catch(() => null)) as { ok?: boolean; token?: string } | null;
+        if (!res.ok || !data?.ok || !data.token) return false;
+        token = data.token;
+        const minted = token;
+        setVendors((prev) => prev.map((x) => (x.id === v.id ? { ...x, packetToken: minted } : x)));
+      } catch {
+        return false;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/vp/${token}`);
+      return true;
+    } catch {
+      return false;
+    }
   }, [siteId, setVendors]);
 
   const removeVendor = useCallback(async (id: string) => {
@@ -584,6 +617,7 @@ export function VendorBookClient() {
                           onRemove={() => removeVendor(v.id)}
                           onMarkPaid={(patch) => patchVendor(v.id, patch)}
                           onAddToBudget={() => addToBudget(v)}
+                          onCopyCallSheet={() => copyCallSheet(v)}
                         />
                       ))}
                     </div>
@@ -617,6 +651,7 @@ function VendorCard({
   onRemove,
   onMarkPaid,
   onAddToBudget,
+  onCopyCallSheet,
 }: {
   vendor: BookVendor;
   today: string;
@@ -626,10 +661,22 @@ function VendorCard({
   onRemove: () => void;
   onMarkPaid: (patch: { depositPaid?: boolean; balancePaid?: boolean }) => void;
   onAddToBudget: () => void;
+  onCopyCallSheet: () => Promise<boolean>;
 }) {
   // Two-stage remove (the RegistryClaimsFeed arm-then-confirm
   // pattern — no window.confirm).
   const [armed, setArmed] = useState(false);
+
+  // Call-sheet copy state — 'copied' flashes "Copied — send it
+  // along" for a beat, then rests back on the action.
+  const [sheetState, setSheetState] = useState<'idle' | 'busy' | 'copied' | 'error'>('idle');
+  const handleCallSheet = async () => {
+    if (sheetState === 'busy') return;
+    setSheetState('busy');
+    const ok = await onCopyCallSheet();
+    setSheetState(ok ? 'copied' : 'error');
+    setTimeout(() => setSheetState('idle'), 2400);
+  };
 
   const bal = balanceCents(v);
   const contactBits = [
@@ -734,11 +781,31 @@ function VendorCard({
         </div>
       )}
 
-      {v.arrivalTime && (
+      {/* Arrival time — the day-of fact. Prominent once a vendor is
+          actually booked; a quiet aside while still considering. */}
+      {v.arrivalTime && v.status !== 'considering' ? (
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono, monospace)',
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+            }}
+          >
+            Arrives
+          </span>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 21, lineHeight: 1.1, color: 'var(--ink)' }}>
+            {v.arrivalTime}
+          </span>
+        </div>
+      ) : v.arrivalTime ? (
         <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--ink-soft)' }}>
           <Icon name="clock" size={12} /> Arrives {v.arrivalTime}
         </div>
-      )}
+      ) : null}
 
       {v.notes && (
         <details style={{ marginTop: 10 }}>
@@ -749,9 +816,9 @@ function VendorCard({
         </details>
       )}
 
-      {/* ── Budget linkage — booked/paid vendors only ── */}
+      {/* ── Budget linkage + call sheet — booked/paid vendors only ── */}
       {v.status !== 'considering' && (
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 14px' }}>
           {linked ? (
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sage-deep)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Icon name="check" size={12} /> In the budget
@@ -761,6 +828,28 @@ function VendorCard({
               {budgetBusy ? 'Adding…' : 'Add to budget'}
             </button>
           )}
+          {/* One printable sheet the vendor keeps: /vp/{token}. */}
+          <button
+            type="button"
+            onClick={handleCallSheet}
+            disabled={sheetState === 'busy'}
+            style={{
+              border: 'none', background: 'transparent', padding: 0, cursor: 'pointer',
+              fontSize: 12, fontWeight: 700,
+              color:
+                sheetState === 'copied' ? 'var(--sage-deep)'
+                : sheetState === 'error' ? plum
+                : 'var(--peach-ink, #C6703D)',
+            }}
+          >
+            {sheetState === 'copied'
+              ? 'Copied — send it along'
+              : sheetState === 'error'
+                ? 'Couldn’t copy — try again'
+                : sheetState === 'busy'
+                  ? 'Threading…'
+                  : 'Call sheet →'}
+          </button>
         </div>
       )}
     </PLCard>
