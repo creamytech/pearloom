@@ -44,6 +44,7 @@ import { InlineEdit } from './InlineEdit';
    'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
    baked into the block below. */
 import { RsvpSplit, RsvpBanner, RsvpMinimal } from './section-variants/rsvp';
+import { LoomTapestry } from './LoomTapestry';
 import { requestRsvp } from '../site/rsvp-bus';
 import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-variants/details';
 import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
@@ -2861,7 +2862,7 @@ const GALLERY_CAPTION_STYLE: CSSProperties = {
 /* ─── RsvpBlock — handoff centered (dark inverse). ───────────── */
 
 function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C, editable, variants } = ctx;
+  const { pad, C, editable, variants, manifest } = ctx;
   const sub = {
     C: C.rsvp, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpEyebrow', v) : undefined,
@@ -2869,9 +2870,20 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'RSVP',
     titlePlaceholder: C.rsvp.title,
   };
-  if (variants.rsvp === 'split')   return <RsvpSplit ctx={sub} />;
-  if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
-  if (variants.rsvp === 'minimal') return <RsvpMinimal ctx={sub} />;
+  /* The Loom — manifest.rsvpLoom opt-in. One shared slot for all
+     variants: the tapestry weaves in above the RSVP intro. The
+     editor canvas previews a deterministic demo cloth; published
+     sites feed real strands from /api/rsvp/weave via siteSlug. */
+  const loom = manifest.rsvpLoom ? (
+    <LoomTapestry siteSlug={ctx.siteSlug} editable={editable} occasion={manifest.occasion} />
+  ) : null;
+  /* Card variants render bare — give the loom the same footprint
+     as the variant card so the two read as one woven unit. */
+  const withLoom = (variant: ReactNode) =>
+    loom ? <div style={{ display: 'grid', gap: 14 }}>{loom}{variant}</div> : variant;
+  if (variants.rsvp === 'split')   return withLoom(<RsvpSplit ctx={sub} />);
+  if (variants.rsvp === 'banner')  return withLoom(<RsvpBanner ctx={sub} />);
+  if (variants.rsvp === 'minimal') return withLoom(<RsvpMinimal ctx={sub} />);
   return (
     <div className="pl8-rsvp-plate" style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
       <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
@@ -2883,6 +2895,7 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 18, color: 'var(--t-rsvp-ink)' }}>
         {C.rsvp.body}
       </div>
+      {loom && <div style={{ maxWidth: 560, margin: '0 auto 22px' }}>{loom}</div>}
       {/* Real button, not a <span> — this default ("plate") RSVP
           variant is the fallback for most sites, and on mobile the
           nav RSVP is just a #rsvp anchor that scrolls here, so this

@@ -549,6 +549,13 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       // Broadcast for live counters / dashboards
       try {
         window.dispatchEvent(new CustomEvent('pl-rsvp-saved', { detail: { siteSlug, status: overallStatus } }));
+        // The Loom — an attending reply weaves one more thread into
+        // the RSVP section's tapestry, live, if the host has it on.
+        // Optional listener (LoomTapestry); harmless when nothing
+        // is listening.
+        if (overallStatus === 'attending') {
+          window.dispatchEvent(new CustomEvent('pearloom:loom-thread', { detail: { siteSlug } }));
+        }
       } catch {
         /* noop */
       }

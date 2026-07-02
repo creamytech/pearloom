@@ -120,6 +120,19 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
         <FGroup label="After they reply" hint="Pear nudges non-responders on the schedule you pick.">
           <ReminderCadencePicker manifest={manifest} onChange={onChange} />
         </FGroup>
+        <FGroup label="The Loom" hint="A living tapestry above your RSVP — it grows denser as your day approaches. No names are shown, just the threads.">
+          <FToggleStandalone
+            label="The Loom — every reply weaves a thread"
+            sub={manifest.rsvpLoom
+              ? 'Each attending reply weaves one more thread into the cloth.'
+              : 'Off — the RSVP section stays as-is.'}
+            def={!!manifest.rsvpLoom}
+            onChange={(v) => onChange({
+              ...(manifest as unknown as Record<string, unknown>),
+              rsvpLoom: v,
+            } as unknown as StoryManifest)}
+          />
+        </FGroup>
 
         <details className="pl-panel-more">
           <summary

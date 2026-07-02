@@ -892,6 +892,11 @@ export interface StoryManifest {
      *  RSVP is correct for casual / public events. */
     guestListOnly?: boolean;
   };
+  /** The Loom — a living tapestry on the RSVP section. Every
+   *  attending reply weaves one more thread into a generative
+   *  woven artwork (LoomTapestry, fed by /api/rsvp/weave — no
+   *  PII, just per-row seeds). Default off. */
+  rsvpLoom?: boolean;
   /** Host-controlled RSVP button styling — pearl (default),
    *  pill, hairline, or paper tag — plus pulse + custom label.
    *  Read by the published-site RSVP cta. */
