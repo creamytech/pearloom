@@ -20,13 +20,14 @@
    on the visual shell.
 */
 
-import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
+import { nextStepFor, isManifestPublished } from '@/lib/next-step';
 import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
-import { EditorRailLeft } from './SectionRail';
+import { EditorRailLeft, sectionOrderFor, sectionDisplayLabel } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
 import { ThemeRail } from './ThemeRail';
 import { EditorTopbar } from './EditorTopbar';
@@ -41,7 +42,8 @@ import { FittingRoom } from './FittingRoom';
 import { ThreePressings } from './ThreePressings';
 import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
-import { MobileSheet, MobileBottomBar, PreviewExitPill, type MobileSheetId } from './MobileSheet';
+import { buildPublishChecks, MobilePublishChecklist } from './PublishChecklist';
+import { MobileSheet, MobileBottomBar, MobileNextStepStrip, PreviewExitPill, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
 import { useEditorCollab } from './useEditorCollab';
 import { CoEditHighlights } from './CoEditHighlights';
@@ -297,6 +299,71 @@ export default function EditorRedesign({
     setMobileSheet(id ? 'props' : 'theme');
     if (id) scrollSectionAboveSheet(id);
   }, [scrollSectionAboveSheet]);
+  /* ── Mobile section stepper ─────────────────────────────────
+     The props sheet's header walks the SAME ordered list the
+     Sections rail shows (sectionOrderFor is the shared
+     derivation), so prev/next moves match what the host sees in
+     the list. Tool panels aren't in the canvas order — the
+     chevrons hide there (activeIdx === -1). */
+  const orderedSections = useMemo(
+    () => (viewportMobile ? sectionOrderFor(bridge.manifest).orderedSections : []),
+    [viewportMobile, bridge.manifest],
+  );
+  const activeIdx = active ? orderedSections.findIndex((s) => s.id === active) : -1;
+  const occasion = (bridge.manifest as unknown as { occasion?: string }).occasion;
+  const activeSectionLabel = (active && sectionDisplayLabel(active, occasion)) || 'Edit section';
+  const stepToSection = useCallback((id: SectionId) => {
+    if (!id) return;
+    setActive(id);
+    setMobileSheet('props');
+    scrollSectionAboveSheet(id);
+  }, [scrollSectionAboveSheet]);
+
+  /* ── Golden thread, phone edition ───────────────────────────
+     Desktop shows the one next-best-action as a topbar chip; the
+     compact bar has no room, so it rides as a dismissible strip
+     above the bottom bar. Dismiss lasts the session. */
+  const nextStep = useMemo(
+    () => (viewportMobile ? nextStepFor(bridge.manifest) : null),
+    [viewportMobile, bridge.manifest],
+  );
+  const [nextStepDismissed, setNextStepDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return window.sessionStorage.getItem('pl-rd-next-step-dismissed') === '1'; } catch { return false; }
+  });
+  const dismissNextStep = useCallback(() => {
+    setNextStepDismissed(true);
+    try { window.sessionStorage.setItem('pl-rd-next-step-dismissed', '1'); } catch { /* private mode */ }
+  }, []);
+  const followNextStep = useCallback(() => {
+    const step = nextStep;
+    if (!step) return;
+    if (step.target === 'publish') {
+      /* Same action as the desktop chip — straight to the flow. */
+      bridge.openPublish();
+      return;
+    }
+    setActive(step.target as SectionId);
+    setMobileSheet('props');
+    scrollSectionAboveSheet(step.target);
+  }, [nextStep, bridge, scrollSectionAboveSheet]);
+
+  /* ── Mobile Publish gate ────────────────────────────────────
+     Desktop surfaces the PublishChecklist pill next to Publish;
+     the bottom bar has no room for it, so the Publish tap runs
+     the same audit first: unresolved items on an unpublished
+     site open the checklist card (non-blocking — "Publish
+     anyway" continues); otherwise straight to the flow. */
+  const [mobileChecklistOpen, setMobileChecklistOpen] = useState(false);
+  const publishFromBar = useCallback(() => {
+    const m = bridge.manifest;
+    if (!isManifestPublished(m) && buildPublishChecks(m).some((c) => !c.ok)) {
+      setMobileChecklistOpen(true);
+      return;
+    }
+    bridge.openPublish();
+  }, [bridge]);
+
   /* The First Pressing — the once-per-generation reveal. Armed by
      the wizard via sessionStorage; consumed before first paint so
      a freshly-woven site opens behind the curtain, not in front
@@ -423,7 +490,14 @@ export default function EditorRedesign({
         peers={peers}
         onOpenSettings={bridge.openSettings}
         displayNames={bridge.displayNames}
+        /* Feeds the desktop golden-thread chip + GoLiveBadge +
+           PublishChecklist pill (all no-op without it). */
+        manifest={bridge.manifest}
         compact={viewportMobile}
+        onUndo={bridge.undo}
+        onRedo={bridge.redo}
+        canUndo={bridge.canUndo}
+        canRedo={bridge.canRedo}
       />
 
       {!viewportMobile && mode !== 'preview' && (
@@ -488,8 +562,28 @@ export default function EditorRedesign({
           onSections={() => setMobileSheet('sections')}
           onTheme={() => setMobileSheet('theme')}
           onPreview={() => setMode('preview')}
-          onPublish={viewerRole === 'owner' ? bridge.openPublish : undefined}
+          onPublish={viewerRole === 'owner' ? publishFromBar : undefined}
           saveState={bridge.saveState}
+        />
+      )}
+      {/* Golden-thread strip — the one next-best-action, riding
+          above the bottom bar. Hidden while a sheet is open (it
+          would collide) and in preview. Dismiss lasts the session. */}
+      {viewportMobile && mode === 'edit' && mobileSheet === null && !nextStepDismissed && nextStep && (
+        <MobileNextStepStrip
+          label={nextStep.label}
+          hint={nextStep.hint}
+          onFollow={followNextStep}
+          onDismiss={dismissNextStep}
+        />
+      )}
+      {/* Mobile Publish gate — the checklist card the bottom bar's
+          Publish opens when essentials are still missing. */}
+      {viewportMobile && mobileChecklistOpen && (
+        <MobilePublishChecklist
+          manifest={bridge.manifest}
+          onClose={() => setMobileChecklistOpen(false)}
+          onPublish={() => { setMobileChecklistOpen(false); bridge.openPublish(); }}
         />
       )}
       {/* Phone preview strips ALL editor chrome so the site reads
@@ -515,8 +609,20 @@ export default function EditorRedesign({
           label={
             displaySheet === 'sections' ? 'Page sections'
               : displaySheet === 'theme' ? 'Theme'
-              : 'Edit section'
+              : activeSectionLabel
           }
+          /* Section stepper — chevrons flanking the props sheet's
+             title walk the same ordered list the Sections rail
+             shows. Hidden for tool panels (not in the canvas
+             order); disabled at the ends. */
+          onPrev={displaySheet === 'props' && activeIdx >= 0
+            ? () => stepToSection(orderedSections[activeIdx - 1]?.id ?? null)
+            : undefined}
+          onNext={displaySheet === 'props' && activeIdx >= 0
+            ? () => stepToSection(orderedSections[activeIdx + 1]?.id ?? null)
+            : undefined}
+          prevDisabled={activeIdx <= 0}
+          nextDisabled={activeIdx < 0 || activeIdx >= orderedSections.length - 1}
         >
           {displaySheet === 'sections' && (
             <EditorRailLeft

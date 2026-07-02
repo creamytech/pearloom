@@ -510,6 +510,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
               onClick={toggleHidden}
               disabled={!canHide}
               aria-pressed={isHidden}
+              className="pl-hit44"
               style={{
                 width: 32, height: 32, borderRadius: 8,
                 background: isHidden ? 'var(--peach-bg)' : 'var(--cream-2)',
@@ -532,6 +533,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
               onClick={() => setOptionsOpen(!optionsOpen)}
               aria-haspopup="menu"
               aria-expanded={optionsOpen}
+              className="pl-hit44"
               style={{
                 width: 32, height: 32, borderRadius: 8,
                 background: optionsOpen ? 'var(--cream-3)' : 'var(--cream-2)',

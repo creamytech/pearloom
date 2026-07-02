@@ -37,9 +37,16 @@ interface Props {
   canPublish?: boolean;
   /** Realtime presence — other people with this editor open now. */
   peers?: Array<{ key: string; name: string; email: string; color: string; avatar?: string | null; section?: string | null }>;
+  /** Undo/redo — bridge.undo/redo, surfaced as compact icon
+   *  buttons on phones (Cmd+Z has no key there). Desktop keeps
+   *  the keyboard-only path. */
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [], onUndo, onRedo, canUndo = false, canRedo = false }: Props) {
   const { data: session } = useSession();
   /* Profile pic was rendering initials from `displayNames` (the
      COUPLE'S names), so the avatar text changed on every keystroke
@@ -159,9 +166,29 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
       {/* Center zone — Edit / Preview / Mobile pill. Prototype L79-106.
           Hidden in compact: the device-frame toggle is meaningless
           when the viewport IS a phone, and Preview lives in the
-          bottom bar (its exit is the floating pill). The empty div
-          keeps the flex spacing so the right cluster stays right. */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          bottom bar (its exit is the floating pill). Compact shows
+          the site's display names instead — a mono-eyebrow so the
+          host always knows which site they're editing. */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'center' }}>
+        {compact && (
+          <span
+            title={displayNames}
+            style={{
+              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%',
+            }}
+          >
+            {displayNames}
+          </span>
+        )}
         {!compact && (
         <div
           style={{
@@ -342,10 +369,19 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         </div>
         {compact ? (
           <>
-            {/* Compact right zone — ellipsis menu only. Publish
-                moved to the bottom bar (thumb range beats a tiny
-                top-right button); Share / Theme / Decor / Settings
-                overflow into the menu. GoLiveBadge +
+            {/* Undo / Redo — Cmd+Z has no key on a phone. Small
+                visuals; the .pl-hit44 expander (pearloom.css) grows
+                the tap targets to ≥44px on coarse pointers. */}
+            {onUndo && onRedo && mode !== 'preview' && (
+              <>
+                <CompactHistoryButton icon="undo" label="Undo" enabled={canUndo} onClick={onUndo} />
+                <CompactHistoryButton icon="redo" label="Redo" enabled={canRedo} onClick={onRedo} />
+              </>
+            )}
+            {/* Compact right zone — ellipsis menu. Publish moved to
+                the bottom bar (thumb range beats a tiny top-right
+                button); Share / Theme / Decor / Find anything /
+                Settings overflow into the menu. GoLiveBadge +
                 PublishChecklist pills don't fit at 390px. */}
             <div style={{ position: 'relative' }} ref={menuWrapRef}>
               <button
@@ -385,6 +421,16 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                   <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); shareSite(); }} />
                   <MenuRow icon="palette" label="Theme" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
                   <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
+                  {/* Command palette — desktop finds it via the ⌘K
+                      chip; on phones this row is the entry point. */}
+                  <MenuRow
+                    icon="search"
+                    label="Find anything…"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      try { window.dispatchEvent(new CustomEvent('pearloom:command-palette-open')); } catch { /* noop */ }
+                    }}
+                  />
                   <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
                   <MenuRow icon="settings" label={userLabel} onClick={() => { setMenuOpen(false); onOpenSettings(); }} />
                 </div>
@@ -493,6 +539,42 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         )}
       </div>
     </header>
+  );
+}
+
+/* CompactHistoryButton — one Undo / Redo icon button in the compact
+   topbar. 30px visual (matches the ellipsis button); the .pl-hit44
+   expander grows the tap target to ≥44px on coarse pointers. */
+function CompactHistoryButton({ icon, label, enabled, onClick }: {
+  icon: 'undo' | 'redo';
+  label: string;
+  enabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="pl-hit44"
+      onClick={onClick}
+      disabled={!enabled}
+      aria-label={label}
+      title={label}
+      style={{
+        width: 30,
+        height: 30,
+        padding: 0,
+        borderRadius: 8,
+        background: 'var(--card)',
+        border: '1px solid var(--line-soft)',
+        display: 'grid',
+        placeItems: 'center',
+        cursor: enabled ? 'pointer' : 'default',
+        opacity: enabled ? 1 : 0.35,
+        flexShrink: 0,
+      }}
+    >
+      <Icon name={icon} size={13} color="var(--ink-soft)" />
+    </button>
   );
 }
 

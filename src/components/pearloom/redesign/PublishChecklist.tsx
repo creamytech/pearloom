@@ -38,7 +38,10 @@ interface Check {
   jumpTo?: string;
 }
 
-function buildChecks(manifest: StoryManifest): Check[] {
+/* Exported for the phone Publish path (EditorRedesign) — the bottom
+   bar's Publish opens MobilePublishChecklist first when any of
+   these fail, mirroring the desktop pill's audit exactly. */
+export function buildPublishChecks(manifest: StoryManifest): Check[] {
   const loose = manifest as unknown as Record<string, unknown>;
   const [a, b] = manifest.names ?? ['', ''];
   const subject = (loose.subject as { kind?: string } | undefined);
@@ -108,7 +111,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
     if (published) setOpen(true);
   }
 
-  const checks = useMemo(() => buildChecks(manifest), [manifest]);
+  const checks = useMemo(() => buildPublishChecks(manifest), [manifest]);
   const missing = checks.filter((c) => !c.ok);
   const ready = missing.length === 0;
 
@@ -418,6 +421,153 @@ function LiveHandoff({ manifest, onClose }: { manifest: StoryManifest; onClose: 
             <Icon name="arrow-right" size={11} color="var(--ink-muted)" />
           </a>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── MobilePublishChecklist — the phone Publish interstitial ─────
+   The bottom bar's Publish used to skip the checklist entirely
+   (the desktop pill doesn't fit the compact topbar). When any
+   check fails on an unpublished site, EditorRedesign opens this
+   centered card first. Same audit (buildPublishChecks), same
+   non-blocking contract: failing rows jump to their panel, and
+   "Publish anyway" continues to the flow. */
+export function MobilePublishChecklist({ manifest, onClose, onPublish }: {
+  manifest: StoryManifest;
+  onClose: () => void;
+  /** Continue to the publish flow (bridge.openPublish). */
+  onPublish: () => void;
+}) {
+  const checks = useMemo(() => buildPublishChecks(manifest), [manifest]);
+  const missing = checks.filter((c) => !c.ok);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  function jumpTo(block: string) {
+    onClose();
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block } }));
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 90,
+        background: 'rgba(40,40,30,0.4)',
+        display: 'grid',
+        placeItems: 'center',
+        padding: 16,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-label="Before you publish"
+        className="pl8-pop-in"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(92vw, 360px)',
+          maxHeight: 'calc(100dvh - 32px)',
+          overflowY: 'auto',
+          padding: 16,
+          background: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 16,
+          boxShadow: '0 14px 38px rgba(40,28,12,0.16), 0 4px 12px rgba(40,28,12,0.08)',
+        }}
+      >
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
+          What&rsquo;s still missing
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>
+          These aren&rsquo;t blocking — but they help guests have a complete experience.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {missing.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => c.jumpTo && jumpTo(c.jumpTo)}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 8,
+                width: '100%',
+                padding: '9px 10px', borderRadius: 8,
+                background: 'var(--cream-2)',
+                border: 'none',
+                cursor: c.jumpTo ? 'pointer' : 'default',
+                textAlign: 'left',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              <span style={{
+                width: 16, height: 16, borderRadius: '50%',
+                border: '1.5px solid var(--ink-muted)',
+                flexShrink: 0, marginTop: 1,
+              }} />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+                  {c.label}
+                </span>
+                {c.hint && (
+                  <span style={{ display: 'block', fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 1 }}>
+                    {c.hint}
+                  </span>
+                )}
+              </span>
+              {c.jumpTo && (
+                <span style={{ alignSelf: 'center' }}>
+                  <Icon name="arrow-right" size={11} color="var(--ink-muted)" />
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '11px 12px',
+              borderRadius: 10,
+              border: '1px solid var(--line)',
+              background: 'transparent',
+              color: 'var(--ink-soft)',
+              fontSize: 12.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Keep editing
+          </button>
+          <button
+            type="button"
+            onClick={onPublish}
+            style={{
+              flex: 1,
+              padding: '11px 12px',
+              borderRadius: 10,
+              border: 'none',
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              fontSize: 12.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Publish anyway
+          </button>
+        </div>
       </div>
     </div>
   );

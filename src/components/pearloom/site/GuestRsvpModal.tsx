@@ -580,6 +580,10 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       role="dialog"
       aria-modal="true"
       aria-label="RSVP"
+      /* Scope hook for the phone input-zoom CSS in pearloom.css —
+         this overlay mounts OUTSIDE the .pl8-guest site root, so the
+         16px form-control floor needs its own selector. */
+      className="pl8-guest-modal"
       onClick={close}
       style={{
         /* Theme-var bag first — the fixed-overlay chrome below wins

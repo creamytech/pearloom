@@ -194,7 +194,9 @@ export function FDate({ value, onChange, format = 'long', placeholder = 'Pick a 
             top: 'calc(100% + 6px)',
             left: 0,
             zIndex: 50,
-            width: 280,
+            /* Clamped so the calendar never clips off narrow phone
+               viewports (it used to be a fixed 280px anchored left). */
+            width: 'min(280px, calc(100vw - 48px))',
             padding: 12,
             background: 'var(--card)',
             border: '1px solid var(--line)',
@@ -208,6 +210,7 @@ export function FDate({ value, onChange, format = 'long', placeholder = 'Pick a 
               type="button"
               onClick={() => flipMonth(-1)}
               aria-label="Previous month"
+              className="pl-hit44"
               style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--cream-2)', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
             >
               <Icon name="arrow-left" size={11} color="var(--ink-soft)" />
@@ -219,6 +222,7 @@ export function FDate({ value, onChange, format = 'long', placeholder = 'Pick a 
               type="button"
               onClick={() => flipMonth(+1)}
               aria-label="Next month"
+              className="pl-hit44"
               style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--cream-2)', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
             >
               <Icon name="arrow-right" size={11} color="var(--ink-soft)" />
@@ -251,6 +255,12 @@ export function FDate({ value, onChange, format = 'long', placeholder = 'Pick a 
                   type="button"
                   disabled={!!isDisabled}
                   onClick={() => !isDisabled && commit(d)}
+                  /* Hover/press feedback lives in pearloom.css
+                     (.pl-fdate-day :hover/:active) so it works on
+                     touch too — the old onMouseEnter/Leave pair
+                     never fired on phones. */
+                  className="pl-fdate-day"
+                  data-selected={isSelected ? 'true' : undefined}
                   style={{
                     aspectRatio: '1 / 1',
                     border: 'none',
@@ -275,8 +285,6 @@ export function FDate({ value, onChange, format = 'long', placeholder = 'Pick a 
                     outlineOffset: -2,
                     transition: 'background 100ms, transform 100ms',
                   }}
-                  onMouseEnter={(e) => { if (!isSelected && !isDisabled) e.currentTarget.style.background = 'var(--lavender-bg)'; }}
-                  onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = isToday ? 'var(--cream-2)' : 'transparent'; }}
                 >
                   {d.getDate()}
                 </button>

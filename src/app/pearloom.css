@@ -8666,3 +8666,64 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .pl8-guest[data-pl-motif-anim] [data-motif-layer] { animation: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE EDITOR + GUEST FORMS (2026-07-02) — appended; keep last.
+
+   1 · iOS input-zoom kill. iOS Safari zooms the whole page when a
+       focused form control's font-size is under 16px. Panel inputs
+       are 13px by design, so below the editor's phone breakpoint
+       every form control inside the editor shell (.pl-redesign —
+       rails, bottom sheets, command palette, drawers) gets a 16px
+       floor. Guests hit the same zoom on the published site, so
+       the site scope (.pl8-guest — inline RSVP + ask-the-hosts
+       forms) and the RSVP modal overlay (.pl8-guest-modal — it
+       mounts OUTSIDE the site root) are included deliberately.
+       Same font stacks, so the bump reads as a size change only.
+       contenteditable gets the floor ONLY inside the editor's
+       bottom sheet ([data-pl-mobile-sheet]) — the canvas's
+       InlineEdit nodes carry designed display sizes (a 44px hero
+       headline) that must never be clamped to 16px. */
+@media (max-width: 767px) {
+  .pl-redesign input,
+  .pl-redesign textarea,
+  .pl-redesign select,
+  .pl8-guest input,
+  .pl8-guest textarea,
+  .pl8-guest select,
+  .pl8-guest-modal input,
+  .pl8-guest-modal textarea,
+  .pl8-guest-modal select {
+    font-size: 16px !important;
+  }
+  [data-pl-mobile-sheet] [contenteditable] {
+    font-size: 16px !important;
+  }
+}
+
+/* 2 · Touch-target expander. `.pl-hit44` grows a small control's
+      HIT AREA to ≥44×44 on coarse pointers without growing its
+      visuals: the ::after overlay is invisible and forwards taps
+      to the button it decorates. Fine pointers (desktop) keep the
+      original geometry so tightly-packed chrome can't mis-click. */
+.pl-hit44 { position: relative; }
+@media (pointer: coarse) {
+  .pl-hit44::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 3 · FDate day cells — hover AND press feedback (the old JS
+      onMouseEnter pair never fired on touch). !important beats the
+      inline background; selected / disabled cells keep their
+      inline treatment via the :not() guards. */
+.pl-fdate-day:not(:disabled):not([data-selected='true']):hover,
+.pl-fdate-day:not(:disabled):not([data-selected='true']):active {
+  background: var(--lavender-bg, #E8E0F0) !important;
+}

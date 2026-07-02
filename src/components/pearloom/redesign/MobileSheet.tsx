@@ -47,18 +47,31 @@ export function MobileSheet({
   label,
   children,
   seeThrough = false,
+  onPrev,
+  onNext,
+  prevDisabled = false,
+  nextDisabled = false,
 }: {
   open: boolean;
   onClose: () => void;
   /** Sheet height — see-through panels ride lower (~48vh) so the
    *  canvas above stays readable. */
   height?: string;
-  /** Accessible dialog name. */
+  /** Accessible dialog name — doubles as the header title (the
+   *  props sheet passes the ACTIVE SECTION's display label, so
+   *  the peek bar names what's being edited). */
   label: string;
   children: ReactNode;
   /** Non-modal: no backdrop, no body lock, canvas interactive,
    *  peek toggle. For panels whose edits should be SEEN live. */
   seeThrough?: boolean;
+  /** Section stepper (see-through header) — chevrons flanking the
+   *  title so the host can walk sections without reopening the
+   *  Sections sheet. Omit both to keep the plain title. */
+  onPrev?: () => void;
+  onNext?: () => void;
+  prevDisabled?: boolean;
+  nextDisabled?: boolean;
 }) {
   /* Keep children mounted while the sheet animates out so the
      exit slide doesn't show an empty shell. Mount synchronously
@@ -193,6 +206,47 @@ export function MobileSheet({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  /* ── Keyboard-aware sheet (see-through only) ─────────────────
+     On phones the software keyboard shrinks the VISUAL viewport
+     while the layout viewport (and this fixed wrapper) stays put —
+     a bottom-anchored sheet ends up half-buried under the
+     keyboard, hiding the focused control. Track visualViewport
+     and lift the sheet by the keyboard inset, clamping its height
+     to what remains visible. Imperative style writes via the ref
+     (no per-resize re-render) — same pattern the drag handler
+     uses; React never diffs these properties back because the
+     rendered values (bottom: 0, no maxHeight) don't change.
+     Guards: SSR + browsers without visualViewport no-op. */
+  useEffect(() => {
+    if (!open || !seeThrough || typeof window === 'undefined') return;
+    const vv = window.visualViewport;
+    /* The sheet node lives for this whole effect (open stays true) —
+       capture it once so the cleanup resets the SAME element. */
+    const el = sheetRef.current;
+    if (!vv || !el) return;
+    const apply = () => {
+      const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      /* Treat sub-keyboard jitter (URL-bar collapse etc.) as zero
+         so the sheet doesn't hover a few px off the bottom edge. */
+      if (inset > 40) {
+        el.style.bottom = `${inset}px`;
+        el.style.maxHeight = `${Math.max(Math.round(vv.height) - 12, 160)}px`;
+      } else {
+        el.style.bottom = '';
+        el.style.maxHeight = '';
+      }
+    };
+    apply();
+    vv.addEventListener('resize', apply);
+    vv.addEventListener('scroll', apply);
+    return () => {
+      vv.removeEventListener('resize', apply);
+      vv.removeEventListener('scroll', apply);
+      el.style.bottom = '';
+      el.style.maxHeight = '';
+    };
+  }, [open, seeThrough]);
+
   return (
     <div
       style={{
@@ -224,6 +278,10 @@ export function MobileSheet({
         role="dialog"
         aria-modal={!seeThrough}
         aria-label={label}
+        /* Scope hook for the mobile input-zoom CSS in pearloom.css —
+           form controls + contenteditables inside the sheet get a
+           16px floor so iOS Safari never zooms on focus. */
+        data-pl-mobile-sheet=""
         style={{
           position: 'absolute',
           left: 0,
@@ -292,6 +350,7 @@ export function MobileSheet({
             />
             <button
               type="button"
+              className="pl-hit44"
               onClick={(e) => {
                 e.stopPropagation();
                 if (dragMovedRef.current) return;
@@ -317,26 +376,55 @@ export function MobileSheet({
               <Icon name={peek ? 'arrow-up' : 'eye'} size={12} color="var(--ink-soft)" />
               {peek ? 'Back to editing' : 'See my site'}
             </button>
+            {/* Title + optional section stepper — small chevrons let
+                the host walk sections without reopening the Sections
+                sheet. Disabled at the ends; taps that were really
+                drag-tails are ignored, same as the buttons above. */}
             <span
               style={{
                 flex: 1,
                 minWidth: 0,
-                textAlign: 'center',
-                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                fontSize: 9.5,
-                fontWeight: 700,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-muted)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
               }}
             >
-              {label}
+              {onPrev && (
+                <SheetStepButton
+                  dir="prev"
+                  disabled={prevDisabled}
+                  onClick={() => { if (!dragMovedRef.current) onPrev(); }}
+                />
+              )}
+              <span
+                style={{
+                  minWidth: 0,
+                  textAlign: 'center',
+                  fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {label}
+              </span>
+              {onNext && (
+                <SheetStepButton
+                  dir="next"
+                  disabled={nextDisabled}
+                  onClick={() => { if (!dragMovedRef.current) onNext(); }}
+                />
+              )}
             </span>
             <button
               type="button"
+              className="pl-hit44"
               onClick={(e) => {
                 e.stopPropagation();
                 if (dragMovedRef.current) return;
@@ -370,6 +458,152 @@ export function MobileSheet({
         <div style={{ flex: 1, minHeight: 0, display: 'grid' }}>
           {(open || render) && children}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* SheetStepButton — one chevron in the see-through header's section
+   stepper. 28px visual; the .pl-hit44 expander (pearloom.css) grows
+   the tap target to ≥44px on coarse pointers. stopPropagation keeps
+   the tap from toggling peek / starting a header drag decision. */
+function SheetStepButton({ dir, disabled, onClick }: {
+  dir: 'prev' | 'next';
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="pl-hit44"
+      disabled={disabled}
+      aria-label={dir === 'prev' ? 'Previous section' : 'Next section'}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{
+        width: 28,
+        height: 28,
+        padding: 0,
+        borderRadius: 8,
+        border: 'none',
+        background: 'transparent',
+        display: 'grid',
+        placeItems: 'center',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.3 : 1,
+        flexShrink: 0,
+      }}
+    >
+      <Icon name={dir === 'prev' ? 'chev-left' : 'chev-right'} size={13} color="var(--ink-soft)" />
+    </button>
+  );
+}
+
+/* ─── Golden-thread strip ────────────────────────────────────────
+   The ONE next-best-action, phone edition. Desktop shows it as a
+   topbar chip; at 390px the topbar is full, so it rides as a slim
+   dismissible glass chip directly above the bottom bar (glass
+   because it FLOATS over the live canvas — BRAND §9). Cleared
+   above the bar's save chip; EditorRedesign hides it while any
+   sheet is open and in preview mode. */
+
+export function MobileNextStepStrip({ label, hint, onFollow, onDismiss }: {
+  label: string;
+  hint?: string;
+  onFollow: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 'calc(56px + env(safe-area-inset-bottom) + 32px)',
+        zIndex: 60,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        padding: '0 12px',
+      }}
+    >
+      <div
+        className="pl-rd-pop-in"
+        style={{
+          pointerEvents: 'auto',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 2,
+          maxWidth: '100%',
+          padding: '3px 5px 3px 6px',
+          borderRadius: 999,
+          background: 'var(--pl-glass)',
+          backgroundImage: 'var(--pl-glass-sheen)',
+          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          border: '1px solid var(--pl-glass-border)',
+          boxShadow: '0 10px 30px rgba(40,40,30,0.16)',
+        }}
+      >
+        <button
+          type="button"
+          className="pl-hit44"
+          onClick={onFollow}
+          title={hint}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            minWidth: 0,
+            padding: '7px 6px 7px 8px',
+            borderRadius: 999,
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--ink)',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'var(--font-ui)',
+            cursor: 'pointer',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'var(--gold, #C19A4B)',
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Next: {label}
+          </span>
+          <Icon name="arrow-right" size={11} color="var(--ink-soft)" />
+        </button>
+        <button
+          type="button"
+          className="pl-hit44"
+          onClick={onDismiss}
+          aria-label="Dismiss for this session"
+          style={{
+            width: 26,
+            height: 26,
+            padding: 0,
+            borderRadius: 999,
+            border: 'none',
+            background: 'var(--cream-2)',
+            color: 'var(--ink-soft)',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 13,
+            fontWeight: 700,
+            lineHeight: 1,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          ×
+        </button>
       </div>
     </div>
   );

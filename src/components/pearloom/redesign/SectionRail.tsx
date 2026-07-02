@@ -155,6 +155,65 @@ function isAddableSectionApplicable(id: Exclude<SectionId, null>, occasion?: str
   return true;
 }
 
+/* ─── Shared section-order derivation ─────────────────────────
+   ONE computation for "which sections, in which order, does this
+   site show" — used by the rail's list below AND by EditorRedesign
+   (the mobile props sheet's prev/next section stepper must walk
+   the exact list the rail shows). Hero is always pinned first;
+   restOrder is the reorderable tail in manifest.blockOrder terms. */
+export interface SectionOrder {
+  /** Hero + the ordered reorderable sections, occasion-resolved
+   *  labels included — the list the rail renders top to bottom. */
+  orderedSections: SectionDef[];
+  /** The reorderable tail (everything but hero) as blockOrder keys. */
+  restOrder: string[];
+  /** Optional sections still addable via the picker. */
+  availableOptional: SectionDef[];
+}
+
+const REORDERABLE_CORE_KEYS = SECTIONS.filter((s) => !s.required).map((s) => s.id as string);
+const OPTIONAL_KEYS = OPTIONAL_SECTIONS.map((s) => s.id as string);
+const ALL_REORDERABLE_KEYS = [...REORDERABLE_CORE_KEYS, ...OPTIONAL_KEYS];
+const HERO_SECTION = SECTIONS.find((s) => s.required);
+const SECTION_LOOKUP = new Map<string, SectionDef>([
+  ...SECTIONS.map((s) => [s.id as string, s] as const),
+  ...OPTIONAL_SECTIONS.map((s) => [s.id as string, s] as const),
+]);
+
+export function sectionOrderFor(manifest: StoryManifest): SectionOrder {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
+  const valid = savedOrder.filter((k) => ALL_REORDERABLE_KEYS.includes(k));
+  /* Auto-append missing CORE sections only — optional sections
+     stay opt-in via the Add Section picker. */
+  for (const k of REORDERABLE_CORE_KEYS) if (!valid.includes(k)) valid.push(k);
+  /* Occasion gate — core sections that don't fit this occasion
+     (per the EVENT_TYPES registry) drop out of the rail, UNLESS
+     they already carry real host content. Content always wins:
+     those rows stay, marked "unusual for this occasion". */
+  const restOrder = valid.filter((k) =>
+    !REORDERABLE_CORE_KEYS.includes(k)
+    || isCoreSectionApplicable(k, occasion)
+    || sectionHasContent(k, manifest));
+  const orderedSections: SectionDef[] = [
+    ...(HERO_SECTION ? [HERO_SECTION] : []),
+    ...restOrder.map((k) => SECTION_LOOKUP.get(k)!).filter(Boolean),
+  ].map((s) => resolveSectionDef(s, occasion));
+  const availableOptional = OPTIONAL_SECTIONS
+    .filter((s) => isAddableSectionApplicable(s.id, occasion))
+    .filter((s) => !restOrder.includes(s.id as string));
+  return { orderedSections, restOrder, availableOptional };
+}
+
+/** Display label for any rail entry — canvas sections, optional
+ *  sections, or tool panels — with the story row's occasion voice
+ *  applied. Null for ids the rail doesn't list (nav / navMobile). */
+export function sectionDisplayLabel(id: string, occasion?: string): string | null {
+  const def = SECTION_LOOKUP.get(id) ?? TOOLS.find((t) => t.id === id);
+  if (!def) return null;
+  return resolveSectionDef(def, occasion).label;
+}
+
 /* Tool panels — surface in the rail below the canvas sections.
    These aren't sections on the published site; they're host-only
    tools that mount via PropertyRail's dispatch. Each one is
@@ -264,43 +323,14 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   const homeBlockSet = new Set<string>([...readHomePageBlocks(manifest), 'details']);
   const multiPageSet = new Set<string>(MULTI_PAGE_BLOCKS);
 
-  /* Build the ORDERED list: read manifest.blockOrder when present,
-     otherwise fall through to the SECTIONS default order. Hero is
-     always pinned first (required, never reorderable). Optional
-     sections (countdown / map / music) are honored only when
+  /* Build the ORDERED list — shared derivation (sectionOrderFor)
+     so the mobile props sheet's prev/next stepper walks the exact
+     list this rail shows. Hero is always pinned first (required,
+     never reorderable). Optional sections are honored only when
      present in blockOrder — they're never auto-appended. */
-  const optionalKeys = OPTIONAL_SECTIONS.map((s) => s.id as string);
-  const allReorderableKeys = [...SECTIONS.filter((s) => !s.required).map((s) => s.id as string), ...optionalKeys];
-  const reorderableCoreKeys = SECTIONS.filter((s) => !s.required).map((s) => s.id as string);
-  const heroSection = SECTIONS.find((s) => s.required);
-  const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
-  const restOrder: string[] = (() => {
-    const valid = savedOrder.filter((k) => allReorderableKeys.includes(k));
-    /* Auto-append missing CORE sections only — optional sections
-       stay opt-in via the Add Section picker. */
-    for (const k of reorderableCoreKeys) if (!valid.includes(k)) valid.push(k);
-    /* Occasion gate — core sections that don't fit this occasion
-       (per the EVENT_TYPES registry) drop out of the rail, UNLESS
-       they already carry real host content. Content always wins:
-       those rows stay, marked "unusual for this occasion". */
-    return valid.filter((k) =>
-      !reorderableCoreKeys.includes(k)
-      || isCoreSectionApplicable(k, occasion)
-      || sectionHasContent(k, manifest));
-  })();
-  const sectionLookup = new Map<string, SectionDef>([
-    ...SECTIONS.map((s) => [s.id as string, s] as const),
-    ...OPTIONAL_SECTIONS.map((s) => [s.id as string, s] as const),
-  ]);
-  const orderedSections: SectionDef[] = [
-    ...(heroSection ? [heroSection] : []),
-    ...restOrder.map((k) => sectionLookup.get(k)!).filter(Boolean),
-  ].map((s) => resolveSectionDef(s, occasion));
-  /* Available picker options — anything optional + applicable +
-     not yet in the order. */
-  const availableOptional = OPTIONAL_SECTIONS
-    .filter((s) => isAddableSectionApplicable(s.id, occasion))
-    .filter((s) => !restOrder.includes(s.id as string));
+  const reorderableCoreKeys = REORDERABLE_CORE_KEYS;
+  const heroSection = HERO_SECTION;
+  const { orderedSections, restOrder, availableOptional } = sectionOrderFor(manifest);
 
   /* Add an optional section to the manifest order + flip active
      to it so the host immediately lands in its config panel.
@@ -401,6 +431,22 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
     } as unknown as StoryManifest);
     setDraggingIdx(null);
     setHoverIdx(null);
+  }
+
+  /* Touch reorder — HTML5 drag-and-drop is inert on touch, so on
+     phone viewports every row grows Move up / Move down arrows.
+     Same write path as handleDrop and PropertyRail's "Move up" /
+     "Move down" options: swap adjacent keys in manifest.blockOrder. */
+  function moveRow(restIdx: number, direction: -1 | 1) {
+    if (!onChange) return;
+    const target = restIdx + direction;
+    if (restIdx < 0 || target < 0 || target >= restOrder.length) return;
+    const next = restOrder.slice();
+    [next[restIdx], next[target]] = [next[target], next[restIdx]];
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      blockOrder: next,
+    } as unknown as StoryManifest);
   }
 
   return (
@@ -672,7 +718,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
       >
         <span>Page sections</span>
         <span style={{ fontWeight: 500, letterSpacing: 0, textTransform: 'none', fontSize: 10.5 }}>
-          drag to reorder
+          {isMobileViewport ? 'tap arrows to reorder' : 'drag to reorder'}
         </span>
       </div>
       )}
@@ -754,7 +800,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               data-dragging={isDragging}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '12px 22px 1fr 14px',
+                gridTemplateColumns: isMobileViewport ? '12px 22px 1fr auto' : '12px 22px 1fr 14px',
                 gap: 8,
                 alignItems: 'center',
                 padding: '8px 10px',
@@ -844,6 +890,28 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               </div>
               {s.required && (
                 <Icon name="lock" size={10} color={on ? 'var(--cream)' : 'var(--ink-muted)'} />
+              )}
+              {/* Touch reorder — hover doesn't exist on phones and
+                  HTML5 drag is inert there, so the arrows are the
+                  reorder affordance. Always visible on mobile. */}
+              {isMobileViewport && !isHero && onChange && (
+                <span
+                  style={{ display: 'inline-flex', alignItems: 'center' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <RowMoveButton
+                    dir={-1}
+                    disabled={i - (heroSection ? 1 : 0) <= 0}
+                    onRow={on}
+                    onClick={() => moveRow(i - (heroSection ? 1 : 0), -1)}
+                  />
+                  <RowMoveButton
+                    dir={1}
+                    disabled={i - (heroSection ? 1 : 0) >= restOrder.length - 1}
+                    onRow={on}
+                    onClick={() => moveRow(i - (heroSection ? 1 : 0), 1)}
+                  />
+                </span>
               )}
             </div>
             </div>
@@ -967,6 +1035,46 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
         </>
       )}
     </aside>
+  );
+}
+
+/* RowMoveButton — one Move up / Move down chevron on a section row
+   (mobile only). Visual stays small; the .pl-hit44 expander in
+   pearloom.css grows the tap target to ≥44px on coarse pointers. */
+function RowMoveButton({ dir, disabled, onRow, onClick }: {
+  dir: -1 | 1;
+  disabled: boolean;
+  /** Row is the active (dark) row — flips the chevron to cream. */
+  onRow: boolean;
+  onClick: () => void;
+}) {
+  const color = disabled
+    ? (onRow ? 'rgba(245,239,226,0.35)' : 'var(--ink-muted)')
+    : (onRow ? 'var(--cream)' : 'var(--ink-soft)');
+  return (
+    <button
+      type="button"
+      className="pl-hit44"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={dir === -1 ? 'Move section up' : 'Move section down'}
+      title={dir === -1 ? 'Move up' : 'Move down'}
+      style={{
+        width: 28,
+        height: 34,
+        padding: 0,
+        border: 'none',
+        borderRadius: 7,
+        background: 'transparent',
+        display: 'grid',
+        placeItems: 'center',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.35 : 1,
+        flexShrink: 0,
+      }}
+    >
+      <Icon name={dir === -1 ? 'chev-up' : 'chev-down'} size={13} color={color} />
+    </button>
   );
 }
 

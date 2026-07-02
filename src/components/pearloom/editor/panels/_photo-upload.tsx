@@ -141,9 +141,11 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
             position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
             color: 'var(--ink-muted)', fontSize: isSmall ? 11 : 12.5, textAlign: 'center', padding: 12,
           }}>
+            {/* Touch-neutral copy — "drop" assumed a mouse; the OS
+                picker (camera / library) opens on tap either way. */}
             <div>
-              <div style={{ fontWeight: 600, marginBottom: 2 }}>{isSmall ? 'Drop photo' : 'Drop a photo here'}</div>
-              {!isSmall && <div style={{ fontSize: 11.5 }}>or click to pick from your device</div>}
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>{isSmall ? 'Add a photo' : 'Tap to add a photo'}</div>
+              {!isSmall && <div style={{ fontSize: 11.5 }}>from your device — or drop one here</div>}
             </div>
           </div>
         )}
@@ -162,6 +164,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
             onClick={(e) => { e.stopPropagation(); onChange(''); }}
             aria-label="Remove photo"
             title="Remove photo"
+            className="pl-hit44"
             style={{
               position: 'absolute', top: 6, right: 6,
               width: 22, height: 22, borderRadius: 999,

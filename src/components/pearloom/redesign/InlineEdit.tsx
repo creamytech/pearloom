@@ -85,6 +85,45 @@ export function InlineEdit({
     }
   }, [value, focused]);
 
+  /* ── Keyboard-aware focus (phones) ───────────────────────────
+     On mobile the software keyboard shrinks the VISUAL viewport;
+     a field near the bottom of the screen can end up focused but
+     buried under the keyboard. After the keyboard settles (rAF +
+     ~300ms — iOS animates it in), check the node against
+     visualViewport and center it if covered. Guards: SSR +
+     browsers without visualViewport no-op; the timer is cleared
+     on blur/unmount so a quick tap-away never scrolls late. */
+  const keyboardScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearKeyboardScroll = () => {
+    if (keyboardScrollTimer.current) {
+      clearTimeout(keyboardScrollTimer.current);
+      keyboardScrollTimer.current = null;
+    }
+  };
+  useEffect(() => clearKeyboardScroll, []);
+  const scheduleKeyboardScroll = () => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    clearKeyboardScroll();
+    requestAnimationFrame(() => {
+      keyboardScrollTimer.current = setTimeout(() => {
+        keyboardScrollTimer.current = null;
+        const el = ref.current;
+        const vv = window.visualViewport;
+        if (!el || !vv || document.activeElement !== el) return;
+        const rect = el.getBoundingClientRect();
+        /* Covered when the node sits below the visual viewport's
+           bottom (under the keyboard / raised sheet) or above its
+           top. 12px of breathing room. */
+        const visibleTop = vv.offsetTop;
+        const visibleBottom = vv.offsetTop + vv.height;
+        if (rect.bottom > visibleBottom - 12 || rect.top < visibleTop) {
+          const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+        }
+      }, 300);
+    });
+  };
+
   if (!editable) {
     /* Read mode — plain text, no chrome, no interactivity. */
     const display = value || (typeof children === 'string' ? children : '');
@@ -112,8 +151,8 @@ export function InlineEdit({
       className={className}
       role="textbox"
       aria-label={placeholder}
-      onFocus={() => setFocused(true)}
-      onBlur={() => { setFocused(false); commit(); }}
+      onFocus={() => { setFocused(true); scheduleKeyboardScroll(); }}
+      onBlur={() => { setFocused(false); clearKeyboardScroll(); commit(); }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault();
