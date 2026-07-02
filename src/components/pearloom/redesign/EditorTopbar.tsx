@@ -26,10 +26,12 @@ interface Props {
    *  audit missing fields. Optional — if omitted the checklist
    *  pill is hidden. */
   manifest?: StoryManifest;
-  /** Phone-width chrome: icon-only mode pills, save dot + Publish
-   *  kept inline, everything else (Share / Theme / Decor /
-   *  Settings) tucked into an ellipsis menu so the bar fits
-   *  390px. Desktop layout is untouched when false. */
+  /** Phone-width chrome: mode pills hidden (the device-frame
+   *  toggle is meaningless when the viewport IS a phone; Preview
+   *  + Publish live in the MobileBottomBar), save dot kept
+   *  inline, everything else (Share / Theme / Decor / Settings)
+   *  tucked into an ellipsis menu so the bar fits 390px. Desktop
+   *  layout is untouched when false. */
   compact?: boolean;
   /** Owner-only Publish — co-hosts can edit but not press. */
   canPublish?: boolean;
@@ -154,8 +156,13 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         </Link>
       </div>
 
-      {/* Center zone — Edit / Preview / Mobile pill. Prototype L79-106. */}
+      {/* Center zone — Edit / Preview / Mobile pill. Prototype L79-106.
+          Hidden in compact: the device-frame toggle is meaningless
+          when the viewport IS a phone, and Preview lives in the
+          bottom bar (its exit is the floating pill). The empty div
+          keeps the flex spacing so the right cluster stays right. */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        {!compact && (
         <div
           style={{
             display: 'flex', gap: 2, padding: 3,
@@ -178,7 +185,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 aria-label={m.label}
                 title={m.label}
                 style={{
-                  padding: compact ? '6px 10px' : '6px 14px', borderRadius: 999,
+                  padding: '6px 14px', borderRadius: 999,
                   fontSize: 12.5, fontWeight: 600,
                   background: on ? 'var(--ink)' : 'transparent',
                   color: on ? 'var(--cream)' : 'var(--ink-soft)',
@@ -187,11 +194,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 }}
               >
                 <Icon name={m.icon} size={12} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
-                {!compact && m.label}
+                {m.label}
               </button>
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Golden thread chip — quiet pill between the mode pill and
@@ -334,16 +342,11 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         </div>
         {compact ? (
           <>
-            {/* Compact right zone — Publish + ellipsis menu. Pear
-                lives in the bottom bar; Share / Theme / Decor /
-                Settings overflow into the menu. GoLiveBadge +
+            {/* Compact right zone — ellipsis menu only. Publish
+                moved to the bottom bar (thumb range beats a tiny
+                top-right button); Share / Theme / Decor / Settings
+                overflow into the menu. GoLiveBadge +
                 PublishChecklist pills don't fit at 390px. */}
-            {canPublish && (
-              <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
-                Publish
-                <Icon name="arrow-up" size={12} color="var(--cream)" />
-              </button>
-            )}
             <div style={{ position: 'relative' }} ref={menuWrapRef}>
               <button
                 type="button"

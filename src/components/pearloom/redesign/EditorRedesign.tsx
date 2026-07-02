@@ -41,7 +41,7 @@ import { FittingRoom } from './FittingRoom';
 import { ThreePressings } from './ThreePressings';
 import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
-import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
+import { MobileSheet, MobileBottomBar, PreviewExitPill, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
 import { useEditorCollab } from './useEditorCollab';
 import { CoEditHighlights } from './CoEditHighlights';
@@ -252,6 +252,12 @@ export default function EditorRedesign({
      adjustment (the React-docs pattern, not an effect) — converges
      in one extra render. */
   if (!viewportMobile && mobileSheet) {
+    setMobileSheet(null);
+  }
+  /* Entering preview on a phone (bottom bar, topbar, or the ⌘K
+     toggle event): preview should read as the real site, so any
+     open sheet closes with it. Same render-time adjustment. */
+  if (viewportMobile && mode === 'preview' && mobileSheet) {
     setMobileSheet(null);
   }
 
@@ -469,17 +475,28 @@ export default function EditorRedesign({
         />
       )}
 
-      {/* ── Phone chrome — fixed bottom bar + bottom sheets. The
-          bar mirrors the desktop rails: Sections (left rail),
-          Theme (theme rail). Activating a section opens the
-          PropertyRail sheet. Hidden in Preview mode, matching how
-          the desktop rails unmount there. */}
+      {/* ── Phone chrome — fixed bottom bar + bottom sheets. Four
+          destinations: Sections (left rail) · Theme (theme rail) ·
+          Preview (mode flip) · Publish (owner-only, same
+          pearloom:open-publish path as the topbar), plus the
+          bridge's save state on the bar's right edge. Hidden in
+          Preview mode — the floating "Back to editing" pill below
+          is the exit there. */}
       {viewportMobile && mode !== 'preview' && (
         <MobileBottomBar
           activeSheet={mobileSheet}
           onSections={() => setMobileSheet('sections')}
           onTheme={() => setMobileSheet('theme')}
+          onPreview={() => setMode('preview')}
+          onPublish={viewerRole === 'owner' ? bridge.openPublish : undefined}
+          saveState={bridge.saveState}
         />
+      )}
+      {/* Phone preview strips ALL editor chrome so the site reads
+          exactly as guests will see it — this pill is the one
+          obvious exit. Viewers stay locked to preview (no pill). */}
+      {viewportMobile && mode === 'preview' && viewerRole !== 'viewer' && (
+        <PreviewExitPill onClick={() => setMode('edit')} />
       )}
       {viewportMobile && (
         <MobileSheet
@@ -724,9 +741,11 @@ function EditorCanvas({
         minHeight: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         /* Viewport-mobile: edge-to-edge canvas; the bottom inset
-           keeps the end of the site clear of the fixed bottom bar. */
+           keeps the end of the site clear of the fixed bottom bar.
+           Preview drops it — the bar unmounts there and only the
+           floating exit pill rides over the site. */
         padding: viewportMobile
-          ? '0 0 calc(64px + env(safe-area-inset-bottom))'
+          ? (isPreview ? 0 : '0 0 calc(64px + env(safe-area-inset-bottom))')
           : isMobile ? '24px 0' : '28px 24px',
         position: 'relative',
       }}
