@@ -347,7 +347,7 @@ function MomentTimeline({
 
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="clock" size={18} color="var(--gold)" />
           <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
@@ -365,9 +365,10 @@ function MomentTimeline({
           return (
             <div
               key={i}
+              className="pl8-dayof-tlrow"
               style={{
                 display: 'grid',
-                gridTemplateColumns: '48px 60px 1fr auto',
+                gridTemplateColumns: '48px 60px minmax(0, 1fr) auto',
                 gap: 14,
                 alignItems: 'center',
                 padding: '10px 8px',
@@ -414,6 +415,7 @@ function MomentTimeline({
                 {'d' in m && m.d && <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 2 }}>{m.d}</div>}
               </div>
               <div
+                className="pl8-dayof-tlstatus"
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
@@ -495,7 +497,7 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
   const heading = occasion === 'memorial' || occasion === 'funeral' ? 'What guests shared' : 'The live reel';
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="image" size={18} color="var(--gold)" />
           <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
@@ -785,7 +787,7 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
         : 'Notes from the crowd';
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="mail" size={18} color="var(--gold)" />
           <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
@@ -1137,7 +1139,7 @@ function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?:
         onEnded={handleEnded}
         style={{ display: 'none' }}
       />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="mic" size={18} color="var(--gold)" />
           <h3 className="display" style={{ fontSize: 24, margin: 0 }}>
@@ -1610,6 +1612,24 @@ export function DayOfV8() {
           </div>
         </div>
       </div>
+      {/* Phone-width timeline rows: drop the status column into a
+          second line under the title so "Happening now" never crams
+          the 1fr title track at 390px. */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .pl8-dayof-tlrow {
+            grid-template-columns: 36px 52px minmax(0, 1fr) !important;
+            gap: 10px !important;
+          }
+          .pl8-dayof-tlstatus {
+            grid-column: 2 / -1;
+            justify-self: start;
+          }
+          .pl8-dayof-tlstatus:empty {
+            display: none;
+          }
+        }
+      `}</style>
     </DashLayout>
   );
 }

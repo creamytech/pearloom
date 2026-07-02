@@ -103,13 +103,13 @@ const POSTER_SIZES: PosterSizePreset[] = [
   {
     id: 'a4', label: 'Welcome sign A4',
     aspect: '1 / 1.414', page: 'A4 portrait', maxWidth: 720,
-    pad: '64px 56px 56px', qr: 320, qrThemed: 280,
+    pad: 'clamp(32px, 9vw, 64px) clamp(22px, 8vw, 56px) clamp(22px, 8vw, 56px)', qr: 320, qrThemed: 280,
     headlineSize: 'clamp(34px, 4.6vw, 52px)', printPad: '14mm', compact: false,
   },
   {
     id: 'tent57', label: 'Table tent 5×7',
     aspect: '5 / 7', page: '5in 7in', maxWidth: 520,
-    pad: '44px 38px 38px', qr: 250, qrThemed: 220,
+    pad: 'clamp(26px, 7vw, 44px) clamp(20px, 6vw, 38px) clamp(20px, 6vw, 38px)', qr: 250, qrThemed: 220,
     headlineSize: 'clamp(26px, 3.4vw, 38px)', printPad: '9mm', compact: false,
   },
   {
@@ -365,7 +365,7 @@ export function QrPosterPage() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, maxWidth: 720 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 10, maxWidth: 720 }}>
             <input
               type="text"
               value={headline}
@@ -396,7 +396,7 @@ export function QrPosterPage() {
               <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>
                 Pick a world for Pear to paint
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 8 }}>
                 {suggestedThemes.map((t) => {
                   const on = themeId === t.id;
                   return (
@@ -625,8 +625,14 @@ export function QrPosterPage() {
                 src={qrUrl}
                 alt="QR code linking to your site"
                 style={{
+                  // Cap at the preset size, but never wider than the
+                  // poster surface — at 390px the A4 preview's inner
+                  // width is smaller than the 320px QR, which used to
+                  // clip the code off the paper.
                   width: posterMode === 'themed' && themedPosterUrl ? sizePreset.qrThemed : sizePreset.qr,
-                  height: posterMode === 'themed' && themedPosterUrl ? sizePreset.qrThemed : sizePreset.qr,
+                  maxWidth: '100%',
+                  height: 'auto',
+                  aspectRatio: '1 / 1',
                   display: 'block',
                 }}
               />
@@ -634,7 +640,8 @@ export function QrPosterPage() {
               <div
                 style={{
                   width: sizePreset.qr,
-                  height: sizePreset.qr,
+                  maxWidth: '100%',
+                  aspectRatio: '1 / 1',
                   background: 'var(--cream)',
                   border: '1px dashed var(--line)',
                   display: 'grid',

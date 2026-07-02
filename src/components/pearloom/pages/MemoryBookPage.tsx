@@ -213,9 +213,10 @@ function GuestEntry({
   if (photoUrl) {
     return (
       <div
+        className="pl8-mb-entry"
         style={{
           display: 'grid',
-          gridTemplateColumns: '160px 1fr',
+          gridTemplateColumns: '160px minmax(0, 1fr)',
           gap: 22,
           alignItems: 'start',
           marginBottom: 28,
@@ -357,7 +358,7 @@ export function MemoryBookPage() {
             background: 'var(--cream-2, #FBF7EE)',
             backgroundImage:
               'radial-gradient(circle at 20% 18%, rgba(184, 147, 90, 0.04) 0%, transparent 60%), radial-gradient(circle at 78% 82%, rgba(92, 107, 63, 0.04) 0%, transparent 60%)',
-            padding: '72px 64px',
+            padding: 'clamp(32px, 8vw, 72px) clamp(18px, 7vw, 64px)',
             borderRadius: 6,
             border: '1px solid var(--line-soft)',
             boxShadow: '0 8px 32px rgba(61, 74, 31, 0.08), 0 1px 3px rgba(61, 74, 31, 0.05)',
@@ -529,6 +530,7 @@ export function MemoryBookPage() {
                   sub="Moments stitched between the chapters."
                 />
                 <div
+                  className="pl8-mb-plate"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -678,6 +680,7 @@ export function MemoryBookPage() {
                   sub="Words recorded aloud — the audio lives on with your Pearloom celebration."
                 />
                 <ul
+                  className="pl8-mb-cols"
                   style={{
                     listStyle: 'none',
                     padding: 0,
@@ -726,6 +729,7 @@ export function MemoryBookPage() {
                   sub="Songs your guests asked for."
                 />
                 <ul
+                  className="pl8-mb-cols"
                   style={{
                     listStyle: 'none',
                     padding: 0,
@@ -793,6 +797,27 @@ export function MemoryBookPage() {
           </footer>
         </article>
       )}
+      {/* Phone-width book: photo entries stack (image above the
+          words), the photo plate drops to two-up, and the two-column
+          voice/playlist lists run single-column. Print is unaffected
+          — the paper box is wider than 640px. */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .pl8-mb-entry {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .pl8-mb-entry > img {
+            max-width: 200px;
+          }
+          .pl8-mb-plate {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .pl8-mb-cols {
+            column-count: 1 !important;
+          }
+        }
+      `}</style>
     </PLChrome>
   );
 }

@@ -258,7 +258,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
           </PLCard>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
             {recordedCount} of {prompts.length} captured
           </div>

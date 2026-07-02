@@ -539,7 +539,10 @@ function BatchCard({ batch }: { batch: Batch }) {
         padding: 18,
       }}
     >
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      {/* flexWrap + a real minWidth on the info column: at phone
+          widths the price/recipients column drops to its own line
+          instead of squeezing the batch summary to nothing. */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <img
           src={batch.frontUrl}
           alt=""
@@ -552,7 +555,7 @@ function BatchCard({ batch }: { batch: Batch }) {
             border: '1px solid var(--line)',
           }}
         />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 170 }}>
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4 }}>
             {batch.kind.replace(/-/g, ' ')} · {batch.product}
           </div>
@@ -603,7 +606,7 @@ function BatchCard({ batch }: { batch: Batch }) {
             {batch.jobs.map((j) => (
               <div key={j.id} style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr auto auto',
+                gridTemplateColumns: 'minmax(0, 1fr) auto auto',
                 gap: 10,
                 padding: '8px 10px',
                 borderRadius: 8,

@@ -174,7 +174,7 @@ export function WeekendBuilderPage() {
               Each one is a private draft, already linked to the others. Open one to make it yours and publish when it&rsquo;s ready —
               once published, guests on any site see a strip pointing to the rest of the weekend.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, maxWidth: 720, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, maxWidth: 720, margin: '0 auto' }}>
               {created.map((s) => (
                 <Link
                   key={s.slug}
@@ -203,7 +203,7 @@ export function WeekendBuilderPage() {
               {/* ── Step 1 · the celebration ─────────────────── */}
               <Card>
                 <StepEyebrow n={1} label="What are you planning?" />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
                   {WEEKEND_ANCHORS.map((a) => {
                     const on = a.id === anchorId;
                     return (
@@ -286,7 +286,7 @@ export function WeekendBuilderPage() {
               {/* ── Step 3 · the events ──────────────────────── */}
               <Card>
                 <StepEyebrow n={3} label="Choose the events" hint="Tap to include one. Each becomes its own site with its own guest list." />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 10 }}>
                   {arc.events.map((e) => {
                     const on = chosen.has(e.kind);
                     const iso = eventDate(e);

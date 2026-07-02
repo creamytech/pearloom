@@ -122,7 +122,7 @@ export function KeepsakesPage() {
         className="pl8-keepsakes-grid pl8-dash-stagger"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
           gap: 18,
           alignItems: 'start',
         }}

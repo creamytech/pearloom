@@ -270,7 +270,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
           Nothing yet — click above to draft prompts for every guest on this site.
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 14, marginTop: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(320px, 100%),1fr))', gap: 14, marginTop: 22 }}>
           {[...responded, ...pending].map((p) => (
             <div
               key={p.id}
@@ -412,7 +412,7 @@ function CapsulePanel({ siteId }: { siteId: string }) {
             {revealed.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Nothing ready to open yet.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(280px, 100%),1fr))', gap: 12 }}>
                 {revealed.map((c) => (
                   <div key={c.id} style={{ padding: 16, background: 'var(--peach-bg)', border: '1px solid var(--peach-2)', borderRadius: 14 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--peach-ink)', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -434,7 +434,7 @@ function CapsulePanel({ siteId }: { siteId: string }) {
                 No sealed notes yet. Guests can leave one on their Passport.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(240px, 100%),1fr))', gap: 10 }}>
                 {sealed.map((c) => (
                   <div key={c.id} style={{ padding: 14, background: 'var(--cream-2)', border: '1px dashed var(--line)', borderRadius: 12 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{c.guest_name}</div>
@@ -502,7 +502,7 @@ function SeatIntrosPanel({ siteId }: { siteId: string }) {
       />
 
       {loading ? <PanelThreading /> : items.length === 0 ? null : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 12, marginTop: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(320px, 100%),1fr))', gap: 12, marginTop: 22 }}>
           {items.map((s) => (
             <div key={s.guest_id} style={{ padding: 16, background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--peach-ink)', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -596,7 +596,7 @@ function SmsPanel({ siteId }: { siteId: string }) {
             {withPhone.length} guest{withPhone.length === 1 ? '' : 's'} with a phone on file
             {withoutPhone.length > 0 && ` · ${withoutPhone.length} missing`}
           </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 12, marginTop: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(320px, 100%),1fr))', gap: 12, marginTop: 6 }}>
           {ordered.map((s) => {
             const missingPhone = !s.phone || s.phone.trim().length === 0;
             return (

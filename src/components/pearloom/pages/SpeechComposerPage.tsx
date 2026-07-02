@@ -202,7 +202,7 @@ export function SpeechComposerPage() {
                 resize: 'vertical',
               }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
               <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
                 {text.split(/\s+/).filter(Boolean).length} words · {Math.ceil(text.length / 5)} chars
               </div>

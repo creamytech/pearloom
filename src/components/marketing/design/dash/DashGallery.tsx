@@ -9,6 +9,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLHead } from '@/components/pearloom/dash/PLChrome';
+import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 import { useUserSites } from './hooks';
 
 interface ReelPhoto {
@@ -352,7 +353,11 @@ function PhotoModerationQueue() {
 }
 
 function MasonryGrid({ photos, onOpen }: { photos: ReelPhoto[]; onOpen: (p: ReelPhoto) => void }) {
-  const cols = 4;
+  // 4-up was hardcoded — at 390px that's four 75px slivers. Follow
+  // the viewport instead: 2-up on phones, 3-up on tablets.
+  const isPhone = useIsMobile(640);
+  const isTablet = useIsMobile(1024);
+  const cols = isPhone ? 2 : isTablet ? 3 : 4;
   const split: ReelPhoto[][] = Array.from({ length: cols }, () => []);
   photos.forEach((p, i) => split[i % cols].push(p));
   return (
@@ -391,7 +396,7 @@ function Slideshow({ photos }: { photos: ReelPhoto[] }) {
     <Panel bg={PD.ink} style={{ padding: 0, overflow: 'hidden', border: 'none' }}>
       <div
         style={{
-          height: 520,
+          height: 'clamp(260px, 60vw, 520px)',
           background: `url(${proxied(p.url, 1400)}) center/cover`,
           position: 'relative',
         }}
@@ -542,7 +547,7 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
 
 function LoadingGrid() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(150px, 100%), 1fr))', gap: 14 }}>
       {[200, 280, 220, 300, 260, 240, 200, 320].map((h, i) => (
         <div
           key={i}

@@ -129,12 +129,13 @@ export function PassportCardsPage() {
             className="pl8-passport-sheet"
             style={{
               background: 'var(--cream)',
-              padding: '32px 28px',
+              padding: 'clamp(16px, 4vw, 32px) clamp(14px, 3.5vw, 28px)',
               borderRadius: 4,
               boxShadow: '0 4px 16px rgba(61,74,31,0.08)',
             }}
           >
             <div
+              className="pl8-passport-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
@@ -226,6 +227,16 @@ export function PassportCardsPage() {
           </div>
         )}
       </div>
+      {/* Phone-width sheet: one card per row so the name column and
+          the 128px QR both fit. Print keeps 2-up — the paper page box
+          is wider than 700px. */}
+      <style jsx global>{`
+        @media (max-width: 700px) {
+          .pl8-passport-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </DashLayout>
   );
 }

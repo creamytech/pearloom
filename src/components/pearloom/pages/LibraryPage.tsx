@@ -243,7 +243,7 @@ export function LibraryPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
             gap: 14,
             marginBottom: 22,
           }}
@@ -466,10 +466,15 @@ export function LibraryPage() {
                 width: '100%',
                 display: 'grid',
                 gap: 0,
+                // Short viewports: the image + caption panel can
+                // exceed the screen — keep the card scrollable so the
+                // Remove / Copy actions stay reachable on phones.
+                maxHeight: 'calc(100dvh - 48px)',
+                overflowY: 'auto',
               }}
             >
               <div style={{ background: 'var(--ink, #000)', display: 'grid', placeItems: 'center' }}>
-                <img src={selected.url} alt="" className="pl-media-modal-img" style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }} />
+                <img src={selected.url} alt="" className="pl-media-modal-img" style={{ maxWidth: '100%', maxHeight: '60vh', display: 'block' }} />
               </div>
               <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)', textTransform: 'uppercase' }}>
