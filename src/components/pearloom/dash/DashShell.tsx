@@ -931,12 +931,10 @@ function CelebrationCard() {
   );
 }
 
-/* ── Nav group with collapsible header ───────────────────────
-   The dashboard has 22+ nav items across 5 groups — too much to
-   fit one viewport. Each group is now collapsible: groups
-   containing the current route are open by default, others
-   collapsed. State persists in localStorage so the user's
-   open/closed choices stick across navigations.
+/* ── Nav group ────────────────────────────────────────────────
+   v2 IA: a static mono group label above its items — the old
+   collapsible-with-localStorage behavior was removed when the
+   nav was cut to 10 essentials (nothing persists here anymore).
    ──────────────────────────────────────────────────────────── */
 function NavGroup({
   group,

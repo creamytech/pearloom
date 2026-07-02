@@ -1,8 +1,12 @@
 'use client';
 
 // Submissions — real /api/event-os/* moderation wiring.
-// Merges tribute/advice/memory submissions + song/toast claims +
-// activity-vote tallies into a single moderated feed per site.
+// Merges tribute/advice/memory submissions + toast claims (and
+// guestbook wishes below) into a single moderated feed per site.
+// Activity-vote tallies do NOT surface here yet — /api/event-os/
+// votes is per-block (siteId+blockId) and tally-shaped, so a vote
+// panel needs its own design. Don't promise votes in this page's
+// copy until that lands.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
@@ -19,7 +23,7 @@ function submissionsBodyFor(occasion?: string | null): string {
     case 'memorial':
       return 'Memories and tribute notes land here first. Approve what honors them, tuck anything else away — privately.';
     case 'bachelor':
-      return 'Activity votes and toast slot claims come here. Lock the crew in; keep the quiet ones quiet.';
+      return 'Toast slot claims come here. Lock the crew in; keep the quiet ones quiet.';
     case 'shower':
       return 'Advice the guests left for the guest of honor — review before it lands on the site.';
     case 'reunion':
@@ -55,7 +59,9 @@ interface TributeEntry {
 interface ToastClaim {
   id: string;
   blockId: string;
-  slotLabel?: string;
+  /* The moderation endpoint returns the claim's slot INDEX
+     (toast_signups.slot_index), not a label. */
+  slotIndex?: number;
   claimedBy: string;
   at: string;
 }
@@ -133,7 +139,7 @@ export function DashSubmissions() {
         kind: 'toast',
         from: c.claimedBy || 'Guest',
         when: timeAgo(c.at),
-        body: c.slotLabel ? `Claimed "${c.slotLabel}" · toast signup` : 'Toast signup claim',
+        body: typeof c.slotIndex === 'number' ? `Claimed toast slot ${c.slotIndex + 1}` : 'Toast signup claim',
         status: 'approved',
         blockId: c.blockId,
       }));
@@ -202,6 +208,27 @@ export function DashSubmissions() {
         body: JSON.stringify({ id, state: nextState }),
       });
       if (!r.ok) throw new Error(`mod ${r.status}`);
+    } catch (err) {
+      setSubs(prev);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  /* Void a toast claim so the slot reopens on the published site.
+     Toast claims live in toast_signups (not tribute_submissions),
+     so they get this instead of approve/hide/flag. Optimistic
+     removal, same pattern as GuestbookModeration below. */
+  const voidToast = async (id: string) => {
+    setPendingId(id);
+    const prev = subs;
+    setSubs((rows) => rows.filter((r) => r.id !== id));
+    try {
+      const r = await fetch(`/api/event-os/toasts/moderation?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!r.ok) throw new Error(`void ${r.status}`);
     } catch (err) {
       setSubs(prev);
       setError(err instanceof Error ? err.message : String(err));
@@ -325,7 +352,8 @@ export function DashSubmissions() {
                     if (k.kind === 'tribute') return 'a tribute wall';
                     if (k.kind === 'advice') return 'an advice wall';
                     if (k.kind === 'toast') return 'a toast-signup block';
-                    if (k.kind === 'vote') return 'an activity-vote block';
+                    // 'vote' deliberately omitted — vote tallies
+                    // don't land in this feed (see header comment).
                     return null;
                   })
                   .filter(Boolean) as string[];
@@ -352,8 +380,9 @@ export function DashSubmissions() {
               // Toast claims + activity votes live in their own
               // stores (toast_signups / activity_votes) — the
               // tribute-submissions moderation endpoint can't touch
-              // them, so their cards are read-only here. Toasts have
-              // their own void control in the toast claims list.
+              // them, so approve/hide/flag stays off their cards.
+              // Toasts get a "Reopen slot" control (voidToast) wired
+              // to DELETE /api/event-os/toasts/moderation instead.
               const moderatable = s.kind !== 'toast' && s.kind !== 'vote';
               return (
               <Panel
@@ -457,6 +486,18 @@ export function DashSubmissions() {
                         Flag
                       </button>
                     )}
+                  </div>
+                )}
+
+                {s.kind === 'toast' && (
+                  <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+                    <button
+                      disabled={pendingId === s.id}
+                      onClick={() => void voidToast(s.id)}
+                      className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                    >
+                      Reopen slot
+                    </button>
                   </div>
                 )}
               </Panel>

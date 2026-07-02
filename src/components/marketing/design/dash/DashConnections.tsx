@@ -96,13 +96,17 @@ export function DashConnections() {
       ? grouped.byCeleb[focusCelebId]
       : null;
 
-  async function link(siteId: string, celebration: CelebrationRef | null) {
-    setSaving(siteId);
+  /* `siteDomain` is the site's SUBDOMAIN, not its uuid — the
+     celebrations API resolves `siteId` via `.eq('subdomain', …)`
+     (see /api/celebrations PATCH + the WizardV8 caller). Passing
+     the uuid 404s silently on every link/unlink. */
+  async function link(siteDomain: string, celebration: CelebrationRef | null) {
+    setSaving(siteDomain);
     try {
       const r = await fetch('/api/celebrations', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, celebration }),
+        body: JSON.stringify({ siteId: siteDomain, celebration }),
       });
       if (!r.ok) {
         const err = await r.json().catch(() => ({}));
@@ -115,10 +119,10 @@ export function DashConnections() {
     }
   }
 
-  async function createCelebration(siteId: string) {
+  async function createCelebration(siteDomain: string) {
     const name = newCelebName.trim();
     if (!name) return;
-    await link(siteId, { id: '', name });
+    await link(siteDomain, { id: '', name });
     setNewCelebName('');
   }
 
@@ -563,7 +567,7 @@ function CelebrationGraph({
         const x = cx + Math.cos(angle) * radius;
         const y = cy + Math.sin(angle) * radius;
         const color = occasionColor(s.occasion);
-        const isSaving = saving === s.id;
+        const isSaving = saving === s.domain;
         return (
           <div
             key={s.id}
@@ -622,7 +626,7 @@ function CelebrationGraph({
               </div>
               <button
                 disabled={isSaving}
-                onClick={() => onUnlink(s.id)}
+                onClick={() => onUnlink(s.domain)}
                 style={{
                   fontSize: 10,
                   padding: '3px 8px',
@@ -682,7 +686,7 @@ function StandaloneList({
       </div>
       {sites.map((s) => {
         const open = linkOpen === s.id;
-        const busy = saving === s.id;
+        const busy = saving === s.domain;
         return (
           <div
             key={s.id}
@@ -754,7 +758,7 @@ function StandaloneList({
                       {celebrations.map((c) => (
                         <button
                           key={c.id}
-                          onClick={() => onLink(s.id, c)}
+                          onClick={() => onLink(s.domain, c)}
                           style={{
                             padding: '6px 12px',
                             fontSize: 12,
@@ -778,7 +782,7 @@ function StandaloneList({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    onCreateCelebration(s.id);
+                    onCreateCelebration(s.domain);
                   }}
                   style={{
                     display: 'flex',

@@ -140,13 +140,6 @@ function UsRow({ children, style }: { children: ReactNode; style?: CSSProperties
   // line instead of crushing the label into a one-word-per-line column.
   return <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '13px 0', borderBottom: '1px solid var(--line-soft)', ...style }}>{children}</div>;
 }
-function UsToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
-  return (
-    <button onClick={() => set(!on)} style={{ width: 40, height: 23, borderRadius: 999, background: on ? 'var(--sage-deep)' : 'var(--cream-3)', position: 'relative', flexShrink: 0, transition: 'background 160ms ease', cursor: 'pointer', border: 'none' }}>
-      <span style={{ position: 'absolute', top: 2.5, left: on ? 19.5 : 2.5, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 160ms cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-    </button>
-  );
-}
 function UsField({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div style={{ flex: 1, minWidth: 180 }}>
@@ -396,28 +389,13 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
 }
 
 function PreferencesTab() {
-  const [notif, setNotif] = useState(true);
-  const [digest, setDigest] = useState(true);
-  const [autosave, setAutosave] = useState(true);
-  const [motion, setMotion] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    fetch('/api/user/preferences', { method: 'GET', credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.preferences) {
-          if (typeof data.preferences.email_notifications === 'boolean') setNotif(data.preferences.email_notifications);
-          if (typeof data.preferences.weekly_digest === 'boolean') setDigest(data.preferences.weekly_digest);
-          if (typeof data.preferences.autosave === 'boolean') setAutosave(data.preferences.autosave);
-          if (typeof data.preferences.reduced_motion === 'boolean') setMotion(data.preferences.reduced_motion);
-        }
-      })
-      .catch(() => {});
-  }, []);
-  const patch = (body: Record<string, boolean>) => {
-    if (typeof window === 'undefined') return;
-    fetch('/api/user/preferences', { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
-  };
+  /* NOTE deliberately no email/digest/autosave/reduced-motion
+     toggles here: the previous set wrote fields the preferences
+     API dropped (not in its PATCH allow-list) and read a
+     `data.preferences` envelope it never returned — every toggle
+     was a no-op. Email notification choices live in the
+     Notifications tab (per-category, actually persisted); reduced
+     motion follows the OS `prefers-reduced-motion` setting. */
   const { preference, setPreference } = useTheme();
   return (
     <div>
@@ -452,10 +430,6 @@ function PreferencesTab() {
           })}
         </div>
       </UsRow>
-      <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Email notifications</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>RSVPs, partner edits, and Pear nudges.</div></div><UsToggle on={notif} set={(v) => { setNotif(v); patch({ email_notifications: v }); }} /></UsRow>
-      <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Weekly digest</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>A Sunday summary of what changed.</div></div><UsToggle on={digest} set={(v) => { setDigest(v); patch({ weekly_digest: v }); }} /></UsRow>
-      <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Autosave</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Save edits as you go.</div></div><UsToggle on={autosave} set={(v) => { setAutosave(v); patch({ autosave: v }); }} /></UsRow>
-      <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Reduced motion</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Calm the scroll-reveal animations.</div></div><UsToggle on={motion} set={(v) => { setMotion(v); patch({ reduced_motion: v }); }} /></UsRow>
       <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: 'var(--pl-plum, #b4543a)' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: 'var(--pl-plum, #b4543a)', borderColor: 'color-mix(in oklab, var(--pl-plum, #b4543a) 30%, transparent)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
     </div>
   );

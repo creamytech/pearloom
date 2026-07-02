@@ -288,7 +288,11 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
                   </div>
                 )}
                 <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-                  Pear is now writing in your voice across the cadence, story passes, and thank-you drafts. Re-record any time to refresh.
+                  {/* Scope this claim to what actually reads
+                      manifest.voiceDNA today: the cadence drafts
+                      (/api/cadence/draft). Widen it only when the
+                      story / thank-you paths consume the profile. */}
+                  Pear now writes your cadence notes in your voice. Re-record any time to refresh.
                 </div>
               </div>
             </div>

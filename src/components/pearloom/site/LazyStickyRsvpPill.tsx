@@ -11,9 +11,6 @@
 // show/dismiss/occlusion logic takes over untouched (its scroll
 // handler runs once on mount, so state is correct even if the guest
 // kept scrolling while the chunk loaded).
-//
-// Also loads on `pearloom:broadcast-dock` so the pill's dock-
-// avoidance state can't miss the dock's announcement.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -44,11 +41,9 @@ export function LazyStickyRsvpPill(props: Props) {
       if (window.scrollY > 0) arm();
     });
     window.addEventListener('scroll', arm, { passive: true, once: true });
-    window.addEventListener('pearloom:broadcast-dock', arm);
     return () => {
       cancelAnimationFrame(id);
       window.removeEventListener('scroll', arm);
-      window.removeEventListener('pearloom:broadcast-dock', arm);
     };
   }, [load]);
 

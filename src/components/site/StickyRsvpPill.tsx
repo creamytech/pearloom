@@ -10,14 +10,9 @@
 // colour-matched to the site's accent.
 //
 // Bottom-right corner stacking policy (shared with
-// pearloom/site/GuestPearChat.tsx + pearloom/site/DayOfBroadcastDock.tsx):
+// pearloom/site/GuestPearChat.tsx):
 //   GuestPearChat      z 160  (topmost — open chat panel)
 //   StickyRsvpPill     z 150  (this file)
-//   DayOfBroadcastDock z 140
-// When the broadcast dock is OPEN on viewports < 480px the pill
-// hides entirely — day-of broadcasting is the priority surface and
-// there isn't room for both. The dock announces open/close via the
-// `pearloom:broadcast-dock` window event.
 //
 // Occlusion guard: the pill also fades out when the guest reaches
 // the page footer (IntersectionObserver on the site's <footer>,
@@ -63,8 +58,6 @@ export function StickyRsvpPill({
   const [overRsvp, setOverRsvp] = useState(false);
   const [nearFooter, setNearFooter] = useState(false);
   const [scrollingDown, setScrollingDown] = useState(false);
-  const [dockOpen, setDockOpen] = useState(false);
-  const [smallViewport, setSmallViewport] = useState(false);
 
   // ONE merged scroll handler for the three scroll-derived signals
   // (30%-scrolled show, near-bottom footer fallback, mobile FAB
@@ -148,23 +141,6 @@ export function StickyRsvpPill({
     return () => observer.disconnect();
   }, []);
 
-  // Corner coordination (see stacking-policy comment above): the
-  // day-of broadcast dock announces its open state; on <480px
-  // viewports the open dock owns the corner and the pill yields.
-  useEffect(() => {
-    const onDock = (e: Event) =>
-      setDockOpen(Boolean((e as CustomEvent<{ open?: boolean }>).detail?.open));
-    window.addEventListener('pearloom:broadcast-dock', onDock);
-    return () => window.removeEventListener('pearloom:broadcast-dock', onDock);
-  }, []);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 479px)');
-    const update = () => setSmallViewport(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-
   /* Phones don't get the floating pill at all (host feedback,
      2026-07-02): on a small screen it crowds the reading column and
      duplicates paths guests already have — the sticky nav's RSVP
@@ -207,8 +183,7 @@ export function StickyRsvpPill({
 
   const visible =
     !phone &&
-    show && !dismissed && !overRsvp && !nearFooter && !scrollingDown &&
-    !(dockOpen && smallViewport);
+    show && !dismissed && !overRsvp && !nearFooter && !scrollingDown;
 
   return (
     <AnimatePresence>
@@ -225,7 +200,7 @@ export function StickyRsvpPill({
             position: 'fixed',
             bottom: 'calc(clamp(16px, 3vw, 28px) + env(safe-area-inset-bottom, 0px))',
             right: 'clamp(16px, 3vw, 28px)',
-            /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
+            /* Corner stacking policy: chat 160 > pill 150. */
             zIndex: 150,
             display: 'inline-flex',
             alignItems: 'center',

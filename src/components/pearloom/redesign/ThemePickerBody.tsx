@@ -31,6 +31,7 @@ import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
 import { WALLPAPERS } from '@/lib/site-look/wallpapers';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
+import { COMMAND_PALETTE_OPEN_EVENT } from '../editor/CommandPalette';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
@@ -200,7 +201,7 @@ function EventTypeChip({ manifest, onChange }: { manifest: StoryManifest; onChan
         className="lift"
         onClick={() => {
           if (typeof window === 'undefined') return;
-          window.dispatchEvent(new CustomEvent('pearloom:open-command-palette'));
+          window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
         }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,

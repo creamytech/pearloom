@@ -13,22 +13,51 @@ export function ThankYouGenerator() {
   const [tone, setTone] = useState<'warm' | 'short' | 'heartfelt'>('warm');
   const [notes, setNotes] = useState<Note[]>([]);
 
+  /* /api/ai-thankyou is a single-note endpoint: it requires
+     `{ guestName, coupleNames }` and returns `{ note }` (see the
+     route + the TwoTapThanks caller). Draft one note per guest,
+     sequentially so the per-user rate limit isn't tripped, and
+     keep whatever was drafted if a later request fails. */
   const { state, error, run } = useAICall(async () => {
     const guests = guestList
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean);
     if (!guests.length) throw new Error('Paste at least one guest name');
-    const res = await fetch('/api/ai-thankyou', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ siteId: site?.id, guests, tone }),
-    });
-    if (!res.ok) throw new Error(`Pear couldn't draft (${res.status})`);
-    const data = (await res.json()) as { notes?: Note[] };
-    if (!data.notes?.length) throw new Error('No notes returned');
-    setNotes(data.notes);
-    return data.notes;
+    const hostNames = (Array.isArray(site?.names) ? site?.names : []).filter(Boolean);
+    const coupleNames = hostNames.length ? hostNames.join(' & ') : 'us';
+    const vibe = tone === 'short'
+      ? 'short and sweet — two sentences at most'
+      : tone === 'heartfelt'
+        ? 'heartfelt and tender'
+        : 'warm and easy';
+    const drafted: Note[] = [];
+    setNotes([]);
+    for (const guest of guests) {
+      const res = await fetch('/api/ai-thankyou', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: guest,
+          coupleNames,
+          occasion: site?.occasion ?? 'wedding',
+          vibe,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(
+          drafted.length
+            ? `Pear couldn't draft past ${drafted.length} of ${guests.length} (${res.status}) — the drafted notes are kept below`
+            : `Pear couldn't draft (${res.status})`,
+        );
+      }
+      const data = (await res.json()) as { note?: string };
+      const message = String(data.note ?? '').trim();
+      if (!message) throw new Error('No note returned');
+      drafted.push({ guest, message });
+      setNotes([...drafted]);
+    }
+    return drafted;
   });
 
   return (
@@ -48,7 +77,7 @@ export function ThankYouGenerator() {
         Thank-you notes, <span className="display-italic">drafted.</span>
       </h3>
       <AIHint>
-        Paste a list of guest names (one per line). Pear drafts a personalized note for each, referencing the event and what they brought.
+        Paste a list of guest names (one per line). Pear drafts a personalized note for each, in your event's key.
       </AIHint>
 
       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Guest list</label>

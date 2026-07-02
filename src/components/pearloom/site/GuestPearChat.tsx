@@ -16,10 +16,9 @@
 // personal page is its own conversation surface.
 //
 // Bottom-right corner stacking policy (shared with
-// site/StickyRsvpPill.tsx + pearloom/site/DayOfBroadcastDock.tsx):
+// site/StickyRsvpPill.tsx):
 //   GuestPearChat      z 160  (this file — topmost)
 //   StickyRsvpPill     z 150
-//   DayOfBroadcastDock z 140
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
@@ -228,7 +227,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
           position: 'fixed',
           bottom: 18,
           right: 18,
-          /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
+          /* Corner stacking policy: chat 160 > pill 150. */
           zIndex: 160,
           padding: '10px 16px 10px 12px',
           borderRadius: 999,
@@ -259,7 +258,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
         position: 'fixed',
         bottom: 18,
         right: 18,
-        /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
+        /* Corner stacking policy: chat 160 > pill 150. */
         zIndex: 160,
         /* Subtract the right notch inset (landscape phones) so the
            panel's left edge doesn't get pushed past the viewport. */

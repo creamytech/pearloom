@@ -214,7 +214,7 @@ function SiteCard({
               <span key={i} title={(stat?.cohosts ?? [])[i]?.email} style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[(i + 1) % avatarTints.length], border: '2px solid var(--card)', marginLeft: -7, display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ch}</span>
             ))}
           </div>
-          <Link href={`/editor/${encodeURIComponent(site.domain)}?cohosts=1`} title="Invite a co-host" style={{ width: 24, height: 24, borderRadius: 999, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-muted)', display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
+          <Link href={`/editor/${encodeURIComponent(site.domain)}?jump=cohost`} title="Invite a co-host" style={{ width: 24, height: 24, borderRadius: 999, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-muted)', display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
             <Icon name="plus" size={12} />
           </Link>
         </div>

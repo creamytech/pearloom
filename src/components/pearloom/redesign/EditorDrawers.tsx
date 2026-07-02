@@ -4,7 +4,7 @@
 /* Floating chrome for the redesign editor — Decor Library drawer,
    Theme Shop bottom sheet, Command Palette modal. All listen on
    window events ('pearloom:open-decor-library',
-   'pearloom:open-theme-shop', 'pearloom:open-command-palette') so
+   'pearloom:open-theme-shop', 'pearloom:command-palette-open') so
    deep surfaces can pop them without prop-drilling. */
 
 import dynamic from 'next/dynamic';

@@ -225,8 +225,13 @@ function InsightCard({
             </Link>
           )}
           {insight.action.kind === 'collect-address' && (
+            /* Plain roster link — DashGuests reads no `filter` query
+               param (its filter union is all/rsvp/stale/dupes), so
+               the old `&filter=missing-address` was a dead param
+               promising a jump that never happened. Add the param
+               back only alongside a real missing-address filter. */
             <Link
-              href={`/dashboard/rsvp?site=${encodeURIComponent(siteSlug)}&filter=missing-address`}
+              href={`/dashboard/rsvp?site=${encodeURIComponent(siteSlug)}`}
               style={{ ...actionBtn(tone.fg), textDecoration: 'none' }}
             >
               {insight.action.label}
