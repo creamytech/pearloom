@@ -137,7 +137,11 @@ export function WelcomeFlowClient({
   }
 
   const firstName = name.trim().split(/\s+/)[0] || 'friend';
-  const beginHref = nextHref ?? (intent === 'exploring' ? '/dashboard' : '/wizard/new');
+  /* Sign-in always lands on the DASHBOARD — home base with the
+     kickoff cards, never a forced march into the wizard. Starting
+     a site is the explicit secondary choice below. An explicit
+     ?next= deep link still wins. */
+  const beginHref = nextHref ?? '/dashboard';
 
   // Enter advances wherever a primary action is live.
   useEffect(() => {
@@ -428,7 +432,7 @@ export function WelcomeFlowClient({
                 <p style={{ fontSize: '0.92rem', color: INK_SOFT, lineHeight: 1.6, maxWidth: 420, margin: '0 auto 28px' }}>
                   {intent === 'memorial'
                     ? 'We’ll move gently. Begin whenever it feels right.'
-                    : 'Pear drafts a first site in about twenty seconds — every word of it yours to change.'}
+                    : 'Your loom is set up and waiting — and whenever you’re ready, Pear drafts a first site in about twenty seconds, every word of it yours to change.'}
                 </p>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button
@@ -442,11 +446,11 @@ export function WelcomeFlowClient({
                       border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    Begin a thread
+                    Step into your loom
                   </button>
                   <button
                     type="button"
-                    onClick={() => router.replace('/dashboard')}
+                    onClick={() => router.replace('/wizard/new')}
                     style={{
                       padding: '13px 22px',
                       borderRadius: 'var(--pl-radius-full, 100px)',
@@ -455,7 +459,7 @@ export function WelcomeFlowClient({
                       border: `1px solid ${LINE}`, cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    Look around first
+                    Begin a site right away
                   </button>
                 </div>
               </>
