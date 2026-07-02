@@ -7,7 +7,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
-import { AIHint, useAICall } from '../editor/ai';
+import { useAICall } from '../editor/ai';
+import { HintChip, StatStrip } from './QuietDash';
 import { Icon } from '../motifs';
 import { PearThinking } from '../pear-thinking';
 
@@ -220,13 +221,23 @@ export function TwoTapThanks() {
       <h3 className="display" style={{ margin: 0, fontSize: 26 }}>
         Drafted from <span className="display-italic">what they did.</span>
       </h3>
-      <AIHint>
-        Tap a guest → see what they did (memory, whisper, song, attendance) → tap Draft → Pear writes a note grounded
-        in their specific contribution. Copy and send. Next.
-      </AIHint>
+      {/* The old always-mounted how-to card is now a dismissible
+          one-liner (DASHBOARD-LAYOUT-PLAN rule 4). */}
+      <HintChip
+        storageKey="pl-hint-two-tap-thanks"
+        hint="Tap a guest, tap Draft — Pear writes from what they did."
+        detail="Tap a guest to see what they did — a memory, a whisper, a song, their RSVP. Tap Draft and Pear writes a note grounded in that specific contribution. Copy, send, next."
+      />
       {guests.length > 0 && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12, color: 'var(--ink-soft)' }}>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 12, color: 'var(--ink-soft)' }}>
+          <StatStrip
+            items={[
+              { label: 'thanked', value: sentCount, tone: 'sage' },
+              { label: 'to thank', value: guests.length - sentCount, tone: 'peach' },
+            ]}
+            style={{ flex: 1, minWidth: 0 }}
+          />
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0 }}>
             <input
               type="checkbox"
               checked={hideSent}
@@ -234,9 +245,6 @@ export function TwoTapThanks() {
             />
             Hide sent
           </label>
-          <span>
-            {sentCount} of {guests.length} done
-          </span>
         </div>
       )}
 

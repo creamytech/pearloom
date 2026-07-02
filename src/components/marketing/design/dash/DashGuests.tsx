@@ -3,10 +3,11 @@
 // Guests — real /api/guests wiring + RSVP stats derived from
 // the guest list client-side.
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PageIntro, StatStrip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { Icon, Sprig } from '@/components/pearloom/motifs';
 import Link from 'next/link';
@@ -1027,15 +1028,23 @@ export function DashGuests() {
   }, [rows, filter, q, duplicateIds]);
 
   if (!siteLoading && (!sites || sites.length === 0)) {
+    // ONE empty state (plan rule 5): the card carries the sentence;
+    // the header never restates it.
     return (
-      <DashLayout active="guests" title="Guests" subtitle="Create a site first, then invite guests.">
+      <DashLayout active="guests" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+          <PageIntro eyebrow="Guests" title="The guest list." />
+        </div>
         <EmptyShell message="Create a site first, then invite guests." />
       </DashLayout>
     );
   }
   if (!site) {
     return (
-      <DashLayout active="guests" title="Guests" subtitle="Pick a site from the top-right menu to see its guests.">
+      <DashLayout active="guests" hideTopbar>
+        <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+          <PageIntro eyebrow="Guests" title="The guest list." />
+        </div>
         <EmptyShell message="Pick a site from the top-right menu to see its guests." />
       </DashLayout>
     );
@@ -1090,7 +1099,6 @@ export function DashGuests() {
     }
     window.setTimeout(() => setCopyAllNote(null), 4000);
   };
-  const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
   const copy = guestCopy(site?.occasion);
   const solemn = copy.solemn;
@@ -1104,79 +1112,63 @@ export function DashGuests() {
     (site?.manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig?.guestListOnly,
   );
 
+  // Quiet StatStrip (plan rule 3) — replaces both the "N coming,
+  // N maybe, N still quiet." display headline and the six 100px
+  // KPI cards. Zeros collapse into one muted trailing chip.
+  const statItems: StatStripItem[] = [
+    { label: 'Invited', value: counts.all },
+    { label: 'Yes', value: counts.yes, tone: 'sage' },
+    { label: 'Pending', value: counts.pending, tone: 'peach' },
+    { label: 'Maybe', value: counts.maybe, tone: 'gold' },
+    ...(solemn ? [] : [{ label: 'Stale', value: counts.stale, tone: 'plum' as const }]),
+    { label: 'Declined', value: counts.no },
+  ];
+
   return (
-    <DashLayout
-      active="guests"
-      eyebrow="Guests"
-      title={
-        hasGuests ? (
-          <span>
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              {counts.yes}
-            </i>{' '}
-            {copy.verbComing},{' '}
-            <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              {counts.maybe}
-            </i>{' '}
-            maybe,{' '}
-            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              {counts.pending}
-            </i>{' '}
-            {copy.verbQuiet}.
-          </span>
-        ) : (
-          <span>
-            No guests{' '}
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              yet.
-            </i>
-          </span>
-        )
-      }
-      subtitle={
-        <>
-          {copy.topSubtitle}
-          {siteName ? ` · ${siteName}.` : '.'}
-          {site?.occasion === 'memorial' || site?.occasion === 'funeral'
-            ? ' Pear checks in quietly — no follow-ups unless you ask.'
-            : ' Pear is following up on the quiet ones once a week.'}
-        </>
-      }
-      actions={
-        <>
-          <Link href="/dashboard/guest-review" className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none' }}>
-            Pear&rsquo;s review
-          </Link>
-          {phoneCount > 0 && (
-            <button
-              className="pl8-btnfx" style={btnGhost}
-              disabled={smsState === 'sending'}
-              onClick={() => {
-                if (smsState === 'armed') { setSmsState('idle'); void sendTextInvites(); }
-                else { setSmsState('armed'); setSmsNote(null); window.setTimeout(() => setSmsState((cur) => (cur === 'armed' ? 'idle' : cur)), 4000); }
-              }}
-            >
-              {smsState === 'sending' ? 'Texting…'
-                : smsState === 'armed' ? `Text ${phoneCount} ${phoneCount === 1 ? 'guest' : 'guests'}?`
-                : 'Text invites'}
-            </button>
-          )}
-          {(sites?.length ?? 0) >= 2 && (
-            <button className="pl8-btnfx" style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
-              Copy from another event
-            </button>
-          )}
-          {hasGuests && (
-            <button className="pl8-btnfx" style={btnGhost} onClick={copyAllLinks}>Copy links</button>
-          )}
-          <button className="pl8-btnfx" style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
-          <button className="pl8-btnfx" style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
-            ✦ Add a guest
-          </button>
-        </>
-      }
-    >
+    <DashLayout active="guests" hideTopbar>
       <PLAtmosphere />
+      {/* Quiet header (plan rules 1 + 6): one line + StatStrip; the
+          prose subtitle is gone (Pear's follow-up note lives in the
+          rail). Secondary actions fold into the ⋯ menu. */}
+      <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto' }}>
+        <PageIntro
+          eyebrow={siteName ? `Guests · ${siteName}` : 'Guests'}
+          title="The guest list."
+          meta={hasGuests ? <StatStrip items={statItems} /> : undefined}
+          actions={
+            <>
+              <button className="pl8-btnfx" style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
+              <button className="pl8-btnfx" style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
+                ✦ Add a guest
+              </button>
+              <MoreMenu
+                items={[
+                  { key: 'review', label: 'Pear’s review', href: '/dashboard/guest-review' },
+                  ...(phoneCount > 0
+                    ? [{
+                        key: 'sms',
+                        label: smsState === 'sending' ? 'Texting…'
+                          : smsState === 'armed' ? `Text ${phoneCount} ${phoneCount === 1 ? 'guest' : 'guests'}?`
+                          : 'Text invites',
+                        disabled: smsState === 'sending',
+                        keepOpen: true,
+                        onSelect: () => {
+                          if (smsState === 'armed') { setSmsState('idle'); void sendTextInvites(); }
+                          else { setSmsState('armed'); setSmsNote(null); window.setTimeout(() => setSmsState((cur) => (cur === 'armed' ? 'idle' : cur)), 4000); }
+                        },
+                      }]
+                    : []),
+                  ...((sites?.length ?? 0) >= 2
+                    ? [{ key: 'copy-guests', label: 'Copy from another event', disabled: !site?.id, onSelect: () => setCopyOpen(true) }]
+                    : []),
+                  ...(hasGuests ? [{ key: 'copy-links', label: 'Copy links', onSelect: () => { void copyAllLinks(); } }] : []),
+                ]}
+              />
+            </>
+          }
+          style={{ marginBottom: 14 }}
+        />
+      </div>
       {/* Roster / Submissions / Registry tabs come from the shell's
           DashSubNav — no in-page duplicate strip. */}
       <main
@@ -1192,156 +1184,39 @@ export function DashGuests() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* STATS */}
-          <div
-            className="pd-guests-stats pl8-dash-stagger"
-            style={{ display: 'grid', gridTemplateColumns: `repeat(${solemn ? 5 : 6},1fr)`, gap: 10 }}
-          >
-            {[
-              { l: 'Invited', v: counts.all, c: PD.stone },
-              { l: 'Yes', v: counts.yes, c: PD.olive },
-              { l: 'Maybe', v: counts.maybe, c: PD.gold },
-              { l: 'Pending', v: counts.pending, c: PD.plum },
-              // Solemn events never surface the stale/no-reply framing —
-              // "Pear checks in quietly — no follow-ups unless you ask."
-              ...(solemn ? [] : [{ l: 'Stale', v: counts.stale, c: PD.terra, hint: '> 7 days, no reply' }]),
-              { l: 'Declined', v: counts.no, c: PD.stone },
-            ].map((s) => (
-              <Panel key={s.l} bg={PD.paperCard} style={{ padding: '14px 16px' }}>
-                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
-                  {s.l.toUpperCase()}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                  <div
-                    style={{
-                      ...DISPLAY_STYLE,
-                      fontSize: 34,
-                      lineHeight: 1,
-                      fontWeight: 400,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    {s.v}
-                  </div>
-                  <div
-                    style={{
-                      flex: 1,
-                      height: 5,
-                      background: PD.paper3,
-                      borderRadius: 99,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${Math.min(100, (s.v / capacity) * 100)}%`,
-                        height: '100%',
-                        background: s.c,
-                        borderRadius: 99,
-                      }}
-                    />
-                  </div>
-                </div>
-              </Panel>
-            ))}
-          </div>
-
-          {/* PER-EVENT HEADCOUNT — only when there are 2+ events.
-              Each card shows the event name + "X yes · Y maybe"
-              so caterers + venues see the real numbers per moment. */}
+          {/* PER-EVENT HEADCOUNT — one compact chip row (plan:
+              by-event cards → chips), hscroll on phones so the
+              roster stays inside the first viewport. Only when
+              there are 2+ events. */}
           {showPerEvent && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
-                BY EVENT
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(${Math.min(4, events.length)}, 1fr)`,
-                  gap: 10,
-                }}
-              >
-                {events.map((ev) => {
-                  const c = perEventCounts[ev.id] ?? { yes: 0, maybe: 0 };
-                  return (
-                    <Panel key={ev.id} bg={PD.paperCard} style={{ padding: '12px 14px' }}>
-                      <div
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 600,
-                          color: PD.ink,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {ev.name ?? 'Event'}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 6 }}>
-                        <span
-                          style={{
-                            ...DISPLAY_STYLE,
-                            fontSize: 26,
-                            lineHeight: 1,
-                            color: PD.olive,
-                            fontWeight: 400,
-                          }}
-                        >
-                          {c.yes}
-                        </span>
-                        <span style={{ fontSize: 11, color: '#6A6A56' }}>yes</span>
-                        {c.maybe > 0 && (
-                          <>
-                            <span style={{ fontSize: 11, color: PD.gold, marginLeft: 8 }}>· {c.maybe} maybe</span>
-                          </>
-                        )}
-                      </div>
-                      {ev.time && (
-                        <div style={{ fontSize: 10.5, color: '#9A9488', marginTop: 4 }}>
-                          {ev.time}
-                        </div>
-                      )}
-                    </Panel>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* FOR THE CATERER — meal choices + dietary/allergy notes
-              tallied across everyone coming (the v2 "The count"
-              sidebar). Real data only; hidden until guests have
-              actually picked meals or flagged dietary needs. */}
-          {(cater.meals.length > 0 || cater.diets.length > 0) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
-                {solemn ? 'FOR THE MEAL COUNT' : 'FOR THE CATERER'}
-              </div>
-              <Panel bg={PD.paperCard} style={{ padding: '14px 16px' }}>
-                {cater.meals.length > 0 && (
-                  <div>
-                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>MEALS CHOSEN</div>
-                    {cater.meals.map(([m, n]) => (
-                      <div key={m} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span style={{ flex: 1, fontSize: 12.5, color: PD.ink }}>{m}</span>
-                        <span style={{ ...MONO_STYLE, fontSize: 12, opacity: 1, color: PD.ink }}>{n}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {cater.diets.length > 0 && (
-                  <div style={{ marginTop: cater.meals.length > 0 ? 13 : 0 }}>
-                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>DIETARY &amp; ALLERGIES</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {cater.diets.map(([d, n]) => (
-                        <span key={d} style={{ fontSize: 11.5, padding: '3px 9px', borderRadius: 999, background: 'var(--pl-plum-mist, #EFE2E6)', color: 'var(--pl-plum, #7A2D40)' }}>
-                          {d}{n > 1 ? ` · ${n}` : ''}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </Panel>
+            <div className="pl-hscroll" style={{ gap: 8, alignItems: 'center' }}>
+              <span style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, flexShrink: 0 }}>BY EVENT</span>
+              {events.map((ev) => {
+                const c = perEventCounts[ev.id] ?? { yes: 0, maybe: 0 };
+                return (
+                  <span
+                    key={ev.id}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'baseline',
+                      gap: 6,
+                      padding: '8px 12px',
+                      borderRadius: 999,
+                      background: PD.paperCard,
+                      border: '1px solid rgba(31,36,24,0.10)',
+                      fontSize: 12,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: PD.ink, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {ev.name ?? 'Event'}
+                    </span>
+                    <span style={{ color: PD.olive, fontWeight: 700, whiteSpace: 'nowrap' }}>{c.yes} yes</span>
+                    {c.maybe > 0 && (
+                      <span style={{ color: PD.gold, whiteSpace: 'nowrap' }}>· {c.maybe} maybe</span>
+                    )}
+                  </span>
+                );
+              })}
             </div>
           )}
 
@@ -1932,6 +1807,49 @@ export function DashGuests() {
             </div>
           </Panel>
 
+          {/* Pear's follow-up cadence — was a sentence in the page
+              subtitle; now a quiet rail note (plan rule 7). */}
+          <RailCard title="Follow-ups">
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+              {site?.occasion === 'memorial' || site?.occasion === 'funeral'
+                ? 'Pear checks in quietly — no follow-ups unless you ask.'
+                : 'Pear is following up on the quiet ones once a week.'}
+            </div>
+          </RailCard>
+
+          {/* FOR THE CATERER — meal choices + dietary/allergy notes
+              tallied across everyone coming (the v2 "The count"
+              sidebar, now actually in the sidebar). Real data only;
+              hidden until guests have picked meals or flagged
+              dietary needs. */}
+          {(cater.meals.length > 0 || cater.diets.length > 0) && (
+            <RailCard title={solemn ? 'For the meal count' : 'For the caterer'}>
+              {cater.meals.length > 0 && (
+                <div>
+                  <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>MEALS CHOSEN</div>
+                  {cater.meals.map(([m, n]) => (
+                    <div key={m} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ flex: 1, fontSize: 12.5, color: PD.ink }}>{m}</span>
+                      <span style={{ ...MONO_STYLE, fontSize: 12, opacity: 1, color: PD.ink }}>{n}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {cater.diets.length > 0 && (
+                <div style={{ marginTop: cater.meals.length > 0 ? 13 : 0 }}>
+                  <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>DIETARY &amp; ALLERGIES</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {cater.diets.map(([d, n]) => (
+                      <span key={d} style={{ fontSize: 11.5, padding: '3px 9px', borderRadius: 999, background: 'var(--pl-plum-mist, #EFE2E6)', color: 'var(--pl-plum, #7A2D40)' }}>
+                        {d}{n > 1 ? ` · ${n}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </RailCard>
+          )}
+
           <Panel
             bg="var(--peach-bg)"
             style={{ padding: 18, border: 'none', borderRadius: 16 }}
@@ -2033,9 +1951,6 @@ export function DashGuests() {
           }
         }
         @media (max-width: 760px) {
-          :global(.pd-guests-stats) {
-            grid-template-columns: 1fr 1fr !important;
-          }
           /* Phones keep Guest (name + email + Text-invite) and the
              RSVP STATUS — the two columns that answer "who's coming".
              Previously this kept Guest + Party and hid RSVP (col 3),
@@ -2116,6 +2031,133 @@ export function DashGuests() {
         />
       )}
     </DashLayout>
+  );
+}
+
+// ── MoreMenu (⋯) ─────────────────────────────────────────────
+// The header's overflow menu (plan rule 6): page-level actions
+// stay one row — everything past Import CSV / Add a guest folds
+// in here. Items keep their own logic (the SMS arm-then-confirm
+// flow sets keepOpen so the confirm tap lands in the same menu).
+interface MoreMenuItem {
+  key: string;
+  label: ReactNode;
+  href?: string;
+  onSelect?: () => void;
+  disabled?: boolean;
+  keepOpen?: boolean;
+}
+
+const moreMenuItemStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '8px 10px',
+  borderRadius: 8,
+  fontSize: 13,
+  fontWeight: 500,
+  color: 'var(--ink)',
+  textDecoration: 'none',
+};
+
+function MoreMenu({ items }: { items: MoreMenuItem[] }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className="pl8-btnfx"
+        style={{ ...btnGhost, paddingLeft: 14, paddingRight: 14 }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="More actions"
+        title="More actions"
+        onClick={() => setOpen((v) => !v)}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="pl8-pop-in"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            minWidth: 220,
+            background: 'var(--card)',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 12,
+            padding: 6,
+            boxShadow: '0 18px 40px rgba(14,13,11,0.18), 0 4px 10px rgba(14,13,11,0.10)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            zIndex: 30,
+          }}
+        >
+          {items.map((it) =>
+            it.href ? (
+              <Link
+                key={it.key}
+                href={it.href}
+                role="menuitem"
+                className="pl8-menu-item"
+                onClick={() => setOpen(false)}
+                style={moreMenuItemStyle}
+              >
+                {it.label}
+              </Link>
+            ) : (
+              <button
+                key={it.key}
+                type="button"
+                role="menuitem"
+                className="pl8-menu-item"
+                disabled={it.disabled}
+                onClick={() => {
+                  it.onSelect?.();
+                  if (!it.keepOpen) setOpen(false);
+                }}
+                style={{
+                  ...moreMenuItemStyle,
+                  background: 'transparent',
+                  border: 'none',
+                  textAlign: 'left',
+                  width: '100%',
+                  fontFamily: 'inherit',
+                  cursor: it.disabled ? 'default' : 'pointer',
+                  opacity: it.disabled ? 0.6 : 1,
+                }}
+              >
+                {it.label}
+              </button>
+            ),
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

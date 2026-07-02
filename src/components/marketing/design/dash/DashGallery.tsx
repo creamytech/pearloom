@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLHead } from '@/components/pearloom/dash/PLChrome';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 import { useUserSites } from './hooks';
 
@@ -83,17 +83,12 @@ export function DashGallery() {
   // Empty state — moved AFTER the hooks so the order is the
   // same on every render (rules-of-hooks).
   if (!sitesLoading && (!sites || sites.length === 0)) {
+    // ONE empty state (plan rule 5): the header never restates
+    // emptiness — the card below carries the sentence + action.
     return (
       <DashLayout active="gallery" hideTopbar>
         <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
-          <PLHead
-            align="center"
-            pre="The Reel"
-            title="Your Reel is"
-            italic="empty."
-            sub="Create a site and upload a photo — your Reel fills up as you go."
-            style={{ marginBottom: 28 }}
-          />
+          <PageIntro eyebrow="The Reel" title="Every frame, in one place." />
           <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
         </div>
       </DashLayout>
@@ -136,24 +131,15 @@ export function DashGallery() {
   return (
     <DashLayout active="gallery" hideTopbar>
       <main style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
-        <PLHead
-          pre="The Reel"
-          title={counts.all > 0 ? 'Every frame,' : 'Your Reel is'}
-          italic={counts.all > 0 ? 'in one place.' : 'empty.'}
-          sub="Every photograph across every site you've made — covers, heroes, chapters, guest submissions. Tap any to open full-size."
-          actions={viewSwitcher}
-          style={{ marginBottom: 24 }}
-        />
-        {error && (
-          <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, color: PD.terra, fontSize: 13 }}>
-            {error}
-          </Panel>
-        )}
+        {/* Quiet header (plan rule 1): one line, no paragraph — the
+            grid explains itself. Never restates emptiness (rule 5). */}
+        <PageIntro eyebrow="The Reel" title="Every frame, in one place." style={{ marginBottom: 14 }} />
 
-        <PhotoModerationQueue />
-
-        {/* Source filter */}
-        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2 }}>
+        {/* View toggle + source filter — ONE row (plan rule 6),
+            hscroll on phones. */}
+        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2, alignItems: 'center' }}>
+          {viewSwitcher}
+          <span aria-hidden style={{ width: 1, height: 22, background: 'rgba(31,36,24,0.12)', flexShrink: 0 }} />
           {([
             { k: 'all', l: `All · ${counts.all}` },
             { k: 'cover', l: `Covers · ${counts.cover}` },
@@ -180,6 +166,14 @@ export function DashGallery() {
             </button>
           ))}
         </div>
+
+        {error && (
+          <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, color: PD.terra, fontSize: 13 }}>
+            {error}
+          </Panel>
+        )}
+
+        <PhotoModerationQueue />
 
         {loading ? (
           <LoadingGrid />

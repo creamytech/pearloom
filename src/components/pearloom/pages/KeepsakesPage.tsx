@@ -18,7 +18,8 @@ import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getKeepsakeTools } from '@/lib/event-os/dashboard-presets';
 import { Icon } from '../motifs';
-import { PLChrome, PLHead, PLCard } from '../dash/PLChrome';
+import { PLChrome, PLCard } from '../dash/PLChrome';
+import { PageIntro } from '../dash/QuietDash';
 
 function KeepsakeCard({
   title,
@@ -83,31 +84,12 @@ export function KeepsakesPage() {
 
   const tools = getKeepsakeTools(occasion);
 
-  const subtitle =
-    preset === 'memorial'
-      ? 'An in-memoriam card and a book of what guests shared — drafted with care.'
-      : preset === 'bachelor'
-        ? 'Thank-yous from the guest of honor and a clean settle-up — close the weekend out right.'
-        : preset === 'shower'
-          ? 'Thank-yous and a keepsake card of the advice guests left.'
-          : preset === 'reunion'
-            ? 'Thank-yous, a printable photo book, and a head start on next year.'
-            // Anniversary nudges only fit a wedding; everything else
-            // (birthday, graduation, retirement, cultural, casual…)
-            // gets a neutral after-the-day line.
-            : occasion === 'wedding'
-              ? 'Thank-you notes, anniversary nudges, and every after-the-day kindness — drafted by Pear.'
-              : 'Thank-you notes and every after-the-day kindness — drafted by Pear.';
-
   return (
     <PLChrome active="memory" maxWidth={1080}>
-      <PLHead
-        align="center"
-        pre="After the celebration"
-        title="Keepsakes,"
-        italic="drafted by Pear."
-        sub={subtitle}
-      />
+      {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): the two-line
+          display + occasion paragraph became one line — the cards
+          below name their own jobs. */}
+      <PageIntro eyebrow="After the celebration" title="Keepsakes, drafted by Pear." />
 
       {/* Headline two-tap composer — renders its own intro header,
           so no editorial card above it. Follows the same gate as

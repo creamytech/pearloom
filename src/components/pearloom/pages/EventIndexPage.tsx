@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { DashLayout } from '../dash/DashShell';
+import { PageIntro } from '../dash/QuietDash';
 import { parseLocalDate } from '@/lib/date-utils';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
@@ -451,19 +452,23 @@ export function EventIndexPage() {
   };
 
   return (
-    <DashLayout
-      active="sites"
-      eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
-      title={pickMode ? 'Pick a site' : 'My sites'}
-      subtitle={
-        pickMode
-          ? "Choose which event you're working on — the next step will open with that site selected."
-          : "Every event you're weaving — the drafts, the published ones, and the keepsakes coming next."
-      }
-      ctaText={pickMode ? undefined : 'Start a new one'}
-      ctaHref={pickMode ? undefined : '/wizard/new'}
-    >
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+    <DashLayout active="sites" hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): eyebrow +
+            one line + a single CTA. The old hero paragraph is gone —
+            the empty state carries the pitch; the cards speak for
+            themselves. */}
+        <PageIntro
+          eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
+          title={pickMode ? 'Pick a site' : 'My sites'}
+          actions={
+            pickMode ? undefined : (
+              <Link href="/wizard/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                Start a new one <Pear size={14} tone="cream" shadow={false} />
+              </Link>
+            )
+          }
+        />
         {loading && <DashSkeleton kind="card-grid" count={3} label="Threading your sites" />}
         {!loading && (!sites || sites.length === 0) && (
           <DashEmpty

@@ -48,7 +48,8 @@ import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import type { StoryManifest } from '@/types';
-import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type StatTileData, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
+import { CountdownHero, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
+import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
@@ -295,11 +296,6 @@ export function WelcomeHome() {
     [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion],
   );
 
-  const stageBlurb =
-    stage === 'early' ? 'Just getting started. Pear has a few ideas to get the ball rolling.'
-    : stage === 'late' ? 'The home stretch — RSVPs are closing and the day-of room is open.'
-    : 'Mid-planning. Replies are landing. Keep the schedule moving.';
-
   // ── Cockpit-derived values (design-system v2 home) ──────────
   // All real data: the eyebrow is the venue (or occasion), counts
   // come from pearTodos / milestones / guestCounts. No invented
@@ -310,13 +306,15 @@ export function WelcomeHome() {
     (m) => m.status === 'urgent' || m.status === 'next' || m.status === 'upcoming',
   ).length;
   const repliedCount = guestCounts ? guestCounts.yes + guestCounts.no + guestCounts.maybe : 0;
-  const repliedPct =
-    guestCounts && guestCounts.invited > 0 ? Math.round((repliedCount / guestCounts.invited) * 100) : 0;
-  const statTiles: StatTileData[] = [
-    { key: 'coming', label: 'Coming', value: guestCounts?.yes ?? 0, sub: guestCounts ? `of ${guestCounts.invited} invited` : 'No guests yet', color: 'var(--sage-deep)', icon: 'users', href: '/dashboard/rsvp' },
-    { key: 'await', label: 'Awaiting reply', value: guestCounts?.pending ?? 0, sub: 'no reply yet', color: 'var(--peach-ink)', icon: 'clock', href: '/dashboard/rsvp' },
-    { key: 'replied', label: 'Replied', value: repliedCount, sub: guestCounts ? `of ${guestCounts.invited} · ${repliedPct}%` : '—', color: 'var(--gold)', icon: 'check', bar: repliedPct, href: '/dashboard/rsvp' },
-    { key: 'days', label: 'Days to go', value: daysUntil ?? 0, sub: eventDateShort ?? 'Set a date', color: 'var(--lavender-ink)', icon: 'calendar' },
+  // Quiet StatStrip (plan rule 3) — replaces the four 100px+ KPI
+  // tiles. Zeros collapse into one muted trailing chip; the days
+  // chip only renders while there's a countdown to speak of (the
+  // hero already owns "Today").
+  const statItems: StatStripItem[] = [
+    { label: 'Coming', value: guestCounts?.yes ?? 0, tone: 'sage', href: '/dashboard/rsvp' },
+    { label: 'Awaiting reply', value: guestCounts?.pending ?? 0, tone: 'peach', href: '/dashboard/rsvp' },
+    { label: 'Replied', value: repliedCount, tone: 'gold', href: '/dashboard/rsvp' },
+    ...(daysUntil != null && daysUntil > 0 ? [{ label: 'Days to go', value: daysUntil }] : []),
   ];
   const phaseLabel = stage === 'late' ? 'Final stretch' : stage === 'early' ? 'Planning' : 'Mid-planning';
   const phaseNote = daysUntil != null ? (daysUntil === 0 ? 'today' : `${daysUntil} days out`) : undefined;
@@ -367,9 +365,19 @@ export function WelcomeHome() {
   }, [stage, editorHref, liveHref, guestCounts]);
 
   return (
-    <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
+    <DashLayout active="home" hideTopbar>
       <div style={{ padding: '20px clamp(20px, 4vw, 40px) 4px', maxWidth: 1240, margin: '0 auto' }}>
-        <CockpitHeader greeting={`${greeting}, ${firstName}`} subtitle={stageBlurb} />
+        {/* Quiet header (plan rule 1): greeting is one mono line +
+            the date; the stage blurb paragraph is gone — the hero
+            and the decision queue carry the state. */}
+        <PageIntro
+          eyebrow={`${greeting}, ${firstName}`}
+          title="Your loom, at a glance."
+          meta={eventDateShort ? (
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{eventDateShort}{daysUntil != null && daysUntil > 0 ? ` · ${daysUntil} days out` : ''}</span>
+          ) : undefined}
+          style={{ marginBottom: 0 }}
+        />
       </div>
 
       {/* Pending co-host invitations addressed to this signed-in
@@ -401,7 +409,7 @@ export function WelcomeHome() {
           askHref={isDashSurfaceApplicable('director', occasion) ? '/dashboard/director' : undefined}
         />
 
-        <StatTiles tiles={statTiles} />
+        <StatStrip items={statItems} />
 
         <QuickJumps jumps={quickJumps} />
 
@@ -415,7 +423,10 @@ export function WelcomeHome() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: workZoneNarrow ? '1fr' : '1.25fr 1fr',
+            // Plan rule 7: content column + quiet ~320px rail. On
+            // phones the rail column simply stacks BELOW the main
+            // column — never above.
+            gridTemplateColumns: workZoneNarrow ? '1fr' : 'minmax(0, 1fr) 320px',
             gap: 16,
             alignItems: 'start',
           }}
