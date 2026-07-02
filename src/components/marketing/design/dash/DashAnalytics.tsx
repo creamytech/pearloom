@@ -49,6 +49,9 @@ export function DashAnalytics() {
     error: string | null;
   };
   const [result, setResult] = useState<Result | null>(null);
+  // Pear's-reading card — dismissable for this visit (local state
+  // only; the note re-derives on next load anyway).
+  const [readingDismissed, setReadingDismissed] = useState(false);
 
   useEffect(() => {
     // No site selected: bail without setState. The derived
@@ -159,6 +162,48 @@ export function DashAnalytics() {
   const copy = getAnalyticsCopy(site?.occasion);
   const watchSections = getAnalyticsSectionsToWatch(site?.occasion);
 
+  // Client-side CSV of everything already on screen — visits,
+  // funnel, sources, section engagement. No round trip; the data
+  // is the component state.
+  const exportCsv = () => {
+    const rows: (string | number)[][] = [['Metric', 'Value']];
+    rows.push(['Site', siteName]);
+    if (visit) {
+      rows.push(['Visits (all time)', visit.visits]);
+      rows.push(['Visits today', visit.today]);
+      rows.push(['Mobile visits', visit.mobile]);
+      rows.push(['Desktop visits', visit.desktop]);
+    }
+    if (funnel) {
+      rows.push(['Guests invited', funnel.invited]);
+      rows.push(['Invites opened', funnel.opened]);
+      rows.push(['Replies started', funnel.started]);
+      rows.push(['Replied', funnel.replied]);
+      rows.push(['Coming', funnel.coming]);
+    }
+    if (sources && sources.length > 0) {
+      rows.push([]);
+      rows.push(['Source', 'Visits', 'Share %']);
+      for (const s of sources) rows.push([s.label, s.count, s.pct]);
+    }
+    if (sections && sections.length > 0) {
+      rows.push([]);
+      rows.push(['Section', 'Views', 'Avg time (s)']);
+      for (const s of sections) {
+        rows.push([humanSectionId(s.sectionId), s.views, Math.round(s.avgDurationMs / 100) / 10]);
+      }
+    }
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pearloom-analytics-${site.domain ?? 'site'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <DashLayout
       active="analytics"
@@ -176,10 +221,7 @@ export function DashAnalytics() {
       }
       subtitle={copy.body}
       actions={
-        <>
-          <button className="pl8-btnfx" style={btnGhost}>Export CSV</button>
-          <button className="pl8-btnfx" style={btnInk}>✦ Ask Pear to summarize</button>
-        </>
+        <button className="pl8-btnfx" style={btnGhost} onClick={exportCsv}>Export CSV</button>
       }
     >
 
@@ -428,6 +470,7 @@ export function DashAnalytics() {
             )}
           </Panel>
 
+          {!readingDismissed && (
           <Panel
             bg={PD.ink}
             style={{
@@ -463,14 +506,16 @@ export function DashAnalytics() {
                 : '"Your top sections are holding attention. Keep the thread going."'}
             </div>
             <div style={{ display: 'flex', gap: 8, position: 'relative', flexWrap: 'wrap' }}>
-              <button className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink }}>Ask Pear why</button>
               <button
-                className="pl8-btnfx" style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
+                className="pl8-btnfx"
+                style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
+                onClick={() => setReadingDismissed(true)}
               >
                 Dismiss
               </button>
             </div>
           </Panel>
+          )}
         </div>
       </main>
 

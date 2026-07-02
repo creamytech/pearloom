@@ -399,7 +399,9 @@ export function DashConnections() {
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              &ldquo;A wedding today is a memorial in forty years. Start the weave now.&rdquo;
+              {/* Occasion-neutral — this panel fronts every celebration
+                  (birthdays, reunions, memorials), not just weddings. */}
+              &ldquo;The people you celebrate with today are the thread. Start the weave now.&rdquo;
             </div>
             <div
               style={{

@@ -53,6 +53,9 @@ export function DashMessages() {
   const [draft, setDraft] = useState('');
   const [dmDraft, setDmDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  // Moderation failures surface inline — a silent DELETE failure
+  // left the message visible with no explanation.
+  const [hideError, setHideError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!site?.id) return;
@@ -98,8 +101,14 @@ export function DashMessages() {
 
   async function hide(id: string) {
     if (!site?.id) return;
-    await fetch(`/api/messages/host?id=${encodeURIComponent(id)}&siteId=${encodeURIComponent(site.id)}`, { method: 'DELETE' });
-    await refresh();
+    setHideError(null);
+    try {
+      const r = await fetch(`/api/messages/host?id=${encodeURIComponent(id)}&siteId=${encodeURIComponent(site.id)}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error(`Hide failed (${r.status})`);
+      await refresh();
+    } catch {
+      setHideError('That message couldn’t be hidden just now — it’s still visible to guests. Try again.');
+    }
   }
 
   const openThread = dms.find((d) => d.guestId === openDm) ?? null;
@@ -132,6 +141,18 @@ export function DashMessages() {
           {/* ── The guest thread ── */}
           <Panel bg={PD.paperCard} style={{ padding: 22 }}>
             <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 12 }}>THE GUEST THREAD</div>
+            {hideError && (
+              <div
+                role="alert"
+                style={{
+                  fontSize: 12.5, color: PD.plum, lineHeight: 1.5,
+                  padding: '10px 12px', borderRadius: 12, marginBottom: 10,
+                  background: 'rgba(122,45,45,0.08)', border: '1px solid rgba(122,45,45,0.2)',
+                }}
+              >
+                {hideError}
+              </div>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 460, overflowY: 'auto', marginBottom: 14 }}>
               {party === null ? (
                 <div style={{ fontSize: 13, fontStyle: 'italic', color: PD.inkSoft }}>Threading…</div>

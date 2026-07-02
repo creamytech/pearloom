@@ -44,6 +44,8 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import type { StoryManifest } from '@/types';
 import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type StatTileData, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
@@ -257,8 +259,7 @@ export function WelcomeHome() {
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(
     () => buildMilestones({
-      stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence,
-      solemn: occasion === 'memorial' || occasion === 'funeral',
+      stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion,
     }),
     [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion],
   );
@@ -363,7 +364,10 @@ export function WelcomeHome() {
           tasksLeft={tasksLeft}
           liveHref={liveHref}
           editorHref={editorHref}
-          askHref="/dashboard/director"
+          // Memorials aren't pitched budget/vendor planning — omit
+          // the "Ask Pear to plan" action when the Director doesn't
+          // apply to the occasion (cockpit handles a missing askHref).
+          askHref={isDashSurfaceApplicable('director', occasion) ? '/dashboard/director' : undefined}
         />
 
         <StatTiles tiles={statTiles} />
@@ -736,8 +740,31 @@ interface Milestone {
   urgency: 'urgent' | 'soon' | 'on-track';
 }
 
+/* Which planning ladder an occasion walks. The wedding pacing
+   ("save-the-dates ~10 mo", caterer counts, seating) only fits
+   couple-arc events — trips plan a group weekend, parties send
+   invitations weeks (not months) ahead, cultural ceremonies add a
+   service to confirm, and solemn occasions keep the quiet ladder. */
+type MilestoneFamily = 'couple' | 'trip' | 'party' | 'cultural' | 'solemn';
+
+/** Group-trip occasions — no vendors/caterer/seating; the work is
+ *  the group itself (cost shares, sizes, travel). */
+const TRIP_OCCASIONS: ReadonlySet<string> = new Set([
+  'bachelor-party',
+  'bachelorette-party',
+  'reunion',
+]);
+
+function milestoneFamilyFor(occasion: string): MilestoneFamily {
+  if (occasion === 'memorial' || occasion === 'funeral') return 'solemn';
+  if (TRIP_OCCASIONS.has(occasion)) return 'trip';
+  if (occasion === 'wedding' || occasion === 'vow-renewal') return 'couple';
+  if (getEventType(occasion)?.category === 'cultural') return 'cultural';
+  return 'party';
+}
+
 function buildMilestones({
-  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, solemn,
+  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion,
 }: {
   stage: Stage;
   eventDate: Date | null;
@@ -745,10 +772,14 @@ function buildMilestones({
   daysUntil: number | null;
   guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
   cadence?: CadencePhaseLite[] | null;
-  /** Memorial / funeral — quiet labels, no party-planning ladder. */
-  solemn?: boolean;
+  /** Drives the milestone family — see milestoneFamilyFor. */
+  occasion: string;
 }): Milestone[] {
-  const dayLabel = solemn ? 'The day itself' : 'The big day';
+  const family = milestoneFamilyFor(occasion);
+  const dayLabel =
+    family === 'couple' ? 'The big day'
+    : family === 'trip' ? 'The weekend itself'
+    : 'The day itself';
   const out: Milestone[] = [];
   out.push({ date: 'Done', label: 'Site claimed', sub: '', status: 'done', urgency: 'on-track' });
   if (eventDate) {
@@ -801,13 +832,92 @@ function buildMilestones({
     return out;
   }
 
-  if (solemn) {
+  if (family === 'solemn') {
     // Quiet ladder — no vendors / seating / menu-count rows on a
     // memorial or funeral site.
     out.push({ date: 'This week', label: 'Share the site', sub: 'family & close friends first', status: 'next', urgency: 'soon' });
     out.push({ date: 'Soon', label: 'Gather photos & words', sub: 'for the tribute wall', status: 'upcoming', urgency: 'on-track' });
     if (guestCounts && guestCounts.pending > 0) {
       out.push({ date: 'Soon', label: 'Replies', sub: `${guestCounts.pending} still to reply`, status: 'upcoming', urgency: 'on-track' });
+    }
+  } else if (family === 'trip') {
+    // Trip ladder — bachelor/ette weekends and reunions have no
+    // vendors, caterer, or seating chart; the work is the group.
+    if (stage === 'early') {
+      out.push({ date: 'This week', label: 'Share the site', sub: 'get it in the group chat', status: 'next', urgency: 'soon' });
+      out.push({ date: 'Soon',  label: 'Lock the guest list', sub: 'who’s in for the weekend', status: 'upcoming', urgency: 'on-track' });
+      out.push({ date: 'Later', label: 'Collect cost shares & sizes', sub: 'splits, shirts, beds', status: 'upcoming', urgency: 'on-track' });
+      out.push({ date: 'Later', label: 'Book the travel window', sub: 'rooms & rides together', status: 'upcoming', urgency: 'on-track' });
+    } else {
+      if (guestCounts && guestCounts.invited > 0) {
+        out.push({ date: 'Done', label: 'Site shared', sub: `${guestCounts.invited} in the loop`, status: 'done', urgency: 'on-track' });
+      } else {
+        out.push({ date: 'Now', label: 'Share the site', sub: 'get it in the group chat', status: 'next', urgency: 'soon' });
+      }
+      if (guestCounts && guestCounts.pending > 0) {
+        out.push({
+          date: stage === 'late' ? 'Now' : 'Soon',
+          label: 'Lock the guest list',
+          sub: `${guestCounts.pending} still to confirm`,
+          status: stage === 'late' ? 'urgent' : 'next',
+          urgency: stage === 'late' ? 'urgent' : 'soon',
+        });
+      } else {
+        out.push({ date: 'Done', label: 'Guest list locked', sub: 'everyone has answered', status: 'done', urgency: 'on-track' });
+      }
+      out.push({ date: 'Soon', label: 'Collect cost shares & sizes', sub: 'splits, shirts, beds', status: stage === 'late' ? 'next' : 'upcoming', urgency: stage === 'late' ? 'soon' : 'on-track' });
+      out.push({ date: 'Soon', label: 'Book the travel window', sub: 'rooms & rides together', status: 'upcoming', urgency: 'on-track' });
+    }
+  } else if (family === 'party' || family === 'cultural') {
+    // Party ladder — showers, birthdays, graduations, dinners.
+    // Shorter lead times than a wedding: invitations go out weeks
+    // ahead, not months, and there's no vendor/caterer/seating run.
+    if (stage === 'early') {
+      out.push({ date: 'This week', label: 'Share the site', sub: 'let people save the day', status: 'next', urgency: 'soon' });
+      out.push({ date: '~6 wk', label: 'Send invitations', sub: 'a few weeks ahead is plenty', status: 'upcoming', urgency: 'on-track' });
+      out.push({ date: '~2 wk', label: 'Replies in', sub: 'close the list', status: 'upcoming', urgency: 'on-track' });
+    } else if (stage === 'mid') {
+      const invited = !!guestCounts && guestCounts.invited > 0;
+      if (invited) {
+        out.push({ date: 'Done', label: 'Invitations sent', sub: `${guestCounts!.invited} invited`, status: 'done', urgency: 'on-track' });
+      } else {
+        out.push({ date: 'Now', label: 'Send invitations', sub: 'a few weeks ahead is plenty', status: 'next', urgency: 'soon' });
+      }
+      out.push({
+        date: 'Soon',
+        label: 'Replies in',
+        sub: guestCounts && guestCounts.pending > 0 ? `${guestCounts.pending} still to reply` : 'close the list',
+        status: invited ? 'next' : 'upcoming',
+        urgency: invited ? 'soon' : 'on-track',
+      });
+      out.push({ date: 'Later', label: 'Final headcount', sub: 'lock the numbers', status: 'upcoming', urgency: 'on-track' });
+    } else if (stage === 'late') {
+      if (guestCounts && guestCounts.invited > 0) {
+        out.push({ date: 'Done', label: 'Invitations sent', sub: `${guestCounts.invited} invited`, status: 'done', urgency: 'on-track' });
+      }
+      if (guestCounts && guestCounts.pending > 0) {
+        out.push({
+          date: 'Now',
+          label: 'Replies in',
+          sub: `${guestCounts.pending} pending · ${daysUntil ?? 0} days out`,
+          status: 'urgent',
+          urgency: 'urgent',
+        });
+      } else {
+        out.push({ date: 'Done', label: 'Replies in', sub: 'all replies in', status: 'done', urgency: 'on-track' });
+      }
+      out.push({ date: 'Soon', label: 'Final headcount', sub: 'lock the numbers', status: 'next', urgency: 'soon' });
+    }
+    if (family === 'cultural') {
+      // Ceremony rung — quinceañeras, mitzvahs, baptisms and their
+      // kin have a service to confirm alongside the party.
+      out.push({
+        date: stage === 'late' ? 'Soon' : 'Later',
+        label: 'Confirm the service details',
+        sub: 'ceremony order & who takes part',
+        status: 'upcoming',
+        urgency: 'on-track',
+      });
     }
   } else if (stage === 'early') {
     out.push({ date: 'This week', label: 'Send save-the-dates', sub: 'recommended now', status: 'next', urgency: 'soon' });
@@ -1214,7 +1324,10 @@ function SiblingEventsCard({
           </Link>
         ))}
       </div>
-      {arc && (
+      {/* Belt-and-braces: /dashboard/weekend advertises itself only
+          where isDashSurfaceApplicable('weekend') agrees — never
+          route a host to a page that would turn them away. */}
+      {arc && isDashSurfaceApplicable('weekend', occasion) && (
         <Link
           href="/dashboard/weekend"
           style={{

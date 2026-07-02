@@ -8,7 +8,7 @@ import { GuestReviewClient } from './GuestReviewClient';
 
 export const metadata: Metadata = {
   title: "Pear's review · Pearloom",
-  description: 'AI-assisted guest list intelligence: duplicates, VIPs, stale RSVPs, address gaps.',
+  description: 'Pear reviews your list for duplicates, VIPs, stale replies, and address gaps.',
 };
 
 export default async function GuestReviewPage({

@@ -38,6 +38,9 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [merging, setMerging] = useState<string | null>(null);
+  // Merge failures surface inline (same banner as the load error) —
+  // never a window.alert — and leave the loaded list on screen.
+  const [mergeError, setMergeError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!siteSlug) {
@@ -62,6 +65,7 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
   async function mergeDuplicates(insight: GuestInsight) {
     if (insight.kind !== 'duplicate' || insight.guestIds.length < 2) return;
     setMerging(insight.guestIds[0]);
+    setMergeError(null);
     try {
       const res = await fetch('/api/guests/intelligence', {
         method: 'POST',
@@ -78,7 +82,7 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
       }
       await reload();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Merge failed.');
+      setMergeError(err instanceof Error ? err.message : 'Merge failed.');
     } finally {
       setMerging(null);
     }
@@ -86,7 +90,7 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
 
   return (
     <DashLayout
-      active="event"
+      active="guests"
       title="Pear's review"
       subtitle="Duplicates, VIPs, stale RSVPs, missing addresses — caught before they bite. Pear runs the pass; you decide what to apply."
     >
@@ -125,6 +129,11 @@ export function GuestReviewClient({ siteSlug: urlSiteSlug }: { siteSlug: string 
           />
         ) : (
           <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mergeError && (
+              <div role="alert" style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>
+                {mergeError}
+              </div>
+            )}
             {data.insights.map((insight, i) => (
               <InsightCard
                 key={`${insight.kind}-${i}`}
