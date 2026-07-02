@@ -261,13 +261,13 @@ export function NotificationBell() {
             top: 'calc(100% + 8px)',
             right: -shift,
             width: 'min(360px, calc(100vw - 32px))',
-            background: 'var(--pl-glass)',
-        backgroundImage: 'var(--pl-glass-sheen)',
-            backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
-            WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
-            border: '1px solid var(--pl-glass-border)',
+            /* Opaque paper, not glass — this popover holds a dense
+               notification list over page text; frost makes the two
+               layers of type read through each other. */
+            background: 'var(--pl-cream-card, var(--card))',
+            border: '1px solid var(--line)',
             borderRadius: 14,
-            boxShadow: 'var(--pl-glass-shadow-lg)',
+            boxShadow: 'var(--pl-shadow-lg)',
             // Bump above the page's card stacking contexts. Cards
             // with position:relative + transitions create their own
             // stacking contexts that were occluding the dropdown

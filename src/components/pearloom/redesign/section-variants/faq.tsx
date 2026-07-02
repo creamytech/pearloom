@@ -177,7 +177,10 @@ export function FaqNumbered({ ctx }: { ctx: FaqVariantCtxEditable }) {
           return (
             <div
               key={i}
-              className="pl8-faq-row"
+              /* pl8-vrow: self-numbered row — the per-kit FAQ counters
+                 (ticket "#01", plate Roman numerals) in pearloom.css key
+                 off :not(.pl8-vrow) so this variant never double-numbers. */
+              className="pl8-faq-row pl8-vrow"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'auto 1fr',

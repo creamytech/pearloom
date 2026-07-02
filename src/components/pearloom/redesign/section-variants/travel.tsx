@@ -454,7 +454,10 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtxEditable }) {
             }}
           >
             <div
-              className="pl8-hotel-row"
+              /* pl8-vrow: inner grid inside HotelWrap's card — the
+                 scrapbook kit's polaroid tilt/tape (sized for the default
+                 rows layout's standalone cards) keys off :not(.pl8-vrow). */
+              className="pl8-hotel-row pl8-vrow"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '88px 1fr auto',

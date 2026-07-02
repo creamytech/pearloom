@@ -407,7 +407,7 @@ export function ThemedSite({
      .pl-drift keyframes (reduced-motion aware); host opts in via the
      Decor Library. Off unless motifs are on AND a movement is set. */
   const motifAnim: 'none' | 'float' | 'drift' =
-    motifsOn ? (((manifest as unknown as { motifAnimation?: 'none' | 'float' | 'drift' }).motifAnimation) ?? 'none') : 'none';
+    motifsOn ? (manifest.motifAnimation ?? 'none') : 'none';
   const pad = { cozy: 0.74, comfortable: 1, spacious: 1.32 }[density] || 1;
   /* Theme Store packs write manifest.texture to override the base
      theme's static texture. Reading here so every TextureLayer
@@ -477,7 +477,7 @@ export function ThemedSite({
      every motion kit still paints its full STATIC base, so the
      free-tier teaser reads correctly. Per-site, manifest-backed so
      published sites honour it without the editor's localStorage. */
-  const premiumAttr = (manifest as unknown as { atelier?: boolean }).atelier ? 'on' : undefined;
+  const premiumAttr = manifest.atelier ? 'on' : undefined;
   /* GLASS AURORA, photographed — when the Glass kit has a cover
      photo, the photo becomes the light behind the panes (the
      literal liquid-glass-over-imagery effect): a sticky full-
@@ -5425,7 +5425,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
 
   if (texture === 'linen') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <div style={{
           position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
           backgroundImage: `repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 2px)`,
@@ -5437,7 +5437,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'paper') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
         <StickyNoise filter="t-mottle" opacity={0.16 * intensity} blend="soft-light" />
         <StickyNoise filter="t-grain" opacity={0.1 * intensity} blend="multiply" />
@@ -5446,7 +5446,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'cotton') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <StickyNoise filter="t-mottle" opacity={0.34 * intensity} blend="soft-light" />
         <StickyNoise filter="t-weave" opacity={0.42 * intensity} blend="soft-light" />
         <StickyNoise filter="t-grain" opacity={0.16 * intensity} blend="multiply" />
@@ -5455,7 +5455,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'velvet') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <div style={{
           position: 'absolute', inset: 0, mixBlendMode: 'soft-light', opacity: 0.6 * intensity,
           backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px)',
@@ -5470,7 +5470,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'watercolor') {
     return (
-      <div aria-hidden style={{ ...base, overflow: 'hidden' }}>
+      <div aria-hidden className="pl8-texture-layer" style={{ ...base, overflow: 'hidden' }}>
         <WatercolorWash tone="rgba(194,105,62,0.30)" style={{ top: '-6%', left: '-12%', width: 720, height: 580, mixBlendMode: 'multiply' }} seed={0} opacity={0.7 * intensity} />
         <WatercolorWash tone="rgba(138,154,107,0.34)" style={{ top: '30%', right: '-14%', width: 640, height: 540, mixBlendMode: 'multiply' }} seed={1} opacity={0.7 * intensity} />
         <WatercolorWash tone="rgba(217,154,106,0.30)" style={{ bottom: '-8%', left: '24%', width: 600, height: 500, mixBlendMode: 'multiply' }} seed={2} opacity={0.6 * intensity} />
@@ -5482,7 +5482,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'kraft') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <StickyNoise filter="t-mottle" opacity={0.28 * intensity} blend="multiply" />
         <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
         <StickyNoise filter="t-grain" opacity={0.2 * intensity} blend="multiply" />
@@ -5491,7 +5491,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'canvas') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <div style={{
           position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.55 * intensity,
           backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px)',
@@ -5503,7 +5503,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'marble') {
     return (
-      <div aria-hidden style={{ ...base, overflow: 'hidden' }}>
+      <div aria-hidden className="pl8-texture-layer" style={{ ...base, overflow: 'hidden' }}>
         <div style={{
           position: 'absolute', inset: '-20%', filter: 'url(#t-wash)', opacity: 0.5 * intensity, mixBlendMode: 'multiply',
           background: 'repeating-linear-gradient(58deg, transparent 0 26px, color-mix(in oklab, var(--t-ink) 12%, transparent) 26px 27px, transparent 27px 62px), radial-gradient(42% 30% at 30% 24%, color-mix(in oklab, var(--t-ink) 9%, transparent), transparent 70%)',
@@ -5517,7 +5517,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
   }
   if (texture === 'gilded') {
     return (
-      <div aria-hidden style={base}>
+      <div aria-hidden className="pl8-texture-layer" style={base}>
         <div style={{
           position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
           background: 'linear-gradient(120deg, transparent 22%, color-mix(in oklab, var(--t-gold) 62%, transparent) 48%, transparent 64%)',

@@ -4873,20 +4873,30 @@ html { scroll-behavior: smooth; }
   --t-ink-soft: #5C544A;
   --t-ink-muted: #7A7167;
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:nth-child(odd),
+/* :not(.pl8-vrow) — the tilt is sized for the default layouts'
+   compact standalone cards. On the full-width schedule variant
+   rows (timeline/numbered) ±1.4° made neighbouring sheets overlap
+   and shear off the rail, and on the travel table it rotated an
+   inner grid inside a straight card. Variant rows keep the paper
+   + tape, just sit flat. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:not(.pl8-vrow):nth-child(odd),
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row:nth-child(odd),
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(odd) {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow):nth-child(odd) {
   transform: rotate(-1.4deg);
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:nth-child(even),
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:not(.pl8-vrow):nth-child(even),
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row:nth-child(even),
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(even) {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow):nth-child(even) {
   transform: rotate(1.4deg);
 }
-/* Tape strip across the top of each scrapbook card */
+/* Tape strip across the top of each scrapbook card. Hotel rows
+   skip it on .pl8-vrow (the travel table's inner grid already
+   sits inside HotelWrap's card — tape there taped the furniture,
+   not a photo). Schedule variant rows keep the tape: they ARE
+   the paper sheet. */
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row::before,
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row::before,
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row::before {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow)::before {
   content: '';
   position: absolute;
   top: 4px;
@@ -5263,13 +5273,13 @@ html { scroll-behavior: smooth; }
    :where() keeps specificity low so per-block overrides still
    win. Without this, the chapter list reads as a chaotic stack
    in the editor canvas where hosts expect a tidy ordered list. */
-.pl8-guest[data-pl-edit-mode="true"] :where(
+.pl8-guest[data-pl-editable] :where(
   [data-pl-kit="scrapbook"] .pl8-schedule-row,
   [data-pl-kit="scrapbook"] .pl8-chapter-row,
   [data-pl-kit="scrapbook"] .pl8-hotel-row,
   [data-pl-kit="scrapbook"] .pl8-faq-row
 ),
-.pl8-guest[data-pl-kit="scrapbook"][data-pl-edit-mode="true"] :where(
+.pl8-guest[data-pl-kit="scrapbook"][data-pl-editable] :where(
   .pl8-schedule-row,
   .pl8-chapter-row,
   .pl8-hotel-row,
@@ -5584,8 +5594,13 @@ html { scroll-behavior: smooth; }
    ───────────────────────────────────────────────────────── */
 
 /* ── TICKET schedule layout — perforated stub. Time on the left
-   in monospace, content on the right, dashed divider between. */
-.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row {
+   in monospace, content on the right, dashed divider between.
+   :not(.pl8-vrow) — this grid assumes the default cards DOM
+   (time-first children). The timeline/stepper/numbered variants
+   mark their rows .pl8-vrow and own their internal layout; the
+   grid used to shred them (audit 2026-07-02: content zig-zagged
+   across two columns, stepper stacks went full-mono). */
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row:not(.pl8-vrow) {
   display: grid !important;
   grid-template-columns: 116px 1fr !important;
   text-align: left !important;
@@ -5593,10 +5608,10 @@ html { scroll-behavior: smooth; }
   padding: 0 !important;
   gap: 0 !important;
 }
-.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row > * {
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row:not(.pl8-vrow) > * {
   padding: 14px 16px;
 }
-.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row > *:first-child {
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row:not(.pl8-vrow) > *:first-child {
   border-right: 2px dashed currentColor;
   text-align: center;
   font-family: 'Courier New', ui-monospace, monospace !important;
@@ -5608,7 +5623,12 @@ html { scroll-behavior: smooth; }
    row label and right-aligned time via a flex spacer with dotted
    background. */
 
-.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row {
+/* :not(.pl8-vrow) — the Roman-numeral ledger assumes the cards
+   DOM. On the timeline/stepper/numbered variants it double-
+   numbered (Roman + the variant's own step numbers) and threw
+   content into the wrong grid tracks. Variant rows fall back to
+   the plate card chrome above. */
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row:not(.pl8-vrow) {
   display: grid !important;
   grid-template-columns: 44px 1fr auto !important;
   align-items: baseline !important;
@@ -5623,7 +5643,7 @@ html { scroll-behavior: smooth; }
   counter-increment: plate-roman;
   position: relative;
 }
-.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row::before {
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row:not(.pl8-vrow)::before {
   content: counter(plate-roman, upper-roman);
   font-family: var(--pl-font-display, Fraunces, serif);
   font-style: italic;
@@ -5645,7 +5665,9 @@ html { scroll-behavior: smooth; }
    time pill on the left. Time becomes a small floating pill on
    the red margin; content fills the rest. */
 
-.pl8-guest[data-pl-kit="index"] .pl8-schedule-row {
+/* :not(.pl8-vrow) — display:block collapsed the numbered
+   variant's 3-column grid (the right-aligned time fell inline). */
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-row:not(.pl8-vrow) {
   display: block !important;
   text-align: left !important;
   padding: 14px 16px 14px 64px !important;
@@ -5656,13 +5678,37 @@ html { scroll-behavior: smooth; }
 /* ── MINIMAL schedule layout — oversized serif numerals, no card
    chrome, hairline bottom borders. */
 
-.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row {
+/* :not(.pl8-vrow) — the two-column grid zig-zagged the timeline
+   variant (venue under the time cell) and orphaned the numbered
+   variant's right-aligned time onto its own row. */
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row:not(.pl8-vrow) {
   display: grid !important;
   grid-template-columns: auto 1fr !important;
   gap: 22px !important;
   align-items: baseline !important;
   padding: 20px 0 !important;
   text-align: left !important;
+}
+
+/* Variant rows (.pl8-vrow) under the card-chrome kits keep the
+   kit's surface but need their own padding — the cards DOM pads
+   inline (16px) and the kit structural rules above are skipped,
+   so without this the dashed/engraved/ruled frame hugged the
+   text. !important beats the numbered variant's inline
+   `padding: 14px 0`. Minimal is absent on purpose (no card). */
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="arch"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="stamp"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="deco"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="gallery"] .pl8-schedule-row.pl8-vrow,
+.pl8-guest[data-pl-kit="menu"] .pl8-schedule-row.pl8-vrow {
+  padding: 16px 18px !important;
+}
+/* Scrapbook variant rows keep headroom for the tape strip. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row.pl8-vrow {
+  padding: 24px 18px 16px !important;
 }
 
 
@@ -5672,17 +5718,27 @@ html { scroll-behavior: smooth; }
    FAQ row's chrome + numbering to match the prototype.
    ───────────────────────────────────────────────────────── */
 
-/* TICKET — dashed border + monospace question number prefix */
+/* TICKET — dashed border + monospace question number prefix.
+   The counter skips .pl8-vrow rows (the numbered FAQ variant
+   numbers itself — the kit prefix double-numbered it and, being
+   display:block, landed as a stray cell in the variant's grid). */
 .pl8-guest[data-pl-kit="ticket"] .pl8-faq-row {
   border: 1.5px dashed var(--pl-ink-soft, #3A332C) !important;
   background: var(--pl-cream-card, #FBF7EE) !important;
   border-radius: 7px !important;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row:not(.pl8-vrow) {
   counter-increment: ticket-faq;
 }
 .pl8-guest[data-pl-kit="ticket"] {
   counter-reset: ticket-faq;
 }
-.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row::before {
+/* The numbered variant's rows pad inline as `16px 0` (they expect
+   no card chrome); inside the ticket stub they need side padding. */
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row.pl8-vrow {
+  padding: 16px 18px !important;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row:not(.pl8-vrow)::before {
   content: '#' counter(ticket-faq, decimal-leading-zero);
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 10px;
@@ -5704,11 +5760,19 @@ html { scroll-behavior: smooth; }
   border-radius: 0 !important;
   box-shadow: none !important;
   padding: 16px 0 !important;
-  counter-increment: plate-faq;
   position: relative;
   padding-left: 36px !important;
 }
-.pl8-guest[data-pl-kit="plate"] .pl8-faq-row::before {
+/* Roman numerals skip the self-numbered variant (.pl8-vrow) —
+   it double-numbered ("I. 01"). The 36px numeral gutter goes
+   with them. */
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row:not(.pl8-vrow) {
+  counter-increment: plate-faq;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row.pl8-vrow {
+  padding-left: 0 !important;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row:not(.pl8-vrow)::before {
   content: counter(plate-faq, upper-roman) '.';
   position: absolute;
   left: 0;
@@ -5729,10 +5793,13 @@ html { scroll-behavior: smooth; }
   padding: 18px 22px !important;
   position: relative;
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:nth-child(odd) {
+/* :not(.pl8-vrow) — flat for the numbered variant's full-width
+   index rows (tilt made adjacent sheets collide); the twocol /
+   cards grids keep the tilt. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:not(.pl8-vrow):nth-child(odd) {
   transform: rotate(-0.8deg);
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:nth-child(even) {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:not(.pl8-vrow):nth-child(even) {
   transform: rotate(0.8deg);
 }
 
@@ -5828,13 +5895,22 @@ html { scroll-behavior: smooth; }
   position: relative;
   padding-top: 24px !important;
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(odd) {
+/* The travel TABLE variant's .pl8-hotel-row is an inner grid
+   inside HotelWrap's own card (.pl8-vrow) — tilting/taping it
+   rotated a panel inside a straight frame (audit 2026-07-02).
+   It keeps the white paper (the re-scoped dark ink depends on
+   it) but sits flat, untaped, with a slim even inset. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row.pl8-vrow {
+  transform: none !important;
+  padding: 10px !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow):nth-child(odd) {
   transform: rotate(-1.2deg);
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(even) {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow):nth-child(even) {
   transform: rotate(1.2deg);
 }
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row::before {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:not(.pl8-vrow)::before {
   content: '';
   position: absolute;
   top: 4px;
@@ -6209,6 +6285,31 @@ html { scroll-behavior: smooth; }
   z-index: 999;
   mix-blend-mode: multiply;
   opacity: calc(0.35 * var(--pl-texture-intensity, 1));
+}
+
+/* ── Editor canvas: texture never grains the editing chrome ──
+   In editable mode ([data-pl-editable] — editor canvas only,
+   never published) every texture wash drops BENEATH the content
+   instead of over it. The chrome that must stay crisp (selection
+   frame z-4, "Editing ·" tag z-6, layout bar z-7, InlineEdit
+   focus outlines on z-auto content) all lives inside the z-1
+   content wrapper / isolated sections, so the only way to keep
+   it above the washes is to sink the washes:
+   - root grain pseudos: z 100/101 → 0 (below the z-1 wrapper)
+   - per-section grain:   z 999 → -1 (sections are isolation:
+     isolate, so -1 tucks it under the section's own content)
+   - the <TextureLayer> component (inline zIndex 6) opts down
+     via .pl8-texture-layer below.
+   Published sites keep the over-content wash untouched. */
+.pl8-guest[data-pl-editable][data-pl-texture]::before,
+.pl8-guest[data-pl-editable][data-pl-texture]::after {
+  z-index: 0;
+}
+.pl8-guest[data-pl-editable][data-pl-texture]:not([data-pl-texture="smooth"]) section[id]::after {
+  z-index: -1;
+}
+.pl8-guest[data-pl-editable] .pl8-texture-layer {
+  z-index: 0 !important; /* beats the component's inline zIndex 6 */
 }
 
 /* Per-texture per-section grain — same SVG noise filters as the

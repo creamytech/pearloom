@@ -149,8 +149,13 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
             {multiDay && <DayRule day={g.day} />}
             <div style={{ paddingLeft: 30, position: 'relative' }}>
               <div style={{ position: 'absolute', left: 7, top: 0, bottom: 0, width: 2, background: 'var(--t-line)' }} />
+              {/* pl8-vrow: these rows own their internal layout — per-kit
+                  STRUCTURAL rules in pearloom.css (grids, counters,
+                  rotations sized for the default cards DOM) key off
+                  :not(.pl8-vrow) and must skip them. Kit surface chrome
+                  (borders, backgrounds) still applies. */}
               {g.rows.map(({ row, idx }) => (
-                <div key={idx} className="pl8-schedule-row" style={{ position: "relative", marginBottom: Math.round(24 * pad) }}>
+                <div key={idx} className="pl8-schedule-row pl8-vrow" style={{ position: "relative", marginBottom: Math.round(24 * pad) }}>
                   <div style={{ position: 'absolute', left: -30, top: 4, width: 16, height: 16, background: 'var(--t-accent)', borderRadius: 999 }} />
                   <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginBottom: 4 }}>
                     {row.t}{row.m ? ' ' + row.m : ''}
@@ -201,9 +206,14 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
                 {line.map(({ row, idx }, li) => {
                   const step = stepOffsets[groupIdx] + lineIdx * 5 + li + 1;
                   return (
-                    <div key={idx} className="pl8-schedule-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <div key={idx} className="pl8-schedule-row pl8-vrow" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120 }}>
-                        <div style={{ width: 44, height: 44, background: 'var(--t-accent)', color: 'var(--t-accent-ink)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15, borderRadius: 999 }}>
+                        {/* --t-paper on solid accent — accent-ink is the
+                            "accent-colored ink on paper" token and fails
+                            contrast ON the accent fill (e.g. Santorini
+                            #2C5571 on #3F6E92). Same pairing as the travel
+                            map's numbered pins. */}
+                        <div style={{ width: 44, height: 44, background: 'var(--t-accent)', color: 'var(--t-paper)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15, borderRadius: 999 }}>
                           {step}
                         </div>
                         <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10 }}>
@@ -245,7 +255,7 @@ export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
             {g.rows.map(({ row, idx }, gi) => {
               const step = stepOffsets[groupIdx] + gi + 1;
               return (
-                <div key={idx} className="pl8-schedule-row" style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--t-line-soft)', alignItems: 'baseline' }}>
+                <div key={idx} className="pl8-schedule-row pl8-vrow" style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--t-line-soft)', alignItems: 'baseline' }}>
                   <div style={{ fontFamily: 'var(--t-display)', fontSize: 36, color: 'var(--t-ink-muted)', lineHeight: 1 }}>
                     {String(step).padStart(2, '0')}
                   </div>

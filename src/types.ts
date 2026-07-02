@@ -944,6 +944,11 @@ export interface StoryManifest {
    *  the editor's localStorage. Static bases always paint regardless,
    *  so the free-tier teaser still reads. */
   atelier?: boolean;
+  /** Motif movement (Decor Library → Motifs → Movement). Drives
+   *  data-pl-motif-anim on the .pl8-guest root; pearloom.css floats
+   *  or drifts the motif layers and pins them still under
+   *  prefers-reduced-motion. Unset reads as 'none'. */
+  motifAnimation?: 'none' | 'float' | 'drift';
   /** Toggles for the public RSVP form. plusOnes/plusOne gate the
    *  "Bringing a guest?" field on the site RSVP modal (default
    *  OFF; a per-guest plus_one_allowed grant also opens it);

@@ -1149,18 +1149,13 @@ export function DecorLibraryPanel({
               <GalleryLabel>Where they live</GalleryLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
                 {MOTIF_LAYOUTS.map((l) => {
-                  const current = ((manifest as unknown as { motifLayout?: string }).motifLayout)
-                    ?? motifLayoutForKit((manifest as unknown as { kitId?: string }).kitId);
+                  const current = manifest.motifLayout ?? motifLayoutForKit(manifest.kitId);
                   const on = current === l.id;
                   return (
                     <button
                       key={l.id}
                       type="button"
-                      onClick={() => {
-                        const next = { ...manifest } as LooseManifest;
-                        (next as unknown as Record<string, unknown>).motifLayout = l.id;
-                        onChange(next as unknown as StoryManifest);
-                      }}
+                      onClick={() => { onChange({ ...manifest, motifLayout: l.id }); }}
                       style={{
                         textAlign: 'left',
                         padding: '9px 11px',
@@ -1218,13 +1213,13 @@ export function DecorLibraryPanel({
               <GalleryLabel>Movement</GalleryLabel>
               <div style={{ display: 'flex', gap: 6, padding: 3, background: 'var(--cream-2, #FBF7EE)', borderRadius: 9, width: 'fit-content' }}>
                 {([{ id: 'none', l: 'Still' }, { id: 'float', l: 'Float' }, { id: 'drift', l: 'Drift' }] as const).map((m) => {
-                  const cur = ((manifest as unknown as { motifAnimation?: string }).motifAnimation) || 'none';
+                  const cur = manifest.motifAnimation || 'none';
                   const on = cur === m.id;
                   return (
                     <button
                       key={m.id}
                       type="button"
-                      onClick={() => { const next = { ...manifest } as LooseManifest; (next as unknown as Record<string, unknown>).motifAnimation = m.id === 'none' ? undefined : m.id; onChange(next as unknown as StoryManifest); }}
+                      onClick={() => { onChange({ ...manifest, motifAnimation: m.id === 'none' ? undefined : m.id }); }}
                       style={{ padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600, background: on ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent', color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)', border: 'none', cursor: 'pointer' }}
                     >
                       {m.l}
@@ -1293,10 +1288,55 @@ export function DecorLibraryPanel({
             </>
           )}
 
-          {tab === 'patterns' && (
+          {tab === 'patterns' && (() => {
+            /* Prints are a full-site wash painted BEHIND the pages
+               (ThemedSite mounts the pattern layer at z-0 in every
+               siteLayout). Whether a host can SEE one is decided by
+               the whole-page layout: framed / margined layouts expose
+               the wash around the pages; edge-to-edge layouts cover
+               it with the pages themselves. Say so, plainly, instead
+               of letting a tap appear to do nothing. */
+            const LAYOUT_LABEL: Record<string, string> = {
+              stacked: 'Classic', boxed: 'Invitation', split: 'Split',
+              magazine: 'Magazine', zine: 'Zine', storybook: 'Storybook',
+              gallery: 'Gallery', postcard: 'Postcard',
+            };
+            const siteLayout = manifest.siteLayout ?? 'stacked';
+            const printsShow = ['boxed', 'magazine', 'zine', 'gallery', 'postcard'].includes(siteLayout);
+            return (
             <>
-              <GalleryLabel>Background prints — tap to apply behind sections</GalleryLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+              <GalleryLabel>Background prints — behind your pages</GalleryLabel>
+              {printsShow ? (
+                <div style={{ fontSize: 11.5, color: 'var(--pl-chrome-text-muted, #6F6557)', lineHeight: 1.45, margin: '-2px 0 10px' }}>
+                  Prints show in the paper around your pages — the {LAYOUT_LABEL[siteLayout] ?? siteLayout} layout leaves room for them.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: 8,
+                    padding: '10px 12px', margin: '-2px 0 12px',
+                    borderRadius: 10, border: '1px solid var(--line, #D8CFB8)',
+                    background: 'var(--cream-2, #FBF7EE)',
+                  }}
+                >
+                  <div style={{ fontSize: 11.5, color: 'var(--pl-chrome-text, #0E0D0B)', lineHeight: 1.45 }}>
+                    The {LAYOUT_LABEL[siteLayout] ?? siteLayout} layout runs edge to edge, so a print stays hidden behind your pages.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...manifest, siteLayout: 'boxed' })}
+                    style={{
+                      alignSelf: 'flex-start', padding: '5px 12px', borderRadius: 8,
+                      border: '1px solid var(--sage-deep, #5C6B3F)', background: 'transparent',
+                      color: 'var(--sage-deep, #5C6B3F)', fontSize: 11.5, fontWeight: 600,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    Switch to the Invitation layout
+                  </button>
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, opacity: printsShow ? 1 : 0.45, transition: 'opacity 200ms ease' }}>
                 <ThemedTile color={color} active={!decor.pattern || decor.pattern === 'none'} onClick={() => setDecor({ pattern: 'none' })}>
                   <span style={{ fontSize: 11.5, color: 'var(--t-ink-muted, var(--ink-muted, #6F6557))', fontWeight: 600 }}>None</span>
                 </ThemedTile>
@@ -1319,7 +1359,8 @@ export function DecorLibraryPanel({
                 ))}
               </div>
             </>
-          )}
+            );
+          })()}
 
           {tab === 'monogram' && (
             <MonogramTab subject={subject} solo={solo} manifest={manifest} onChange={onChange} />
