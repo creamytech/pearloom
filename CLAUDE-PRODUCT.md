@@ -444,6 +444,33 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-02 — Section gaps closed + the living playlist + the Loom
+
+- **Three new addable sections** in the redesign renderer: `menu`
+  (~21 occasions promised it), `dressCode` (~15), and
+  `tributeWall` — the memorial's signature block, wired to the
+  existing tribute_submissions moderation pipeline (guests write
+  on the site; nothing shows until approved). Registry-gated via
+  the Event-OS block pattern.
+- **The living playlist**: guests suggest songs on the published
+  site (typeahead via /api/music/search — Spotify
+  client-credentials when SPOTIFY_CLIENT_ID/SECRET are set, free
+  iTunes Search otherwise), hosts pick auto-add vs approve-first
+  (manifest.music.suggestions/autoAdd), accepted tracks render as
+  "The guest playlist" with album art + 30s needle-drop previews.
+  Migration 20260702_song_request_art.sql (art_url/preview_url) —
+  **apply to prod via MCP**. RSVP-form song answers now reach
+  song_requests too.
+- **The Loom** (manifest.rsvpLoom): a deterministic SVG tapestry
+  above the RSVP form — one weft thread per attending reply, no
+  PII (public /api/rsvp/weave returns hashed seeds only); guests
+  watch their thread weave in live on reply.
+- **The toast jukebox**: day-of plays the passport voice toasts as
+  a queue; the memory book gains an "In their own voices" roll
+  call; recorder copy follows the occasion.
+- Add-Section picker's countdown/music gates now follow registry
+  hiddenBlocks (no more countdown on funerals).
+
 ### 2026-06-12 — Instant wizard, the great deletion, doc re-audit
 
 - **Wizard generation is instant for everyone.** The photo path no
