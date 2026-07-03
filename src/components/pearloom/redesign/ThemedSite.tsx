@@ -193,6 +193,11 @@ interface Props {
      The editor canvas deliberately omits it so in-canvas nav never
      navigates the editor tab away. */
   siteSlug?: string;
+  /* Data-only slug for the editor canvas — lets the registry's
+     self-fetching item grid load the host's REAL items (same
+     public GET as published) without enabling the navigation
+     behaviours siteSlug carries. Never drives links. */
+  registrySiteSlug?: string;
 }
 
 /* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
@@ -221,6 +226,7 @@ export function ThemedSite({
   onSectionFocus,
   pageFilter,
   siteSlug,
+  registrySiteSlug,
 }: Props) {
   /* Edit-write helpers for InlineEdit components. patchManifest
      writes a top-level (or nested via dot path) field; patchNames
@@ -511,7 +517,7 @@ export function ThemedSite({
   const icsHref = siteSlug && manifest.logistics?.date
     ? buildSitePath(siteSlug, '/event.ics', (manifest as unknown as { occasion?: string }).occasion)
     : undefined;
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, onEditField, coverPhoto, edit, icsHref, siteSlug };
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, onEditField, coverPhoto, edit, icsHref, siteSlug, registrySlug: siteSlug ?? registrySiteSlug };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters />
         {glassPhotoAurora}
@@ -2827,9 +2833,11 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
   /* Native registry items (R1-lite) — the reserve-and-link item
      grid, rendered ABOVE the linked-store pills in every layout.
-     Published fetches by siteSlug; the editor canvas shows demo
-     cards gated by `editable` (honesty rule). Built once here so
-     the four layouts share one fetch/claim behaviour.
+     Published fetches by siteSlug; the editor canvas fetches the
+     host's REAL items via ctx.registrySlug (claims disabled) and
+     falls back to demo cards ONLY while zero items exist — demo
+     gated by `editable` (honesty rule). Built once here so the
+     four layouts share one fetch/claim behaviour.
 
      R2-lite rides in the same slot: when manifest.registryFunds
      carries any P2P handle, the "Give directly" fund card (honor
@@ -2847,7 +2855,7 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
         title={[C.registry.title, C.registry.italic].filter(Boolean).join(' ')}
         donation={donationMode}
       />
-      <RegistryItemsGrid siteSlug={ctx.siteSlug} editable={editable} />
+      <RegistryItemsGrid siteSlug={ctx.registrySlug} editable={editable} />
     </>
   );
   /* sub carries the editable callbacks + placeholders so the
@@ -4536,7 +4544,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
        a single ornament rather than the symmetric divider the
        brand uses across every section header. */
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}>
           <OliveSprig size={42} />
         </span>
@@ -4550,14 +4558,14 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'brush') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ width, height: 4, background: 'var(--t-accent)', borderRadius: 2, opacity: 0.6, transform: 'skewX(-12deg)' }} />
       </div>
     );
   }
   if (look === 'dot') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)' }} />
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
@@ -4566,7 +4574,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'deckle') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden>
           <path d={`M0 3 ${Array.from({ length: 14 }).map((_, i) => `L${(i * width) / 14 + width / 28} ${i % 2 ? 5 : 1}`).join(' ')} L${width} 3`} stroke="var(--t-line)" strokeWidth="1" fill="none" />
         </svg>
@@ -4582,7 +4590,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
       d += `C ${x + len * 0.25} 1, ${x + len * 0.75} 13, ${x + len} 7 `;
     }
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
           <path d={d} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
         </svg>
@@ -4591,7 +4599,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'arrow') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden>
           <path d="M 0 1 L 12 5 L 0 9 Z" fill="var(--t-gold, var(--gold))" />
@@ -4602,7 +4610,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'seal') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <span style={{
           width: 12, height: 12, borderRadius: '50%',
@@ -4615,7 +4623,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'bow') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <svg width="22" height="12" viewBox="0 0 22 12" aria-hidden>
           <path d="M 2 1 L 10 6 L 2 11 Z" fill="var(--t-accent)" opacity="0.78" />
@@ -4628,7 +4636,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   if (look === 'diamond') {
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <svg width="46" height="10" viewBox="0 0 46 10" aria-hidden>
           <path d="M 4 5 L 8 1 L 12 5 L 8 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
@@ -4653,7 +4661,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
       return d;
     };
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
           <path d={strand(0)} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
           <path d={strand(0)} stroke="var(--t-gold, var(--gold))" strokeWidth="1.2" fill="none" strokeLinecap="round" transform={`translate(${len / 2} 0)`} opacity="0.85" />
@@ -4665,7 +4673,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     /* Leafy rule — centre stem with alternating leaf pairs. */
     const leaves = Math.max(4, Math.round(width / 30));
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
           <path d={`M 0 7 L ${width} 7`} stroke="var(--t-accent)" strokeWidth="1" opacity="0.8" />
           {Array.from({ length: leaves }).map((_, i) => {
@@ -4694,7 +4702,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     const star = (cx: number, cy: number, r: number) =>
       `M ${cx} ${cy - r} Q ${cx + r * 0.22} ${cy - r * 0.22} ${cx + r} ${cy} Q ${cx + r * 0.22} ${cy + r * 0.22} ${cx} ${cy + r} Q ${cx - r * 0.22} ${cy + r * 0.22} ${cx - r} ${cy} Q ${cx - r * 0.22} ${cy - r * 0.22} ${cx} ${cy - r} Z`;
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
         <svg width="56" height="16" viewBox="0 0 56 16" aria-hidden>
           <path d={star(10, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
@@ -4715,7 +4723,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
       d += `Q ${x + len / 2} -3, ${x + len} 9 `;
     }
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden>
           <path d={d} stroke="var(--t-accent)" strokeWidth="1.1" fill="none" opacity="0.8" />
           {Array.from({ length: n - 1 }).map((_, i) => (
@@ -4728,7 +4736,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   if (look === 'morse') {
     const segs = Math.max(4, Math.round(width / 22));
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden>
           {Array.from({ length: segs }).map((_, i) => {
             const isDash = i % 2 === 1;
@@ -4750,7 +4758,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     /* Linked gold ovals — a fine jewelry chain. */
     const links = Math.max(5, Math.round(width / 18));
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
           {Array.from({ length: links }).map((_, i) => (
             <ellipse
@@ -4773,7 +4781,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     /* Couture running stitch with a thread tail. */
     const stitches = Math.max(6, Math.round(width / 14));
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
           {Array.from({ length: stitches }).map((_, i) => (
             <line
@@ -4797,7 +4805,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     /* A run of theatre bulbs, center bulb lit largest. */
     const bulbs = Math.max(7, Math.round(width / 16)) | 1;
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
           {Array.from({ length: bulbs }).map((_, i) => {
             const center = Math.abs(i - (bulbs - 1) / 2) < 0.6;
@@ -4820,7 +4828,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
     /* Hanging chandelier crystals from a hairline rail. */
     const drops = Math.max(5, Math.round(width / 26));
     return (
-      <div style={wrap}>
+      <div data-pl-divider="" style={wrap}>
         <svg width={width} height="16" viewBox={`0 0 ${width} 16`} aria-hidden>
           <line x1="0" y1="1.5" x2={width} y2="1.5" stroke="var(--t-line)" strokeWidth="1" />
           {Array.from({ length: drops }).map((_, i) => {
@@ -4893,7 +4901,7 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
   }
   /* rule (default) */
   return (
-    <div style={wrap}>
+    <div data-pl-divider="" style={wrap}>
       <div style={{ width, height: 1, background: 'var(--t-line)' }} />
     </div>
   );
@@ -5189,6 +5197,10 @@ interface SectionCtx {
   /** The published slug — undefined on the editor canvas. Gates
    *  the guest-facing strips (photo uploads, ask-a-question). */
   siteSlug?: string;
+  /** Registry-data slug — siteSlug on published, registrySiteSlug
+   *  on the editor canvas. Feeds ONLY the registry item grid's
+   *  fetches; never navigation. */
+  registrySlug?: string;
   theme: Theme;
   pad: number;
   editable: boolean;

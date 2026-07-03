@@ -40,6 +40,10 @@ export interface EditorBridge {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  /** Read-only peek at the previous history entry (the manifest
+   *  before the last committed change) — the Compare hold's
+   *  "before" frame. Never mutates the stack or persists. */
+  peekUndo: () => StoryManifest | null;
 }
 
 /* Autosave debounce window — same value the old EditorClient used so
@@ -261,6 +265,13 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     setHistoryMeta({ cursor: history.current.cursor, length: history.current.stack.length });
   }, [persist, names]);
 
+  /* peekUndo — event-handler-time read of the history ref (render
+     never calls this, so the compiler's ref rule stays happy). */
+  const peekUndo = useCallback((): StoryManifest | null => {
+    const { stack, cursor } = history.current;
+    return cursor > 0 ? (stack[cursor - 1] ?? null) : null;
+  }, []);
+
   const redo = useCallback(() => {
     if (history.current.cursor >= history.current.stack.length - 1) return;
     history.current.cursor += 1;
@@ -356,5 +367,6 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     redo,
     canUndo,
     canRedo,
+    peekUndo,
   };
 }

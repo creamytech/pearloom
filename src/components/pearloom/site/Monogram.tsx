@@ -202,6 +202,9 @@ export function Monogram({
     <div
       className={className}
       aria-hidden={ariaHidden || undefined}
+      /* Marker for the editor's design-change beacon — a monogram
+         commit pulses (and reveals) this element on the canvas. */
+      data-pl-monogram=""
       style={{
         position: 'relative',
         width: size,

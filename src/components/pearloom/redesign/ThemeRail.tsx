@@ -15,6 +15,7 @@ import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
 import { ThemePickerBody } from './ThemePickerBody';
+import { CompareHold } from './CompareHold';
 import { useMobileViewport } from './use-mobile-viewport';
 
 interface Props {
@@ -54,6 +55,9 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
           <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: '4px 0 2px', fontWeight: 600, color: 'var(--lavender-ink)' }}>
             Site look
           </h3>
+          {/* Hold to see the site before the last change — read-only
+              undo-stack peek via EditorRedesign. */}
+          <CompareHold />
           <button
             type="button"
             className="lift"

@@ -30,6 +30,8 @@ import { setEditorVoiceProfile } from '@/lib/pear/editor-voice';
 import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { fireUndoable } from './UndoToast';
+import { DesignChangeBeacon } from './DesignChangeBeacon';
+import { DESIGN_COMPARE_EVENT, type DesignCompareDetail } from './design-feedback';
 import { EditorRailLeft, sectionOrderFor, sectionDisplayLabel } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
 import { ThemeRail } from './ThemeRail';
@@ -225,6 +227,22 @@ export default function EditorRedesign({
   /* Pear Picks modal — which section Pear is populating with rich
      suggestion cards (FAQ / Travel / Details), or null when closed. */
   const [picksKind, setPicksKind] = useState<PicksKind | null>(null);
+
+  /* ── Compare (before/after peek) ────────────────────────────
+     The Theme rail's CompareHold dispatches while held; we peek
+     the undo stack (read-only — nothing is rewound or persisted)
+     and paint the previous manifest on the canvas until release. */
+  const [compareManifest, setCompareManifest] = useState<StoryManifest | null>(null);
+  const { peekUndo } = bridge;
+  useEffect(() => {
+    const onCompare = (e: Event) => {
+      const detail = (e as CustomEvent<DesignCompareDetail>).detail;
+      if (!detail?.active) { setCompareManifest(null); return; }
+      setCompareManifest(peekUndo());
+    };
+    window.addEventListener(DESIGN_COMPARE_EVENT, onCompare);
+    return () => window.removeEventListener(DESIGN_COMPARE_EVENT, onCompare);
+  }, [peekUndo]);
 
   /* ── Viewport-mobile chrome ──────────────────────────────────
      viewportMobile (real phone-sized browser) is NOT the canvas's
@@ -619,6 +637,7 @@ export default function EditorRedesign({
         viewportMobile={viewportMobile}
         usePrototypeCanvas={false}
         canvasPage={canvasPage}
+        compareManifest={compareManifest}
       />
 
       {/* The unified inspector — Content · Design · ✦ Motion. Always
@@ -769,6 +788,9 @@ export default function EditorRedesign({
       {/* Pear's hands — thread-travel + weave-settle + dye-sweep
           overlay for every AI operation (pearloom:pear-working). */}
       <PearLoomFx />
+      {/* Design-change beacons — the "what changed, where" chip +
+          thread pass / layer pulse for design commits. */}
+      <DesignChangeBeacon />
       {/* Co-edit highlights — "Maya is editing this section" boxes
           over the canvas, driven by peers' broadcast section. */}
       {!viewportMobile && mode !== 'preview' && peers.length > 0 && (
@@ -818,6 +840,7 @@ function EditorCanvas({
   viewportMobile = false,
   usePrototypeCanvas = false,
   canvasPage = null,
+  compareManifest = null,
 }: {
   /** Magazine mode — which page the canvas is focused on (Pages
    *  tab in the left rail). null = whole site, every section. */
@@ -842,6 +865,10 @@ function EditorCanvas({
    *  (decorative arches, gradient blobs, photo strips) instead of the
    *  full ThemedSiteRenderer. Preview pill flips to ThemedSiteRenderer. */
   usePrototypeCanvas?: boolean;
+  /** Compare hold — while set, the canvas paints THIS manifest (the
+   *  one before the last change) read-only, with a "Before" chip.
+   *  Never persisted; release restores the live manifest. */
+  compareManifest?: StoryManifest | null;
 }) {
   /* On a real phone the canvas always uses mobile sizing — the
      host shouldn't have to toggle the Mobile preview pill to see
@@ -914,7 +941,11 @@ function EditorCanvas({
      in the Property Rail never waits on a full canvas render.
      InlineEdit on the canvas is uncontrolled (commits on blur), so
      the deferral never lags text the host is actively typing. */
-  const canvasManifest = useDeferredValue(manifest);
+  const deferredManifest = useDeferredValue(manifest);
+  /* Compare hold — the "before" frame swaps in URGENTLY (it's a
+     deliberate press, not a keystroke burst) and is read-only. */
+  const comparing = compareManifest !== null;
+  const canvasManifest = compareManifest ?? deferredManifest;
   /* Tap responsiveness — same pattern for the ACTIVE section. On a
      phone, tapping a section sets active + opens the props sheet in
      one urgent render; passing the fresh `active` straight into
@@ -1014,6 +1045,9 @@ function EditorCanvas({
              content's natural height (~5000px), the canvas sees the
              overflow, and mouse-wheel + scrollbar finally work. */
           flexShrink: 0,
+          /* Compare hold — the "before" frame is a peek, never an
+             editing surface. */
+          pointerEvents: comparing ? 'none' : undefined,
         }}
       >
         {/* Living background (v2 shader wallpaper) — ThemedSite's root
@@ -1029,11 +1063,38 @@ function EditorCanvas({
             fixed={false}
           />
         )}
+        {/* Compare hold — "Before" chip while the previous look is
+            painted. pointerEvents are cut below so nothing can edit
+            the old manifest mid-peek. */}
+        {comparing && (
+          <div
+            role="status"
+            style={{
+              position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 40, pointerEvents: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '6px 13px', borderRadius: 999,
+              background: 'var(--pl-glass, rgba(251,247,238,0.85))',
+              backgroundImage: 'var(--pl-glass-sheen)',
+              backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+              WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+              border: '1px solid var(--pl-glass-border, rgba(14,13,11,0.12))',
+              boxShadow: 'var(--pl-glass-shadow, 0 8px 24px rgba(14,13,11,0.14))',
+              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+              fontSize: 9.5, fontWeight: 700, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'var(--pl-ink, #2A2418)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+            Before — release to return
+          </div>
+        )}
         <CanvasThemedSite
           active={canvasActive}
           setActive={setActive}
-          onSectionFocus={isPreview ? undefined : onSectionFocus}
-          editable={!isPreview}
+          onSectionFocus={isPreview || comparing ? undefined : onSectionFocus}
+          editable={!isPreview && !comparing}
           manifest={canvasManifest}
           names={names}
           /* When the editor's mode pill is "Mobile", force the canvas
@@ -1045,8 +1106,8 @@ function EditorCanvas({
              so InlineEdit components inside the canvas write directly
              back to the manifest. PropertyRail's panel inputs and the
              canvas now share the same write path. */
-          onEditField={isPreview ? undefined : onEditField}
-          onEditNames={isPreview ? undefined : onEditNames}
+          onEditField={isPreview || comparing ? undefined : onEditField}
+          onEditNames={isPreview || comparing ? undefined : onEditNames}
           /* Magazine (multi-page) sites — Preview shows the real home
              page (hero + the keep-on-home picks) exactly as guests
              will see it. Edit mode keeps every section on the canvas
@@ -1059,6 +1120,11 @@ function EditorCanvas({
               ? (canvasPage ?? (isPreview ? 'home' : undefined))
               : undefined
           }
+          /* Data-only slug: the registry section's item grid uses it
+             to fetch the host's REAL items on the canvas. Unlike
+             siteSlug (still deliberately omitted, see above), this
+             never drives navigation. */
+          registrySiteSlug={siteSlug}
         />
         {/* The Fitting Room — drape layer for whole-site AI
             proposals (pearloom:drape). Lives inside the device

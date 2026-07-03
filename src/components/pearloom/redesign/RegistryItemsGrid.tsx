@@ -13,8 +13,11 @@
 //
 // Same contract as GuestbookSection / GuestPlaylist:
 //   • published: needs siteSlug; zero items renders nothing.
-//   • editor canvas (editable, no slug): three demo cards so the
-//     host can see the furniture — gated by `editable` only, demo
+//   • editor canvas (editable): fetches the host's REAL items via
+//     the same public GET when a slug is present (claims disabled),
+//     and refetches on the RegistryPanel's pearloom:registry-items
+//     ping so panel edits land promptly. Demo cards stand in ONLY
+//     while the host has zero items — gated by `editable`, demo
 //     content NEVER reaches published sites.
 //
 // Themed entirely with the site's --t-* vars. Honours
@@ -93,14 +96,18 @@ function storeNameFor(url: string): string {
 }
 
 export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
-  const [items, setItems] = useState<PublicItem[] | null>(editable ? DEMO_ITEMS : null);
+  /* Host items — null while threading. The editor canvas fetches
+     too (same public GET as published) so the host's real items
+     show on the canvas; demo furniture only fills in while there
+     are none (see `showDemo` below). */
+  const [items, setItems] = useState<PublicItem[] | null>(null);
   /* Per-item chip-in aggregates — fetched only when a group-gift
      item is actually listed, so plain registries pay no extra
      request. */
-  const [chipStats, setChipStats] = useState<Record<string, ChipStat>>(editable ? DEMO_CHIP_STATS : {});
+  const [chipStats, setChipStats] = useState<Record<string, ChipStat>>({});
 
   const refresh = useCallback(async () => {
-    if (!siteSlug || editable) return;
+    if (!siteSlug) return;
     try {
       const r = await fetch(`/api/registry-items?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
       if (!r.ok) return;
@@ -119,15 +126,32 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
         }
       }
     } catch { /* grid stays as-is */ }
-  }, [siteSlug, editable]);
+  }, [siteSlug]);
 
   useEffect(() => {
     const t = setTimeout(() => { void refresh(); }, 0);
     return () => clearTimeout(t);
   }, [refresh]);
 
+  /* Editor canvas — the RegistryPanel's items manager pings this
+     pearloom:* event after every add / edit / delete so the canvas
+     reflects the change without a reload. */
+  useEffect(() => {
+    if (!editable) return;
+    const onPing = () => { void refresh(); };
+    window.addEventListener('pearloom:registry-items', onPing);
+    return () => window.removeEventListener('pearloom:registry-items', onPing);
+  }, [editable, refresh]);
+
+  /* Honesty rule: demo furniture is gated by `editable` only, and
+     ONLY stands in while the host has zero real items (or while
+     the first fetch is still threading). */
+  const showDemo = editable && (items === null || items.length === 0);
+  const shown = showDemo ? DEMO_ITEMS : items;
+  const stats = showDemo ? DEMO_CHIP_STATS : chipStats;
+
   // Published with nothing listed (or still threading) → no extra chrome.
-  if (!items || items.length === 0) return null;
+  if (!shown || shown.length === 0) return null;
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto 30px' }}>
@@ -153,14 +177,14 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
           textAlign: 'left',
         }}
       >
-        {items.map((item) => (
+        {shown.map((item) => (
           <ItemCard
             key={item.id}
             item={item}
             preview={editable}
             onReserved={refresh}
             siteSlug={siteSlug}
-            chip={item.allowGroupGift ? chipStats[item.id] ?? { totalCents: 0, count: 0 } : undefined}
+            chip={item.allowGroupGift ? stats[item.id] ?? { totalCents: 0, count: 0 } : undefined}
           />
         ))}
       </div>

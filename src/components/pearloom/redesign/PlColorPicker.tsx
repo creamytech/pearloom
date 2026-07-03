@@ -67,12 +67,20 @@ interface Pos { top: number; left: number }
 export function PlColorPicker({
   value,
   onChange,
+  onPreview,
   label,
   swatchStyle,
 }: {
   /** Current color (#rrggbb). Non-hex values render as grey. */
   value: string;
   onChange: (hex: string) => void;
+  /** When provided, drags + hex typing fire THIS live instead of
+   *  onChange, and onChange fires once on release / Done / close —
+   *  so a drag is one manifest write (one undo entry, one autosave
+   *  arm, one canvas re-render), not one per pointer move. Callers
+   *  typically paint the preview imperatively (useCanvasTryOn).
+   *  Without it, behavior is unchanged: onChange fires live. */
+  onPreview?: (hex: string) => void;
   label: string;
   /** Styles the trigger swatch (the caller owns its footprint). */
   swatchStyle?: CSSProperties;
@@ -97,21 +105,53 @@ export function PlColorPicker({
     return { top, left };
   }, []);
 
+  /* Drag closures read the LATEST hsv through a ref — state alone
+     would freeze the other two channels at drag start. */
+  const hsvRef = useRef(hsv);
+  useEffect(() => { hsvRef.current = hsv; }, [hsv]);
+
+  /* Preview-mode bookkeeping — while onPreview is wired, live()
+     paints without committing; commitPending() writes onChange
+     once at rest points (pointer up, hex Enter/blur, Done, close).
+     `uncommitted` guards against duplicate commits of the same
+     value (pointer up already committed → closing is a no-op). */
+  const uncommitted = useRef(false);
+  const live = useCallback((hex: string) => {
+    if (onPreview) {
+      uncommitted.current = true;
+      onPreview(hex);
+    } else {
+      onChange(hex);
+    }
+  }, [onPreview, onChange]);
+  const commitPending = useCallback((hex: string) => {
+    if (!onPreview || !uncommitted.current) return;
+    uncommitted.current = false;
+    onChange(hex);
+  }, [onPreview, onChange]);
+
   const openPanel = () => {
     const rgb = hexToRgb(value);
     const next: [number, number, number] = rgb ? rgbToHsv(...rgb) : [30, 0.5, 0.8];
+    uncommitted.current = false;
     setHsv(next);
     setHexDraft(rgb ? hsvToHex(...next) : '#888888');
     setPos(measure());
   };
+  /* Close from anywhere (outside click, Escape, Done) — flush any
+     uncommitted preview so the canvas + manifest can't diverge. */
+  const closePanel = useCallback(() => {
+    commitPending(hsvToHex(...hsvRef.current));
+    setPos(null);
+  }, [commitPending]);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent | TouchEvent) => {
       const t = e.target as Node;
-      if (!triggerRef.current?.contains(t) && !panelRef.current?.contains(t)) setPos(null);
+      if (!triggerRef.current?.contains(t) && !panelRef.current?.contains(t)) closePanel();
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPos(null); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePanel(); };
     const onMove = () => setPos(measure());
     document.addEventListener('mousedown', onDown);
     document.addEventListener('touchstart', onDown);
@@ -123,14 +163,14 @@ export function PlColorPicker({
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onMove);
     };
-  }, [open, measure]);
+  }, [open, measure, closePanel]);
 
   const commit = useCallback((next: [number, number, number]) => {
     setHsv(next);
     const hex = hsvToHex(...next);
     setHexDraft(hex);
-    onChange(hex);
-  }, [onChange]);
+    live(hex);
+  }, [live]);
 
   /* Drag handlers — pointer capture so the drag survives leaving
      the element. Live commit on every move. */
@@ -149,6 +189,7 @@ export function PlColorPicker({
     const up = () => {
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
+      commitPending(hsvToHex(...hsvRef.current));
     };
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
@@ -167,15 +208,11 @@ export function PlColorPicker({
     const up = () => {
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
+      commitPending(hsvToHex(...hsvRef.current));
     };
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
   };
-  /* Drag closures read the LATEST hsv through a ref — state alone
-     would freeze the other two channels at drag start. */
-  const hsvRef = useRef(hsv);
-  useEffect(() => { hsvRef.current = hsv; }, [hsv]);
-
   const [h, s, v] = hsv;
   const current = hsvToHex(h, s, v);
 
@@ -186,7 +223,7 @@ export function PlColorPicker({
         type="button"
         aria-label={`${label} color — ${value}`}
         aria-expanded={open}
-        onClick={() => (open ? setPos(null) : openPanel())}
+        onClick={() => (open ? closePanel() : openPanel())}
         style={{
           display: 'block',
           padding: 0,
@@ -294,8 +331,12 @@ export function PlColorPicker({
                 if (rgb) {
                   const nextHsv = rgbToHsv(...rgb);
                   setHsv(nextHsv);
-                  onChange(hsvToHex(...nextHsv));
+                  live(hsvToHex(...nextHsv));
                 }
+              }}
+              onBlur={() => commitPending(hsvToHex(...hsvRef.current))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitPending(hsvToHex(...hsvRef.current));
               }}
               spellCheck={false}
               aria-label={`${label} hex value`}
@@ -314,7 +355,7 @@ export function PlColorPicker({
             />
             <button
               type="button"
-              onClick={() => setPos(null)}
+              onClick={closePanel}
               style={{
                 padding: '6px 11px', borderRadius: 999, border: 'none',
                 background: 'var(--ink, #0E0D0B)', color: 'var(--cream, #F5EFE2)',

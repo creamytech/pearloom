@@ -17,6 +17,7 @@ import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
 import { useMobileViewport } from './use-mobile-viewport';
 import { ThemePickerBody } from './ThemePickerBody';
+import { CompareHold } from './CompareHold';
 import { occasionCopyFor } from './occasion-copy';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
@@ -505,6 +506,9 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
             {headTitle}
           </h3>
+          {/* Design tab — hold to see the site before the last
+              change (read-only undo-stack peek). */}
+          {effectiveTab === 'design' && <CompareHold />}
           {/* Hide / move act on canvas sections; tool panels (Guests,
               Share, Privacy…) aren't on the canvas, so the controls
               would write meaningless keys into hiddenSections. */}

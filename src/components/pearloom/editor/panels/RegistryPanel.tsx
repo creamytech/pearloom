@@ -409,6 +409,13 @@ interface ItemDraft {
 
 const EMPTY_DRAFT: ItemDraft = { name: '', price: '', quantity: '1', imageUrl: '', itemUrl: '', description: '', allowGroupGift: false };
 
+/* Tell the canvas (RegistryItemsGrid) the items changed so it
+   refetches promptly — same pearloom:* window-event pattern as
+   pearloom:design-jump. Fired after the server confirms a write. */
+function pingCanvasItems() {
+  try { window.dispatchEvent(new Event('pearloom:registry-items')); } catch { /* canvas just polls on next mount */ }
+}
+
 function draftFrom(item: OwnerItem): ItemDraft {
   return {
     name: item.name,
@@ -529,6 +536,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
         const d = (await r.json().catch(() => ({}))) as { item?: OwnerItem; error?: string };
         if (!r.ok || !d.item) throw new Error(d.error ?? 'Couldn’t add the item.');
         setItems((prev) => [...(prev ?? []), d.item as OwnerItem]);
+        pingCanvasItems();
       } else if (open) {
         // Optimistic — patch locally, then hit the network.
         const id = open;
@@ -550,6 +558,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
           void refetch();
           throw new Error(d.error ?? 'Couldn’t save — restored the last version.');
         }
+        pingCanvasItems();
       }
       setOpen(null);
       setDraft(EMPTY_DRAFT);
@@ -565,7 +574,10 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
     setItems((prev) => (prev ?? []).filter((it) => it.id !== id));
     if (open === id) setOpen(null);
     void fetch(`/api/registry-items?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
-      .then((r) => { if (!r.ok) void refetch(); })
+      .then((r) => {
+        if (!r.ok) { void refetch(); return; }
+        pingCanvasItems();
+      })
       .catch(() => { void refetch(); });
   }
 

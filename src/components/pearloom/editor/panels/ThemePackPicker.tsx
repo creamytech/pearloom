@@ -22,6 +22,8 @@ import type { StoryManifest } from '@/types';
 import { THEMES, type Theme } from '../../site/themes';
 import { Motif, type MotifKind } from '../../site/MotifScatter';
 import { Icon } from '../../motifs';
+import { useCanvasTryOn, expandThemeVarsForPreview } from '../../redesign/design-tryon';
+import { announceDesignChange } from '../../redesign/design-feedback';
 
 interface Props {
   manifest: StoryManifest;
@@ -49,7 +51,22 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
   const recommendedTop = new Set(RECOMMENDED_FOR[occasion] ?? RECOMMENDED_FOR.wedding);
   const occasionLabel = occasion.charAt(0).toUpperCase() + occasion.slice(1);
 
-  function pick(id: string) {
+  /* Hover/focus try-on — a tile paints its full --t-* bag (plus
+     the paper material attribute) straight onto the canvas root:
+     no manifest write, no undo entry. Leaving restores; clicking
+     keeps the paint and commits through the normal pick() path. */
+  const tryOn = useCanvasTryOn();
+  const previewTheme = (t: Theme) => {
+    tryOn.preview({
+      ...expandThemeVarsForPreview(t.vars),
+      attrs: { 'data-pl-texture': t.texture },
+    });
+  };
+
+  function pick(id: string, name: string) {
+    /* The hover paint already matches what this commit renders —
+       keep it (no restore flash) and let the re-render confirm. */
+    tryOn.commit();
     /* Clear EVERY Theme-Store pack override so the theme tile
        fully takes over. Pack writes (per lib/theme-store/apply.ts):
          themeVars (CSS var bag), themeId, kitId, texture, pattern,
@@ -81,6 +98,7 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
       foil: undefined,
       darkMode: undefined,
     } as unknown as StoryManifest);
+    announceDesignChange('theme', name);
   }
 
   return (
@@ -91,14 +109,19 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: -4, marginBottom: 4 }}>
         One pick sets the whole theme — palette, fonts, radii, atmosphere.
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}
+        onMouseLeave={() => tryOn.cancel()}
+      >
         {THEMES.map((t) => (
           <ThemeTile
             key={t.id}
             theme={t}
             active={activeId === t.id}
             recommended={recommendedTop.has(t.id)}
-            onPick={() => pick(t.id)}
+            onPick={() => pick(t.id, t.name)}
+            onPreview={() => previewTheme(t)}
+            onPreviewEnd={() => tryOn.cancel()}
           />
         ))}
       </div>
@@ -106,7 +129,7 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
   );
 }
 
-function ThemeTile({ theme, active, recommended, onPick }: { theme: Theme; active: boolean; recommended: boolean; onPick: () => void }) {
+function ThemeTile({ theme, active, recommended, onPick, onPreview, onPreviewEnd }: { theme: Theme; active: boolean; recommended: boolean; onPick: () => void; onPreview?: () => void; onPreviewEnd?: () => void }) {
   const tileStyle: CSSProperties = {
     cursor: 'pointer',
     textAlign: 'left',
@@ -137,7 +160,15 @@ function ThemeTile({ theme, active, recommended, onPick }: { theme: Theme; activ
   const isSans = String(theme.vars['--t-display'] ?? '').includes('Inter');
 
   return (
-    <button type="button" onClick={onPick} className="lift" style={tileStyle}>
+    <button
+      type="button"
+      onClick={onPick}
+      onMouseEnter={onPreview}
+      onFocus={onPreview}
+      onBlur={onPreviewEnd}
+      className="lift"
+      style={tileStyle}
+    >
       <div style={previewStyle}>
         {/* Corner motif — the theme's actual decoration glyph,
             absolute-positioned bottom-right, low-opacity. */}

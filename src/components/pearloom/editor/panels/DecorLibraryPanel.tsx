@@ -71,6 +71,7 @@ import { Divider as BrandDivider, DIVIDER_ORNAMENTS } from '@/components/brand/D
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { AISource } from '../../ai-source';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { announceDesignChange, type DesignChangeKind } from '../../redesign/design-feedback';
 
 /* ─── Prototype tile registries (verbatim) ─────────────────────────── */
 
@@ -859,6 +860,9 @@ export function DecorLibraryPanel({
     return hex ?? 'var(--t-accent, var(--pl-olive, #5C6B3F))';
   };
 
+  /* Beacon label casing — motif/pattern ids are lowercase slugs. */
+  const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
   /* setDecor — the prototype writes a partial decor patch. We
      translate each field into the production manifest. */
   function setDecor(patch: DecorState) {
@@ -907,6 +911,26 @@ export function DecorLibraryPanel({
     }
 
     onChange(next as StoryManifest);
+
+    /* Beacon — name the change and pulse the layer it landed on
+       (motif gutters + pattern fills render far from most scroll
+       positions; the beacon reveals one instance). One announce
+       per patch, keyed by its most visible field. */
+    const kind: DesignChangeKind =
+      'motif' in patch ? 'motifs'
+        : 'pattern' in patch ? 'pattern'
+        : 'divider' in patch ? 'divider'
+        : 'color' in patch ? 'motifs'
+        : 'density' in patch ? 'motifs'
+        : 'decor';
+    const label =
+      'motif' in patch ? (patch.motif === 'none' || !patch.motif ? 'Off' : patch.motif)
+        : 'pattern' in patch ? (patch.pattern === 'none' || !patch.pattern ? 'Off' : patch.pattern)
+        : 'divider' in patch ? (patch.divider == null ? 'Theme default' : patch.divider)
+        : 'color' in patch ? 'Color'
+        : 'density' in patch ? (patch.density === 'generous' ? 'Generous' : 'Subtle')
+        : undefined;
+    announceDesignChange(kind, typeof label === 'string' ? cap(label) : undefined);
   }
 
   function resetDecor() {
@@ -921,6 +945,7 @@ export function DecorLibraryPanel({
       next.decorLibrary = lib;
     }
     onChange(next as StoryManifest);
+    announceDesignChange('decor', 'Reset');
   }
 
   /* Generate — POST to /api/decor/generate-from-text and apply the
@@ -998,6 +1023,7 @@ export function DecorLibraryPanel({
         colors: { ...existingColors, accent: data.accentColor },
       };
       onChange(next as StoryManifest);
+      announceDesignChange('decor', 'Drafted by Pear');
       setGen(presetForUi);
       setGenFromPear(true);
     } catch (err) {
@@ -1008,7 +1034,7 @@ export function DecorLibraryPanel({
     }
   }
 
-  function applyPreset(d: DecorState) {
+  function applyPreset(d: DecorState, label?: string) {
     /* Apply a preset across all fields in one onChange. */
     const next = { ...manifest } as LooseManifest;
     if (d.motif !== undefined) {
@@ -1048,6 +1074,7 @@ export function DecorLibraryPanel({
       next.density = d.density === 'generous' ? 'spacious' : 'cozy';
     }
     onChange(next as StoryManifest);
+    announceDesignChange('decor', label);
     setGen(d);
     setGenFromPear(false);
   }
@@ -1155,7 +1182,7 @@ export function DecorLibraryPanel({
                     <button
                       key={l.id}
                       type="button"
-                      onClick={() => { onChange({ ...manifest, motifLayout: l.id }); }}
+                      onClick={() => { onChange({ ...manifest, motifLayout: l.id }); announceDesignChange('motifs', l.label); }}
                       style={{
                         textAlign: 'left',
                         padding: '9px 11px',
@@ -1219,7 +1246,7 @@ export function DecorLibraryPanel({
                     <button
                       key={m.id}
                       type="button"
-                      onClick={() => { onChange({ ...manifest, motifAnimation: m.id === 'none' ? undefined : m.id }); }}
+                      onClick={() => { onChange({ ...manifest, motifAnimation: m.id === 'none' ? undefined : m.id }); announceDesignChange('motifs', m.l); }}
                       style={{ padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600, background: on ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent', color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)', border: 'none', cursor: 'pointer' }}
                     >
                       {m.l}
@@ -1421,7 +1448,7 @@ export function DecorLibraryPanel({
                   <button
                     key={p.label}
                     type="button"
-                    onClick={() => applyPreset(p.d)}
+                    onClick={() => applyPreset(p.d, p.label)}
                     className="lift"
                     style={{ textAlign: 'left', padding: 0, borderRadius: 11, overflow: 'hidden', border: '1px solid var(--line-soft, rgba(14,13,11,0.10))', cursor: 'pointer', background: 'var(--card, var(--pl-cream-card, #FBF7EE))' }}
                   >
@@ -1575,6 +1602,7 @@ function MonogramTab({
       ...manifest,
       monogram: { ...(mono ?? {}), ...next },
     } as StoryManifest);
+    announceDesignChange('monogram');
   }
 
   function setFrameAndPatch(id: MonogramFrame) {

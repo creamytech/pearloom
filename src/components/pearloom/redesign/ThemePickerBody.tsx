@@ -37,6 +37,8 @@ import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { LAYOUTS, readVariant } from './layouts';
+import { useCanvasTryOn, expandThemeVarsForPreview, findCanvasRoot } from './design-tryon';
+import { announceDesignChange } from './design-feedback';
 
 interface Props {
   manifest: StoryManifest;
@@ -104,7 +106,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
       <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
 
       <SiteLayoutPick manifest={manifest} onChange={onChange} />
-      <KitPick manifest={manifest} onChange={onChange} />
+      <KitPick theme={theme} manifest={manifest} onChange={onChange} />
       {motion === 'inline' && <MotionKitPick manifest={manifest} onChange={onChange} />}
 
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
@@ -283,6 +285,7 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       const prior = manifest;
       onChange(next as unknown as StoryManifest);
       fireUndoable('Pear restyled your site — your old look is one tap away', () => onChange(prior));
+      announceDesignChange('theme', 'Drafted by Pear');
       setRationale(data.rationale ?? 'Pear styled your site.');
     } catch (e) {
       console.error('[theme-picker] look-from-story error:', e);
@@ -370,7 +373,10 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
 
 function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = (manifest as unknown as { siteLayout?: string }).siteLayout ?? 'stacked';
-  const set = (id: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), siteLayout: id } as unknown as StoryManifest);
+  const set = (id: string, label: string) => {
+    onChange({ ...(manifest as unknown as Record<string, unknown>), siteLayout: id } as unknown as StoryManifest);
+    announceDesignChange('layout', label);
+  };
   /* 3 originals + 5 new full-page layouts. Same id / label / sub
      copy as the canonical SiteLayoutPicker so both pickers stay
      in sync; ThemedSite handles the canvas dispatch for all of
@@ -505,7 +511,7 @@ function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onCha
             <button
               key={o.id}
               type="button"
-              onClick={() => set(o.id)}
+              onClick={() => set(o.id, o.label)}
               className="lift"
               style={{
                 padding: 6, borderRadius: 10, cursor: 'pointer', textAlign: 'center',
@@ -557,36 +563,273 @@ const KITS = [
   { id: 'embossed',  label: 'Embossed',  blurb: 'Raised relief · borderless' },
 ];
 
-function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+/* Host-palette swatch set for the living kit miniatures — the
+   host's own paper/ink/accent, not a stock preview. themeVars
+   (pack or Colors-pick overrides) win over the catalog theme. */
+interface KitPalette { paper: string; ink: string; accent: string; gold: string; line: string }
+
+function kitPaletteFor(theme: Theme, manifest: StoryManifest): KitPalette {
+  const o = ((manifest as unknown as { themeVars?: Record<string, string> }).themeVars) ?? {};
+  const v = (token: string, fallback: string): string =>
+    (typeof o[token] === 'string' && o[token]) || theme.vars[token] || fallback;
+  return {
+    paper: v('--t-paper', '#FBF7EE'),
+    ink: v('--t-ink', '#2A2418'),
+    accent: v('--t-accent', '#5C6B3F'),
+    gold: v('--t-gold', '#C19A4B'),
+    line: v('--t-line', 'rgba(42,36,24,0.16)'),
+  };
+}
+
+/* KitMini — a tiny card drawn in the host's palette with the one
+   gesture that names the kit (perforation, engraved frame, tape,
+   red margin, punched hole…). Cheap divs only; no photos. */
+function KitMini({ id, p }: { id: string; p: KitPalette }) {
+  const frame: React.CSSProperties = {
+    position: 'relative', height: 34, borderRadius: 5, overflow: 'hidden',
+    background: p.paper, border: `1px solid ${p.line}`,
+  };
+  const line = (w: string, top: number, opacity = 1, color = p.ink): React.CSSProperties => ({
+    position: 'absolute', left: 8, top, width: w, height: 2, borderRadius: 1, background: color, opacity,
+  });
+  /* Base body — a title line + a soft line; kits decorate around it. */
+  const body = (
+    <>
+      <span style={line('44%', 9)} />
+      <span style={line('62%', 16, 0.45)} />
+    </>
+  );
+  switch (id) {
+    case 'ticket':
+      return (
+        <div style={{ ...frame, borderStyle: 'dashed' }}>
+          <span style={{ position: 'absolute', left: -5, top: '50%', width: 10, height: 10, marginTop: -5, borderRadius: '50%', background: 'var(--card)', border: `1px solid ${p.line}` }} />
+          <span style={{ position: 'absolute', right: -5, top: '50%', width: 10, height: 10, marginTop: -5, borderRadius: '50%', background: 'var(--card)', border: `1px solid ${p.line}` }} />
+          {body}
+        </div>
+      );
+    case 'plate':
+      return (
+        <div style={frame}>
+          <span style={{ position: 'absolute', inset: 3, border: `1px solid ${p.ink}`, borderRadius: 2, opacity: 0.6 }} />
+          <span style={{ position: 'absolute', inset: 6, border: `1px solid ${p.ink}`, borderRadius: 1, opacity: 0.3 }} />
+          <span style={{ ...line('38%', 15), left: '31%' }} />
+        </div>
+      );
+    case 'scrapbook':
+      return (
+        <div style={{ ...frame, background: 'transparent', border: 'none', overflow: 'visible' }}>
+          <span style={{ position: 'absolute', inset: '2px 6px', background: p.paper, border: `1px solid ${p.line}`, borderRadius: 3, transform: 'rotate(-2deg)', boxShadow: '0 1px 3px rgba(14,13,11,0.12)' }} />
+          <span style={{ position: 'absolute', left: '38%', top: -2, width: 22, height: 7, background: p.gold, opacity: 0.45, transform: 'rotate(3deg)' }} />
+          <span style={{ ...line('40%', 13), transform: 'rotate(-2deg)' }} />
+        </div>
+      );
+    case 'index':
+      return (
+        <div style={frame}>
+          <span style={{ position: 'absolute', left: 12, top: 0, bottom: 0, width: 1, background: p.accent, opacity: 0.7 }} />
+          <span style={line('46%', 9, 1)} />
+          <span style={{ position: 'absolute', left: 8, right: 8, top: 16, height: 1, background: p.line }} />
+          <span style={{ position: 'absolute', left: 8, right: 8, top: 24, height: 1, background: p.line }} />
+        </div>
+      );
+    case 'minimal':
+      return (
+        <div style={{ ...frame, border: 'none', background: 'transparent' }}>
+          <span style={{ position: 'absolute', left: 8, right: 8, top: 4, height: 1, background: p.ink, opacity: 0.7 }} />
+          <span style={{ position: 'absolute', left: 8, top: 9, fontSize: 13, lineHeight: 1, fontWeight: 700, color: p.ink }}>01</span>
+          <span style={line('40%', 26, 0.45)} />
+        </div>
+      );
+    case 'arch':
+      return (
+        <div style={{ ...frame, background: 'transparent', border: 'none' }}>
+          <span style={{ position: 'absolute', left: '26%', right: '26%', top: 2, bottom: 0, background: p.paper, border: `1px solid ${p.line}`, borderRadius: '50px 50px 4px 4px' }} />
+          <span style={{ ...line('26%', 18), left: '37%' }} />
+        </div>
+      );
+    case 'stamp':
+      return (
+        <div style={{ ...frame, border: `1px dashed ${p.accent}`, outline: `1px solid ${p.line}`, outlineOffset: 2 }}>
+          {body}
+          <span style={{ position: 'absolute', right: 6, top: 6, width: 9, height: 11, border: `1px solid ${p.accent}`, opacity: 0.6, transform: 'rotate(6deg)' }} />
+        </div>
+      );
+    case 'deco':
+      return (
+        <div style={{ ...frame, border: `1px solid ${p.gold}` }}>
+          <span style={{ position: 'absolute', inset: 3, border: `1px solid ${p.gold}`, opacity: 0.5 }} />
+          <span style={{ position: 'absolute', left: '46%', top: 5, width: 6, height: 6, background: p.gold, transform: 'rotate(45deg)' }} />
+          <span style={{ ...line('34%', 20), left: '33%' }} />
+        </div>
+      );
+    case 'gallery':
+      return (
+        <div style={{ ...frame, background: 'var(--card)' }}>
+          <span style={{ position: 'absolute', inset: 5, background: p.paper, border: `1px solid ${p.ink}`, opacity: 0.85 }} />
+          <span style={{ position: 'absolute', right: 8, bottom: 7, fontSize: 7, color: p.ink, opacity: 0.7 }}>No. 3</span>
+        </div>
+      );
+    case 'menu':
+      return (
+        <div style={frame}>
+          <span style={{ position: 'absolute', left: 8, right: 8, top: 6, height: 1, background: p.gold }} />
+          <span style={line('26%', 12)} />
+          <span style={{ position: 'absolute', left: '42%', right: 22, top: 13, borderBottom: `1px dotted ${p.ink}`, opacity: 0.5 }} />
+          <span style={{ position: 'absolute', right: 8, top: 12, width: 8, height: 2, background: p.ink, opacity: 0.8 }} />
+          <span style={{ position: 'absolute', left: 8, right: 8, bottom: 6, height: 1, background: p.gold }} />
+        </div>
+      );
+    case 'glass':
+      return (
+        <div style={{ ...frame, background: `linear-gradient(120deg, ${p.accent}, ${p.gold})` }}>
+          <span style={{ position: 'absolute', inset: 5, borderRadius: 4, background: 'rgba(255,255,255,0.28)', border: '1px solid rgba(255,255,255,0.5)' }} />
+          <span style={{ ...line('40%', 14, 0.8, p.paper), left: 12 }} />
+        </div>
+      );
+    case 'boarding-pass':
+      return (
+        <div style={frame}>
+          <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 8, background: p.accent }} />
+          <span style={{ position: 'absolute', right: '26%', top: 0, bottom: 0, borderLeft: `1px dashed ${p.line}` }} />
+          <span style={{ ...line('34%', 9), left: 14 }} />
+          <span style={{ ...line('26%', 16, 0.45), left: 14 }} />
+        </div>
+      );
+    case 'marquee':
+      return (
+        <div style={{ ...frame, background: p.ink }}>
+          {[8, 20, 32, 44, 56, 68].map((x) => (
+            <span key={x} style={{ position: 'absolute', left: `${x}%`, top: 4, width: 3, height: 3, borderRadius: '50%', background: p.gold, boxShadow: `0 0 4px ${p.gold}` }} />
+          ))}
+          <span style={{ ...line('44%', 16, 1, p.paper) }} />
+        </div>
+      );
+    case 'chalkboard':
+      return (
+        <div style={{ ...frame, background: '#2E3230', border: `2px solid ${p.gold}` }}>
+          <span style={{ ...line('44%', 10, 0.9, '#F2EFE6') }} />
+          <span style={{ ...line('30%', 18, 0.5, '#F2EFE6') }} />
+        </div>
+      );
+    case 'nursery':
+      return (
+        <div style={{ ...frame, borderRadius: 14, background: `color-mix(in srgb, ${p.accent} 14%, ${p.paper})`, border: 'none', boxShadow: `inset 0 0 0 1px ${p.line}` }}>
+          <span style={{ ...line('38%', 13), left: 12, borderRadius: 2 }} />
+        </div>
+      );
+    case 'kraft':
+      return (
+        <div style={{ ...frame, background: '#D9C7A7', border: `1px dashed ${p.ink}` }}>
+          <span style={{ ...line('44%', 9, 0.8) }} />
+          <span style={{ ...line('60%', 16, 0.4) }} />
+        </div>
+      );
+    case 'memoriam':
+      return (
+        <div style={frame}>
+          <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: p.ink }} />
+          <span style={{ ...line('44%', 9), left: 10 }} />
+          <span style={{ ...line('58%', 16, 0.4), left: 10 }} />
+        </div>
+      );
+    case 'certificate':
+      return (
+        <div style={{ ...frame, border: `2px solid ${p.gold}` }}>
+          <span style={{ position: 'absolute', inset: 3, border: `1px solid ${p.gold}`, opacity: 0.5 }} />
+          <span style={{ ...line('36%', 10), left: '32%' }} />
+          <span style={{ position: 'absolute', right: 7, bottom: 5, width: 9, height: 9, borderRadius: '50%', background: p.gold }} />
+        </div>
+      );
+    case 'luggage-tag':
+      return (
+        <div style={{ ...frame, background: '#E4D3AE', borderRadius: '5px 12px 12px 5px' }}>
+          <span style={{ position: 'absolute', left: 6, top: '50%', width: 7, height: 7, marginTop: -4, borderRadius: '50%', background: 'var(--card)', border: `1px solid ${p.ink}` }} />
+          <span style={{ ...line('38%', 10), left: 18 }} />
+          <span style={{ ...line('26%', 17, 0.45), left: 18 }} />
+        </div>
+      );
+    case 'linen-press':
+      return (
+        <div style={{ ...frame, boxShadow: `inset 0 0 0 3px ${p.paper}, inset 0 0 0 4px ${p.line}` }}>
+          <span style={{ position: 'absolute', inset: 0, backgroundImage: `repeating-linear-gradient(0deg, ${p.line} 0 1px, transparent 1px 4px)`, opacity: 0.4 }} />
+          {body}
+        </div>
+      );
+    case 'wax-seal':
+      return (
+        <div style={frame}>
+          {body}
+          <span style={{ position: 'absolute', right: 6, bottom: 4, width: 12, height: 12, borderRadius: '50%', background: p.accent, boxShadow: `inset 0 0 0 2px color-mix(in srgb, ${p.accent} 70%, ${p.ink})` }} />
+        </div>
+      );
+    case 'pennant':
+      return (
+        <div style={{ ...frame, clipPath: 'polygon(0 0, 100% 0, 100% 72%, 88% 100%, 76% 72%, 64% 100%, 52% 72%, 40% 100%, 28% 72%, 16% 100%, 4% 72%, 0 100%)' }}>
+          <span style={line('44%', 8)} />
+        </div>
+      );
+    case 'embossed':
+      return (
+        <div style={{ ...frame, border: 'none', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.7), inset -1px -1px 2px rgba(14,13,11,0.18)' }}>
+          <span style={{ ...line('44%', 13, 0.5) }} />
+        </div>
+      );
+    default: /* classic */
+      return (
+        <div style={{ ...frame, borderRadius: 7 }}>
+          <span style={{ position: 'absolute', left: 8, top: 6, width: 14, height: 1, background: p.gold }} />
+          <span style={line('44%', 11)} />
+          <span style={line('60%', 18, 0.45)} />
+        </div>
+      );
+  }
+}
+
+function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = manifest.kitId ?? 'classic';
-  const set = (id: string) => onChange({ ...manifest, kitId: id } as StoryManifest);
+  const tryOn = useCanvasTryOn();
+  const palette = kitPaletteFor(theme, manifest);
+  const set = (id: string, label: string) => {
+    tryOn.commit();
+    onChange({ ...manifest, kitId: id } as StoryManifest);
+    announceDesignChange('kit', label);
+  };
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
         Card style
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
-        How cards, dividers, schedule &amp; badges are drawn.
+        How cards, dividers, schedule &amp; badges are drawn. Hover to try one on your site.
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}
+        onMouseLeave={() => tryOn.cancel()}
+      >
         {KITS.map((k) => {
           const on = value === k.id || (!value && k.id === 'classic');
           return (
             <button
               key={k.id}
               type="button"
-              onClick={() => set(k.id)}
+              onClick={() => set(k.id, k.label)}
+              onMouseEnter={() => tryOn.preview({ attrs: { 'data-pl-kit': k.id } })}
+              onFocus={() => tryOn.preview({ attrs: { 'data-pl-kit': k.id } })}
+              onBlur={() => tryOn.cancel()}
+              aria-pressed={on}
               className="lift"
               style={{
-                textAlign: 'left', padding: '8px 10px', borderRadius: 9, cursor: 'pointer',
-                background: on ? 'var(--ink)' : 'var(--card)',
+                textAlign: 'left', padding: '8px 10px 9px', borderRadius: 9, cursor: 'pointer',
+                background: on ? 'var(--cream-2)' : 'var(--card)',
                 border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 700, color: on ? 'var(--cream)' : 'var(--ink)' }}>
+              <KitMini id={k.id} p={palette} />
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginTop: 7 }}>
                 {k.label}
               </div>
-              <div style={{ fontSize: 9.5, lineHeight: 1.3, color: on ? 'rgba(248,241,228,0.72)' : 'var(--ink-muted)', marginTop: 1 }}>
+              <div style={{ fontSize: 9.5, lineHeight: 1.3, color: 'var(--ink-muted)', marginTop: 1 }}>
                 {k.blurb}
               </div>
             </button>
@@ -619,7 +862,10 @@ const MOTION_KITS = [
 function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const premium = !!(manifest as unknown as { atelier?: boolean }).atelier;
   const value = manifest.kitId ?? 'classic';
-  const setKit = (id: string) => onChange({ ...manifest, kitId: id } as StoryManifest);
+  const setKit = (id: string, name: string) => {
+    onChange({ ...manifest, kitId: id } as StoryManifest);
+    announceDesignChange('kit', name);
+  };
   const setPremium = (v: boolean) => onChange({ ...(manifest as unknown as Record<string, unknown>), atelier: v } as unknown as StoryManifest);
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
@@ -669,7 +915,7 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
               </div>
               <button
                 type="button"
-                onClick={() => setKit(k.id)}
+                onClick={() => setKit(k.id, k.name)}
                 className="lift"
                 style={{ padding: '6px 11px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, flexShrink: 0, border: on ? '1px solid var(--gold)' : '1px solid var(--line)', background: on ? 'var(--gold)' : 'transparent', color: on ? '#241a08' : 'var(--ink)' }}
               >
@@ -693,15 +939,18 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
    renderer mounts <LivingBackground /> behind the site when set. */
 function LivingBackgroundPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = ((manifest as unknown as { background?: string }).background) ?? 'none';
-  const set = (id: string) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    background: id === 'none' ? undefined : id,
-  } as unknown as StoryManifest);
+  const set = (id: string, label: string) => {
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      background: id === 'none' ? undefined : id,
+    } as unknown as StoryManifest);
+    announceDesignChange('background', label);
+  };
   const tile = (key: string, label: string, grad: string | null, on: boolean) => (
     <button
       key={key}
       type="button"
-      onClick={() => set(key)}
+      onClick={() => set(key, label)}
       className="lift"
       style={{
         display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
@@ -742,7 +991,10 @@ const FOOTERS = [
 
 function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = (manifest as unknown as { footerVariant?: string }).footerVariant ?? 'signature';
-  const set = (id: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), footerVariant: id } as unknown as StoryManifest);
+  const set = (id: string, label: string) => {
+    onChange({ ...(manifest as unknown as Record<string, unknown>), footerVariant: id } as unknown as StoryManifest);
+    announceDesignChange('footer', label);
+  };
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
@@ -758,7 +1010,7 @@ function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange:
             <button
               key={f.id}
               type="button"
-              onClick={() => set(f.id)}
+              onClick={() => set(f.id, f.label)}
               className="lift"
               style={{
                 textAlign: 'left', padding: '8px 9px', borderRadius: 9, cursor: 'pointer',
@@ -791,10 +1043,15 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
   const layouts = ((manifest as unknown as { layouts?: Record<string, string> }).layouts) ?? {};
   const desktop = readVariant(manifest, 'nav');
   const phone = readVariant(manifest, 'navMobile');
-  const set = (key: 'nav' | 'navMobile', id: string) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    layouts: { ...layouts, [key]: id },
-  } as unknown as StoryManifest);
+  const set = (key: 'nav' | 'navMobile', id: string, label: string) => {
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      layouts: { ...layouts, [key]: id },
+    } as unknown as StoryManifest);
+    /* The phone menu doesn't paint on a desktop canvas — say so
+       instead of pulsing a nav that didn't change. */
+    announceDesignChange('menu', key === 'navMobile' ? `${label} (phone)` : label);
+  };
   const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 7 };
   const chipRow = (opts: { id: string; label: string }[], value: string, key: 'nav' | 'navMobile') => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -804,7 +1061,7 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
           <button
             key={o.id}
             type="button"
-            onClick={() => set(key, o.id)}
+            onClick={() => set(key, o.id, o.label)}
             className="lift"
             style={{
               padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 11.5, fontWeight: 600,
@@ -830,6 +1087,15 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
 
 /* ─── Fine-tune section — prototype L843-881 ──────────────────── */
 
+/* Host-worded grain strength — shared by the slider label, the
+   commit beacon, and the Soften nudge. */
+function intensityLabelFor(v: number): string {
+  return v <= 0.01 ? 'Off'
+    : v < 0.6 ? 'Faint'
+    : v < 1.05 ? 'Natural'
+    : v < 1.35 ? 'Rich' : 'Bold';
+}
+
 function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const voice = (manifest as unknown as { voiceOverride?: string }).voiceOverride ?? 'classic';
   /* Solemn occasions ignore the voice on purpose (occasion-copy:
@@ -846,9 +1112,45 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
   const effectiveTexture = textureOverride && textureOverride !== '' ? textureOverride : theme.texture;
 
   const setVoice = (v: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), voiceOverride: v } as unknown as StoryManifest);
-  const setDensity = (v: string) => onChange({ ...manifest, density: v as 'cozy' | 'comfortable' | 'spacious' });
-  const setIntensity = (v: number) => onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: v } as unknown as StoryManifest);
-  const setMotifs = (v: boolean) => onChange({ ...(manifest as unknown as Record<string, unknown>), motifsEnabled: v } as unknown as StoryManifest);
+  const setDensity = (v: string) => {
+    onChange({ ...manifest, density: v as 'cozy' | 'comfortable' | 'spacious' });
+    announceDesignChange('spacing', ({ cozy: 'Cozy', comfortable: 'Comfy', spacious: 'Airy' } as Record<string, string>)[v] ?? v);
+  };
+  const setMotifs = (v: boolean) => {
+    onChange({ ...(manifest as unknown as Record<string, unknown>), motifsEnabled: v } as unknown as StoryManifest);
+    announceDesignChange('motifs', v ? 'On' : 'Off');
+  };
+
+  /* Grain slider — dragging used to write the manifest per pixel:
+     a full (deferred) canvas re-render, a history entry, and an
+     autosave arm on EVERY move; one drag wiped the 50-entry undo
+     stack. Now the drag previews imperatively (the texture layers'
+     wrapper opacity scales toward the dragged value) and the
+     manifest commits ONCE on release — one undo entry, one save. */
+  const [draftIntensity, setDraftIntensity] = useState<number | null>(null);
+  const shownIntensity = draftIntensity ?? intensity;
+  const previewIntensity = (v: number) => {
+    setDraftIntensity(v);
+    const root = findCanvasRoot();
+    if (!root) return;
+    /* Wrapper opacity can only scale DOWN from the committed
+       strength (opacity clamps at 1) — increases read at commit.
+       The label above the slider tracks the drag either way. */
+    const ratio = intensity > 0 ? Math.min(1, v / intensity) : 0;
+    root.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
+      el.style.opacity = String(ratio);
+    });
+  };
+  const commitIntensity = (v: number) => {
+    setDraftIntensity(null);
+    const root = findCanvasRoot();
+    root?.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
+      el.style.removeProperty('opacity');
+    });
+    if (v === intensity) return;
+    onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: v } as unknown as StoryManifest);
+    announceDesignChange('grain', intensityLabelFor(v));
+  };
 
   const textureLabel = ({
     linen: 'Linen weave',
@@ -866,10 +1168,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
     gilded: 'Gilded leaf',
   } as Record<string, string>)[effectiveTexture] ?? 'Paper grain';
 
-  const intensityLabel = intensity <= 0.01 ? 'Off'
-    : intensity < 0.6 ? 'Faint'
-    : intensity < 1.05 ? 'Natural'
-    : intensity < 1.35 ? 'Rich' : 'Bold';
+  const intensityLabel = intensityLabelFor(shownIntensity);
 
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -901,7 +1200,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
             <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 500 }}>{textureLabel}</span>
             <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontWeight: 600 }}>{intensityLabel}</span>
           </div>
-          <Slider value={intensity} setValue={setIntensity} min={0} max={1.5} step={0.05} />
+          <Slider value={shownIntensity} setValue={previewIntensity} onCommit={commitIntensity} min={0} max={1.5} step={0.05} />
         </div>
       )}
 
@@ -932,7 +1231,10 @@ function LegibilityNote({ manifest, theme, onChange }: { manifest: StoryManifest
           <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>High texture can reduce legibility</span>
           <button
             type="button"
-            onClick={() => onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: 0.7 } as unknown as StoryManifest)}
+            onClick={() => {
+              onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: 0.7 } as unknown as StoryManifest);
+              announceDesignChange('grain', intensityLabelFor(0.7));
+            }}
             style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink)', padding: '3px 9px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', cursor: 'pointer' }}
           >
             Soften
@@ -984,6 +1286,7 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
         },
       };
       onChange(next as unknown as StoryManifest);
+      announceDesignChange('colors', 'From your photo');
     } catch (e) {
       console.error('[theme-picker] photo palette error:', e);
       setErr(pearErrorMessage(e, 'Pear couldn’t read that photo — try another?'));
@@ -1134,6 +1437,34 @@ function deriveDependentVars(paper: string, ink: string, accent: string): Record
   };
 }
 
+/* nextThemeVarsFor — the themeVars bag a pick of `token = hex`
+   commits: the pick itself, plus recomputed dependent tones when
+   a structural color (paper/ink/accent) moved. Pure — shared by
+   the manifest commit AND the live drag preview so they can never
+   disagree. */
+export function nextThemeVarsFor(
+  overrides: Record<string, string>,
+  resolved: (token: string) => string,
+  token: string,
+  hex: string,
+): Record<string, string> {
+  const next = { ...overrides, [token]: hex.toUpperCase() };
+  const paper = token === '--t-paper' ? hex : resolved('--t-paper');
+  const ink = token === '--t-ink' ? hex : resolved('--t-ink');
+  const accent = token === '--t-accent' ? hex : resolved('--t-accent');
+  /* Recompute dependents only when a structural color moved —
+     Soft + Gold are leaf accents with no derived tones. */
+  if (token === '--t-paper' || token === '--t-ink' || token === '--t-accent') {
+    Object.assign(next, deriveDependentVars(paper, ink, accent));
+    /* Keep explicit picks for tokens the host set directly. */
+    for (const [t] of EDITABLE_COLORS) {
+      if (cpHex(overrides[t])) next[t] = overrides[t];
+    }
+    next[token] = hex.toUpperCase();
+  }
+  return next;
+}
+
 function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const overrides = ((manifest as unknown as { themeVars?: Record<string, string> }).themeVars) ?? {};
   const resolved = (token: string): string =>
@@ -1146,22 +1477,21 @@ function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Sto
   );
   const dirty = JSON.stringify(overrides) !== JSON.stringify(initialVars ?? {}) && Object.keys(overrides).length > 0;
 
-  const setColor = (token: string, hex: string) => {
-    const next = { ...overrides, [token]: hex.toUpperCase() };
-    const paper = token === '--t-paper' ? hex : resolved('--t-paper');
-    const ink = token === '--t-ink' ? hex : resolved('--t-ink');
-    const accent = token === '--t-accent' ? hex : resolved('--t-accent');
-    /* Recompute dependents only when a structural color moved —
-       Soft + Gold are leaf accents with no derived tones. */
-    if (token === '--t-paper' || token === '--t-ink' || token === '--t-accent') {
-      Object.assign(next, deriveDependentVars(paper, ink, accent));
-      /* Keep explicit picks for tokens the host set directly. */
-      for (const [t] of EDITABLE_COLORS) {
-        if (cpHex(overrides[t])) next[t] = overrides[t];
-      }
-      next[token] = hex.toUpperCase();
-    }
+  /* Live drag preview — the picker paints the canvas root
+     imperatively per move (vars + the alias/literal expansion so
+     it looks exactly like the commit); the manifest is written
+     ONCE on release, so a drag is one undo entry + one autosave,
+     not hundreds of full canvas re-renders. */
+  const tryOn = useCanvasTryOn();
+  const previewColor = (token: string, hex: string) => {
+    if (!cpHex(hex)) return;
+    tryOn.preview(expandThemeVarsForPreview(nextThemeVarsFor(overrides, resolved, token, hex)));
+  };
+  const setColor = (token: string, hex: string, label: string) => {
+    const next = nextThemeVarsFor(overrides, resolved, token, hex);
+    tryOn.commit();
     onChange({ ...(manifest as unknown as Record<string, unknown>), themeVars: next } as unknown as StoryManifest);
+    announceDesignChange('colors', label);
   };
 
   const reset = () => {
@@ -1194,7 +1524,8 @@ function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Sto
                 and spacing entirely ("we went full custom UI"). */}
             <PlColorPicker
               value={resolved(token)}
-              onChange={(hex) => setColor(token, hex)}
+              onChange={(hex) => setColor(token, hex, label)}
+              onPreview={(hex) => previewColor(token, hex)}
               label={label}
               swatchStyle={{ width: '100%', aspectRatio: '1.4/1' }}
             />
@@ -1235,39 +1566,24 @@ function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Stor
   const activeDisplay = overrides['--t-display'];
   const hasOverride = !!activeDisplay || !!overrides['--t-body'];
 
-  /* Transient hover preview — painted straight onto the canvas
-     root, snapshot restored on leave. Refs are only touched in
-     event handlers. */
-  const previewRef = useRef<{ el: HTMLElement; display: string; body: string } | null>(null);
+  /* Transient hover preview — the shared canvas try-on (was a
+     bespoke previewRef here; that pattern graduated into
+     useCanvasTryOn and this call site now rides it, gaining the
+     --font-display alias + literal font-family expansion). */
+  const tryOn = useCanvasTryOn();
   const startPreview = (display: string, body: string) => {
-    const el = document.querySelector<HTMLElement>('.pl8-guest');
-    if (!el) return;
-    if (!previewRef.current) {
-      previewRef.current = {
-        el,
-        display: el.style.getPropertyValue('--t-display'),
-        body: el.style.getPropertyValue('--t-body'),
-      };
-    }
-    el.style.setProperty('--t-display', display);
-    el.style.setProperty('--t-body', body);
-  };
-  const endPreview = (restore: boolean) => {
-    const p = previewRef.current;
-    previewRef.current = null;
-    if (!p || !restore) return;
-    if (p.display) p.el.style.setProperty('--t-display', p.display); else p.el.style.removeProperty('--t-display');
-    if (p.body) p.el.style.setProperty('--t-body', p.body); else p.el.style.removeProperty('--t-body');
+    tryOn.preview(expandThemeVarsForPreview({ '--t-display': display, '--t-body': body }));
   };
 
   const commit = (pair: (typeof FONT_PAIRS)[number]) => {
+    /* The committed manifest re-renders the root with these exact
+       vars — keep the paint, drop the snapshot. */
+    tryOn.commit();
     onChange({
       ...(manifest as unknown as Record<string, unknown>),
       themeVars: { ...overrides, '--t-display': pair.display, '--t-body': pair.body },
     } as unknown as StoryManifest);
-    /* The committed manifest re-renders the root with these exact
-       vars — drop the snapshot without restoring. */
-    endPreview(false);
+    announceDesignChange('fonts', pair.name);
   };
   const reset = () => {
     const next = { ...overrides };
@@ -1276,8 +1592,9 @@ function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Stor
     const loose = { ...(manifest as unknown as Record<string, unknown>) };
     if (Object.keys(next).length > 0) loose.themeVars = next;
     else delete loose.themeVars;
+    tryOn.cancel();
     onChange(loose as unknown as StoryManifest);
-    endPreview(false);
+    announceDesignChange('fonts', 'Match theme');
   };
 
   return (
@@ -1299,7 +1616,7 @@ function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Stor
       </div>
       <div
         style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}
-        onMouseLeave={() => endPreview(true)}
+        onMouseLeave={() => tryOn.cancel()}
       >
         {FONT_PAIRS.map((pair) => {
           const on = activeDisplay === pair.display;
@@ -1310,7 +1627,7 @@ function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Stor
               aria-pressed={on}
               onMouseEnter={() => startPreview(pair.display, pair.body)}
               onFocus={() => startPreview(pair.display, pair.body)}
-              onBlur={() => endPreview(true)}
+              onBlur={() => tryOn.cancel()}
               onClick={() => commit(pair)}
               style={{
                 padding: '9px 6px 7px',
@@ -1366,8 +1683,10 @@ const TEXTURE_OPTIONS: Array<{ id: string; label: string }> = [
 function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const override = (manifest as unknown as { texture?: string }).texture;
   const active = override && override !== '' ? override : theme.texture;
-  const set = (id: string) =>
+  const set = (id: string, label: string) => {
     onChange({ ...(manifest as unknown as Record<string, unknown>), texture: id } as unknown as StoryManifest);
+    announceDesignChange('texture', label);
+  };
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
@@ -1395,7 +1714,7 @@ function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: St
             <button
               key={o.id}
               type="button"
-              onClick={() => set(o.id)}
+              onClick={() => set(o.id, o.label)}
               aria-pressed={on}
               style={{
                 padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
@@ -1467,8 +1786,11 @@ function Toggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
   );
 }
 
-function Slider({ value, setValue, min, max, step }: { value: number; setValue: (v: number) => void; min: number; max: number; step: number }) {
+function Slider({ value, setValue, onCommit, min, max, step }: { value: number; setValue: (v: number) => void; /** Fires once on release (pointer up / key up / blur) — lets callers preview during the drag and write the manifest a single time. */ onCommit?: (v: number) => void; min: number; max: number; step: number }) {
   const pct = ((value - min) / (max - min)) * 100;
+  const commit = onCommit
+    ? (e: { currentTarget: HTMLInputElement }) => onCommit(parseFloat(e.currentTarget.value))
+    : undefined;
   return (
     <input
       type="range"
@@ -1477,6 +1799,9 @@ function Slider({ value, setValue, min, max, step }: { value: number; setValue: 
       step={step}
       value={value}
       onChange={(e) => setValue(parseFloat(e.target.value))}
+      onPointerUp={commit}
+      onKeyUp={commit}
+      onBlur={commit}
       style={{
         width: '100%', height: 6, borderRadius: 999, appearance: 'none',
         WebkitAppearance: 'none',
