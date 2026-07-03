@@ -569,10 +569,17 @@ export function stripArtForStorage(manifest: StoryManifest): StoryManifest {
     });
   }
 
-  // 3. coverPhoto + heroSlideshow.
+  // 3. coverPhoto + heroSlideshow + galleryImages.
   if (isBase64Url(loose.coverPhoto)) out.coverPhoto = undefined;
   if (Array.isArray(loose.heroSlideshow)) {
     out.heroSlideshow = (loose.heroSlideshow as Array<unknown>).map((u) => isBase64Url(u) ? '' : u);
+  }
+  // galleryImages — the redesign canvas photo drawer + gallery panel
+  // write here. Normally R2 URLs, but strip any stray base64 so an
+  // inlined data URL can't balloon the autosave/beacon payload past
+  // the request limit (same contract as coverPhoto above).
+  if (Array.isArray(loose.galleryImages)) {
+    out.galleryImages = (loose.galleryImages as Array<unknown>).map((u) => isBase64Url(u) ? '' : u);
   }
 
   // 4. Stickers — each carries a src/url that's often a DataURL.

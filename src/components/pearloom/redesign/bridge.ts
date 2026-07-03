@@ -68,6 +68,10 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   const [names, setNamesState] = useState<[string, string]>(() => sanitiseNames(initialNames));
   const [savedAt, setSavedAt] = useState<string>('just now');
   const [saveState, setSaveState] = useState<SaveState>('saved');
+  /* Mirror saveState into a ref so the unmount cleanup (empty-deps
+     effect) can read the LATEST value without re-subscribing. */
+  const saveStateRef = useRef<SaveState>('saved');
+  useEffect(() => { saveStateRef.current = saveState; }, [saveState]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestPayload = useRef<{ manifest: StoryManifest; names: [string, string] }>({ manifest: initialManifest, names: initialNames });
   /* In-flight guard: prevents two POSTs racing against the same
@@ -207,12 +211,38 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     (m: StoryManifest, n: [string, string]) => {
       if (typeof window === 'undefined') return;
       latestPayload.current = { manifest: m, names: n };
+      /* Each fresh host edit is a new save attempt — reset the
+         transient-failure budget so a previous run that exhausted
+         its 3 retries doesn't immediately error-out this one. */
+      retryAttempt.current = 0;
       setSaveState('unsaved');
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(fireSave, AUTOSAVE_DEBOUNCE_MS);
     },
     [fireSave],
   );
+
+  /* flushViaFetch — a state-free POST of the latest payload used on
+     UNMOUNT (client-side navigation away from the editor). A plain
+     fetch, not keepalive: an SPA nav doesn't unload the page, so the
+     request completes normally and carries no 64 KB body cap. The
+     tab-close case is handled separately by the beforeunload beacon
+     below. Reads latestPayload.current so it can never send stale
+     data, and never touches React state (the component is tearing
+     down). */
+  const flushViaFetch = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const { manifest: m, names: n } = latestPayload.current;
+    const m2 = stripArtForStorage(m);
+    const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
+    try {
+      void fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      }).catch(() => { /* nav in progress — nothing to surface */ });
+    } catch { /* fetch can throw mid-teardown — swallow */ }
+  }, [siteSlug]);
 
   /* beforeunload — flush in-flight changes via sendBeacon so the
      last edit makes it to the server even if the user closes the
@@ -328,7 +358,20 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     persist(next, names);
   }, [manifest, persist, names, pushHistory]);
 
-  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
+  /* Unmount — flush any pending edit before the editor tears down.
+     beforeunload only fires on a real tab close / full page unload;
+     a Next.js CLIENT-SIDE navigation (a link back to the dashboard,
+     router.push, etc.) unmounts this hook WITHOUT firing it. The old
+     cleanup just cleared the debounce timer, silently dropping the
+     last ≤2s of edits. Now: cancel the timer AND, if a save is
+     genuinely outstanding, fire one final POST. 'saving' is skipped —
+     that in-flight fetch completes on its own regardless of unmount. */
+  useEffect(() => () => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    if (saveStateRef.current === 'unsaved' || saveStateRef.current === 'error') {
+      flushViaFetch();
+    }
+  }, [flushViaFetch]);
 
   const openPublish = useCallback(() => {
     if (typeof window === 'undefined') return;
