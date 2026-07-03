@@ -1134,6 +1134,19 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   }
 }
 
+/* Side-split sections (map "split", music "sidebar") — a 280px +
+   220px two-column grid that can't fit a phone and never stacked
+   on published sites (the intended container query only fires in
+   the editor's device frame). Stack to one column on real phones
+   AND in the editor phone preview so neither over-runs the
+   viewport (~+142px at 390 before this rule). */
+@media (max-width: 640px) {
+  .pl8-guest .pl8-side-split { grid-template-columns: 1fr !important; }
+}
+@container pl-site (max-width: 640px) {
+  .pl8-guest .pl8-side-split { grid-template-columns: 1fr !important; }
+}
+
 /* Hero strip — three or fewer photos fit cleanly at phone width;
    the existing rule caps at 3, but the photos themselves still
    carry desktop padding. Shrink polaroid borders on phone so the

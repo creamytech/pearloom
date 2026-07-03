@@ -57,7 +57,11 @@ function EditableTitle({ value, onEdit, editable, style }: { value: string; onEd
 export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtxExtended }) {
   const { pad, C, cta, editable, onEditEyebrow, onEditTitle } = ctx;
   return (
+    /* pl8-side-split: stacks photo-over-form on phones (≤640) — a
+       194px form column at 390 squeezed the title + button into
+       ~106px. Photo mat rides on top when stacked. */
     <div
+      className="pl8-side-split"
       style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',

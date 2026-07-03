@@ -3737,7 +3737,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
        via the canvas's containerType). */
     return (
       <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
-        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+        <div className="pl8-side-split" style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
           <div style={{ position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
             <iframe
               src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
@@ -4021,7 +4021,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
   if (variant === 'sidebar') {
     return (
       <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
-        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+        <div className="pl8-side-split" style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
           <div style={{ borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
             {playerIframe(Math.max(baseHeight, 420))}
           </div>

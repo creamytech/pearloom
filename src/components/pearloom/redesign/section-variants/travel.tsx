@@ -516,13 +516,18 @@ export function TravelCarousel({ ctx }: { ctx: TravelVariantCtxEditable }) {
     <>
       <VariantSectionHead {...headProps(ctx)} />
       <TravelIntro C={C} />
+      {/* The scroller bleeds to the section edge via a negative
+          margin that EXACTLY matches the travel section's own
+          horizontal padding (clamp(16px, 5vw, 40px)). A hardcoded
+          -40px over-bled past the viewport on phones (~+21px page
+          overflow at 390) where the section padding is only ~19px. */}
       <div
         style={{
           display: 'flex',
           overflowX: 'auto',
           gap: 16,
-          padding: '12px 40px',
-          margin: '0 -40px',
+          padding: '12px clamp(16px, 5vw, 40px)',
+          margin: '0 calc(-1 * clamp(16px, 5vw, 40px))',
           scrollSnapType: 'x mandatory',
         }}
       >
