@@ -260,8 +260,11 @@ export function QuickLookModal({
               borderRadius: 12,
               display: 'grid',
               placeItems: 'center',
-              background: 'rgba(251,247,238,0.92)',
-              border: '1px solid var(--pl-divider, #D8CFB8)',
+              /* Theme-aware glass so the close glyph (ink-soft, which
+                 flips cream in dark) doesn't vanish on a fixed cream
+                 button over the pack preview. */
+              background: 'var(--pl-glass, rgba(251,247,238,0.92))',
+              border: '1px solid var(--pl-glass-border, var(--pl-divider, #D8CFB8))',
               cursor: 'pointer',
               color: 'var(--pl-ink-soft, #3A332C)',
             }}

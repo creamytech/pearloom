@@ -214,7 +214,9 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
         {busy && (
           <div style={{
             position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-            background: 'rgba(245,239,226,0.85)', borderRadius: isSmall ? 8 : 10,
+            /* Theme-aware scrim — a fixed cream wash left the peach
+               "Threading…" label light-on-light in editorial-midnight. */
+            background: 'color-mix(in oklab, var(--pl-cream-card, #FBF7EE) 88%, transparent)', borderRadius: isSmall ? 8 : 10,
             fontSize: 11.5, fontWeight: 600, color: 'var(--peach-ink)',
           }}>
             Threading…

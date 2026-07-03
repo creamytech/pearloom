@@ -496,9 +496,12 @@ function StoreInner() {
           position: 'sticky',
           top: 0,
           zIndex: 40,
-          background: 'rgba(245,239,226,0.86)',
+          /* Theme-aware floating-chrome glass (BRAND §9): the fixed
+             cream frost stayed a bright band across midnight and the
+             ink-token text on it flipped cream → invisible in dark. */
+          background: 'var(--pl-glass, rgba(245,239,226,0.86))',
           backdropFilter: 'blur(14px)',
-          borderBottom: '1px solid var(--pl-divider-soft, #E5DCC4)',
+          borderBottom: '1px solid var(--pl-glass-border, var(--pl-divider-soft, #E5DCC4))',
         }}
       >
         <div

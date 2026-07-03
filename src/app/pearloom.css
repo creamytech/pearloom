@@ -377,7 +377,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   background: var(--ink); color: var(--cream);
   box-shadow: 0 4px 0 rgba(0,0,0,0.06);
 }
-.pl8 .btn-primary:hover { background: #2f3a15; }
+/* Token-mixed so the hover stays a darker-than-face tone in BOTH
+   themes — a fixed dark olive turned the light dark-mode button
+   dark-on-dark. */
+.pl8 .btn-primary:hover { background: color-mix(in oklab, var(--ink) 85%, var(--sage-deep)); }
 /* Pearl CTA — the brand's iridescent weft, the same gradient knotted
    into the logo + the wizard's primary action (design system v2).
    Dark ink reads on the warm shimmer; the gold-soft hairline frames
@@ -385,7 +388,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pl8 .btn-pearl {
   background: linear-gradient(135deg, #F4ECD8 0%, #E8C77A 32%, #D9A89E 58%, #B8C96B 82%, #F4ECD8 100%);
   background-size: 160% 160%;
-  color: var(--pl-ink, #2A2A2A);
+  /* The iridescent weft is a fixed LIGHT shimmer in both themes, so
+     the label must stay a warm dark ink — not var(--pl-ink), which
+     flips to cream in editorial-midnight and washes out. */
+  color: #2A2320;
   border: 1px solid var(--pl-gold-soft, #EAD9B0);
   box-shadow: 0 4px 0 rgba(120, 90, 30, 0.07);
 }
