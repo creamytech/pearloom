@@ -33,16 +33,33 @@ function DevEditorInner() {
   const params = useSearchParams();
   const occasion = params.get('occasion');
   const blank = params.get('blank') === '1';
+  // QA hook: `?theme=<id>` (midnight / editorial / …) overrides the
+  // reference manifest's site theme so the empty-section placeholders
+  // are verifiable on a DARK site theme without a DB. Clears the
+  // pack-set themeVars so themeId is the sole resolution axis.
+  const theme = params.get('theme');
+  // QA hook: `?blocks=countdown,map,music` appends opt-in core /
+  // Event-OS sections to blockOrder so their empty editor states are
+  // verifiable (they render only when added via the Add-Section
+  // picker in normal use).
+  const blocks = params.get('blocks');
   const manifest = useMemo<StoryManifest>(() => {
     const base = REFERENCE_MANIFEST as StoryManifest;
-    if (!occasion && !blank) return base;
+    if (!occasion && !blank && !theme && !blocks) return base;
     const next: Record<string, unknown> = {
       ...(base as unknown as Record<string, unknown>),
       ...(occasion ? { occasion } : {}),
+      ...(theme ? { themeId: theme } : {}),
     };
+    if (theme) delete next.themeVars;
+    if (blocks) {
+      const existing = Array.isArray(next.blockOrder) ? (next.blockOrder as string[]) : [];
+      const added = blocks.split(',').map((s) => s.trim()).filter(Boolean);
+      next.blockOrder = [...existing, ...added.filter((b) => !existing.includes(b))];
+    }
     if (blank) for (const f of BLANK_STRIPPED_FIELDS) delete next[f];
     return next as unknown as StoryManifest;
-  }, [occasion, blank]);
+  }, [occasion, blank, theme, blocks]);
 
   return (
     <EditorRedesign

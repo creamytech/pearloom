@@ -57,6 +57,7 @@ import {
 } from './section-variants/nav-mobile';
 import type { RegistryFunds } from '@/lib/registry-funds';
 import type { LightboxState } from './PhotoLightbox';
+import { SectionEmpty, SectionChunkLoading } from './section-variants/_empty';
 import { useIsMobile, useActiveSection } from './use-nav-hooks';
 import {
   readSiteMode,
@@ -82,44 +83,52 @@ import { buildSitePath } from '@/lib/site-urls';
    ctx.variants.<section> to one of these. Default ('tiles', 'cards',
    'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
    baked into the block below. */
-const RsvpSplit = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpSplit));
-const RsvpBanner = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpBanner));
-const RsvpMinimal = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpMinimal));
+/* Shared loading fallback for the code-split FULL-section chunks —
+   without it next/dynamic renders null mid-fetch and the editor
+   canvas flashes a bare-texture void for a beat on slow phones. The
+   small inline sub-elements below (LoomTapestry, StayActions,
+   RegistryItemsGrid, …) deliberately opt OUT: they sit inside a
+   section that already has content, so a big loader would be wrong.
+   NB: next/dynamic requires the options to be an OBJECT LITERAL at
+   each call site (SWC transform) — it can't be a shared const. */
+const RsvpSplit = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpSplit), { loading: () => <SectionChunkLoading /> });
+const RsvpBanner = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpBanner), { loading: () => <SectionChunkLoading /> });
+const RsvpMinimal = dynamic(() => import('./section-variants/rsvp').then((m) => m.RsvpMinimal), { loading: () => <SectionChunkLoading /> });
 const LoomTapestry = dynamic(() => import('./LoomTapestry').then((m) => m.LoomTapestry));
-const DetailsIconRow = dynamic(() => import('./section-variants/details').then((m) => m.DetailsIconRow));
-const DetailsAccordion = dynamic(() => import('./section-variants/details').then((m) => m.DetailsAccordion));
-const DetailsBento = dynamic(() => import('./section-variants/details').then((m) => m.DetailsBento));
-const DetailsLedger = dynamic(() => import('./section-variants/details').then((m) => m.DetailsLedger));
-const ScheduleTimeline = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleTimeline));
-const ScheduleStepper = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleStepper));
-const ScheduleNumbered = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleNumbered));
-const GalleryMasonry = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryMasonry));
-const GallerySlideshow = dynamic(() => import('./section-variants/gallery').then((m) => m.GallerySlideshow));
-const GalleryPolaroid = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryPolaroid));
-const GalleryFrames = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryFrames));
-const FaqTwocol = dynamic(() => import('./section-variants/faq').then((m) => m.FaqTwocol));
-const FaqNumbered = dynamic(() => import('./section-variants/faq').then((m) => m.FaqNumbered));
-const FaqCards = dynamic(() => import('./section-variants/faq').then((m) => m.FaqCards));
-const TravelMap = dynamic(() => import('./section-variants/travel').then((m) => m.TravelMap));
-const TravelTable = dynamic(() => import('./section-variants/travel').then((m) => m.TravelTable));
-const TravelCarousel = dynamic(() => import('./section-variants/travel').then((m) => m.TravelCarousel));
+const DetailsIconRow = dynamic(() => import('./section-variants/details').then((m) => m.DetailsIconRow), { loading: () => <SectionChunkLoading /> });
+const DetailsAccordion = dynamic(() => import('./section-variants/details').then((m) => m.DetailsAccordion), { loading: () => <SectionChunkLoading /> });
+const DetailsBento = dynamic(() => import('./section-variants/details').then((m) => m.DetailsBento), { loading: () => <SectionChunkLoading /> });
+const DetailsLedger = dynamic(() => import('./section-variants/details').then((m) => m.DetailsLedger), { loading: () => <SectionChunkLoading /> });
+const ScheduleTimeline = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleTimeline), { loading: () => <SectionChunkLoading /> });
+const ScheduleStepper = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleStepper), { loading: () => <SectionChunkLoading /> });
+const ScheduleNumbered = dynamic(() => import('./section-variants/schedule').then((m) => m.ScheduleNumbered), { loading: () => <SectionChunkLoading /> });
+const GalleryMasonry = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryMasonry), { loading: () => <SectionChunkLoading /> });
+const GallerySlideshow = dynamic(() => import('./section-variants/gallery').then((m) => m.GallerySlideshow), { loading: () => <SectionChunkLoading /> });
+const GalleryPolaroid = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryPolaroid), { loading: () => <SectionChunkLoading /> });
+const GalleryFrames = dynamic(() => import('./section-variants/gallery').then((m) => m.GalleryFrames), { loading: () => <SectionChunkLoading /> });
+const FaqTwocol = dynamic(() => import('./section-variants/faq').then((m) => m.FaqTwocol), { loading: () => <SectionChunkLoading /> });
+const FaqNumbered = dynamic(() => import('./section-variants/faq').then((m) => m.FaqNumbered), { loading: () => <SectionChunkLoading /> });
+const FaqCards = dynamic(() => import('./section-variants/faq').then((m) => m.FaqCards), { loading: () => <SectionChunkLoading /> });
+const TravelMap = dynamic(() => import('./section-variants/travel').then((m) => m.TravelMap), { loading: () => <SectionChunkLoading /> });
+const TravelTable = dynamic(() => import('./section-variants/travel').then((m) => m.TravelTable), { loading: () => <SectionChunkLoading /> });
+const TravelCarousel = dynamic(() => import('./section-variants/travel').then((m) => m.TravelCarousel), { loading: () => <SectionChunkLoading /> });
 const StayActions = dynamic(() => import('./section-variants/travel').then((m) => m.StayActions));
-const RegistryChips = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryChips));
-const RegistryProgress = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryProgress));
-const RegistryStoreCards = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryStoreCards));
-const StoryZigzag = dynamic(() => import('./section-variants/story').then((m) => m.StoryZigzag));
+const RegistryChips = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryChips), { loading: () => <SectionChunkLoading /> });
+const RegistryProgress = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryProgress), { loading: () => <SectionChunkLoading /> });
+const RegistryStoreCards = dynamic(() => import('./section-variants/registry').then((m) => m.RegistryStoreCards), { loading: () => <SectionChunkLoading /> });
+const StoryZigzag = dynamic(() => import('./section-variants/story').then((m) => m.StoryZigzag), { loading: () => <SectionChunkLoading /> });
 /* Event-OS block sections — occasion-gated optional sections added
    via the Add Section picker (see isBlockApplicable). Each owns its
    full section frame + empty-state handling; renderKind passes the
    shared BlockSectionProps bag so design agents only ever touch the
    block files, never this dispatch. */
-const ItinerarySection = dynamic(() => import('./section-variants/blocks/itinerary').then((m) => m.ItinerarySection));
-const CostSplitterSection = dynamic(() => import('./section-variants/blocks/cost-splitter').then((m) => m.CostSplitterSection));
-const ActivityVoteSection = dynamic(() => import('./section-variants/blocks/activity-vote').then((m) => m.ActivityVoteSection));
-const ToastSignupSection = dynamic(() => import('./section-variants/blocks/toast-signup').then((m) => m.ToastSignupSection));
-const AdviceWallSection = dynamic(() => import('./section-variants/blocks/advice-wall').then((m) => m.AdviceWallSection));
-const ProgramSection = dynamic(() => import('./section-variants/blocks/program').then((m) => m.ProgramSection));
-const LivestreamSection = dynamic(() => import('./section-variants/blocks/livestream').then((m) => m.LivestreamSection));
+const ItinerarySection = dynamic(() => import('./section-variants/blocks/itinerary').then((m) => m.ItinerarySection), { loading: () => <SectionChunkLoading /> });
+const CostSplitterSection = dynamic(() => import('./section-variants/blocks/cost-splitter').then((m) => m.CostSplitterSection), { loading: () => <SectionChunkLoading /> });
+const ActivityVoteSection = dynamic(() => import('./section-variants/blocks/activity-vote').then((m) => m.ActivityVoteSection), { loading: () => <SectionChunkLoading /> });
+const ToastSignupSection = dynamic(() => import('./section-variants/blocks/toast-signup').then((m) => m.ToastSignupSection), { loading: () => <SectionChunkLoading /> });
+const AdviceWallSection = dynamic(() => import('./section-variants/blocks/advice-wall').then((m) => m.AdviceWallSection), { loading: () => <SectionChunkLoading /> });
+const ProgramSection = dynamic(() => import('./section-variants/blocks/program').then((m) => m.ProgramSection), { loading: () => <SectionChunkLoading /> });
+const LivestreamSection = dynamic(() => import('./section-variants/blocks/livestream').then((m) => m.LivestreamSection), { loading: () => <SectionChunkLoading /> });
 const GuestbookSection = dynamic(() => import('./GuestbookSection').then((m) => m.GuestbookSection));
 const GuestPlaylist = dynamic(() => import('./GuestPlaylist').then((m) => m.GuestPlaylist));
 const RegistryItemsGrid = dynamic(() => import('./RegistryItemsGrid').then((m) => m.RegistryItemsGrid));
@@ -128,16 +137,16 @@ const LinkedEventsStrip = dynamic(() => import('./LinkedEventsStrip').then((m) =
 /* PhotoLightbox mounts conditionally (only while a photo is open),
    so its chunk is fetched on the first tap, not at page load. */
 const PhotoLightbox = dynamic(() => import('./PhotoLightbox').then((m) => m.PhotoLightbox));
-const ObituarySection = dynamic(() => import('./section-variants/blocks/obituary').then((m) => m.ObituarySection));
-const PackingListSection = dynamic(() => import('./section-variants/blocks/packing-list').then((m) => m.PackingListSection));
-const HonorListSection = dynamic(() => import('./section-variants/blocks/honor-list').then((m) => m.HonorListSection));
-const TributeWallSection = dynamic(() => import('./section-variants/blocks/tribute-wall').then((m) => m.TributeWallSection));
-const MenuSection = dynamic(() => import('./section-variants/blocks/menu').then((m) => m.MenuSection));
-const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-code').then((m) => m.DressCodeSection));
-const NameVoteSection = dynamic(() => import('./section-variants/blocks/name-vote').then((m) => m.NameVoteSection));
-const RoomsSection = dynamic(() => import('./section-variants/blocks/rooms').then((m) => m.RoomsSection));
-const ThenAndNowSection = dynamic(() => import('./section-variants/blocks/then-and-now').then((m) => m.ThenAndNowSection));
-const GroupChatSection = dynamic(() => import('./section-variants/blocks/group-chat').then((m) => m.GroupChatSection));
+const ObituarySection = dynamic(() => import('./section-variants/blocks/obituary').then((m) => m.ObituarySection), { loading: () => <SectionChunkLoading /> });
+const PackingListSection = dynamic(() => import('./section-variants/blocks/packing-list').then((m) => m.PackingListSection), { loading: () => <SectionChunkLoading /> });
+const HonorListSection = dynamic(() => import('./section-variants/blocks/honor-list').then((m) => m.HonorListSection), { loading: () => <SectionChunkLoading /> });
+const TributeWallSection = dynamic(() => import('./section-variants/blocks/tribute-wall').then((m) => m.TributeWallSection), { loading: () => <SectionChunkLoading /> });
+const MenuSection = dynamic(() => import('./section-variants/blocks/menu').then((m) => m.MenuSection), { loading: () => <SectionChunkLoading /> });
+const DressCodeSection = dynamic(() => import('./section-variants/blocks/dress-code').then((m) => m.DressCodeSection), { loading: () => <SectionChunkLoading /> });
+const NameVoteSection = dynamic(() => import('./section-variants/blocks/name-vote').then((m) => m.NameVoteSection), { loading: () => <SectionChunkLoading /> });
+const RoomsSection = dynamic(() => import('./section-variants/blocks/rooms').then((m) => m.RoomsSection), { loading: () => <SectionChunkLoading /> });
+const ThenAndNowSection = dynamic(() => import('./section-variants/blocks/then-and-now').then((m) => m.ThenAndNowSection), { loading: () => <SectionChunkLoading /> });
+const GroupChatSection = dynamic(() => import('./section-variants/blocks/group-chat').then((m) => m.GroupChatSection), { loading: () => <SectionChunkLoading /> });
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -2983,6 +2992,25 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   const lightboxEl = lightboxTouched
     ? <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
     : null;
+  /* Empty + editable → a clear editorial empty-state instead of a
+     grid of anonymous tone gradients (which read as a broken void on
+     dark site themes and give the host no "add photos" cue). Gated on
+     `editable` only: the wizard's demoCopy pressings + published sites
+     keep the dressed tone preview / real photos exactly as before.
+     (Placed after the lightbox hooks so hook order stays stable.) */
+  if (editable && !(galleryC.photos && galleryC.photos.length > 0)) {
+    return (
+      <SectionEmpty
+        eyebrow="Gallery"
+        title="Nothing yet. Begin a thread."
+        hint="Add your first photos — they'll fill this gallery."
+        icon="camera"
+        pad={pad}
+        addLabel="Add your first photos"
+        onAdd={() => { try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: { kind: 'gallery', index: 0, label: 'a new tile' } })); } catch { /* */ } }}
+      />
+    );
+  }
   const sub = {
     C: galleryC, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
@@ -3419,14 +3447,12 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
        host sees what they added. Published view returns null. */
     if (!editable) return null;
     return (
-      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
-        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
-          {eyebrow}
-        </div>
-        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
-          Set the event date in the Hero panel to enable the countdown.
-        </div>
-      </div>
+      <SectionEmpty
+        eyebrow={eyebrow}
+        hint="Set the event date in the Hero panel to start the countdown."
+        icon="calendar"
+        pad={pad}
+      />
     );
   }
 
@@ -3662,12 +3688,12 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
   if (!address) {
     if (!editable) return null;
     return (
-      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
-        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
-        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
-          Add a venue in the Hero panel to plot the map.
-        </div>
-      </div>
+      <SectionEmpty
+        eyebrow={eyebrow}
+        hint="Add a venue in the Hero panel to plot the map."
+        icon="pin"
+        pad={pad}
+      />
     );
   }
 
@@ -3933,12 +3959,12 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
   if (!embedUrl) {
     if (!editable) return null;
     return (
-      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
-        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
-        <div style={{ fontFamily: 'var(--t-display)', fontSize: 22 }}>
-          Paste a Spotify, Apple Music, or YouTube playlist URL to embed it here.
-        </div>
-      </div>
+      <SectionEmpty
+        eyebrow={eyebrow}
+        hint="Paste a Spotify, Apple Music, or YouTube playlist link to play it here."
+        icon="music"
+        pad={pad}
+      />
     );
   }
 
