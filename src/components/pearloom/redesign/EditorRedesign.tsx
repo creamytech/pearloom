@@ -299,12 +299,30 @@ export default function EditorRedesign({
      in the VISIBLE upper half of the canvas — otherwise the host
      edits blind anyway. Double-rAF so the scroll lands after the
      sheet's open render. */
+  /* ONE smooth scroll per selection, on the canvas scroller
+     directly (not scrollIntoView — that can also scroll ancestor
+     viewports and, fired twice, restarts visibly). Skip when the
+     section is already seated in the visible band above the sheet
+     so re-selecting / stepping back doesn't nudge the canvas. */
   const scrollSectionAboveSheet = useCallback((id: string) => {
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-section-id="${id}"]`);
+      if (!el) return;
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      document
-        .querySelector<HTMLElement>(`[data-section-id="${id}"]`)
-        ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      const scroller = el.closest<HTMLElement>('[data-pl-canvas-scroll]');
+      if (!scroller) {
+        el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        return;
+      }
+      /* 80 matches the sections' scrollMarginTop — clears the
+         site's own sticky nav riding the canvas top. */
+      const delta = el.getBoundingClientRect().top
+        - scroller.getBoundingClientRect().top - 80;
+      if (Math.abs(delta) < 24) return; // already placed — don't re-scroll
+      scroller.scrollTo({
+        top: scroller.scrollTop + delta,
+        behavior: reduce ? 'auto' : 'smooth',
+      });
     }));
   }, []);
   const selectFromCanvas = useCallback((id: SectionId) => {
@@ -708,6 +726,10 @@ export default function EditorRedesign({
              things ("you can't see your changes till you put the
              drawer away", 2026-06-12). Sections stays modal. */
           seeThrough={displaySheet === 'props' || displaySheet === 'theme'}
+          /* Content identity — a change while open swaps content in
+             place and rises a peeked sheet back to open (tapping a
+             new section IS intent to edit it). */
+          contentKey={displaySheet === 'props' ? `props:${String(active)}` : displaySheet}
           height={
             displaySheet === 'props' || displaySheet === 'theme'
               ? 'min(48vh, 460px)'

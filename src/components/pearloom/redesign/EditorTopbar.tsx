@@ -117,6 +117,18 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
     window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
   }
 
+  /* Day-of window for the compact overflow menu — the desktop
+     GoLiveBadge pill doesn't fit at 390px, which left the day-of
+     broadcast feature with no phone entry point during the exact
+     week it matters. Same once-per-mount clock sample as the badge
+     (React Compiler: no clock reads in render). */
+  const [todayMs] = useState(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t.getTime();
+  });
+  const dayOf = compact && manifest ? dayOfWindowFor(manifest, todayMs) : null;
+
   /* Golden thread — the ONE next-best-action, recomputed from the
      live manifest prop on every change. Desktop only: the compact
      bar is already at capacity at 390px. The topbar has no guest
@@ -421,6 +433,18 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                   <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); shareSite(); }} />
                   <MenuRow icon="palette" label="Theme" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
                   <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
+                  {/* Day-of go-live — appears only inside the ±7-day
+                      window, same rule as the desktop badge. */}
+                  {dayOf && (
+                    <MenuRow
+                      icon="calendar-check"
+                      label={dayOf.isLive ? 'Go live — day-of' : `Day-of · ${dayOf.daysOut}d`}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        try { window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'dayof' } })); } catch { /* noop */ }
+                      }}
+                    />
+                  )}
                   {/* Command palette — desktop finds it via the ⌘K
                       chip; on phones this row is the entry point. */}
                   <MenuRow
@@ -629,6 +653,23 @@ function avatarInitials(name?: string | null, email?: string | null): string {
    Clicking jumps to the dayof tool panel via the existing
    pearloom:design-jump event. */
 
+/* Shared ±7-day window math — the desktop badge and the compact
+   overflow-menu row must agree on when day-of surfaces. */
+function dayOfWindowFor(
+  manifest: StoryManifest,
+  todayMs: number,
+): { isLive: boolean; daysOut: number } | null {
+  const dateStr = manifest.logistics?.date ?? '';
+  if (!dateStr.trim()) return null;
+  const ms = Date.parse(dateStr);
+  if (Number.isNaN(ms)) return null;
+  const eventDay = new Date(ms);
+  eventDay.setHours(0, 0, 0, 0);
+  const daysOut = Math.round((eventDay.getTime() - todayMs) / (1000 * 60 * 60 * 24));
+  if (daysOut > 7 || daysOut < -1) return null;
+  return { isLive: daysOut <= 0 && daysOut >= -1, daysOut };
+}
+
 function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
   /* "Today" is sampled once per mount (lazy init) — reading the clock
      in render violates the React Compiler contract (the compiler may
@@ -639,15 +680,9 @@ function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
     t.setHours(0, 0, 0, 0);
     return t.getTime();
   });
-  const dateStr = manifest.logistics?.date ?? '';
-  if (!dateStr.trim()) return null;
-  const ms = Date.parse(dateStr);
-  if (Number.isNaN(ms)) return null;
-  const eventDay = new Date(ms);
-  eventDay.setHours(0, 0, 0, 0);
-  const daysOut = Math.round((eventDay.getTime() - todayMs) / (1000 * 60 * 60 * 24));
-  if (daysOut > 7 || daysOut < -1) return null;
-  const isLive = daysOut <= 0 && daysOut >= -1;
+  const win = dayOfWindowFor(manifest, todayMs);
+  if (!win) return null;
+  const { isLive, daysOut } = win;
   const label = isLive ? 'Go live' : `Day-of · ${daysOut}d`;
 
   return (

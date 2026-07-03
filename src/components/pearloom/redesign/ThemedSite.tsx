@@ -4332,6 +4332,16 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       if (!rafId) rafId = requestAnimationFrame(update);
     };
     schedule();
+    /* Seat the ACTIVE pill in view when the bar appears — on narrow
+       viewports the strip scrolls, and the current layout may
+       otherwise sit off-screen to the right. */
+    {
+      const bar = barRef.current;
+      const on = bar?.querySelector<HTMLElement>('button[data-on="true"]');
+      if (bar && on) {
+        bar.scrollLeft = Math.max(0, on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2);
+      }
+    }
     const target: HTMLElement | Window = scroller ?? window;
     target.addEventListener('scroll', schedule, { passive: true } as AddEventListenerOptions);
     window.addEventListener('resize', schedule);
@@ -4406,19 +4416,30 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
             </div>
           )}
           {showLayoutBar && layoutVariants && (
+            /* A horizontally-SCROLLING strip. flexShrink: 0 on every
+               pill is the load-bearing bit — without it, narrow
+               viewports squeezed all 7+ pills into one row: labels
+               collided ("Full photoBig type") and the active olive
+               pill collapsed into a circle clipping its own text
+               (2026-07-03 phone screenshot). Now pills keep their
+               size, the strip scrolls (scrollbar hidden — the
+               half-clipped last pill is the affordance), and the
+               active pill auto-centers on mount. */
             <div
               ref={barRef}
               onClick={(e) => e.stopPropagation()}
+              className="pl-rd-layoutbar"
               style={{
                 position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
                 display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
                 background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
                 border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
                 maxWidth: 'calc(100% - 24px)', overflowX: 'auto',
+                scrollbarWidth: 'none', touchAction: 'pan-x', WebkitOverflowScrolling: 'touch',
                 fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
               }}
             >
-              <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)', padding: '0 7px 0 9px', whiteSpace: 'nowrap' }}>
+              <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)', padding: '0 7px 0 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h10" /></svg>
                 Layout
               </span>
@@ -4430,11 +4451,13 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
                   <button
                     key={v.id}
                     type="button"
+                    data-on={on ? 'true' : undefined}
                     title={rec ? `${sub} · Recommended for this occasion` : sub}
                     onClick={(e) => { e.stopPropagation(); pickLayout(v.id); }}
                     style={{
-                      padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                      padding: '8px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
                       fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', fontFamily: 'inherit',
+                      flexShrink: 0,
                       background: on ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
                       color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink-soft, #3A332C)',
                       display: 'inline-flex', alignItems: 'center', gap: 5,

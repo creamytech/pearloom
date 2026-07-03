@@ -399,3 +399,13 @@
     display: none;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   ON-CANVAS LAYOUT BAR — horizontally-scrolling pill strip.
+   The inline styles set scrollbar-width: none (Firefox); this
+   hides the WebKit scrollbar so the strip reads as a clean rail
+   on phones (the half-clipped last pill is the scroll affordance).
+   ════════════════════════════════════════════════════════════════ */
+.pl-rd-layoutbar::-webkit-scrollbar {
+  display: none;
+}

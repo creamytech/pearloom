@@ -21,13 +21,40 @@
    state, a fast downward fling from peek closes (the button is
    the discoverable path; the drag is the power path).
 
+   ── POSITION OWNERSHIP (2026-07-03 rebuild) ─────────────────
+   The sheet's position used to have THREE writers — React state
+   (open/peek → transform strings), the drag handler (imperative
+   transform), and the keyboard lift (imperative bottom/maxHeight)
+   — and they fought: a focusin/focusout cycle could clear React's
+   own inline `bottom: 0` (el.style.bottom = '' wipes the shared
+   style attribute; React never re-writes an "unchanged" prop),
+   leaving the sheet statically positioned at the TOP of the
+   screen; a drag could strand a mid-height transform React knew
+   nothing about; switching to the Sections sheet while peeked
+   kept the peek transform on a modal that has no peek.
+
+   Now ONE writer owns every position property: SheetController
+   (below). React renders position styles exactly once, as
+   constants (translateY(102%), bottom 0) — since they never
+   change between renders, React never touches them again, and the
+   controller is free to mutate transform / transition / bottom /
+   maxHeight / pointerEvents without ever being overwritten or
+   wiping React's values. React state expresses INTENT only
+   (open? + snap: 'open' | 'peek'); an effect routes intent into
+   controller.snapTo(); drag and keyboard-lift route through the
+   same controller. After ANY gesture sequence the sheet is at a
+   named snap point ('open' | 'peek' | 'closed'), published on
+   data-pl-sheet-state / data-pl-sheet-settled for tests.
+
    Visual language borrowed from EditorThemeShop's bottom drawer
    (grab handle, rounded 22px top, slide-up). prefers-reduced-
    motion is honoured by the .pl-redesign * reduced-motion
-   kill-switch in animations.css.
+   kill-switch in animations.css AND by the controller's instant
+   snaps (it checks the media query per snap so settle callbacks
+   fire promptly).
    ───────────────────────────────────────────────────────────── */
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 import type { SaveState } from './bridge';
 
@@ -40,6 +67,152 @@ const DRAG_SLOP = 6;
    the nearest-state snap; from peek, a downward fling closes. */
 const FLICK = 0.55;
 
+/* ─── SheetController — the ONE writer of sheet position ───────
+   Owns transform, transition, bottom, maxHeight and pointerEvents
+   on the sheet element. Everything else (React renders, drag
+   handlers, the keyboard lift) expresses intent through it. */
+
+type SheetSnap = 'open' | 'peek' | 'closed';
+
+const SNAP_TRANSFORM: Record<SheetSnap, string> = {
+  open: 'translateY(0px)',
+  peek: `translateY(calc(100% - ${PEEK_BAR}px - env(safe-area-inset-bottom, 0px)))`,
+  /* 102% — a hair past the edge so the top shadow clears too. */
+  closed: 'translateY(102%)',
+};
+/* height rides along so the modal↔see-through height swap eases
+   instead of snapping while the sheet is up. */
+const SHEET_TRANSITION = `transform ${SHEET_MS}ms var(--pl-ease-emphasis), height ${SHEET_MS}ms var(--pl-ease-emphasis)`;
+
+class SheetController {
+  private el: HTMLElement;
+  /** The snap the sheet is at (or animating toward). */
+  target: SheetSnap = 'closed';
+  dragging = false;
+  /** Fires once the sheet settles on a snap (timer-based — the
+   *  reduced-motion kill-switch in animations.css can suppress
+   *  transitionend, so a timer is the reliable signal). */
+  onSettle: ((snap: SheetSnap) => void) | null = null;
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
+  private peekOffset = 0;
+
+  constructor(el: HTMLElement) {
+    this.el = el;
+    /* Assert the full position contract once — React rendered the
+       same constants, so both sides agree at t=0. */
+    el.style.transform = SNAP_TRANSFORM.closed;
+    el.style.bottom = '0px';
+    el.style.pointerEvents = 'none';
+    el.dataset.plSheetState = 'closed';
+    el.dataset.plSheetSettled = '1';
+  }
+
+  dispose() {
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = null;
+    this.onSettle = null;
+  }
+
+  private reducedMotion(): boolean {
+    return typeof window !== 'undefined'
+      && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /** Animate (or, reduced-motion, jump) to a named snap. During an
+   *  active drag only 'closed' interrupts (Escape / route change);
+   *  other requests are dropped — the release resolves the drag. */
+  snapTo(snap: SheetSnap, opts: { instant?: boolean } = {}) {
+    if (this.dragging) {
+      if (snap !== 'closed') return;
+      this.dragging = false;
+    }
+    const el = this.el;
+    const instant = opts.instant || this.reducedMotion();
+    this.target = snap;
+    el.dataset.plSheetState = snap;
+    el.dataset.plSheetSettled = '0';
+    /* The dying sheet must not eat taps — and the live one must. */
+    el.style.pointerEvents = snap === 'closed' ? 'none' : 'auto';
+    /* Reflow so the browser takes the CURRENT position (possibly a
+       mid-drag px transform, possibly a freshly-mounted node) as
+       the transition start instead of batching it away. */
+    void el.getBoundingClientRect();
+    el.style.transition = instant ? 'none' : SHEET_TRANSITION;
+    el.style.transform = SNAP_TRANSFORM[snap];
+    this.armSettle(instant ? 0 : SHEET_MS + 40);
+  }
+
+  private armSettle(ms: number) {
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = setTimeout(() => {
+      this.settleTimer = null;
+      this.el.dataset.plSheetSettled = '1';
+      /* Restore the standing transition so React-driven height
+         changes (sheet-id swaps) ease even between snaps. */
+      this.el.style.transition = this.reducedMotion() ? 'none' : SHEET_TRANSITION;
+      this.onSettle?.(this.target);
+    }, ms);
+  }
+
+  /** Begin a header drag. Returns the px geometry the move handler
+   *  needs. The controller freezes its transition; every move is a
+   *  px transform write; the release picks the snap. */
+  dragStart(): { startOffset: number; peekOffset: number } {
+    const el = this.el;
+    const padBottom = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+    this.peekOffset = Math.max(el.offsetHeight - PEEK_BAR - padBottom, 0);
+    this.dragging = true;
+    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
+    el.dataset.plSheetSettled = '0';
+    el.style.transition = 'none';
+    /* If the grab landed mid-animation, freeze at the CURRENT
+       painted offset so the sheet doesn't jump to the old target
+       under the finger. matrix(a,b,c,d,tx,ty) — ty is index 5. */
+    const raw = getComputedStyle(el).transform;
+    const parsed = /^matrix\(([^)]+)\)$/.exec(raw);
+    const ty = parsed ? parseFloat(parsed[1].split(',')[5]) : NaN;
+    const current = Number.isFinite(ty) ? Math.min(Math.max(ty, 0), this.peekOffset) : 0;
+    el.style.transform = `translateY(${current}px)`;
+    return { startOffset: current, peekOffset: this.peekOffset };
+  }
+
+  dragMove(offset: number) {
+    if (!this.dragging) return;
+    this.el.style.transform = `translateY(${Math.min(Math.max(offset, 0), this.peekOffset)}px)`;
+  }
+
+  /** Resolve a drag: nearest snap, overridden by a fling; a fast
+   *  downward fling FROM peek closes. Returns the chosen snap so
+   *  the component can sync React intent / call onClose. */
+  dragEnd(offset: number, velocity: number, fromPeek: boolean): SheetSnap {
+    if (!this.dragging) return this.target;
+    this.dragging = false;
+    let snap: SheetSnap = offset > this.peekOffset / 2 ? 'peek' : 'open';
+    if (velocity > FLICK) snap = fromPeek ? 'closed' : 'peek';
+    else if (velocity < -FLICK) snap = 'open';
+    this.snapTo(snap);
+    return snap;
+  }
+
+  /** Pointer cancel — glide back to wherever we were headed. */
+  dragCancel() {
+    if (!this.dragging) return;
+    this.dragging = false;
+    this.snapTo(this.target);
+  }
+
+  /** Keyboard lift — the software keyboard shrinks the visual
+   *  viewport while this fixed-position sheet stays put; lift it by
+   *  the keyboard inset and clamp its height to what remains. The
+   *  controller owns `bottom`, so clearing NEVER writes '' (the
+   *  historical bug: '' wiped the inline bottom:0 and the sheet
+   *  fell back to static position at the top of the screen). */
+  setKeyboardInset(inset: number, maxHeight: number | null) {
+    this.el.style.bottom = inset > 0 ? `${inset}px` : '0px';
+    this.el.style.maxHeight = inset > 0 && maxHeight ? `${maxHeight}px` : '';
+  }
+}
+
 export function MobileSheet({
   open,
   onClose,
@@ -47,6 +220,7 @@ export function MobileSheet({
   label,
   children,
   seeThrough = false,
+  contentKey,
   onPrev,
   onNext,
   prevDisabled = false,
@@ -65,6 +239,15 @@ export function MobileSheet({
   /** Non-modal: no backdrop, no body lock, canvas interactive,
    *  peek toggle. For panels whose edits should be SEEN live. */
   seeThrough?: boolean;
+  /** Identity of what the sheet is showing (sheet id + active
+   *  section). When it changes while open — the host tapped a
+   *  different section on the canvas, stepped with the chevrons,
+   *  or switched sheets on the bottom bar — the content swaps IN
+   *  PLACE (no close/reopen) and a peeked sheet rises back to
+   *  open: picking something new is intent to edit it. Also kills
+   *  the old bug where switching to the Sections modal while
+   *  peeked kept the peek transform on a sheet with no peek. */
+  contentKey?: string;
   /** Section stepper (see-through header) — chevrons flanking the
    *  title so the host can walk sections without reopening the
    *  Sections sheet. Omit both to keep the plain title. */
@@ -73,44 +256,76 @@ export function MobileSheet({
   prevDisabled?: boolean;
   nextDisabled?: boolean;
 }) {
+  /* ── React state = INTENT only ───────────────────────────────
+     open (prop) + snap ('open' | 'peek'). The controller owns the
+     actual position; the effect below routes intent into it. */
+  const [snap, setSnap] = useState<'open' | 'peek'>('open');
+
   /* Keep children mounted while the sheet animates out so the
      exit slide doesn't show an empty shell. Mount synchronously
      during render (the "derive from previous render" pattern);
-     unmount on a timer once the slide finishes. */
+     unmount when the controller reports the close settled. */
   const [render, setRender] = useState(open);
   if (open && !render) setRender(true);
-  useEffect(() => {
-    if (open) return;
-    const t = setTimeout(() => setRender(false), SHEET_MS + 40);
-    return () => clearTimeout(t);
-  }, [open]);
 
-  /* Peek — sheet drops to a slim bar so the whole canvas shows.
-     Resets every time the sheet opens (render-time adjustment). */
-  const [peek, setPeek] = useState(false);
+  /* Reset to open on every (re)open — a peek is a transient way
+     of looking at the site, not a persistent preference. */
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setPeek(false);
+    if (open && snap !== 'open') setSnap('open');
+  }
+  /* Content swap while open → rise from peek (see contentKey doc). */
+  const [prevKey, setPrevKey] = useState(contentKey);
+  if (contentKey !== prevKey) {
+    setPrevKey(contentKey);
+    if (open && snap !== 'open') setSnap('open');
   }
 
-  /* ── Drag-to-resize (see-through only) ───────────────────────
-     The peek button stays the discoverable path; the header is
-     also a drag handle. During the drag the transform follows the
-     finger imperatively (no re-render, no transition); on release
-     we re-enable the transition, write the snap target, and hand
-     the same value back to React via setPeek so its next diff is
-     a no-op. Refs, not state — pointer handlers are events, and
-     a per-move re-render would repaint the whole rail. Reduced
-     motion: animations.css kills transitions under .pl-redesign
-     with !important, so snaps land instantly there. */
+  /* ── The controller — created with the element, disposed with
+     it. A callback ref (not useEffect) so it exists before any
+     effect or pointer handler needs it. */
   const sheetRef = useRef<HTMLDivElement | null>(null);
+  const ctrlRef = useRef<SheetController | null>(null);
+  const attachSheet = useCallback((el: HTMLDivElement | null) => {
+    if (el) {
+      sheetRef.current = el;
+      ctrlRef.current = new SheetController(el);
+    } else {
+      ctrlRef.current?.dispose();
+      ctrlRef.current = null;
+      sheetRef.current = null;
+    }
+  }, []);
+
+  /* Unmount children once the exit settles (timer-driven inside
+     the controller — reliable under the reduced-motion CSS
+     kill-switch, unlike transitionend). */
+  useEffect(() => {
+    const ctrl = ctrlRef.current;
+    if (!ctrl) return;
+    ctrl.onSettle = (settledSnap) => {
+      if (settledSnap === 'closed') setRender(false);
+    };
+    return () => { if (ctrlRef.current) ctrlRef.current.onSettle = null; };
+  }, [render]);
+
+  /* Intent → position. The ONLY place open/snap reach the DOM.
+     While a drag is live the controller ignores non-close snaps —
+     the release resolves them — so a selection change mid-drag
+     can't restart animations under the finger. */
+  useEffect(() => {
+    ctrlRef.current?.snapTo(open ? snap : 'closed');
+  }, [open, snap, render]);
+
+  /* ── Drag (see-through only) — pure gesture bookkeeping; every
+     position write goes through the controller. */
   const dragRef = useRef<{
     pointerId: number;
     startY: number;
     startOffset: number;
     peekOffset: number;
-    dragging: boolean;
+    started: boolean;
     fromPeek: boolean;
     lastY: number;
     lastT: number;
@@ -120,25 +335,16 @@ export function MobileSheet({
      next pointerdown — lets button onClicks ignore drag-tail clicks. */
   const dragMovedRef = useRef(false);
 
-  const peekTransform = `translateY(calc(100% - ${PEEK_BAR}px - env(safe-area-inset-bottom, 0px)))`;
-  const sheetTransition = `transform ${SHEET_MS}ms var(--pl-ease-emphasis)`;
-
   const onHeaderPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!seeThrough || !open) return;
-    const el = sheetRef.current;
-    if (!el) return;
     dragMovedRef.current = false;
-    /* offsetHeight is the untransformed layout height; its bottom
-       padding is the resolved env(safe-area-inset-bottom). */
-    const padBottom = parseFloat(getComputedStyle(el).paddingBottom) || 0;
-    const peekOffset = Math.max(el.offsetHeight - PEEK_BAR - padBottom, 0);
     dragRef.current = {
       pointerId: e.pointerId,
       startY: e.clientY,
-      startOffset: peek ? peekOffset : 0,
-      peekOffset,
-      dragging: false,
-      fromPeek: peek,
+      startOffset: 0,
+      peekOffset: 0,
+      started: false,
+      fromPeek: snap === 'peek',
       lastY: e.clientY,
       lastT: e.timeStamp,
       velocity: 0,
@@ -146,46 +352,45 @@ export function MobileSheet({
   };
   const onHeaderPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const d = dragRef.current;
-    const el = sheetRef.current;
-    if (!d || !el || e.pointerId !== d.pointerId) return;
+    const ctrl = ctrlRef.current;
+    if (!d || !ctrl || e.pointerId !== d.pointerId) return;
     const dy = e.clientY - d.startY;
-    if (!d.dragging) {
+    if (!d.started) {
       if (Math.abs(dy) < DRAG_SLOP) return;
-      d.dragging = true;
+      d.started = true;
       dragMovedRef.current = true;
       e.currentTarget.setPointerCapture(e.pointerId);
-      el.style.transition = 'none';
+      const g = ctrl.dragStart();
+      /* Anchor to where the sheet actually is (it may have been
+         grabbed mid-animation), not where intent said it was. */
+      d.startOffset = g.startOffset;
+      d.peekOffset = g.peekOffset;
+      d.startY = e.clientY;
     }
     const dt = e.timeStamp - d.lastT;
     if (dt > 0) d.velocity = (e.clientY - d.lastY) / dt;
     d.lastY = e.clientY;
     d.lastT = e.timeStamp;
-    const offset = Math.min(Math.max(d.startOffset + dy, 0), d.peekOffset);
-    el.style.transform = `translateY(${offset}px)`;
+    ctrl.dragMove(d.startOffset + (e.clientY - d.startY));
   };
   const onHeaderPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
     const d = dragRef.current;
+    const ctrl = ctrlRef.current;
     if (!d || e.pointerId !== d.pointerId) return;
     dragRef.current = null;
-    const el = sheetRef.current;
-    if (!el || !d.dragging) return;
-    el.style.transition = sheetTransition;
-    /* A fast downward fling from the peek bar dismisses the sheet —
-       leave the transform where the finger dropped it; React writes
-       translateY(100%) on the close render and it slides out from
-       there. */
-    if (d.fromPeek && d.velocity > FLICK) {
-      onClose();
-      return;
-    }
+    if (!ctrl || !d.started) return;
     const offset = Math.min(Math.max(d.startOffset + (e.clientY - d.startY), 0), d.peekOffset);
-    let nextPeek = offset > d.peekOffset / 2;
-    if (d.velocity > FLICK) nextPeek = true;
-    else if (d.velocity < -FLICK) nextPeek = false;
-    /* Write the exact strings React renders for this state — the
-       DOM lands on target whether or not setPeek changes anything. */
-    el.style.transform = nextPeek ? peekTransform : 'translateY(0)';
-    setPeek(nextPeek);
+    const resolved = ctrl.dragEnd(offset, d.velocity, d.fromPeek);
+    /* Sync React intent with the controller's resolution — its
+       next effect run is a no-op (controller already there). */
+    if (resolved === 'closed') onClose();
+    else setSnap(resolved);
+  };
+  const onHeaderPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    dragRef.current = null;
+    ctrlRef.current?.dragCancel();
   };
 
   /* Body-scroll lock while open — MODAL mode only. See-through
@@ -207,43 +412,32 @@ export function MobileSheet({
   }, [open, onClose]);
 
   /* ── Keyboard-aware sheet (see-through only) ─────────────────
-     On phones the software keyboard shrinks the VISUAL viewport
-     while the layout viewport (and this fixed wrapper) stays put —
-     a bottom-anchored sheet ends up half-buried under the
-     keyboard, hiding the focused control. Track visualViewport
-     and lift the sheet by the keyboard inset, clamping its height
-     to what remains visible. Imperative style writes via the ref
-     (no per-resize re-render) — same pattern the drag handler
-     uses; React never diffs these properties back because the
-     rendered values (bottom: 0, no maxHeight) don't change.
-     Guards: SSR + browsers without visualViewport no-op. */
+     FOCUS-GATED (2026-07-02 field report): mobile browsers emit
+     visualViewport deltas for URL-bar collapse, overscroll, and
+     stale keyboard transitions — an ungated lift left the sheet
+     stranded ~500px up the screen while idle. The lift applies
+     ONLY while a form control inside the sheet holds focus (the
+     only moment a keyboard can be covering it), needs a real
+     keyboard-sized inset (>120px), and always clears on blur.
+     All writes route through the controller (setKeyboardInset),
+     which owns `bottom`/`maxHeight` outright — clearing restores
+     bottom: 0px explicitly, never '' (the '' write was the
+     stranded-at-top-of-screen bug: it wiped React's inline
+     bottom:0 and React never re-writes an unchanged prop). */
   useEffect(() => {
     if (!open || !seeThrough || typeof window === 'undefined') return;
     const vv = window.visualViewport;
-    /* The sheet node lives for this whole effect (open stays true) —
-       capture it once so the cleanup resets the SAME element. */
     const el = sheetRef.current;
-    if (!vv || !el) return;
-    /* FOCUS-GATED (2026-07-02 field report): mobile browsers emit
-       visualViewport deltas for URL-bar collapse, overscroll, and
-       stale keyboard transitions — an ungated lift left the sheet
-       stranded ~500px up the screen while idle. The lift now applies
-       ONLY while a form control inside the sheet holds focus (the
-       only moment a keyboard can be covering it), needs a real
-       keyboard-sized inset (>120px), and always clears on blur. */
+    const ctrl = ctrlRef.current;
+    if (!vv || !el || !ctrl) return;
     let focused = false;
-    const reset = () => {
-      el.style.bottom = '';
-      el.style.maxHeight = '';
-    };
     const apply = () => {
-      if (!focused) { reset(); return; }
+      if (!focused) { ctrl.setKeyboardInset(0, null); return; }
       const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
       if (inset > 120) {
-        el.style.bottom = `${inset}px`;
-        el.style.maxHeight = `${Math.max(Math.round(vv.height) - 12, 160)}px`;
+        ctrl.setKeyboardInset(inset, Math.max(Math.round(vv.height) - 12, 160));
       } else {
-        reset();
+        ctrl.setKeyboardInset(0, null);
       }
     };
     const onFocusIn = (e: FocusEvent) => {
@@ -255,7 +449,7 @@ export function MobileSheet({
       focused = false;
       /* Blur fires before the keyboard finishes retracting — clear
          immediately; a follow-up vv resize is a no-op once unfocused. */
-      reset();
+      ctrl.setKeyboardInset(0, null);
     };
     el.addEventListener('focusin', onFocusIn);
     el.addEventListener('focusout', onFocusOut);
@@ -266,7 +460,7 @@ export function MobileSheet({
       el.removeEventListener('focusout', onFocusOut);
       vv.removeEventListener('resize', apply);
       vv.removeEventListener('scroll', apply);
-      reset();
+      ctrl.setKeyboardInset(0, null);
     };
   }, [open, seeThrough]);
 
@@ -297,7 +491,7 @@ export function MobileSheet({
         />
       )}
       <div
-        ref={sheetRef}
+        ref={attachSheet}
         role="dialog"
         aria-modal={!seeThrough}
         aria-label={label}
@@ -309,20 +503,23 @@ export function MobileSheet({
           position: 'absolute',
           left: 0,
           right: 0,
-          bottom: 0,
           height,
-          pointerEvents: 'auto',
+          /* POSITION CONTRACT: bottom / transform / transition /
+             pointerEvents / maxHeight belong to SheetController.
+             The values below are constants — identical on every
+             render — so React never patches them and never fights
+             the controller's imperative writes. Everything else
+             (height above, colors, layout) stays React's. */
+          bottom: 0,
+          transform: SNAP_TRANSFORM.closed,
+          pointerEvents: 'none',
           background: 'var(--pl-glass)',
-        backgroundImage: 'var(--pl-glass-sheen)',
+          backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           borderTop: '1px solid var(--pl-glass-border)',
           borderRadius: '22px 22px 0 0',
           boxShadow: '0 -20px 60px rgba(40,40,30,0.22)',
-          transform: open
-            ? (peek ? peekTransform : 'translateY(0)')
-            : 'translateY(100%)',
-          transition: sheetTransition,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -338,11 +535,11 @@ export function MobileSheet({
              is one tap anywhere. Pointer handlers live HERE only —
              the panel body below scrolls. */
           <div
-            onClick={peek ? () => { if (!dragMovedRef.current) setPeek(false); } : undefined}
+            onClick={snap === 'peek' ? () => { if (!dragMovedRef.current) setSnap('open'); } : undefined}
             onPointerDown={onHeaderPointerDown}
             onPointerMove={onHeaderPointerMove}
             onPointerUp={onHeaderPointerEnd}
-            onPointerCancel={onHeaderPointerEnd}
+            onPointerCancel={onHeaderPointerCancel}
             style={{
               position: 'relative',
               display: 'flex',
@@ -350,7 +547,7 @@ export function MobileSheet({
               gap: 10,
               padding: '12px 12px 6px',
               flexShrink: 0,
-              cursor: peek ? 'pointer' : 'grab',
+              cursor: snap === 'peek' ? 'pointer' : 'grab',
               /* The header is a vertical drag surface — without
                  this, mobile browsers claim the gesture for page
                  scroll before pointermove ever fires. */
@@ -377,9 +574,9 @@ export function MobileSheet({
               onClick={(e) => {
                 e.stopPropagation();
                 if (dragMovedRef.current) return;
-                setPeek((p) => !p);
+                setSnap((s) => (s === 'peek' ? 'open' : 'peek'));
               }}
-              aria-pressed={peek}
+              aria-pressed={snap === 'peek'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -396,8 +593,8 @@ export function MobileSheet({
                 flexShrink: 0,
               }}
             >
-              <Icon name={peek ? 'arrow-up' : 'eye'} size={12} color="var(--ink-soft)" />
-              {peek ? 'Back to editing' : 'See my site'}
+              <Icon name={snap === 'peek' ? 'arrow-up' : 'eye'} size={12} color="var(--ink-soft)" />
+              {snap === 'peek' ? 'Back to editing' : 'See my site'}
             </button>
             {/* Title + optional section stepper — small chevrons let
                 the host walk sections without reopening the Sections
@@ -535,6 +732,27 @@ export function MobileNextStepStrip({ label, hint, onFollow, onDismiss }: {
   onFollow: () => void;
   onDismiss: () => void;
 }) {
+  /* Hide while the software keyboard is up (a text control holds
+     focus — inline-editing the canvas is the common case). The
+     strip is fixed to the LAYOUT viewport; when the keyboard
+     shrinks the visual viewport it would otherwise ride up and
+     sit mid-canvas over the very words being edited (2026-07-03
+     field screenshot: strip across the hero names). */
+  const [kbFocus, setKbFocus] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const isText = (t: EventTarget | null) =>
+      t instanceof HTMLElement && !!t.closest('input, textarea, select, [contenteditable]');
+    const onFocusIn = (e: FocusEvent) => { if (isText(e.target)) setKbFocus(true); };
+    const onFocusOut = () => setKbFocus(false);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    return () => {
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+    };
+  }, []);
+  if (kbFocus) return null;
   return (
     <div
       style={{
