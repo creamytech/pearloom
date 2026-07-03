@@ -8,6 +8,11 @@
 // overrides the reference manifest's occasion before mounting, so
 // occasion-aware editor behavior (rail chip, core-section gating,
 // Event-OS block applicability) is verifiable without a DB.
+//
+// QA hook: `?blank=1` strips every host-authored content field
+// (chapters, events, faqs, photos, details, hotels, stores…) so the
+// editor's empty-section placeholders are verifiable without a DB —
+// the state a brand-new wizard-less site mounts in.
 
 import { Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -15,17 +20,29 @@ import EditorRedesign from '@/components/pearloom/redesign/EditorRedesign';
 import { REFERENCE_MANIFEST } from '@/lib/theme-store/__fixtures__/reference-manifest';
 import type { StoryManifest } from '@/types';
 
+/* Content fields a real host authors — `?blank=1` deletes all of
+   them so every section renders its no-content editor state. */
+const BLANK_STRIPPED_FIELDS = [
+  'chapters', 'storySection', 'events', 'faqs', 'detailsCards',
+  'galleryImages', 'galleryCaptions', 'galleryTones', 'coverPhoto',
+  'travelInfo', 'registryStores', 'registryIntro', 'registryFunds',
+  'poetry', 'tagline', 'copy', 'music', 'rsvpDeadline',
+] as const;
+
 function DevEditorInner() {
   const params = useSearchParams();
   const occasion = params.get('occasion');
+  const blank = params.get('blank') === '1';
   const manifest = useMemo<StoryManifest>(() => {
     const base = REFERENCE_MANIFEST as StoryManifest;
-    if (!occasion) return base;
-    return {
+    if (!occasion && !blank) return base;
+    const next: Record<string, unknown> = {
       ...(base as unknown as Record<string, unknown>),
-      occasion,
-    } as unknown as StoryManifest;
-  }, [occasion]);
+      ...(occasion ? { occasion } : {}),
+    };
+    if (blank) for (const f of BLANK_STRIPPED_FIELDS) delete next[f];
+    return next as unknown as StoryManifest;
+  }, [occasion, blank]);
 
   return (
     <EditorRedesign

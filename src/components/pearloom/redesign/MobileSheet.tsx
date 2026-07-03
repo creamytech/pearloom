@@ -513,11 +513,17 @@ export function MobileSheet({
           bottom: 0,
           transform: SNAP_TRANSFORM.closed,
           pointerEvents: 'none',
-          background: 'var(--pl-glass)',
-          backgroundImage: 'var(--pl-glass-sheen)',
-          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
-          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
-          borderTop: '1px solid var(--pl-glass-border)',
+          /* OPAQUE paper, not glass. The sheet floats over a LIVE
+             site whose theme can be editorial midnight while the
+             editor chrome is in light mode — frosted glass then
+             tints the wrong palette and the canvas's display text
+             reads straight through the header ("out of place",
+             user report). "See-through" means the canvas ABOVE the
+             half-height sheet stays visible, never through the
+             panel itself. Card paper carries both theme values, so
+             the header/controls are readable over any site. */
+          background: 'var(--card, var(--cream))',
+          borderTop: '1px solid var(--line-soft, var(--line))',
           borderRadius: '22px 22px 0 0',
           boxShadow: '0 -20px 60px rgba(40,40,30,0.22)',
           display: 'flex',
