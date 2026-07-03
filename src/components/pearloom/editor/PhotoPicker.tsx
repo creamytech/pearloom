@@ -14,6 +14,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { PhotoFilterEditor } from './PhotoFilterEditor';
+import {
+  normalizeImageFile,
+  blobToDataUrl,
+  filenameForOutput,
+  isHeicLike,
+} from '@/lib/image/normalize-image';
 
 export interface LibraryPhoto {
   id: string;
@@ -144,27 +150,33 @@ export function PhotoPicker({
 
   async function handleDeviceFile(files: FileList | null) {
     if (!files || files.length === 0) return;
-    const accepted = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const accepted = Array.from(files).filter((f) => f.type.startsWith('image/') || isHeicLike(f));
     if (accepted.length === 0) return;
     setUploading(true);
     try {
-      const payload = await Promise.all(
+      // Normalize each file first (downscale + HEIC→JPEG + capture
+      // bytes now). Undecodable files drop out of the batch.
+      const settled = await Promise.all(
         accepted.map(async (file) => {
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-            reader.onerror = () => resolve('');
-            reader.readAsDataURL(file);
-          });
-          return {
-            id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            filename: file.name,
-            mimeType: file.type || 'image/jpeg',
-            base64: dataUrl,
-            capturedAt: file.lastModified ? new Date(file.lastModified).toISOString() : undefined,
-          };
+          try {
+            const normalized = await normalizeImageFile(file);
+            const dataUrl = await blobToDataUrl(normalized.blob);
+            return {
+              id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              filename: filenameForOutput(file.name, normalized.mimeType),
+              mimeType: normalized.mimeType,
+              base64: dataUrl,
+              width: normalized.width,
+              height: normalized.height,
+              capturedAt: file.lastModified ? new Date(file.lastModified).toISOString() : undefined,
+            };
+          } catch {
+            return null;
+          }
         }),
       );
+      const payload = settled.filter((p): p is NonNullable<typeof p> => p !== null);
+      if (payload.length === 0) return;
       const r = await fetch('/api/photos/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

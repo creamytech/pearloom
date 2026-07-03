@@ -16,6 +16,14 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import {
+  normalizeImageFile,
+  blobToDataUrl,
+  filenameForOutput,
+  isHeicLike,
+  normalizeErrorMessage,
+  ImageNormalizeError,
+} from '@/lib/image/normalize-image';
 
 interface Props {
   /** Current photo URL (absolute, served from R2/CDN). Empty string
@@ -50,29 +58,26 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
   const [pickerOpen, setPickerOpen] = useState(false);
 
   async function uploadFile(file: File) {
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/') && !isHeicLike(file)) {
       setErr('That file isn’t an image.');
       return;
     }
-    if (file.size > 12 * 1024 * 1024) {
-      setErr('Image is over the 12 MB upload limit.');
-      return;
-    }
+    // Normalize BEFORE upload: downscale + re-encode to web-safe
+    // JPEG (any-size photo fits, HEIC becomes renderable, bytes are
+    // captured now so a stale picker reference can't break later).
     setBusy(true); setErr(null);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error('Couldn’t read the file.'));
-        reader.readAsDataURL(file);
-      });
+      const normalized = await normalizeImageFile(file);
+      const base64 = await blobToDataUrl(normalized.blob);
       const id = `up-${Date.now().toString(36)}`;
       const res = await fetch('/api/photos/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photos: [{
-            id, filename: file.name, mimeType: file.type, base64,
+            id, filename: filenameForOutput(file.name, normalized.mimeType),
+            mimeType: normalized.mimeType, base64,
+            width: normalized.width, height: normalized.height,
             capturedAt: new Date(file.lastModified || Date.now()).toISOString(),
           }],
         }),
@@ -88,38 +93,52 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       onChange(baseUrl);
     } catch (e) {
       console.error('[photo-upload] upload error:', e);
-      setErr(pearErrorMessage(e, 'The upload didn’t take — try again?'));
+      setErr(e instanceof ImageNormalizeError
+        ? normalizeErrorMessage(e)
+        : pearErrorMessage(e, 'The upload didn’t take — try again?'));
     } finally {
       setBusy(false);
     }
   }
 
   async function uploadMany(files: File[]) {
-    const good = files.filter((f) => f.type.startsWith('image/') && f.size <= 12 * 1024 * 1024);
+    // Any-size photos welcome now — the normalizer shrinks them.
+    // We only pre-filter genuinely non-image files.
+    const good = files.filter((f) => f.type.startsWith('image/') || isHeicLike(f));
     if (good.length === 0) {
-      setErr(files.length ? 'Those files aren’t images under the 12 MB limit.' : null);
+      setErr(files.length ? 'Those files aren’t images.' : null);
       return;
     }
-    if (good.length < files.length) {
-      setErr(`${files.length - good.length} skipped — images up to 12 MB only.`);
-    } else {
-      setErr(null);
-    }
+    setErr(null);
     setBusy(true);
     try {
-      const photos = await Promise.all(good.map(async (file, i) => {
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error('Couldn’t read the file.'));
-          reader.readAsDataURL(file);
-        });
-        return {
-          id: `up-${Date.now().toString(36)}-${i}`,
-          filename: file.name, mimeType: file.type, base64,
-          capturedAt: new Date(file.lastModified || Date.now()).toISOString(),
-        };
+      // Normalize each before upload (downscale + HEIC→JPEG). Files
+      // that fail to decode are dropped from the batch, not fatal.
+      const normalizeFailures: string[] = [];
+      const settled = await Promise.all(good.map(async (file, i) => {
+        try {
+          const normalized = await normalizeImageFile(file);
+          const base64 = await blobToDataUrl(normalized.blob);
+          return {
+            id: `up-${Date.now().toString(36)}-${i}`,
+            filename: filenameForOutput(file.name, normalized.mimeType),
+            mimeType: normalized.mimeType, base64,
+            width: normalized.width, height: normalized.height,
+            capturedAt: new Date(file.lastModified || Date.now()).toISOString(),
+          };
+        } catch (e) {
+          normalizeFailures.push(normalizeErrorMessage(e));
+          return null;
+        }
       }));
+      const photos = settled.filter((p): p is NonNullable<typeof p> => p !== null);
+      if (photos.length === 0) {
+        setErr(normalizeFailures[0] ?? 'Those photos couldn’t be prepared.');
+        return;
+      }
+      if (normalizeFailures.length > 0) {
+        setErr(`${normalizeFailures.length} photo${normalizeFailures.length > 1 ? 's' : ''} skipped — ${normalizeFailures[0]}`);
+      }
       const res = await fetch('/api/photos/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

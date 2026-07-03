@@ -35,6 +35,13 @@ import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
+import {
+  normalizeImageFile,
+  blobToDataUrl,
+  filenameForOutput,
+  isHeicLike,
+  normalizeErrorMessage,
+} from '@/lib/image/normalize-image';
 import { WizardMomentCard } from '../wizard/WizardMomentCard';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
@@ -429,32 +436,53 @@ function WizardPhotoUpload({
   async function handleFiles(files: FileList | null) {
     if (!files) return;
     const remaining = MAX_WIZARD_PHOTOS - photos.length;
-    const accepted = Array.from(files).slice(0, Math.max(0, remaining)).filter((f) => f.type.startsWith('image/'));
+    const accepted = Array.from(files).slice(0, Math.max(0, remaining)).filter((f) => f.type.startsWith('image/') || isHeicLike(f));
     if (accepted.length === 0) return;
 
-    // Stage all images as local previews immediately so the user sees
-    // their thumbnails right away, then upload in the background.
-    const staged: WizardPhoto[] = await Promise.all(
-      accepted.map(async (file) => {
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-          reader.onerror = () => resolve('');
-          reader.readAsDataURL(file);
-        });
-        return {
-          id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          url: '', // filled in after upload
-          previewUrl: dataUrl,
-          name: file.name,
-          mimeType: file.type || 'image/jpeg',
-          takenAt: file.lastModified ? new Date(file.lastModified).toISOString() : undefined,
-          source: 'upload' as const,
-          uploading: true,
-        };
+    // Normalize every file the instant it's picked: downscale huge
+    // iPhone photos under the budget, transcode HEIC→JPEG so it
+    // renders (no grey broken tiles), and read the bytes NOW so a
+    // stale Google-Photos/gallery File reference can't break later.
+    // The normalized data URL doubles as the preview thumbnail AND
+    // the upload payload — one read, web-safe everywhere.
+    const settled = await Promise.all(
+      accepted.map(async (file): Promise<WizardPhoto | null> => {
+        try {
+          const normalized = await normalizeImageFile(file);
+          const dataUrl = await blobToDataUrl(normalized.blob);
+          return {
+            id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            url: '', // filled in after upload
+            previewUrl: dataUrl,
+            name: filenameForOutput(file.name, normalized.mimeType),
+            mimeType: normalized.mimeType,
+            width: normalized.width,
+            height: normalized.height,
+            takenAt: file.lastModified ? new Date(file.lastModified).toISOString() : undefined,
+            source: 'upload' as const,
+            uploading: true,
+          };
+        } catch (e) {
+          // A file that genuinely can't be decoded (e.g. HEIC on
+          // Chrome) surfaces as an errored, non-uploading tile with
+          // a clear message — never a silent grey tile.
+          return {
+            id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            url: '',
+            previewUrl: '',
+            name: file.name,
+            source: 'upload' as const,
+            uploading: false,
+            error: normalizeErrorMessage(e),
+          };
+        }
       }),
     );
-    onChange([...photos, ...staged]);
+    const staged = settled.filter((p): p is WizardPhoto => p !== null && p.uploading === true);
+    const failedTiles = settled.filter((p): p is WizardPhoto => p !== null && p.uploading !== true);
+    // Show previews (and any decode-failure tiles) immediately.
+    onChange([...photos, ...staged, ...failedTiles]);
+    if (staged.length === 0) return;
 
     // Batch-upload to R2 via /api/photos/upload (max 25 per request).
     try {
@@ -467,6 +495,8 @@ function WizardPhotoUpload({
             filename: p.name ?? p.id,
             mimeType: p.mimeType ?? 'image/jpeg',
             base64: p.previewUrl,
+            width: p.width,
+            height: p.height,
             capturedAt: p.takenAt,
           })),
         }),
@@ -478,37 +508,30 @@ function WizardPhotoUpload({
       }
       const data = await res.json() as { photos?: Array<{ id: string; baseUrl: string; width?: number; height?: number }> };
       const byId = new Map(data.photos?.map((p) => [p.id, p]) ?? []);
-      onChange((await buildNext(staged, byId)));
+      // Patch by id against the freshest state so concurrent edits
+      // (deletes/reorders) and any decode-failure tiles are preserved.
+      const stagedIds = new Set(staged.map((s) => s.id));
+      onChange(photosRef.current.map((p) => {
+        if (!stagedIds.has(p.id)) return p;
+        const hit = byId.get(p.id);
+        if (!hit?.baseUrl) return { ...p, uploading: false, error: 'Upload failed' };
+        return {
+          ...p,
+          uploading: false,
+          error: undefined,
+          url: hit.baseUrl,
+          width: hit.width ?? p.width,
+          height: hit.height ?? p.height,
+        };
+      }));
     } catch (err) {
       // Keep the previews but mark them as errored so the user can retry,
       // with a friendly message they can actually act on.
       const friendly = err instanceof Error ? err.message : 'Upload failed — try again';
-      onChange(
-        photosRef.current.concat(
-          staged.map((s) => ({ ...s, uploading: false, error: friendly })),
-        ),
-      );
-    }
-
-    async function buildNext(
-      stagedList: WizardPhoto[],
-      byId: Map<string, { baseUrl: string; width?: number; height?: number }>,
-    ): Promise<WizardPhoto[]> {
-      return [
-        ...photos,
-        ...stagedList.map((s) => {
-          const hit = byId.get(s.id);
-          if (!hit?.baseUrl) return { ...s, uploading: false, error: 'Upload failed' };
-          return {
-            ...s,
-            uploading: false,
-            error: undefined,
-            url: hit.baseUrl,
-            width: hit.width ?? s.width,
-            height: hit.height ?? s.height,
-          };
-        }),
-      ];
+      const stagedIds = new Set(staged.map((s) => s.id));
+      onChange(photosRef.current.map((p) =>
+        stagedIds.has(p.id) ? { ...p, uploading: false, error: friendly } : p,
+      ));
     }
   }
 
@@ -694,12 +717,19 @@ function WizardPhotoUpload({
           }}
         >
           {photos.map((p) => (
-            <div key={p.id} className="pl8-chip-pop" style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
-              <img
-                src={p.previewUrl}
-                alt={p.name ?? ''}
-                style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block', opacity: p.uploading ? 0.6 : 1, transition: 'opacity var(--pl-dur-base) var(--pl-ease-out)' }}
-              />
+            <div key={p.id} className="pl8-chip-pop" style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#000', minHeight: 130 }}>
+              {p.previewUrl ? (
+                <img
+                  src={p.previewUrl}
+                  alt={p.name ?? ''}
+                  style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block', opacity: p.uploading ? 0.6 : 1, transition: 'opacity var(--pl-dur-base) var(--pl-ease-out)' }}
+                />
+              ) : (
+                /* No decodable preview (e.g. HEIC on Chrome) — a calm
+                   paper panel carries the error badge instead of a
+                   broken-image glyph. */
+                <div style={{ width: '100%', height: 130, background: 'var(--cream-2)' }} />
+              )}
               {p.uploading && (
                 <div
                   style={{
@@ -726,13 +756,16 @@ function WizardPhotoUpload({
                 <div
                   style={{
                     position: 'absolute',
-                    top: 6,
-                    left: 6,
-                    padding: '2px 8px',
-                    background: '#7A2D2D',
+                    inset: 6,
+                    padding: '8px 10px',
+                    background: 'rgba(122,45,45,0.92)',
                     color: '#fff',
-                    fontSize: 10,
-                    borderRadius: 999,
+                    fontSize: 10.5,
+                    lineHeight: 1.35,
+                    borderRadius: 8,
+                    display: 'grid',
+                    alignContent: 'center',
+                    overflow: 'auto',
                   }}
                 >
                   {p.error}
