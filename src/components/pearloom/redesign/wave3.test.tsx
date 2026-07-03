@@ -36,7 +36,7 @@ describe('Wave 3 registrations', () => {
     expect(LAYOUTS.menu!.map((v) => v.id)).toContain('bill-of-fare');
     expect(LAYOUTS.dressCode!.map((v) => v.id)).toContain('wardrobe');
     expect(LAYOUTS.registry!.map((v) => v.id)).toContain('storecards');
-    expect(LAYOUTS.groupChat!.map((v) => v.id)).toEqual(['card']);
+    expect(LAYOUTS.groupChat!.map((v) => v.id)).toEqual(['card', 'panel']);
     expect(DEFAULT_VARIANT.groupChat).toBe('card');
   });
 

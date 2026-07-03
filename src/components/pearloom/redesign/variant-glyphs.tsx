@@ -382,6 +382,10 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'livestream/cinema': (
     <><rect x={4} y={6} width={48} height={5} fill="currentColor" opacity={0.85} /><P x={4} y={11} w={48} h={18} o={0.65} /><path d="M25 15 l8 5 -8 5 z" fill={CARD} /><rect x={4} y={29} width={48} height={5} fill="currentColor" opacity={0.85} /></>
   ),
+  /* marquee — countdown as a wall of numbers + a join bar. */
+  'livestream/marquee': (
+    <><B x={9} y={8} w={9} h={12} rx={1.5} /><B x={23.5} y={8} w={9} h={12} rx={1.5} o={0.8} /><B x={38} y={8} w={9} h={12} rx={1.5} o={0.6} /><B x={10} y={23} w={7} h={1.4} o={0.4} /><B x={24.5} y={23} w={7} h={1.4} o={0.4} /><B x={39} y={23} w={7} h={1.4} o={0.4} /><Ln x1={20} y1={28.5} x2={36} y2={28.5} f={G} w={0.9} /><B x={20} y={31} w={16} h={4.5} f={A} rx={2.2} /></>
+  ),
 
   /* obituary */
   'obituary/letter': (
@@ -389,6 +393,10 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   ),
   'obituary/columns': (
     <><B x={13} y={6} w={30} h={2.6} /><B x={7} y={14} w={19} o={0.55} /><B x={7} y={18} w={17} o={0.55} /><B x={7} y={22} w={19} o={0.55} /><B x={7} y={26} w={15} o={0.55} /><B x={30} y={14} w={19} o={0.55} /><B x={30} y={18} w={18} o={0.55} /><B x={30} y={22} w={19} o={0.55} /><B x={30} y={26} w={12} o={0.55} /></>
+  ),
+  /* card — portrait medallion (gold ring) over the remembrance. */
+  'obituary/card': (
+    <><Card x={13} y={4} w={30} h={32} /><circle cx={28} cy={12} r={5.5} fill={A} opacity={0.5} /><circle cx={28} cy={12} r={5.5} fill="none" stroke={G} strokeWidth="0.7" /><Ln x1={23} y1={19.5} x2={33} y2={19.5} f={G} w={0.8} /><B x={18} y={23} w={20} o={0.5} /><B x={19} y={27} w={18} o={0.5} /><B x={20} y={31} w={16} o={0.5} /></>
   ),
 
   /* packingList */
@@ -449,10 +457,18 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   'groupChat/card': (
     <><Card x={10} y={7} w={36} h={26} /><B x={20} y={12} w={16} h={2.8} /><B x={17} y={17.5} w={22} h={1.5} o={0.45} /><B x={19} y={23} w={18} h={5} f={A} rx={2.5} /><path d="M40 11 l3.5 -3.5 M43.5 7.5 h-3 M43.5 7.5 v3" stroke={G} strokeWidth="0.9" fill="none" /></>
   ),
+  /* panel — a chat-window frame: header, bubbles, message bar. */
+  'groupChat/panel': (
+    <><Card x={10} y={5} w={36} h={30} /><rect x={11} y={6} width={34} height={7} rx={1.5} fill={AB} /><B x={14} y={8.5} w={12} h={2.4} /><circle cx={38} cy={9.5} r={1.9} fill={A} /><circle cx={41.5} cy={9.5} r={1.9} fill={G} /><rect x={14} y={16} width={17} height={5} rx={2} fill={CARD} stroke={L} strokeWidth="0.6" /><rect x={26} y={23} width={16} height={4.5} rx={2} fill={A} opacity={0.55} /><Ln x1={11} y1={30} x2={45} y2={30} /><B x={14} y={32} w={13} h={1.8} o={0.4} /><B x={37} y={31} w={7} h={3.6} rx={1.8} f={A} /></>
+  ),
 
   /* nameVote — display-face names in tappable rows, gold tally. */
   'nameVote/ballot': (
     <><Card x={10} y={6} w={36} h={8} rx={4} /><B x={14} y={9} w={13} h={2.2} /><D cx={41} cy={10} r={1.4} /><rect x={10} y={16} width={36} height={8} rx={4} fill={A} opacity={0.55} /><B x={14} y={19} w={16} h={2.2} f={CARD} /><Card x={10} y={26} w={36} h={8} rx={4} /><B x={14} y={29} w={11} h={2.2} /><D cx={41} cy={30} r={1.4} /></>
+  ),
+  /* tiles — the same names as a 2×2 plate grid, one voted-in. */
+  'nameVote/tiles': (
+    <><Card x={7} y={7} w={19} h={12} /><B x={11} y={11.5} w={11} h={2.6} /><D cx={22.5} cy={10} r={1.2} /><Card x={30} y={7} w={19} h={12} /><B x={34} y={11.5} w={10} h={2.6} /><D cx={45.5} cy={10} r={1.2} /><rect x={7} y={21} width={19} height={12} rx={2} fill={A} opacity={0.6} /><B x={11} y={25.5} w={11} h={2.6} f={CARD} /><Card x={30} y={21} w={19} h={12} /><B x={34} y={25.5} w={9} h={2.6} /><D cx={45.5} cy={24} r={1.2} /></>
   ),
 
   /* rooms — room cards with guest chips / a ruled board. */
@@ -466,6 +482,10 @@ export const VARIANT_GLYPHS: Record<string, ReactNode> = {
   /* thenAndNow — two framed plates in one card, mono corner tags. */
   'thenAndNow/pairs': (
     <><Card x={8} y={6} w={40} h={28} /><P x={10} y={8} w={17.5} h={19} o={0.4} /><P x={28.5} y={8} w={17.5} h={19} o={0.7} /><rect x={11.5} y={22.5} width={6} height={3} rx={1.5} fill="currentColor" opacity={0.75} /><rect x={30} y={22.5} width={6} height={3} rx={1.5} fill="currentColor" opacity={0.75} /><B x={20} y={30} w={16} h={1.6} o={0.5} /></>
+  ),
+  /* stack — then above, now below, joined by the two-strand thread. */
+  'thenAndNow/stack': (
+    <><Card x={16} y={3} w={24} h={34} /><P x={19} y={6} w={18} h={10} o={0.4} /><rect x={20.5} y={12.5} width={5} height={2.4} rx={1.2} fill="currentColor" opacity={0.75} /><Ln x1={26.5} y1={17.5} x2={26.5} y2={22.5} f={A} /><Ln x1={29.5} y1={17.5} x2={29.5} y2={22.5} f={G} /><P x={19} y={24} w={18} h={10} o={0.7} /><rect x={20.5} y={30.5} width={5} height={2.4} rx={1.2} fill="currentColor" opacity={0.75} /></>
   ),
 };
 

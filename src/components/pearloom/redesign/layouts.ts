@@ -164,12 +164,14 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'centerline', label: 'Centerline', sub: 'Moments down a center rail' },
   ],
   livestream: [
-    { id: 'card',   label: 'Card',   sub: 'Framed player + join button' },
-    { id: 'cinema', label: 'Cinema', sub: 'Letterboxed full-width' },
+    { id: 'card',    label: 'Card',    sub: 'Framed player + join button' },
+    { id: 'cinema',  label: 'Cinema',  sub: 'Letterboxed full-width' },
+    { id: 'marquee', label: 'Marquee', sub: 'Countdown as a wall of numbers' },
   ],
   obituary: [
     { id: 'letter',  label: 'Letter',  sub: 'Single centered column' },
     { id: 'columns', label: 'Columns', sub: 'Newspaper two-column' },
+    { id: 'card',    label: 'Memorial card', sub: 'Portrait medallion + remembrance' },
   ],
   packingList: [
     { id: 'checklist', label: 'Checklist', sub: 'Single ticked column' },
@@ -198,6 +200,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   ],
   nameVote: [
     { id: 'ballot', label: 'Ballot', sub: 'Names in display type, tap to vote' },
+    { id: 'tiles',  label: 'Tiles',  sub: 'Name plates in a card grid' },
   ],
   rooms: [
     { id: 'assignments', label: 'Rooms', sub: 'Room cards + guest chips' },
@@ -205,12 +208,14 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   ],
   thenAndNow: [
     { id: 'pairs', label: 'Pairs', sub: 'Then / now, side by side' },
+    { id: 'stack', label: 'Stacked', sub: 'Then above, now below, on a thread' },
   ],
   /* Link-out only — the thread lives where the group already talks
      (WhatsApp / Signal / GroupMe…). Never an embed (livestream is
      the template for the link-never-embed rationale). */
   groupChat: [
-    { id: 'card', label: 'Card', sub: 'Link out to the app' },
+    { id: 'card',  label: 'Card',  sub: 'Link out to the app' },
+    { id: 'panel', label: 'Thread panel', sub: 'A chat-window frame + join bar' },
   ],
 };
 
@@ -285,6 +290,12 @@ const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, { id: st
   menu: { id: 'bill-of-fare', occasions: ['rehearsal-dinner', 'wedding', 'retirement', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera'] },
   /* Wardrobe plates where dress guidance is the point. */
   dressCode: { id: 'wardrobe', occasions: ['wedding', 'quinceanera', 'sweet-sixteen', 'bar-mitzvah', 'bat-mitzvah'] },
+  /* Portrait-led memorial card — the photograph honoring the
+     person leads the remembrance on solemn occasions. */
+  obituary: { id: 'card', occasions: ['memorial', 'funeral'] },
+  /* Name tiles read best as a short slate to weigh side by side —
+     the gender-reveal's handful of options. */
+  nameVote: { id: 'tiles', occasions: ['gender-reveal'] },
 };
 
 /** The variant id recommended for this section + occasion, or

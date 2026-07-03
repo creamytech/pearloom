@@ -44,6 +44,23 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
   groupChat: {
     bachelor: { groupChatUrl: 'https://chat.whatsapp.com/AbC123demo' },
   },
+  obituary: {
+    memorial: {
+      obituary: {
+        dates: 'March 12, 1942 — April 8, 2026',
+        body: 'Eleanor kept every letter anyone ever sent her, and answered each one within the week. She taught two generations of nieces to bake, to argue kindly, and to write a proper thank-you note.\n\nShe is survived by the garden she planted, the recipes in everyone’s handwriting but her own, and a great many people who write the way she taught them to.',
+      },
+    },
+  },
+  livestream: {
+    livestream: {
+      url: 'https://zoom.us/j/9999999999',
+      title: 'Join us from anywhere',
+      note: 'For everyone who can’t be in the room — we saved you a seat.',
+      startsAt: 'Saturday, June 13 at 4:00 pm',
+      buttonLabel: 'Join the livestream',
+    },
+  },
   itinerary: {
     itinerary: {
       days: [

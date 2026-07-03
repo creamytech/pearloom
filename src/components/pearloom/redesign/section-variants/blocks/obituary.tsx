@@ -21,7 +21,13 @@
    panel-edited; the eyebrow/title stay inline-editable via
    VariantSectionHead (those genuinely are copy overrides).
 
-   Variants (layouts.ts): letter (default) | columns. */
+   Variants (layouts.ts):
+     letter  (default) — single measured column, drop-cap opening.
+     columns           — newspaper two-column setting.
+     card              — a framed in-memoriam card led by a portrait
+                         medallion (the site's cover photo in a gold
+                         hairline ring; a muted sprig when there's no
+                         photo). Recommended for memorial / funeral. */
 
 import type { CSSProperties } from 'react';
 import { VariantSectionHead } from '../_section-head';
@@ -33,6 +39,14 @@ export interface ObituaryData { dates?: string; body?: string }
 export function readObituary(manifest: BlockSectionProps['manifest']): ObituaryData {
   const loose = manifest as unknown as { memorial?: { obituary?: ObituaryData } };
   return loose.memorial?.obituary ?? {};
+}
+
+/** Portrait for the card variant — the site's cover photo (on a
+ *  memorial that's the person's photograph). Empty → the medallion
+ *  falls back to the quiet sprig. */
+export function readPortrait(manifest: BlockSectionProps['manifest']): string {
+  const loose = manifest as unknown as { coverPhoto?: string };
+  return (loose.coverPhoto ?? '').trim();
 }
 
 const MONO = 'var(--t-mono, var(--pl-font-mono, ui-monospace, monospace))';
@@ -202,6 +216,63 @@ function ObituaryColumns({ dates, body }: { dates?: string; body: string }) {
   );
 }
 
+/* ─── Card — portrait medallion + framed remembrance. ────────── */
+
+/** Portrait medallion — a circular photo in a gold hairline ring,
+ *  or the muted sprig when no cover photo is set. The single note
+ *  of image on the most restrained surface in the product. */
+function PortraitMedallion({ portrait }: { portrait: string }) {
+  return (
+    <div
+      style={{
+        width: 96, height: 96, borderRadius: '50%',
+        margin: '0 auto 22px',
+        display: 'grid', placeItems: 'center',
+        border: `1px solid ${GOLD}`,
+        boxShadow: 'inset 0 0 0 4px var(--t-card)',
+        overflow: 'hidden',
+        background: 'var(--t-section)',
+      }}
+    >
+      {portrait ? (
+        <img
+          src={portrait}
+          alt="In memoriam"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <OliveSprig size={44} color="var(--t-ink-muted)" berry={GOLD} style={{ opacity: 0.9 }} />
+      )}
+    </div>
+  );
+}
+
+function ObituaryCard({ dates, body, portrait }: { dates?: string; body: string; portrait: string }) {
+  const paras = paragraphs(body);
+  return (
+    <div
+      style={{
+        maxWidth: 540, margin: '0 auto',
+        background: 'var(--t-card)',
+        border: '1px solid var(--t-line)',
+        borderRadius: 'var(--t-radius-lg, 14px)',
+        padding: 'clamp(28px, 5vw, 44px) clamp(22px, 4vw, 40px)',
+        textAlign: 'center',
+      }}
+    >
+      <PortraitMedallion portrait={portrait} />
+      {dates?.trim() && <DatesLine dates={dates} style={{ marginBottom: 24 }} />}
+      <div>
+        {paras.map((p, i) => (
+          <p key={i} style={{ ...BODY_STYLE, fontSize: 15.5, lineHeight: 1.8, marginTop: i === 0 ? 0 : 18 }}>
+            {p}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Section ────────────────────────────────────────────────── */
 
 export function ObituarySection({ manifest, pad, editable, variant, onEditCopy }: BlockSectionProps) {
@@ -227,6 +298,8 @@ export function ObituarySection({ manifest, pad, editable, variant, onEditCopy }
         <BlockEmpty hint="Write the remembrance in the Obituary panel (or the Memorial workspace)." />
       ) : variant === 'columns' ? (
         <ObituaryColumns dates={data.dates} body={body} />
+      ) : variant === 'card' ? (
+        <ObituaryCard dates={data.dates} body={body} portrait={readPortrait(manifest)} />
       ) : (
         <ObituaryLetter dates={data.dates} body={body} />
       )}

@@ -33,7 +33,13 @@
    client-side only (state starts null) so SSR/hydration never
    disagree about "now".
 
-   Variants (layouts.ts): card (default) | cinema. */
+   Variants (layouts.ts):
+     card    (default) — paper card: kicker, time, countdown, CTA.
+     cinema            — full-bleed editorial-ink letterboxed frame.
+     marquee           — countdown-forward: the "Begins in…" clock (or
+                         the start time, or LIVE NOW) as a wall-of-
+                         numbers hero over the section paper, with a
+                         slim join bar. For when the WHEN is the point. */
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { VariantSectionHead } from '../_section-head';
@@ -344,6 +350,98 @@ function LivestreamCinema({ data, url, phase, startMs, now }: {
   );
 }
 
+/* ─── Marquee — countdown as a wall of numbers over the paper. ── */
+
+/** Break a remaining-time span into day / hour / minute tiles,
+ *  dropping leading zero units (never the minutes). */
+export function countdownTiles(msUntil: number): Array<{ n: number; label: string }> {
+  const mins = Math.max(1, Math.round(msUntil / 60_000));
+  const days = Math.floor(mins / 1440);
+  const hours = Math.floor((mins % 1440) / 60);
+  const m = mins % 60;
+  const all = [
+    { n: days, label: days === 1 ? 'day' : 'days' },
+    { n: hours, label: hours === 1 ? 'hour' : 'hours' },
+    { n: m, label: m === 1 ? 'min' : 'mins' },
+  ];
+  let start = 0;
+  while (start < all.length - 1 && all[start].n === 0) start += 1;
+  return all.slice(start);
+}
+
+function NumberTile({ n, label }: { n: number; label: string }) {
+  return (
+    <div style={{ textAlign: 'center', minWidth: 68 }}>
+      <div
+        style={{
+          fontFamily: 'var(--t-display)',
+          fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+          fontSize: 'clamp(44px, 11vw, 76px)',
+          lineHeight: 0.95,
+          color: 'var(--t-ink)',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {n}
+      </div>
+      <div style={{ marginTop: 6, fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function LivestreamMarquee({ data, url, phase, startMs, now }: {
+  data: LivestreamData; url: string; phase: Phase; startMs: number | null; now: number | null;
+}) {
+  const tiles = phase === 'pre' && startMs !== null && now !== null ? countdownTiles(startMs - now) : null;
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
+      <LiveKicker
+        phase={phase}
+        color="color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)"
+        dotColor={GOLD}
+      />
+      {tiles ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start', gap: 'clamp(14px, 5vw, 40px)' }}>
+          {tiles.map((t) => <NumberTile key={t.label} n={t.n} label={t.label} />)}
+        </div>
+      ) : (
+        <div
+          style={{
+            fontFamily: 'var(--t-display)',
+            fontStyle: phase === 'live' ? 'normal' : 'italic',
+            fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+            fontSize: 'clamp(30px, 7vw, 52px)',
+            lineHeight: 1.1,
+            color: 'var(--t-ink)',
+          }}
+        >
+          {phase === 'live' ? 'Live now' : (data.startsAt?.trim() || 'Join us live')}
+        </div>
+      )}
+      {/* Slim thread rule under the numbers. */}
+      <div aria-hidden style={{ width: 120, height: 1, background: GOLD, opacity: 0.5 }} />
+      {tiles && data.startsAt?.trim() && (
+        <div style={{ fontFamily: 'var(--t-display)', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: -6 }}>
+          {data.startsAt}
+        </div>
+      )}
+      {startMs !== null && now !== null && (
+        <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', color: 'var(--t-ink-muted)', marginTop: -8 }}>
+          {localStartLabel(startMs)} · your time
+        </div>
+      )}
+      {data.note?.trim() && (
+        <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, maxWidth: 440 }}>
+          {data.note}
+        </div>
+      )}
+      <JoinButton url={url} label={data.buttonLabel} />
+    </div>
+  );
+}
+
 /** Local CSS-var overrides so VariantSectionHead (which binds to
  *  --t-ink / --t-accent-ink / --t-line) reads cream on the fixed
  *  ink band without forking the head component. */
@@ -379,6 +477,7 @@ export function LivestreamSection({ manifest, pad, editable, variant, onEditCopy
   if (empty && !editable) return null;
 
   const cinema = variant === 'cinema';
+  const marquee = variant === 'marquee';
   const head = (
     <VariantSectionHead
       eyebrow={blockCopy(manifest, 'livestreamEyebrow', 'From afar')}
@@ -390,16 +489,14 @@ export function LivestreamSection({ manifest, pad, editable, variant, onEditCopy
     />
   );
 
+  const hint = <BlockEmpty hint="Paste the stream link (Zoom, YouTube, Vimeo…) in the Livestream panel." />;
+
   if (cinema) {
     return (
       <BlockFrame pad={pad} background={CINEMA_INK}>
         <CinemaVars>
           {head}
-          {empty ? (
-            <BlockEmpty hint="Paste the stream link (Zoom, YouTube, Vimeo…) in the Livestream panel." />
-          ) : (
-            <LivestreamCinema data={data} url={url} phase={phase} startMs={startMs} now={now} />
-          )}
+          {empty ? hint : <LivestreamCinema data={data} url={url} phase={phase} startMs={startMs} now={now} />}
         </CinemaVars>
       </BlockFrame>
     );
@@ -409,7 +506,9 @@ export function LivestreamSection({ manifest, pad, editable, variant, onEditCopy
     <BlockFrame pad={pad} background="var(--t-section)">
       {head}
       {empty ? (
-        <BlockEmpty hint="Paste the stream link (Zoom, YouTube, Vimeo…) in the Livestream panel." />
+        hint
+      ) : marquee ? (
+        <LivestreamMarquee data={data} url={url} phase={phase} startMs={startMs} now={now} />
       ) : (
         <LivestreamCard data={data} url={url} phase={phase} startMs={startMs} now={now} />
       )}
