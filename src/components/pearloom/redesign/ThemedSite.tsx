@@ -3956,31 +3956,66 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
 
   const embedUrl = toMusicEmbedUrl(provider, url);
 
-  if (!embedUrl) {
-    if (!editable) return null;
-    return (
-      <SectionEmpty
-        eyebrow={eyebrow}
-        hint="Paste a Spotify, Apple Music, or YouTube playlist link to play it here."
-        icon="music"
-        pad={pad}
-      />
-    );
-  }
+  /* Published + no link → the section is silent (unchanged). In the
+     EDITOR we DON'T collapse to one generic empty card — that made
+     every layout look identical, so the Layout picker felt dead
+     ("the music layouts don't work", host report). Instead each
+     variant renders its real frame with a placeholder in the player
+     slot, so switching Card → Jukebox → Sidebar is visibly
+     different AND guides the host to paste a link. */
+  if (!embedUrl && !editable) return null;
 
   const isSpotify = provider === 'spotify';
   const baseHeight = isSpotify ? 380 : provider === 'apple' ? 450 : 380;
 
-  const playerIframe = (height: number, dark = false) => (
-    <iframe
-      src={embedUrl}
-      title={`${title} — playlist`}
-      style={{ width: '100%', height, border: 0, display: 'block', background: isSpotify || dark ? '#181818' : 'transparent' }}
-      loading="lazy"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      referrerPolicy="no-referrer-when-downgrade"
-    />
-  );
+  /* The player slot: the real embed when a link is set, else (editor
+     only, since published returned null above) a themed "paste a
+     link" placeholder sized like the player so the layout reads
+     true. dark = the jukebox plate treatment. */
+  const playerIframe = (height: number, dark = false) => {
+    if (!embedUrl) {
+      const gold = 'var(--t-gold, #C49A6F)';
+      return (
+        <div
+          style={{
+            width: '100%',
+            height,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            textAlign: 'center',
+            padding: '0 20px',
+            background: dark
+              ? 'color-mix(in oklab, #000 30%, transparent)'
+              : 'var(--t-section, rgba(0,0,0,0.03))',
+            border: `1px dashed ${dark ? `color-mix(in oklab, ${gold} 55%, transparent)` : 'var(--t-line)'}`,
+            borderRadius: 'inherit',
+            color: dark ? gold : 'var(--t-ink-muted)',
+          }}
+        >
+          <Icon name="music" size={20} color={dark ? gold : 'var(--t-ink-muted)'} />
+          <span style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '0.01em' }}>
+            Paste a Spotify, Apple Music, or YouTube link
+          </span>
+          <span style={{ fontSize: 11, opacity: 0.75 }}>
+            Your playlist plays right here.
+          </span>
+        </div>
+      );
+    }
+    return (
+      <iframe
+        src={embedUrl}
+        title={`${title} — playlist`}
+        style={{ width: '100%', height, border: 0, display: 'block', background: isSpotify || dark ? '#181818' : 'transparent' }}
+        loading="lazy"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    );
+  };
 
   if (variant === 'minimal') {
     return (

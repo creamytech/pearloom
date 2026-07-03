@@ -47,7 +47,26 @@ describe('empty core sections in the editor canvas', () => {
     const html = renderEditable();
     expect(html).toContain('Set the event date in the Hero panel');
     expect(html).toContain('Add a venue in the Hero panel');
-    expect(html).toContain('playlist link');
+    /* Music empty renders its VARIANT frame with a guided player
+       placeholder (so switching layouts stays meaningful before a
+       link is pasted), not the generic SectionEmpty card. */
+    expect(html).toContain('Paste a Spotify, Apple Music, or YouTube link');
+  });
+
+  it('empty music still renders its variant frame so the Layout picker works', () => {
+    // jukebox is the most distinct frame — its dark plate + eyebrow
+    // must render around the placeholder even with no link set.
+    const m = hydrateManifestForRedesign({
+      names: ['Alex', 'Jamie'], theme: {}, chapters: [], occasion: 'wedding',
+      blockOrder: ['music'], layouts: { music: 'jukebox' },
+    } as unknown as StoryManifest);
+    const html = renderToString(<ThemedSite manifest={m} names={['Alex', 'Jamie']} editable />);
+    // Guided placeholder present …
+    expect(html).toContain('Paste a Spotify, Apple Music, or YouTube link');
+    // … AND the jukebox FRAME wraps it (the ◆ marquee eyebrow only
+    // the jukebox variant emits) — proving the Layout switch is live
+    // in the empty state, not collapsed to one generic card.
+    expect(html).toContain('◆');
   });
 });
 

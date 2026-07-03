@@ -43,9 +43,13 @@ function DevEditorInner() {
   // verifiable (they render only when added via the Add-Section
   // picker in normal use).
   const blocks = params.get('blocks');
+  // QA hook: `?layouts=music:jukebox,rsvp:split` overrides per-section
+  // variants so empty/full layouts are verifiable in the editor
+  // canvas (mirrors /dev/site's knob).
+  const layoutsParam = params.get('layouts');
   const manifest = useMemo<StoryManifest>(() => {
     const base = REFERENCE_MANIFEST as StoryManifest;
-    if (!occasion && !blank && !theme && !blocks) return base;
+    if (!occasion && !blank && !theme && !blocks && !layoutsParam) return base;
     const next: Record<string, unknown> = {
       ...(base as unknown as Record<string, unknown>),
       ...(occasion ? { occasion } : {}),
@@ -57,9 +61,17 @@ function DevEditorInner() {
       const added = blocks.split(',').map((s) => s.trim()).filter(Boolean);
       next.blockOrder = [...existing, ...added.filter((b) => !existing.includes(b))];
     }
+    if (layoutsParam) {
+      const overrides: Record<string, string> = {};
+      for (const pair of layoutsParam.split(',')) {
+        const [sec, variant] = pair.split(':').map((s) => s.trim());
+        if (sec && variant) overrides[sec] = variant;
+      }
+      next.layouts = { ...(next.layouts as Record<string, string> | undefined), ...overrides };
+    }
     if (blank) for (const f of BLANK_STRIPPED_FIELDS) delete next[f];
     return next as unknown as StoryManifest;
-  }, [occasion, blank, theme, blocks]);
+  }, [occasion, blank, theme, blocks, layoutsParam]);
 
   return (
     <EditorRedesign
