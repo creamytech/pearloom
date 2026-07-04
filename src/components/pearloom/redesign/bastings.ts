@@ -18,6 +18,7 @@
 
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
+import { CORE_BLOCK_ORDER } from '@/lib/event-os/wizard-sections';
 
 export interface Basting {
   id: string;
@@ -54,8 +55,9 @@ export function pullThread(slug: string, id: string) {
 
 function blockOrderWith(m: StoryManifest, section: string): StoryManifest {
   const loose = m as unknown as Loose;
-  const core = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-  const order = (Array.isArray(loose.blockOrder) ? loose.blockOrder as string[] : core);
+  /* CORE_BLOCK_ORDER — the shared canonical-order source; the core
+     sections are the implicit default when blockOrder is unset. */
+  const order = (Array.isArray(loose.blockOrder) ? loose.blockOrder as string[] : [...CORE_BLOCK_ORDER]);
   if (order.includes(section)) return m;
   return { ...loose, blockOrder: [...order, section] } as unknown as StoryManifest;
 }

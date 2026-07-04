@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
+import { CORE_BLOCK_ORDER } from '@/lib/event-os/wizard-sections';
 import {
   faqQuestionSuggestions,
   faqAnswerDraftFor,
@@ -58,11 +59,11 @@ export interface DayPicks {
 
 /* Append a block to the manifest's block order without disturbing
    an explicit order the host (or a template) already set. Mirrors
-   redesign/bastings.ts — the core sections are the implicit
-   default when blockOrder is unset. */
-const CORE_ORDER = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+   redesign/bastings.ts — the core sections (CORE_BLOCK_ORDER, the
+   shared canonical-order source) are the implicit default when
+   blockOrder is unset. */
 function withBlock(loose: Loose, section: string): void {
-  const order = Array.isArray(loose.blockOrder) ? (loose.blockOrder as string[]) : CORE_ORDER;
+  const order = Array.isArray(loose.blockOrder) ? (loose.blockOrder as string[]) : [...CORE_BLOCK_ORDER];
   if (!order.includes(section)) loose.blockOrder = [...order, section];
 }
 

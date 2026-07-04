@@ -46,6 +46,7 @@ import { WizardMomentCard } from '../wizard/WizardMomentCard';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
+import { applySectionPicks, essentialSectionsFor } from '@/lib/event-os/wizard-sections';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor } from '@/lib/site-look/look-recipes';
 import { WizardStructureSection } from './wizard-structure';
@@ -352,6 +353,17 @@ interface WizardState {
    *  lighters, by name. Becomes manifest.weddingParty + the
    *  honorList section. */
   partyNames?: string[];
+  /** Section chooser (§3.1) — which sections the site starts with +
+   *  the layout variant each landed on. undefined = host skipped
+   *  ("Let Pear decide"), which today is every run (no chooser UI
+   *  yet — Wave 2). At finish, when unset, it's seeded silently to
+   *  the occasion's essentials so blockOrder lands explicit. */
+  sectionPicks?: {
+    /** Selected canvas SectionIds, in the host's on/off state. */
+    on: string[];
+    /** Per-section layout variant the host landed on. */
+    layouts: Record<string, string>;
+  };
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -2496,6 +2508,30 @@ export function WizardV8() {
           : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah' ? 'Candle lighter'
           : 'Wedding party',
       }) as unknown as Record<string, unknown>;
+
+      // ── Section picks (§3.3) — write an explicit blockOrder (which
+      //    sections, in the canonical order), plus hiddenSections for
+      //    any essential the host set aside and manifest.layouts for
+      //    the variant each landed on. Runs AFTER seedSectionsFromWizard
+      //    so mergeBlockOrder unions in the seed's content sections
+      //    (countdown / music / honorList) — content always wins, no
+      //    entered data is ever dropped. The STRUCTURE / fitting-room
+      //    nav+hero picks below still layer on top of layouts.
+      //
+      //    Wave 1: there's no chooser UI yet, so st.sectionPicks is
+      //    unset on every run — seed it silently to the occasion's
+      //    essentials (empty layout picks: the fitting room owns
+      //    nav/hero and the recommended variants surface in Wave 2).
+      const sectionPicks = st.sectionPicks ?? {
+        on: essentialSectionsFor(st.occasion, st.editionPick),
+        layouts: {} as Record<string, string>,
+      };
+      manifest = applySectionPicks(
+        manifest as unknown as StoryManifest,
+        st.occasion,
+        sectionPicks,
+        st.editionPick,
+      ) as unknown as Record<string, unknown>;
 
       // ── Explicit STRUCTURE picks — siteMode + kit + per-section
       //    layout variants, exactly the fields the editor's Layout

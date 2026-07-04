@@ -8,6 +8,7 @@ import { Icon } from '../motifs';
 import { PlAvatar } from '../avatars';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
+import { CORE_SECTION_META, OPTIONAL_SECTION_META } from '@/lib/event-os/wizard-sections';
 import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { SiteModeSection } from '../editor/panels/SiteModeSection';
@@ -35,17 +36,12 @@ function resolveSectionDef(s: SectionDef, occasion?: string): SectionDef {
   return { ...s, label: occasionCopyFor(occasion).navStory, desc: 'The story behind the day' };
 }
 
-const SECTIONS: SectionDef[] = [
-  { id: 'hero',     label: 'Opening',   icon: 'home',       required: true, desc: 'Names, date, cover photo' },
-  { id: 'story',    label: 'Our story', icon: 'heart-icon', desc: 'How you met' },
-  { id: 'details',  label: 'Details',   icon: 'sparkles',   desc: 'Dress code, kids, FAQ-lite' },
-  { id: 'schedule', label: 'Schedule',  icon: 'calendar',   desc: 'Day-of timeline' },
-  { id: 'travel',   label: 'Travel',    icon: 'map',        desc: 'Hotels, transit, tips' },
-  { id: 'registry', label: 'Registry',  icon: 'gift',       desc: 'Linked stores' },
-  { id: 'gallery',  label: 'Gallery',   icon: 'image',      desc: 'Your photo wall' },
-  { id: 'rsvp',     label: 'RSVP',      icon: 'mail',       required: true, desc: 'Reply form + deadline' },
-  { id: 'faq',      label: 'FAQ',       icon: 'sparkles',   desc: 'Guest questions' },
-];
+/* Labels/icons/descs live in the shared SECTION_META catalog
+   (@/lib/event-os/wizard-sections) so the rail and the wizard's
+   section chooser can't drift. Order is preserved there — it's
+   load-bearing (REORDERABLE_CORE_KEYS + auto-append order derive
+   from it below). */
+const SECTIONS: SectionDef[] = [...CORE_SECTION_META];
 
 /* ─── Live row signals ─────────────────────────────────────────
    Derives each section row's one-line desc from the manifest so
@@ -113,38 +109,14 @@ function needsAttention(sectionId: string, manifest: StoryManifest): boolean {
   }
 }
 
-/* Optional sections — not in the default site, added via the
-   Add section button. Each is occasion-gated by
-   isOptionalSectionApplicable. Once a host adds one, the section
-   id lives in manifest.blockOrder and the rail renders it
-   alongside the core sections. */
-const OPTIONAL_SECTIONS: SectionDef[] = [
-  { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · statement' },
-  { id: 'map',       label: 'Map',       icon: 'map',      desc: 'Live embed · pin · static' },
-  { id: 'music',     label: 'Music',     icon: 'music',    desc: 'Spotify · Apple · YouTube' },
-  /* Event-OS blocks — gated against the EVENT_TYPES registry via
-     isBlockApplicable (default + optional blocks per occasion), so
-     a bachelorette host sees Itinerary/Cost/Vote/Packing while a
-     memorial host sees Program/Livestream/Obituary. */
-  { id: 'itinerary',    label: 'Itinerary',    icon: 'calendar-check', desc: 'Multi-day plan, hour by hour' },
-  { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket',        desc: 'Who owes what — settled gently' },
-  { id: 'activityVote', label: 'Group vote',   icon: 'check',          desc: 'Let the group pick' },
-  { id: 'toastSignup',  label: 'Toast signup', icon: 'mic',            desc: 'Claim a toast slot' },
-  { id: 'adviceWall',   label: 'Advice wall',  icon: 'text',           desc: 'Words for the honoree' },
-  { id: 'program',      label: 'Program',      icon: 'page',           desc: 'The order of the ceremony' },
-  { id: 'livestream',   label: 'Livestream',   icon: 'play',           desc: 'For the ones far away' },
-  { id: 'obituary',     label: 'Obituary',     icon: 'leaf',           desc: 'A life, remembered' },
-  { id: 'packingList',  label: 'Packing list', icon: 'list',           desc: 'What to bring' },
-  { id: 'honorList',    label: 'Honor list',   icon: 'users',          desc: 'The people beside them' },
-  /* Gentle on purpose — this row also reads on memorial sites. */
-  { id: 'tributeWall',  label: 'Tribute wall', icon: 'heart-icon',     desc: 'Memories, gathered from your guests' },
-  { id: 'menu',         label: 'Menu',         icon: 'fleuron',        desc: 'Dinner, course by course' },
-  { id: 'dressCode',    label: 'Dress code',   icon: 'palette',        desc: 'What to wear' },
-  { id: 'nameVote',     label: 'Name vote',    icon: 'sparkles',       desc: 'Guests pick their favorite name' },
-  { id: 'rooms',        label: 'Rooms',        icon: 'home',           desc: 'Who sleeps where' },
-  { id: 'thenAndNow',   label: 'Then & now',   icon: 'image',          desc: 'Photo pairs, years apart' },
-  { id: 'groupChat',    label: 'Group chat',   icon: 'send',           desc: 'Link out to the thread' },
-];
+/* Optional sections — not in the default site, added via the Add
+   Section button. Labels/icons/descs come from the shared
+   SECTION_META catalog (same source the wizard chooser reads). The
+   Event-OS blocks below `music` are gated against the EVENT_TYPES
+   registry via isBlockApplicable so a bachelorette host sees
+   Itinerary/Cost/Vote/Packing while a memorial host sees
+   Program/Livestream/Obituary. */
+const OPTIONAL_SECTIONS: SectionDef[] = [...OPTIONAL_SECTION_META];
 
 /* One gate for everything the Add Section picker offers — the
    original optional trio keeps its bespoke rules; the Event-OS
