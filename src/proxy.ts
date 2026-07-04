@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { getAllOccasionIds } from '@/lib/event-os/event-types';
+import { GATE_COOKIE, GATE_TOKEN, GATE_ENABLED, isGateExemptPath } from '@/lib/site-gate';
 
 // ── Security headers ────────────────────────────────────────
 
@@ -74,6 +75,21 @@ function getRootDomain(): string {
   return 'pearloom.com'; // safe default
 }
 
+// Is this request hitting the main marketing app (apex / www /
+// localhost / vercel preview) rather than a published-site host?
+// On a site host, "/" is a guest site, so it must stay gated too —
+// only the apex landing page is public.
+function isMainAppHost(hostname: string): boolean {
+  const clean = hostname.replace(/:\d+$/, '');
+  if (clean === 'localhost' || clean === '127.0.0.1') return true;
+  if (clean.endsWith('.localhost')) return false; // subdomain in dev = site host
+  if (clean.includes('.vercel.app')) return true;
+  const root = getRootDomain();
+  if (clean === root || clean === `www.${root}`) return true;
+  if (clean.endsWith(`.${root}`)) return false; // subdomain = site host
+  return true; // unknown host → treat as main app (landing public, rest gated)
+}
+
 // ── Occasion-based canonical URLs ───────────────────────────
 //
 // Published sites now live at `/{occasion}/{slug}` (Zola-style).
@@ -107,6 +123,29 @@ export async function proxy(req: NextRequest) {
   const rawHost = req.headers.get('host') || '';
   const hostname = rawHost.toLowerCase();
   const pathname = req.nextUrl.pathname;
+
+  // ── Pre-launch access wall ─────────────────────────────────
+  // The general public sees ONLY the marketing landing page. Every
+  // other surface — login, dashboard, wizard, editor, published
+  // sites, guest passports — redirects to /gate until the shared
+  // preview word is entered (stored as an httpOnly cookie). Runs
+  // before everything else. Lift with SITE_GATE_ENABLED=false.
+  if (GATE_ENABLED) {
+    const isLanding = pathname === '/' && isMainAppHost(hostname);
+    const isGatePage = pathname === '/gate';
+    if (!isGatePage && !isLanding && !isGateExemptPath(pathname)) {
+      const cookie = req.cookies.get(GATE_COOKIE)?.value;
+      if (cookie !== GATE_TOKEN) {
+        const gateUrl = new URL('/gate', req.url);
+        const search = req.nextUrl.searchParams.toString();
+        const dest = `${pathname}${search ? `?${search}` : ''}`;
+        if (dest !== '/') gateUrl.searchParams.set('next', dest);
+        const res = NextResponse.redirect(gateUrl);
+        applySecurityHeaders(res);
+        return res;
+      }
+    }
+  }
 
   // ── Auth gate for shell routes ─────────────────────────────
   // Runs as a middleware-style check before any rewrite logic.
