@@ -61,6 +61,12 @@ const PRESS_STAGES: Stage[] = [
     matches: [/laying out the sections/i],
   },
   {
+    id: 'story',
+    label: 'Setting your story in type',
+    hint: 'Pear drafts your words; you make them yours in the editor.',
+    matches: [/story in type|drafting|gathering your words|setting your (story|words)/i],
+  },
+  {
     id: 'press',
     label: 'Pressing the proof',
     hint: 'One pass through the press, then the editor opens.',

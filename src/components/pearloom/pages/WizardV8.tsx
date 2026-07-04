@@ -46,6 +46,8 @@ import { WizardMomentCard } from '../wizard/WizardMomentCard';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
+import { draftFirstPressing, FIRST_PRESSING_ENABLED } from '@/lib/first-pressing/client';
+import { mergeDraft } from '@/lib/first-pressing/merge';
 import { applySectionPicks, essentialSectionsFor } from '@/lib/event-os/wizard-sections';
 import { WizardSectionChooser } from './wizard-sections';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
@@ -2399,14 +2401,34 @@ export function WizardV8() {
       // stamped from the R2 URLs that uploaded during the Photos
       // step — not story inputs. Story drafting lives in the
       // editor, on demand, where the host can see and steer it.
-      minPressMs = pressScript([
-        'Setting your names in type…',
-        'Mixing the palette…',
-        ...(hasPhotos ? ['Placing your photographs…'] : []),
-        'Cutting the component kit…',
-        'Laying out the sections…',
-        'Pressing the proof…',
-      ]) + 600;
+      /* The First Pressing draft (below, before the POST) waits on
+         Claude. When it's enabled, the press script ends on the
+         voiced "story" stage and HOLDS there — the moment lingers on
+         the stage that's actually waiting on Pear — then advances to
+         "Pressing the proof…" once the draft resolves (or the budget
+         aborts). When it's off, the script is byte-identical to
+         before (the full array incl. "Pressing the proof…"). */
+      const storyStageLabel =
+        (getEventType(st.occasion)?.voice === 'solemn')
+          ? 'Gathering your words…'
+          : 'Setting your story in type…';
+      minPressMs = FIRST_PRESSING_ENABLED
+        ? pressScript([
+            'Setting your names in type…',
+            'Mixing the palette…',
+            ...(hasPhotos ? ['Placing your photographs…'] : []),
+            'Cutting the component kit…',
+            'Laying out the sections…',
+            storyStageLabel,
+          ]) + 600
+        : pressScript([
+            'Setting your names in type…',
+            'Mixing the palette…',
+            ...(hasPhotos ? ['Placing your photographs…'] : []),
+            'Cutting the component kit…',
+            'Laying out the sections…',
+            'Pressing the proof…',
+          ]) + 600;
       const seedTagline = st.templateId ? TEMPLATES_BY_ID[st.templateId]?.tagline : generatedTagline || undefined;
       manifest = {
         occasion: st.occasion,
@@ -2571,6 +2593,37 @@ export function WizardV8() {
       if (st.texture) manifest.texture = st.texture;
       if (st.motifLayoutPick) manifest.motifLayout = st.motifLayoutPick;
       if (st.densityPick) manifest.density = st.densityPick;
+
+      // ── THE FIRST PRESSING ──────────────────────────────────
+      //    One lean Sonnet call drafts real per-section copy (story,
+      //    hero line, voiced FAQ answers, schedule blurbs, details
+      //    sublines, registry intro) from the seeded manifest +
+      //    fact-sheet + occasion voice, then mergeDraft folds it in
+      //    FILL-ONLY (never clobbers host/Day-step content). Blocking
+      //    merge-before-POST so the editor opens on a living draft and
+      //    the FirstPressing reveal parts on real content.
+      //
+      //    STRICTLY ADDITIVE: draftFirstPressing is hard-capped
+      //    (~9s AbortController ceiling) and resolves to {} on ANY
+      //    failure/timeout/unconfigured/gated → mergeDraft is a no-op
+      //    → the seeded manifest ships exactly as today. The press
+      //    floor already covers the perceived time; the moment holds
+      //    on the "story" stage while the draft is in flight.
+      if (FIRST_PRESSING_ENABLED) {
+        try {
+          setGenStep(storyStageLabel);
+          const drafted = await draftFirstPressing(manifest as unknown as StoryManifest, { budgetMs: 9000 });
+          manifest = mergeDraft(manifest as unknown as StoryManifest, drafted) as unknown as Record<string, unknown>;
+        } catch {
+          /* Any throw falls through with the seeded manifest — the
+             site always generates. */
+        }
+        // The stage that was waiting on Pear is done — press the proof.
+        setGenStep('Pressing the proof…');
+        // Guarantee the press beat is visible even if the draft ran
+        // long (the end-of-run `remaining` wait enforces this floor).
+        minPressMs = Math.max(minPressMs, (Date.now() - pressStartedAt) + 700);
+      }
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by

@@ -745,8 +745,16 @@ export interface StoryManifest {
    *  it removes the chapter entries and re-marks false. Sections
    *  the host wrote themselves never carry this flag. Keys are
    *  SiteBlockKey-style ids ('schedule', 'travel', 'faq',
-   *  'registry', etc.). */
+   *  'registry', etc.). The wizard's First Pressing (lib/first-pressing)
+   *  writes finer field-path keys into the same map
+   *  ('storySection.body', 'poetry.heroTagline', 'faqs.0.answer', …)
+   *  so the editor can badge exactly which copy Pear drafted. */
   draftedByPear?: Record<string, boolean>;
+  /** First Pressing solemn guardrail — set true when Pear drafted a
+   *  story/obituary/tribute field on a memorial/funeral occasion.
+   *  Publish flow (Wave 4) blocks until the family acknowledges a
+   *  re-read, or a genuine edit clears the drafted path. */
+  pearReviewRequired?: boolean;
   /** Site Texture — material identity that overlays the renderer
    *  with paper grain, watercolor bleed, linen weave, etc. Six
    *  options including 'smooth' (no texture, the modern default).
