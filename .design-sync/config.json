@@ -1,0 +1,27 @@
+{
+  "pkg": "pearloom",
+  "globalName": "Pearloom",
+  "shape": "package",
+  "entry": "./handoff-v2/_ds_entry.js",
+  "srcDir": "handoff-v2/components",
+  "cssEntry": "handoff-v2/_ds_styles.css",
+  "guidelinesGlob": ["BRAND.md"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "componentSrcMap": {
+    "Folio": "handoff-v2/components/brand/Folio.jsx",
+    "Monogram": "handoff-v2/components/brand/Monogram.jsx",
+    "Pearl": "handoff-v2/components/brand/Pearl.jsx",
+    "PearloomGlyph": "handoff-v2/components/brand/PearloomGlyph.jsx",
+    "PearloomWordmark": "handoff-v2/components/brand/PearloomGlyph.jsx",
+    "PearloomLogo": "handoff-v2/components/brand/PearloomGlyph.jsx",
+    "Thread": "handoff-v2/components/brand/Thread.jsx",
+    "WeaveLoader": "handoff-v2/components/brand/WeaveLoader.jsx",
+    "Badge": "handoff-v2/components/core/Badge.jsx",
+    "Button": "handoff-v2/components/core/Button.jsx",
+    "Card": "handoff-v2/components/core/Card.jsx",
+    "Eyebrow": "handoff-v2/components/core/Eyebrow.jsx",
+    "Field": "handoff-v2/components/core/Field.jsx",
+    "Divider": "handoff-v2/components/motifs/Divider.jsx",
+    "Motif": "handoff-v2/components/motifs/Motif.jsx"
+  }
+}

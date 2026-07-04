@@ -1,0 +1,920 @@
+/* ═══════════════════════════════════════════════════════════════
+   FONTS — Pearloom typeface stack
+   ───────────────────────────────────────────────────────────────
+   Display / Heading : Fraunces (variable — opsz · SOFT · WONK).
+                       Italic is the brand's voice (BRAND §4).
+   Body              : Geist
+   Mono / labels     : Geist Mono (editorial uppercase labels)
+   Script            : Caveat (handwritten notes, captions)
+
+   All four are served from Google Fonts. The repo loaded them via
+   next/font; here we @import the hosted CSS so a consumer who links
+   styles.css gets the webfonts with zero extra setup. If you need
+   self-hosted binaries, drop them in assets/fonts/ and swap these
+   @imports for @font-face rules pointing at the local files.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Caveat:wght@400..700&display=swap");
+
+/* ═══════════════════════════════════════════════════════════════
+   COLORS — Pearloom palette
+   ───────────────────────────────────────────────────────────────
+   Cream paper ground · ink for type · olive is the brand voice ·
+   gold is the punctuation (hairlines + single glyphs, never a
+   background) · plum/terra is destructive only.
+   Light = "Editorial Paper". Dark = "Editorial Midnight" — warm
+   #0D0B07 family, never OLED black (BRAND §10).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme='light'] {
+  /* ── Core surfaces ── */
+  --pl-cream:        #FDFAF0;   /* page paper                          */
+  --pl-cream-deep:   #F7F0E0;   /* alternating / sunk sections         */
+  --pl-cream-card:   #FBF7EE;   /* elevated cards on cream             */
+  --pl-ink:          #18181B;   /* type                                */
+  --pl-ink-soft:     #4A5642;   /* soft headings / secondary type      */
+  --pl-muted:        #6F6557;   /* secondary text (AA on cream)        */
+  --pl-divider:      #E2D9C3;   /* warm tan border                     */
+  --pl-divider-soft: #ECE4CF;   /* near-invisible separators           */
+
+  /* ── Brand voice ── */
+  --pl-olive:        #5C6B3F;   /* sage-deep — primary                 */
+  --pl-olive-hover:  #4A5731;
+  --pl-olive-deep:   #363F22;
+  --pl-olive-mist:   #E0DDC9;
+  --pl-gold:         #C19A4B;   /* peach-gold accent / punctuation     */
+  --pl-gold-mist:    rgba(193,154,75,0.10);
+  --pl-gold-soft:    rgba(193,154,75,0.40);
+  --pl-plum:         #C6563D;   /* peach-ink — destructive / state     */
+  --pl-plum-mist:    rgba(198,86,61,0.10);
+  --pl-terra:        #C6703D;   /* warm accent used on marketing       */
+  --pl-rose:         #D9A89E;   /* specialty soft accent               */
+  --pl-stone:        #C8BFA5;   /* muted dots / inert markers          */
+
+  /* ── Semantic states ── */
+  --pl-warning:      #A14A2C;
+  --pl-warning-mist: rgba(161,74,44,0.10);
+  --pl-success:      #5C6B3F;   /* calm success = olive                */
+  --pl-success-mist: rgba(92,107,63,0.10);
+
+  /* ── Olive opacity wash (true brand tint) ── */
+  --pl-olive-5:   rgba(92,107,63,0.05);
+  --pl-olive-8:   rgba(92,107,63,0.08);
+  --pl-olive-10:  rgba(92,107,63,0.10);
+  --pl-olive-12:  rgba(92,107,63,0.12);
+  --pl-olive-15:  rgba(92,107,63,0.15);
+  --pl-olive-20:  rgba(92,107,63,0.20);
+  --pl-olive-30:  rgba(92,107,63,0.30);
+  --pl-olive-40:  rgba(92,107,63,0.40);
+  --pl-olive-50:  rgba(92,107,63,0.50);
+
+  /* ── Glass — material of FLOATING chrome only (BRAND §9) ── */
+  --pl-glass:              rgba(252,248,238,0.62);
+  --pl-glass-border:       rgba(255,252,242,0.55);
+  --pl-glass-light:        rgba(252,248,238,0.48);
+  --pl-glass-light-border: rgba(255,252,242,0.40);
+  --pl-glass-blur:         blur(16px) saturate(1.7) brightness(1.04);  /* @kind other */
+  --pl-glass-sheen:        linear-gradient(115deg,
+                             rgba(255,255,255,0.36) 0%,
+                             rgba(255,255,255,0.10) 26%,
+                             transparent 44%, transparent 72%,
+                             rgba(255,255,255,0.14) 100%);  /* @kind other */
+  --pl-glass-shadow:       inset 0 1px 0 rgba(255,255,255,0.55),
+                           inset 0 -1px 0 rgba(255,255,255,0.14),
+                           0 8px 24px -8px rgba(40,28,12,0.18);
+
+  /* ── Paper-shadow gradients ── */
+  --pl-gradient-page:    linear-gradient(180deg, var(--pl-cream-deep) 0%, var(--pl-cream) 38%);  /* @kind other */
+  --pl-gradient-warm:    linear-gradient(135deg, var(--pl-cream-deep) 0%, var(--pl-cream) 50%, var(--pl-cream-deep) 100%);  /* @kind other */
+  --pl-gradient-hero:    radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%);  /* @kind other */
+  --pl-gradient-olive:   linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-deep) 100%);  /* @kind other */
+  --pl-gradient-gold:    linear-gradient(135deg, var(--pl-gold) 0%, #8C6E3D 100%);  /* @kind other */
+  /* Real warm paper grain — the fixed underlay beneath everything. */
+  --pl-grain:            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.24 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");  /* @kind other */
+
+  /* ── Semantic aliases (use these in product code) ── */
+  --surface-page:    var(--pl-cream);
+  --surface-sunk:    var(--pl-cream-deep);
+  --surface-card:    var(--pl-cream-card);
+  --text-body:       var(--pl-ink);
+  --text-heading:    var(--pl-ink-soft);
+  --text-muted:      var(--pl-muted);
+  --border-hairline: var(--pl-divider);
+  --accent-primary:  var(--pl-olive);
+  --accent-punct:    var(--pl-gold);
+  --accent-danger:   var(--pl-plum);
+}
+
+/* ─── DARK · Editorial Midnight ─── */
+[data-theme='dark'] {
+  --pl-cream:        #0D0B07;
+  --pl-cream-deep:   #15110A;
+  --pl-cream-card:   #1A1610;
+  --pl-ink:          #F1EBDC;
+  --pl-ink-soft:     #D4CDBC;
+  --pl-muted:        #8A8275;
+  --pl-divider:      #2A241A;
+  --pl-divider-soft: #1F1A12;
+
+  --pl-olive:        #A4B57A;
+  --pl-olive-hover:  #B8C98F;
+  --pl-olive-deep:   #8A9A60;
+  --pl-olive-mist:   #1F2014;
+  --pl-gold:         #D4B373;
+  --pl-gold-mist:    rgba(212,179,115,0.10);
+  --pl-gold-soft:    rgba(212,179,115,0.40);
+  --pl-plum:         #C46A6A;
+  --pl-plum-mist:    rgba(196,106,106,0.10);
+  --pl-terra:        #D67852;
+  --pl-rose:         #C08A7E;
+  --pl-stone:        #6E6553;
+
+  --pl-warning:      #D67852;
+  --pl-warning-mist: rgba(214,120,82,0.12);
+  --pl-success:      #A4B57A;
+  --pl-success-mist: rgba(164,181,122,0.12);
+
+  --pl-olive-5:   rgba(164,181,122,0.05);
+  --pl-olive-8:   rgba(164,181,122,0.08);
+  --pl-olive-10:  rgba(164,181,122,0.10);
+  --pl-olive-12:  rgba(164,181,122,0.12);
+  --pl-olive-15:  rgba(164,181,122,0.15);
+  --pl-olive-20:  rgba(164,181,122,0.20);
+  --pl-olive-30:  rgba(164,181,122,0.30);
+  --pl-olive-40:  rgba(164,181,122,0.40);
+  --pl-olive-50:  rgba(164,181,122,0.50);
+
+  --pl-glass:              rgba(24,20,14,0.55);
+  --pl-glass-border:       rgba(245,239,226,0.22);
+  --pl-glass-light:        rgba(24,20,14,0.45);
+  --pl-glass-light-border: rgba(245,239,226,0.16);
+  --pl-glass-blur:         blur(16px) saturate(1.5) brightness(1.10);  /* @kind other */
+  --pl-glass-sheen:        linear-gradient(115deg,
+                             rgba(245,239,226,0.14) 0%,
+                             rgba(245,239,226,0.04) 28%,
+                             transparent 46%, transparent 74%,
+                             rgba(245,239,226,0.08) 100%);  /* @kind other */
+  --pl-glass-shadow:       inset 0 1px 0 rgba(245,239,226,0.20),
+                           inset 0 -1px 0 rgba(245,239,226,0.06),
+                           0 8px 24px -8px rgba(0,0,0,0.55);
+
+  --pl-gradient-page:    linear-gradient(180deg, #15110A 0%, #0D0B07 38%);  /* @kind other */
+  --pl-gradient-warm:    linear-gradient(135deg, #15110A 0%, #0D0B07 50%, #15110A 100%);  /* @kind other */
+  --pl-gradient-hero:    radial-gradient(ellipse at 50% 0%, #1A1610 0%, #0D0B07 55%);  /* @kind other */
+  --pl-gradient-olive:   linear-gradient(135deg, var(--pl-olive) 0%, #6E8050 100%);  /* @kind other */
+  --pl-gradient-gold:    linear-gradient(135deg, var(--pl-gold) 0%, #A88456 100%);  /* @kind other */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TYPOGRAPHY — Pearloom type system
+   ───────────────────────────────────────────────────────────────
+   Display/heading = Fraunces (italic = brand voice). Body = Geist.
+   Mono labels = Geist Mono, ALWAYS uppercase, 0.18–0.28em tracking,
+   9–11px, paired with a 1px gold rule (BRAND §4).
+   Scale = perfect fourth (1.25).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Families ── */
+  --pl-font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
+  --pl-font-heading: "Fraunces", Georgia, serif;
+  --pl-font-body:    "Geist", system-ui, -apple-system, sans-serif;
+  --pl-font-mono:    "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  --pl-font-script:  "Caveat", "Segoe Script", cursive;
+
+  /* ── Size scale ── */
+  --pl-text-2xs:  0.75rem;   /* 12px — micro labels (age-inclusive floor) */
+  --pl-text-xs:   0.82rem;   /* 13px — tiny hints   */
+  --pl-text-sm:   0.88rem;   /* 14px — small labels */
+  --pl-text-base: 1rem;      /* 16px — body         */
+  --pl-text-md:   1rem;      /* 16px — card titles  */
+  --pl-text-lg:   1.13rem;   /* 18px — section heads*/
+  --pl-text-xl:   1.32rem;   /* 21px — panel titles */
+  --pl-text-2xl:  1.6rem;    /* 26px — page titles  */
+  --pl-text-3xl:  clamp(2rem, 4vw, 2.6rem);
+  --pl-text-display: clamp(2.8rem, 6vw, 4.6rem);  /* hero display */
+  --pl-text-marquee: clamp(4rem, 12vw, 9rem);     /* large editorial */
+
+  /* ── Label tracking ── */
+  --pl-label-tracking: 0.18em;   /* @kind other */
+
+  /* ── Variable-font axis presets (Fraunces) ── */
+  --pl-fvs-display: "opsz" 144, "SOFT" 50, "WONK" 0;          /* @kind font */
+  --pl-fvs-display-italic: "opsz" 144, "SOFT" 80, "WONK" 1;   /* @kind font */
+  --pl-fvs-heading: "opsz" 96, "SOFT" 50, "WONK" 0;           /* @kind font */
+  --pl-fvs-wordmark: "opsz" 60, "SOFT" 40, "WONK" 0;          /* @kind font */
+  --pl-fvs-wordmark-italic: "opsz" 60, "SOFT" 80, "WONK" 1;   /* @kind font */
+}
+
+/* ─── Display utilities ─── */
+
+/* Letterpress display — glyphs pressed INTO the paper (BRAND §3). */
+.pl-display {
+  font-family: var(--pl-font-display);
+  font-weight: 400;
+  font-variation-settings: var(--pl-fvs-display);
+  letter-spacing: -0.02em;
+  line-height: 0.96;
+  color: var(--pl-ink);
+}
+.pl-display-italic {
+  font-family: var(--pl-font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: var(--pl-fvs-display-italic);
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  color: var(--pl-olive);
+}
+
+/* The soft inset shadow that makes display type feel letterpressed
+   into warm paper. Apply on light surfaces only. */
+.pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(255,255,255,0.55),
+    0 -1px 1px rgba(40,28,12,0.18);
+}
+[data-theme='dark'] .pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.45),
+    0 -1px 1px rgba(245,239,226,0.10);
+}
+
+.pl-heading {
+  font-family: var(--pl-font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--pl-ink-soft);
+}
+
+.pl-body {
+  font-family: var(--pl-font-body);
+  color: var(--pl-ink);
+  line-height: 1.6;
+}
+
+.pl-script {
+  font-family: var(--pl-font-script);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ─── Mono editorial label / eyebrow (BRAND §4) ─── */
+.pl-label,
+.pl-eyebrow {
+  font-family: var(--pl-font-mono);
+  font-size: var(--pl-text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--pl-label-tracking);
+  text-transform: uppercase;
+  color: var(--pl-muted);
+}
+
+/* ─── Size utility classes ─── */
+.pl-text-2xs { font-size: var(--pl-text-2xs); }
+.pl-text-xs  { font-size: var(--pl-text-xs); }
+.pl-text-sm  { font-size: var(--pl-text-sm); }
+.pl-text-base{ font-size: var(--pl-text-base); }
+.pl-text-lg  { font-size: var(--pl-text-lg); }
+.pl-text-xl  { font-size: var(--pl-text-xl); }
+.pl-text-2xl { font-size: var(--pl-text-2xl); }
+.pl-text-3xl { font-size: var(--pl-text-3xl); }
+.pl-text-display { font-size: var(--pl-text-display); }
+.pl-text-marquee { font-size: var(--pl-text-marquee); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SPACING · RADII · SHADOWS · Z-INDEX
+   ───────────────────────────────────────────────────────────────
+   Editorial = restrained. Radii are modest (never blobby). Shadows
+   are warm (ink-tinted), soft, paper-like — never gray box shadows.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Spacing scale ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ── Border radius (restrained, editorial) ── */
+  --pl-radius-xs:  0.25rem;   /* 4px  */
+  --pl-radius-sm:  0.375rem;  /* 6px  */
+  --pl-radius-md:  0.5rem;    /* 8px  */
+  --pl-radius-lg:  0.75rem;   /* 12px — standard card */
+  --pl-radius-xl:  1rem;      /* 16px */
+  --pl-radius-2xl: 1.5rem;    /* 24px — preview cards */
+  --pl-radius-full: 100px;    /* pills, buttons       */
+
+  /* ── Warm paper shadows ── */
+  --pl-shadow-xs: 0 1px 2px rgba(40,28,12,0.05);
+  --pl-shadow-sm: 0 1px 3px rgba(40,28,12,0.06), 0 1px 2px rgba(40,28,12,0.04);
+  --pl-shadow-md: 0 4px 16px rgba(40,28,12,0.08), 0 2px 6px rgba(40,28,12,0.05);
+  --pl-shadow-lg: 0 8px 32px rgba(40,28,12,0.10), 0 4px 12px rgba(40,28,12,0.06);
+  --pl-shadow-xl: 0 16px 48px rgba(40,28,12,0.12), 0 8px 20px rgba(40,28,12,0.08);
+  --pl-shadow-focus: 0 0 0 3px rgba(92,107,63,0.22);
+
+  /* ── Card standard ── */
+  --pl-card-radius: var(--pl-radius-lg);
+  --pl-card-bg:     var(--pl-cream-card);
+  --pl-card-border: 1px solid var(--pl-divider);
+  --pl-card-shadow: var(--pl-shadow-sm);
+  --pl-card-shadow-hover: var(--pl-shadow-md);
+
+  /* ── Z-index scale ── */
+  --z-dropdown: 50;   /* @kind other */
+  --z-sticky:   100;  /* @kind other */
+  --z-overlay:  200;  /* @kind other */
+  --z-modal:    300;  /* @kind other */
+  --z-toast:    400;  /* @kind other */
+  --z-max:      500;  /* @kind other */
+}
+
+/* ─── Card recipe ─── */
+.pl-card {
+  background: var(--pl-card-bg);
+  border: var(--pl-card-border);
+  border-radius: var(--pl-card-radius);
+  box-shadow: var(--pl-card-shadow);
+}
+
+/* ─── The grain underlay (BRAND §3 / §9, layer 1) ─── */
+/* Apply on a positioned surface; it lays warm static under content. */
+.pl-grain { position: relative; }
+.pl-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--pl-grain);
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme='dark'] .pl-grain::before {
+  mix-blend-mode: screen;
+  opacity: 0.12;
+}
+
+/* ─── Glass surface (floating chrome only — BRAND §9) ─── */
+.pl-glass-surface {
+  background-color: var(--pl-glass);
+  background-image: var(--pl-glass-sheen);
+  -webkit-backdrop-filter: var(--pl-glass-blur);
+  backdrop-filter: var(--pl-glass-blur);
+  border: 1px solid var(--pl-glass-border);
+  box-shadow: var(--pl-glass-shadow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOTION — the weaving language (BRAND §6)
+   ───────────────────────────────────────────────────────────────
+   Things don't fade — they THREAD in: two strands grow from a
+   center, content settles between them. Springs for taps/CTAs,
+   expo-out for chrome. Always honour prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Easing ── */
+  --pl-ease-out:      cubic-bezier(0.22, 1, 0.36, 1);   /* @kind other */
+  --pl-ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);   /* @kind other */
+  --pl-ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);  /* @kind other */ /* taps, primary CTA */
+  --pl-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);      /* @kind other */ /* signature expo-out */
+
+  /* ── Durations ── */
+  --pl-dur-instant: 100ms;  /* @kind other */
+  --pl-dur-subtle:  120ms;  /* @kind other */ /* hairline micro-feedback */
+  --pl-dur-quick:   140ms;  /* @kind other */ /* chip / pill hover+active */
+  --pl-dur-fast:    180ms;  /* @kind other */
+  --pl-dur-base:    280ms;  /* @kind other */
+  --pl-dur-slow:    480ms;  /* @kind other */
+  --pl-dur-glacial: 800ms;  /* @kind other */
+}
+
+/* ─── The signature weave reveal ─── */
+/* Two strands draw across, content settles between. Apply to a
+   divider/loader; pair with the Thread/WeaveLoader components. */
+@keyframes pl-weave {
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { stroke-dashoffset: -0.32; opacity: 1; }
+}
+
+/* ─── Press: tactile spring ─── */
+.pl-press { transition: transform var(--pl-dur-subtle) var(--pl-ease-spring); }
+.pl-press:active { transform: scale(0.96); }
+
+/* ─── Hover lift ─── */
+.pl-hover-lift {
+  transition: transform var(--pl-dur-base) var(--pl-ease-emphasis),
+              box-shadow var(--pl-dur-base) var(--pl-ease-emphasis);
+}
+.pl-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pl-shadow-md);
+}
+
+/* ─── Entrance: content threads up ─── */
+@keyframes pl-enter-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pl-enter { animation: pl-enter-up var(--pl-dur-slow) var(--pl-ease-emphasis) both; }
+.pl-enter-d1 { animation-delay: 0.06s; }
+.pl-enter-d2 { animation-delay: 0.12s; }
+.pl-enter-d3 { animation-delay: 0.18s; }
+.pl-enter-d4 { animation-delay: 0.24s; }
+
+/* ─── Pearl shimmer (the iridescent bead) ─── */
+@keyframes pl-pearl-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-enter, .pl-press, .pl-hover-lift { animation: none !important; transition: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHROME — the product UI layer (the ".pl8" handoff aliases)
+   ───────────────────────────────────────────────────────────────
+   Pearloom has TWO palettes, and they are both correct:
+
+   1. The EDITORIAL BRAND (tokens/colors.css) — olive + gold + ink on
+      cream. This is the marketing site and the published guest site.
+   2. The PRODUCT CHROME (this file) — the dashboard + the site editor.
+      It runs on friendlier aliases (--cream, --card, --ink, --line,
+      --paper) plus THREE named accent families that the brand layer
+      does not expose:
+        · sage     — the calm/positive accent (saved, success, "yes")
+        · peach    — the warm/active accent (saving, in-progress, CTAs,
+                     selection, the editor's working state)
+        · lavender — the editorial accent; **italic display type in the
+                     chrome defaults to lavender-ink** (#6B5A8C), NOT olive
+      Gold stays the shared punctuation across both.
+
+   Everything here aliases the canonical --pl-* tokens where possible
+   so theme-switching flows through. Build dashboard + editor surfaces
+   against THESE tokens.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Paper & ink (alias the brand tokens) ── */
+  --cream:     var(--pl-cream);        /* @kind color */
+  --cream-2:   var(--pl-cream-card);   /* @kind color */
+  --cream-3:   var(--pl-cream-deep);   /* @kind color */
+  --ink:       var(--pl-ink);          /* @kind color */
+  --ink-soft:  var(--pl-ink-soft);     /* @kind color */
+  --ink-muted: var(--pl-muted);        /* @kind color */
+  --paper:     var(--pl-cream);        /* @kind color */
+  --card:      var(--pl-cream-card);   /* @kind color */
+  --card-ring: var(--pl-divider-soft); /* @kind color */
+  --line:      var(--pl-divider);      /* @kind color */
+  --line-soft: var(--pl-divider-soft); /* @kind color */
+
+  /* ── Sage — calm / saved / success / "yes" ── */
+  --sage:      #8B9C5A;  /* @kind color */
+  --sage-2:    #A8BA72;  /* @kind color */
+  --sage-deep: #6D7D3F;  /* @kind color */
+  --sage-bg:   #CBD29E;  /* @kind color */
+  --sage-tint: #E3E6C8;  /* @kind color */
+
+  /* ── Lavender — editorial accent · italic display ink ── */
+  --lavender:    #C4B5D9;  /* @kind color */
+  --lavender-2:  #B7A4D0;  /* @kind color */
+  --lavender-3:  #D7CCE5;  /* @kind color */
+  --lavender-bg: #E8E0F0;  /* @kind color */
+  --lavender-ink:#6B5A8C;  /* @kind color */
+
+  /* ── Peach — warm / active / working / CTA / selection ── */
+  --peach:     #F0C9A8;  /* @kind color */
+  --peach-2:   #EAB286;  /* @kind color */
+  --peach-3:   #F7DDC2;  /* @kind color */
+  --peach-bg:  #FBE8D6;  /* @kind color */
+  --peach-ink: #C6703D;  /* @kind color */
+
+  /* ── Shared punctuation ── */
+  --gold:      var(--pl-gold);  /* @kind color */
+  --gold-line: color-mix(in oklab, var(--pl-gold) 76%, #FFF6E4);  /* @kind color */
+  --heart:     #E8A07A;  /* @kind color */
+
+  /* ── Chrome radii + shadows (warmer, larger than brand radii) ── */
+  --r-xs: 8px;   --r-sm: 10px;  --r: 14px;
+  --r-md: 20px;  --r-lg: 28px;  --r-xl: 36px;
+  --shadow-sm: 0 2px 6px rgba(61,74,31,0.05);   /* @kind shadow */
+  --shadow:    0 6px 18px rgba(61,74,31,0.08);  /* @kind shadow */
+  --shadow-md: 0 12px 32px rgba(61,74,31,0.10); /* @kind shadow */
+  --shadow-lg: 0 24px 56px rgba(61,74,31,0.14); /* @kind shadow */
+
+  /* ── Chrome type aliases ── */
+  --font-ui:      var(--pl-font-body);     /* @kind font */
+  --font-display: var(--pl-font-display);  /* @kind font */
+  --font-script:  var(--pl-font-script);   /* @kind font */
+
+  /* ── EDITOR-CHROME insulation tokens (BRAND/CLAUDE-DESIGN §3.5) ──
+     The site editor's PANELS bind to these only, so they never
+     repaint when the edited site's theme changes. The accent is a
+     calibrated groove TERRACOTTA (~60% sat) and the left icon rail
+     is near-black. */
+  --pl-chrome-bg:            #F5EFE2;  /* @kind color */
+  --pl-chrome-surface:       #FBF7EE;  /* @kind color */
+  --pl-chrome-surface-2:     #F0E9D8;  /* @kind color */
+  --pl-chrome-border:        #D8CFB8;  /* @kind color */
+  --pl-chrome-border-strong: #B8AC8E;  /* @kind color */
+  --pl-chrome-text:          #0E0D0B;  /* @kind color */
+  --pl-chrome-text-soft:     #3A332C;  /* @kind color */
+  --pl-chrome-text-muted:    #7A6F5C;  /* @kind color */
+  --pl-chrome-accent:        #B8754A;  /* @kind color */
+  --pl-chrome-accent-soft:   rgba(184,117,74,0.12);  /* @kind color */
+  --pl-chrome-accent-ink:    #FBF7EE;  /* @kind color */
+  --pl-chrome-danger:        #7A2D2D;  /* @kind color */
+  --pl-chrome-success:       #7A8B4A;  /* @kind color */
+  --pl-chrome-rail:          #18181B;  /* @kind color */
+  --pl-chrome-rail-ink:      #FBF7EE;  /* @kind color */
+  --pl-chrome-rail-ink-muted:rgba(251,247,238,0.55);  /* @kind color */
+  --pl-chrome-rail-hover:    rgba(251,247,238,0.08);   /* @kind color */
+  --pl-chrome-rail-active:   rgba(251,247,238,0.15);   /* @kind color */
+}
+
+/* ─── DARK · editorial-midnight companions for the accents ─── */
+[data-theme='dark'] {
+  --sage:        #97A968;  --sage-2: #ABBD7E;  --sage-deep: #B8C98F;
+  --sage-bg:     #2A301B;  --sage-tint: #20251A;
+  --lavender:    #9D8BB8;  --lavender-2: #B7A4D0;  --lavender-3: #463C5C;
+  --lavender-bg: #221E2D;  --lavender-ink: #C5B5DD;
+  --peach:       #D9A172;  --peach-2: #E0AC7E;  --peach-3: #3A2B1D;
+  --peach-bg:    #2B2014;  --peach-ink: #E29B62;
+  --gold-line:   color-mix(in oklab, var(--pl-gold) 62%, #0D0B07);
+  --heart:       #ECAB85;
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.40);
+  --shadow:    0 6px 18px rgba(0,0,0,0.45);
+  --shadow-md: 0 12px 32px rgba(0,0,0,0.50);
+  --shadow-lg: 0 24px 56px rgba(0,0,0,0.55);
+
+  --pl-chrome-bg:            #15110A;
+  --pl-chrome-surface:       #1F1A12;
+  --pl-chrome-surface-2:     #272015;
+  --pl-chrome-border:        #2F2819;
+  --pl-chrome-border-strong: #3F3726;
+  --pl-chrome-text:          #F1EBDC;
+  --pl-chrome-text-soft:     #D4CDBC;
+  --pl-chrome-text-muted:    #9A9080;
+  --pl-chrome-accent:        #E08A5C;
+  --pl-chrome-accent-soft:   rgba(224,138,92,0.14);
+  --pl-chrome-accent-ink:    #0D0B07;
+  --pl-chrome-rail:          #0A0806;
+}
+
+/* The italic-display voice of the chrome: lavender ink (BRAND uses
+   olive on the published site; the product chrome uses lavender). */
+.pl8-display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--lavender-ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TEXTURES — paper & cloth grounds (production-ready, pure CSS)
+   ───────────────────────────────────────────────────────────────
+   Tiling background utilities for site sections and theme packs.
+   All are CSS gradients or inline-SVG data-URIs — zero image
+   requests, theme-aware (they tint off --pl-* tokens via
+   currentColor where possible). Apply a texture class to any
+   element; pair with a surface color underneath.
+
+   These map to the marketplace `background-pack` / `pattern` item
+   type: each `.pl-tx-*` is one sellable ground.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* tint knobs — override per theme to recolor every texture at once */
+  --tx-ink: rgba(92,107,63,0.10);    /* @kind other */ /* line/dot color (olive wash) */
+  --tx-ink-2: rgba(193,154,75,0.12); /* @kind other */ /* secondary (gold wash)       */
+  --tx-scale: 1;                     /* @kind other */
+}
+[data-theme='dark'] :root, [data-theme='dark'] {
+  --tx-ink: rgba(164,181,122,0.10);
+  --tx-ink-2: rgba(212,179,115,0.12);
+}
+
+/* 1 · LAID PAPER — fine horizontal laid lines + chain lines, like
+      handmade stationery. */
+.pl-tx-laid {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(0deg, var(--tx-ink) 0 0.5px, transparent 0.5px 4px),
+    repeating-linear-gradient(90deg, var(--tx-ink-2) 0 1px, transparent 1px 26px);
+}
+
+/* 2 · LINEN — woven cloth crosshatch. */
+.pl-tx-linen {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(0deg, var(--tx-ink) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--tx-ink) 0 1px, transparent 1px 5px);
+  background-size: 5px 5px;
+}
+
+/* 3 · DOTWORK — engraver's stipple grid. */
+.pl-tx-dotwork {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: radial-gradient(var(--tx-ink) 1px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+
+/* 4 · LATTICE — diagonal trellis, garden-party. */
+.pl-tx-lattice {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(45deg, var(--tx-ink) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(-45deg, var(--tx-ink) 0 1px, transparent 1px 18px);
+}
+
+/* 5 · SCALLOP — overlapping arcs (fish-scale / Art Deco fan). */
+.pl-tx-scallop {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    radial-gradient(circle at 50% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px),
+    radial-gradient(circle at 0% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px),
+    radial-gradient(circle at 100% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px);
+  background-size: 24px 12px;
+}
+
+/* 6 · HERRINGBONE — woven chevron, via SVG tile. */
+.pl-tx-herringbone {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%235C6B3F' stroke-opacity='0.14' stroke-width='1.4'%3E%3Cpath d='M0 7 L7 0 M7 14 L14 7 M0 21 L7 14 M7 28 L14 21'/%3E%3Cpath d='M14 7 L21 0 M21 14 L28 7 M14 21 L21 14 M21 28 L28 21'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 7 · STARFIELD — sparse celestial dots of two sizes, for evening
+      / new-year / bar-mitzvah themes. */
+.pl-tx-starfield {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    radial-gradient(circle, var(--tx-ink-2) 1.4px, transparent 1.8px),
+    radial-gradient(circle, var(--tx-ink) 0.8px, transparent 1.1px);
+  background-size: 64px 64px, 38px 38px;
+  background-position: 0 0, 19px 27px;
+}
+
+/* 8 · WAVELINE — gentle horizontal waves (coastal / water). */
+.pl-tx-waveline {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M0 8 q 6 -6 12 0 t 12 0 t 12 0 t 12 0' fill='none' stroke='%235C6B3F' stroke-opacity='0.13' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* Soft vignette helper to sink any texture toward the edges. */
+.pl-tx-vignette { position: relative; }
+.pl-tx-vignette::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 120% 100% at 50% 0%, transparent 55%, var(--surface-page, var(--pl-cream)) 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATION — the Pearloom motion system (utilities + keyframes)
+   ───────────────────────────────────────────────────────────────
+   The brand's motion is WEAVING: things don't just fade, they thread
+   in — content settles as if drawn into place. Springs for taps,
+   expo-out for chrome, a letterpress settle for display type, and a
+   signature two-strand "weave" wipe for page/section transitions.
+
+   Pair these classes with the JS engine (assets/pearloom-motion.js),
+   which flips [data-revealed] on scroll and plays the weave wipe.
+   Everything degrades gracefully and honours prefers-reduced-motion.
+
+   Builds on the easing/duration tokens in motion.css.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────── Scroll reveals ───────────────
+   Add data-reveal="…" to any element. It starts hidden; the engine
+   adds [data-revealed] when it scrolls into view. data-reveal-delay
+   (ms) or a parent [data-reveal-stagger] sequences children. */
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity var(--pl-dur-slow) var(--pl-ease-emphasis),
+    transform var(--pl-dur-slow) var(--pl-ease-emphasis),
+    clip-path var(--pl-dur-slow) var(--pl-ease-emphasis),
+    filter var(--pl-dur-slow) var(--pl-ease-emphasis);
+  transition-delay: var(--pl-reveal-delay, 0ms);
+}
+/* Progressive enhancement: until the engine flags the root (or if JS
+   never runs), everything is fully visible — never a blank page. */
+html:not(.pl-motion-ready) [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+  filter: none !important;
+}
+[data-reveal="up"]     { transform: translateY(22px); }
+[data-reveal="down"]   { transform: translateY(-22px); }
+[data-reveal="left"]   { transform: translateX(26px); }
+[data-reveal="right"]  { transform: translateX(-26px); }
+[data-reveal="fade"]   { transform: none; }
+[data-reveal="scale"]  { transform: scale(0.94); }
+/* thread — content is unveiled between two strands opening from the center */
+[data-reveal="thread"] { clip-path: inset(0 50% 0 50%); transform: translateY(8px); }
+/* press — display type settles INTO the paper (letterpress) */
+[data-reveal="press"]  { transform: scale(1.04); filter: blur(0.4px); opacity: 0; }
+/* rise — a gentle lift used for cards/imagery */
+[data-reveal="rise"]   { transform: translateY(34px) scale(0.985); }
+
+[data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 0 0);
+  filter: none;
+}
+
+/* Stagger: the engine stamps data-reveal-delay per child. */
+
+/* ─────────────── Display letterpress settle ───────────────
+   A heading that presses in once, on load or reveal. */
+@keyframes pl-press-in {
+  0%   { opacity: 0; transform: scale(1.05) translateY(6px); letter-spacing: 0.01em; filter: blur(0.6px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; letter-spacing: inherit; }
+}
+.pl-press-in { animation: pl-press-in var(--pl-dur-slow) var(--pl-ease-emphasis) both; }
+
+/* ─────────────── The thread divider draw-in ───────────────
+   A rule that draws from the center outward. Put on a 1px-tall element
+   (or use the Thread component); reveal flips the scale. */
+.pl-rule-draw { transform: scaleX(0); transform-origin: center; transition: transform var(--pl-dur-slow) var(--pl-ease-emphasis); }
+.pl-rule-draw[data-revealed], [data-revealed] .pl-rule-draw { transform: scaleX(1); }
+
+/* ─────────────── Micro-interactions ───────────────
+   Reusable hover/press states tuned to the brand. */
+.pl-lift { transition: transform var(--pl-dur-base) var(--pl-ease-emphasis), box-shadow var(--pl-dur-base) var(--pl-ease-emphasis); }
+.pl-lift:hover { transform: translateY(-3px); box-shadow: var(--pl-shadow-lg); }
+.pl-lift:active { transform: translateY(-1px) scale(0.995); transition-duration: var(--pl-dur-quick); }
+
+.pl-tap { transition: transform var(--pl-dur-subtle) var(--pl-ease-spring); }
+.pl-tap:active { transform: scale(0.95); }
+
+/* Link with a gold thread that weaves in from the left on hover */
+.pl-link { position: relative; text-decoration: none; color: var(--pl-olive); }
+.pl-link::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1.5px;
+  background: var(--pl-gold); transform: scaleX(0); transform-origin: left;
+  transition: transform var(--pl-dur-base) var(--pl-ease-emphasis);
+}
+.pl-link:hover::after { transform: scaleX(1); }
+
+/* Image: a slow, almost-imperceptible ken-burns drift on hover */
+.pl-kenburns { overflow: hidden; }
+.pl-kenburns > img, .pl-kenburns > .pl-kb-layer {
+  transition: transform var(--pl-dur-glacial) var(--pl-ease-out);
+  transform: scale(1.01);
+}
+.pl-kenburns:hover > img, .pl-kenburns:hover > .pl-kb-layer { transform: scale(1.06); }
+
+/* ─────────────── The Pearl ───────────────
+   Iridescent shimmer + a tactile pop. */
+@keyframes pl-pearl-pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.pl-pearl-pop { animation: pl-pearl-pop var(--pl-dur-base) var(--pl-ease-spring) both; }
+
+/* ─────────────── Ambient ───────────────
+   Decorative motifs breathe; never on content, never distracting. */
+@keyframes pl-float { 0%,100% { transform: translateY(0) rotate(var(--pl-rot,0deg)); } 50% { transform: translateY(-9px) rotate(var(--pl-rot,0deg)); } }
+.pl-float { animation: pl-float var(--pl-float-dur, 7s) var(--pl-ease-in-out) infinite; }
+@keyframes pl-drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(6px,-5px); } }
+.pl-drift { animation: pl-drift 11s var(--pl-ease-in-out) infinite; }
+
+/* ─────────────── The weave page/section transition ───────────────
+   Built by the JS engine: a full-bleed paper panel sweeps up while two
+   threads (olive + gold) draw across the seam. These classes are the
+   moving parts the engine toggles. */
+.pl-weave-overlay {
+  position: fixed; inset: 0; z-index: var(--z-max, 500); pointer-events: none;
+  display: grid; grid-template-rows: 1fr auto 1fr;
+}
+.pl-weave-panel { background: var(--pl-cream); }
+.pl-weave-panel.top { transform: scaleY(0); transform-origin: top; }
+.pl-weave-panel.bot { transform: scaleY(0); transform-origin: bottom; }
+.pl-weave-seam { height: 0; position: relative; }
+@keyframes pl-weave-close-top { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes pl-weave-close-bot { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes pl-weave-open-top  { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+@keyframes pl-weave-open-bot  { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+@keyframes pl-strand-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ─────────────── Reduced motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; filter: none !important; transition: none !important; }
+  .pl-press-in, .pl-float, .pl-drift, .pl-pearl-pop { animation: none !important; }
+  .pl-rule-draw { transform: none !important; }
+  .pl-kenburns > img, .pl-kenburns > .pl-kb-layer { transition: none !important; transform: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE — light reset + element defaults
+   ───────────────────────────────────────────────────────────────
+   Optional but recommended. Sets the warm paper ground, body type,
+   editorial headings, branded selection + focus, custom controls.
+   Consumers who only want tokens can skip importing styles.css's
+   base by editing the manifest — but most should keep this.
+   ═══════════════════════════════════════════════════════════════ */
+
+html { color-scheme: light dark; -webkit-text-size-adjust: 100%; }
+[data-theme='light'] { color-scheme: light; }
+[data-theme='dark']  { color-scheme: dark; }
+
+body {
+  background: var(--pl-cream);
+  color: var(--pl-ink);
+  font-family: var(--pl-font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--pl-dur-base) var(--pl-ease-out),
+              color var(--pl-dur-base) var(--pl-ease-out);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pl-font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--pl-ink-soft);
+}
+
+::selection { background: var(--pl-plum-mist); color: var(--pl-plum); }
+
+a { color: var(--pl-olive); transition: color var(--pl-dur-fast) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out); }
+
+/* Keyboard focus — warm olive ring */
+*:focus-visible {
+  outline: 2px solid var(--pl-olive);
+  outline-offset: 2px;
+  border-radius: var(--pl-radius-xs);
+}
+
+/* ─── Branded checkbox + radio (opt out with .pl-native-control) ─── */
+input[type='checkbox']:not(.pl-native-control),
+input[type='radio']:not(.pl-native-control) {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 18px; height: 18px; margin: 0;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+  border: 1.5px solid var(--pl-divider);
+  background: var(--pl-cream-card);
+  cursor: pointer;
+  transition: background var(--pl-dur-quick) var(--pl-ease-out),
+              border-color var(--pl-dur-quick) var(--pl-ease-out),
+              box-shadow var(--pl-dur-quick) var(--pl-ease-out);
+}
+input[type='checkbox']:not(.pl-native-control) { border-radius: 5px; }
+input[type='radio']:not(.pl-native-control)    { border-radius: 50%; }
+input[type='checkbox']:not(.pl-native-control)::before {
+  content: ''; width: 10px; height: 10px;
+  transform: scale(0);
+  transition: transform var(--pl-dur-quick) var(--pl-ease-spring);
+  background: var(--pl-cream);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type='radio']:not(.pl-native-control)::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  transform: scale(0);
+  transition: transform var(--pl-dur-quick) var(--pl-ease-spring);
+  background: var(--pl-cream);
+}
+input[type='checkbox']:not(.pl-native-control):checked,
+input[type='radio']:not(.pl-native-control):checked {
+  background: var(--pl-olive-deep);
+  border-color: var(--pl-olive-deep);
+}
+input[type='checkbox']:not(.pl-native-control):checked::before,
+input[type='radio']:not(.pl-native-control):checked::before { transform: scale(1); }
+input[type='checkbox']:not(.pl-native-control):focus-visible,
+input[type='radio']:not(.pl-native-control):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pl-gold-soft);
+}
+
+/* Scrollbar — quiet olive */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--pl-olive-20); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--pl-olive-40); }
