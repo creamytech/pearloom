@@ -266,6 +266,37 @@ export function seedSectionsFromWizard(
     loose.monogram = { frame: solemnOcc ? 'none' : coupleArc ? 'laurel' : 'ring' };
   }
 
+  // Dress code section — a ticked Dress code section shouldn't land
+  // empty when the host already named the code in "The Day". Seed
+  // ONLY the real string they entered (the headline); tones and
+  // example chips stay for the host to add in the panel. Fill-
+  // missing — a configured code is never touched. (Published
+  // honesty: this is the host's own words, never fabricated.)
+  const dress = picks.dressCode?.trim();
+  const dressSection = { ...((loose.dressCodeSection as Loose | undefined) ?? {}) };
+  if (dress && !(dressSection.code as string | undefined)?.trim()) {
+    dressSection.code = dress;
+    loose.dressCodeSection = dressSection;
+  }
+
+  // Menu section — the meal choices the host entered in "The
+  // extras" ARE the dinner. When a Menu section is ticked, seed one
+  // course from those real dish names so it isn't empty. Fill-
+  // missing (no clobber of an authored menu); never invents dishes.
+  const menuItems = (picks.meals ?? []).map((m) => m.trim()).filter(Boolean);
+  const menuSection = { ...((loose.menuSection as Loose | undefined) ?? {}) };
+  const existingCourses = (menuSection.courses as unknown[] | undefined) ?? [];
+  if (menuItems.length > 0 && existingCourses.length === 0) {
+    menuSection.courses = [
+      {
+        id: 'course-seed-0',
+        name: 'The menu',
+        items: menuItems.map((name, i) => ({ id: `dish-seed-${i}`, name })),
+      },
+    ];
+    loose.menuSection = menuSection;
+  }
+
   // Details cards — dress code / kids / parking, when none exist.
   const cards = (loose.detailsCards as unknown[] | undefined) ?? [];
   if (cards.length === 0) {

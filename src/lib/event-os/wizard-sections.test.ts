@@ -186,9 +186,20 @@ describe('wizardSectionsFor — canonical order + layout defaults', () => {
     const heroWedding = wizardSectionsFor('wedding').find((o) => o.section === 'hero');
     expect(heroWedding?.variant).toBe(DEFAULT_VARIANT.hero);
     expect(heroWedding?.recommended).toBeUndefined();
-    // Schedule is never in VARIANT_RECOMMENDATIONS.
+    // Wedding schedule has no recommendation (schedule's timeline
+    // pick is reunion/memorial/funeral only) → the plain default.
     const sched = wizardSectionsFor('wedding').find((o) => o.section === 'schedule');
     expect(sched?.variant).toBe(DEFAULT_VARIANT.schedule);
+  });
+
+  it('sharpened per-occasion recommendations drive the chooser default', () => {
+    // Item 9: reunion schedule → timeline, anniversary story →
+    // letter, bachelor itinerary → flow all pre-select in the chooser.
+    expect(wizardSectionsFor('reunion').find((o) => o.section === 'schedule')?.variant).toBe('timeline');
+    expect(wizardSectionsFor('anniversary').find((o) => o.section === 'story')?.variant).toBe('letter');
+    const bachItin = wizardSectionsFor('bachelor-party').find((o) => o.section === 'itinerary');
+    expect(bachItin?.variant).toBe('flow');
+    expect(bachItin?.recommended).toBe('flow');
   });
 
   it('unknown occasion → only the always-on essentials (never strands)', () => {

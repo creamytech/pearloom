@@ -154,6 +154,48 @@ describe('seedSectionsFromWizard — the extras', () => {
   });
 });
 
+describe('seedSectionsFromWizard — dress code + menu starter content (item 11)', () => {
+  it("seeds the dress code section headline from the host's Day-step string", () => {
+    const out = loose(seedSectionsFromWizard(base(), { dressCode: 'Garden formal' }));
+    expect((out.dressCodeSection as { code?: string }).code).toBe('Garden formal');
+    // The detailsCards seeding still fires too (unchanged).
+    const cards = out.detailsCards as Array<[string, string]>;
+    expect(cards.some(([label]) => label === 'Dress code')).toBe(true);
+  });
+
+  it('never clobbers an authored dress code headline', () => {
+    const out = loose(
+      seedSectionsFromWizard(base({ dressCodeSection: { code: 'Black tie' } }), { dressCode: 'Garden formal' }),
+    );
+    expect((out.dressCodeSection as { code?: string }).code).toBe('Black tie');
+  });
+
+  it('leaves the dress code section untouched when the host never named a code', () => {
+    const out = loose(seedSectionsFromWizard(base()));
+    expect(out.dressCodeSection).toBeUndefined();
+  });
+
+  it("seeds one menu course from the host's real meal choices", () => {
+    const out = loose(seedSectionsFromWizard(base(), { meals: ['Beef', 'Vegan', ' '] }));
+    const menu = out.menuSection as { courses: Array<{ name: string; items: Array<{ name: string }> }> };
+    expect(menu.courses).toHaveLength(1);
+    expect(menu.courses[0].items.map((i) => i.name)).toEqual(['Beef', 'Vegan']);
+  });
+
+  it('never clobbers an authored menu, and never invents dishes without meals', () => {
+    const authored = loose(
+      seedSectionsFromWizard(base({ menuSection: { courses: [{ id: 'c1', name: 'Dinner', items: [] }] } }), {
+        meals: ['Beef'],
+      }),
+    );
+    expect((authored.menuSection as { courses: unknown[] }).courses).toHaveLength(1);
+    expect((authored.menuSection as { courses: Array<{ name: string }> }).courses[0].name).toBe('Dinner');
+    // No meals → no fabricated menu.
+    const noMeals = loose(seedSectionsFromWizard(base()));
+    expect(noMeals.menuSection).toBeUndefined();
+  });
+});
+
 describe('seedSectionsFromWizard — monogram', () => {
   it('seeds an occasion-framed monogram so the nav never defaults to the pear glyph', () => {
     const wedding = loose(seedSectionsFromWizard(base()));

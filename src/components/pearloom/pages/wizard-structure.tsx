@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { applySectionPicks, type SectionPicks } from '@/lib/event-os/wizard-sections';
 import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Sparkle } from '../motifs';
 
@@ -42,6 +43,7 @@ export function WizardStructureSection({
   suggestedMotif,
   suggestedMotifLayout,
   picks,
+  sectionPicks,
   onChange: _onChange,
   onExpand,
   title = 'The structure',
@@ -62,6 +64,10 @@ export function WizardStructureSection({
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
   picks: StructurePicks;
+  /** The Sections-step chooser's selection — so the live pressing
+   *  drops a section the host set aside and shows one they added.
+   *  undefined = host skipped the step (renderer core defaults). */
+  sectionPicks?: SectionPicks;
   /** Retained for call-site compat — the chip rows moved into the
    *  fitting room, so this section no longer writes picks itself. */
   onChange?: (next: Partial<StructurePicks>) => void;
@@ -85,6 +91,9 @@ export function WizardStructureSection({
     .map((x) => x ?? '')
     .join('|');
   const recipeKey = recipe?.id ?? '';
+  const sectionPicksKey = sectionPicks
+    ? `${[...sectionPicks.on].sort().join(',')}~${Object.entries(sectionPicks.layouts).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}:${v}`).join(',')}`
+    : '';
   const manifest = useMemo<StoryManifest>(() => {
     const base = {
       occasion,
@@ -112,15 +121,25 @@ export function WizardStructureSection({
     if (picks.motifLayout) dressed.motifLayout = picks.motifLayout;
     if (picks.density) dressed.density = picks.density;
     if (picks.siteMode) dressed.siteMode = picks.siteMode;
-    const layouts: Record<string, string> = {};
-    if (picks.navVariant) layouts.nav = picks.navVariant;
-    if (picks.heroVariant) layouts.hero = picks.heroVariant;
-    if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
-    return dressed as unknown as StoryManifest;
-    // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey),
-    // not the per-render literal identities — see the note above.
+    // The Sections-step chooser (blockOrder / hiddenSections /
+    // per-section layouts) — a section set aside there is absent
+    // here; one added appears. Applied BEFORE the nav/hero picks so
+    // the fitting-room hero wins over the chooser's hero variant
+    // (same precedence as handleFinish).
+    let out = dressed as unknown as StoryManifest;
+    if (sectionPicks) out = applySectionPicks(out, occasion, sectionPicks);
+    const outLoose = out as unknown as Record<string, unknown>;
+    const navHero: Record<string, string> = {};
+    if (picks.navVariant) navHero.nav = picks.navVariant;
+    if (picks.heroVariant) navHero.hero = picks.heroVariant;
+    if (Object.keys(navHero).length > 0) {
+      outLoose.layouts = { ...((outLoose.layouts as Record<string, string> | undefined) ?? {}), ...navHero };
+    }
+    return out;
+    // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey/
+    // sectionPicksKey), not the per-render literal identities.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, suggestedMotif, suggestedMotifLayout]);
+  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, sectionPicksKey, suggestedMotif, suggestedMotifLayout]);
 
   /* Same treatment for names — the wizard passes a fresh tuple every
      render, which would defeat the compiler's memo of the ThemedSite

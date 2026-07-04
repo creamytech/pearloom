@@ -444,6 +444,82 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-04 — Wizard Sections step, three waves (docs/WIZARD-SECTIONS-PLAN.md executed in full)
+
+A new **Sections** step in the wizard's Look phase (`Occasion →
+Basics → Details → Day → Photos → Sections → Vibe → Palette →
+Review`) lets a host CHOOSE which sections their site starts with
+and a signature layout for each — pre-checked to the occasion's
+smart defaults so it's a one-tap glance, never a form. Skipping
+("Let Pear decide") writes nothing → identical to the prior
+instant-wizard behavior. Shipped on
+`claude/post-fable-code-review-lj8e4o`.
+
+**Wave 1 — data layer + finish wiring.**
+`src/lib/event-os/wizard-sections.ts` is the shared section
+catalog: `SECTION_GATE` (SectionId → the EVENT_TYPES BlockType ids
+that gate it), `SECTION_ORDER` (canonical blockOrder), `SECTION_META`
+(labels SectionRail now imports so the rail + wizard can't drift),
+`wizardSectionsFor` (derives the {essential, optional} set per
+occasion from `EVENT_TYPES` — never a hand-kept 28-list), and the
+finish wiring `mergeBlockOrder` / `applySectionPicks`. Deselecting
+an essential writes `hiddenSections` (the renderer re-appends
+omitted cores, so omission alone doesn't remove); content always
+wins (a section the host gave real data to elsewhere is never
+hidden). `wizard-seed.CORE_ORDER` + `bastings` now reference the
+shared `SECTION_ORDER`.
+
+**Wave 2 — the step UI.**
+`src/components/pearloom/pages/wizard-sections.tsx`
+(`WizardSectionChooser`): grouped section cards (Essentials pre-
+checked, Nice-to-have folded past 4), the pearl as the on/off atom,
+a collapsed 1-tap layout chooser marked with Pear's recommended
+variant (gold pearl), static per-variant `VariantThumb` schematics
+(no live render per card), mobile single-column + sticky group
+headers, thread dividers + Fraunces + mono-caps eyebrows. Wired
+into `WizardV8` as `st.sectionPicks`; `handleFinish` applies them
+after `seedSectionsFromWizard` (so seeded content unions in).
+
+**Wave 3 — polish + depth (this session).**
+- **Sharper per-occasion layout defaults.** `VARIANT_RECOMMENDATIONS`
+  (`redesign/layouts.ts`) restructured to an ordered rule list per
+  section (a section can recommend DIFFERENT variants for different
+  occasions); grew story (`letter` for anniversary/vow-renewal,
+  `timeline` for memorial/milestone/retirement/graduation),
+  schedule (`timeline` for reunion/memorial/funeral), itinerary
+  (`flow`/Thread for bachelor/ette), travel (`map` for the scattered-
+  guest trips). Lookup-only — `recommendedVariantFor` sharpens both
+  the chooser default and the on-canvas Layout bar.
+- **Fitting-room / Palette handoff.** The live pressing
+  (`WizardStructureSection`) and the fitting room
+  (`buildFittingManifest`) now apply `sectionPicks` (blockOrder /
+  hiddenSections / layouts) BEFORE the nav/hero picks (so the
+  fitting-room hero still wins) — a section set aside on the Sections
+  step is absent from the pressing + fitting room, one added
+  appears. Verified live via the authed E2E harness: Travel toggled
+  off → absent from the pressing DOM and the fitting-room nav; Music
+  toggled on → present in both.
+- **Optional content seeding** (`seedSectionsFromWizard`): a ticked
+  Dress code section is seeded with the host's own Day-step dress-
+  code string as its headline; a ticked Menu is seeded with one
+  course from the host's real meal choices. Fill-missing, never
+  fabricated — published honesty preserved.
+- **"Reset to Pear's picks"** — a quiet text button beside "Let Pear
+  decide" that re-derives `sectionPicks` to the occasion essentials;
+  shows only once the host has diverged from the baseline.
+
+Known minor: `rsvp` carries `required:true` in `SectionRail`'s core
+meta (pre-existing, since before Wave 1), so it's excluded from
+`REORDERABLE_CORE_KEYS` and doesn't render as a manageable rail row
+though it's essential — left as-is (not a Wave regression; making it
+reorderable/removable has real semantics).
+
+Validation: `tsc` clean · eslint clean on touched · vitest
+1042/1043 (the 1 fail is a pre-existing photos/stylize rate-limit
+isolation flake — passes alone) · `npm run build` passes.
+Screenshots: `docs/audit-shots/wizard-sections-{step,diverged}-desktop.png`,
+`wizard-sections-handoff-{desktop,fitting-room}.png`.
+
 ### 2026-07-02 — Editor sections, three waves (docs/EDITOR-SECTIONS-PLAN.md executed in full)
 
 The 29-section audit's plan shipped as three waves on

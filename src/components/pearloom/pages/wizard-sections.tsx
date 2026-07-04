@@ -517,6 +517,19 @@ export function WizardSectionChooser({
   const optional = offers.filter((o) => o.group === 'optional');
   const onSet = new Set(current.on);
 
+  // Has the host diverged from Pear's baseline (essentials on, every
+  // section at its recommended/default variant)? Only then do we
+  // offer "Reset to Pear's picks" — a quiet undo for over-editing.
+  const diverged = useMemo(() => {
+    if ([...current.on].sort().join('|') !== [...baseline.on].sort().join('|')) return true;
+    return offers.some((o) => (current.layouts[o.section] ?? o.variant) !== o.variant);
+  }, [current, baseline, offers]);
+
+  function reset() {
+    onChange({ on: [...baseline.on], layouts: { ...baseline.layouts } });
+    setOpenChooser(null);
+  }
+
   function toggle(section: string) {
     const nextOn = onSet.has(section)
       ? current.on.filter((s) => s !== section)
@@ -599,7 +612,7 @@ export function WizardSectionChooser({
         </p>
       )}
 
-      <div style={{ marginTop: 4 }}>
+      <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={onSkip}
@@ -618,6 +631,24 @@ export function WizardSectionChooser({
         >
           Let Pear decide →
         </button>
+        {diverged && (
+          <button
+            type="button"
+            onClick={reset}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--ink-muted)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              padding: '4px 0',
+            }}
+          >
+            Reset to Pear’s picks
+          </button>
+        )}
       </div>
 
       <style jsx>{`

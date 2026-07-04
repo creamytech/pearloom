@@ -4118,6 +4118,7 @@ export function WizardV8() {
                           motifLayout: st.motifLayoutPick,
                           density: st.densityPick,
                         }}
+                        sectionPicks={st.sectionPicks}
                         onExpand={() => setFittingOpen(true)}
                         title="Your site"
                         blurb="Exactly what Pear will build — scroll it. Step into the fitting room to change any of it."
@@ -4367,6 +4368,7 @@ export function WizardV8() {
                               density: st.densityPick,
                               edition: st.editionPick,
                             }}
+                            sectionPicks={st.sectionPicks}
                             onChange={(next) => setSt((prev) => ({
                               ...prev,
                               ...('siteMode' in next ? { siteMode: next.siteMode } : {}),

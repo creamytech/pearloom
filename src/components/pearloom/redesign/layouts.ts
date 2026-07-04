@@ -274,40 +274,73 @@ export function readVariant(
 
 /* ── Occasion recommendations ─────────────────────────────────
    A variant can be RECOMMENDED for a set of occasions — surfaced
-   as a gold mark in the on-canvas Layout bar (never auto-applied;
-   Editions + explicit picks stay the resolution chain). Keyed
-   `${section}` → { variantId, occasions }. Kept deliberately
-   small: only the signature variants the audit named. */
-const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, { id: string; occasions: readonly string[] }>> = {
+   as a gold mark in the on-canvas Layout bar AND pre-selected as
+   the wizard Sections chooser's default (never auto-applied
+   otherwise; Editions + explicit picks stay the resolution chain).
+   Keyed `${section}` → an ORDERED list of { id, occasions } rules;
+   the first rule whose `occasions` include the site's occasion
+   wins, so a section can recommend DIFFERENT variants for
+   different occasions (a memorial's story reads as a timeline, an
+   anniversary's as a letter). Occasion sets within a section must
+   stay disjoint — first-match order is the only tie-break. */
+const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, ReadonlyArray<{ id: string; occasions: readonly string[] }>>> = {
   /* Monogram crest — the solemn/formal opening (no photo, no
      scale). Recommended where a photograph-led hero reads wrong. */
-  hero: { id: 'crest', occasions: ['memorial', 'funeral', 'baptism', 'first-communion', 'confirmation'] },
+  hero: [{ id: 'crest', occasions: ['memorial', 'funeral', 'baptism', 'first-communion', 'confirmation'] }],
+  /* Story — the how/who told in the shape the occasion wants: a
+     handwritten letter for the couple/renewal register; a chapter
+     rail (timeline) for a life or career remembered (memorial,
+     milestone, retirement, graduation). */
+  story: [
+    { id: 'letter', occasions: ['anniversary', 'vow-renewal'] },
+    { id: 'timeline', occasions: ['memorial', 'milestone-birthday', 'retirement', 'graduation'] },
+  ],
+  /* Schedule — a vertical rail with dots reads as an order of the
+     day (memorial/funeral) or a multi-day arc (reunion), where the
+     four-card default flattens a longer program. */
+  schedule: [
+    { id: 'timeline', occasions: ['reunion', 'memorial', 'funeral'] },
+  ],
+  /* Itinerary — the two-strand thread spine (the `flow` id) is the
+     signature for the trip occasions where the plan IS the site. */
+  itinerary: [
+    { id: 'flow', occasions: ['bachelor-party', 'bachelorette-party'] },
+  ],
+  /* Travel — a stylised map leads for the trips where guests are
+     scattered across hotels and need to see the geography, not a
+     two-row list. */
+  travel: [
+    { id: 'map', occasions: ['reunion', 'welcome-party', 'bachelor-party', 'bachelorette-party'] },
+  ],
   /* Hairline frames — BRAND §10 bans unframed symmetric
      photography; the frames variant is the on-brand gallery for
      the formal occasions. */
-  gallery: { id: 'frames', occasions: ['wedding', 'vow-renewal', 'anniversary', 'rehearsal-dinner'] },
+  gallery: [{ id: 'frames', occasions: ['wedding', 'vow-renewal', 'anniversary', 'rehearsal-dinner'] }],
   /* Prix-fixe sheet for the seated-dinner occasions. */
-  menu: { id: 'bill-of-fare', occasions: ['rehearsal-dinner', 'wedding', 'retirement', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera'] },
+  menu: [{ id: 'bill-of-fare', occasions: ['rehearsal-dinner', 'wedding', 'retirement', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera'] }],
   /* Wardrobe plates where dress guidance is the point. */
-  dressCode: { id: 'wardrobe', occasions: ['wedding', 'quinceanera', 'sweet-sixteen', 'bar-mitzvah', 'bat-mitzvah'] },
+  dressCode: [{ id: 'wardrobe', occasions: ['wedding', 'quinceanera', 'sweet-sixteen', 'bar-mitzvah', 'bat-mitzvah'] }],
   /* Portrait-led memorial card — the photograph honoring the
      person leads the remembrance on solemn occasions. */
-  obituary: { id: 'card', occasions: ['memorial', 'funeral'] },
+  obituary: [{ id: 'card', occasions: ['memorial', 'funeral'] }],
   /* Name tiles read best as a short slate to weigh side by side —
      the gender-reveal's handful of options. */
-  nameVote: { id: 'tiles', occasions: ['gender-reveal'] },
+  nameVote: [{ id: 'tiles', occasions: ['gender-reveal'] }],
 };
 
 /** The variant id recommended for this section + occasion, or
  *  undefined. Pure lookup — never writes, never wins over an
- *  explicit pick or an Edition default. */
+ *  explicit pick or an Edition default. First matching rule wins. */
 export function recommendedVariantFor(
   section: Exclude<SectionId, null>,
   occasion?: string,
 ): string | undefined {
-  const rec = VARIANT_RECOMMENDATIONS[section];
-  if (!rec || !occasion) return undefined;
-  return rec.occasions.includes(occasion) ? rec.id : undefined;
+  const rules = VARIANT_RECOMMENDATIONS[section];
+  if (!rules || !occasion) return undefined;
+  for (const rule of rules) {
+    if (rule.occasions.includes(occasion)) return rule.id;
+  }
+  return undefined;
 }
 
 /* Read-time mirror of EditionDefinition.layoutDefaults from

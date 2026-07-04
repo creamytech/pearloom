@@ -27,6 +27,7 @@ import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { applySectionPicks, type SectionPicks } from '@/lib/event-os/wizard-sections';
 import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Icon } from '../motifs';
 import type { StructurePicks } from './wizard-structure';
@@ -175,6 +176,9 @@ export function buildFittingManifest(opts: {
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
   picks: FittingPicks;
+  /** The Sections-step chooser's selection — drops sections set
+   *  aside there, adds ones ticked. undefined = host skipped it. */
+  sectionPicks?: SectionPicks;
 }): StoryManifest {
   const base = {
     occasion: opts.occasion,
@@ -203,12 +207,21 @@ export function buildFittingManifest(opts: {
   if (opts.picks.density) dressed.density = opts.picks.density;
   if (opts.picks.siteMode) dressed.siteMode = opts.picks.siteMode;
   if (opts.picks.edition) dressed.edition = opts.picks.edition;
-  const layouts: Record<string, string> = {};
-  if (opts.picks.navVariant) layouts.nav = opts.picks.navVariant;
-  if (opts.picks.navMobile) layouts.navMobile = opts.picks.navMobile;
-  if (opts.picks.heroVariant) layouts.hero = opts.picks.heroVariant;
-  if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
-  return dressed as unknown as StoryManifest;
+  // The Sections-step chooser (blockOrder / hiddenSections / per-
+  // section layouts) — applied BEFORE the nav/hero picks so the
+  // fitting-room hero wins over the chooser's hero (handleFinish
+  // precedence).
+  let out = dressed as unknown as StoryManifest;
+  if (opts.sectionPicks) out = applySectionPicks(out, opts.occasion, opts.sectionPicks, opts.picks.edition);
+  const outLoose = out as unknown as Record<string, unknown>;
+  const navHero: Record<string, string> = {};
+  if (opts.picks.navVariant) navHero.nav = opts.picks.navVariant;
+  if (opts.picks.navMobile) navHero.navMobile = opts.picks.navMobile;
+  if (opts.picks.heroVariant) navHero.hero = opts.picks.heroVariant;
+  if (Object.keys(navHero).length > 0) {
+    outLoose.layouts = { ...((outLoose.layouts as Record<string, string> | undefined) ?? {}), ...navHero };
+  }
+  return out;
 }
 
 function RailChip({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
@@ -277,6 +290,7 @@ export function WizardFittingRoom({
   activePaletteId,
   onPalettePick,
   picks,
+  sectionPicks,
   onChange,
   onClose,
 }: {
@@ -291,6 +305,9 @@ export function WizardFittingRoom({
   activePaletteId: string;
   onPalettePick: (p: PaletteChoice) => void;
   picks: FittingPicks;
+  /** The Sections-step chooser's selection — so the full-screen
+   *  fitting preview honors a section set aside there. */
+  sectionPicks?: SectionPicks;
   onChange: (next: Partial<FittingPicks>) => void;
   onClose: () => void;
 }) {
@@ -335,6 +352,9 @@ export function WizardFittingRoom({
   const activePalette = palettes.find((p) => p.id === activePaletteId) ?? palettes[0];
   const galleryKey = (galleryImages ?? []).join('|');
   const paletteKey = (activePalette?.colors ?? []).join('|');
+  const sectionPicksKey = sectionPicks
+    ? `${[...sectionPicks.on].sort().join(',')}~${Object.entries(sectionPicks.layouts).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}:${v}`).join(',')}`
+    : '';
   const manifest = useMemo(
     () => buildFittingManifest({
       occasion,
@@ -345,6 +365,7 @@ export function WizardFittingRoom({
       suggestedMotif: activePalette?.motif,
       suggestedMotifLayout: activePalette?.motifLayout,
       picks,
+      sectionPicks,
     }),
     /* Primitive deps — the parent recreates `picks` + the gallery
        array every render, which made this rebuild (and the whole
@@ -354,7 +375,7 @@ export function WizardFittingRoom({
      activePalette?.motif, activePalette?.motifLayout,
      picks.siteMode, picks.kitId, picks.texture, picks.navVariant,
      picks.navMobile, picks.heroVariant, picks.motifLayout,
-     picks.density, picks.edition],
+     picks.density, picks.edition, sectionPicksKey],
   );
 
   /* Esc closes; lock body scroll while the room is open. */
