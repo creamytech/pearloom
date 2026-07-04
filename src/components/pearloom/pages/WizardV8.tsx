@@ -47,6 +47,7 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applySectionPicks, essentialSectionsFor } from '@/lib/event-os/wizard-sections';
+import { WizardSectionChooser } from './wizard-sections';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor } from '@/lib/site-look/look-recipes';
 import { WizardStructureSection } from './wizard-structure';
@@ -60,7 +61,7 @@ import type { StoryManifest } from '@/types';
 // overwritten by an Edition was double work + confusing. Default
 // layout 'timeline' stays seeded as st.layout for backward compat
 // with the generation pipeline which still reads layoutFormat.
-const STEPS = ['Occasion', 'Basics', 'Details', 'Day', 'Photos', 'Vibe', 'Palette', 'Review'] as const;
+const STEPS = ['Occasion', 'Basics', 'Details', 'Day', 'Photos', 'Sections', 'Vibe', 'Palette', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
 
 // 8 steps grouped into 4 phases. Pearloom's wizard now reads as
@@ -71,7 +72,7 @@ type PhaseKey = 'Story' | 'Photos' | 'Look' | 'Review';
 const PHASES: Array<{ key: PhaseKey; steps: readonly StepKey[] }> = [
   { key: 'Story', steps: ['Occasion', 'Basics', 'Details', 'Day'] },
   { key: 'Photos', steps: ['Photos'] },
-  { key: 'Look', steps: ['Vibe', 'Palette'] },
+  { key: 'Look', steps: ['Sections', 'Vibe', 'Palette'] },
   { key: 'Review', steps: ['Review'] },
 ];
 function phaseFor(step: StepKey): PhaseKey {
@@ -115,6 +116,14 @@ function toneFor(id: string): 'peach' | 'sage' | 'lavender' | 'cream' {
   if (voice === 'intimate') return 'sage';
   return 'peach';
 }
+// "a wedding" / "an engagement" — the Sections subhead noun, drawn
+// from the registry label with a naive article.
+function occasionArticleLabel(id: string): string {
+  const label = (getEventType(id as never)?.label ?? 'celebration').toLowerCase();
+  const article = /^[aeiou]/.test(label) ? 'an' : 'a';
+  return `${article} ${label}`;
+}
+
 const OCCASIONS: OccasionCard[] = EVENT_TYPES
   .filter((e) => e.status === 'shipping' || e.status === 'beta')
   .map((e) => ({ id: e.id, label: e.label, icon: iconFor(e.id), tone: toneFor(e.id), category: e.category }));
@@ -1800,6 +1809,7 @@ const STEP_TIPS: Record<StepKey, string> = {
   Details: 'Skip any field — write it yourself later in the editor.',
   Day: 'Everything here is optional — it pre-fills your sections.',
   Photos: '6 to 20 photos is the sweet spot. More = more chapters.',
+  Sections: 'Everything is pre-picked — glance, tweak, continue.',
   Vibe: 'Pick 2 to 4 vibes that capture the heart of the day.',
   Palette: 'Pick what you love — Pear builds matching gradients + accents.',
   Review: 'Nothing is public until you publish. Keep editing as long as you like.',
@@ -2998,6 +3008,10 @@ export function WizardV8() {
                       occasion: id,
                       names: keepSecond ? s.names : [s.names[0], ''],
                       vibes: s.templateId ? s.vibes : s.vibes.filter((v) => allowedVibes.has(v)),
+                      // The section set is occasion-derived — a new
+                      // occasion invalidates any picks made under the
+                      // old one, so the chooser re-seeds from scratch.
+                      sectionPicks: undefined,
                     }));
                     autoAdvance();
                   }}
@@ -3429,6 +3443,28 @@ export function WizardV8() {
                     onChange={(next) => setSt((s) => ({ ...s, photos: next }))}
                   />
                 </>
+              )}
+
+              {step === 'Sections' && (
+                <WizardSectionChooser
+                  occasion={st.occasion}
+                  occasionLabel={occasionArticleLabel(st.occasion)}
+                  edition={st.editionPick}
+                  value={st.sectionPicks}
+                  onChange={(next) => setSt((s) => ({ ...s, sectionPicks: next }))}
+                  onSkip={() => {
+                    // "Let Pear decide" — make the essentials explicit
+                    // (identical to the handleFinish fallback) and move on.
+                    setSt((s) => ({
+                      ...s,
+                      sectionPicks: {
+                        on: essentialSectionsFor(s.occasion, s.editionPick),
+                        layouts: {},
+                      },
+                    }));
+                    setStepIndex((i) => nextStepIndex(i));
+                  }}
+                />
               )}
 
               {step === 'Vibe' && (
