@@ -16,6 +16,8 @@ import {
   detailsCardLabelSuggestions,
 } from './_suggestions';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { detailsIconFor } from '../../redesign/details-icons';
 
 /* Third tuple slot is the optional subline — the quieter second
@@ -68,7 +70,12 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const setCardSub = (i: number, sub: string) => {
     const next = [...cards];
     next[i] = [next[i]?.[0] ?? 'Detail', next[i]?.[1] ?? '', sub || undefined];
-    setCards(next);
+    /* Editing the subline makes it the host's — drop the drafted
+       badge on this card's 3rd tuple slot. */
+    onChange(clearDraftedPath({
+      ...(manifest as unknown as Record<string, unknown>),
+      detailsCards: next,
+    } as unknown as StoryManifest, `detailsCards.${i}.2`));
   };
   const addCard = () => {
     if (cards.length >= MAX_CARDS) return;
@@ -189,6 +196,16 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                   )}
                   <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
                   <FInput value={s ?? ''} onChange={(next) => setCardSub(i, next)} placeholder="Second line (optional — e.g. Enter from Vine St)" />
+                  <DraftedBadge
+                    manifest={manifest}
+                    onChange={onChange}
+                    paths={`detailsCards.${i}.2`}
+                    onClear={(m) => {
+                      const cur = [...cards];
+                      cur[i] = [cur[i]?.[0] ?? 'Detail', cur[i]?.[1] ?? '', undefined];
+                      return { ...(m as StoryManifest), detailsCards: cur } as StoryManifest;
+                    }}
+                  />
                 </div>
               </div>
             ))}

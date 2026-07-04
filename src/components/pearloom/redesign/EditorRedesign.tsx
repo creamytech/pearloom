@@ -47,6 +47,7 @@ import { FittingRoom } from './FittingRoom';
 import { ThreePressings } from './ThreePressings';
 import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
+import { FirstPressingReview } from './FirstPressingReview';
 import { buildPublishChecks, MobilePublishChecklist } from './PublishChecklist';
 import { MobileSheet, MobileBottomBar, MobileNextStepStrip, PreviewExitPill, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
@@ -838,6 +839,16 @@ export default function EditorRedesign({
           manifest={bridge.manifest}
           names={bridge.names}
           onDone={() => setPressing(false)}
+        />
+      )}
+
+      {/* First Pressing review nudge — once per site, only when Pear
+          drafted something, held until the reveal has parted. */}
+      {mode === 'edit' && viewerRole === 'owner' && (
+        <FirstPressingReview
+          manifest={bridge.manifest}
+          siteSlug={siteSlug}
+          suppressed={pressing}
         />
       )}
     </div>

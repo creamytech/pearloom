@@ -17,6 +17,8 @@ import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { moveItem, ReorderHandle, swapItems } from './_reorder';
 import { scheduleEventSuggestions, typicalTimeFor } from './_suggestions';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
 
@@ -180,7 +182,11 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   };
   const patchEventByIndex = (i: number, patch: Partial<WeddingEvent>) => {
     const next = events.map((e, idx) => idx === i ? { ...e, ...patch } : e);
-    writeEvents(next);
+    let m = { ...manifest, events: next } as StoryManifest;
+    /* Editing the blurb Pear drafted makes it the host's — drop the
+       badge for this moment. */
+    if ('description' in patch) m = clearDraftedPath(m, `events.${i}.description`);
+    onChange(m);
   };
   const removeEventByIndex = (i: number) => writeEvents(events.filter((_, idx) => idx !== i));
   const addEvent = (day?: number) => writeEvents([
@@ -242,6 +248,21 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   }
   const days = Array.from(byDay.keys()).sort((a, b) => a - b);
 
+  /* "Pear drafted this" badge for a moment's blurb, by flat index —
+     shared by the single-day and multi-day rows. Clear empties the
+     blurb + drops the badge (one undoable onChange). */
+  const descBadge = (flatIndex: number) => (
+    <DraftedBadge
+      manifest={manifest}
+      onChange={onChange}
+      paths={`events.${flatIndex}.description`}
+      onClear={(m) => {
+        const cur = (m.events && m.events.length > 0 ? m.events : events);
+        return { ...(m as StoryManifest), events: cur.map((ev, idx) => idx === flatIndex ? { ...ev, description: '' } : ev) } as StoryManifest;
+      }}
+    />
+  );
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -269,6 +290,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                 eventNames={eventNameSet.options}
                 onPatch={(p) => patchEventByIndex(i, p)}
                 onRemove={() => removeEventByIndex(i)}
+                badge={descBadge(i)}
                 reorder={(
                   /* Reorder never mints ids — rows travel with the
                      id mintEventId gave them. */
@@ -316,6 +338,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                     eventNames={eventNameSet.options}
                     onPatch={(p) => patchEventByIndex(item.i, p)}
                     onRemove={() => removeEventByIndex(item.i)}
+                    badge={descBadge(item.i)}
                     reorder={(
                       /* Within-day move — the neighbors in this day
                          group may not be adjacent in the flat
@@ -473,7 +496,7 @@ function TemplateStrip({ occasion, onPick }: { occasion?: string; onPick: (key: 
 
 /* Single row — name + time + venue + remove. */
 function ScheduleRow({
-  event: e, tone, eventNames, onPatch, onRemove, reorder,
+  event: e, tone, eventNames, onPatch, onRemove, reorder, badge,
 }: {
   event: WeddingEvent;
   tone: 'peach' | 'lavender' | 'sage';
@@ -482,6 +505,9 @@ function ScheduleRow({
   onRemove: () => void;
   /** Shared ReorderHandle from the parent (it owns the list write). */
   reorder?: ReactNode;
+  /** "Pear drafted this" badge for the blurb — parent builds it with
+   *  the moment's flat index. */
+  badge?: ReactNode;
 }) {
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
@@ -517,6 +543,7 @@ function ScheduleRow({
           onChange={(v) => onPatch({ description: v })}
           placeholder="A note for guests — “unplugged ceremony”, “cash bar”… (optional)"
         />
+        {badge}
         {/* Street address → a "Directions" link on the published
             row. Venue above is the display name; this is the part
             Maps can route to. */}

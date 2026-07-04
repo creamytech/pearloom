@@ -12,6 +12,7 @@ import type { StoryManifest } from '@/types';
 import { getPackById } from '@/lib/theme-store/packs';
 import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { publishNeedsReview, acknowledgeReview } from '@/lib/first-pressing/clear-on-edit';
 
 export interface PublishModalProps {
   open: boolean;
@@ -62,7 +63,7 @@ function PubShareCard({ manifest }: { manifest: StoryManifest }) {
 }
 
 export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: PublishModalProps) {
-  const [step, setStep] = useState<'review' | 'publishing' | 'live'>('review');
+  const [step, setStep] = useState<'review' | 'reread' | 'publishing' | 'live'>('review');
   const [privacy, setPrivacy] = useState<'public' | 'password'>(() =>
     ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim()
       ? 'password' : 'public');
@@ -72,6 +73,14 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unlockBusy, setUnlockBusy] = useState(false);
+  /* Reset a lingering re-read step when the modal re-opens (the host
+     may have edited/acknowledged the drafted story since) — derive
+     from the previous render so there's no setState-in-effect. */
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open && step === 'reread') setStep('review');
+  }
   if (!open) return null;
   /* ── Pack paywall (client half) — the site is wearing a paid
      pack the host hasn't unlocked. Try-before-you-buy: they could
@@ -120,19 +129,17 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const url = formatSiteDisplayUrl(slug, '', occasion);
   const fullUrl = buildSiteUrl(slug, '', undefined, occasion);
-  const go = async () => {
-    if (step === 'publishing' || wornPack) return;
-    if (privacy === 'password' && !gatePw.trim()) {
-      setError('Set the password guests will use — or switch back to public.');
-      return;
-    }
+  /* Actual publish — builds the go-live manifest from `base` (so the
+     solemn-review path can publish the acknowledged manifest, not the
+     stale prop) and POSTs it. */
+  const doPublish = async (base: StoryManifest) => {
     setStep('publishing');
     setError(null);
     /* Privacy ships INSIDE the published manifest so the gate is
        live from the first request — and the same change lands in
        the editor's manifest via onChange below. */
     const next = {
-      ...manifest,
+      ...base,
       published: true,
       publishedAt: new Date().toISOString(),
       privacyGate: privacy === 'password' ? { password: gatePw.trim() } : undefined,
@@ -153,6 +160,31 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
       setError(e instanceof Error ? e.message : 'Publish failed');
       setStep('review');
     }
+  };
+
+  const go = async () => {
+    if (step === 'publishing' || wornPack) return;
+    if (privacy === 'password' && !gatePw.trim()) {
+      setError('Set the password guests will use — or switch back to public.');
+      return;
+    }
+    /* Solemn guardrail (FIRST-PRESSING-PLAN §5): a memorial/funeral
+       site whose Pear-drafted story words haven't been read/edited
+       must show the re-read interstitial before it can go live. */
+    if (publishNeedsReview(manifest)) {
+      setError(null);
+      setStep('reread');
+      return;
+    }
+    await doPublish(manifest);
+  };
+
+  /* "I've read them" — clears pearReviewRequired (persisted through
+     onChange) and continues to publish the acknowledged manifest. */
+  const acknowledgeAndPublish = async () => {
+    const ack = acknowledgeReview(manifest);
+    onChange?.(ack);
+    await doPublish(ack);
   };
   const copy = () => {
     try { navigator.clipboard.writeText(fullUrl); } catch { /* noop */ }
@@ -238,6 +270,65 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             <button onClick={go} disabled={!!wornPack} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, opacity: wornPack ? 0.5 : 1, cursor: wornPack ? 'not-allowed' : 'pointer' } as CSSProperties}>{wornPack ? <>Unlock {wornPack.name} to publish</> : <>Publish to {url} <Icon name="arrow-up" size={13} color="var(--cream)"/></>}</button>
           </div>
         )}
+
+        {step === 'reread' && (() => {
+          const story = (manifest as unknown as { storySection?: { headline?: string; body?: string } }).storySection ?? {};
+          const headline = (story.headline ?? '').trim();
+          const body = (story.body ?? '').trim();
+          return (
+            <div style={{ padding: '28px 28px 24px' }}>
+              <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>PLEASE READ</div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '4px 0 10px' }}>
+                Pear drafted these words
+              </h2>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 16 }}>
+                Pear basted in a first draft from what you shared. Before this goes live,
+                please read it as the family — change anything that isn’t right.
+              </p>
+              {(headline || body) && (
+                <div
+                  style={{
+                    padding: '16px 18px',
+                    borderRadius: 14,
+                    background: 'var(--cream-2)',
+                    border: '1px solid var(--line-soft)',
+                    marginBottom: 18,
+                  }}
+                >
+                  {headline && (
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>
+                      {headline}
+                    </div>
+                  )}
+                  {body && (
+                    <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {body}
+                    </div>
+                  )}
+                </div>
+              )}
+              {error && <div role="alert" style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--pl-plum-mist)', border: '1px solid var(--pl-plum)', color: 'var(--pl-plum)', fontSize: 12.5, fontWeight: 600 } as CSSProperties}>{error}</div>}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => { setStep('review'); onClose(); }}
+                  className="btn btn-outline"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  Keep editing
+                </button>
+                <button
+                  type="button"
+                  onClick={acknowledgeAndPublish}
+                  className="btn btn-primary"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  I’ve read them — publish
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {step === 'publishing' && (
           <div style={{ padding: '70px 28px', textAlign: 'center' }}>

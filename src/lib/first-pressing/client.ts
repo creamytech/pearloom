@@ -15,12 +15,16 @@
 import type { StoryManifest } from '@/types';
 import type { DraftResult } from './schema';
 
-/** Master kill switch. Default ON; set NEXT_PUBLIC_FIRST_PRESSING=0
- *  to ship dark (Wave 1) or to disable the pass entirely. With no
- *  ANTHROPIC_API_KEY the route already returns {} regardless, so the
- *  flag ON + key absent path is byte-identical to today's wizard. */
+/** Master switch. Default OFF — First Pressing puts a real (paid,
+ *  ~$0.02) Claude call on the wizard's critical generation path, so
+ *  it stays dark until an operator deliberately turns it on:
+ *  set NEXT_PUBLIC_FIRST_PRESSING=1 (and provide ANTHROPIC_API_KEY).
+ *  Recommended: enable in staging, do one real wizard→editor run to
+ *  confirm the drafted content + reveal feel right, THEN enable in
+ *  prod. With the flag off (or ON but the key absent — the route
+ *  returns {} regardless) the wizard is byte-identical to today. */
 export const FIRST_PRESSING_ENABLED =
-  (process.env.NEXT_PUBLIC_FIRST_PRESSING ?? '1') !== '0';
+  process.env.NEXT_PUBLIC_FIRST_PRESSING === '1';
 
 /** Hard latency ceiling (ms). The press floor covers the perceived
  *  time; this caps the real wait so the moment never drags past

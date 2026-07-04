@@ -12,6 +12,8 @@ import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, Section
 import { moveItem, ReorderHandle } from './_reorder';
 import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { AISource } from '../../ai-source';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
@@ -120,7 +122,11 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   const write = (next: FaqItem[]) => onChange({ ...manifestRef.current, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
   const patch = (i: number, p: Partial<FaqItem>) => {
     const cur = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : defaultFaqs;
-    write(cur.map((f, idx) => idx === i ? { ...f, ...p } : f));
+    let m = { ...manifestRef.current, faqs: cur.map((f, idx) => idx === i ? { ...f, ...p } : f).map((f, ix) => ({ ...f, order: ix })) } as StoryManifest;
+    /* Editing an answer Pear drafted makes it the host's — drop the
+       badge for this row. */
+    if ('answer' in p) m = clearDraftedPath(m, `faqs.${i}.answer`);
+    onChange(m);
   };
   const remove = (i: number) => write(faqs.filter((_, idx) => idx !== i));
   /* Empty seed, not a literal 'New question' — hosts published that
@@ -215,6 +221,15 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                         options={questionSet.options}
                       />
                       <FInput value={f.answer} onChange={(v) => patch(i, { answer: v })} placeholder="Answer (shown on the FAQ page)" />
+                      <DraftedBadge
+                        manifest={manifest}
+                        onChange={onChange}
+                        paths={`faqs.${i}.answer`}
+                        onClear={(m) => {
+                          const cur = m.faqs && m.faqs.length > 0 ? m.faqs : defaultFaqs;
+                          return { ...(m as StoryManifest), faqs: cur.map((row, idx) => idx === i ? { ...row, answer: '' } : row).map((row, ix) => ({ ...row, order: ix })) } as StoryManifest;
+                        }}
+                      />
                       {drafted?.id === f.id && drafted.text === f.answer && (
                         /* Transient attribution — disappears the
                            moment the host edits the drafted answer. */

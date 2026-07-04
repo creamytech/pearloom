@@ -17,6 +17,8 @@ import { moveItem, ReorderHandle } from './_reorder';
 import { PhotoUploadSlot } from './_photo-upload';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { cleanCashtag, cleanVenmo, type RegistryFunds } from '@/lib/registry-funds';
 import { useVoicePack } from './_voice-pack';
 import { readVariant } from '../../redesign/layouts';
@@ -109,10 +111,10 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
     : defaultStoresFor(occasion);
   const [registryEyebrow, setRegistryEyebrow] = useCopyOverride(manifest, onChange, 'registryEyebrow');
 
-  const setIntro = (v: string) => onChange({
+  const setIntro = (v: string) => onChange(clearDraftedPath({
     ...(manifest as unknown as Record<string, unknown>),
     registryIntro: v,
-  } as unknown as StoryManifest);
+  } as unknown as StoryManifest, 'registryIntro'));
   const writeStores = (next: StoreEntry[]) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     registryStores: next,
@@ -145,6 +147,18 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               "More" below so the default view is 1:1. */}
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
+          <div style={{ marginTop: 7 }}>
+            <DraftedBadge
+              manifest={manifest}
+              onChange={onChange}
+              paths="registryIntro"
+              onClear={(m) => {
+                const out = { ...(m as unknown as Record<string, unknown>) };
+                delete out.registryIntro;
+                return out as unknown as StoryManifest;
+              }}
+            />
+          </div>
           {intro.trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite

@@ -21,6 +21,8 @@ import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell, useCopyOverride, useSectionHidden, SectionVisibilityFooter } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { PearAiChip, pearErrorMessage } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPaths } from '@/lib/first-pressing/clear-on-edit';
 import { useVoicePack } from './_voice-pack';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
@@ -175,8 +177,18 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const setChapterTitle = (i: number, v: string) => patchChapter(i, { title: v });
   const setChapterBody = (i: number, v: string) => patchChapter(i, { description: v });
 
-  const patch = (next: Partial<{ headline: string; body: string; chips: string[] }>) =>
-    onChange({ ...manifest, storySection: { ...story, ...next } } as StoryManifest);
+  const patch = (next: Partial<{ headline: string; body: string; chips: string[] }>) => {
+    let m = { ...manifest, storySection: { ...story, ...next } } as StoryManifest;
+    /* Editing a field Pear drafted makes it the host's — drop its
+       draftedByPear badge (and, on a solemn site, clear the review
+       flag once the last drafted story word is gone). */
+    const touched: string[] = [];
+    if ('headline' in next) touched.push('storySection.headline');
+    if ('body' in next) touched.push('storySection.body');
+    if ('chips' in next) touched.push('storySection.chips');
+    if (touched.length) m = clearDraftedPaths(m, touched);
+    onChange(m);
+  };
 
   /* "Draft for me" — POST /api/story-draft with couple + chip
      context. Result lands in storySection.body. */
@@ -330,6 +342,12 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Headline">
           <FInput value={headline} onChange={(next) => patch({ headline: next })} placeholder={`${oc.storyTitle} ${oc.storyItalic}`} />
+          <DraftedBadge
+            manifest={manifest}
+            onChange={onChange}
+            paths="storySection.headline"
+            onClear={(m) => ({ ...(m as StoryManifest), storySection: { ...story, headline: '' } } as StoryManifest)}
+          />
         </FGroup>
         <FGroup
           label="Your story"
@@ -369,6 +387,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               {err}
             </div>
           )}
+          <div style={{ marginTop: 8 }}>
+            <DraftedBadge
+              manifest={manifest}
+              onChange={onChange}
+              paths="storySection.body"
+              onClear={(m) => ({ ...(m as StoryManifest), storySection: { ...story, body: '' } } as StoryManifest)}
+            />
+          </div>
         </FGroup>
 
         <FGroup
@@ -380,6 +406,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             </PearAiChip>
           }
         >
+          <div style={{ marginBottom: chips.length > 0 ? 8 : 0 }}>
+            <DraftedBadge
+              manifest={manifest}
+              onChange={onChange}
+              paths="storySection.chips"
+              onClear={(m) => ({ ...(m as StoryManifest), storySection: { ...story, chips: [] } } as StoryManifest)}
+            />
+          </div>
           {/* Unified chip list — one flat list of all chips, in
               order. Chips 1-3 get a small "Card N" tag because
               those show as chapter eyebrows on the canvas; 4+

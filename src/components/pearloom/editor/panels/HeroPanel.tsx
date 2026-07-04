@@ -13,6 +13,8 @@ import { FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from '
 import { heroLeadSuggestions, smartContext } from './_suggestions';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPaths } from '@/lib/first-pressing/clear-on-edit';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { SECTION_LINK_TARGETS, SPECIAL_LINK_TARGETS, resolveLinkLabel } from './_link-targets';
 import { useVoicePack } from './_voice-pack';
@@ -142,10 +144,25 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   const venue = manifest.logistics?.venue ?? '';
   const coverPhoto = ((manifest as unknown as { coverPhoto?: string }).coverPhoto) ?? '';
 
-  const setTagline = (v: string) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    tagline: v,
-  } as unknown as StoryManifest);
+  const setTagline = (v: string) => {
+    /* Editing the tagline makes it the host's — drop the drafted
+       badge on both the canonical poetry.heroTagline path and the
+       legacy tagline path the merge may have recorded. */
+    const m = clearDraftedPaths({
+      ...(manifest as unknown as Record<string, unknown>),
+      tagline: v,
+    } as unknown as StoryManifest, ['poetry.heroTagline', 'tagline']);
+    onChange(m);
+  };
+  /* Empty the tagline to its honest-empty state — both the canonical
+     field and the legacy poetry mirror the renderer falls back to. */
+  const emptyTagline = (m: StoryManifest): StoryManifest => {
+    const loose: Record<string, unknown> = { ...(m as unknown as Record<string, unknown>), tagline: '' };
+    const poetry = { ...((loose.poetry as Record<string, unknown> | undefined) ?? {}) };
+    if ('heroTagline' in poetry) poetry.heroTagline = '';
+    loose.poetry = poetry;
+    return loose as unknown as StoryManifest;
+  };
   const setA = (v: string) => onChange({ ...manifest, names: [v, n2] });
   const setB = (v: string) => onChange({ ...manifest, names: [n1, v] });
   const setDate = (v: string) => onChange({ ...manifest, logistics: { ...(manifest.logistics ?? {}), date: v } });
@@ -195,6 +212,14 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Tagline" hint={tagline.trim().length >= 2 ? undefined : 'Type a line, then Pear can rewrite it in different tones.'}>
           <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />
+          <div style={{ marginTop: 7 }}>
+            <DraftedBadge
+              manifest={manifest}
+              onChange={onChange}
+              paths={['poetry.heroTagline', 'tagline']}
+              onClear={emptyTagline}
+            />
+          </div>
           {tagline.trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite
