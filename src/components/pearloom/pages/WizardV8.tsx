@@ -1677,18 +1677,27 @@ const pearsQLabel: React.CSSProperties = {
 };
 
 function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
-  // Map the 8 steps into 4 phases. Hidden-step ranges (template
-  // skips Vibe/Palette/Layout) collapse the Look phase down so
-  // the progress thread reads accurately.
+  // Horizontal 4-phase node stepper (v4 design): Story · Photos ·
+  // Look · Review, all shown at once, connected by threads. Each
+  // phase is a node + label; the current phase carries a "n of m"
+  // step count. Template mode hides Vibe/Palette — but every phase
+  // keeps at least one visible step, so all four nodes still show.
   const hidden = hiddenSteps ?? [];
   const phases = PHASES.filter((p) => p.steps.some((s) => !hidden.includes(s)));
 
   const currentPhase = phaseFor(STEPS[active]);
-  // Step number within the active phase (e.g. Story · 2 of 3).
+  const currentPhaseIndex = phases.findIndex((p) => p.key === currentPhase);
+
+  // Step number within the active phase (e.g. 1 of 4).
   const phaseSteps = PHASES.find((p) => p.key === currentPhase)?.steps ?? [];
-  const visiblePhaseSteps = phaseSteps.filter((s) => !(hiddenSteps ?? []).includes(s));
+  const visiblePhaseSteps = phaseSteps.filter((s) => !hidden.includes(s));
   const phaseStepIndex = visiblePhaseSteps.indexOf(STEPS[active]);
-  const phasePosition = `${phaseStepIndex + 1} of ${visiblePhaseSteps.length}`;
+  const phaseN = phaseStepIndex + 1;
+  const phaseM = visiblePhaseSteps.length;
+
+  const OLIVE = 'var(--pl-olive, #5C6B3F)';
+  const DIVIDER = 'var(--pl-divider, var(--line-soft, #E4DCCB))';
+  const MUTED = 'var(--pl-muted, var(--ink-muted))';
 
   return (
     <div
@@ -1696,89 +1705,88 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
       style={{
         flex: 1,
         display: 'flex',
-        flexDirection: 'column',
+        alignItems: 'center',
         gap: 6,
         minWidth: 0,
-        maxWidth: 480,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-        <span
-          className="display"
-          style={{
-            fontSize: 18,
-            lineHeight: 1,
-            color: 'var(--ink)',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {currentPhase}
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-            fontSize: 10,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-muted)',
-          }}
-        >
-          {/* Display name stays plain (BRAND §7 control-label rule);
-              the StepKey ids are untouched. */}
-          {phasePosition} · {STEPS[active] === 'Palette' ? 'Colors' : STEPS[active]}
-        </span>
-      </div>
-      {/* Woven progress thread — a node per phase; the gold strand
-          draws in between completed phases (design system v2). */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginTop: 4 }} aria-hidden>
-        {phases.map((p, i) => {
-          const phaseStepsAll = p.steps.filter((s) => !hidden.includes(s));
-          const phaseDone = phaseStepsAll.every((s) => STEPS.indexOf(s) < active);
-          const phaseCur = p.key === currentPhase;
-          return (
-            <Fragment key={p.key}>
-              <div
-                title={p.key}
+      {phases.map((p, i) => {
+        const done = i < currentPhaseIndex;
+        const on = i === currentPhaseIndex;
+        return (
+          <Fragment key={p.key}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexShrink: 0 }}>
+              <span
+                aria-hidden
                 style={{
-                  width: phaseCur ? 11 : 9,
-                  height: phaseCur ? 11 : 9,
+                  width: 22,
+                  height: 22,
                   borderRadius: '50%',
                   flexShrink: 0,
-                  background: phaseDone || phaseCur ? 'var(--pl-olive, #5C6B3F)' : 'var(--cream-3, #EDE7DA)',
-                  border: phaseCur ? '2px solid var(--card, #fff)' : '1.5px solid var(--line-soft)',
-                  outline: phaseCur ? '2px solid var(--pl-olive, #5C6B3F)' : 'none',
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: done || on ? OLIVE : 'transparent',
+                  border: `1.5px solid ${done || on ? OLIVE : DIVIDER}`,
+                  color: '#fff',
                   transition: 'all 280ms cubic-bezier(0.22,1,0.36,1)',
                 }}
-              />
-              {i < phases.length - 1 && (
+              >
+                {done ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                ) : on ? (
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff' }} />
+                ) : null}
+              </span>
+              {/* data-step-label: the mobile CSS collapses these to
+                  nodes-only on narrow screens (pearloom.css). */}
+              <div data-step-label>
                 <div
                   style={{
-                    flex: 1,
-                    height: 2,
-                    margin: '0 6px',
-                    minWidth: 16,
-                    background: 'var(--line-soft)',
-                    borderRadius: 999,
-                    overflow: 'hidden',
-                    position: 'relative',
+                    fontSize: 14,
+                    fontWeight: on ? 700 : 500,
+                    color: on || done ? 'var(--ink)' : MUTED,
+                    fontFamily: 'var(--font-ui)',
+                    lineHeight: 1.1,
+                    whiteSpace: 'nowrap',
                   }}
                 >
+                  {p.key}
+                </div>
+                {on && (
                   <div
                     style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'var(--gold, #C19A4B)',
-                      transform: `scaleX(${phaseDone ? 1 : 0})`,
-                      transformOrigin: 'left',
-                      transition: 'transform 360ms cubic-bezier(0.22,1,0.36,1)',
+                      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                      fontSize: 10,
+                      color: MUTED,
+                      marginTop: 1,
                     }}
-                  />
-                </div>
-              )}
-            </Fragment>
-          );
-        })}
-      </div>
+                  >
+                    {phaseN} of {phaseM}
+                  </div>
+                )}
+              </div>
+            </div>
+            {i < phases.length - 1 && (
+              <span
+                aria-hidden
+                style={{
+                  width: 54,
+                  height: 2,
+                  borderRadius: 2,
+                  margin: '0 4px',
+                  flexShrink: 0,
+                  background: done ? OLIVE : DIVIDER,
+                  backgroundImage: done ? 'none' : `linear-gradient(90deg, ${DIVIDER} 60%, transparent 0)`,
+                  backgroundSize: '7px 2px',
+                  transition: 'background 280ms cubic-bezier(0.22,1,0.36,1)',
+                }}
+              />
+            )}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
@@ -2104,12 +2112,14 @@ export function WizardV8() {
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
-  // Look-phase steps (Vibe/Palette) get the live save-the-date preview.
-  const isLook = step === 'Vibe' || step === 'Palette';
-  // The two-column live preview also rides the Review step — a final,
-  // fully-formed look before "Weave my site" (zip parity: the v2
-  // wizard keeps the phone preview through the closing step).
-  const showPreview = isLook || step === 'Review';
+  // The live save-the-date phone preview rides EVERY step (v4 design):
+  // the two-column canvas grid appears beside the controls on Occasion,
+  // Basics, Details, Day, Photos, Sections, Vibe, Palette and Review so
+  // the host always watches their site take shape. WizardLivePreview
+  // reads names/palette/occasion with sensible defaults, so it renders
+  // safely before a palette is chosen. The one exception is the
+  // full-bleed fitting room, which owns the screen while it's open.
+  const showPreview = !fittingOpen;
 
   // ── "From your photos" palette ──────────────────────────────
   // Client-side extraction from the host's first uploaded photo
