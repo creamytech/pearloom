@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
-import { Icon, PhotoPlaceholder } from '../motifs';
+import { Icon, PhotoPlaceholder, PearloomGlyph } from '../motifs';
 import { AmbientHour } from '../ambient';
 import { DashEmpty } from '../dash/DashEmpty';
 
@@ -34,6 +34,64 @@ import { useDashStats } from '@/components/marketing/v2/useDashStats';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import type { StoryManifest } from '@/types';
 
+// ── shared editorial tokens + card chrome (zip DayOf) ──────────
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+// The editorial hero palette — a FIXED deep-olive surface in both
+// light + editorial-midnight, matching the shipped Home hero
+// (cockpit.tsx). Interior cream/gold is intentionally literal.
+const HERO_BG = 'linear-gradient(150deg, #37421F 0%, #2A331A 46%, #1E2513 100%)';
+const HERO_GOLD = '#DDB768';
+const HERO_CREAM = '#F7F2E6';
+const HERO_SOFT = 'rgba(247,242,230,0.72)';
+const HERO_LINEN =
+  'repeating-linear-gradient(0deg, rgba(247,242,230,0.05) 0 1px, transparent 1px 5px), repeating-linear-gradient(90deg, rgba(247,242,230,0.05) 0 1px, transparent 1px 5px)';
+
+/** Mono uppercase eyebrow — the zip's `<Eyebrow rule="none">`. */
+function CardEyebrow({ children, color }: { children: React.ReactNode; color?: string }) {
+  return (
+    <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: color ?? 'var(--ink-muted)' }}>
+      {children}
+    </div>
+  );
+}
+
+/** The zip card header: a mono eyebrow, an optional right-aligned
+ *  action/meta slot, and a Fraunces headline with one italic accent
+ *  clause. A plain `<div>` (not `.display`) so the ≤640px `.display`
+ *  clamp never inflates it on phones. */
+function CardHead({
+  eyebrow,
+  title,
+  accent,
+  accentColor = 'var(--lavender-ink)',
+  right,
+  size = 22,
+  margin = '8px 0 16px',
+}: {
+  eyebrow: React.ReactNode;
+  title: React.ReactNode;
+  accent?: React.ReactNode;
+  accentColor?: string;
+  right?: React.ReactNode;
+  size?: number;
+  margin?: string;
+}) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <CardEyebrow>{eyebrow}</CardEyebrow>
+        {right ? <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>{right}</div> : null}
+      </div>
+      <div style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: 600, lineHeight: 1.16, color: 'var(--ink)', margin }}>
+        {title}
+        {accent ? <> <span style={{ fontStyle: 'italic', color: accentColor }}>{accent}</span></> : null}
+      </div>
+    </div>
+  );
+}
+
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -43,13 +101,17 @@ function useLiveClock() {
   return now;
 }
 
-function PulseBar({
+function DayOfHero({
   rsvps,
   visits,
   today,
   registryClicks,
   totalGuests,
   daysUntil,
+  dateLabel,
+  headline,
+  nowLabel,
+  nextLabel,
 }: {
   rsvps: number;
   visits: number;
@@ -58,203 +120,84 @@ function PulseBar({
   totalGuests: number | null;
   /** Whole days to the event: 0 = today, null = no date set. */
   daysUntil: number | null;
+  /** Long date label, e.g. "Saturday, September 6". */
+  dateLabel: string | null;
+  /** Occasion-aware two-part headline (accent = italic clause). */
+  headline: { a: string; b: string };
+  /** The run-of-show event happening now — null when no schedule. */
+  nowLabel: string | null;
+  /** The next scheduled event, when one follows the current one. */
+  nextLabel: string | null;
 }) {
   const now = useLiveClock();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  // "It's happening" only when it actually is. Before the day this
-  // strip is a countdown; after, a quiet recap; with no date set,
-  // an honest nudge to add one.
   const isEventDay = daysUntil === 0;
-  const liveLabel =
+  // The gold mono eyebrow — "THE ROOM IS LIVE · SEP 6" on the day,
+  // an honest countdown / recap / preview otherwise.
+  const dateBit = dateLabel ? ` · ${dateLabel.toUpperCase()}` : '';
+  const stateLabel =
     daysUntil === null
-      ? `Preview · ${dateStr}`
+      ? `PREVIEW${dateBit}`
       : isEventDay
-        ? `Live · ${dateStr}`
+        ? `THE ROOM IS LIVE${dateBit}`
         : daysUntil > 0
-          ? `T-minus ${daysUntil} day${daysUntil === 1 ? '' : 's'} · ${dateStr}`
-          : `After the day · ${dateStr}`;
-  const liveAside =
-    daysUntil === null
-      ? 'set your date in the editor'
-      : isEventDay
-        ? "it's happening"
-        : daysUntil > 0
-          ? `${daysUntil} day${daysUntil === 1 ? '' : 's'} to go`
-          : 'the recap lives here';
-  const metrics = [
-    {
-      k: 'RSVPs in',
-      v: String(rsvps),
-      of: totalGuests && totalGuests > 0 ? String(totalGuests) : undefined,
-      tone: 'peach',
-      icon: 'check',
-      trend: rsvps === 0 ? 'Waiting on first reply' : `${rsvps} guest${rsvps === 1 ? '' : 's'} responded`,
-    },
-    {
-      k: 'Visits today',
-      v: String(today),
-      tone: 'sage',
-      icon: 'eye',
-      trend: today === 0 ? 'Nothing yet today' : 'since midnight',
-    },
-    {
-      k: 'Site visits',
-      v: String(visits),
-      tone: 'lavender',
-      icon: 'image',
-      trend: visits === 0 ? 'Share your link' : 'All-time',
-    },
-    {
-      k: 'Registry clicks',
-      v: String(registryClicks),
-      tone: 'cream',
-      icon: 'gift',
-      trend: registryClicks === 0 ? '—' : 'via your site',
-    },
-  ] as const;
+          ? `${daysUntil} DAY${daysUntil === 1 ? '' : 'S'} TO GO${dateBit}`
+          : `AFTER THE DAY${dateBit}`;
+  // "Right now: …" — the current run-of-show line, honest when there
+  // is no schedule to read from yet.
+  const rightNow: React.ReactNode = nowLabel
+    ? (
+        <>
+          Right now: <strong style={{ color: HERO_CREAM, fontWeight: 600 }}>{nowLabel}</strong>.
+          {nextLabel ? <> Next up — {nextLabel}.</> : null}
+        </>
+      )
+    : 'Add your run of show and the day will keep its own time here.';
+  const metrics: [label: string, value: string, sub: string | null][] = [
+    ['RSVPs in', totalGuests && totalGuests > 0 ? `${rsvps}/${totalGuests}` : String(rsvps), rsvps === 0 ? 'awaiting first reply' : `${rsvps} responded`],
+    ['Visits today', String(today), today === 0 ? 'nothing yet today' : 'since midnight'],
+    ['Site visits', String(visits), visits === 0 ? 'share your link' : 'all-time'],
+    ['Registry clicks', String(registryClicks), registryClicks === 0 ? '—' : 'via your site'],
+  ];
   return (
     <div
-      className="pl8-dayof-pulse"
-      style={{
-        background: 'var(--ink)',
-        color: 'var(--cream)',
-        padding: '20px 24px',
-        borderRadius: 20,
-        marginBottom: 20,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      className="pl8-dayof-hero"
+      style={{ borderRadius: 18, overflow: 'hidden', background: HERO_BG, color: HERO_CREAM, position: 'relative', boxShadow: 'var(--shadow-md, 0 18px 48px -24px rgba(20,24,12,0.55))' }}
     >
-      <div style={{ position: 'absolute', top: -16, right: -8, opacity: 0.16, pointerEvents: 'none' }}>
-        <AmbientHour size={150} color="var(--cream)" accent="var(--gold)" />
+      <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', backgroundImage: HERO_LINEN, backgroundSize: '5px 5px' }} />
+      <div aria-hidden style={{ position: 'absolute', top: -18, right: -10, opacity: 0.16, pointerEvents: 'none' }}>
+        <AmbientHour size={168} color={HERO_CREAM} accent={HERO_GOLD} />
       </div>
       <div
-        className="pl8-pulse-layout"
-        style={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 28,
-          flexWrap: 'wrap',
-        }}
+        className="pl8-dayof-hero-grid"
+        style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 'clamp(20px,3vw,36px)', alignItems: 'center', padding: 'clamp(22px,3vw,34px)' }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            {isEventDay && (
-              <span
-                className="pulse-dot"
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: '50%',
-                  background: '#B8D66A',
-                }}
-              />
-            )}
-            <span
-              style={{
-                fontSize: 10.5,
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'rgba(241,235,221,0.6)',
-              }}
-            >
-              {liveLabel}
-            </span>
+        {/* LEFT — the live state, the headline, "right now". */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: HERO_GOLD }}>
+            <span aria-hidden className={isEventDay ? 'pulse-dot' : undefined} style={{ width: 7, height: 7, borderRadius: 99, background: HERO_GOLD, flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{stateLabel}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 46,
-                fontWeight: 600,
-                color: 'var(--cream)',
-                lineHeight: 1,
-              }}
-            >
-              {timeStr}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 18,
-                color: 'var(--peach-2)',
-              }}
-            >
-              {liveAside}
-            </span>
+          <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(30px,4vw,46px)', fontWeight: 400, lineHeight: 1.02, letterSpacing: '-0.02em', color: HERO_CREAM, margin: '12px 0 0' }}>
+            {headline.a} <span style={{ fontStyle: 'italic', color: HERO_GOLD }}>{headline.b}</span>
           </div>
+          <div style={{ fontSize: 14, color: HERO_SOFT, lineHeight: 1.5, marginTop: 12, maxWidth: 460 }}>{rightNow}</div>
         </div>
-        <div
-          className="pl8-pulse-stats"
-          style={{
-            flex: 1,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 18,
-            minWidth: 280,
-          }}
-        >
-          {metrics.map((m) => (
-            <div key={m.k}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 7,
-                    background:
-                      m.tone === 'sage'
-                        ? 'var(--sage-2)'
-                        : m.tone === 'peach'
-                          ? 'var(--peach-2)'
-                          : m.tone === 'lavender'
-                            ? 'var(--lavender-2)'
-                            : 'var(--cream-2)',
-                    color: '#2a2a22',
-                    display: 'grid',
-                    placeItems: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Icon name={m.icon} size={13} color="#2a2a22" />
-                </span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(241,235,221,0.6)',
-                  }}
-                >
-                  {m.k}
-                </span>
+        {/* RIGHT — the live pulse, real data (no fabricated numbers). */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', color: HERO_GOLD, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>THE PULSE</span>
+            <span style={{ fontWeight: 400, letterSpacing: '0.04em', color: HERO_SOFT }}>· {timeStr}</span>
+          </div>
+          <div className="pl8-dayof-hero-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {metrics.map(([label, value, sub]) => (
+              <div key={label} style={{ background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)', borderRadius: 12, padding: '11px 13px' }}>
+                <div style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: HERO_SOFT }}>{label}</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 25, lineHeight: 1.05, color: HERO_CREAM, marginTop: 5 }}>{value}</div>
+                {sub ? <div style={{ fontSize: 10.5, color: 'rgba(247,242,230,0.55)', marginTop: 3 }}>{sub}</div> : null}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 28,
-                    fontWeight: 600,
-                    color: 'var(--cream)',
-                    lineHeight: 1,
-                  }}
-                >
-                  {m.v}
-                </span>
-                {'of' in m && m.of && (
-                  <span style={{ fontSize: 12, color: 'rgba(241,235,221,0.5)' }}>/ {m.of}</span>
-                )}
-              </div>
-              <div style={{ fontSize: 11, color: 'rgba(241,235,221,0.55)', marginTop: 3 }}>
-                {m.trend}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -327,111 +270,81 @@ function MomentTimeline({
 
   if (items.length === 0) {
     return (
-      <div className="card" style={{ padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="clock" size={18} color="var(--gold)" />
-            <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-              {heading}
-            </h3>
-          </div>
+      <div className="card" style={{ padding: 26 }}>
+        <CardHead eyebrow={heading} title="The day," accent="hour by hour." margin="8px 0 0" />
+        <div style={{ marginTop: 16 }}>
+          <DashEmpty
+            eyebrow={heading}
+            title="No schedule yet."
+            body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
+            examples={examples}
+            actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
+          />
         </div>
-        <DashEmpty
-          eyebrow={heading}
-          title="No schedule yet."
-          body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
-          examples={examples}
-          actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
-        />
       </div>
     );
   }
 
   return (
-    <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="clock" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            {heading}
-          </h3>
-        </div>
-        <Link href={editHref} className="btn btn-outline btn-sm">
-          <Icon name="brush" size={12} /> Nudge timeline
-        </Link>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div className="card" style={{ padding: 26 }}>
+      <CardHead
+        eyebrow={heading}
+        title="The day,"
+        accent="hour by hour."
+        margin="8px 0 18px"
+        right={
+          <Link href={editHref} className="btn btn-outline btn-sm">
+            <Icon name="brush" size={12} /> Nudge timeline
+          </Link>
+        }
+      />
+      <div>
         {items.map((m, i) => {
           const isNow = m.status === 'now';
           const isDone = m.status === 'done';
+          const isNext = m.status === 'next';
+          const last = i === items.length - 1;
           return (
-            <div
-              key={i}
-              className="pl8-dayof-tlrow"
-              style={{
-                display: 'grid',
-                // Time column sizes to its content ("4:00 PM" never
-                // wraps to "4:00 / PM" — plan-2 §3.6) with a 72px
-                // floor so the rows keep a shared gutter.
-                gridTemplateColumns: '48px minmax(72px, auto) minmax(0, 1fr) auto',
-                gap: 14,
-                alignItems: 'center',
-                padding: '10px 8px',
-                borderRadius: 12,
-                background: isNow ? 'var(--peach-bg)' : 'transparent',
-                border: isNow ? '1px solid var(--peach-2)' : '1px solid transparent',
-              }}
-            >
-              <div style={{ display: 'grid', placeItems: 'center' }}>
-                <div
+            <div key={i} className="pl8-dayof-tlrow" style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
+              {/* Time — mono, in the accent when this hour is live. */}
+              <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: isNow ? 'var(--peach-ink)' : 'var(--ink-muted)', width: 56, paddingTop: 12, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                {m.time}
+              </div>
+              {/* The two-strand rail — a dot per moment, a thread
+                  between them (olive-filled once the moment is done). */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span
+                  className={isNow ? 'pulse-dot' : undefined}
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isNow ? 'var(--peach-2)' : isDone ? 'var(--sage-2)' : 'var(--card, #fff)',
-                    border: isDone || isNow ? 'none' : '2px solid var(--line)',
+                    width: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    marginTop: 12,
+                    flexShrink: 0,
                     display: 'grid',
                     placeItems: 'center',
-                    color: isDone || isNow ? 'var(--ink)' : 'var(--ink-muted)',
-                    boxShadow: isNow ? '0 0 0 6px rgba(234,178,134,0.28)' : 'none',
+                    background: isDone ? 'var(--sage)' : isNow ? 'var(--card)' : 'transparent',
+                    border: `2px solid ${isDone ? 'var(--sage)' : isNow ? 'var(--peach-ink)' : 'var(--line)'}`,
+                    color: 'var(--cream)',
                   }}
                 >
                   {isDone ? (
-                    <Icon name="check" size={14} />
+                    <Icon name="check" size={10} strokeWidth={3} color="var(--cream)" />
                   ) : isNow ? (
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ink)' }} />
+                    <span style={{ width: 6, height: 6, borderRadius: 99, background: 'var(--peach-ink)' }} />
                   ) : null}
-                </div>
+                </span>
+                {!last && <span style={{ flex: 1, width: 2, minHeight: 18, background: isDone ? 'var(--sage)' : 'var(--line)', margin: '2px 0' }} />}
               </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 18,
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  color: isDone ? 'var(--ink-muted)' : 'var(--ink)',
-                }}
-              >
-                {m.time}
-              </div>
-              <div>
+              {/* The moment — title + who/where; the live hour lifts
+                  into a soft peach panel. */}
+              <div style={{ flex: 1, minWidth: 0, padding: '10px 0 12px', ...(isNow ? { background: 'var(--peach-bg)', borderRadius: 12, padding: '10px 14px', margin: '4px 0' } : {}) }}>
                 <div style={{ fontSize: 14.5, fontWeight: 600, color: isDone ? 'var(--ink-soft)' : 'var(--ink)' }}>
                   {m.title}
+                  {isNow && <span style={{ marginLeft: 8, fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)' }}>NOW</span>}
+                  {isNext && <span style={{ marginLeft: 8, fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>UP NEXT</span>}
                 </div>
-                {'d' in m && m.d && <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 2 }}>{m.d}</div>}
-              </div>
-              <div
-                className="pl8-dayof-tlstatus"
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-muted)',
-                }}
-              >
-                {isNow && <span style={{ color: 'var(--peach-ink)' }}>Happening now</span>}
-                {m.status === 'next' && 'Up next'}
+                {'d' in m && m.d && <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2 }}>{m.d}</div>}
               </div>
             </div>
           );
@@ -503,25 +416,23 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
   const heading = occasion === 'memorial' || occasion === 'funeral' ? 'What guests shared' : 'The live reel';
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="image" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            {heading}
-          </h3>
-          {items.length > 0 && (
-            <span className="pill pill-sage" style={{ fontSize: 11 }}>
-              {items.length} shared
-            </span>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">
-            <Icon name="eye" size={12} /> Moderate
-          </Link>
-          <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">See all</Link>
-        </div>
-      </div>
+      <CardHead
+        eyebrow="Guest photos"
+        title={heading}
+        accentColor="var(--sage-deep)"
+        right={
+          <>
+            {items.length > 0 && (
+              <span className="pill pill-sage" style={{ fontSize: 11 }}>
+                {items.length} shared
+              </span>
+            )}
+            <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">
+              <Icon name="eye" size={12} /> Moderate
+            </Link>
+          </>
+        }
+      />
       {loading ? (
         <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>Threading…</div>
       ) : items.length === 0 ? (
@@ -645,17 +556,16 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
 
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="users" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            {heading}
-          </h3>
-        </div>
-        <Link href="/dashboard/rsvp" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-          Open list →
-        </Link>
-      </div>
+      <CardHead
+        eyebrow="RSVPs"
+        title={heading}
+        accentColor="var(--sage-deep)"
+        right={
+          <Link href="/dashboard/rsvp" style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            Open list <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        }
+      />
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
       ) : rows.length === 0 ? (
@@ -793,17 +703,15 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
         : 'Notes from the crowd';
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="mail" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            {heading}
-          </h3>
-        </div>
-        <Link href="/dashboard/submissions" className="btn btn-outline btn-sm">
-          <Icon name="eye" size={12} /> Moderate
-        </Link>
-      </div>
+      <CardHead
+        eyebrow="Guestbook"
+        title={heading}
+        right={
+          <Link href="/dashboard/submissions" className="btn btn-outline btn-sm">
+            <Icon name="eye" size={12} /> Moderate
+          </Link>
+        }
+      />
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
       ) : items.length === 0 ? (
@@ -933,17 +841,16 @@ function SongQueue({ siteId }: { siteId?: string | null }) {
   const shown = [...queued, ...accepted].slice(0, 6);
   return (
     <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="music" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            On the floor
-          </h3>
-        </div>
-        <Link href="/dashboard/music" style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>
-          Manage in Music →
-        </Link>
-      </div>
+      <CardHead
+        eyebrow="The playlist"
+        title="On the floor"
+        accentColor="var(--sage-deep)"
+        right={
+          <Link href="/dashboard/music" style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            Manage in Music <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        }
+      />
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
       ) : shown.length === 0 ? (
@@ -1145,31 +1052,32 @@ function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?:
         onEnded={handleEnded}
         style={{ display: 'none' }}
       />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="mic" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            {heading}
-          </h3>
-          {items.length > 0 && (
-            <span className="pill pill-sage" style={{ fontSize: 11 }}>
-              {items.length} recorded
-            </span>
-          )}
-        </div>
-        {activeId && (
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button type="button" className="btn btn-outline btn-sm" onClick={replay}>
-              <Icon name="redo" size={12} /> Replay
-            </button>
-            {hasNext && (
-              <button type="button" className="btn btn-outline btn-sm" onClick={playNext}>
-                Next <Icon name="chev-right" size={12} />
-              </button>
+      <CardHead
+        eyebrow="Voice toasts"
+        title={heading}
+        accentColor="var(--peach-ink)"
+        right={
+          <>
+            {items.length > 0 && (
+              <span className="pill pill-sage" style={{ fontSize: 11 }}>
+                {items.length} recorded
+              </span>
             )}
-          </div>
-        )}
-      </div>
+            {activeId && (
+              <>
+                <button type="button" className="btn btn-outline btn-sm" onClick={replay}>
+                  <Icon name="redo" size={12} /> Replay
+                </button>
+                {hasNext && (
+                  <button type="button" className="btn btn-outline btn-sm" onClick={playNext}>
+                    Next <Icon name="chev-right" size={12} />
+                  </button>
+                )}
+              </>
+            )}
+          </>
+        }
+      />
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
       ) : items.length === 0 ? (
@@ -1333,6 +1241,9 @@ function useBookedVendors(siteId?: string | null): { items: CrewVendorRow[]; loa
   return { items, loading };
 }
 
+// Crew initials tints — cycled per row, matching the zip call sheet.
+const CREW_TINTS = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)', '#8A6A2E'] as const;
+
 function WhoToCall({ siteId }: { siteId?: string | null }) {
   // The day-of call sheet, host side — every booked vendor with
   // their call time and a tap-to-dial number. Fed by the Vendor
@@ -1340,88 +1251,107 @@ function WhoToCall({ siteId }: { siteId?: string | null }) {
   const { items, loading } = useBookedVendors(siteId);
 
   return (
-    <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <Icon name="phone" size={18} color="var(--gold)" />
-        <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-          Who to call
-        </h3>
-        {items.length > 0 && (
-          <span className="pill pill-sage" style={{ fontSize: 11 }}>
-            {items.length} on the day
-          </span>
-        )}
-      </div>
+    <div className="card" style={{ padding: 22 }}>
+      <CardHead
+        eyebrow="Call sheet"
+        title="Who to call"
+        size={20}
+        margin="8px 0 4px"
+        right={
+          items.length > 0 ? (
+            <span className="pill pill-sage" style={{ fontSize: 11 }}>
+              {items.length} on the day
+            </span>
+          ) : undefined
+        }
+      />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 8 }}>Threading…</div>
       ) : items.length === 0 ? (
         <div
           style={{
-            padding: 22,
+            marginTop: 10,
+            padding: 18,
             textAlign: 'center',
             background: 'var(--cream-2)',
             border: '1px dashed var(--line)',
             borderRadius: 12,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 5 }}>Nothing yet.</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
             Vendors you book land here with their call times.
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {items.map((v) => (
-            <div
-              key={v.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr auto',
-                gap: 10,
-                alignItems: 'center',
-                padding: '9px 12px',
-                background: 'var(--cream-2)',
-                border: '1px solid var(--line-soft)',
-                borderRadius: 10,
-              }}
-            >
-              <span
+        <div style={{ marginTop: 6 }}>
+          {items.map((v, i) => {
+            const arrival = v.arrivalTime ? `Arrives ${v.arrivalTime}` : 'Call time TBD';
+            const tint = CREW_TINTS[i % CREW_TINTS.length];
+            return (
+              <div
+                key={v.id}
                 style={{
-                  fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  color: v.arrivalTime ? 'var(--ink)' : 'var(--ink-muted)',
-                  background: 'var(--cream-3)',
-                  border: '1px solid var(--line-soft)',
-                  borderRadius: 999,
-                  padding: '3px 9px',
-                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 0',
+                  borderTop: i ? '1px solid var(--line-soft)' : 'none',
                 }}
               >
-                {v.arrivalTime ?? 'no time'}
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {v.name}
-                </span>
-                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-soft)' }}>
-                  {v.category}
-                </span>
-              </span>
-              {v.phone ? (
-                <a
-                  href={`tel:${v.phone.replace(/[^\d+]/g, '')}`}
-                  className="btn btn-outline btn-sm"
-                  style={{ flexShrink: 0, textDecoration: 'none' }}
+                <span
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 999,
+                    flexShrink: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'var(--cream-3)',
+                    border: '1px solid var(--line-soft)',
+                    color: tint,
+                    fontFamily: DISPLAY,
+                    fontStyle: 'italic',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
                 >
-                  <Icon name="phone" size={12} /> Call
-                </a>
-              ) : (
-                <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', flexShrink: 0 }}>no number</span>
-              )}
-            </div>
-          ))}
+                  {initials(v.name)}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {v.name}
+                  </span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {v.category} · {arrival}
+                  </span>
+                </span>
+                {v.phone ? (
+                  <a
+                    href={`tel:${v.phone.replace(/[^\d+]/g, '')}`}
+                    title={`Call ${v.name}`}
+                    aria-label={`Call ${v.name}`}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      flexShrink: 0,
+                      border: '1px solid var(--line)',
+                      background: 'var(--card)',
+                      color: 'var(--ink-soft)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <Icon name="phone" size={14} />
+                  </a>
+                ) : (
+                  <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', flexShrink: 0 }}>no number</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       <div style={{ marginTop: 14, fontSize: 12.5 }}>
@@ -1429,6 +1359,37 @@ function WhoToCall({ siteId }: { siteId?: string | null }) {
           Open the vendor book →
         </Link>
       </div>
+    </div>
+  );
+}
+
+/* Point person — the zip's lavender call-out. Guests reach a named
+   day-of contact (the planner / MOH / a parent), never the host
+   mid-ceremony. Reads manifest.dayOfContact; renders nothing until a
+   real contact exists (the host's account email is never a fallback). */
+function PointPerson({ manifest }: { manifest: unknown }) {
+  const doc = (manifest as { dayOfContact?: { name?: string; phone?: string } } | null | undefined)?.dayOfContact;
+  const name = doc?.name?.trim();
+  if (!name) return null;
+  const phone = doc?.phone?.trim();
+  return (
+    <div className="card" style={{ padding: 22, background: 'var(--lavender-bg)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <PearloomGlyph size={18} color="var(--lavender-ink)" />
+        <CardEyebrow color="var(--lavender-ink)">Point person</CardEyebrow>
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5 }}>
+        Guests reach <strong>{name}</strong> today, not you — so you&rsquo;re present for the day itself.
+      </div>
+      {phone ? (
+        <a
+          href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+          className="btn btn-outline btn-sm"
+          style={{ marginTop: 12, textDecoration: 'none' }}
+        >
+          <Icon name="phone" size={12} /> Call {name}
+        </a>
+      ) : null}
     </div>
   );
 }
@@ -1460,18 +1421,18 @@ function SeatingGlance({ manifest }: { manifest: unknown }) {
 
   return (
     <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="grid" size={18} color="var(--gold)" />
-          <h3 className="display display-card" style={{ fontSize: 24, margin: 0 }}>
-            Seating at a glance
-          </h3>
-        </div>
-        <Link href="/dashboard/seating" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-          Open the chart →
-        </Link>
-      </div>
-      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 14 }}>
+      <CardHead
+        eyebrow="Seating"
+        title="Seating at a glance"
+        size={20}
+        margin="8px 0 4px"
+        right={
+          <Link href="/dashboard/seating" style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            Open the chart <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        }
+      />
+      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', margin: '4px 0 14px' }}>
         {tables.length} table{tables.length === 1 ? '' : 's'} · {seated} of {capacity} seats spoken for
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
@@ -1648,15 +1609,26 @@ export function DayOfV8() {
               ? { a: 'What a', b: 'day.' }
               : { a: "Today's the", b: 'day.' };
 
+  // Hero support — a short date for the gold eyebrow ("· SEP 6") and
+  // the current/next run-of-show lines for the "Right now:" copy.
+  const heroDateLabel = (() => {
+    const d = parseLocalDate(site?.eventDate);
+    return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
+  })();
+  const nowIdx = events.findIndex((e) => e.status === 'now');
+  const nowLabel = nowIdx >= 0 ? events[nowIdx].title : null;
+  const nextLabel = nowIdx >= 0 && events[nowIdx + 1] ? events[nowIdx + 1].title : null;
+
   return (
     <DashLayout active="timeline" hideTopbar>
       {/* Botanical underlay — olive sprigs at low opacity. Matches the
           prototype's atmosphere layer; the DashLayout's sidebar already
           owns the cream + nav chrome. */}
       <PLAtmosphere />
-      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Timeline / Seating tabs come from the shell's DashSubNav —
-            no in-page duplicate strip. */}
+      <div
+        className="pl8-dayof-wrap"
+        style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 18 }}
+      >
         {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): mono eyebrow +
             ONE display line + the two actions in a row. */}
         <PageIntro
@@ -1684,37 +1656,46 @@ export function DayOfV8() {
               </Link>
             </>
           }
-          style={{ marginBottom: 20 }}
+          style={{ marginBottom: 0 }}
         />
 
-        <PulseBar
+        {/* The room-is-live hero — real pulse data, the current hour. */}
+        <DayOfHero
           rsvps={stats.rsvps}
           visits={stats.visits}
           today={stats.today}
           registryClicks={stats.registryClicks}
           totalGuests={stats.invited}
           daysUntil={daysUntil}
+          dateLabel={heroDateLabel}
+          headline={headline}
+          nowLabel={nowLabel}
+          nextLabel={nextLabel}
         />
 
-        <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
-          {/* Left — run the day: the schedule anchors the page, the
-              broadcast pushes a note to guests, the reel fills in. */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <DayOfBand label="Run the day" />
+        {/* Run the day — the run of show anchors the page; the call
+            sheet + point person ride a sticky rail (zip DayOf shape). */}
+        <div className="pl8-dayof-primary" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 18, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
-            <WhoToCall siteId={site?.id} />
+            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             {/* Seating loop-closer — reads what /dashboard/seating
                 saved; occasion gate mirrors the Seating tab's. */}
             {isDashSurfaceApplicable('seating', occasion) && (
               <SeatingGlance manifest={site?.manifest} />
             )}
-            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
-            <PaperForTheDay occasion={occasion} />
           </div>
-          {/* Right — the live room: what guests are doing right now. */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <DayOfBand label="The live room" />
+          <div className="pl8-dayof-rail" style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 20, minWidth: 0 }}>
+            <WhoToCall siteId={site?.id} />
+            <PointPerson manifest={site?.manifest} />
+          </div>
+        </div>
+
+        {/* The live room — what guests are doing right now. */}
+        <div>
+          <DayOfBand label="The live room" />
+          <div className="pl8-dayof-live" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 18, marginTop: 14, alignItems: 'start' }}>
             <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
             {/* Song queue only where music fits the occasion — the
                 registry gate hides it for memorials and the like. */}
@@ -1723,25 +1704,19 @@ export function DayOfV8() {
             <GuestWall siteId={site?.id} siteDomain={site?.domain} occasion={occasion} />
           </div>
         </div>
+
+        <PaperForTheDay occasion={occasion} />
       </div>
-      {/* Phone-width timeline rows: drop the status column into a
-          second line under the title so "Happening now" never crams
-          the 1fr title track at 390px. */}
+      {/* Collapse the hero + primary grids on narrow widths; the sticky
+          rail becomes a normal stacked block. */}
       <style jsx global>{`
-        @media (max-width: 640px) {
-          .pl8-dayof-tlrow {
-            /* Time track sizes to its content — a fixed 52px forced
-               "4:00 PM" to wrap/overprint (plan-2 §3.6). */
-            grid-template-columns: 36px minmax(56px, auto) minmax(0, 1fr) !important;
-            gap: 10px !important;
-          }
-          .pl8-dayof-tlstatus {
-            grid-column: 2 / -1;
-            justify-self: start;
-          }
-          .pl8-dayof-tlstatus:empty {
-            display: none;
-          }
+        @media (max-width: 900px) {
+          .pl8-dayof-hero-grid { grid-template-columns: 1fr !important; }
+          .pl8-dayof-primary { grid-template-columns: 1fr !important; }
+          .pl8-dayof-rail { position: static !important; }
+        }
+        @media (max-width: 460px) {
+          .pl8-dayof-hero-stats { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
     </DashLayout>

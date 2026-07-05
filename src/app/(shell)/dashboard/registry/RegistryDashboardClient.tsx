@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
 import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/components/registry/RegistryClaimsFeed';
@@ -10,6 +10,18 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
 import { PageIntro, StatStrip, HintChip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import type { StoryManifest } from '@/types';
+
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+/* Paper card chrome — the shared cockpit/quiet-dash card look
+   (var(--card) on a soft hairline). Matches the zip's Card. */
+const cardChrome: CSSProperties = {
+  background: 'var(--card)',
+  border: '1px solid var(--line-soft)',
+  borderRadius: 16,
+  padding: 22,
+};
 
 /* Native-item side of the ledger — the items the host listed plus
    every reservation / paid purchase on them. Complements
@@ -73,6 +85,51 @@ function useItemLedger(siteId: string | undefined) {
   }, [siteId]);
 
   return { itemCount, itemClaims, pledges };
+}
+
+/* ── Editorial card header ──────────────────────────────────────
+   Mono eyebrow with a gold leading rule + an optional gold "N due"
+   pill on the trailing edge (the zip Registry's Thank-yous card).
+   The pill's dark ink reads on gold in both themes. */
+function CardHeader({ eyebrow, badge }: { eyebrow: string; badge?: ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontFamily: MONO,
+          fontSize: 9.5,
+          fontWeight: 600,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        <span aria-hidden style={{ width: 12, height: 1, background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+        {eyebrow}
+      </div>
+      {badge ? (
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            background: 'var(--pl-gold, #C19A4B)',
+            color: '#2A2410',
+            borderRadius: 999,
+            padding: '2px 10px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {badge}
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 export function RegistryDashboardClient() {
@@ -158,23 +215,35 @@ export function RegistryDashboardClient() {
     return !thanked;
   }).length;
 
+  // Combined one-registry counts (link entries + native items).
+  const listed = entries.length + itemCount;
+  const claimed = claimsCount + itemClaims.length;
+  const open = Math.max(0, listed - claimed);
+
   // Quiet StatStrip (plan rule 3) — Listed / Claimed / Still to
   // thank / Given directly as 40px chips; zeros collapse. The
   // dollar total (money, not a count) stays in the rail.
   const statItems: StatStripItem[] = [
-    { label: 'Listed', value: entries.length + itemCount },
-    { label: 'Claimed', value: claimsCount + itemClaims.length, tone: 'sage' },
-    { label: 'Open', value: Math.max(0, entries.length + itemCount - claimsCount - itemClaims.length) },
+    { label: 'Listed', value: listed },
+    { label: 'Claimed', value: claimed, tone: 'sage' },
+    { label: 'Open', value: open },
     { label: 'Still to thank', value: stillToThank, tone: 'peach' },
     { label: 'Given directly', value: pledges.length, tone: 'gold' },
+  ];
+
+  /* The zip's rail "The registry" card — Listed / Claimed / Still
+     open as big Fraunces numbers. Real, combined counts. */
+  const registryRows: Array<[string, number]> = [
+    ['Listed', listed],
+    ['Claimed', claimed],
+    ['Still open', open],
   ];
 
   return (
     <DashLayout active="registry" hideTopbar>
       <PLAtmosphere />
-      {/* Quiet header (plan rule 1): one line + StatStrip; the
-          "native items guests can claim…" prose is gone — the
-          manager's own empty state explains it. */}
+      {/* Quiet header (plan rule 1): mono eyebrow + one letterpress
+          line + the StatStrip. */}
       <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <PageIntro
           eyebrow="Registry"
@@ -207,7 +276,7 @@ export function RegistryDashboardClient() {
           <PLCard tone="paper" style={{ padding: 60, textAlign: 'center' }}>
             <div
               style={{
-                fontFamily: 'var(--font-display)',
+                fontFamily: DISPLAY,
                 fontStyle: 'italic',
                 fontSize: 18,
                 color: 'var(--sage-deep)',
@@ -221,7 +290,7 @@ export function RegistryDashboardClient() {
           <PLCard tone="sage" style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div
               style={{
-                fontFamily: 'var(--font-display)',
+                fontFamily: DISPLAY,
                 fontStyle: 'italic',
                 fontSize: 22,
                 color: 'var(--sage-deep)',
@@ -236,38 +305,23 @@ export function RegistryDashboardClient() {
             </div>
           </PLCard>
         ) : (
-          /* Quiet ledger (plan: "ledger feed leads; items manager
-             second; sidebar copy → rail"). The gift feed opens the
-             content column; the counts live in the header StatStrip;
-             the rail keeps the money note + payments link. Collapses
-             to one column on narrow widths (rail drops BELOW). */
+          /* Zip Registry shape: the gift grid leads the content
+             column with the thank-you ledger beneath it; the sticky
+             rail carries the "The registry" stats + money note.
+             Collapses to one column on narrow widths (rail below). */
           <div className="pd-registry" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 22, alignItems: 'flex-start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
-              {/* The ledger — every gift across kinds, with the
-                  thank-you toggles. Hides itself when there are none. */}
+              {/* The gift grid (zip's hero) — real items, real photos
+                  (tinted-tile fallback), add / edit / chip-in. */}
+              <section style={cardChrome}>
+                <RegistryItemsManager siteId={site.id} />
+              </section>
+
+              {/* The thank-you ledger — every gift across kinds with
+                  the thank-you toggles. Hides itself when empty. */}
               {totalGifts > 0 && (
-                <PLCard
-                  tone="peach"
-                  title="Thank-yous"
-                  icon="gift"
-                  extra={
-                    <span
-                      style={{
-                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: 'var(--peach-ink, #C6703D)',
-                        padding: '4px 10px',
-                        borderRadius: 999,
-                        background: 'rgba(255,255,255,0.55)',
-                      }}
-                    >
-                      {totalGifts} · new
-                    </span>
-                  }
-                >
+                <section style={cardChrome}>
+                  <CardHeader eyebrow="Thank-yous" badge={stillToThank > 0 ? `${stillToThank} due` : undefined} />
                   {/* The how-it-works paragraph, as a HintChip (plan
                       rule 4) — one line, expands on the ? once. */}
                   <HintChip
@@ -292,28 +346,39 @@ export function RegistryDashboardClient() {
                     extraClaims={[...itemClaimRows, ...pledgeRows]}
                     onThankedChange={onThankedChange}
                   />
-                </PLCard>
+                </section>
               )}
-              {/* The items manager — second (the feed is what a
-                  returning host checks; listing is setup work). */}
-              <PLCard tone="paper" noPadding style={{ padding: 22 }}>
-                <RegistryItemsManager siteId={site.id} />
-              </PLCard>
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}>
-              {/* The honor ledger + money honesty note (plan rule 7:
-                  sidebar copy → quiet rail). Counts live in the
-                  header StatStrip; only the dollar figure sits here. */}
+              {/* The zip's rail "The registry" card — Listed / Claimed
+                  / Still open as big display numbers, then the
+                  honest money note + payments link. */}
               <RailCard title="The registry">
+                {registryRows.map(([label, value]) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
+                    <span style={{ fontSize: 13, color: 'var(--ink)' }}>{label}</span>
+                    <span style={{ fontFamily: DISPLAY, fontSize: 22, color: 'var(--ink)' }}>{value}</span>
+                  </div>
+                ))}
                 {pledges.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 0 8px' }}>
-                    <span style={{ fontSize: 13, color: 'var(--ink)' }}>Given directly</span>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      justifyContent: 'space-between',
+                      padding: '5px 0',
+                      marginTop: 4,
+                      borderTop: '1px solid var(--line-soft)',
+                    }}
+                  >
+                    <span style={{ fontSize: 13, color: 'var(--sage-deep)' }}>Given directly</span>
+                    <span style={{ fontFamily: DISPLAY, fontSize: 22, color: 'var(--ink)' }}>
                       {pledgedCents > 0 ? formatCents(pledgedCents) : pledges.length}
                     </span>
                   </div>
                 )}
-                <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginTop: 8 }}>
                   Cash gifts go straight to your own Venmo / PayPal / Cash App —
                   Pearloom never touches the money. Amounts are as shared by guests.
                 </div>
