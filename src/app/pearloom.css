@@ -2007,8 +2007,14 @@ button.pl8-mobile-only { display: none !important; }
   .pd-director-main,
   .pd-settings-main,
   .pd-guests-main,
-  .pd-dayof-main {
+  .pd-dayof-main,
+  .pd-vendors-main {
     grid-template-columns: 1fr !important;
+  }
+  /* The vendor-book rail stops sticking once it stacks below the
+     roster — a sticky full-width block would pin awkwardly. */
+  .pd-vendors-rail {
+    position: static !important;
   }
 }
 

@@ -3,30 +3,35 @@
 /* ─────────────────────────────────────────────────────────────
    WeekendBuilderPage — one celebration, a weekend of linked sites.
 
-   v2 (2026-07-02): generalized past weddings + redesigned around
-   three plain steps and a live plan:
+   Restyled (2026-07-05) to the design-handoff "Weekend" screen
+   (ScreensPlan.jsx): a lavender base-core banner up top ("one base
+   core weaves across the whole weekend"), the three plain build
+   steps, and a sticky "Your weekend" plan re-drawn as the zip's
+   day-grouped board — day headings + status-dot event cards, the
+   anchor wearing a gold ★ THE DAY. Every value is real: the plan
+   shows the host's chosen events on their computed dates; nothing
+   invents guest counts for sites that don't exist yet. All styling
+   rides the .pl8 chrome tokens.
 
-     1 · What are you planning?   (anchor picker — wedding,
-         quinceañera, bar/bat mitzvah, big birthday, reunion…)
-     2 · The basics               (names per nameModeFor, the
-         anchor date, an auto-woven web address)
-     3 · The events               (arc catalog with REAL computed
-         dates, each adjustable — no "-30 days" jargon)
-
-   A sticky "Your weekend" plan shows the chosen events in
-   chronological order and carries the weave CTA, so the host
-   always sees exactly what they're about to create. The catalog
-   lives in lib/event-os/weekend-arcs.ts (shared with the API).
+   The wiring is unchanged from v2:
+     1 · What are you planning?   (anchor picker)
+     2 · The basics               (names, anchor date, woven address)
+     3 · The events               (arc catalog, real dates, adjustable)
+   The catalog lives in lib/event-os/weekend-arcs.ts (shared with
+   the /api/celebrations/weekend route).
    ───────────────────────────────────────────────────────────── */
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
-import { PageIntro, HintChip } from '../dash/QuietDash';
-import { Icon, Pear, Sparkle } from '../motifs';
+import { PageIntro } from '../dash/QuietDash';
+import { Icon, Pear, Sparkle, PearloomGlyph } from '../motifs';
 import { DatePicker } from '../editor/v8-forms';
 import { WEEKEND_ANCHORS, weekendArcFor, type WeekendEventDef } from '@/lib/event-os/weekend-arcs';
 import { nameModeFor } from '@/lib/event-os/name-mode';
+
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
 
 /* Deterministic date math — safe in render (argument-built Dates
    only; no Date.now()). */
@@ -40,8 +45,18 @@ function fmtDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
+function weekdayOf(iso: string): string {
+  const d = new Date(iso + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-US', { weekday: 'long' });
+}
+function monthDayOf(iso: string): string {
+  const d = new Date(iso + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 function slugify(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 export function WeekendBuilderPage() {
@@ -103,6 +118,28 @@ export function WeekendBuilderPage() {
       .sort((a, b) => (a.iso ?? '').localeCompare(b.iso ?? ''));
   }, [arc, chosen, date, dateOverrides]);
 
+  /* The plan, grouped into the zip's day columns — each distinct
+     date is its own day heading; undated events (no anchor date yet)
+     fall into one "when the day is set" bucket at the end. */
+  const dayGroups = useMemo(() => {
+    const groups: Array<{ key: string; day: string; date: string; items: typeof plan }> = [];
+    for (const p of plan) {
+      const key = p.iso ?? 'tbd';
+      let g = groups.find((x) => x.key === key);
+      if (!g) {
+        g = {
+          key,
+          day: p.iso ? weekdayOf(p.iso) : 'When the day is set',
+          date: p.iso ? monthDayOf(p.iso) : '',
+          items: [],
+        };
+        groups.push(g);
+      }
+      g.items.push(p);
+    }
+    return groups;
+  }, [plan]);
+
   const missing: string | null =
     !name1.trim() ? (nameSpec.mode === 'couple' ? 'Add your names' : `Add the ${nameSpec.primaryLabel.toLowerCase()}`)
     : !date ? `Pick the ${arc.dateLabel.toLowerCase()}`
@@ -153,19 +190,56 @@ export function WeekendBuilderPage() {
   return (
     <DashLayout active="weekend" hideTopbar>
       <div className="pl8" style={{ padding: '20px var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
-        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): one line;
-            the explainer paragraph became a HintChip. */}
         <PageIntro
           eyebrow="Weekend"
-          title="Weekend builder"
-          meta={
-            <HintChip
-              storageKey="pl-hint-weekend-builder"
-              hint="Each event becomes its own site, already linked to the others."
-              detail="Big days rarely come alone. Plan every event around yours — each becomes its own site with its own guest list, already linked to the others. All drafts stay private until you publish each one."
-            />
+          title={
+            <>
+              Plan the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>weekend.</span>
+            </>
           }
         />
+
+        {/* Base core banner — the zip's lavender "one core, threaded
+            across the weekend" card. Carries the woven base address so
+            the host sees exactly what every event inherits. */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '18px 22px',
+            borderRadius: 16,
+            background: 'var(--lavender-bg)',
+            border: '1px solid var(--line-soft)',
+            marginBottom: 20,
+            flexWrap: 'wrap',
+          }}
+        >
+          <PearloomGlyph size={20} color="var(--lavender-ink)" />
+          <span style={{ flex: 1, minWidth: 220, fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+            Every event shares one base core — the names, palette, and guest list weave across the whole weekend. Edit once, thread everywhere.
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '7px 12px',
+              borderRadius: 999,
+              background: 'var(--card)',
+              border: '1px solid var(--line)',
+              fontFamily: MONO,
+              fontSize: 11,
+              letterSpacing: '0.04em',
+              color: 'var(--ink-soft)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Icon name="link" size={12} color="var(--lavender-ink)" />
+            {baseSlug || 'your-names'}
+          </span>
+        </div>
+
         {created ? (
           <div
             style={{
@@ -177,8 +251,8 @@ export function WeekendBuilderPage() {
             }}
           >
             <Pear size={64} tone="sage" sparkle />
-            <h2 className="display" style={{ fontSize: 32, margin: '14px 0 6px' }}>
-              {created.length} {created.length === 1 ? 'draft' : 'drafts'} <span className="display-italic">ready.</span>
+            <h2 style={{ fontFamily: DISPLAY, fontSize: 32, fontWeight: 600, margin: '14px 0 6px', color: 'var(--ink)' }}>
+              {created.length} {created.length === 1 ? 'draft' : 'drafts'} <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>ready.</span>
             </h2>
             <p style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.55 }}>
               Each one is a private draft, already linked to the others. Open one to make it yours and publish when it&rsquo;s ready —
@@ -303,13 +377,14 @@ export function WeekendBuilderPage() {
                   {arc.events.map((e) => {
                     const on = chosen.has(e.kind);
                     const iso = eventDate(e);
+                    const main = e.sluffix === '';
                     return (
                       <div
                         key={e.kind}
                         style={{
                           borderRadius: 12,
                           background: on ? 'var(--sage-tint)' : 'var(--cream-2)',
-                          border: on ? '1.5px solid var(--sage-deep)' : '1px solid var(--line)',
+                          border: on ? '1.5px solid var(--sage-deep)' : main ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid var(--line)',
                           transition: 'border-color var(--pl-dur-fast, 160ms) var(--pl-ease-out, ease), background var(--pl-dur-fast, 160ms) var(--pl-ease-out, ease)',
                         }}
                       >
@@ -319,7 +394,7 @@ export function WeekendBuilderPage() {
                           onClick={() => toggleKind(e.kind)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', padding: 14, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                             <span
                               aria-hidden
                               style={{
@@ -331,10 +406,10 @@ export function WeekendBuilderPage() {
                             >
                               {on && <Icon name="check" size={10} color="#fff" strokeWidth={3} />}
                             </span>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{e.label}</span>
-                            {e.sluffix === '' && (
-                              <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>
-                                Main event
+                            <span style={{ fontFamily: DISPLAY, fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>{e.label}</span>
+                            {main && (
+                              <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-gold, #C19A4B)' }}>
+                                ★ The day
                               </span>
                             )}
                           </div>
@@ -345,7 +420,7 @@ export function WeekendBuilderPage() {
                             <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink-muted)' }}>
                               {iso ? fmtDate(iso) : 'Date follows the big day'}
                             </span>
-                            {iso && e.sluffix !== '' && (
+                            {iso && !main && (
                               <input
                                 type="date"
                                 value={iso}
@@ -363,26 +438,45 @@ export function WeekendBuilderPage() {
               </Card>
             </div>
 
-            {/* ── The plan — sticky, chronological, honest ────── */}
+            {/* ── The plan — sticky, day-grouped, honest ─────── */}
             <aside className="pl8-weekend-plan" style={{ position: 'sticky', top: 84 }}>
               <Card>
                 <div style={eyebrowStyle}>Your weekend</div>
                 {plan.length === 0 ? (
-                  <p style={{ fontSize: 12.5, color: 'var(--ink-muted)', margin: '4px 0 12px', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-muted)', margin: '4px 0 14px', lineHeight: 1.5 }}>
                     Nothing yet. Choose an event and it lands here, in order.
                   </p>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', margin: '4px 0 14px' }}>
-                    {plan.map(({ def, iso }, i) => (
-                      <div key={def.kind} style={{ display: 'flex', gap: 10 }}>
-                        {/* two-dot thread spine */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 10 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: def.sluffix === '' ? 'var(--pl-gold, #C19A4B)' : 'var(--sage-deep)', marginTop: 5, flexShrink: 0 }} />
-                          {i < plan.length - 1 && <span style={{ width: 1, flex: 1, background: 'var(--line)', margin: '3px 0' }} />}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: '4px 0 16px' }}>
+                    {dayGroups.map((g) => (
+                      <div key={g.key}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8, padding: '0 2px' }}>
+                          <span style={{ fontFamily: DISPLAY, fontSize: 16, color: 'var(--ink)' }}>{g.day}</span>
+                          {g.date && <span style={{ fontFamily: MONO, fontSize: 10.5, color: 'var(--ink-muted)' }}>{g.date}</span>}
                         </div>
-                        <div style={{ paddingBottom: i < plan.length - 1 ? 12 : 0, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3 }}>{def.label}</div>
-                          <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>{iso ? fmtDate(iso) : '—'}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {g.items.map(({ def, iso }) => {
+                            const main = def.sluffix === '';
+                            return (
+                              <div
+                                key={def.kind}
+                                style={{
+                                  padding: '11px 12px',
+                                  borderRadius: 12,
+                                  background: 'var(--cream-2)',
+                                  border: main ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid var(--line-soft)',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+                                  <span style={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, background: main ? 'var(--pl-gold, #C19A4B)' : 'var(--sage-deep)' }} />
+                                  <span style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>DRAFT</span>
+                                  {main && <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.06em', color: 'var(--pl-gold, #C19A4B)' }}>★ THE DAY</span>}
+                                </div>
+                                <div style={{ fontFamily: DISPLAY, fontSize: 14.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>{def.label}</div>
+                                <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>{iso ? fmtDate(iso) : 'Date follows the big day'}</div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -397,7 +491,7 @@ export function WeekendBuilderPage() {
                 >
                   {busy ? 'Weaving…' : `Weave ${chosen.size} linked ${chosen.size === 1 ? 'site' : 'sites'}`} <Sparkle size={11} />
                 </button>
-                <div style={{ fontSize: 11, color: error ? '#7A2D2D' : 'var(--ink-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, color: error ? 'var(--pl-plum, #7A2D2D)' : 'var(--ink-muted)', marginTop: 8, lineHeight: 1.5 }}>
                   {error ?? missing ?? 'All drafts stay private until you publish each one.'}
                 </div>
               </Card>

@@ -311,21 +311,28 @@ export function MusicBoard({
                             {String(i + 1).padStart(2, '0')}
                           </span>
                           <TrackArt song={s} tintIdx={i} size={44} playing={playing} onToggle={s.preview_url ? () => togglePreview(key, s.preview_url as string) : undefined} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: DISPLAY, fontSize: 16.5, color: 'var(--ink)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {s.song_title}
+                          {/* title-block + actions in one wrapping row: inline
+                              on desktop, actions drop below the title on phones
+                              so the title never crushes to a single letter. */}
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 14px' }}>
+                            <div style={{ flex: '1 1 150px', minWidth: 0 }}>
+                              <div style={{ fontFamily: DISPLAY, fontSize: 16.5, color: 'var(--ink)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {s.song_title}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {s.artist ? <>{s.artist} <span aria-hidden>·</span> </> : null}
+                                <span style={{ fontStyle: 'italic' }}>basted in by {firstName(s.guest_name)}</span>
+                              </div>
                             </div>
-                            <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {s.artist ? <>{s.artist} <span aria-hidden>·</span> </> : null}
-                              <span style={{ fontStyle: 'italic' }}>basted in by {firstName(s.guest_name)}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                              {s.spotify_url && (
+                                <a href={s.spotify_url} target="_blank" rel="noreferrer" style={spotifyLink}>Open in Spotify</a>
+                              )}
+                              <button type="button" onClick={() => onSetState(s.id, 'hidden')} disabled={busyId === s.id} style={pill('ghost')} aria-label={`Set aside ${s.song_title}`}>
+                                Set aside
+                              </button>
                             </div>
                           </div>
-                          {s.spotify_url && (
-                            <a href={s.spotify_url} target="_blank" rel="noreferrer" style={spotifyLink}>Open in Spotify</a>
-                          )}
-                          <button type="button" onClick={() => onSetState(s.id, 'hidden')} disabled={busyId === s.id} style={pill('ghost')} aria-label={`Set aside ${s.song_title}`}>
-                            Set aside
-                          </button>
                         </div>
                       );
                     })}
@@ -339,7 +346,7 @@ export function MusicBoard({
                   <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8 }}>
                     {spotifyUrl ? (
                       <>
-                        <a href={spotifyUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ink)', fontWeight: 600, textDecoration: 'none', borderBottom: '1px solid var(--line)' }}>
+                        <a href={spotifyUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom', color: 'var(--ink)', fontWeight: 600, textDecoration: 'none', borderBottom: '1px solid var(--line)' }}>
                           {spotifyUrl.length > 72 ? spotifyUrl.slice(0, 72) + '…' : spotifyUrl}
                         </a>
                         <div style={{ marginTop: 4, fontSize: 12, color: 'var(--ink-muted)' }}>

@@ -3667,7 +3667,7 @@ export function WizardV8() {
                       </div>
                     )}
 
-                    <div style={{ ...sketchEyebrow, margin: '14px 0 10px' }}>
+                    <div style={{ ...sketchEyebrow, marginTop: 14 }}>
                       <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> Dress code
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 6 }}>

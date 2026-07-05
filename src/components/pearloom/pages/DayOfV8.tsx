@@ -131,6 +131,15 @@ function DayOfHero({
 }) {
   const now = useLiveClock();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  // Time-dependent chrome (the live clock, the trig-drawn AmbientHour)
+  // is client-only so it can't diverge from the SSR paint. The
+  // headline + metrics are deterministic from props and SSR fine.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // rAF (not a synchronous setState) — React-Compiler safe.
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
   const isEventDay = daysUntil === 0;
   // The gold mono eyebrow — "THE ROOM IS LIVE · SEP 6" on the day,
   // an honest countdown / recap / preview otherwise.
@@ -165,9 +174,11 @@ function DayOfHero({
       style={{ borderRadius: 18, overflow: 'hidden', background: HERO_BG, color: HERO_CREAM, position: 'relative', boxShadow: 'var(--shadow-md, 0 18px 48px -24px rgba(20,24,12,0.55))' }}
     >
       <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', backgroundImage: HERO_LINEN, backgroundSize: '5px 5px' }} />
-      <div aria-hidden style={{ position: 'absolute', top: -18, right: -10, opacity: 0.16, pointerEvents: 'none' }}>
-        <AmbientHour size={168} color={HERO_CREAM} accent={HERO_GOLD} />
-      </div>
+      {mounted && (
+        <div aria-hidden style={{ position: 'absolute', top: -18, right: -10, opacity: 0.16, pointerEvents: 'none' }}>
+          <AmbientHour size={168} color={HERO_CREAM} accent={HERO_GOLD} />
+        </div>
+      )}
       <div
         className="pl8-dayof-hero-grid"
         style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 'clamp(20px,3vw,36px)', alignItems: 'center', padding: 'clamp(22px,3vw,34px)' }}
@@ -187,7 +198,7 @@ function DayOfHero({
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', color: HERO_GOLD, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>THE PULSE</span>
-            <span style={{ fontWeight: 400, letterSpacing: '0.04em', color: HERO_SOFT }}>· {timeStr}</span>
+            {mounted && <span style={{ fontWeight: 400, letterSpacing: '0.04em', color: HERO_SOFT }}>· {timeStr}</span>}
           </div>
           <div className="pl8-dayof-hero-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {metrics.map(([label, value, sub]) => (

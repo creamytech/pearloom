@@ -1,22 +1,30 @@
 'use client';
 
 // ──────────────────────────────────────────────────────────────
-// PaymentsPanel
+// PaymentsLedger  (zip Payments port)
 //
-// Couple-side ledger of every Stripe payment received: registry
-// purchases, cash gifts, tips. Shows totals at the top and a
-// reverse-chronological list below.
+// The couple-side ledger of every payment received: registry
+// purchases, cash gifts, tips. Presentational only — the fetch,
+// totals, StatStrip and the running-total rail live in the
+// mounting PaymentsDashboardClient (usePayments). This component
+// renders the left "The ledger" card of the zip's two-column
+// Payments screen: a mono-eyebrow header strip + one row per
+// payment (who / amount / when / status).
 //
-// Pearloom is the merchant of record — the couple's net amount is
-// shown after our 3% platform fee. We pay the couple out
-// off-platform (manual ACH) until/unless we move to Stripe Connect.
+// Pearloom shows the couple's net after any platform fee when
+// Stripe is the processor; in launch mode there is no fee and net
+// equals gross (so the `hasFee` net sub-line stays hidden). Real
+// data only — the empty state is honest ("Nothing yet. Begin a
+// thread.").
 // ──────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { StatStrip } from '@/components/pearloom/dash/QuietDash';
+import type { CSSProperties } from 'react';
 
-interface Payment {
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+export interface Payment {
   id: string;
   payerEmail: string;
   payerName: string | null;
@@ -31,181 +39,120 @@ interface Payment {
   createdAt: string;
 }
 
-interface Totals { gross: number; net: number; fee: number; count: number }
+export interface Totals { gross: number; net: number; fee: number; count: number }
 
-interface Props { siteId: string }
+/* Paper card chrome — the shared cockpit/quiet-dash card look
+   (var(--card) on a soft hairline). padding:0 + overflow:hidden so
+   the header strip and rows own their own gutters, like the zip's
+   `Card padding={0}`. */
+const cardChrome: CSSProperties = {
+  background: 'var(--card, var(--cream-2))',
+  border: '1px solid var(--line-soft)',
+  borderRadius: 16,
+  overflow: 'hidden',
+};
 
-export function PaymentsPanel({ siteId }: Props) {
-  // Tag the cached data with the siteId it came from so a
-  // siteId prop change reads as "loading" without needing a
-  // separate setLoading-in-effect cascade. `loading` is now
-  // a derived render-time boolean (react-hooks/set-state-in-effect).
-  const [data, setData] = useState<{ siteId: string; payments: Payment[]; totals: Totals } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/payments?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : { payments: [], totals: { gross: 0, net: 0, fee: 0, count: 0 } }))
-      .then((next) => {
-        if (cancelled) return;
-        setData({
-          siteId,
-          payments: next.payments ?? [],
-          totals: next.totals ?? { gross: 0, net: 0, fee: 0, count: 0 },
-        });
-      });
-    return () => { cancelled = true; };
-  }, [siteId]);
-
-  const loading = data?.siteId !== siteId;
-  const payments = !loading ? data!.payments : [];
-  const totals = !loading ? data!.totals : { gross: 0, net: 0, fee: 0, count: 0 };
-
-  // No internal header — the mounting page (PaymentsDashboardClient's
-  // PLHead) owns the "Gifts & payments" title.
+export function PaymentsLedger({ payments, hasFee }: { payments: Payment[]; hasFee: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* Quiet StatStrip (plan rule 3, plan-2 §2 payments) — the
-          three 120px KPI cards showing $0.00 pre-launch collapse to
-          one short chip; with money moving they read as 40px chips. */}
-      <StatStrip
-        items={[
-          { label: 'received', value: totals.gross, display: `$${formatPrice(totals.gross / 100)}`, tone: 'sage' },
-          { label: 'your net', value: totals.net, display: `$${formatPrice(totals.net / 100)}`, tone: 'gold' },
-          { label: totals.count === 1 ? 'gift' : 'gifts', value: totals.count },
-        ]}
-      />
+    <section style={cardChrome}>
+      {/* Header strip — mono eyebrow with a gold leading rule (BRAND §4). */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 20px', borderBottom: '1px solid var(--line-soft)' }}>
+        <span aria-hidden style={{ width: 12, height: 1, background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+        <span style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          The ledger
+        </span>
+      </div>
 
-      {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>Threading…</div>
-      ) : payments.length === 0 ? (
-        <div
-          style={{
-            padding: 48, textAlign: 'center', borderRadius: 16,
-            background: 'var(--cream-2, #F5EFE2)',
-            border: '1px dashed var(--line, rgba(61,74,31,0.18))',
-            color: 'var(--ink-soft)', fontSize: 14,
-          }}
-        >
-          Nothing yet. Payments will appear here as guests claim registry items or send cash gifts.
-          <div style={{ marginTop: 12 }}>
-            <Link href="/dashboard/registry" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink, #1F2418)' }}>
-              Set up your registry →
-            </Link>
+      {payments.length === 0 ? (
+        <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+          <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 19, color: 'var(--sage-deep)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1', marginBottom: 8 }}>
+            Nothing yet. Begin a thread.
           </div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 360, margin: '0 auto 14px' }}>
+            Gifts land here as guests claim registry items or send a little something.
+          </div>
+          <Link href="/dashboard/registry" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--peach-ink, #C6703D)', textDecoration: 'none' }}>
+            Set up your registry →
+          </Link>
         </div>
       ) : (
-        <div
-          style={{
-            background: 'var(--card, #FBF7EE)',
-            border: '1px solid var(--card-ring, rgba(61,74,31,0.14))',
-            borderRadius: 14, overflow: 'hidden',
-          }}
-        >
-          <table className="pl-payments-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
-            <thead style={{ background: 'var(--cream-2, #F5EFE2)' }}>
-              <tr>
-                <Th>From</Th>
-                <Th>Type</Th>
-                <Th align="right">Amount</Th>
-                <Th align="right">Net to you</Th>
-                <Th>Status</Th>
-                <Th>Message</Th>
-                <Th>When</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((p) => (
-                <tr key={p.id} style={{ borderTop: '1px solid var(--line, rgba(61,74,31,0.08))' }}>
-                  <Td>
-                    <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{p.payerName || p.payerEmail}</div>
-                    {p.payerName && (
-                      <div style={{ fontSize: 11, color: 'var(--ink-muted)', overflowWrap: 'anywhere' }}>{p.payerEmail}</div>
-                    )}
-                  </Td>
-                  <Td>
-                    <span style={typeStyle(p.paymentType)}>{labelFor(p.paymentType)}</span>
-                  </Td>
-                  <Td align="right">${formatPrice(p.amountCents / 100)}</Td>
-                  <Td align="right">${formatPrice(p.netAmountCents / 100)}</Td>
-                  <Td><StatusPill status={p.status} /></Td>
-                  <Td>
-                    {p.message ? (
-                      <span title={p.message} style={{ fontStyle: 'italic', color: 'var(--ink-soft)' }}>
-                        {p.message.length > 40 ? `${p.message.slice(0, 40)}…` : p.message}
-                      </span>
-                    ) : '—'}
-                  </Td>
-                  <Td>
-                    <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-                      {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div>
+          {payments.map((p, i) => (
+            <div key={p.id} className="pl-pay-row" style={{ borderTop: i ? '1px solid var(--line-soft)' : 'none' }}>
+              <div className="pl-pay-who" style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', overflowWrap: 'anywhere' }}>
+                  {p.payerName || p.payerEmail}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', overflowWrap: 'anywhere' }}>
+                  {labelFor(p.paymentType)}
+                  {p.message ? ` · ${p.message.length > 46 ? `${p.message.slice(0, 46)}…` : p.message}` : ''}
+                </div>
+              </div>
+              <div className="pl-pay-amt">
+                <span style={{ fontFamily: DISPLAY, fontSize: 18, color: 'var(--ink)' }}>${formatPrice(p.amountCents / 100)}</span>
+                {hasFee && p.status === 'paid' ? (
+                  <span style={{ display: 'block', fontFamily: MONO, fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 2 }}>
+                    net ${formatPrice(p.netAmountCents / 100)}
+                  </span>
+                ) : null}
+              </div>
+              <span className="pl-pay-when" style={{ fontFamily: MONO, fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+              <span className="pl-pay-status">
+                <StatusPill status={p.status} />
+              </span>
+            </div>
+          ))}
         </div>
       )}
-      {/* Phones keep From / Amount / Status / When — the columns
-          that answer "who sent what, did it land". Type (2),
-          Net (4) and Message (6) hide below 760px; same media-query
-          pattern as the guests roster. */}
+
+      {/* The row is a 4-column grid on desktop. On phones it folds to
+          two columns: who + status on the first line, amount + date on
+          the second — the four facts that answer "who sent what, when,
+          did it land". */}
       <style jsx>{`
-        @media (max-width: 760px) {
-          :global(.pl-payments-table th:nth-child(2)),
-          :global(.pl-payments-table td:nth-child(2)),
-          :global(.pl-payments-table th:nth-child(4)),
-          :global(.pl-payments-table td:nth-child(4)),
-          :global(.pl-payments-table th:nth-child(6)),
-          :global(.pl-payments-table td:nth-child(6)) {
-            display: none;
-          }
+        :global(.pl-pay-row) {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(96px, auto) minmax(84px, auto) minmax(88px, auto);
+          gap: 14px;
+          align-items: center;
+          padding: 14px 20px;
         }
-        /* Phone widths — the four surviving columns share ~350px,
-           so the 14px cell gutters give their width back to content. */
-        @media (max-width: 480px) {
-          :global(.pl-payments-table th),
-          :global(.pl-payments-table td) {
-            padding-left: 8px;
-            padding-right: 8px;
-          }
+        :global(.pl-pay-amt) { text-align: right; }
+        :global(.pl-pay-when) { text-align: right; white-space: nowrap; }
+        :global(.pl-pay-status) { justify-self: end; }
+        @media (max-width: 600px) {
+          :global(.pl-pay-row) { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; }
+          :global(.pl-pay-who) { grid-column: 1; grid-row: 1; }
+          :global(.pl-pay-status) { grid-column: 2; grid-row: 1; }
+          :global(.pl-pay-amt) { grid-column: 1; grid-row: 2; text-align: left; }
+          :global(.pl-pay-when) { grid-column: 2; grid-row: 2; align-self: center; }
         }
       `}</style>
-    </div>
+    </section>
   );
 }
 
 function StatusPill({ status }: { status: Payment['status'] }) {
   const map: Record<Payment['status'], { color: string; bg: string; label: string }> = {
-    paid:     { color: '#3B6C3F', bg: 'rgba(74,138,76,0.15)', label: 'Paid' },
-    pending:  { color: '#8A6A2B', bg: 'rgba(196,154,111,0.18)', label: 'Pending' },
-    failed:   { color: '#9B3426', bg: 'rgba(155,52,38,0.12)',  label: 'Failed' },
-    refunded: { color: '#6F6557', bg: 'rgba(111,101,87,0.18)', label: 'Refunded' },
+    paid:     { color: 'var(--sage-deep, #3B6C3F)', bg: 'var(--sage-tint, rgba(74,138,76,0.15))', label: 'Paid' },
+    pending:  { color: '#8A6A2E', bg: 'rgba(193,154,75,0.16)', label: 'Pending' },
+    failed:   { color: 'var(--pl-plum, #9B3426)', bg: 'rgba(155,52,38,0.12)', label: 'Failed' },
+    refunded: { color: 'var(--ink-muted, #6F6557)', bg: 'var(--cream-3, rgba(111,101,87,0.18))', label: 'Refunded' },
   };
   const s = map[status];
   return (
     <span
       style={{
-        display: 'inline-block', padding: '2px 10px', borderRadius: 999,
-        fontSize: 11, fontWeight: 600, color: s.color, background: s.bg,
+        display: 'inline-block', padding: '3px 10px', borderRadius: 999,
+        fontFamily: MONO, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase',
+        fontWeight: 600, color: s.color, background: s.bg, whiteSpace: 'nowrap',
       }}
     >
       {s.label}
     </span>
   );
-}
-
-function typeStyle(t: Payment['paymentType']): React.CSSProperties {
-  const map: Record<Payment['paymentType'], string> = {
-    registry: 'var(--peach-ink)',
-    cash_gift: 'var(--sage-deep)',
-    template_subscription: 'var(--ink)',
-    tip: 'var(--peach-ink)',
-  };
-  return {
-    fontSize: 11, fontWeight: 700, color: map[t], textTransform: 'uppercase', letterSpacing: '0.1em',
-  };
 }
 
 function labelFor(t: Payment['paymentType']): string {
@@ -215,24 +162,6 @@ function labelFor(t: Payment['paymentType']): string {
     case 'template_subscription': return 'Subscription';
     case 'tip': return 'Tip';
   }
-}
-
-function Th({ children, align }: { children: React.ReactNode; align?: 'left' | 'right' }) {
-  return (
-    <th
-      style={{
-        padding: '10px 14px', textAlign: align ?? 'left',
-        fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--ink-muted)', fontWeight: 600,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, align }: { children: React.ReactNode; align?: 'left' | 'right' }) {
-  return <td style={{ padding: '12px 14px', textAlign: align ?? 'left', verticalAlign: 'top' }}>{children}</td>;
 }
 
 function formatPrice(n: number): string {

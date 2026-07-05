@@ -483,10 +483,9 @@ export function VendorBookClient() {
   return (
     <DashLayout active="vendors" hideTopbar>
       <PLAtmosphere />
-      {/* Quiet header (plan rules 1 + 6): one line + StatStrip; the
-          "everyone you've hired…" prose is gone (the empty state
-          carries the invitation) and Add a vendor rides the
-          actions row. */}
+      {/* Quiet header: one display line + the Add a vendor action.
+          The roster totals live in the right rail's "The team" card
+          (zip layout), so the header stays a single line. */}
       <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <PageIntro
           eyebrow="Vendors"

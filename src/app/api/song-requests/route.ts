@@ -95,10 +95,21 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('song_requests')
-    .select('id, guest_id, guest_name, song_title, artist, spotify_url, note, state, created_at')
+    .select('id, guest_id, guest_name, song_title, artist, spotify_url, art_url, preview_url, note, state, created_at')
     .eq('site_id', site.id)
     .order('created_at', { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // Older deployments may predate the 20260702 art/preview
+    // migration — retry without the new columns so the host queue
+    // (with album art + previews) still loads on those.
+    const { data: legacy, error: legacyErr } = await supabase
+      .from('song_requests')
+      .select('id, guest_id, guest_name, song_title, artist, spotify_url, note, state, created_at')
+      .eq('site_id', site.id)
+      .order('created_at', { ascending: false });
+    if (legacyErr) return NextResponse.json({ error: legacyErr.message }, { status: 500 });
+    return NextResponse.json({ songs: legacy ?? [] });
+  }
   return NextResponse.json({ songs: data ?? [] });
 }
 
