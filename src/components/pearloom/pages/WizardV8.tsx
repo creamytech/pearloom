@@ -8,7 +8,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
@@ -649,6 +649,10 @@ function WizardPhotoUpload({
 
   return (
     <div>
+      {/* Photo sources — the handoff's horizontal picker cards: a
+          round icon chip beside a Fraunces title + one-line blurb.
+          The device tile stays a <label> over the hidden file input;
+          the Google tile keeps its button wiring. */}
       <div
         className="pl8-photo-sources"
         style={{
@@ -662,22 +666,35 @@ function WizardPhotoUpload({
           htmlFor={inputId}
           style={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-            border: '2px dashed var(--line)',
-            borderRadius: 14,
-            background: 'var(--cream-2)',
+            gap: 16,
+            padding: '20px 22px',
+            border: '1px solid var(--line)',
+            borderRadius: 16,
+            background: 'var(--card)',
             cursor: 'pointer',
-            gap: 8,
-            color: 'var(--ink-soft)',
-            minHeight: 150,
+            minHeight: 96,
           }}
         >
-          <Icon name="upload" size={24} />
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Upload from device</div>
-          <div style={{ fontSize: 11, textAlign: 'center' }}>JPG, PNG, HEIC · up to {MAX_WIZARD_PHOTOS}</div>
+          <span
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 999,
+              flexShrink: 0,
+              background: 'var(--pl-olive, #5C6B3F)',
+              display: 'grid',
+              placeItems: 'center',
+              color: '#fff',
+            }}
+          >
+            <Icon name="upload" size={22} />
+          </span>
+          <span style={{ display: 'block' }}>
+            <span className="display" style={{ display: 'block', fontSize: 18, color: 'var(--ink)' }}>Upload from device</span>
+            <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-muted)' }}>Choose photos from your computer.</span>
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>JPG, PNG, HEIC · up to {MAX_WIZARD_PHOTOS}</span>
+          </span>
         </label>
         <input
           id={inputId}
@@ -694,33 +711,78 @@ function WizardPhotoUpload({
           disabled={pickerBusy}
           style={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-            border: '2px solid var(--line)',
-            borderRadius: 14,
+            gap: 16,
+            padding: '20px 22px',
+            border: '1px solid var(--line)',
+            borderRadius: 16,
             background: pickerBusy ? 'var(--cream-2)' : 'var(--card)',
             cursor: pickerBusy ? 'wait' : 'pointer',
-            gap: 8,
-            color: 'var(--ink)',
-            minHeight: 150,
+            minHeight: 96,
+            textAlign: 'left',
             fontFamily: 'var(--font-ui)',
           }}
         >
-          <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden>
-            <path fill="#EA4335" d="M24 9.5c-3.54 0-6.72 1.22-9.2 3.22l-5.36-5.36C13.26 3.89 18.37 2 24 2c8.27 0 15.26 4.59 19 11.27l-5.9 4.58C34.96 13.31 29.89 9.5 24 9.5z" />
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-            <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.35l-7.73-6c-2.15 1.45-4.92 2.3-6.84 2.3-5.89 0-10.87-3.81-12.65-8.85l-7.98 6.19C6.73 41.41 13.73 46 24 46z" />
-          </svg>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>
-            {pickerBusy ? 'Opening Google Photos…' : 'Pick from Google Photos'}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-soft)', textAlign: 'center' }}>
-            Choose in a popup · nothing leaves Google unless you pick it
-          </div>
+          <span
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 999,
+              flexShrink: 0,
+              background: 'var(--cream-2)',
+              border: '1px solid var(--line-soft)',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 48 48" aria-hidden>
+              <path fill="#EA4335" d="M24 9.5c-3.54 0-6.72 1.22-9.2 3.22l-5.36-5.36C13.26 3.89 18.37 2 24 2c8.27 0 15.26 4.59 19 11.27l-5.9 4.58C34.96 13.31 29.89 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.35l-7.73-6c-2.15 1.45-4.92 2.3-6.84 2.3-5.89 0-10.87-3.81-12.65-8.85l-7.98 6.19C6.73 41.41 13.73 46 24 46z" />
+            </svg>
+          </span>
+          <span style={{ display: 'block' }}>
+            <span className="display" style={{ display: 'block', fontSize: 18, color: 'var(--ink)' }}>
+              {pickerBusy ? 'Opening Google Photos…' : 'Pick from Google Photos'}
+            </span>
+            <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-muted)' }}>Choose photos from your library.</span>
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>Nothing leaves Google unless you pick it.</span>
+          </span>
         </button>
+      </div>
+
+      {/* Pear's smart insight — the honest strip that names what she
+          does with the photos (cover, mood, palette). No mockups. */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          padding: '14px 18px',
+          borderRadius: 14,
+          background: 'var(--cream-2)',
+          border: '1px solid var(--line-soft)',
+          marginBottom: 14,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 220 }}>
+          <Pear size={22} tone="sage" sparkle shadow={false} />
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>Pear&apos;s smart insight</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+              From these photos, Pear pulls a cover, reads the mood, and mixes your palette.
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          {([['image', 'Find a cover'], ['sun', 'Infer mood'], ['grid', 'Build palette']] as const).map(([i, l]) => (
+            <span key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--ink-soft)' }}>
+              <Icon name={i} size={14} color="var(--pl-olive, #5C6B3F)" /> {l}
+            </span>
+          ))}
+        </div>
       </div>
 
       {picker.error && (
@@ -1250,8 +1312,8 @@ function GuestsWillAsk({
 
   return (
     <div style={{ marginTop: 18 }}>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
-        Guests will ask
+      <div style={{ ...sketchEyebrow, marginBottom: 4 }}>
+        <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> Guests will ask
       </div>
       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
         Thirty seconds here fills the Travel, Details, and FAQ sections with real answers. All optional.
@@ -1416,8 +1478,8 @@ function TheExtras({
 
   return (
     <div style={{ marginTop: 18 }}>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
-        The extras
+      <div style={{ ...sketchEyebrow, marginBottom: 4 }}>
+        <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> The extras
       </div>
       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
         Each one becomes a living part of the site. Skip anything — you can add them all later.
@@ -1839,6 +1901,82 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
   );
 }
 
+/* Mono phase eyebrow above each step heading — "STORY · STEP 2 OF 4"
+   in olive, matching the design handoff's per-step header (the H
+   component's `pre`). Computed from the live phase map so it always
+   tracks template mode's hidden Vibe/Palette. The Occasion +
+   Sections steps carry their own bespoke eyebrows, so they skip it. */
+function StepEyebrow({ step, hiddenSteps = [] }: { step: StepKey; hiddenSteps?: StepKey[] }) {
+  const phase = phaseFor(step);
+  const phaseSteps = PHASES.find((p) => p.key === phase)?.steps ?? [];
+  const visible = phaseSteps.filter((s) => !hiddenSteps.includes(s));
+  const n = visible.indexOf(step) + 1;
+  const m = visible.length;
+  return (
+    <div
+      style={{
+        fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+        fontSize: 11,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        color: 'var(--pl-olive, #5C6B3F)',
+        marginBottom: 12,
+      }}
+    >
+      {phase} · Step {n} of {m}
+    </div>
+  );
+}
+
+/* Small olive check badge — the design handoff marks a Basics field
+   as filled the moment it has content. */
+function GreenCheck({ size = 18 }: { size?: number }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 999,
+        flexShrink: 0,
+        background: 'var(--pl-olive, #5C6B3F)',
+        display: 'grid',
+        placeItems: 'center',
+        color: '#fff',
+      }}
+    >
+      <Icon name="check" size={Math.round(size * 0.6)} strokeWidth={3} />
+    </span>
+  );
+}
+
+/* Field label carrying the handoff's fill-check on the trailing edge. */
+function CheckLabel({ children, done }: { children: ReactNode; done: boolean }) {
+  return (
+    <label
+      className="field-label"
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
+    >
+      <span>{children}</span>
+      {done && <GreenCheck size={16} />}
+    </label>
+  );
+}
+
+/* The Day / "Sketch the day" section eyebrows — olive mono caps with
+   a leading gold fleuron, per the handoff's ✦ SECTION headers. */
+const sketchEyebrow: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+  fontSize: 11,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+  color: 'var(--pl-olive, #5C6B3F)',
+  marginBottom: 10,
+};
+
 /* Relative luminance from a hex color (#rgb / #rrggbb). Returns
    null for anything unparseable (var() strings, named colors) so
    callers can keep their defaults. */
@@ -2188,6 +2326,10 @@ export function WizardV8() {
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
+  // Template mode folds the Vibe + Palette steps out of the Look
+  // phase — the same set PhaseHeader hides. StepEyebrow reads this so
+  // its "Look · Step n of m" count matches the header stepper.
+  const hiddenSteps: StepKey[] = st.templateId ? ['Vibe', 'Palette'] : [];
   // The live save-the-date phone preview rides EVERY step (v4 design):
   // the two-column canvas grid appears beside the controls on Occasion,
   // Basics, Details, Day, Photos, Sections, Vibe, Palette and Review so
@@ -3162,6 +3304,7 @@ export function WizardV8() {
                 const remembering = st.occasion === 'memorial' || st.occasion === 'funeral';
                 return (
                 <>
+                  <StepEyebrow step="Basics" hiddenSteps={hiddenSteps} />
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     {nameSpec.mode === 'solo' ? (
                       remembering ? (
@@ -3187,7 +3330,7 @@ export function WizardV8() {
                     }}
                   >
                     <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'auto' : 'span 1' }}>
-                      <label className="field-label">{nameSpec.primaryLabel}</label>
+                      <CheckLabel done={!!st.names[0].trim()}>{nameSpec.primaryLabel}</CheckLabel>
                       <input
                         className="input"
                         value={st.names[0]}
@@ -3203,7 +3346,7 @@ export function WizardV8() {
                     </div>
                     {nameSpec.mode === 'couple' && (
                       <div>
-                        <label className="field-label">{nameSpec.secondaryLabel ?? 'Second name'}</label>
+                        <CheckLabel done={!!st.names[1].trim()}>{nameSpec.secondaryLabel ?? 'Second name'}</CheckLabel>
                         <input
                           className="input"
                           value={st.names[1]}
@@ -3227,7 +3370,7 @@ export function WizardV8() {
                       </div>
                     )}
                     <div>
-                      <label className="field-label">Date</label>
+                      <CheckLabel done={!!st.eventDate}>Date</CheckLabel>
                       <WizardDatePicker
                         value={st.eventDate}
                         onChange={(iso) => setSt((s) => ({ ...s, eventDate: iso }))}
@@ -3235,7 +3378,7 @@ export function WizardV8() {
                       />
                     </div>
                     <div>
-                      <label className="field-label">Location</label>
+                      <CheckLabel done={!!st.location}>Location</CheckLabel>
                       <WizardLocationAutocomplete
                         value={st.location}
                         onChange={(v) => setSt((s) => ({ ...s, location: v }))}
@@ -3251,7 +3394,7 @@ export function WizardV8() {
                       />
                     </div>
                     <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'span 2' : 'span 1' }}>
-                      <label className="field-label">Site link</label>
+                      <CheckLabel done={!!st.subdomain.trim()}>Site link (optional)</CheckLabel>
                       <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', flexWrap: 'wrap' }}>
                         <div
                           style={{
@@ -3334,6 +3477,7 @@ export function WizardV8() {
                 const q = questionsFor(st.occasion);
                 return (
                   <>
+                    <StepEyebrow step="Details" hiddenSteps={hiddenSteps} />
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                       Tell me <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
@@ -3472,6 +3616,7 @@ export function WizardV8() {
                 const suggestedDl = suggestRsvpDeadline(st.eventDate || undefined);
                 return (
                   <>
+                    <StepEyebrow step="Day" hiddenSteps={hiddenSteps} />
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                       Sketch <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>the day.</span>
                     </h2>
@@ -3480,8 +3625,8 @@ export function WizardV8() {
                       Skip anything you haven’t decided.
                     </p>
 
-                    <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 10 }}>
-                      Moments
+                    <div style={sketchEyebrow}>
+                      <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> Moments
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 8 }}>
                       {moments.map((m) => {
@@ -3522,8 +3667,8 @@ export function WizardV8() {
                       </div>
                     )}
 
-                    <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '14px 0 10px' }}>
-                      Dress code
+                    <div style={{ ...sketchEyebrow, margin: '14px 0 10px' }}>
+                      <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> Dress code
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 6 }}>
                       {dresses.map((d) => {
@@ -3570,6 +3715,7 @@ export function WizardV8() {
 
               {step === 'Photos' && (
                 <>
+                  <StepEyebrow step="Photos" hiddenSteps={hiddenSteps} />
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
@@ -3608,6 +3754,7 @@ export function WizardV8() {
 
               {step === 'Vibe' && (
                 <>
+                  <StepEyebrow step="Vibe" hiddenSteps={hiddenSteps} />
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Set the <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>vibe.</span>
                   </h2>
@@ -3673,6 +3820,7 @@ export function WizardV8() {
 
               {step === 'Palette' && (
                 <>
+                  <StepEyebrow step="Palette" hiddenSteps={hiddenSteps} />
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Choose your <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>colors.</span>
                   </h2>
@@ -4065,12 +4213,25 @@ export function WizardV8() {
 
               {step === 'Review' && (
                 <>
+                  <StepEyebrow step="Review" hiddenSteps={hiddenSteps} />
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     When you save, we&apos;ll build your first draft and open the studio.
                   </p>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                      fontSize: 11,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-muted)',
+                      marginBottom: 10,
+                    }}
+                  >
+                    Your plan
+                  </div>
                   <div className="pl8-basics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <Row label="Occasion" val={OCCASIONS.find((o) => o.id === st.occasion)?.label ?? '—'} />
                     <Row label="Names" val={st.names.filter(Boolean).join(' & ') || '—'} />
