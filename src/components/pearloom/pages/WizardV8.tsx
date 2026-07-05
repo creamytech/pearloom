@@ -12,9 +12,6 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSPr
 import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
-import { Motif as BrandMotif, type MotifName } from '@/components/brand/Motif';
-import { Monogram } from '@/components/brand/Monogram';
-import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { Pearl } from '@/components/brand/Pearl';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -919,6 +916,7 @@ function OccasionPicker({
     const on = selected === o.id;
     const isIntent = intentOccasion === o.id;
     const glyphColor = TONE_INK[o.tone];
+    const desc = getEventType(o.id)?.tagline ?? '';
     return (
       <button
         key={o.id}
@@ -927,21 +925,22 @@ function OccasionPicker({
         // Hover host — bespoke glyph anims fire on parent hover.
         className="pl8-glyph-host"
         style={{
-          // Design system v2: card-style tile — glyph chip on top, label
-          // below (was a compact row). Matches the wizard prototype.
+          // Design handoff: big card — icon chip top-left, name + a
+          // one-line description below. Selected = olive tint + olive
+          // border + a check badge in the top-right corner.
           position: 'relative',
-          padding: 16,
+          padding: '20px 18px',
           borderRadius: 16,
           border: on
-            ? '2px solid var(--pl-olive, #5C6B3F)'
+            ? '1.5px solid var(--pl-olive, #5C6B3F)'
             : '1px solid var(--line)',
           background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
           boxShadow: on ? '0 0 0 4px var(--pl-olive-12, rgba(92,107,63,0.12))' : 'none',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          gap: 10,
-          minHeight: 94,
+          gap: 12,
+          minHeight: 128,
           cursor: 'pointer',
           textAlign: 'left',
           fontFamily: 'var(--font-ui)',
@@ -954,11 +953,24 @@ function OccasionPicker({
           if (!on) e.currentTarget.style.transform = '';
         }}
       >
+        {on && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute', top: 12, right: 12,
+              width: 22, height: 22, borderRadius: 999,
+              background: 'var(--pl-olive, #5C6B3F)',
+              display: 'grid', placeItems: 'center', color: '#fff',
+            }}
+          >
+            <Icon name="check" size={12} strokeWidth={3} />
+          </span>
+        )}
         <div
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
+            width: 44,
+            height: 44,
+            borderRadius: 13,
             flexShrink: 0,
             // Chip inverts to olive on select (cream glyph) — the
             // prototype's selected-tile signature.
@@ -971,13 +983,18 @@ function OccasionPicker({
         >
           <OccasionGlyph id={o.id} size={24} />
         </div>
-        <div className="display" style={{ fontSize: 15.5, color: 'var(--ink)' }}>
+        <div className="display" style={{ fontSize: 17, lineHeight: 1.15, color: 'var(--ink)' }}>
           {o.label}
         </div>
+        {desc && (
+          <div style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--ink-muted)', marginTop: -2 }}>
+            {desc}
+          </div>
+        )}
         {isIntent && (
           <span
             style={{
-              position: 'absolute', top: -8, right: 10,
+              position: 'absolute', top: -8, left: 12,
               fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
               color: 'var(--peach-ink, #C6703D)', background: 'var(--peach-bg, #F4E3D3)',
               border: '1px solid var(--card, #fff)',
@@ -1078,26 +1095,57 @@ function OccasionPicker({
           </div>
           <div
             className="pl8-occasion-grid pl-cascade-row"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginBottom: 16 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, marginBottom: 16 }}
           >
             {popular.map(tile)}
+            {/* Other event — dashed tile; opens the full all-events view. */}
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              style={{
+                position: 'relative',
+                padding: '20px 18px',
+                borderRadius: 16,
+                border: '1.5px dashed var(--line)',
+                background: 'transparent',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                minHeight: 128,
+                cursor: 'pointer',
+                textAlign: 'center',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              <span
+                style={{
+                  width: 44, height: 44, borderRadius: 999,
+                  display: 'grid', placeItems: 'center',
+                  border: '1.5px solid var(--line)', color: 'var(--ink-muted)',
+                }}
+              >
+                <Icon name="plus" size={18} />
+              </span>
+              <div className="display" style={{ fontSize: 17, color: 'var(--ink)' }}>Other event</div>
+              <div style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--ink-muted)' }}>
+                Can&apos;t find your event? We&apos;ve got you.
+              </div>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAll(true)}
+          {/* Soft note — the all-events view stays reachable via the
+              Other-event tile and the search box above. */}
+          <div
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--pl-olive, #5C6B3F)',
-              fontFamily: 'inherit',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              padding: '4px 0',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              marginTop: 4, padding: '10px 16px', borderRadius: 999,
+              background: 'var(--pl-gold-mist, #F4ECD6)',
+              fontSize: 12.5, color: 'var(--ink-soft)', fontFamily: 'var(--font-ui)',
             }}
           >
-            Show all {OCCASIONS.length} events →
-          </button>
+            <Sparkle size={13} color="var(--gold)" /> Not sure? You can explore all {OCCASIONS.length} event types later.
+          </div>
         </>
       )}
 
@@ -1120,7 +1168,7 @@ function OccasionPicker({
                 >
                   {CATEGORY_LABELS[cat]}
                 </div>
-                <div className="pl8-occasion-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+                <div className="pl8-occasion-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 }}>
                   {items.map(tile)}
                 </div>
               </div>
@@ -1130,7 +1178,7 @@ function OccasionPicker({
       )}
 
       {filtered !== null && (
-        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 }}>
           {filtered.length === 0 ? (
             <div
               style={{
@@ -1825,33 +1873,14 @@ const STEP_TIPS: Record<StepKey, string> = {
   Review: 'Nothing is public until you publish. Keep editing as long as you like.',
 };
 
-// Occasion → brand-Motif name. Maps each of our occasions onto one
-// of the 14 line-ornaments so the live preview + occasion tiles wear
-// a motif in the brand's single hand (design system v2). Unknowns
-// fall back to 'sprig'.
-const OCCASION_MOTIF: Record<string, MotifName> = {
-  wedding: 'rings', engagement: 'rings', 'vow-renewal': 'rings',
-  anniversary: 'laurel', retirement: 'laurel',
-  'bridal-shower': 'bloom', 'bridal-luncheon': 'bloom', 'baby-shower': 'bloom',
-  'gender-reveal': 'bloom', 'sip-and-see': 'bloom', quinceanera: 'bloom',
-  'bachelor-party': 'star', 'bachelorette-party': 'star', graduation: 'star',
-  'rehearsal-dinner': 'candle', 'bar-mitzvah': 'candle', 'bat-mitzvah': 'candle',
-  'first-communion': 'candle', confirmation: 'candle',
-  'welcome-party': 'sun', brunch: 'sun', reunion: 'sun',
-  'first-birthday': 'cake', 'sweet-sixteen': 'cake', 'milestone-birthday': 'cake', birthday: 'cake',
-  baptism: 'dove', memorial: 'dove', funeral: 'dove',
-  housewarming: 'arch', story: 'feather',
-};
-function motifForOccasion(occasion: string): MotifName {
-  return OCCASION_MOTIF[occasion] ?? 'sprig';
-}
-
-// Live save-the-date preview shown beside the Look-phase steps (design
-// system v2). Mirrors the design kit's LivePreview: the real Monogram,
-// Motif, and Divider brand components, themed by the chosen palette so
-// it updates the instant the host types a name or picks colors. Colors
-// derive from the same robust ground/accent/ink chain as the inline
-// vignette, so any palette (smart, photo, or classic) reads cleanly.
+// Live save-the-date preview shown beside every step — a phone frame
+// (dark bezel, drop shadow) holding a scrollable mini save-the-date
+// site (design handoff: SiteBody + LiveSite). Ports the zip exactly:
+// monogram / hamburger nav, save-the-date hero, photo cover, an Our
+// Story band, three detail cards, and an RSVP block. It re-themes off
+// the chosen palette — paper/ink/accent derive from the same robust
+// ground/accent/ink chain as the inline vignette, so any palette
+// (smart, photo, or classic) reads cleanly.
 function WizardLivePreview({ st }: { st: WizardState }) {
   const nameSpec = nameModeFor(st.occasion);
   const couple = nameSpec.mode === 'couple';
@@ -1859,7 +1888,14 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   const a = names[0] || (couple ? 'Alex' : nameSpec.primaryPlaceholder);
   const b = couple ? (names[1] || 'Jamie') : '';
   const title = names.length ? names.join(couple ? ' & ' : ', ') : (couple ? `${a} & ${b}` : a);
-  const occLabel = OCCASIONS.find((o) => o.id === st.occasion)?.label ?? '';
+  // Monogram mark for the phone's top-left corner.
+  const initials = couple
+    ? `${a[0] || 'A'}&${b[0] || 'J'}`.toUpperCase()
+    : (a[0] || 'S').toUpperCase();
+  // Occasion-appropriate verb line under the names.
+  const verb = st.occasion === 'wedding' || st.occasion === 'vow-renewal'
+    ? 'are getting married'
+    : 'are celebrating';
 
   const paletteColors =
     st.paletteColors && st.paletteColors.length > 0
@@ -1878,63 +1914,103 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   const accent = groundLum == null || (accentLum != null && contrastRatio(accentLum, groundLum) >= 3)
     ? accentRaw
     : `color-mix(in srgb, ${accentRaw} 45%, ${baseInk})`;
-  const gold = 'var(--pl-gold, #C19A4B)';
-
   const date = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   });
+  // Mini-site tints derived from the theme so they read on any palette.
+  // color-mix keeps both hex AND var() inputs valid.
+  const paper = ground;
+  const section = `color-mix(in srgb, ${ground} 90%, ${accent})`;
+  const inkSoft = `color-mix(in srgb, ${ink} 68%, ${ground})`;
+  const inkMuted = `color-mix(in srgb, ${ink} 45%, ${ground})`;
+  const line = `color-mix(in srgb, ${ink} 16%, ${ground})`;
+  const place = st.location;
+
+  const mono = 'var(--font-mono, ui-monospace, monospace)';
+  const display = 'var(--font-display, Fraunces, serif)';
 
   return (
-    <aside className="pl8-wizard-preview" style={{ position: 'sticky', top: 96, alignSelf: 'start', justifySelf: 'center' }}>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', textAlign: 'center', marginBottom: 10 }}>
-        Live · your site
-      </div>
+    <aside
+      className="pl8-wizard-preview"
+      style={{ position: 'sticky', top: 96, alignSelf: 'start', justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
+    >
+      {/* LIVE PREVIEW pill */}
+      <span
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '5px 13px', borderRadius: 999,
+          border: '1px solid var(--line)', background: 'var(--card)',
+          fontFamily: mono, fontSize: 9.5, letterSpacing: '0.12em',
+          textTransform: 'uppercase', color: 'var(--ink-muted)',
+        }}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--pl-olive, #5C6B3F)' }} /> Live preview
+      </span>
+
+      {/* Phone frame — dark bezel + soft drop shadow. */}
       <div
         key={`${st.palette}${title}`}
         className="pl-press-in"
         style={{
-          width: 270,
-          borderRadius: 20,
+          width: 300,
+          boxSizing: 'border-box',
+          borderRadius: 26,
+          border: '8px solid #1A1712',
+          background: '#1A1712',
+          boxShadow: '0 34px 70px -30px rgba(60,50,20,0.5)',
           overflow: 'hidden',
-          border: '1px solid var(--line)',
-          boxShadow: 'var(--pl-shadow-xl, 0 24px 60px -22px rgba(40,28,12,0.4))',
-          background: ground,
         }}
       >
-        <div style={{ padding: '30px 22px 22px', textAlign: 'center', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 12, right: 12, opacity: 0.5 }}>
-            <BrandMotif name={motifForOccasion(st.occasion)} size={26} color={accent} accent={gold} />
+        {/* Scrollable mini save-the-date site (design handoff SiteBody). */}
+        <div style={{ height: 540, overflow: 'auto', borderRadius: 18, background: paper, color: ink, fontFamily: 'var(--font-ui)' }}>
+          {/* Nav row — monogram + menu */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+            <span style={{ width: 34, height: 34, borderRadius: 999, border: `1px solid ${line}`, display: 'grid', placeItems: 'center', fontFamily: display, fontStyle: 'italic', fontSize: 12, color: ink }}>
+              {initials}
+            </span>
+            <Icon name="list" size={16} color={inkMuted} />
           </div>
-          <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: accent, marginBottom: 10, opacity: 0.85 }}>
-            Save the date
+          {/* Hero */}
+          <div style={{ textAlign: 'center', padding: '10px 18px 22px' }}>
+            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkMuted }}>Save the date</div>
+            <div style={{ fontFamily: display, fontWeight: 600, fontSize: 28, lineHeight: 1.05, color: ink, margin: '8px 0 2px' }}>
+              {couple ? <>{a} <span style={{ fontStyle: 'italic', color: accent }}>&amp;</span> {b}</> : title}
+            </div>
+            <div style={{ fontFamily: display, fontStyle: 'italic', fontSize: 13.5, color: accent }}>{verb}</div>
+            <div style={{ fontSize: 10.5, color: inkSoft, marginTop: 10, lineHeight: 1.6 }}>
+              {date || 'The date'}{place ? <><br />{place}</> : null}
+            </div>
           </div>
-          <Monogram
-            left={(a[0] || 'M').toUpperCase()}
-            right={(b[0] || 'J').toUpperCase()}
-            single={!couple}
-            frame="ring"
-            size={70}
-            ink={ink}
-            accent={accent}
-            paper={ground}
+          {/* Photo cover */}
+          <img
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&q=80&auto=format&fit=crop"
+            alt=""
+            style={{ width: '100%', height: 132, objectFit: 'cover', display: 'block' }}
           />
-          <div className="display" style={{ fontWeight: 600, fontSize: 22, lineHeight: 1.05, color: ink, marginTop: 10 }}>{title}</div>
-          {occLabel && (
-            <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 13, color: accent, marginTop: 4 }}>{occLabel}</div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
-            <BrandDivider ornament={getEventType(st.occasion)?.voice === 'solemn' ? 'cross' : 'sprig'} width="90px" ink={accent} accent={gold} color={`${accent}33`} />
+          {/* Our story band */}
+          <div style={{ padding: '22px 18px', background: section, textAlign: 'center' }}>
+            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent }}>Our story</div>
+            <div style={{ fontFamily: display, fontSize: 18, margin: '6px 0', color: ink }}>The story so far</div>
+            <div style={{ fontSize: 10.5, color: inkSoft, lineHeight: 1.65 }}>Two people, a shared beginning, and all the small moments in between.</div>
           </div>
-          <div style={{ fontSize: 10, color: ink, opacity: 0.6, fontFamily: 'var(--font-mono, ui-monospace, monospace)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            {date || 'The date'}
+          {/* Detail cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: 16 }}>
+            {([['calendar', 'Date'], ['pin', 'Venue'], ['hanger', 'Attire']] as const).map(([icon, label]) => (
+              <div key={label} style={{ textAlign: 'center', border: `1px solid ${line}`, borderRadius: 8, padding: '13px 6px' }}>
+                <Icon name={icon} size={15} color={accent} />
+                <div style={{ fontFamily: display, fontSize: 12, marginTop: 6, color: ink }}>{label}</div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div style={{ padding: 12, borderTop: `1px solid ${accent}22` }}>
-          <div style={{ padding: '9px', borderRadius: 999, background: accent, color: ground, textAlign: 'center', fontSize: 11.5, fontWeight: 600 }}>
-            Press RSVP →
+          {/* RSVP block */}
+          <div style={{ padding: '24px 18px', textAlign: 'center', background: ink, color: paper }}>
+            <div style={{ fontFamily: display, fontSize: 20 }}>Kindly reply</div>
+            <span style={{ display: 'inline-block', marginTop: 12, padding: '9px 22px', borderRadius: 6, background: paper, color: ink, fontSize: 11.5, fontWeight: 600 }}>RSVP</span>
           </div>
         </div>
       </div>
+
+      <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>This preview updates as you choose.</div>
     </aside>
   );
 }
@@ -2927,13 +3003,13 @@ export function WizardV8() {
           // Single-column letterpress feel; on the Look + Review steps
           // it becomes a two-column layout with the live save-the-date
           // preview beside the controls (collapses to one column on mobile).
-          maxWidth: showPreview ? 1060 : 760,
+          maxWidth: showPreview ? 1200 : 760,
           margin: '0 auto',
           padding: '40px 32px 80px',
           position: 'relative',
           zIndex: 2,
           ...(showPreview
-            ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 48, alignItems: 'start' }
+            ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 48, alignItems: 'start' }
             : {}),
         }}
       >
