@@ -1,28 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
-import { DashLayout } from '../dash/DashShell';
-import { PageIntro } from '../dash/QuietDash';
+import { DashLayout, crestTint } from '../dash/DashShell';
 import { parseLocalDate } from '@/lib/date-utils';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
-import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
+import { Heart, Icon, PearloomGlyph } from '../motifs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getTheme } from '../site/themes';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import type { SiteStat } from '@/app/api/dashboard/sites-stats/route';
 
-// Real per-site stats (coming / invited / visits) for the v2 SiteCard
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+
+// Real per-site stats (coming / invited / visits) for the SiteCard
 // stat row. Module-cached with a short TTL: flipping between dashboard
 // tabs doesn't refetch, but RSVPs landing / a freshly created site
 // don't stay stale for the whole SPA session either. Stale-while-
 // revalidate: paint the cached copy instantly, refresh in the effect.
-// Fails soft — a card with no stat just omits the row.
+// Fails soft — a card with no stat just shows the em-dash "still
+// threading" convention, never a fabricated count.
 let _statsCache: { at: number; stats: Record<string, SiteStat> } | null = null;
 const STATS_TTL_MS = 60_000;
 function useSitesStats(): Record<string, SiteStat> {
@@ -57,54 +58,48 @@ function siteTitle(s: SiteSummary) {
   return s.domain;
 }
 
-// Per-occasion accent so each card reads distinctly from the next.
-// Memorial / funeral lean plum, birthdays warm gold, weddings the
-// brand olive. Keeps the grid readable when a host has 4+ events.
-function accentFor(occasion?: string): { ribbon: string; tint: string } {
-  if (occasion === 'memorial' || occasion === 'funeral') {
-    return { ribbon: 'var(--plum, #7A2D2D)', tint: 'var(--plum-mist, rgba(122,45,45,0.10))' };
-  }
-  if (occasion === 'birthday' || occasion === 'milestone-birthday' || occasion === 'first-birthday' || occasion === 'sweet-sixteen') {
-    return { ribbon: 'var(--gold, #C19A4B)', tint: 'var(--gold-mist, rgba(184,147,90,0.10))' };
-  }
-  return { ribbon: 'var(--peach-ink, #C6703D)', tint: 'var(--peach-bg, rgba(198,112,61,0.08))' };
-}
-
+// ── Site card — the zip's ScreensSite SiteCard ─────────────────
+// Cover (real coverPhoto, else an occasion-tinted paper tile with
+// the Pear glyph — the SiteCrest/crestTint pattern) · glass Live/
+// Draft chip · title + date · occasion·theme in a colored italic ·
+// a real RSVP/Visits stat row · where · a Pear note · Open editor /
+// Preview. Every value is host data; nothing is invented.
 function SiteCard({
   site,
-  tone,
   nextPath,
   stat,
   onDeleted,
 }: {
   site: SiteSummary;
-  tone: 'sage' | 'peach' | 'lavender' | 'cream';
   nextPath: string | null;
   stat?: SiteStat;
   onDeleted: (domain: string) => void;
 }) {
   const date = parseLocalDate(site.eventDate);
   const dateLabel = date
-    ? date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'Date TBD';
   const url = formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion));
   const pickHref = nextPath
     ? `${nextPath}${nextPath.includes('?') ? '&' : '?'}site=${encodeURIComponent(site.domain)}`
     : null;
-  const accent = accentFor(site.occasion);
+  const tint = crestTint(site.occasion);
   const [hovered, setHovered] = useState(false);
-  // Real theme name for the "occasion · theme" line (zip SiteCard).
-  // Resolved from the manifest's themeId; falls back to occasion only.
+  // Real theme name for the "occasion · theme" line — resolved from
+  // the manifest's themeId; falls back to occasion only.
   const themeId = (site.manifest as { themeId?: string } | undefined)?.themeId;
   const themeName = themeId ? getTheme(themeId).name : null;
   const isMemorial = site.occasion === 'memorial' || site.occasion === 'funeral';
-  const { data: session } = useSession();
-  // Host avatars (zip SiteCard) — the owner (this dashboard's user)
-  // first, then real co-hosts from the cohosts table. Initials only;
-  // no invented people.
-  const ownerInitial = ((session?.user?.name ?? session?.user?.email ?? 'You').trim()[0] ?? 'Y').toUpperCase();
-  const cohostInitials = (stat?.cohosts ?? []).map((c) => (c.email.trim()[0] ?? '?').toUpperCase());
-  const avatarTints = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)', 'var(--gold, #C19A4B)'];
+
+  // Where — venue if the host set one (pinned), else the live URL.
+  const where = site.venue ?? url;
+  const whereIcon = site.venue ? 'pin' : 'link';
+
+  // Pear's note — the assistant's voice, not a fabricated metric:
+  // an unpublished site has a draft ready; a published one is set.
+  const note = site.published
+    ? { text: 'Pear thinks everything’s set', bg: 'var(--sage-tint)', ink: 'var(--sage-deep)' }
+    : { text: 'Pear has a draft ready', bg: 'var(--peach-bg)', ink: 'var(--peach-ink)' };
 
   return (
     <div
@@ -112,8 +107,8 @@ function SiteCard({
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--card)',
-        border: `1px solid ${hovered ? accent.ribbon : 'var(--card-ring)'}`,
-        borderRadius: 20,
+        border: `1px solid ${hovered ? tint.fg : 'var(--card-ring)'}`,
+        borderRadius: 16,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -125,33 +120,37 @@ function SiteCard({
         position: 'relative',
       }}
     >
-      {/* Quick actions menu (•••) over the cover. Always rendered —
-          hover-only hid it entirely on touch/mobile, where the
-          duplicate / edit / delete actions were unreachable. */}
-      <SiteCardMenu
-        site={site}
-        onDeleted={() => onDeleted(site.domain)}
-      />
-      <div style={{ position: 'relative' }}>
-        <PhotoPlaceholder tone={tone} aspect="16/9" src={site.coverPhoto ?? undefined} />
-        {/* Floating brand mark when there's no cover photo — keeps
-            the card from feeling empty before the host uploads. */}
-        {!site.coverPhoto && (
+      {/* Cover — real photo, or the occasion-tinted crest tile. */}
+      <div
+        style={{
+          height: 158,
+          position: 'relative',
+          background: tint.bg,
+          borderBottom: '1px solid var(--line)',
+          overflow: 'hidden',
+        }}
+      >
+        {site.coverPhoto ? (
+          <img
+            src={site.coverPhoto}
+            alt=""
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
             {isMemorial
-              ? <Heart size={48} color={accent.ribbon} />
-              : <Pear size={56} tone="sage" shadow={false} />}
+              ? <Heart size={44} color={tint.fg} />
+              : <PearloomGlyph size={48} color={tint.fg} />}
           </div>
         )}
-        {/* Glass Live/Draft chip on the cover (zip SiteCard) — replaces
-            the badge that used to sit below the title. */}
+        {/* Glass Live/Draft chip (real published state). */}
         <span
           className="pl-glass-surface"
           style={{
             position: 'absolute', top: 12, left: 12,
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '4px 10px', borderRadius: 999,
-            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontFamily: MONO,
             fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             color: 'var(--ink)',
           }}
@@ -159,73 +158,68 @@ function SiteCard({
           <span style={{ width: 7, height: 7, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--pl-gold)' }} />
           {site.published ? 'Live' : 'Draft'}
         </span>
+        {/* Quick actions (•••) — real edit / view / delete. Always
+            rendered so the actions are reachable on touch too. */}
+        <SiteCardMenu site={site} onDeleted={() => onDeleted(site.domain)} />
       </div>
-      <div style={{ padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
-        {/* Title + date baseline row (zip SiteCard) */}
+
+      <div style={{ padding: '15px 18px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {/* Title + date baseline row. */}
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-          <div className="display" style={{ fontSize: 22, lineHeight: 1.05, minWidth: 0 }}>{siteTitle(site)}</div>
-          <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateLabel}</span>
+          <div
+            className="display"
+            style={{ fontSize: 20, lineHeight: 1.05, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {siteTitle(site)}
+          </div>
+          <span style={{ fontFamily: MONO, fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateLabel}</span>
         </div>
-        {/* Occasion · theme, in italic lavender (zip SiteCard) */}
-        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--lavender-ink)', marginTop: 3 }}>
+        {/* Occasion · theme — a colored italic keyed to the occasion. */}
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13.5, color: tint.fg, marginTop: 3 }}>
           {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
         </div>
-        {/* Stat row — real coming/invited + lifetime visits (zip
-            SiteCard). The row's frame renders immediately with an em
-            dash (the KPI-tile convention for "still threading") and
-            the real numbers fade in — no placeholder number, and no
-            layout jump a second after paint. */}
-        <div style={{ display: 'flex', gap: 24, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
+        {/* Stat row — real coming/invited + lifetime visits. The frame
+            renders immediately with an em dash (the "still threading"
+            convention) and the real numbers fade in; no placeholder
+            number, no layout jump a second after paint. */}
+        <div style={{ display: 'flex', gap: 26, margin: '13px 0', paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
           {([
             ['RSVPs', stat ? `${stat.coming} / ${stat.invited}` : '—'],
             ['Visits', stat ? fmtVisits(stat.visits) : '—'],
           ] as const).map(([l, v]) => (
             <div key={l}>
-              <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
-              <div key={stat ? 'v' : 'p'} className={stat ? 'pl8-content-fade-in' : undefined} style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: stat ? 'var(--ink)' : 'var(--ink-muted)', marginTop: 2 }}>{v}</div>
+              <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
+              <div
+                key={stat ? 'v' : 'p'}
+                className={stat ? 'pl8-content-fade-in' : undefined}
+                style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: stat ? 'var(--ink)' : 'var(--ink-muted)', marginTop: 2 }}
+              >
+                {v}
+              </div>
             </div>
           ))}
         </div>
-        {site.venue && (
-          <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
-            <Icon name="pin" size={12} /> {site.venue}
-          </div>
-        )}
-        {/* URL with a live/idle status dot (zip SiteCard domain row).
-            The stat row above always renders now, so no own divider. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
-          <span style={{ width: 6, height: 6, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--line)' }} />
-          {url}
+        {/* Where — venue (pinned) or the live address. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12 }}>
+          <span style={{ color: site.venue ? 'var(--ink-soft)' : 'var(--ink-muted)', display: 'inline-flex', flexShrink: 0 }}>
+            <Icon name={whereIcon} size={12} />
+          </span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{where}</span>
         </div>
-        {/* Draft nudge — the zip's peach "next thing" row, shown only
-            where we have something honest to say (an unpublished draft). */}
-        {!site.published && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px', borderRadius: 10, background: 'var(--peach-bg)', marginTop: 12 }}>
-            <span style={{ color: 'var(--peach-ink)', display: 'inline-flex' }}><Sparkle size={12} /></span>
-            <span style={{ fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>Pear has a draft ready</span>
-          </div>
-        )}
-        {/* Host avatars — owner + real co-hosts, with an invite + that
-            opens the editor's co-host flow (zip SiteCard). */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12 }}>
-          <div style={{ display: 'flex' }}>
-            <span style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[0], border: '2px solid var(--card)', display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ownerInitial}</span>
-            {cohostInitials.map((ch, i) => (
-              <span key={i} title={(stat?.cohosts ?? [])[i]?.email} style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[(i + 1) % avatarTints.length], border: '2px solid var(--card)', marginLeft: -7, display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ch}</span>
-            ))}
-          </div>
-          <Link href={`/editor/${encodeURIComponent(site.domain)}?jump=cohost`} title="Invite a co-host" style={{ width: 24, height: 24, borderRadius: 999, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-muted)', display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
-            <Icon name="plus" size={12} />
-          </Link>
+        {/* Pear's note. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 11px', borderRadius: 9, background: note.bg, marginBottom: 14 }}>
+          <PearloomGlyph size={14} color={note.ink} />
+          <span style={{ fontSize: 12, color: 'var(--ink)' }}>{note.text}</span>
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 14 }}>
+        {/* Actions. */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
           {pickHref ? (
-            <Link href={pickHref} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+            <Link href={pickHref} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
               <Icon name="check" size={12} /> Use this site
             </Link>
           ) : (
-            <Link href={`/editor/${encodeURIComponent(site.domain)}`} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
-              <Icon name="brush" size={12} /> Open editor
+            <Link href={`/editor/${encodeURIComponent(site.domain)}`} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+              <Icon name="layout" size={13} /> Open editor
             </Link>
           )}
           <a
@@ -244,13 +238,125 @@ function SiteCard({
   );
 }
 
+// ── Start-a-new-site tile (zip NewSiteTile) ────────────────────
+// The dashed tile at the end of the grid. Tapping it reveals the
+// occasion picker; each occasion deep-links the wizard with its
+// ?occasion= prefill, so Pear starts on the right foot.
+const NEW_OCCASIONS: Array<[label: string, icon: string, occasion: string | null]> = [
+  ['Wedding', 'heart-icon', 'wedding'],
+  ['Birthday', 'sparkles', 'birthday'],
+  ['Anniversary', 'gift', 'anniversary'],
+  ['Memorial', 'pin', 'memorial'],
+  ['Shower', 'image', 'baby-shower'],
+  ['Something else', 'plus', null],
+];
+
+function NewSiteTile() {
+  const [picking, setPicking] = useState(false);
+  return (
+    <div
+      style={{
+        minHeight: 396,
+        borderRadius: 16,
+        border: '1.5px dashed var(--line)',
+        background: picking ? 'var(--card)' : 'transparent',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+        padding: 24,
+        boxSizing: 'border-box',
+        transition: 'background 180ms ease',
+      }}
+    >
+      {!picking ? (
+        <button
+          type="button"
+          onClick={() => setPicking(true)}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          <span style={{ width: 52, height: 52, borderRadius: 999, border: '1.5px solid var(--peach-ink)', display: 'grid', placeItems: 'center', color: 'var(--peach-ink)' }}>
+            <Icon name="plus" size={22} />
+          </span>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 19, color: 'var(--ink)' }}>Start a new one</span>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-muted)', maxWidth: 200, textAlign: 'center', lineHeight: 1.5 }}>
+            Start from the occasion and Pear drafts the first weave.
+          </span>
+        </button>
+      ) : (
+        <>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', color: 'var(--ink-muted)' }}>WHAT ARE WE CELEBRATING?</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: '100%' }}>
+            {NEW_OCCASIONS.map(([label, icon, occasion]) => (
+              <Link
+                key={label}
+                href={occasion ? `/wizard/new?occasion=${occasion}` : '/wizard/new'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 12px', borderRadius: 10,
+                  background: 'var(--cream-3)', border: '1px solid var(--line)',
+                  textDecoration: 'none', textAlign: 'left',
+                  transition: 'border-color 160ms ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; }}
+              >
+                <span style={{ color: 'var(--peach-ink)', display: 'inline-flex' }}><Icon name={icon} size={15} /></span>
+                <span style={{ fontSize: 12.5, color: 'var(--ink)', fontWeight: 500 }}>{label}</span>
+              </Link>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPicking(false)}
+            style={{ fontSize: 11.5, color: 'var(--ink-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Cancel
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Weekend banner (zip WeekendBanner) ─────────────────────────
+// The one place the ⌘K-only Weekend builder is discoverable.
+// Wedding-arc sites only (the builder weaves rehearsal → ceremony
+// → brunch) and hidden in pick mode.
+function WeekendBanner() {
+  return (
+    <Link
+      href="/dashboard/weekend"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 18,
+        padding: '20px 26px', flexWrap: 'wrap',
+        borderRadius: 16,
+        background: 'var(--cream-2)',
+        border: '1px solid var(--line-soft)',
+        textDecoration: 'none', color: 'var(--ink)',
+        marginTop: 28,
+      }}
+    >
+      <span style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line)', display: 'grid', placeItems: 'center', color: 'var(--lavender-ink)', flexShrink: 0 }}>
+        <Icon name="calendar" size={20} />
+      </span>
+      <div style={{ flex: 1, minWidth: 220 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: 'var(--ink)' }}>Planning a whole weekend?</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
+          One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.
+        </div>
+      </div>
+      <span className="btn btn-outline btn-sm" style={{ pointerEvents: 'none', flexShrink: 0 }}>
+        Weekend builder <Icon name="arrow-right" size={13} />
+      </span>
+    </Link>
+  );
+}
+
 // ── Card menu (•••) ─────────────────────────────────────────────
-// Hover-revealed kebab menu in the top-right of every site card.
-// Houses the destructive "Delete site" action that's been missing
-// from the dashboard since launch — confirmation prompt prevents
-// accidental wipes. View-live + open-editor are also exposed here
-// so heavy-keyboard users can run common actions without aiming
-// for the inline buttons in the card body.
+// Kebab menu over the cover. Houses the destructive "Delete site"
+// action (confirmation-gated) plus edit + view-live shortcuts.
 function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () => void }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -276,10 +382,6 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
 
   async function handleDelete() {
     if (busy) return;
-    // Use the dashboard's branded confirm dialog (DialogProvider
-    // mounted in ShellPersistentLayout) instead of the native
-    // window.confirm — the native chrome breaks the editorial
-    // voice and is jarring on macOS.
     const sure = await dialog.confirm({
       title: `Delete "${site.domain}"?`,
       message:
@@ -299,8 +401,6 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
         throw new Error(body?.error ?? `Delete failed (${res.status})`);
       }
       onDeleted();
-      // Invalidate the dashboard cache so other tabs / routes see
-      // the removal on their next render too.
       invalidateSitesCache();
     } catch (err) {
       await dialog.alert({
@@ -314,15 +414,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
   }
 
   return (
-    <div
-      ref={ref}
-      style={{
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        zIndex: 5,
-      }}
-    >
+    <div ref={ref} style={{ position: 'absolute', top: 10, right: 10, zIndex: 5 }}>
       <button
         type="button"
         onClick={(e) => {
@@ -333,19 +425,17 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
         aria-haspopup="menu"
         aria-expanded={open}
         title="Site actions"
+        className="pl-glass-surface"
         style={{
-          width: 32,
-          height: 32,
+          width: 30,
+          height: 30,
           borderRadius: 999,
           border: 'none',
-          background: 'rgba(14,13,11,0.78)',
-          color: 'var(--cream, #FBF7EE)',
+          color: 'var(--ink)',
           cursor: 'pointer',
           display: 'grid',
           placeItems: 'center',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          boxShadow: '0 6px 14px rgba(14,13,11,0.30)',
+          padding: 0,
         }}
       >
         <Icon name="more" size={14} />
@@ -434,7 +524,6 @@ export function EventIndexPage() {
   const siteStats = useSitesStats();
   const params = useSearchParams();
   const nextPath = params?.get('next') ?? null;
-  const tones = ['sage', 'peach', 'lavender', 'cream'] as const;
   const pickMode = Boolean(nextPath);
   // Local optimistic-removal set so a deleted card disappears the
   // moment the API returns 200, without waiting for the next
@@ -451,25 +540,21 @@ export function EventIndexPage() {
     void refresh();
   };
 
+  const showWeekend = !loading && !pickMode && visibleSites.length > 0 &&
+    visibleSites.some((s) => isDashSurfaceApplicable('weekend', s.occasion));
+
   return (
-    <DashLayout active="sites" hideTopbar>
-      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Quiet header (DASHBOARD-LAYOUT-PLAN rule 1): eyebrow +
-            one line + a single CTA. The old hero paragraph is gone —
-            the empty state carries the pitch; the cards speak for
-            themselves. */}
-        <PageIntro
-          eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
-          title={pickMode ? 'Pick a site' : 'My sites'}
-          actions={
-            pickMode ? undefined : (
-              <Link href="/wizard/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                Start a new one <Pear size={14} tone="cream" shadow={false} />
-              </Link>
-            )
-          }
-        />
+    <DashLayout
+      active="sites"
+      eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
+      title={pickMode ? 'Pick a site' : 'My sites'}
+      subtitle={pickMode
+        ? 'Choose which celebration this connects to.'
+        : 'Every celebration you’re weaving.'}
+    >
+      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 40px', maxWidth: 1240, margin: '0 auto' }}>
         {loading && <DashSkeleton kind="card-grid" count={3} label="Threading your sites" />}
+
         {!loading && (!sites || sites.length === 0) && (
           <DashEmpty
             size="page"
@@ -484,68 +569,39 @@ export function EventIndexPage() {
             ]}
           />
         )}
+
         {!loading && visibleSites.length > 0 && (
           <div
             className="pl8-dash-stagger"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
-              gap: 24,
+              gap: 20,
             }}
           >
-            {visibleSites.map((s, i) => (
+            {visibleSites.map((s) => (
               <SiteCard
                 key={s.id}
                 site={s}
-                tone={tones[i % tones.length]}
                 nextPath={nextPath}
                 stat={siteStats[s.id]}
                 onDeleted={handleDeleted}
               />
             ))}
+            {/* The new-site tile joins the grid — but never in pick
+                mode, where the host is attaching an existing site. */}
+            {!pickMode && <NewSiteTile />}
           </div>
         )}
+
         {!loading && sites && sites.length > 0 && visibleSites.length === 0 && (
           <div style={{ padding: 56, textAlign: 'center', color: 'var(--ink-soft)' }}>
             All cleared. <Link href="/wizard/new" style={{ color: 'var(--peach-ink)' }}>Begin a new thread</Link>.
           </div>
         )}
-        {/* Weekend builder discovery — it lives at a ⌘K-only route, so
-            this strip is the one place hosts planning multi-event
-            weekends will stumble onto it. Wedding-arc sites only
-            (the builder weaves rehearsal → ceremony → brunch);
-            hidden in pick mode (the host is mid-flow elsewhere). */}
-        {!loading && !pickMode && visibleSites.length > 0 &&
-          visibleSites.some((s) => isDashSurfaceApplicable('weekend', s.occasion)) && (
-          <Link
-            href="/dashboard/weekend"
-            style={{
-              marginTop: 28,
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 14,
-              padding: '16px 20px',
-              borderRadius: 14,
-              background: 'var(--sage-tint)',
-              border: '1px solid var(--line-soft)',
-              textDecoration: 'none',
-              color: 'var(--ink)',
-            }}
-          >
-            <Icon name="calendar" size={18} />
-            <span style={{ flex: 1, minWidth: 'min(220px, 100%)' }}>
-              <span style={{ fontWeight: 700, fontSize: 14 }}>Planning a whole weekend?</span>{' '}
-              <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-                One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.
-              </span>
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--sage-deep)', flexShrink: 0 }}>
-              Weekend builder →
-            </span>
-          </Link>
-        )}
-      </div>
+
+        {showWeekend && <WeekendBanner />}
+      </main>
     </DashLayout>
   );
 }

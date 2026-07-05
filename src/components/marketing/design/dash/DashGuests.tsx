@@ -9,7 +9,7 @@ import { Panel, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, StatStrip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
-import { Icon, Sprig } from '@/components/pearloom/motifs';
+import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -799,12 +799,121 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// RSVP-status pill palette — the ScreensGuests tokens: Yes = sage,
+// Pending = warm gold/peach, Maybe = lavender, No = stone/muted.
 const rsvpMap: Record<RsvpKey, { bg: string; fg: string; label: string }> = {
-  yes: { bg: '#E6EAC8', fg: PD.oliveDeep, label: 'Yes' },
-  no: { bg: '#F1D7CE', fg: PD.plum, label: 'No' },
-  maybe: { bg: '#F4E1BC', fg: PD.gold, label: 'Maybe' },
-  pending: { bg: '#E6DFC9', fg: '#6A6A56', label: 'Pending' },
+  yes: { bg: 'var(--sage-tint, #E3E6C8)', fg: 'var(--sage-deep, #6d7d3f)', label: 'Yes' },
+  no: { bg: 'var(--cream-3)', fg: 'var(--ink-muted, #6A6A56)', label: 'No' },
+  maybe: { bg: 'var(--lavender-bg, #E8E0F0)', fg: 'var(--lavender-ink, #6B5A8C)', label: 'Maybe' },
+  pending: { bg: 'rgba(193,154,75,0.16)', fg: 'var(--peach-ink, #C6703D)', label: 'Pending' },
 };
+
+// Avatar ink — a deterministic tint per guest so the initials-in-a-
+// circle avatars read as a set (ScreensGuests uses these four inks).
+// NO stock photography for people (task rule); initials only.
+const AVATAR_INKS = ['var(--sage-deep, #6d7d3f)', 'var(--peach-ink, #C6703D)', 'var(--lavender-ink, #6B5A8C)', '#8A6A2E'];
+function avatarInk(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return AVATAR_INKS[h % AVATAR_INKS.length];
+}
+
+// ── StatFilterPills ───────────────────────────────────────────
+// The design's signature stat row: big Fraunces number + mono label
+// per RSVP bucket, doubling as the roster filter. Real counts only.
+function StatFilterPills({
+  items,
+  active,
+  onSelect,
+}: {
+  items: Array<{ k: string; label: string; color: string; count: number }>;
+  active: string;
+  onSelect: (k: string) => void;
+}) {
+  return (
+    <div className="pl-hscroll" style={{ display: 'flex', gap: 10 }}>
+      {items.map((p) => {
+        const on = active === p.k;
+        return (
+          <button
+            key={p.k}
+            type="button"
+            onClick={() => onSelect(p.k)}
+            aria-pressed={on}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 9,
+              padding: '10px 16px',
+              borderRadius: 999,
+              flexShrink: 0,
+              cursor: 'pointer',
+              background: on ? 'var(--card)' : 'transparent',
+              border: `1px solid ${on ? p.color : 'var(--line)'}`,
+              boxShadow: on ? `inset 0 0 0 1px ${p.color}` : 'none',
+              fontFamily: 'inherit',
+            }}
+          >
+            <span style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontSize: 22, lineHeight: 1, color: p.color }}>
+              {p.count}
+            </span>
+            <span style={{ fontFamily: 'var(--pl-font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              {p.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── RsvpDonut ─────────────────────────────────────────────────
+// The conic-gradient RSVP donut (same approach as the Home cockpit's
+// GuestSummaryCard). Sits atop the insight rail. Honest: the caller
+// only mounts it when there are guests, so there's never a 0% ring.
+function RsvpDonut({
+  counts,
+}: {
+  counts: { all: number; yes: number; no: number; maybe: number; pending: number };
+}) {
+  const total = counts.all || 1;
+  const pendingLike = counts.pending + counts.maybe;
+  const ay = (counts.yes / total) * 360;
+  const ap = (pendingLike / total) * 360;
+  const grad = `conic-gradient(var(--sage-deep, #6d7d3f) 0deg ${ay}deg, var(--pl-gold, #C19A4B) ${ay}deg ${ay + ap}deg, var(--stone, #C8BFA5) ${ay + ap}deg 360deg)`;
+  const comingPct = Math.round((counts.yes / total) * 100);
+  const legend: Array<[string, number, string]> = [
+    ['Yes', counts.yes, 'var(--sage-deep, #6d7d3f)'],
+    ['Pending', pendingLike, 'var(--pl-gold, #C19A4B)'],
+    ['Declined', counts.no, 'var(--stone, #C8BFA5)'],
+  ];
+  return (
+    <RailCard title="RSVP at a glance">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', width: 104, height: 104, flexShrink: 0 }}>
+          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: grad }} />
+          <div style={{ position: 'absolute', inset: 13, borderRadius: '50%', background: 'var(--card)', display: 'grid', placeItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontSize: 24, lineHeight: 1, color: 'var(--ink)' }}>{comingPct}%</div>
+              <div style={{ fontFamily: 'var(--pl-font-mono)', fontSize: 8, letterSpacing: '0.14em', color: 'var(--ink-muted)', marginTop: 2 }}>COMING</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ flex: 1, minWidth: 130 }}>
+          {legend.map(([l, n, col]) => (
+            <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 0' }}>
+              <span style={{ width: 9, height: 9, borderRadius: 999, background: col, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 13, color: 'var(--ink)' }}>{l}</span>
+              <span style={{ fontFamily: 'var(--pl-font-mono)', fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                {n} · {Math.round((n / total) * 100)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </RailCard>
+  );
+}
 
 /* Delegates to the shared normaliser so this page, the Analytics
    funnel and /api/dashboard/sites-stats can never disagree on what
@@ -1117,26 +1226,27 @@ export function DashGuests() {
     (site?.manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig?.guestListOnly,
   );
 
-  // Quiet StatStrip (plan rule 3) — replaces both the "N coming,
-  // N maybe, N still quiet." display headline and the six 100px
-  // KPI cards. Zeros collapse into one muted trailing chip.
-  const statItems: StatStripItem[] = [
-    { label: 'Invited', value: counts.all },
-    { label: 'Yes', value: counts.yes, tone: 'sage' },
-    { label: 'Pending', value: counts.pending, tone: 'peach' },
-    { label: 'Maybe', value: counts.maybe, tone: 'gold' },
-    ...(solemn ? [] : [{ label: 'Stale', value: counts.stale, tone: 'plum' as const }]),
-    { label: 'Declined', value: counts.no },
-    // Per-event headcounts fold into the same strip (plan-2 §1-G)
-    // instead of a second "BY EVENT" chip row above the roster.
-    ...(showPerEvent
-      ? events.map((ev) => ({
-          label: `${(ev.name ?? 'Event').slice(0, 18)} · yes`,
-          value: (perEventCounts[ev.id] ?? { yes: 0, maybe: 0 }).yes,
-          tone: 'sage' as const,
-        }))
-      : []),
+  // Big number+label filter pills — the ScreensGuests signature stat
+  // row that doubles as the roster filter. Real counts only; a zero
+  // bucket still shows so the host sees the whole picture at a glance.
+  const pillItems: Array<{ k: typeof filter; label: string; color: string; count: number }> = [
+    { k: 'all', label: 'Invited', color: 'var(--ink)', count: counts.all },
+    { k: 'yes', label: 'Yes', color: 'var(--sage-deep, #6d7d3f)', count: counts.yes },
+    { k: 'pending', label: 'Pending', color: 'var(--peach-ink, #C6703D)', count: counts.pending },
+    ...(solemn ? [] : [{ k: 'stale' as const, label: 'Stale', color: PD.terra, count: counts.stale }]),
+    { k: 'maybe', label: 'Maybe', color: 'var(--lavender-ink, #6B5A8C)', count: counts.maybe },
+    { k: 'no', label: 'Declined', color: PD.plum, count: counts.no },
+    ...(duplicateIds.size > 0 ? [{ k: 'dupes' as const, label: 'Dupes', color: 'var(--lavender-ink, #6B5A8C)', count: duplicateIds.size }] : []),
   ];
+  // Per-event headcounts stay available as a small strip under the
+  // header when a site has 2+ events (unchanged feature, plan-2 §1-G).
+  const perEventStatItems: StatStripItem[] = showPerEvent
+    ? events.map((ev) => ({
+        label: `${(ev.name ?? 'Event').slice(0, 18)} · yes`,
+        value: (perEventCounts[ev.id] ?? { yes: 0, maybe: 0 }).yes,
+        tone: 'sage' as const,
+      }))
+    : [];
 
   return (
     <DashLayout active="guests" hideTopbar>
@@ -1148,7 +1258,7 @@ export function DashGuests() {
         <PageIntro
           eyebrow={siteName ? `Guests · ${siteName}` : 'Guests'}
           title="The guest list."
-          meta={hasGuests ? <StatStrip items={statItems} /> : undefined}
+          meta={hasGuests && perEventStatItems.length > 0 ? <StatStrip items={perEventStatItems} /> : undefined}
           actions={
             <>
               <button className="pl8-btnfx" style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
@@ -1183,6 +1293,13 @@ export function DashGuests() {
           style={{ marginBottom: 14 }}
         />
       </div>
+      {/* Big number+label stat pills — the ScreensGuests signature row.
+          Full width above the roster/rail grid; each pill filters. */}
+      {hasGuests && (
+        <div style={{ padding: '0 var(--pl-dash-pad) 18px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
+          <StatFilterPills items={pillItems} active={filter} onSelect={(k) => setFilter(k as typeof filter)} />
+        </div>
+      )}
       {/* Roster / Submissions / Registry tabs come from the shell's
           DashSubNav — no in-page duplicate strip. */}
       <main
@@ -1454,19 +1571,20 @@ export function DashGuests() {
                         cursor: isPhone ? 'pointer' : undefined,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                         <div
                           style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 99,
-                            background: `hsl(${(i * 47) % 360} 30% 72%)`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 12,
+                            width: 34,
+                            height: 34,
+                            borderRadius: 999,
+                            flexShrink: 0,
+                            background: 'var(--cream-3)',
+                            border: '1px solid var(--line-soft)',
+                            display: 'grid',
+                            placeItems: 'center',
+                            fontSize: 13,
                             fontWeight: 600,
-                            color: PD.ink,
+                            color: avatarInk(g.em !== '—' ? g.em : g.n),
                             fontFamily: '"Fraunces", Georgia, serif',
                             fontStyle: 'italic',
                           }}
@@ -1724,6 +1842,25 @@ export function DashGuests() {
                 })}
               </div>
             )}
+            {hasGuests && !loading && !error && filtered.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '13px 20px',
+                  borderTop: '1px solid var(--line)',
+                  flexWrap: 'wrap',
+                  gap: 10,
+                }}
+              >
+                <span style={{ fontSize: 12, color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
+                  {filtered.length === counts.all
+                    ? `${counts.all} ${counts.all === 1 ? 'guest' : 'guests'}`
+                    : `Showing ${filtered.length} of ${counts.all} guests`}
+                </span>
+              </div>
+            )}
           </Panel>
         </div>
 
@@ -1738,6 +1875,10 @@ export function DashGuests() {
             top: 72,
           }}
         >
+          {/* RSVP donut — conic ring + legend (the Home cockpit's
+              GuestSummaryCard approach). Only when guests exist. */}
+          {rows && counts.all > 0 && <RsvpDonut counts={counts} />}
+
           {/* Who can reply — surfaces the guest-list-only gate and,
               when a list exists but replies are still open,
               recommends locking it down. Keyed by site so it resets
@@ -1752,74 +1893,65 @@ export function DashGuests() {
           )}
 
           <Panel
-            bg={PD.ink}
-            style={{
-              color: PD.paper,
-              padding: 18,
-              border: 'none',
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: 16,
-            }}
+            bg="var(--peach-bg)"
+            style={{ padding: 20, border: '1px solid var(--peach-ink)', borderRadius: 16 }}
           >
-            <div
-              style={{ position: 'absolute', top: -14, right: -10, opacity: 0.18, pointerEvents: 'none' }}
-              aria-hidden
-            >
-              <Sprig size={120} color="var(--cream)" accent="var(--gold)" />
-            </div>
-            <div style={{ position: 'relative' }}>
-              <div
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <PearloomGlyph size={18} color="var(--peach-ink)" />
+              <span
                 style={{
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
+                  fontFamily: 'var(--pl-font-mono)',
+                  fontSize: 9.5,
+                  letterSpacing: '0.16em',
                   textTransform: 'uppercase',
-                  color: 'var(--gold)',
-                  marginBottom: 8,
+                  color: 'var(--peach-ink)',
                 }}
               >
                 Pear noticed
-              </div>
-              <div
+              </span>
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                fontStyle: 'italic',
+                fontSize: 17,
+                lineHeight: 1.35,
+                color: 'var(--ink)',
+                marginBottom: !solemn && counts.pending > 0 ? 14 : 0,
+              }}
+            >
+              {counts.pending > 0
+                ? solemn
+                  ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Pear is leaving them be — no follow-ups unless you ask.`
+                  : `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
+                : counts.yes === 0
+                ? 'No RSVPs yet. Want me to send the invitation?'
+                : 'Everyone accounted for. Nice.'}
+            </div>
+            {!solemn && counts.pending > 0 && (
+              <button
+                type="button"
+                onClick={() => setFilter('pending')}
                 style={{
-                  ...DISPLAY_STYLE,
-                  fontSize: 18,
-                  lineHeight: 1.35,
-                  fontWeight: 400,
-                  fontStyle: 'italic',
-                  marginBottom: 12,
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  background: 'var(--peach-ink)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '9px 14px',
+                  borderRadius: 999,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
-                {counts.pending > 0
-                  ? solemn
-                    ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Pear is leaving them be — no follow-ups unless you ask.`
-                    : `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
-                  : counts.yes === 0
-                  ? 'No RSVPs yet. Want me to send the invitation?'
-                  : 'Everyone accounted for. Nice.'}
-              </div>
-              {!solemn && counts.pending > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setFilter('pending')}
-                  style={{
-                    background: PD.paperCard,
-                    color: PD.ink,
-                    border: 'none',
-                    padding: '7px 14px',
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  Draft the reminder
-                </button>
-              )}
-            </div>
+                Draft the reminder
+              </button>
+            )}
           </Panel>
 
           {/* Pear's follow-up cadence — was a sentence in the page
@@ -1865,46 +1997,47 @@ export function DashGuests() {
             </RailCard>
           )}
 
-          <Panel
-            bg="var(--peach-bg)"
-            style={{ padding: 18, border: 'none', borderRadius: 16 }}
-          >
+          <RailCard title="Soft insights">
             <div
               style={{
-                fontSize: 10.5,
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--peach-ink)',
-                marginBottom: 8,
-              }}
-            >
-              Soft insights
-            </div>
-            <div
-              style={{
-                ...DISPLAY_STYLE,
+                fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
                 fontSize: 20,
                 fontWeight: 600,
-                marginBottom: 12,
-                color: PD.ink,
+                lineHeight: 1.15,
+                color: 'var(--ink)',
+                margin: '2px 0 12px',
               }}
             >
               Small things{' '}
-              <span
-                style={{
-                  fontStyle: 'italic',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                matter
-              </span>
-              .
+              <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>matter.</span>
             </div>
-            <Insight label="Dietary notes" n={rows?.filter((r) => r.tags.includes('dietary')).length ?? 0} total="guests" />
-            <Insight label="Plus-ones confirmed" n={rows?.filter((r) => r.tags.includes('plus-one') && r.rsvp === 'yes').length ?? 0} total="guests" />
-            <Insight label="Messages left" n={rows?.filter((r) => r.note.length > 0).length ?? 0} total="notes" />
-          </Panel>
+            {([
+              { icon: 'heart-icon', n: rows?.filter((r) => r.tags.includes('dietary')).length ?? 0, unit: 'guests', label: 'Dietary notes' },
+              { icon: 'users', n: rows?.filter((r) => r.tags.includes('plus-one') && r.rsvp === 'yes').length ?? 0, unit: 'guests', label: 'Plus-ones confirmed' },
+              { icon: 'mail', n: rows?.filter((r) => r.note.length > 0).length ?? 0, unit: 'notes', label: 'Messages left' },
+            ] as const).map((x) => (
+              <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
+                <span
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 8,
+                    flexShrink: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'var(--cream-3)',
+                    color: 'var(--sage-deep, #6d7d3f)',
+                  }}
+                >
+                  <Icon name={x.icon} size={14} />
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+                  {x.n} {x.n === 1 ? x.unit.slice(0, -1) : x.unit}
+                </span>
+                <span style={{ flex: 1, textAlign: 'right', fontSize: 12, color: 'var(--ink-muted)' }}>{x.label}</span>
+              </div>
+            ))}
+          </RailCard>
 
           {/* Lavender "try the guest RSVP" preview link — mirrors the
               prototype's bottom-right paper card. Opens the actual
@@ -1914,42 +2047,52 @@ export function DashGuests() {
               href={`/sites/${site.domain}`}
               target="_blank"
               rel="noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: 14,
-                borderRadius: 14,
-                background: 'var(--card, var(--cream-2))',
-                border: '1px solid var(--line-soft)',
-                textDecoration: 'none',
-                color: 'inherit',
-                transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+              className="lift"
+              style={{ textDecoration: 'none', color: 'inherit' }}
             >
-              <span
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  background: 'var(--lavender-bg)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                }}
-                aria-hidden
+              <Panel
+                bg="var(--lavender-bg)"
+                style={{ padding: 22, border: 'none', borderRadius: 16, textAlign: 'center' }}
               >
-                <Icon name="eye" size={16} color="var(--lavender-ink)" />
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }}>Try the guest RSVP</div>
-                <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
-                  See what guests fill in
+                <span
+                  aria-hidden
+                  style={{
+                    width: 40,
+                    height: 40,
+                    margin: '0 auto 10px',
+                    borderRadius: 10,
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'var(--card)',
+                    color: 'var(--lavender-ink)',
+                  }}
+                >
+                  <Icon name="send" size={18} color="var(--lavender-ink)" />
+                </span>
+                <div style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontStyle: 'italic', fontSize: 19, color: 'var(--ink)' }}>
+                  Try the guest RSVP
                 </div>
-              </div>
-              <Icon name="arrow-right" size={14} color="var(--ink-soft)" />
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '6px 0 14px' }}>
+                  See what guests will see and experience.
+                </div>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    width: '100%',
+                    padding: '9px 14px',
+                    borderRadius: 999,
+                    background: 'var(--ink)',
+                    color: 'var(--cream)',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                  }}
+                >
+                  Preview RSVP <Icon name="arrow-right" size={13} color="var(--cream)" />
+                </span>
+              </Panel>
             </Link>
           )}
         </div>
@@ -3222,24 +3365,3 @@ function WhoCanReplyPanel({
   );
 }
 
-function Insight({ label, n, total }: { label: string; n: number; total: string }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '10px 12px',
-        borderRadius: 10,
-        background: 'var(--card, var(--cream-2))',
-        marginBottom: 7,
-        fontSize: 12.5,
-        fontFamily: 'var(--pl-font-body)',
-      }}
-    >
-      <span style={{ fontWeight: 700, color: PD.ink }}>
-        {n} {n === 1 ? total.slice(0, -1) : total}
-      </span>
-      <span style={{ color: 'var(--ink-muted)' }}>{label}</span>
-    </div>
-  );
-}
