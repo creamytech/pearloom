@@ -1,34 +1,33 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// WelcomeHome — the dashboard "Welcome back" home (cockpit).
+// WelcomeHome — the dashboard home (the editorial "cockpit").
 //
-// Top to bottom:
+// Top to bottom (the cockpit pieces all live in cockpit.tsx):
 //
-//   1. CountdownHero — the dark "N days" hero (design-system v2):
-//                      greeting · venue/occasion eyebrow · countdown ·
-//                      decisions/tasks status · honoree marks · actions
-//                      (src/components/pearloom/dash/cockpit.tsx)
-//   2. StatTiles     — quick-glance count-ups (Coming / Awaiting /
-//                      Replied / Days), all backed by real data
-//   3. NeedsYouNow   — Pear's phase-aware decision queue,
-//                      derived from /api/guests/intelligence
-//   4. Lately        — recent RSVPs, compact feed
-//   5. GuestPulse    — % responded + stacked yes/no/maybe/pending bar
-//   6. Milestones    — vertical roadmap to the date
-//   + edge cards (co-host invites, remembering/anniversary, siblings)
+//   1. CockpitGreeting — letterpress greeting header
+//   2. HeroBanner      — photographic countdown banner (live d/h/m/s,
+//                        real coverPhoto or a warm gradient placeholder)
+//   3. ProgressCard + QuickActions
+//   4. RoadCard (milestone timeline) + ChecklistCard + HomeSitePreview
+//   *  NeedsYouNow decision queue + the conditional planning rail
+//      (budget, RSVP momentum, remembering / anniversary)
+//   5. GuestSummaryCard (RSVP donut) + MemoryCard
+//   6. WeekendCard (real sibling events + occasions to weave)
+//   7. TheLongView + CockpitBlessing
+//   + edge cards (co-host invites, resume-draft)
 //
-// Data flow:
-//   - useSelectedSite() drives the active site
-//   - GET /api/guests?site= drives the tiles + GuestPulse + Lately
-//   - GET /api/guests/intelligence drives Pear's recommendations
+// Data flow (unchanged — only the layout was restructured):
+//   - useSelectedSite() drives the active site + sibling sites
+//   - GET /api/guests?site= drives the counts + donut + lately
+//   - GET /api/guests/intelligence drives Pear's decision queue
 //   - GET /api/cadence?site= drives the milestone roadmap
 //   - Stage (early | mid | late) derives from daysUntil — under 30
 //     days is "late", over 180 "early", in between "mid".
 //
 // The cockpit pieces are prop-driven (cockpit.tsx) and verified in
 // the /dev/dashboard harness; this file feeds them real data only —
-// no invented numbers (budget/gifts have no backing store yet).
+// no invented numbers. Absent data renders a graceful empty state.
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
@@ -36,7 +35,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
-import { DashSkeleton } from '../dash/DashSkeleton';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketing/design/dash/hooks';
@@ -48,8 +46,13 @@ import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import type { StoryManifest } from '@/types';
-import { CountdownHero, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
-import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
+import {
+  CockpitGreeting, HeroBanner, ProgressCard, QuickActions, RoadCard, ChecklistCard,
+  GuestSummaryCard, MemoryCard, WeekendCard, NeedsYouNow, Lately, TheLongView,
+  HomeSitePreview, BudgetBreakdown, CockpitBlessing,
+  type LatelyItem, type BudgetLine, type QuickActionItem, type RoadMilestone,
+  type ChecklistItem, type WeekendEventItem, type WeekendAdd,
+} from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
@@ -166,26 +169,11 @@ export function WelcomeHome() {
   const occasion = site?.occasion ?? 'wedding';
   /* Work-zone breakpoint — inline (see the grid comment below). */
   const workZoneNarrow = useIsMobile(920);
-  /* Sticky rail (plan-2 §1-A #4) — but only while the rail actually
-     FITS the viewport: a pinned rail taller than the window traps
-     its bottom cards off-screen (sticky stops scrolling them into
-     view). Measured, not assumed. Callback-ref state so the
-     observer re-attaches across conditional mounts. */
-  const [railEl, setRailEl] = useState<HTMLDivElement | null>(null);
-  const [railFits, setRailFits] = useState(false);
-  useEffect(() => {
-    if (railEl == null) return;
-    const update = () => setRailFits(railEl.offsetHeight <= window.innerHeight - 32);
-    const raf = requestAnimationFrame(update);
-    const ro = new ResizeObserver(update);
-    ro.observe(railEl);
-    window.addEventListener('resize', update);
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, [railEl]);
+  /* Hero stacks to one column below 760px (matches the design's
+     collapse point). Inline grid + useIsMobile, never a media query
+     — the runtime style injection can race inside the persistent
+     shell, so the grid decisions ride JS like the work zone. */
+  const heroNarrow = useIsMobile(760);
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
 
@@ -316,26 +304,37 @@ export function WelcomeHome() {
     [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion],
   );
 
-  // ── Cockpit-derived values (design-system v2 home) ──────────
-  // All real data: the eyebrow is the venue (or occasion), counts
-  // come from pearTodos / milestones / guestCounts. No invented
-  // numbers (budget/gifts have no backing store — omitted).
-  const heroEyebrow = (site?.venue ?? '').trim() || occasion.replace(/-/g, ' ');
-  const decisionsCount = pearTodos.length;
-  const tasksLeft = milestones.filter(
-    (m) => m.status === 'urgent' || m.status === 'next' || m.status === 'upcoming',
-  ).length;
-  const repliedCount = guestCounts ? guestCounts.yes + guestCounts.no + guestCounts.maybe : 0;
-  // Quiet StatStrip (plan rule 3) — replaces the four 100px+ KPI
-  // tiles. Zeros collapse into one muted trailing chip; the days
-  // chip only renders while there's a countdown to speak of (the
-  // hero already owns "Today").
-  const statItems: StatStripItem[] = [
-    { label: 'Coming', value: guestCounts?.yes ?? 0, tone: 'sage', href: '/dashboard/rsvp' },
-    { label: 'Awaiting reply', value: guestCounts?.pending ?? 0, tone: 'peach', href: '/dashboard/rsvp' },
-    { label: 'Replied', value: repliedCount, tone: 'gold', href: '/dashboard/rsvp' },
-    ...(daysUntil != null && daysUntil > 0 ? [{ label: 'Days to go', value: daysUntil }] : []),
-  ];
+  // ── Cockpit-derived values (editorial cockpit home) ─────────
+  // Every figure is real: progress + road come from the milestone
+  // ladder, quick actions are real routes, guest numbers from the
+  // /api/guests fetch, memory tiles from the manifest gallery. No
+  // invented counts on the real Home.
+  const solemn = occasion === 'memorial' || occasion === 'funeral';
+
+  // Planning progress — done / in-progress / to-do off the ladder.
+  const progress = useMemo(() => {
+    const total = milestones.length || 1;
+    const done = milestones.filter((m) => m.status === 'done').length;
+    const prog = milestones.filter((m) => m.status === 'urgent' || m.status === 'next').length;
+    const todo = milestones.filter((m) => m.status === 'upcoming' || m.status === 'distant').length;
+    return { done, prog, todo, pct: Math.round((done / total) * 100) };
+  }, [milestones]);
+
+  // The road — map the ladder onto the RoadCard's done/now/next/end.
+  // The first still-open actionable rung becomes the "now" highlight.
+  const roadMilestones = useMemo<RoadMilestone[]>(() => {
+    let nowUsed = false;
+    return milestones.map((m) => {
+      let state: RoadMilestone['state'];
+      if (m.status === 'done') state = 'done';
+      else if (m.status === 'distant') state = 'end';
+      else if (!nowUsed && (m.status === 'urgent' || m.status === 'next')) { state = 'now'; nowUsed = true; }
+      else state = 'next';
+      const concrete = state === 'now' && !!m.date && !['Now', 'Soon', 'Later', 'This week', 'Done'].includes(m.date);
+      return { date: m.date, label: m.label, sub: m.sub, state, tag: concrete ? m.date : undefined };
+    });
+  }, [milestones]);
+
   const phaseLabel = stage === 'late' ? 'Final stretch' : stage === 'early' ? 'Planning' : 'Mid-planning';
   const phaseNote = daysUntil != null ? (daysUntil === 0 ? 'today' : `${daysUntil} days out`) : undefined;
   const latelyItems: LatelyItem[] = recentActivity.map((g) => {
@@ -343,6 +342,42 @@ export function WelcomeHome() {
     const action = tone === 'no' ? 'declined' : tone === 'maybe' ? 'said maybe' : g.plusOneName ? `said yes — +1 ${g.plusOneName}` : 'said yes';
     return { name: g.name, action, when: relativeTime(g.respondedAt), tone };
   });
+
+  // Quick actions — four real routes.
+  const quickActions: QuickActionItem[] = [
+    { icon: 'check', label: 'Add a task', color: 'var(--sage-deep)', href: '/dashboard/day-of' },
+    { icon: 'users', label: 'Invite guests', color: 'var(--peach-ink)', href: '/dashboard/rsvp' },
+    { icon: 'layout', label: 'Edit site', color: 'var(--lavender-ink)', href: editorHref },
+    { icon: 'sparkles', label: 'Studio', color: 'var(--pl-gold)', href: '/dashboard/invite' },
+  ];
+
+  // Day-of checklist — a light, occasion-aware prep aid (local check
+  // state only; the same "suggested" register as the milestone ladder).
+  const checklistItems = useMemo<ChecklistItem[]>(() => (solemn
+    ? [
+        { t: 'Confirm the order of service', p: 'High' },
+        { t: 'Share arrival details with family', p: 'High' },
+        { t: 'Gather readings & tributes', p: 'Medium' },
+        { t: 'Coordinate with the venue', p: 'Medium' },
+      ]
+    : [
+        { t: 'Confirm vendor arrival times', p: 'High' },
+        { t: 'Share the final timeline', p: 'High' },
+        { t: 'Check seating & place cards', p: 'Medium' },
+        { t: 'Pack welcome gifts', p: 'Medium' },
+        { t: 'Print menus & signage', p: 'Low' },
+      ]), [solemn]);
+
+  // Memory tiles — the manifest's real gallery (cover as fallback);
+  // missing slots become warm gradient tiles inside the card.
+  const memoryImages = useMemo<string[]>(() => {
+    const m = manifest as { galleryImages?: unknown; coverPhoto?: unknown } | null;
+    const gallery = Array.isArray(m?.galleryImages)
+      ? (m!.galleryImages as unknown[]).filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
+      : [];
+    const cover = typeof m?.coverPhoto === 'string' && m.coverPhoto.trim() ? [m.coverPhoto] : [];
+    return [...gallery, ...cover].slice(0, 3);
+  }, [manifest]);
 
   // Themed mini-preview of the live site — resolve the site's own
   // --t-* bag (the same chain ThemedSite uses) so the card paints in
@@ -353,50 +388,83 @@ export function WelcomeHome() {
     return { name: theme.name, rootStyle: themeRootStyle(theme, 'comfortable', m?.themeVars ?? null) };
   }, [site?.manifest]);
   const venueLabel = ((site?.manifest as { logistics?: { venue?: string } } | null)?.logistics?.venue) ?? null;
-  const previewEyebrow = occasion === 'memorial' || occasion === 'funeral' ? 'In loving memory' : 'Save the date';
+  const previewEyebrow = solemn ? 'In loving memory' : 'Save the date';
 
-  // Stage-contextual quick jumps — real routes, glow on the moment's
-  // primary, dim what isn't open yet.
-  const quickJumps: QuickJump[] = useMemo(() => {
-    const editor: QuickJump = { label: 'Open the editor', sub: 'Shape your site', icon: 'brush', href: editorHref };
-    const studio: QuickJump = { label: 'Studio', sub: 'Save-the-dates & invites', icon: 'mail', href: '/dashboard/invite' };
-    if (stage === 'early') {
-      return [
-        editor,
-        { label: 'Build the guest list', sub: 'Add or import guests', icon: 'users', href: '/dashboard/rsvp' },
-        studio,
-        { label: 'Day-of room', sub: 'Opens closer to the day', icon: 'clock', href: '/dashboard/day-of', dim: true },
-      ];
-    }
-    if (stage === 'late') {
-      return [
-        { label: 'Day-of room', sub: 'Open now — timeline & vendors', icon: 'clock', href: '/dashboard/day-of', glow: true },
-        { label: 'Guests', sub: guestCounts ? `${guestCounts.pending} still pending` : 'Track replies', icon: 'users', href: '/dashboard/rsvp' },
-        editor,
-        studio,
-      ];
-    }
-    return [
-      editor,
-      { label: 'Guests', sub: guestCounts ? `${guestCounts.yes} coming · ${guestCounts.pending} pending` : 'Track replies', icon: 'users', href: '/dashboard/rsvp' },
-      studio,
-      { label: 'View live site', sub: 'See what guests see', icon: 'eye', href: liveHref },
-    ];
-  }, [stage, editorHref, liveHref, guestCounts]);
+  // ── The weekend — the host's real sibling sites as event cards,
+  //    plus occasion suggestions to weave (deep-linked into the
+  //    wizard, celebration-linked). Keeps the old SiblingEvents
+  //    multi-site funnel intact inside the new WeekendCard. ──────
+  const weekendEvents = useMemo<WeekendEventItem[]>(() => {
+    const others = (sites ?? []).filter((s) => s.domain && s.domain !== site?.domain);
+    return others.slice(0, 3).map((s) => {
+      const label = getEventType(s.occasion ?? '')?.label ?? (s.occasion ?? 'Event').replace(/-/g, ' ');
+      const d = parseLocalDate(s.eventDate);
+      const day = d
+        ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
+        : label.toUpperCase();
+      const who = (s.names ?? []).filter(Boolean).join(' & ');
+      const meta = [d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null, s.venue]
+        .filter(Boolean).join(' · ') || undefined;
+      return { day, title: who || label, meta, color: weekendAccent(s.occasion), href: `/editor/${s.domain}` };
+    });
+  }, [sites, site?.domain]);
+
+  const weekendAdds = useMemo<WeekendAdd[]>(() => {
+    const have = new Set((sites ?? []).map((s) => s.occasion).filter(Boolean));
+    const arc = WEEKEND_ANCHORS.find((a) => a.id === occasion);
+    const originCeleb = (manifest as { celebration?: { id?: string; name?: string } } | null)?.celebration;
+    const celebName = originCeleb?.name ?? namesArr.filter(Boolean).join(' & ') ?? '';
+    const linkParams = site?.domain
+      ? `&from=${encodeURIComponent(site.domain)}`
+        + (originCeleb?.id ? `&cid=${encodeURIComponent(originCeleb.id)}` : '')
+        + (celebName ? `&cname=${encodeURIComponent(celebName)}` : '')
+      : '';
+    const raw = arc
+      ? arc.events
+          .filter((e) => e.sluffix !== '' && !have.has(e.kind))
+          .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
+          .map((e) => ({ occasion: e.kind, label: e.label, blurb: e.description }))
+          .slice(0, 3)
+      : (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
+    return raw.map((e) => ({ label: e.label, blurb: e.blurb, href: `/wizard/new?occasion=${encodeURIComponent(e.occasion)}${linkParams}` }));
+  }, [sites, occasion, manifest, namesArr, site?.domain]);
+
+  const weekendApplicable = isDashSurfaceApplicable('weekend', occasion);
+  const weekendAddHref = weekendApplicable ? '/dashboard/weekend' : '/wizard/new';
+  const weekendManageHref = weekendApplicable && weekendEvents.length > 0 ? '/dashboard/weekend' : undefined;
+
+  // ── Header + footer copy (occasion-aware) ───────────────────
+  const factLine = [eventDateShort, (site?.venue ?? '').trim() || null].filter(Boolean).join(' · ');
+  const headerSubtitle = (factLine ? `${factLine}. ` : '')
+    + 'Everything Pear is holding for you, and the few things that want a moment this week.';
+  const headerTitle = solemn ? "You're gathering" : "You're building";
+  const headerItalic = solemn ? 'something to remember.' : 'something beautiful.';
+  const blessingText = solemn ? 'Held with love and care.' : "You're doing something wonderful.";
+
+  // ── Which conditional cards show (the work-zone rail) ────────
+  const postEvent = rawDaysUntil != null && rawDaysUntil < 0;
+  const budgetVisible = !solemn && !postEvent && Boolean(site?.id);
+  const showMomentum = Boolean(rsvpMomentum) && nextStep?.id !== 'nudge';
+  const showRemembering = postEvent && Boolean(site?.domain);
+  const showAnniversary = rawDaysUntil != null
+    && rawDaysUntil <= -320
+    && rawDaysUntil >= -430
+    && (occasion === 'wedding' || occasion === 'vow-renewal' || occasion === 'anniversary')
+    && !(sites ?? []).some((s) => s.occasion === 'anniversary' && s.domain !== site?.domain)
+    && Boolean(site?.domain);
+  const railHasContent = budgetVisible || showMomentum || showRemembering || showAnniversary;
+  const queueEmpty = pearTodos.length === 0 && latelyItems.length < 3;
+  const showWorkZone = !queueEmpty || railHasContent;
 
   return (
     <DashLayout active="home" hideTopbar>
+      {/* 1 · The letterpress greeting header. */}
       <div style={{ padding: '20px clamp(20px, 4vw, 40px) 4px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Quiet header (plan rule 1): greeting is one mono line +
-            the date; the stage blurb paragraph is gone — the hero
-            and the decision queue carry the state. */}
-        <PageIntro
+        <CockpitGreeting
           eyebrow={`${greeting}, ${firstName}`}
-          title="Your loom, at a glance."
-          meta={eventDateShort ? (
-            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{eventDateShort}{daysUntil != null && daysUntil > 0 ? ` · ${daysUntil} days out` : ''}</span>
-          ) : undefined}
-          style={{ marginBottom: 0 }}
+          title={headerTitle}
+          titleItalic={headerItalic}
+          subtitle={headerSubtitle}
         />
       </div>
 
@@ -404,98 +472,60 @@ export function WelcomeHome() {
           user — accept right here, no inbox dig required. */}
       <CoHostInviteBanner />
 
-      <div
+      {/* The cockpit — a simple top-to-bottom flow; the 2-col rows
+          collapse to one column below 920px via useIsMobile (inline
+          grid, never a media query, so the persistent-shell style
+          injection can't race it and stack the cards). */}
+      <main
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          padding: '12px clamp(20px, 4vw, 40px) 40px',
           maxWidth: 1240,
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 18,
         }}
       >
-        <CountdownHero
+        {/* The first thread — brand-new hosts only. Steps check
+            themselves off from the same data the cockpit reads. */}
+        {showFirstThread && (
+          <FirstThreadCard
+            done={firstThreadDone}
+            siteSlug={site?.domain ?? null}
+            solemn={solemn || getEventType(occasion)?.voice === 'solemn'}
+            onDismiss={dismissFirstThread}
+          />
+        )}
+
+        {/* 2 · The photographic countdown banner — real cover photo
+            (or a warm gradient placeholder) + a live countdown. */}
+        <HeroBanner
           names={namesArr}
-          eyebrow={heroEyebrow}
-          daysUntil={daysUntil}
+          occasion={occasion}
+          eventDate={eventDate}
           dateLabel={eventDateLabel}
-          decisions={decisionsCount}
-          tasksLeft={tasksLeft}
+          venueLabel={(site?.venue ?? '').trim() || null}
+          coverPhoto={(manifest?.coverPhoto ?? '').trim() || site?.coverPhoto || null}
           liveHref={liveHref}
           editorHref={editorHref}
-          // Memorials aren't pitched budget/vendor planning — omit
-          // the "Ask Pear to plan" action when the Director doesn't
-          // apply to the occasion (cockpit handles a missing askHref).
-          askHref={isDashSurfaceApplicable('director', occasion) ? '/dashboard/director' : undefined}
-          coverPhoto={(manifest?.coverPhoto ?? '').trim() || site?.coverPhoto || null}
-          occasion={occasion}
+          narrow={heroNarrow}
         />
 
-        <StatStrip items={statItems} />
+        {/* Resume a half-finished wizard run (self-hides). */}
+        <ResumeDraftCard />
 
-        {/* Two-column work zone — same shape as the design.
-            Stacks below 920px so phones get a single column.
-            INLINE grid, not styled-jsx: the runtime style injection
-            occasionally raced inside ShellPersistentLayout and the
-            class resolved to nothing — every card stacked. Inline
-            styles can't race; responsiveness rides useIsMobile, the
-            same pattern HeroBand documents above. */}
-        <div
-          style={{
-            display: 'grid',
-            // Plan rule 7: content column + quiet ~320px rail. On
-            // phones the rail column simply stacks BELOW the main
-            // column — never above.
-            gridTemplateColumns: workZoneNarrow ? '1fr' : 'minmax(0, 1fr) 320px',
-            gap: 16,
-            alignItems: 'start',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* The first thread — brand-new hosts only. Steps check
-                themselves off from the same data the cockpit reads. */}
-            {showFirstThread && (
-              <FirstThreadCard
-                done={firstThreadDone}
-                siteSlug={site?.domain ?? null}
-                solemn={getEventType(occasion)?.voice === 'solemn'}
-                onDismiss={dismissFirstThread}
-              />
-            )}
-            {/* Sparse activity (<3 items) folds into the decision
-                queue as a footer list — a full-width Lately card
-                holding one line was dead paper (plan-2 §2 home). */}
-            <NeedsYouNow
-              rows={pearTodos}
-              phaseLabel={phaseLabel}
-              phaseNote={phaseNote}
-              lately={latelyItems.length > 0 && latelyItems.length < 3 ? latelyItems : undefined}
-            />
-            {/* Quick jumps ride BELOW the decision queue (plan-2 §1-G)
-                so the first decision card lands inside viewport 1 on
-                phones instead of a wall of nav tiles. */}
-            <QuickJumps jumps={quickJumps} />
-            {latelyItems.length >= 3 && <Lately items={latelyItems} />}
-            {/* Plan-2 §1-A: the roadmap + sibling suggestions live in
-                the MAIN column (they're list-heavy), and the long-view
-                timeline closes the column at content width — the rail
-                keeps only the glanceable cards, so the two columns
-                bottom out together instead of leaving ~950px of empty
-                paper beside the rail. */}
-            <Milestones milestones={milestones} dateShort={eventDateShort} />
-            <SiblingEventsCard occasion={occasion} sites={sites ?? []} origin={site ?? null} />
-          </div>
-          <div
-            ref={setRailEl}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-              // Sticky rail (plan-2 §1-A #4) — a short rail rides along
-              // instead of leaving dead paper as the main column grows.
-              ...(workZoneNarrow || !railFits ? {} : { position: 'sticky' as const, top: 16 }),
-            }}
-          >
+        {/* 3 · Planning progress + quick actions. */}
+        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1.1fr 1fr', gap: 18, alignItems: 'start' }}>
+          <ProgressCard pct={progress.pct} done={progress.done} prog={progress.prog} todo={progress.todo} />
+          <QuickActions actions={quickActions} />
+        </div>
+
+        {/* 4 · The road (milestone timeline) + a right stack of the
+            day-of checklist and the themed site preview. */}
+        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+          <RoadCard milestones={roadMilestones} dateShort={eventDateShort} href="/dashboard/cadence" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <ChecklistCard items={checklistItems} href="/dashboard/day-of" />
             {site?.domain && (
               <HomeSitePreview
                 names={namesArr}
@@ -509,46 +539,74 @@ export function WelcomeHome() {
                 themeHref="/store"
               />
             )}
-            <ResumeDraftCard />
-            {/* Budget — host-entered, planning surface. Hidden for
-                solemn occasions and after the event has passed. */}
-            {occasion !== 'memorial' && occasion !== 'funeral' && !(rawDaysUntil != null && rawDaysUntil < 0) && site?.id && (
-              <BudgetBreakdown lines={budget} onSave={saveBudget} />
-            )}
-            {rawDaysUntil != null && rawDaysUntil < 0 && site?.domain && (
-              <RememberingCard domain={site.domain} occasion={occasion} daysSince={-rawDaysUntil} />
-            )}
-            {/* The anniversary window — roughly 320–430 days after a
-                couple-arc event, offer the anniversary edition: a new
-                sibling site woven into the same celebration, carrying
-                the rebroadcast + a year of photographs. */}
-            {rawDaysUntil != null
-              && rawDaysUntil <= -320
-              && rawDaysUntil >= -430
-              && (occasion === 'wedding' || occasion === 'vow-renewal' || occasion === 'anniversary')
-              && !(sites ?? []).some((s) => s.occasion === 'anniversary' && s.domain !== site?.domain)
-              && site?.domain && (
-              <AnniversaryCard daysSince={-rawDaysUntil} origin={site} />
-            )}
-            {/* One urgent task could shout four times (hero NEXT UP,
-                this card, a Pear todo, a milestone row). When the
-                golden thread already names the nudge, the momentum
-                card stands down. */}
-            {rsvpMomentum && nextStep?.id !== 'nudge' && <RsvpMomentumCard momentum={rsvpMomentum} />}
-            <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
-          </div>
-          {/* The long view closes the page at CONTENT width — a grid
-              child pinned to column 1 (plan-2 §1-A #2: "gridColumn: 1
-              width, not full-bleed"), so it rides below whichever
-              column runs longer instead of stretching under the rail. */}
-          <div style={workZoneNarrow ? undefined : { gridColumn: 1 }}>
-            <TheLongView dateShort={eventDateShort} solemn={occasion === 'memorial' || occasion === 'funeral'} />
           </div>
         </div>
-      </div>
 
+        {/* Pear's decision queue + the conditional planning rail
+            (budget, RSVP momentum, and the post-event / anniversary
+            cards). All still data-wired; the row hides entirely when
+            there's nothing to say. */}
+        {showWorkZone && (
+          <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || queueEmpty) ? '1fr' : '1.25fr 1fr', gap: 18, alignItems: 'start' }}>
+            {!queueEmpty && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                {/* Sparse activity (<3 items) folds into the queue as
+                    a footer list; a fuller feed gets its own card. */}
+                <NeedsYouNow
+                  rows={pearTodos}
+                  phaseLabel={phaseLabel}
+                  phaseNote={phaseNote}
+                  lately={latelyItems.length > 0 && latelyItems.length < 3 ? latelyItems : undefined}
+                />
+                {latelyItems.length >= 3 && <Lately items={latelyItems} />}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Budget — host-entered, planning surface. Hidden for
+                  solemn occasions and after the event has passed. */}
+              {budgetVisible && <BudgetBreakdown lines={budget} onSave={saveBudget} />}
+              {/* One urgent task could shout twice — when the golden
+                  thread already names the nudge, momentum stands down. */}
+              {showMomentum && rsvpMomentum && <RsvpMomentumCard momentum={rsvpMomentum} />}
+              {showRemembering && site?.domain && (
+                <RememberingCard domain={site.domain} occasion={occasion} daysSince={-rawDaysUntil!} />
+              )}
+              {/* The anniversary window — ~320–430 days after a couple-
+                  arc event, offer the anniversary edition as a sibling. */}
+              {showAnniversary && site?.domain && (
+                <AnniversaryCard daysSince={-rawDaysUntil!} origin={site} />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 5 · Guest summary (donut) + the memory book. */}
+        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+          <GuestSummaryCard counts={guestCounts} href="/dashboard/rsvp" />
+          <MemoryCard images={memoryImages} href="/dashboard/keepsakes" />
+        </div>
+
+        {/* 6 · The weekend — real sibling events + occasions to weave. */}
+        <WeekendCard events={weekendEvents} adds={weekendAdds} addHref={weekendAddHref} manageHref={weekendManageHref} />
+
+        {/* 7 · The long view. */}
+        <TheLongView dateShort={eventDateShort} solemn={solemn} />
+
+        {/* 8 · The footer blessing. */}
+        <CockpitBlessing text={blessingText} />
+      </main>
     </DashLayout>
   );
+}
+
+// ── weekendAccent — occasion → a card accent color (WeekendCard). ─
+function weekendAccent(occasion?: string): string {
+  if (occasion === 'memorial' || occasion === 'funeral') return 'var(--lavender-ink)';
+  const cat = getEventType(occasion ?? '')?.category;
+  if (cat === 'wedding-arc') return 'var(--peach-ink)';
+  if (cat === 'milestone') return 'var(--pl-gold)';
+  if (cat === 'cultural') return 'var(--lavender-ink)';
+  return 'var(--sage-deep)';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -696,146 +754,8 @@ function severityRank(s: GuestInsight['severity']): number {
 }
 
 // ─────────────────────────────────────────────────────────────
-// GuestPulse — % responded + stacked yes/no/maybe/pending bar
-// ─────────────────────────────────────────────────────────────
-function GuestPulse({
-  counts, domain, loading,
-}: {
-  counts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
-  domain: string | null;
-  loading: boolean;
-}) {
-  void domain;
-  // Legend columns follow the CARD's width, not the window's — the
-  // card lives in the 320px rail at desktop where a 4-up legend
-  // squeezed "PENDING" past its column (plan-2 §1-B). @container
-  // rules in pearloom.css (.pl8-home-pulse / .pl8-pulse-legend).
-  if (loading) {
-    return (
-      <div className="card" style={{ padding: 20, borderRadius: 20 }}>
-        <SectionHeader icon="users">Guests</SectionHeader>
-        <div style={{ paddingTop: 14 }}>
-          <DashSkeleton kind="list" count={2} label="Threading your guest counts" />
-        </div>
-      </div>
-    );
-  }
-  if (!counts || counts.invited === 0) {
-    return (
-      <div className="card" style={{ padding: 20, borderRadius: 20 }}>
-        <SectionHeader icon="users">Guests</SectionHeader>
-        <div
-          style={{
-            padding: '20px 8px',
-            background: 'var(--cream-2)',
-            borderRadius: 10,
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>Nothing yet. Begin a thread.</div>
-          <div
-            style={{
-              fontSize: 12.5,
-              color: 'var(--ink-soft)',
-              marginBottom: 14,
-              maxWidth: 240,
-              marginInline: 'auto',
-            }}
-          >
-            Pear can draft a list from your story, or import from your contacts.
-          </div>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/dashboard/rsvp" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
-              Start with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
-            </Link>
-            <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-              Import contacts
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const { invited, yes, no, maybe, pending } = counts;
-  const respondedPct = invited === 0 ? 0 : Math.round(((yes + no + maybe) / invited) * 100);
-  const segs: { val: number; color: string; label: string }[] = [
-    { val: yes,     color: 'var(--sage)',       label: 'Yes' },
-    { val: no,      color: 'var(--ink-muted)',  label: 'No' },
-    { val: maybe,   color: 'var(--lavender-2)', label: 'Maybe' },
-    { val: pending, color: 'var(--cream-3)',    label: 'Pending' },
-  ];
-
-  return (
-    <div className="card pl8-home-pulse" style={{ padding: 20, borderRadius: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="users" size={15} color="var(--gold)" />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>Guests</span>
-        </div>
-        <Link
-          href="/dashboard/rsvp"
-          style={{ fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}
-        >
-          Open Guests
-        </Link>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 600, lineHeight: 1 }}>
-          {respondedPct}<span style={{ fontSize: 18, color: 'var(--ink-muted)' }}>%</span>
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-          responded · {yes + no + maybe} of {invited}
-        </span>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          height: 10,
-          borderRadius: 999,
-          overflow: 'hidden',
-          marginTop: 12,
-          marginBottom: 12,
-          background: 'var(--cream-2)',
-        }}
-      >
-        {segs.map((s) => s.val > 0 && (
-          <div
-            key={s.label}
-            style={{ flex: s.val, background: s.color, transition: 'flex var(--pl-dur-base) var(--pl-ease-out)' }}
-            title={`${s.label}: ${s.val}`}
-          />
-        ))}
-      </div>
-
-      <div className="pl8-pulse-legend">
-        {segs.map((s) => (
-          <div key={s.label} style={{ padding: '8px 6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.color }} />
-              <span
-                style={{
-                  fontSize: 10.5, color: 'var(--ink-muted)',
-                  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
-                }}
-              >
-                {s.label}
-              </span>
-            </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>
-              {s.val}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Milestones — vertical roadmap
+// buildMilestones — the vertical roadmap ladder (feeds RoadCard +
+// the planning-progress counts on the cockpit home)
 // ─────────────────────────────────────────────────────────────
 type MilestoneStatus = 'done' | 'urgent' | 'next' | 'upcoming' | 'distant';
 interface Milestone {
@@ -1067,90 +987,6 @@ function buildMilestones({
   return out;
 }
 
-function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
-  // Container-sized rows (plan-2 §1-B): the card renders the wide
-  // 4-column row (annotation in a trailing column) only when the
-  // CARD itself has room — not when the window does. In a narrow
-  // container (the 320px rail, a phone column) the annotation drops
-  // onto its own muted line under the title and the date gutter
-  // tightens. CSS @container rules live in pearloom.css
-  // (.pl8-home-milestones / .pl8-milestone-row).
-  return (
-    <div className="card pl8-home-milestones" style={{ padding: 20, borderRadius: 20 }}>
-      <SectionHeader icon="calendar">
-        {dateShort ? <>The road to {dateShort}</> : 'Your timeline'}
-      </SectionHeader>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {milestones.map((m, i) => {
-          const isLast = i === milestones.length - 1;
-          const dot = milestoneDotStyle(m.status);
-          return (
-            <div
-              key={i}
-              className="pl8-milestone-row"
-              style={{
-                padding: '12px 0',
-                borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color:
-                    m.status === 'urgent' ? 'var(--peach-ink)' :
-                    m.status === 'done' ? 'var(--sage-deep)' : 'var(--ink-muted)',
-                  textTransform: m.status === 'done' || m.status === 'urgent' ? 'uppercase' : 'none',
-                  letterSpacing: m.status === 'done' || m.status === 'urgent' ? '0.05em' : 0,
-                }}
-              >
-                {m.date}
-              </div>
-              <div style={{ position: 'relative', display: 'grid', placeItems: 'center', height: 22 }}>
-                <span
-                  style={{
-                    width: 14, height: 14, borderRadius: '50%',
-                    background: dot.bg, border: `2px solid ${dot.border}`,
-                    display: 'grid', placeItems: 'center',
-                  }}
-                  className={dot.pulse ? 'pulse-dot' : ''}
-                >
-                  {dot.check && <Icon name="check" size={8} color="var(--card, #FBF7EE)" strokeWidth={3} />}
-                </span>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: 'var(--ink)',
-                    fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
-                    textDecoration: m.status === 'done' ? 'line-through' : 'none',
-                    opacity: m.status === 'done' ? 0.7 : 1,
-                  }}
-                >
-                  {m.label}
-                </div>
-                {m.sub && (
-                  <div className="pl8-milestone-sub-inline" style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{m.sub}</div>
-                )}
-              </div>
-              <div className="pl8-milestone-sub-col" style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function milestoneDotStyle(status: MilestoneStatus): { bg: string; border: string; check: boolean; pulse: boolean } {
-  if (status === 'done')    return { bg: 'var(--sage)',       border: 'var(--sage)',       check: true,  pulse: false };
-  if (status === 'urgent')  return { bg: 'var(--peach-ink)',  border: 'var(--peach-ink)',  check: false, pulse: true  };
-  if (status === 'next')    return { bg: 'var(--card)',       border: 'var(--ink)',        check: false, pulse: false };
-  if (status === 'distant') return { bg: 'var(--ink)',        border: 'var(--ink)',        check: false, pulse: false };
-  return                          { bg: 'var(--card)',       border: 'var(--ink-muted)',  check: false, pulse: false };
-}
-
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
@@ -1343,111 +1179,18 @@ function AnniversaryCard({
 }
 
 // ─────────────────────────────────────────────────────────────
-// SiblingEventsCard — the rest of the weekend.
-//
-// A wedding is 3-4 Pearloom sites, not one (rehearsal dinner,
-// bachelor/ette, welcome party, brunch) — each often hosted by a
-// different person. manifest.celebration + the siblings API have
-// existed for a while, but nothing SUGGESTED the adjacent events,
-// so the multi-site funnel sat unwired. This card offers the
-// sibling occasions the host doesn't have a site for yet; each
-// deep-links the wizard with ?occasion= prefilled.
+// SIBLING_EVENTS — non-anchor occasions that still have an obvious
+// next thread. Weekend-anchor occasions (wedding, quinceañera,
+// mitzvahs, big birthdays, reunions…) derive their suggestions from
+// the WEEKEND_ANCHORS arc catalog instead — one source. Read by
+// WelcomeHome's weekendAdds → the WeekendCard's "weave in" tiles.
 // ─────────────────────────────────────────────────────────────
-/* Weekend-anchor occasions (wedding, quinceañera, bar/bat mitzvah,
-   big birthdays, reunions…) derive their suggestions from the same
-   arc catalog the Weekend Builder uses — one source, every
-   occasion. This hand list only covers occasions that AREN'T
-   anchors but still have obvious next threads. */
 const SIBLING_EVENTS: Record<string, Array<{ occasion: string; label: string; blurb: string }>> = {
   engagement: [
     { occasion: 'wedding', label: 'The wedding itself', blurb: 'When you’re ready — same names, new thread.' },
     { occasion: 'bridal-shower', label: 'Bridal shower', blurb: 'Often someone else hosts — send them here.' },
   ],
 };
-
-function SiblingEventsCard({
-  occasion,
-  sites,
-  origin,
-}: {
-  occasion: string;
-  sites: Array<{ occasion?: string }>;
-  origin: { domain?: string; names?: [string, string] | null; manifest?: unknown } | null;
-}) {
-  const have = new Set(sites.map((s) => s.occasion).filter(Boolean));
-  const arc = WEEKEND_ANCHORS.find((a) => a.id === occasion);
-  const suggestions = arc
-    ? arc.events
-        .filter((e) => e.sluffix !== '' && !have.has(e.kind))
-        .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
-        .map((e) => ({ occasion: e.kind, label: e.label, blurb: e.description }))
-        .slice(0, 3)
-    : (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
-  /* Celebration linkage — the new site should arrive already woven
-     into THIS celebration: same celebration id (reuse the origin's
-     if it has one), shared name, and the LinkedEventsStrip lights
-     up on both sites the moment the sibling presses. */
-  const originCeleb = (origin?.manifest as { celebration?: { id?: string; name?: string } } | undefined)?.celebration;
-  const celebName = originCeleb?.name
-    ?? (origin?.names ?? []).filter(Boolean).join(' & ')
-    ?? '';
-  const linkParams = origin?.domain
-    ? `&from=${encodeURIComponent(origin.domain)}`
-      + (originCeleb?.id ? `&cid=${encodeURIComponent(originCeleb.id)}` : '')
-      + (celebName ? `&cname=${encodeURIComponent(celebName)}` : '')
-    : '';
-  if (suggestions.length === 0) return null;
-  return (
-    <section
-      style={{
-        background: 'var(--card)',
-        border: '1px solid var(--line-soft)',
-        borderRadius: 'var(--r-md, 20px)',
-        padding: '18px 18px 14px',
-      }}
-    >
-      <SectionHeader icon="sparkles">Around your day</SectionHeader>
-      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
-        Most celebrations are a weekend, not a day. Each of these can be its own site —
-        woven to match, with its own guest list.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {suggestions.map((e) => (
-          <Link
-            key={e.occasion}
-            href={`/wizard/new?occasion=${encodeURIComponent(e.occasion)}${linkParams}`}
-            style={{
-              display: 'flex', alignItems: 'baseline', gap: 8,
-              padding: '9px 12px', borderRadius: 12,
-              border: '1px dashed var(--line)', textDecoration: 'none',
-            }}
-          >
-            {/* Label may wrap; the blurb owns the leftover width and
-                ellipsizes — nowrap-on-both overprinted in narrow
-                columns (plan-2 §1-B). */}
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', flexShrink: 0, maxWidth: '60%' }}>{e.label}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.blurb}</span>
-            <span aria-hidden style={{ color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
-          </Link>
-        ))}
-      </div>
-      {/* Belt-and-braces: /dashboard/weekend advertises itself only
-          where isDashSurfaceApplicable('weekend') agrees — never
-          route a host to a page that would turn them away. */}
-      {arc && isDashSurfaceApplicable('weekend', occasion) && (
-        <Link
-          href="/dashboard/weekend"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, marginTop: 10,
-            fontSize: 12, fontWeight: 600, color: 'var(--peach-ink)', textDecoration: 'none',
-          }}
-        >
-          Planning several at once? Open the Weekend builder <span aria-hidden>→</span>
-        </Link>
-      )}
-    </section>
-  );
-}
 
 function SectionHeader({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (

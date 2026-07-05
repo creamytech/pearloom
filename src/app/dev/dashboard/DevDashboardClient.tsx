@@ -1,32 +1,73 @@
 'use client';
 
 // Visual harness for the home cockpit pieces. Sample props mirror
-// the design-system prototype (Mira & Jun, 84 days) so the render
-// can be compared directly against the target screenshot.
+// the editorial "cockpit" design (Mira & Jun) so the render can be
+// compared directly against the target screens. It exercises the
+// full top-to-bottom layout the real Home (WelcomeHome) composes.
 
 import {
-  CockpitHeader,
-  CountdownHero,
-  StatTiles,
+  CockpitGreeting,
+  HeroBanner,
+  ProgressCard,
+  QuickActions,
+  RoadCard,
+  ChecklistCard,
+  GuestSummaryCard,
+  MemoryCard,
+  WeekendCard,
   NeedsYouNow,
   Lately,
   TheLongView,
   HomeSitePreview,
-  QuickJumps,
   BudgetBreakdown,
-  type StatTileData,
+  CockpitBlessing,
+  type QuickActionItem,
+  type RoadMilestone,
+  type ChecklistItem,
+  type WeekendEventItem,
+  type WeekendAdd,
   type NeedRow,
   type LatelyItem,
-  type QuickJump,
   type BudgetLine,
 } from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
+import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 
-const TILES: StatTileData[] = [
-  { key: 'coming', label: 'Coming', value: 38, sub: 'of 64 invited', color: 'var(--sage-deep)', icon: 'users' },
-  { key: 'await', label: 'Awaiting reply', value: 21, sub: 'no reply yet', color: 'var(--peach-ink)', icon: 'clock' },
-  { key: 'replied', label: 'Replied', value: 43, sub: 'of 64 · 67%', color: 'var(--gold)', icon: 'check', bar: 67 },
-  { key: 'days', label: 'Days to go', value: 84, sub: 'Sept 6, 2026', color: 'var(--lavender-ink)', icon: 'calendar' },
+// A fixed future date so the hero countdown actually ticks.
+const EVENT_DATE = new Date('2026-09-06T16:30:00');
+
+const QUICK: QuickActionItem[] = [
+  { icon: 'check', label: 'Add a task', color: 'var(--sage-deep)', href: '#' },
+  { icon: 'users', label: 'Invite guests', color: 'var(--peach-ink)', href: '#' },
+  { icon: 'layout', label: 'Edit site', color: 'var(--lavender-ink)', href: '#' },
+  { icon: 'sparkles', label: 'Studio', color: 'var(--pl-gold)', href: '#' },
+];
+
+const ROAD: RoadMilestone[] = [
+  { date: '', label: 'Venue booked', sub: 'Completed · Oct 15, 2025', state: 'done' },
+  { date: '', label: 'Save the date', sub: 'Completed · May 12, 2026', state: 'done' },
+  { date: '', label: 'Formal invitation', sub: 'Due in 7 days · May 27', state: 'now', tag: 'Due in 7 days' },
+  { date: '', label: 'RSVP reminder', sub: 'Jun 3, 2026', state: 'next' },
+  { date: '', label: 'Final RSVP nudge', sub: 'Jun 10, 2026', state: 'next' },
+  { date: '', label: 'The big day', sub: 'Sept 6, 2026', state: 'end' },
+];
+
+const CHECK: ChecklistItem[] = [
+  { t: 'Confirm vendor arrival times', p: 'High' },
+  { t: 'Share the final timeline', p: 'High' },
+  { t: 'Check seating & place cards', p: 'Medium' },
+  { t: 'Pack welcome gifts', p: 'Medium' },
+  { t: 'Print menus & signage', p: 'Low' },
+];
+
+const WEEKEND: WeekendEventItem[] = [
+  { day: 'FRI · SEP 4', title: 'Welcome Drinks', meta: '7:00 – 9:30 PM · The Roof', rsvp: 'Yes', color: 'var(--sage)', href: '#' },
+  { day: 'SAT · SEP 5', title: 'Rehearsal Dinner', meta: '6:30 – 9:00 PM · Osteria Stellina', rsvp: 'Yes', color: 'var(--pl-gold)', href: '#' },
+  { day: 'SUN · SEP 6', title: 'The Big Day', meta: '4:30 – 11:30 PM · Lark Hill Farm', rsvp: 'Host', color: 'var(--lavender-ink)', href: '#' },
+];
+
+const WEEKEND_ADDS: WeekendAdd[] = [
+  { label: 'Morning-after brunch', blurb: 'Its own site, woven to match.', href: '#' },
 ];
 
 const NEEDS: NeedRow[] = [
@@ -41,13 +82,6 @@ const LATELY: LatelyItem[] = [
   { name: 'Priya', action: 'declined', when: 'yesterday', tone: 'no' },
 ];
 
-const JUMPS: QuickJump[] = [
-  { label: 'Open the editor', sub: 'Shape your site', icon: 'brush', href: '#' },
-  { label: 'Guests', sub: '38 coming · 21 pending', icon: 'users', href: '#' },
-  { label: 'Studio', sub: 'Save-the-dates & invites', icon: 'mail', href: '#' },
-  { label: 'Day-of room', sub: 'Opens closer to the day', icon: 'clock', href: '#', dim: true },
-];
-
 const BUDGET: BudgetLine[] = [
   { cat: 'Venue', used: 14000, cap: 14000 },
   { cat: 'Catering', used: 11000, cap: 13000 },
@@ -56,26 +90,35 @@ const BUDGET: BudgetLine[] = [
 ];
 
 export function DevDashboardClient() {
+  const narrow = useIsMobile(920);
+  const heroNarrow = useIsMobile(760);
+  const twoCol = (a: string, b: string) => (narrow ? '1fr' : `${a} ${b}`);
   return (
     <div className="pl8" style={{ minHeight: '100dvh', background: 'var(--cream)', padding: '32px clamp(16px,4vw,40px) 64px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <CockpitHeader greeting="Good evening, Scott" subtitle="Mid-planning. Replies are landing. Keep the schedule moving." />
-        <CountdownHero
+      <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <CockpitGreeting
+          eyebrow="Good morning, Mira"
+          subtitle="Sept 6, 2026 · Lark Hill Farm. Everything Pear is holding for you, and the few things that want a moment this week."
+        />
+        <HeroBanner
           names={['Mira', 'Jun']}
-          eyebrow="A bright Saturday in Point Reyes"
-          daysUntil={84}
+          occasion="wedding"
+          eventDate={EVENT_DATE}
           dateLabel="Saturday, September 6, 2026"
-          decisions={4}
-          tasksLeft={3}
+          venueLabel="Lark Hill Farm · Point Reyes, California"
+          coverPhoto={null}
           liveHref="#"
           editorHref="#"
-          askHref="#"
+          narrow={heroNarrow}
         />
-        <StatTiles tiles={TILES} />
-        <QuickJumps jumps={JUMPS} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 16, alignItems: 'start' }}>
-          <NeedsYouNow rows={NEEDS} phaseLabel="Planning" phaseNote="84 days out" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <ProgressCard pct={68} done={31} prog={12} todo={12} />
+          <QuickActions actions={QUICK} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <RoadCard milestones={ROAD} dateShort="Sept 6" href="#" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <ChecklistCard items={CHECK} href="#" />
             <HomeSitePreview
               names={['Mira', 'Jun']}
               dateLabel="Sept 6"
@@ -86,11 +129,22 @@ export function DevDashboardClient() {
               editorHref="#"
               themeHref="#"
             />
-            <Lately items={LATELY} />
-            <BudgetBreakdown lines={BUDGET} onSave={() => {}} />
           </div>
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: twoCol('1.25fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <NeedsYouNow rows={NEEDS} phaseLabel="Planning" phaseNote="84 days out" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <BudgetBreakdown lines={BUDGET} onSave={() => {}} />
+            <Lately items={LATELY} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <GuestSummaryCard counts={{ invited: 64, yes: 48, no: 10, maybe: 0, pending: 6 }} href="#" />
+          <MemoryCard images={[]} href="#" />
+        </div>
+        <WeekendCard events={WEEKEND} adds={WEEKEND_ADDS} addHref="#" manageHref="#" />
         <TheLongView dateShort="Sept 6, 2026" />
+        <CockpitBlessing />
       </div>
     </div>
   );

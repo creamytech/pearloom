@@ -1,27 +1,34 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom dashboard — Home cockpit (design-system v2)
+// Pearloom dashboard — Home cockpit (editorial "cockpit" redesign)
 //
 // Prop-driven presentational pieces for the dashboard home. They
 // carry NO data fetching: WelcomeHome composes them with the real
-// guest / cadence / countdown data it already loads, and the
-// /dev/dashboard harness renders them with sample props for visual
-// sign-off. Keep them pure + prop-driven.
+// guest / cadence / countdown / gallery data it already loads, and
+// the /dev/dashboard harness renders them with sample props for
+// visual sign-off. Keep them pure + prop-driven.
 //
 // Tokens: the dashboard product-chrome aliases (--ink / --cream /
 // --card / --line + the sage / peach / lavender / gold accents),
-// NOT the editor-only --pl-chrome-* family. The countdown hero is
-// a fixed ink surface in both light + editorial-midnight, so its
-// interior cream/peach text is intentionally literal.
+// NOT the editor-only --pl-chrome-* family. The photographic hero
+// is a FIXED deep-olive surface in both light + editorial-midnight,
+// so its interior cream/gold text is intentionally literal.
+//
+// NO stock photography: the hero uses the site's real coverPhoto or
+// a warm gradient placeholder; every other "image" slot is a warm
+// gradient tile. Honesty: empty inputs render a graceful state, the
+// caller never fabricates counts on the real Home.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Icon, Sprig } from '../motifs';
+import { Icon, Sprig, PearloomGlyph } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
-import { crestTint } from './DashShell';
+
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
 
 /** Eased count-up number, reduced-motion aware (renders the target
  *  directly when motion is reduced). */
@@ -30,322 +37,7 @@ export function CountUpNum({ value, suffix }: { value: number; suffix?: string }
   return <>{n}{suffix ?? ''}</>;
 }
 
-// ── CockpitHeader ────────────────────────────────────────────
-// The letterpress page title — "Your loom, at a glance." Greeting
-// eyebrow + display title (one lavender-italic word + gold pearl) +
-// a one-line subtitle.
-
-export function CockpitHeader({
-  greeting,
-  title = 'Your loom,',
-  titleItalic = 'at a glance',
-  subtitle,
-}: {
-  greeting?: string;
-  title?: string;
-  titleItalic?: string;
-  subtitle?: string;
-}) {
-  return (
-    <header style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {greeting ? (
-        <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--peach-ink)', margin: 0 }}>
-          <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)' }} />
-          {greeting}
-        </span>
-      ) : null}
-      <h1
-        className="display pl-letterpress"
-        style={{ fontSize: 'clamp(28px,3.6vw,40px)', margin: '4px 0 0', fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.02em', color: 'var(--ink)' }}
-      >
-        {title} <span className="display-italic" style={{ color: 'var(--lavender-ink)' }}>{titleItalic}</span>.{' '}
-        <Pearl size={9} />
-      </h1>
-      {subtitle ? (
-        <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 640, margin: '6px 0 0' }}>{subtitle}</p>
-      ) : null}
-    </header>
-  );
-}
-
-// ── CountdownHero ────────────────────────────────────────────
-// The dark "84 days" cockpit hero. Left: eyebrow · countdown ·
-// status · honoree marks · actions. Right: warm wash + laid
-// texture + the pear watermark.
-
-export interface CountdownHeroProps {
-  /** Slim personal greeting eyebrow above the card, e.g. "Good evening, Scott". */
-  greeting?: string;
-  /** Honoree / event names (the celebration's people). */
-  names: string[];
-  /** Mono gold eyebrow inside the card — venue / occasion line. */
-  eyebrow: string;
-  /** Days until the event; 0 = today; null = no date set. */
-  daysUntil: number | null;
-  /** Long date label, shown when there's no countdown number. */
-  dateLabel: string | null;
-  /** Count of decisions waiting (Pear todos). */
-  decisions: number;
-  /** Count of open tasks this week. */
-  tasksLeft: number;
-  liveHref: string;
-  editorHref: string;
-  /** Optional "Ask Pear" destination (the planning advisor). */
-  askHref?: string;
-  /** The site's cover photo — fills the hero's right slot when set. */
-  coverPhoto?: string | null;
-  /** Occasion id — tints the crest fallback when there's no cover. */
-  occasion?: string;
-}
-
-const MARK_COLORS = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)'];
-
-export function CountdownHero({
-  greeting,
-  names,
-  eyebrow,
-  daysUntil,
-  dateLabel,
-  decisions,
-  tasksLeft,
-  liveHref,
-  editorHref,
-  askHref,
-  coverPhoto,
-  occasion,
-}: CountdownHeroProps) {
-  // The hero is a fixed deep-ink surface in BOTH themes (a warm
-  // near-black, not the --ink token, which flips to a light value in
-  // editorial-midnight). Cream interior text reads on it either way.
-  const heroBg = '#18181B';
-  const cream = 'rgba(245,239,226,0.96)';
-  const creamSoft = 'rgba(245,239,226,0.70)';
-  const hairline = 'rgba(245,239,226,0.16)';
-
-  const status =
-    decisions > 0 || tasksLeft > 0
-      ? [
-          decisions > 0 ? `${decisions} ${decisions === 1 ? 'thing wants' : 'things want'} a decision` : null,
-          tasksLeft > 0 ? `${tasksLeft} ${tasksLeft === 1 ? 'task' : 'tasks'} left this week` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : 'Everything is in good order.';
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {greeting ? (
-        <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--ink-soft)' }}>
-          <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)' }} />
-          {greeting}
-        </span>
-      ) : null}
-
-      <div
-        className="pl8-cockpit-hero"
-        style={{
-          background: heroBg,
-          color: cream,
-          border: '1px solid var(--line)',
-          borderRadius: 18,
-          overflow: 'hidden',
-          boxShadow: 'var(--pl-shadow-md, 0 18px 48px -24px rgba(40,28,12,0.5))',
-        }}
-      >
-        {/* LEFT — the countdown + status + actions */}
-        <div style={{ padding: 'clamp(24px,3vw,38px)', minWidth: 0 }}>
-          <div className="eyebrow" style={{ color: 'var(--pl-gold, #C19A4B)', marginBottom: 12 }}>{eyebrow}</div>
-
-          {daysUntil != null ? (
-            <div
-              className="display"
-              style={{ fontSize: 'clamp(40px,5.2vw,64px)', lineHeight: 0.98, fontWeight: 400, letterSpacing: '-0.03em', color: cream }}
-            >
-              {daysUntil === 0 ? (
-                <span style={{ fontStyle: 'italic', color: 'var(--peach)' }}>Today</span>
-              ) : (
-                <>
-                  <CountUpNum value={daysUntil} />{' '}
-                  <span style={{ fontStyle: 'italic', color: 'var(--peach)' }}>{daysUntil === 1 ? 'day' : 'days'}</span>
-                </>
-              )}
-            </div>
-          ) : (
-            <div
-              className="display"
-              style={{ fontSize: 'clamp(32px,4.4vw,52px)', lineHeight: 1, fontWeight: 400, letterSpacing: '-0.02em', color: cream }}
-            >
-              {names.length >= 2 ? (
-                <>{names[0]} <span style={{ fontStyle: 'italic', color: 'var(--peach)' }}>&amp;</span> {names[1]}</>
-              ) : (
-                names[0] ?? 'Your celebration'
-              )}
-            </div>
-          )}
-
-          <div style={{ fontSize: 14.5, color: creamSoft, marginTop: 12, lineHeight: 1.5, maxWidth: 440 }}>
-            {daysUntil != null
-              ? <>{daysUntil === 0 ? 'The day is here. ' : 'until the day. '}{status}</>
-              : (dateLabel ? `On ${dateLabel}. ${status}` : 'Set a date in the editor to start the countdown.')}
-          </div>
-
-          {names.length > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18 }}>
-              <div style={{ display: 'flex' }}>
-                {names.slice(0, 3).map((nm, i) => (
-                  <span
-                    key={nm + i}
-                    style={{
-                      width: 28, height: 28, borderRadius: 999, background: MARK_COLORS[i % MARK_COLORS.length],
-                      border: `2px solid ${heroBg}`, marginLeft: i ? -8 : 0, display: 'grid', placeItems: 'center',
-                      color: cream, fontFamily: 'var(--pl-font-display, serif)', fontStyle: 'italic', fontSize: 13,
-                    }}
-                  >
-                    {nm.trim().charAt(0).toUpperCase()}
-                  </span>
-                ))}
-              </div>
-              <span style={{ fontSize: 12.5, color: creamSoft }}>{names.filter(Boolean).join(' & ')}</span>
-            </div>
-          ) : null}
-
-          <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
-            <a href={liveHref} target="_blank" rel="noreferrer" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
-              Open the site <Pearl size={8} />
-            </a>
-            <Link
-              href={editorHref}
-              className="btn btn-sm"
-              style={{ textDecoration: 'none', color: cream, background: 'transparent', border: `1px solid ${hairline}` }}
-            >
-              <Icon name="brush" size={13} color={cream} /> Open editor
-            </Link>
-            {askHref ? (
-              <Link
-                href={askHref}
-                className="btn btn-sm"
-                style={{ textDecoration: 'none', color: cream, background: 'transparent', border: `1px solid ${hairline}` }}
-              >
-                <Icon name="sparkles" size={13} color={cream} /> Ask Pear to plan
-              </Link>
-            ) : null}
-          </div>
-        </div>
-
-        {/* RIGHT — the site's cover photo in a hairline frame, or the
-            SiteCrest recipe (occasion-tinted paper + display-italic
-            initial + gold pearl). The old grey wash + ghost pear read
-            as a broken placeholder (plan-2 §1-F). */}
-        {coverPhoto ? (
-          <div
-            aria-hidden
-            className="pl8-cockpit-hero-slot"
-            style={{
-              position: 'relative',
-              borderLeft: `1px solid ${hairline}`,
-              padding: 10,
-            }}
-          >
-            <img
-              src={coverPhoto}
-              alt=""
-              style={{
-                position: 'absolute',
-                inset: 10,
-                width: 'calc(100% - 20px)',
-                height: 'calc(100% - 20px)',
-                objectFit: 'cover',
-                borderRadius: 10,
-                border: '1px solid var(--pl-gold, #C19A4B)',
-                display: 'block',
-              }}
-            />
-          </div>
-        ) : (
-          <CockpitCrestSlot names={names} occasion={occasion} hairline={hairline} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── CockpitCrestSlot ─────────────────────────────────────────
-// The hero's right slot when there's no cover photo — the same
-// recipe as the sidebar's SiteCrest (occasion-tinted paper, the
-// celebration's initial in display italic, the gold pearl), scaled
-// to the slot. Never the grey wash + ghost watermark (plan-2 §1-F).
-
-function CockpitCrestSlot({
-  names,
-  occasion,
-  hairline,
-}: {
-  names: string[];
-  occasion?: string;
-  hairline: string;
-}) {
-  const tint = crestTint(occasion);
-  const letter = (names[0] ?? 'P').trim().charAt(0).toUpperCase() || 'P';
-  return (
-    <div
-      aria-hidden
-      className="pl8-cockpit-hero-slot"
-      style={{
-        position: 'relative',
-        borderLeft: `1px solid ${hairline}`,
-        display: 'grid',
-        placeItems: 'center',
-        background: tint.bg,
-        overflow: 'hidden',
-      }}
-    >
-      <div className="pl-tx-laid" style={{ position: 'absolute', inset: 0, opacity: 0.4 }} />
-      <span
-        style={{
-          position: 'relative',
-          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
-          fontStyle: 'italic',
-          fontWeight: 600,
-          fontSize: 'clamp(44px, 6vw, 72px)',
-          lineHeight: 1,
-          color: tint.fg,
-        }}
-      >
-        {letter}
-      </span>
-      <span
-        style={{
-          position: 'absolute',
-          right: 18,
-          bottom: 16,
-          width: 10,
-          height: 10,
-          borderRadius: 999,
-          background: 'var(--pl-gold, #C19A4B)',
-        }}
-      />
-    </div>
-  );
-}
-
-// ── StatTiles ────────────────────────────────────────────────
-// Quick-glance count tiles with eased count-ups. Honest: each
-// tile is fed a real number by the caller.
-
-export interface StatTileData {
-  key: string;
-  label: string;
-  value: number;
-  suffix?: string;
-  sub: string;
-  color: string;
-  icon: string;
-  /** 0–100 progress bar, optional. */
-  bar?: number;
-  href?: string;
-}
-
-// ── card helper ──────────────────────────────────────────────
+// ── shared card + copy helpers ───────────────────────────────
 const cockpitCard: React.CSSProperties = {
   background: 'var(--card)',
   border: '1px solid var(--card-ring, var(--line))',
@@ -353,9 +45,625 @@ const cockpitCard: React.CSSProperties = {
   padding: 24,
 };
 
+/** The letterpress card headline — Fraunces, one italic-accent word.
+ *  A plain `<div>` (not `.display`) so the ≤640px `.display` clamp
+ *  never inflates it on phones. */
+function CardHeadline({ children, size = 22, margin = '8px 0 16px' }: { children: React.ReactNode; size?: number; margin?: string }) {
+  return (
+    <div style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: 600, lineHeight: 1.16, color: 'var(--ink)', margin }}>
+      {children}
+    </div>
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return <span className="eyebrow" style={{ margin: 0, display: 'block' }}>{children}</span>;
+}
+
+// The gold-outline heart doodle — the design's signature flourish,
+// rendered as a real heart (the Icon set has no plain "heart").
+function HeartDoodle({ size = 20, color = 'var(--lavender-ink)' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 30" fill="none" aria-hidden style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+      <path
+        d="M16 27C6 20 3 15 3 10a6 6 0 0 1 11-3 6 6 0 0 1 11 3c0 5-3 10-9 17Z"
+        stroke={color}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+// ── useCockpitCountdown ──────────────────────────────────────
+// Live d/h/m/s ticking every second off a `now` STATE (never
+// Date.now() in render — React-Compiler safe). The countdown is
+// DATA, not decoration, so it keeps ticking under
+// prefers-reduced-motion (BRAND §6 honours reduced-motion for
+// everything else). `has` is false when there's no event date.
+
+interface Countdown { d: number; h: number; m: number; s: number; has: boolean }
+
+function useCockpitCountdown(eventDate: Date | null): Countdown {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const key = eventDate ? eventDate.getTime() : 0;
+  useEffect(() => {
+    if (!key) return;
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [key]);
+  if (!eventDate) return { d: 0, h: 0, m: 0, s: 0, has: false };
+  const ms = Math.max(0, eventDate.getTime() - nowMs);
+  return {
+    d: Math.floor(ms / 86_400_000),
+    h: Math.floor((ms % 86_400_000) / 3_600_000),
+    m: Math.floor((ms % 3_600_000) / 60_000),
+    s: Math.floor((ms % 60_000) / 1000),
+    has: true,
+  };
+}
+
+// ── CockpitGreeting ──────────────────────────────────────────
+// The letterpress page header: mono greeting eyebrow + a two-part
+// display headline (one italic lavender clause) + a one-line
+// subtitle. Occasion-aware copy comes from the caller.
+
+export function CockpitGreeting({
+  eyebrow,
+  title = "You're building",
+  titleItalic = 'something beautiful.',
+  subtitle,
+}: {
+  eyebrow?: string;
+  title?: string;
+  titleItalic?: string;
+  subtitle?: React.ReactNode;
+}) {
+  return (
+    <header style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {eyebrow ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eyebrow}</span>
+        </div>
+      ) : null}
+      <h1
+        className="pl-letterpress"
+        style={{ fontFamily: DISPLAY, fontSize: 'clamp(30px,4vw,46px)', margin: '6px 0 0', fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.02em', color: 'var(--ink)' }}
+      >
+        {title} <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>{titleItalic}</span>
+      </h1>
+      {subtitle ? (
+        <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 680, margin: '10px 0 0' }}>{subtitle}</p>
+      ) : null}
+    </header>
+  );
+}
+
+// ── HeroBanner ───────────────────────────────────────────────
+// The signature photographic countdown banner. A fixed deep-olive
+// surface (stays dark in both themes), linen texture underlay, a
+// 1.32fr / 1fr grid: LEFT = gold eyebrow · big names + heart ·
+// date/venue · a live 4-cell countdown · actions. RIGHT = the
+// site's real coverPhoto (sepia + left-fade), or a warm gradient
+// placeholder (NO stock photography).
+
+const HERO_BG = 'linear-gradient(150deg, #37421F 0%, #2A331A 46%, #1E2513 100%)';
+const HERO_GOLD = '#DDB768';
+const HERO_CREAM = '#F7F2E6';
+const HERO_SOFT = 'rgba(247,242,230,0.72)';
+const HERO_LINEN =
+  'repeating-linear-gradient(0deg, rgba(247,242,230,0.05) 0 1px, transparent 1px 5px), repeating-linear-gradient(90deg, rgba(247,242,230,0.05) 0 1px, transparent 1px 5px)';
+
+export interface HeroBannerProps {
+  names: string[];
+  occasion: string;
+  /** Drives the live countdown; null = no date set. */
+  eventDate: Date | null;
+  /** Long date label (e.g. "Saturday, September 6, 2026"). */
+  dateLabel: string | null;
+  venueLabel: string | null;
+  /** The site's real cover photo — else a warm gradient placeholder. */
+  coverPhoto?: string | null;
+  liveHref: string;
+  editorHref: string;
+  /** Where "Change photo" lands (defaults to the editor). */
+  changePhotoHref?: string;
+  /** Collapse to a single column (parent-measured, no CSS edit). */
+  narrow?: boolean;
+}
+
+export function HeroBanner({
+  names,
+  occasion,
+  eventDate,
+  dateLabel,
+  venueLabel,
+  coverPhoto,
+  liveHref,
+  editorHref,
+  changePhotoHref,
+  narrow = false,
+}: HeroBannerProps) {
+  const c = useCockpitCountdown(eventDate);
+  const a = names[0];
+  const b = names[1];
+  const occLabel = occasion.replace(/-/g, ' ').toUpperCase();
+  const eyebrow = c.has
+    ? `YOUR ${occLabel} · ${c.d === 0 ? 'TODAY' : `${c.d} ${c.d === 1 ? 'DAY' : 'DAYS'} TO GO`}`
+    : `YOUR ${occLabel}`;
+  const cells: [string, number][] = [['DAYS', c.d], ['HRS', c.h], ['MIN', c.m], ['SEC', c.s]];
+  const dateLines = [dateLabel, venueLabel].filter(Boolean) as string[];
+
+  return (
+    <div style={{ borderRadius: 18, overflow: 'hidden', background: HERO_BG, color: HERO_CREAM, position: 'relative', boxShadow: 'var(--shadow-md, 0 18px 48px -24px rgba(20,24,12,0.55))' }}>
+      <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', backgroundImage: HERO_LINEN, backgroundSize: '5px 5px' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1.32fr 1fr', position: 'relative' }}>
+        {/* LEFT — names, countdown, actions */}
+        <div style={{ padding: 'clamp(26px,3vw,40px)', minWidth: 0 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.2em', color: HERO_GOLD, marginBottom: 16 }}>{eyebrow}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(38px,5vw,60px)', lineHeight: 0.98, fontWeight: 400, letterSpacing: '-0.025em', color: HERO_CREAM }}>
+              {b ? (<>{a} <span style={{ fontStyle: 'italic', color: HERO_GOLD }}>&amp;</span> {b}</>) : (a ?? 'Your celebration')}
+            </div>
+            <HeartDoodle size={26} color="#B9A6E0" />
+          </div>
+          {dateLines.length > 0 ? (
+            <div style={{ fontSize: 14.5, color: HERO_SOFT, marginTop: 14, lineHeight: 1.5 }}>
+              {dateLines.map((l, i) => (<div key={i}>{l}</div>))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 14.5, color: HERO_SOFT, marginTop: 14, lineHeight: 1.5 }}>Add a date in the editor to start the countdown.</div>
+          )}
+          {c.has ? (
+            <div style={{ display: 'flex', gap: 8, margin: '22px 0 4px' }}>
+              {cells.map(([l, v]) => (
+                <div key={l} style={{ flex: 1, maxWidth: 76, textAlign: 'center', background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)', borderRadius: 12, padding: '10px 4px' }}>
+                  <div style={{ fontFamily: DISPLAY, fontSize: 26, lineHeight: 1, color: HERO_CREAM }}>{String(v).padStart(2, '0')}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.16em', color: HERO_SOFT, marginTop: 5 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div style={{ display: 'flex', gap: 10, marginTop: 22, flexWrap: 'wrap' }}>
+            <a href={liveHref} target="_blank" rel="noreferrer" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
+              Open the site <Pearl size={8} />
+            </a>
+            <Link href={editorHref} className="btn btn-sm" style={{ textDecoration: 'none', color: HERO_CREAM, background: 'transparent', border: '1px solid rgba(247,242,230,0.28)' }}>
+              <Icon name="layout" size={14} color={HERO_CREAM} /> Open editor
+            </Link>
+          </div>
+        </div>
+        {/* RIGHT — the real cover photo, or a warm gradient placeholder */}
+        <HeroPhotoSlot coverPhoto={coverPhoto} names={names} editorHref={changePhotoHref ?? editorHref} narrow={narrow} />
+      </div>
+    </div>
+  );
+}
+
+function HeroPhotoSlot({
+  coverPhoto,
+  names,
+  editorHref,
+  narrow,
+}: {
+  coverPhoto?: string | null;
+  names: string[];
+  editorHref: string;
+  narrow: boolean;
+}) {
+  const slotStyle: React.CSSProperties = {
+    position: 'relative',
+    minHeight: narrow ? 150 : 280,
+    borderLeft: narrow ? 'none' : '1px solid rgba(247,242,230,0.12)',
+    borderTop: narrow ? '1px solid rgba(247,242,230,0.12)' : 'none',
+    overflow: 'hidden',
+  };
+  const pill: React.CSSProperties = {
+    position: 'absolute', right: 14, bottom: 14, display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(247,242,230,0.3)',
+    background: 'rgba(20,24,12,0.5)', WebkitBackdropFilter: 'blur(8px)', backdropFilter: 'blur(8px)',
+    color: HERO_CREAM, fontSize: 11.5, fontWeight: 600, textDecoration: 'none',
+  };
+  if (coverPhoto) {
+    return (
+      <div style={slotStyle}>
+        { }
+        <img src={coverPhoto} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.05) sepia(0.05)' }} />
+        <div aria-hidden style={{ position: 'absolute', inset: 0, background: narrow ? 'linear-gradient(0deg, rgba(30,37,19,0.92) 0%, rgba(30,37,19,0.2) 60%, transparent 100%)' : 'linear-gradient(100deg, rgba(30,37,19,0.9) 0%, rgba(30,37,19,0.28) 34%, transparent 60%)' }} />
+        <Link href={editorHref} className="lift" style={pill}>
+          <Icon name="image" size={13} color={HERO_CREAM} /> Change photo
+        </Link>
+      </div>
+    );
+  }
+  const letter = (names[0] ?? 'P').trim().charAt(0).toUpperCase() || 'P';
+  return (
+    <div style={{ ...slotStyle, background: 'linear-gradient(150deg, #5A4A2E 0%, #453A24 55%, #322C1C 100%)', display: 'grid', placeItems: 'center' }}>
+      <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.5, backgroundImage: HERO_LINEN, backgroundSize: '5px 5px' }} />
+      <span style={{ position: 'relative', fontFamily: DISPLAY, fontStyle: 'italic', fontWeight: 500, fontSize: 'clamp(44px,6vw,76px)', lineHeight: 1, color: 'rgba(247,242,230,0.92)' }}>{letter}</span>
+      <span aria-hidden style={{ position: 'absolute', right: 18, bottom: 18, width: 10, height: 10, borderRadius: 999, background: HERO_GOLD }} />
+      <Link href={editorHref} className="lift" style={pill}>
+        <Icon name="image" size={13} color={HERO_CREAM} /> Add a photo
+      </Link>
+    </div>
+  );
+}
+
+// ── ProgressCard ─────────────────────────────────────────────
+// Planning progress: a filled track + count-up % + a done / in
+// progress / to do legend. Every figure is derived from the real
+// milestone ladder by the caller.
+
+export function ProgressCard({ pct, done, prog, todo }: { pct: number; done: number; prog: number; todo: number }) {
+  const bits: [string, number, string, string][] = [
+    ['done', done, 'done', 'var(--sage)'],
+    ['prog', prog, 'in progress', 'var(--pl-gold)'],
+    ['todo', todo, 'to do', 'var(--ink-muted)'],
+  ];
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <Eyebrow>Planning progress</Eyebrow>
+      <CardHeadline size={23} margin="8px 0 18px">On track and <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>looking good.</span></CardHeadline>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ flex: 1, height: 12, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: Math.min(100, Math.max(0, pct)) + '%', height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, var(--sage), var(--sage-deep))', transition: 'width var(--pl-dur-base, .4s) var(--pl-ease-out, ease)' }} />
+        </div>
+        <div style={{ fontFamily: DISPLAY, fontSize: 30, lineHeight: 1, color: 'var(--ink)' }}><CountUpNum value={pct} suffix="%" /></div>
+      </div>
+      <div style={{ display: 'flex', gap: 22, marginTop: 18, flexWrap: 'wrap' }}>
+        {bits.map(([k, n, l, col]) => (
+          <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', border: `1.5px solid ${col}`, background: k === 'done' ? col : 'transparent' }}>
+              {k === 'done' ? <Icon name="check" size={11} strokeWidth={3} color="var(--cream)" /> : null}
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--ink)' }}><strong style={{ fontWeight: 700 }}>{n}</strong> <span style={{ color: 'var(--ink-muted)' }}>{l}</span></span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── QuickActions ─────────────────────────────────────────────
+// A grid of icon-tile jumps. The caller supplies real routes;
+// external (published-site) links open in a new tab.
+
+export interface QuickActionItem { icon: string; label: string; color: string; href: string }
+
+export function QuickActions({ actions }: { actions: QuickActionItem[] }) {
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <Eyebrow>Quick actions</Eyebrow>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, marginTop: 16 }}>
+        {actions.map((q) => {
+          const inner = (
+            <>
+              <span style={{ width: 40, height: 40, borderRadius: 11, display: 'grid', placeItems: 'center', background: 'var(--card)', border: '1px solid var(--line-soft)', color: q.color }}>
+                <Icon name={q.icon} size={19} color={q.color} />
+              </span>
+              <span style={{ fontSize: 12.5, fontWeight: 550, color: 'var(--ink)', textAlign: 'center' }}>{q.label}</span>
+            </>
+          );
+          const style: React.CSSProperties = {
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '18px 8px',
+            borderRadius: 14, border: '1px solid var(--line-soft)', background: 'var(--cream-2)', textDecoration: 'none',
+          };
+          return q.href.startsWith('http') ? (
+            <a key={q.label} href={q.href} target="_blank" rel="noreferrer" className="lift" style={style}>{inner}</a>
+          ) : (
+            <Link key={q.label} href={q.href} className="lift" style={style}>{inner}</Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── RoadCard ─────────────────────────────────────────────────
+// The vertical milestone timeline. States: done · now (lavender
+// highlight) · next · end. The caller maps its real milestone
+// ladder onto this shape.
+
+export interface RoadMilestone {
+  date: string;
+  label: string;
+  sub: string;
+  state: 'done' | 'now' | 'next' | 'end';
+  tag?: string;
+}
+
+export function RoadCard({ milestones, dateShort, href }: { milestones: RoadMilestone[]; dateShort: string | null; href?: string }) {
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <Eyebrow>{dateShort ? `The road to ${dateShort}` : 'Your timeline'}</Eyebrow>
+        {href ? (
+          <Link href={href} style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            View full timeline <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        ) : null}
+      </div>
+      <CardHeadline margin="8px 0 18px">What&rsquo;s next on <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>your timeline.</span></CardHeadline>
+      <div>
+        {milestones.map((r, i) => {
+          const done = r.state === 'done';
+          const now = r.state === 'now';
+          const end = r.state === 'end';
+          const last = i === milestones.length - 1;
+          return (
+            <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 22 }}>
+                <span
+                  className={now ? 'pulse-dot' : ''}
+                  style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', background: done ? 'var(--sage)' : now ? 'var(--card)' : 'transparent', border: `2px solid ${done ? 'var(--sage)' : now ? 'var(--lavender-ink)' : end ? 'var(--pl-gold)' : 'var(--line)'}` }}
+                >
+                  {done ? <Icon name="check" size={12} strokeWidth={3} color="var(--cream)" /> : now ? <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--lavender-ink)' }} /> : end ? <HeartDoodle size={11} color="var(--pl-gold)" /> : null}
+                </span>
+                {!last ? <span style={{ flex: 1, width: 2, minHeight: 20, background: done ? 'var(--sage)' : 'var(--line)', margin: '2px 0', borderRadius: 2 }} /> : null}
+              </div>
+              <div style={{ flex: 1, minWidth: 0, paddingBottom: last ? 0 : 14, ...(now ? { background: 'var(--lavender-bg)', borderRadius: 12, padding: '10px 14px', margin: '-2px 0 12px' } : {}) }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 600, color: done ? 'var(--ink-soft)' : 'var(--ink)' }}>{r.label}</span>
+                  {r.tag ? (
+                    <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lavender-ink)', background: 'var(--card)', border: '1px solid var(--lavender-ink)', borderRadius: 999, padding: '2px 8px' }}>{r.tag}</span>
+                  ) : null}
+                  {now ? <span style={{ marginLeft: 'auto', color: 'var(--lavender-ink)', display: 'inline-flex' }}><Icon name="arrow-right" size={15} color="var(--lavender-ink)" /></span> : null}
+                </div>
+                {r.sub ? <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 3 }}>{r.sub}</div> : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── ChecklistCard ────────────────────────────────────────────
+// A tappable day-of checklist with priority tags. Local check
+// state only (a light prep aid, like the milestone ladder). The
+// caller supplies the items; empty → the card renders nothing.
+
+export interface ChecklistItem { t: string; p: 'High' | 'Medium' | 'Low' }
+const PRI: Record<ChecklistItem['p'], string> = { High: 'var(--peach-ink)', Medium: 'var(--pl-gold)', Low: 'var(--ink-muted)' };
+
+export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: string }) {
+  const [done, setDone] = useState<boolean[]>(() => items.map(() => false));
+  // Resync the local state when the item set changes (site switch).
+  // Render-time adjustment, not a setState-in-effect.
+  const [prevLen, setPrevLen] = useState(items.length);
+  if (prevLen !== items.length) {
+    setPrevLen(items.length);
+    setDone(items.map(() => false));
+  }
+  if (items.length === 0) return null;
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <Eyebrow>Day-of checklist</Eyebrow>
+      <CardHeadline size={21} margin="8px 0 14px">You can <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>do this.</span></CardHeadline>
+      <div>
+        {items.map((c, i) => (
+          <button
+            key={c.t}
+            type="button"
+            onClick={() => setDone((d) => d.map((v, j) => (j === i ? !v : v)))}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 0', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 'none', background: 'transparent', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ width: 19, height: 19, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', border: `1.5px solid ${done[i] ? 'var(--sage)' : 'var(--line)'}`, background: done[i] ? 'var(--sage)' : 'transparent' }}>
+              {done[i] ? <Icon name="check" size={11} strokeWidth={3} color="var(--cream)" /> : null}
+            </span>
+            <span style={{ flex: 1, fontSize: 13.5, color: done[i] ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: done[i] ? 'line-through' : 'none' }}>{c.t}</span>
+            <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', color: PRI[c.p] }}>{c.p}</span>
+          </button>
+        ))}
+      </div>
+      {href ? (
+        <Link href={href} style={{ marginTop: 14, fontSize: 12.5, color: 'var(--peach-ink)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+          Open the full day-of timeline <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+// ── GuestSummaryCard ─────────────────────────────────────────
+// Four big count-ups + a conic-gradient RSVP donut. Honest: when
+// there are no guests it shows the "begin a thread" empty state
+// instead of a 0% donut.
+
+export interface GuestCounts { invited: number; yes: number; no: number; maybe: number; pending: number }
+
+export function GuestSummaryCard({ counts, href }: { counts: GuestCounts | null; href: string }) {
+  if (!counts || counts.invited === 0) {
+    return (
+      <div style={{ ...cockpitCard, padding: 26 }}>
+        <Eyebrow>Guest summary</Eyebrow>
+        <CardHeadline margin="8px 0 14px">Your people, <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>in one place.</span></CardHeadline>
+        <div style={{ padding: '22px 16px', background: 'var(--cream-2)', borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: 18, marginBottom: 6, color: 'var(--ink)' }}>Nothing yet. Begin a thread.</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 14, maxWidth: 260, marginInline: 'auto', lineHeight: 1.5 }}>
+            Pear can draft a guest list from your story, or import from your contacts.
+          </div>
+          <Link href={href} className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            Start with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  const { invited, yes, no } = counts;
+  // "maybe" folds into the awaiting bucket for the donut + Pending
+  // stat (a maybe is not a firm yes); no + yes + pendingLike = invited.
+  const pendingLike = counts.pending + counts.maybe;
+  const total = invited || 1;
+  const ay = (yes / total) * 360;
+  const ap = (pendingLike / total) * 360;
+  const grad = `conic-gradient(var(--sage) 0deg ${ay}deg, var(--pl-gold) ${ay}deg ${ay + ap}deg, var(--stone, #C8BFA5) ${ay + ap}deg 360deg)`;
+  const comingPct = Math.round((yes / total) * 100);
+  const stats: [string, number, string][] = [
+    ['Total invited', invited, 'var(--ink)'],
+    ['Yes', yes, 'var(--sage-deep)'],
+    ['Pending', pendingLike, 'var(--pl-gold)'],
+    ['No / Declined', no, 'var(--peach-ink)'],
+  ];
+  const rows: [string, number, string][] = [
+    ['Yes', yes, 'var(--sage)'],
+    ['Pending', pendingLike, 'var(--pl-gold)'],
+    ['No / Declined', no, 'var(--stone, #C8BFA5)'],
+  ];
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <Eyebrow>Guest summary</Eyebrow>
+        <Link href={href} style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          View all guests <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+        </Link>
+      </div>
+      <CardHeadline margin="8px 0 18px">Your people, <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>in one place.</span></CardHeadline>
+      <div style={{ display: 'flex', gap: 26, marginBottom: 22, flexWrap: 'wrap' }}>
+        {stats.map(([l, n, col]) => (
+          <div key={l}>
+            <div style={{ fontFamily: DISPLAY, fontSize: 30, lineHeight: 1, color: col }}><CountUpNum value={n} /></div>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 4 }}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', width: 116, height: 116, flexShrink: 0 }}>
+          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: grad }} />
+          <div style={{ position: 'absolute', inset: 14, borderRadius: '50%', background: 'var(--card)', display: 'grid', placeItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: DISPLAY, fontSize: 26, lineHeight: 1, color: 'var(--ink)' }}>{comingPct}%</div>
+              <div style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.1em', color: 'var(--ink-muted)', marginTop: 2 }}>COMING</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.14em', color: 'var(--ink-muted)', marginBottom: 8, textTransform: 'uppercase' }}>RSVP status</div>
+          {rows.map(([l, n, col]) => (
+            <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 0' }}>
+              <span style={{ width: 9, height: 9, borderRadius: 999, background: col }} />
+              <span style={{ flex: 1, fontSize: 13, color: 'var(--ink)' }}>{l}</span>
+              <span style={{ fontFamily: MONO, fontSize: 11.5, color: 'var(--ink-muted)' }}>{n} ({Math.round((n / total) * 100)}%)</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MemoryCard ───────────────────────────────────────────────
+// A three-tile keepsake teaser. Real gallery images fill the
+// tiles; missing slots are warm gradient tiles (never stock).
+
+const MEMORY_GRADIENTS = [
+  'linear-gradient(150deg,#E9DFC8,#D8C6A0)',
+  'linear-gradient(150deg,#E3D6E8,#CBB8D6)',
+  'linear-gradient(150deg,#DDE6CE,#C2CFA6)',
+];
+
+export function MemoryCard({ images, href, blurb }: { images: string[]; href: string; blurb?: string }) {
+  return (
+    <div style={{ ...cockpitCard, padding: 26, position: 'relative', overflow: 'hidden' }}>
+      <Eyebrow>The memory book</Eyebrow>
+      <CardHeadline margin="8px 0 16px">A keepsake <span style={{ fontStyle: 'italic', color: 'var(--pl-gold)' }}>in the making.</span></CardHeadline>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+        {[0, 1, 2].map((i) => {
+          const src = images[i];
+          return (
+            <div key={i} style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', boxShadow: 'var(--shadow-sm, 0 2px 8px rgba(40,28,12,0.08))', transform: `rotate(${(i - 1) * 1.4}deg)`, background: src ? 'var(--cream-3)' : MEMORY_GRADIENTS[i] }}>
+              {src ? (
+                 
+                <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.05) sepia(0.05)' }} />
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '18px 0 16px' }}>
+        {blurb ?? 'The book weaves itself from your guests’ photos, signatures, and notes. It grows as more arrives.'}
+      </p>
+      <Link href={href} className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
+        Open the memory book <Pearl size={8} />
+      </Link>
+    </div>
+  );
+}
+
+// ── WeekendCard ──────────────────────────────────────────────
+// The rest of the weekend: the host's real sibling events as
+// cards, occasion suggestions to weave as dashed tiles, and an
+// "Add an event" tile. Empty inputs → copy + the add tile.
+
+export interface WeekendEventItem { day: string; title: string; meta?: string; rsvp?: string; color: string; href: string }
+export interface WeekendAdd { label: string; blurb?: string; href: string }
+
+export function WeekendCard({
+  events,
+  adds,
+  addHref,
+  manageHref,
+}: {
+  events: WeekendEventItem[];
+  adds: WeekendAdd[];
+  addHref: string;
+  manageHref?: string;
+}) {
+  const dashedTile: React.CSSProperties = {
+    borderRadius: 14, border: '1.5px dashed var(--line)', background: 'transparent',
+    display: 'flex', flexDirection: 'column', gap: 6, minHeight: 120, padding: '16px', textDecoration: 'none',
+  };
+  return (
+    <div style={{ ...cockpitCard, padding: 26 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <Eyebrow>The weekend</Eyebrow>
+          <CardHeadline margin="8px 0 0">More to <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>look forward to.</span></CardHeadline>
+        </div>
+        {manageHref ? (
+          <Link href={manageHref} style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            Manage events <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        ) : null}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 18 }}>
+        {events.map((w) => (
+          <Link key={w.href + w.title} href={w.href} className="lift" style={{ borderRadius: 14, border: '1px solid var(--line-soft)', background: 'var(--cream-2)', padding: '16px 16px 14px', textDecoration: 'none', display: 'block' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: w.color, textTransform: 'uppercase' }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: w.color }} />{w.day}
+            </div>
+            <div style={{ fontFamily: DISPLAY, fontSize: 18, color: 'var(--ink)', margin: '10px 0 6px' }}>{w.title}</div>
+            {w.meta ? <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{w.meta}</div> : null}
+            {w.rsvp ? (
+              <div style={{ marginTop: 12, display: 'inline-flex', padding: '3px 10px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: w.color, textTransform: 'uppercase' }}>{w.rsvp}</div>
+            ) : null}
+          </Link>
+        ))}
+        {adds.map((s) => (
+          <Link key={s.href} href={s.href} className="lift" style={dashedTile}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: 'var(--pl-olive, #5C6B3F)', textTransform: 'uppercase' }}>
+              <Icon name="plus" size={12} color="var(--pl-olive, #5C6B3F)" /> Weave in
+            </span>
+            <span style={{ fontFamily: DISPLAY, fontSize: 17, color: 'var(--ink)', marginTop: 4 }}>{s.label}</span>
+            {s.blurb ? <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{s.blurb}</span> : null}
+          </Link>
+        ))}
+        <Link href={addHref} className="lift" style={{ ...dashedTile, alignItems: 'center', justifyContent: 'center', color: 'var(--ink-muted)' }}>
+          <span style={{ width: 34, height: 34, borderRadius: 999, display: 'grid', placeItems: 'center', border: '1.5px solid currentColor' }}><Icon name="plus" size={16} /></span>
+          <span style={{ fontSize: 12.5, fontWeight: 550 }}>Add an event</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ── NeedsYouNow ──────────────────────────────────────────────
-// The phase-aware decision queue (was PearRecommendations). Each
-// row is a real Pear todo; the icon is derived from the title.
+// The phase-aware decision queue (Pear's todos). Each row is a
+// real Pear todo; the icon is derived from the title.
 
 export interface NeedRow {
   title: string;
@@ -372,7 +680,7 @@ function iconForNeed(title: string): string {
   if (/(save.the.date|invite|stationery|studio)/.test(t)) return 'mail';
   if (/(schedule|timeline|day-of|day of|run.of)/.test(t)) return 'clock';
   if (/(song|music|playlist|dance)/.test(t)) return 'music';
-  if (/(budget|gift|registry)/.test(t)) return 'heart';
+  if (/(budget|gift|registry)/.test(t)) return 'gift';
   return 'sparkles';
 }
 
@@ -386,8 +694,7 @@ export function NeedsYouNow({
   phaseLabel?: string;
   phaseNote?: string;
   /** Sparse recent-activity items (<3) fold in as a quiet footer
-   *  list instead of a full-width one-line Lately card (plan-2 §2
-   *  home). */
+   *  list instead of a full-width one-line Lately card. */
   lately?: LatelyItem[];
 }) {
   if (rows.length === 0) return null;
@@ -401,7 +708,7 @@ export function NeedsYouNow({
           <span
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', borderRadius: 999,
-              background: 'var(--cream-3)', border: '1px solid var(--line)', fontFamily: 'var(--pl-font-mono, monospace)',
+              background: 'var(--cream-3)', border: '1px solid var(--line)', fontFamily: MONO,
               fontSize: 9.5, letterSpacing: '0.12em', color: 'var(--ink-soft)', textTransform: 'uppercase',
             }}
           >
@@ -409,10 +716,10 @@ export function NeedsYouNow({
           </span>
         ) : null}
       </div>
-      <div className="display" style={{ fontSize: 22, margin: '4px 0 14px', lineHeight: 1.15, color: 'var(--ink)' }}>
+      <CardHeadline margin="4px 0 14px">
         {rows.length} {rows.length === 1 ? 'thing only' : 'things only'}{' '}
         <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>you can decide.</span>
-      </div>
+      </CardHeadline>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map((r, i) => {
           const urgent = r.urgency === 'now';
@@ -453,7 +760,7 @@ export function NeedsYouNow({
                 <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <strong style={{ fontWeight: 600 }}>{f.name}</strong> {f.action}
                 </span>
-                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
+                <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
               </div>
             ))}
           </div>
@@ -464,7 +771,7 @@ export function NeedsYouNow({
 }
 
 // ── Lately ───────────────────────────────────────────────────
-// Compact recent-activity feed (was ActivityFeed).
+// Compact recent-activity feed.
 
 export interface LatelyItem {
   name: string;
@@ -499,7 +806,7 @@ export function Lately({ items }: { items: LatelyItem[] }) {
                 <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: 'var(--ink)' }}>
                   <strong style={{ fontWeight: 600 }}>{f.name}</strong> {f.action}
                 </span>
-                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
+                <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
               </div>
             );
           })}
@@ -587,10 +894,10 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
       <div style={cockpitCard}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="eyebrow" style={{ margin: 0 }}>Budget</span>
-          <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: 'var(--ink-muted)' }}>edit</span>
+          <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--ink-muted)' }}>edit</span>
         </div>
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 72px 72px 24px', gap: 8, fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 8.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 72px 72px 24px', gap: 8, fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
             <span>Category</span><span>Spent</span><span>Budget</span><span />
           </div>
           {draft.map((l, i) => (
@@ -637,7 +944,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
             <div key={i}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{b.cat}</span>
-                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: over ? 'var(--plum, #C6563D)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>
+                <span style={{ fontFamily: MONO, fontSize: 11, color: over ? 'var(--plum, #C6563D)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>
               </div>
               <div style={{ height: 7, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
                 <div style={{ width: pct + '%', height: '100%', background: over ? 'var(--plum, #C6563D)' : 'var(--sage)', borderRadius: 99 }} />
@@ -653,7 +960,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
   );
 }
 
-// ── TheLongView ──────────────────────────────────────────────
+// ── TheLongView (LongViewCard) ───────────────────────────────
 // The forward-looking keepsake timeline. Occasion-aware (a solemn
 // variant for memorials); dates derive from the event date, copy is
 // branded.
@@ -661,13 +968,13 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
 export function TheLongView({ dateShort, solemn = false }: { dateShort: string | null; solemn?: boolean }) {
   const steps: { icon: string; when: string; what: string; color: string; now?: boolean }[] = solemn
     ? [
-        { icon: 'heart', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)', now: true },
+        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)', now: true },
         { icon: 'image', when: 'That week', what: 'Tributes gather on the wall', color: 'var(--sage-deep)' },
         { icon: 'gift', when: 'One year on', what: 'Pear sends a remembrance note', color: 'var(--gold)' },
         { icon: 'sparkles', when: 'Always', what: 'The page stays — a place to return', color: 'var(--peach-ink)' },
       ]
     : [
-        { icon: 'heart', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)', now: true },
+        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)', now: true },
         { icon: 'image', when: 'That week', what: 'The Reel fills with guest photos', color: 'var(--sage-deep)' },
         { icon: 'gift', when: 'One year on', what: 'Pear sends a first-anniversary note', color: 'var(--gold)' },
         { icon: 'sparkles', when: 'Forever', what: 'The site becomes a keepsake page', color: 'var(--lavender-ink)' },
@@ -676,11 +983,11 @@ export function TheLongView({ dateShort, solemn = false }: { dateShort: string |
     <div style={{ ...cockpitCard, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '20px 26px 0' }}>
         <span className="eyebrow" style={{ margin: 0 }}>The long view</span>
-        <div className="display" style={{ fontSize: 20, margin: '6px 0 2px', color: 'var(--ink)' }}>
+        <CardHeadline size={20} margin="6px 0 2px">
           {solemn
             ? <>A thread that <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>stays woven.</span></>
             : <>This day is the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>first knot.</span></>}
-        </div>
+        </CardHeadline>
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '6px 0 0' }}>
           {solemn
             ? 'Pear keeps the weave going — the page becomes a place to return to, long after the day.'
@@ -705,53 +1012,11 @@ export function TheLongView({ dateShort, solemn = false }: { dateShort: string |
   );
 }
 
-export function StatTiles({ tiles }: { tiles: StatTileData[] }) {
-  return (
-    <div className="pl8-cockpit-stats">
-      {tiles.map((t) => {
-        const inner = (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span className="eyebrow" style={{ margin: 0, color: 'var(--ink-muted)' }}>{t.label}</span>
-              <span style={{ display: 'inline-flex', color: t.color }}><Icon name={t.icon} size={15} /></span>
-            </div>
-            <div
-              className="display"
-              style={{ fontSize: 36, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.025em', color: 'var(--ink)' }}
-            >
-              <CountUpNum value={t.value} suffix={t.suffix} />
-            </div>
-            {t.bar != null ? (
-              <div style={{ height: 4, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden', margin: '8px 0 6px' }}>
-                <div style={{ width: `${Math.min(100, Math.max(0, t.bar))}%`, height: '100%', background: t.color, borderRadius: 99 }} />
-              </div>
-            ) : null}
-            <div style={{ fontSize: 11.5, color: t.color, marginTop: t.bar != null ? 0 : 8, fontWeight: 500 }}>{t.sub}</div>
-          </>
-        );
-        const cardStyle: React.CSSProperties = {
-          background: 'var(--card)',
-          border: '1px solid var(--card-ring, var(--line))',
-          borderRadius: 14,
-          padding: '16px 18px',
-          textDecoration: 'none',
-          display: 'block',
-        };
-        return t.href ? (
-          <Link key={t.key} href={t.href} className="lift" style={cardStyle}>{inner}</Link>
-        ) : (
-          <div key={t.key} style={cardStyle}>{inner}</div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── HomeSitePreview ──────────────────────────────────────────
+// ── HomeSitePreview (SitePreviewCard) ────────────────────────
 // A live, textured mini-render of the celebration's themed site —
-// ties the dashboard back to the generated-site vibe (the design's
-// "Your site" card). Prop-driven: the caller resolves the theme's
-// --t-* bag (rootStyle) + the display facts, so this stays pure.
+// ties the dashboard back to the generated-site vibe. Prop-driven:
+// the caller resolves the theme's --t-* bag (rootStyle) + the
+// display facts, so this stays pure.
 
 export interface HomeSitePreviewProps {
   names: string[];
@@ -876,61 +1141,14 @@ export function HomeSitePreview({
   );
 }
 
-// ── QuickJumps ───────────────────────────────────────────────
-// Contextual jump tiles (the design's "Quick jumps"). Stage-aware
-// — the caller decides which four, glows the one that matters now,
-// and dims any that aren't open yet. Auto-fit grid so phones reflow
-// without a media query.
+// ── CockpitBlessing ──────────────────────────────────────────
+// The centered footer note — a Pear glyph, an italic blessing, a
+// heart doodle. Occasion-aware copy comes from the caller.
 
-export interface QuickJump {
-  label: string;
-  sub: string;
-  icon: string;
-  href: string;
-  /** Highlight as the moment's primary jump (dark, pulse dot). */
-  glow?: boolean;
-  /** Not open yet — shown muted + non-interactive. */
-  dim?: boolean;
-}
-
-export function QuickJumps({ jumps }: { jumps: QuickJump[] }) {
+export function CockpitBlessing({ text = "You're doing something wonderful." }: { text?: string }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-      {jumps.map((j, i) => {
-        const style: React.CSSProperties = {
-          padding: '14px 16px',
-          borderRadius: 14,
-          background: j.glow ? 'var(--ink)' : 'var(--card)',
-          color: j.glow ? 'var(--cream)' : 'var(--ink)',
-          border: j.glow ? 'none' : '1px solid var(--card-ring, var(--line))',
-          opacity: j.dim ? 0.55 : 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          minHeight: 78,
-          textDecoration: 'none',
-        };
-        const inner = (
-          <>
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Icon name={j.icon} size={18} color={j.glow ? 'var(--cream)' : 'var(--gold)'} />
-              {j.glow ? <span aria-hidden style={{ width: 6, height: 6, background: 'var(--peach)', borderRadius: 999 }} /> : null}
-            </span>
-            <span style={{ marginTop: 'auto' }}>
-              <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{j.label}</span>
-              <span style={{ display: 'block', fontSize: 11.5, opacity: 0.7, marginTop: 2 }}>{j.sub}</span>
-            </span>
-          </>
-        );
-        if (j.dim) return <div key={i} style={style}>{inner}</div>;
-        // External (published-site) links open in a new tab; internal
-        // dashboard/editor routes use the client router.
-        return j.href.startsWith('http') ? (
-          <a key={i} href={j.href} target="_blank" rel="noreferrer" className="lift" style={style}>{inner}</a>
-        ) : (
-          <Link key={i} href={j.href} className="lift" style={style}>{inner}</Link>
-        );
-      })}
+    <div style={{ textAlign: 'center', padding: '10px 0 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, color: 'var(--ink-muted)', fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 16 }}>
+      <PearloomGlyph size={16} color="var(--sage)" /> {text} <HeartDoodle size={16} color="var(--lavender-ink)" />
     </div>
   );
 }
