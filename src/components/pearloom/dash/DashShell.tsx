@@ -54,26 +54,49 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     id: 'loom',
     label: 'Your loom',
     items: [
-      { id: 'site', label: 'My sites', icon: 'layout', href: '/dashboard/event' },
+      { id: 'site',    label: 'My sites', icon: 'layout',   href: '/dashboard/event' },
+      { id: 'weekend', label: 'Weekend',  icon: 'calendar', href: '/dashboard/weekend' },
     ],
   },
   {
     id: 'event',
     label: 'This event',
     items: [
-      { id: 'guests',  label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
-      { id: 'day',     label: 'Day',      icon: 'clock',    href: '/dashboard/day-of' },
-      { id: 'studio',  label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
-      { id: 'gallery', label: 'The Reel',  icon: 'image',    href: '/dashboard/gallery' },
-      { id: 'memory',  label: 'Memory',   icon: 'heart-icon', href: '/dashboard/keepsakes' },
+      { id: 'guests',   label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
+      { id: 'studio',   label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
+      { id: 'gallery',  label: 'The Reel', icon: 'image',    href: '/dashboard/gallery' },
+      { id: 'registry', label: 'Registry', icon: 'gift',     href: '/dashboard/registry' },
+      { id: 'day',      label: 'Day-of',   icon: 'clock',    href: '/dashboard/day-of' },
+      { id: 'music',    label: 'Music',    icon: 'music',    href: '/dashboard/music' },
+      { id: 'speech',   label: 'Speeches', icon: 'message',  href: '/dashboard/speech' },
+    ],
+  },
+  {
+    id: 'vendors',
+    label: 'Vendors & money',
+    items: [
+      { id: 'vendors',  label: 'Vendors',  icon: 'pin',    href: '/dashboard/vendors' },
+      { id: 'payments', label: 'Payments', icon: 'ticket', href: '/dashboard/payments' },
+    ],
+  },
+  {
+    id: 'keepsakes',
+    label: 'Keepsakes',
+    items: [
+      { id: 'memory',   label: 'Memory book',    icon: 'heart-icon', href: '/dashboard/keepsakes' },
+      { id: 'print',    label: 'Print shop',     icon: 'copy',       href: '/dashboard/print' },
+      { id: 'passport', label: 'Passport cards', icon: 'grid',       href: '/dashboard/passport-cards' },
+      { id: 'qr',       label: 'QR poster',      icon: 'image',      href: '/dashboard/qr-poster' },
     ],
   },
   {
     id: 'house',
     label: 'The house',
     items: [
-      { id: 'tools',    label: 'More',     icon: 'grid',     href: '/dashboard/tools' },
-      { id: 'settings', label: 'Settings', icon: 'settings', href: '/dashboard/profile' },
+      { id: 'director', label: 'The Director', icon: 'compass',  href: '/dashboard/director' },
+      { id: 'analytics', label: 'Analytics',   icon: 'bars',     href: '/dashboard/analytics' },
+      { id: 'settings', label: 'Settings',     icon: 'settings', href: '/dashboard/profile' },
+      { id: 'help',     label: 'Help',         icon: 'inbox',    href: '/dashboard/help' },
     ],
   },
 ];
@@ -1007,6 +1030,14 @@ const DASH_NAV_GLYPHS: Record<string, string> = {
   grid: '<circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"/>',
   heart: '<path d="M12 20S4 14.5 4 9a4.2 4.2 0 0 1 8-1.6A4.2 4.2 0 0 1 20 9c0 5.5-8 11-8 11Z"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3.5v3M16 3.5v3"/>',
+  music: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+  message: '<path d="M4 5.5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5V16.5H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z"/>',
+  pin: '<path d="M12 21s6.5-6 6.5-11a6.5 6.5 0 0 0-13 0C5.5 15 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/>',
+  ticket: '<path d="M3.5 8a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z"/><path d="M14.5 6v12"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  compass: '<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5 13 13l-4.5 2.5L11 11Z"/>',
+  inbox: '<path d="M3.5 12.5 6 6h12l2.5 6.5"/><path d="M3.5 12.5V18a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-5.5"/><path d="M3.5 12.5h5l1.5 2.5h4l1.5-2.5h5"/>',
 };
 /* Production nav-item icon name → v2 glyph + the data-icon the CSS
    animation targets. Unknown names fall back to the production <Icon>. */
@@ -1262,10 +1293,10 @@ export function DashUtilityBar() {
         type="button"
         className="pl8-dash-ask"
         onClick={() => window.dispatchEvent(new CustomEvent('pl-open-command'))}
-        aria-label="Jump to anything"
+        aria-label="Ask Pear, or jump to anything"
       >
         <Icon name="search" size={15} />
-        <span className="pl8-dash-ask-label">Jump to a page, setting or tool…</span>
+        <span className="pl8-dash-ask-label">Ask Pear anything, or jump to a block…</span>
         <span className="pl8-dash-ask-kbd">⌘K</span>
       </button>
       <span style={{ flex: 1 }} aria-hidden />

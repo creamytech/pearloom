@@ -723,13 +723,37 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             padding: 104px 22px 96px;
           }
           .pd-std-wrap {
-            min-height: 420px;
+            min-height: 380px;
           }
           .pd-pcard.dash {
-            left: 0;
+            top: 0;
+            left: 2%;
           }
           .pd-pcard.album {
-            right: 0;
+            right: 2%;
+          }
+        }
+        @media (max-width: 600px) {
+          /* On phones the decorative planning/album cards crowd the
+             invitation — keep only the invitation card, centered. */
+          .pd-pcard {
+            display: none;
+          }
+          .pd-std-wrap {
+            min-height: 0;
+          }
+          .pd-std {
+            width: 100%;
+            max-width: 360px;
+          }
+          .pd-occ-tabs {
+            width: 100%;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+          }
+          .pd-hero-stats {
+            gap: 22px;
           }
         }
         @media (prefers-reduced-motion: reduce) {
