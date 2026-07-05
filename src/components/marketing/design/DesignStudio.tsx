@@ -10,14 +10,17 @@
 // inner device runs its OWN --dv-* theme vars driven by the
 // selected StudioTheme, so it re-skins independently of the page.
 //
-// No stock photography (BRAND.md §10) — the "cover photo" is a
-// warm gradient built from the selected theme's accent.
+// The "cover photo" is a real occasion photograph behind a subtle
+// dark scrim; the accent gradient over it re-tints live with the
+// selected theme, so the device still re-skins in place.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { PD, MONO_STYLE, DISPLAY_STYLE, Pearl, pdInkMix } from './DesignAtoms';
 import {
   OCC,
+  OCC_IMG,
+  U,
   STUDIO_THEMES,
   STUDIO_SANS,
   CORE_BLOCKS,
@@ -290,7 +293,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
               </span>
             </div>
 
-            {/* cover */}
+            {/* cover — real occasion photo under the live accent tint */}
             <div
               style={{
                 position: 'relative',
@@ -300,8 +303,11 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                 flexDirection: 'column',
                 justifyContent: 'center',
                 gap: 8,
-                background:
-                  'linear-gradient(135deg, color-mix(in oklab, var(--dv-accent) 55%, transparent), transparent), var(--dv-bg)',
+                backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--dv-accent) 55%, transparent), transparent), linear-gradient(0deg, rgba(20,16,8,0.32), rgba(20,16,8,0.32)), url(${U(OCC_IMG[occ], 900)})`,
+                backgroundSize: 'cover, cover, cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'var(--dv-bg)',
               }}
             >
               <span

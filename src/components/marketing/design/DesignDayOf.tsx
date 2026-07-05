@@ -2,26 +2,16 @@
 
 // ─────────────────────────────────────────────────────────────
 // DesignDayOf — "On the day, it runs itself." The day-of room:
-// one quiet space the whole party fills. A live photo wall (warm
-// gradient tiles, no external images), a live RSVP card whose
-// reply count threads up when the section scrolls into view, and
-// the guest playlist with its little equalizers ticking. Every
-// tile tint is built from PD tokens so the whole room reskins in
-// dark mode with the rest of the landing.
+// one quiet space the whole party fills. A live photo wall (a
+// staggered editorial masonry of real photographs), a live RSVP
+// card whose reply count threads up when the section scrolls into
+// view, and the guest playlist with its little equalizers ticking.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react';
 import { PD, MONO_STYLE, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
+import { U, WALL_IMGS } from './landing-data';
 import { Music } from 'lucide-react';
-
-const WALL_TINTS = [
-  `linear-gradient(135deg, ${PD.olive}, ${PD.gold})`,
-  `linear-gradient(135deg, ${PD.rose}, ${PD.terra})`,
-  `linear-gradient(135deg, ${PD.gold}, ${PD.stone})`,
-  `linear-gradient(160deg, ${PD.terra}, ${PD.olive})`,
-  `linear-gradient(135deg, ${PD.stone}, ${PD.rose})`,
-  `linear-gradient(135deg, ${PD.oliveDeep}, ${PD.terra})`,
-];
 
 const TRACKS: ReadonlyArray<readonly [string, string]> = [
   ['September', 'Auntie Rosa'],
@@ -118,22 +108,34 @@ export function DesignDayOf() {
         className="pd-day-grid"
         style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 24, alignItems: 'start' }}
       >
-        {/* Left — the photo wall */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-          {WALL_TINTS.map((tint, i) => (
+        {/* Left — the photo wall (2-col editorial masonry) */}
+        <div style={{ columns: 2, columnGap: 12 }}>
+          {WALL_IMGS.map((id) => (
             <div
-              key={i}
-              className="pd-day-tile"
+              key={id}
               style={{
-                aspectRatio: '1 / 1',
-                borderRadius: 14,
+                breakInside: 'avoid',
+                marginBottom: 12,
+                borderRadius: 12,
                 overflow: 'hidden',
-                background: tint,
-                boxShadow:
-                  'inset 0 0 26px rgba(20,16,8,0.24), inset 0 2px 5px rgba(255,255,255,0.16)',
-                transition: 'transform 380ms cubic-bezier(.2,.8,.2,1)',
+                boxShadow: `0 8px 22px -14px ${pdInkMix(30)}`,
               }}
-            />
+            >
+              <img
+                className="pd-day-tile"
+                src={U(id, 600)}
+                loading="lazy"
+                decoding="async"
+                alt=""
+                style={{
+                  width: '100%',
+                  display: 'block',
+                  objectFit: 'cover',
+                  filter: 'saturate(1.05) sepia(0.04)',
+                  transition: 'transform 380ms cubic-bezier(.2,.8,.2,1)',
+                }}
+              />
+            </div>
           ))}
         </div>
 

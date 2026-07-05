@@ -4,16 +4,16 @@
    PEARLOOM — PUBLIC LANDING PAGE  (Landing v4)
    Composes the design-bundle marketing surfaces in their canonical order:
      DesignNav → DesignHero → DesignPillars → DesignJourney →
-     DesignTogether → DesignStudio → DesignOccasions → DesignDayOf →
+     DesignTogether → DesignStudio → DesignGallery → DesignDayOf →
      DesignTestimonials → DesignPricing → DesignCTAFooter
-   The hero owns the occasion + names state; it flows into the Studio
-   playground and the occasion gallery so the whole page speaks one
-   occasion at a time. Each CTA fans out to the wizard via onGetStarted.
+   The hero owns the occasion + names; they flow into the Studio playground
+   and the occasion gallery so the whole page speaks one occasion at a time.
 
-   Brand atoms mounted here (BRAND.md §3):
-   - `.pl-grain` paper texture on the page wrapper.
-   - `<Thread />` two-strand dividers between the major light sections.
-   - A global prefers-reduced-motion guard for `.pd-anim` atoms.
+   Scroll reveal is the design's own [data-rv] system: elements start
+   opacity:1 (no-JS + reduced-motion safe), and under
+   prefers-reduced-motion:no-preference they thread in (translateY + blur)
+   when an IntersectionObserver adds .rv-in. No paper grain over the page —
+   the hero carries its own; the sections are clean paper.
    ======================================================================== */
 
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ import { DesignPillars } from '@/components/marketing/design/DesignPillars';
 import { DesignJourney } from '@/components/marketing/design/DesignJourney';
 import { DesignTogether } from '@/components/marketing/design/DesignTogether';
 import { DesignStudio } from '@/components/marketing/design/DesignStudio';
-import { DesignOccasions } from '@/components/marketing/design/DesignOccasions';
+import { DesignGallery } from '@/components/marketing/design/DesignGallery';
 import { DesignDayOf } from '@/components/marketing/design/DesignDayOf';
 import { DesignTestimonials } from '@/components/marketing/design/DesignTestimonials';
 import { DesignPricing } from '@/components/marketing/design/DesignPricing';
@@ -34,7 +34,6 @@ import { PD } from '@/components/marketing/design/DesignAtoms';
 import { Thread } from '@/components/brand/Thread';
 import { GrooveMotion } from '@/components/brand/groove';
 
-/** Quiet two-strand thread rule between major light sections. */
 function ThreadDivider() {
   return (
     <div aria-hidden style={{ maxWidth: 320, margin: '8px auto', padding: '0 24px' }}>
@@ -45,24 +44,40 @@ function ThreadDivider() {
 
 export default function LandingPageWrapper() {
   const router = useRouter();
-
-  // The occasion + names live here so the hero switcher re-keys the
-  // Studio preview and the occasion gallery in lock-step.
   const [occ, setOcc] = useState<OccasionKey>('wedding');
   const [names, setNames] = useState('Mira & Jun');
 
-  // Publish the occasion accent as --occ / --occ2 so any section that
-  // wants the current voice can read it.
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--occ', OCC[occ].accent);
     root.style.setProperty('--occ2', OCC[occ].accent2);
   }, [occ]);
 
+  // The design's own scroll-reveal: observe every [data-rv] and add .rv-in
+  // when it enters the viewport. Viewport-based, so it's robust under the
+  // Lenis smooth-scroll wrapper. Idempotent across client navigation.
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-rv]'));
+    if (!('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('rv-in'));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('rv-in');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   const onGetStarted = useCallback(() => {
-    // The signature weave: two paper panels close, olive + gold threads
-    // draw the seam, and we navigate under the cover (BRAND §6). Reduced
-    // motion / missing engine falls straight through to an instant push.
     const motion = (window as Window & {
       PearloomMotion?: {
         weave?: (onPeak: () => void, opts?: { duration?: number }) => void;
@@ -76,20 +91,17 @@ export default function LandingPageWrapper() {
     router.push('/wizard/new');
   }, [router]);
 
-  useEffect(() => {
-    (window as Window & { PearloomMotion?: { init?: () => void } }).PearloomMotion?.init?.();
-  }, []);
-
   return (
     <GrooveMotion>
       <main
-        className="pl-grain pd-landing"
+        className="pd-landing"
         style={{
           background: PD.paper,
           color: PD.ink,
           minHeight: '100vh',
           fontFamily: 'var(--pl-font-body)',
           position: 'relative',
+          overflowX: 'hidden',
         }}
       >
         <DesignNav onGetStarted={onGetStarted} />
@@ -102,51 +114,43 @@ export default function LandingPageWrapper() {
           onGetStarted={onGetStarted}
         />
 
-        {/* Sections thread in on scroll via the motion engine
-            (public/pearloom-motion.js → data-reveal), reduced-motion safe. */}
-        <div data-reveal="up">
+        <div data-rv>
           <DesignPillars />
         </div>
 
         <DesignJourney />
 
-        <div data-reveal="up" style={{ scrollMarginTop: 96 }}>
+        <div data-rv style={{ scrollMarginTop: 96 }}>
           <DesignTogether onGetStarted={onGetStarted} />
         </div>
 
         <ThreadDivider />
-        <div data-reveal="up" style={{ scrollMarginTop: 96 }}>
+        <div data-rv style={{ scrollMarginTop: 96 }}>
           <DesignStudio occ={occ} names={names} />
         </div>
 
         <ThreadDivider />
-        <div data-reveal="up" style={{ scrollMarginTop: 96 }}>
-          <DesignOccasions onGetStarted={onGetStarted} />
-        </div>
+        <DesignGallery onPickOccasion={setOcc} />
 
         <ThreadDivider />
-        <div data-reveal="up" style={{ scrollMarginTop: 96 }}>
+        <div data-rv style={{ scrollMarginTop: 96 }}>
           <DesignDayOf />
         </div>
 
-        <div data-reveal="up">
+        <div data-rv>
           <DesignTestimonials />
         </div>
 
-        <div data-reveal="rise" id="pricing" style={{ scrollMarginTop: 96 }}>
+        <div id="pricing" style={{ scrollMarginTop: 96 }}>
           <DesignPricing onGetStarted={onGetStarted} />
         </div>
 
-        <div data-reveal="up">
+        <div data-rv>
           <DesignCTAFooter onGetStarted={onGetStarted} />
         </div>
 
         <style jsx global>{`
-          /* ── Landing palette variables (PD reads var(--pd-*, <hex>)) ──
-             Light values here; editorial-midnight under [data-theme='dark']
-             (set before paint by layout.tsx's boot script, or the hero's
-             Daylight/Midnight toggle). BRAND §10: warm dark paper, cream
-             ink, brightened olive, warmed gold — never OLED black. */
+          /* ── Landing palette variables (PD reads var(--pd-*, <hex>)) ── */
           main.pd-landing {
             --pd-paper: #fdfaf0;
             --pd-paper2: #f7f0e0;
@@ -215,23 +219,36 @@ export default function LandingPageWrapper() {
             --pd-btn-paper-hover: #221c13;
             color-scheme: dark;
           }
-          :global(html[data-theme='dark']) main.pd-landing.pl-grain::before {
-            mix-blend-mode: screen;
-            opacity: 0.18;
-          }
           :global(html[data-theme='dark']) main.pd-landing .pl-letterpress {
             text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55), 0 1px 1px rgba(255, 248, 230, 0.04);
           }
-          main.pd-landing.pl-grain::before {
-            z-index: 1;
+
+          /* ── The design's scroll-reveal ─────────────────────────────
+             Default visible (no-JS + reduced-motion safe). Under
+             no-preference, [data-rv] threads in when JS adds .rv-in. */
+          main.pd-landing [data-rv] {
+            opacity: 1;
+          }
+          @media (prefers-reduced-motion: no-preference) {
+            main.pd-landing [data-rv] {
+              opacity: 0;
+              transform: translateY(30px);
+              filter: blur(6px);
+              transition: opacity 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)),
+                transform 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)), filter 0.8s ease;
+              transition-delay: var(--rv-d, 0ms);
+              will-change: opacity, transform;
+            }
+            main.pd-landing [data-rv].rv-in {
+              opacity: 1;
+              transform: none;
+              filter: blur(0);
+            }
           }
           @media (prefers-reduced-motion: reduce) {
             .pd-anim,
             .pd-anim * {
               animation: none !important;
-            }
-            .pd-anim-draw {
-              stroke-dashoffset: 0 !important;
             }
           }
         `}</style>

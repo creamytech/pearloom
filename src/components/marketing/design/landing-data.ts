@@ -14,6 +14,32 @@
 
 export type OccasionKey = 'wedding' | 'milestone' | 'memorial' | 'baby' | 'reunion';
 
+/** Unsplash placeholder URL (matches the design handoff). Swap the ids
+ *  for licensed assets before launch — the README calls these
+ *  placeholders, but the v4 design IS photographic. */
+export const U = (id: string, w = 1280): string =>
+  `https://images.unsplash.com/photo-${id}?w=${w}&q=70&auto=format&fit=crop`;
+
+/** Per-occasion hero photograph (crossfades behind the hero). */
+export const OCC_IMG: Record<OccasionKey, string> = {
+  wedding: '1519741497674-611481863552',
+  milestone: '1464349153735-7db50ed83c84',
+  memorial: '1490750967868-88aa4486c946',
+  baby: '1519689680058-324335c77eba',
+  reunion: '1529156069898-49953e39b3ac',
+};
+
+/** The day-of photo wall + memory album + finale imagery. */
+export const WALL_IMGS = [
+  '1519741497674-611481863552', '1519671482749-fd09be7ccebf', '1511795409834-ef04bbd61622',
+  '1414235077428-338989a2e8c0', '1470337458703-46ad1756a187', '1529156069898-49953e39b3ac',
+];
+export const ALBUM_IMGS = [
+  '1519741497674-611481863552', '1519671482749-fd09be7ccebf', '1470337458703-46ad1756a187',
+  '1414235077428-338989a2e8c0', '1529156069898-49953e39b3ac',
+];
+export const FINALE_IMG = '1511285560929-80b456fea0bc';
+
 export interface LandingOccasion {
   chip: string;
   mono: string;
@@ -139,17 +165,16 @@ export interface GalleryTile {
   nm: string;
   tone: string;
   blk: number;
-  tint: string;
-  ink: string;
+  img: string;
   key?: OccasionKey;
 }
 export const GALLERY_TILES: GalleryTile[] = [
-  { nm: 'Weddings', tone: 'Ceremonial', blk: 14, tint: '#C6703D', ink: '#7A3E1F', key: 'wedding' },
-  { nm: 'Milestone birthdays', tone: 'Playful', blk: 10, tint: '#C19A4B', ink: '#7A5E24', key: 'milestone' },
-  { nm: 'Anniversaries', tone: 'Intimate', blk: 9, tint: '#D9A89E', ink: '#8A4E42' },
-  { nm: 'Baby showers', tone: 'Tender', blk: 9, tint: '#B7A4D0', ink: '#4E3F6E', key: 'baby' },
-  { nm: 'Memorials', tone: 'Solemn', blk: 11, tint: '#5C6B3F', ink: '#363F22', key: 'memorial' },
-  { nm: 'Engagement parties', tone: 'Romantic', blk: 8, tint: '#C2693E', ink: '#7A3E1F' },
-  { nm: 'Reunions', tone: 'Warm', blk: 11, tint: '#6B5A8C', ink: '#3E3159', key: 'reunion' },
-  { nm: 'Retirements & galas', tone: 'Grateful', blk: 9, tint: '#2C5E7A', ink: '#1F3A4D' },
+  { nm: 'Weddings', tone: 'Ceremonial', blk: 14, img: '1511795409834-ef04bbd61622', key: 'wedding' },
+  { nm: 'Milestone birthdays', tone: 'Playful', blk: 10, img: '1530103862676-de8c9debad1d', key: 'milestone' },
+  { nm: 'Anniversaries', tone: 'Intimate', blk: 9, img: '1414235077428-338989a2e8c0' },
+  { nm: 'Baby showers', tone: 'Tender', blk: 9, img: '1519689680058-324335c77eba', key: 'baby' },
+  { nm: 'Memorials', tone: 'Solemn', blk: 11, img: '1518895312237-a9e23508077d', key: 'memorial' },
+  { nm: 'Engagement parties', tone: 'Romantic', blk: 8, img: '1583939003579-730e3918a45a' },
+  { nm: 'Reunions', tone: 'Warm', blk: 11, img: '1529156069898-49953e39b3ac', key: 'reunion' },
+  { nm: 'Retirements & galas', tone: 'Grateful', blk: 9, img: '1470337458703-46ad1756a187' },
 ];

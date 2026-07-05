@@ -3,27 +3,26 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / marketing/design/DesignHero.tsx  (Landing v4)
 //
-// Full-bleed painterly hero with an occasion switcher. Five
-// occasions (wedding · milestone · memorial · baby · reunion)
-// each re-key the headline, the invitation card, and the WebGL
-// mesh backdrop. The name input drives the card live. A
-// Daylight / Midnight pill (bottom-right) flips the global theme
-// for the sections below. No stock photography (BRAND §10) — the
-// backdrop is the @paper-design mesh under a warm scrim + grain.
+// Full-bleed photographic hero with an occasion switcher. Five
+// occasions crossfade a per-occasion photograph (ken-burns) behind a
+// warm scrim + fine grain; each re-keys the headline and the letter-
+// press invitation card. The name input drives the card live. A
+// Daylight / Midnight pill flips the global theme for the page below.
+// (Photos are Unsplash placeholders per the design handoff — swap for
+// licensed assets before launch.)
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MeshGradient } from '@paper-design/shaders-react';
 import { ArrowDown } from 'lucide-react';
 import { Thread } from '@/components/brand/Thread';
 import { Sprig } from '@/components/pearloom/motifs';
 import { useTheme } from '@/components/shell/ThemeProvider';
-import { Pearl, PLButton, MONO_STYLE } from './DesignAtoms';
-import { OCC, OCC_KEYS, THREADING, parseNames, type OccasionKey } from './landing-data';
+import { Pearl, PLButton } from './DesignAtoms';
+import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, U, parseNames, type OccasionKey } from './landing-data';
 
 const CREAM = '#FDFAF0';
-const CREAM_SOFT = 'rgba(253,250,240,0.92)';
-const CREAM_MUTE = 'rgba(253,250,240,0.66)';
+const CREAM_SOFT = 'rgba(253,250,240,0.95)';
+const CREAM_MUTE = 'rgba(253,250,240,0.72)';
 const GOLD_ACCENT = '#F0C9A8';
 
 interface HeroProps {
@@ -43,13 +42,11 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
   const { theme, setPreference } = useTheme();
   const typedRef = useRef(false);
 
-  // Rotate the "Pear is …" ticker.
   useEffect(() => {
     const id = setInterval(() => setStep((s) => (s + 1) % THREADING.length), 1600);
     return () => clearInterval(id);
   }, []);
 
-  // Auto-advance the occasion until the visitor interacts.
   useEffect(() => {
     if (paused) return;
     const id = setInterval(() => {
@@ -58,7 +55,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
     return () => clearInterval(id);
   }, [paused, setOcc]);
 
-  // Keep the input showing the occasion default until the visitor types.
   useEffect(() => {
     if (!typedRef.current) setNames(O.ph);
   }, [occ, O.ph, setNames]);
@@ -75,20 +71,22 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
 
   return (
     <header className="pd-hero" onMouseEnter={() => setPaused(true)}>
-      {/* Painterly WebGL backdrop, per occasion. */}
-      <div className="pd-hero-mesh" aria-hidden>
-        <MeshGradient
-          colors={O.mesh}
-          speed={0.18}
-          distortion={0.55}
-          swirl={0.42}
-          style={{ width: '100%', height: '100%' }}
-        />
+      {/* Crossfading per-occasion photographs (ken-burns on the active). */}
+      <div className="pd-hero-photos" aria-hidden>
+        {OCC_KEYS.map((k) => (
+          <img
+            key={k}
+            src={U(OCC_IMG[k], 1600)}
+            alt=""
+            decoding="async"
+            loading={k === occ ? 'eager' : 'lazy'}
+            className={k === occ ? 'on' : ''}
+          />
+        ))}
       </div>
       <div className="pd-hero-scrim" aria-hidden />
-      <div className="pd-hero-grain pl-grain" aria-hidden />
+      <div className="pd-hero-grain" aria-hidden />
 
-      {/* Daylight / Midnight — flips the global theme for the page below. */}
       <div className="pd-hero-mood" role="group" aria-label="Theme">
         <button className={theme === 'light' ? 'on' : ''} onClick={() => setPreference('light')}>
           Daylight
@@ -99,24 +97,19 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
       </div>
 
       <span className="pd-float f0" aria-hidden>
-        <Sprig size={56} color="rgba(240,201,168,0.85)" />
-      </span>
-      <span className="pd-float f1" aria-hidden>
-        <Pearl size={16} />
-      </span>
-      <span className="pd-float f2" aria-hidden>
-        <Pearl size={11} />
+        <Sprig size={54} color="rgba(240,201,168,0.85)" />
       </span>
 
       <div className="pd-hero-inner">
         <div className="pd-hero-copy">
-          <div className="pd-occ-tabs" role="tablist" aria-label="Occasion">
+          <div className={'pd-occ-tabs' + (paused ? ' paused' : '')} role="tablist" aria-label="Occasion">
             {OCC_KEYS.map((k) => (
               <button
                 key={k}
                 role="tab"
                 aria-selected={k === occ}
                 className={'pd-otab' + (k === occ ? ' on' : '')}
+                style={{ ['--occ' as string]: O.accent } as React.CSSProperties}
                 onClick={() => pick(k)}
               >
                 {OCC[k].chip}
@@ -125,8 +118,8 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           </div>
 
           <div className="pd-hero-key" key={occ}>
-            <div style={{ ...MONO_STYLE, color: GOLD_ACCENT, marginBottom: 16 }}>{O.eyebrow}</div>
-            <h1 className="pd-hero-h1 pl-letterpress">
+            <div className="pd-hero-eyebrow">{O.eyebrow}</div>
+            <h1 className="pd-hero-h1">
               {O.h1a}
               <em>{O.em}</em>
               {O.h1b}
@@ -173,7 +166,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           </div>
         </div>
 
-        {/* Floating cards — the invitation, framed by planning + album. */}
+        {/* The letterpress invitation, framed by two floating cards. */}
         <div className="pd-std-wrap">
           <div className="pd-pcard dash" aria-hidden>
             <div className="pc-h">
@@ -215,7 +208,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
                   <span className="ghost">Your names</span>
                 )}
               </div>
-              <div className="std-post">{O.post || ' '}</div>
+              <div className="std-post">{O.post || ' '}</div>
               <div className="std-thread">
                 <Thread variant="weave" height={11} />
               </div>
@@ -225,9 +218,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
                 {O.meta[1]}
               </div>
             </div>
-            <div className="pd-wax" aria-hidden>
-              <span>{O.mono.length > 2 ? O.mono[0] : O.mono}</span>
-            </div>
           </div>
 
           <div className="pd-pcard album" aria-hidden>
@@ -236,8 +226,8 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
               <span>+126</span>
             </div>
             <div className="pc-album">
-              {[0, 1, 2, 3].map((i) => (
-                <div className="ph" key={i} data-i={i} />
+              {ALBUM_IMGS.slice(0, 5).map((id) => (
+                <div className="ph" key={id} style={{ backgroundImage: `url(${U(id, 200)})` }} />
               ))}
               <div className="ph more">126</div>
             </div>
@@ -253,7 +243,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
       <style jsx>{`
         .pd-hero {
           position: relative;
-          min-height: 100svh;
+          min-height: 100vh;
           overflow: hidden;
           isolation: isolate;
           display: flex;
@@ -261,83 +251,89 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           justify-content: center;
           background: #14110c;
         }
-        .pd-hero-mesh {
+        .pd-hero-photos {
           position: absolute;
           inset: 0;
           z-index: 0;
         }
-        .pd-hero-mesh :global(canvas) {
-          width: 100% !important;
-          height: 100% !important;
+        .pd-hero-photos img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transform: scale(1.06);
+          transition: opacity 1.1s var(--pl-ease-out, ease);
+          filter: saturate(1.08) sepia(0.06) brightness(0.96);
+        }
+        .pd-hero-photos img.on {
+          opacity: 1;
+          animation: pd-kenburns 16s ease-out forwards;
+        }
+        @keyframes pd-kenburns {
+          to {
+            transform: scale(1.14);
+          }
         }
         .pd-hero-scrim {
           position: absolute;
           inset: 0;
           z-index: 1;
           background:
-            linear-gradient(90deg, rgba(12, 10, 7, 0.82) 0%, rgba(12, 10, 7, 0.4) 42%, rgba(12, 10, 7, 0.15) 100%),
-            linear-gradient(0deg, rgba(12, 10, 7, 0.55) 0%, transparent 30%, transparent 70%, rgba(12, 10, 7, 0.35) 100%);
+            linear-gradient(90deg, rgba(12, 10, 7, 0.86) 0%, rgba(12, 10, 7, 0.52) 40%, rgba(12, 10, 7, 0.2) 100%),
+            linear-gradient(0deg, rgba(12, 10, 7, 0.6) 0%, transparent 34%, transparent 68%, rgba(12, 10, 7, 0.4) 100%);
         }
         .pd-hero-grain {
           position: absolute;
           inset: 0;
           z-index: 2;
-          opacity: 0.4;
-          mix-blend-mode: soft-light;
+          background-image: var(--pl-grain);
+          background-size: 180px;
+          opacity: 0.12;
           pointer-events: none;
         }
         .pd-hero-mood {
           position: absolute;
-          bottom: 22px;
-          right: 24px;
-          z-index: 6;
+          top: 84px;
+          right: clamp(20px, 4vw, 48px);
+          z-index: 7;
           display: inline-flex;
-          gap: 2px;
-          padding: 3px;
+          gap: 3px;
+          padding: 4px;
           border-radius: 999px;
-          background: rgba(20, 17, 12, 0.5);
+          background: rgba(20, 16, 10, 0.42);
           border: 1px solid rgba(253, 250, 240, 0.22);
-          -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
         }
         .pd-hero-mood button {
           border: none;
           background: transparent;
-          color: rgba(253, 250, 240, 0.72);
+          color: rgba(253, 250, 240, 0.8);
           font-family: var(--pl-font-mono);
-          font-size: 10px;
-          letter-spacing: 0.14em;
+          font-size: 9.5px;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           padding: 6px 13px;
           border-radius: 999px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.16s ease;
         }
         .pd-hero-mood button.on {
           background: ${CREAM};
-          color: #1a1712;
+          color: #14110c;
           font-weight: 600;
         }
         .pd-float {
           position: absolute;
           z-index: 3;
           pointer-events: none;
-          will-change: transform;
         }
         .pd-float.f0 {
-          top: 20%;
+          top: 21%;
           left: 7%;
           animation: pd-drift 9s ease-in-out infinite;
-        }
-        .pd-float.f1 {
-          top: 66%;
-          right: 9%;
-          animation: pd-drift 11s ease-in-out infinite reverse;
-        }
-        .pd-float.f2 {
-          bottom: 20%;
-          left: 13%;
-          animation: pd-drift 8s ease-in-out infinite;
         }
         @keyframes pd-drift {
           0%,
@@ -350,33 +346,38 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .pd-hero-inner {
           position: relative;
-          z-index: 4;
+          z-index: 5;
+          flex: 1;
           width: 100%;
-          max-width: 1180px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 96px 24px 92px;
+          padding: 128px clamp(20px, 4vw, 48px) 60px;
           display: grid;
           grid-template-columns: 1.05fr 0.95fr;
-          gap: 48px;
+          gap: clamp(28px, 5vw, 80px);
           align-items: center;
           box-sizing: border-box;
         }
+        .pd-hero-copy {
+          color: ${CREAM};
+          max-width: 560px;
+        }
         .pd-occ-tabs {
           display: inline-flex;
-          flex-wrap: wrap;
-          gap: 2px;
-          padding: 4px;
+          gap: 5px;
+          padding: 5px;
           border-radius: 999px;
-          background: rgba(20, 17, 12, 0.42);
-          border: 1px solid rgba(253, 250, 240, 0.2);
+          background: rgba(20, 16, 10, 0.4);
+          border: 1px solid rgba(253, 250, 240, 0.22);
           -webkit-backdrop-filter: blur(12px);
           backdrop-filter: blur(12px);
           margin-bottom: 26px;
+          flex-wrap: wrap;
         }
         .pd-otab {
           border: none;
           background: transparent;
-          color: rgba(253, 250, 240, 0.82);
+          color: rgba(253, 250, 240, 0.86);
           font-family: var(--pl-font-body);
           font-size: 13px;
           font-weight: 550;
@@ -385,37 +386,76 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           cursor: pointer;
           transition: all 0.18s ease;
           white-space: nowrap;
+          position: relative;
         }
         .pd-otab:hover {
-          color: ${CREAM};
+          background: rgba(253, 250, 240, 0.14);
         }
         .pd-otab.on {
           background: ${CREAM};
-          color: #1a1712;
-          box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.4);
+          color: #14110c;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+        .pd-otab.on::after {
+          content: '';
+          position: absolute;
+          left: 14px;
+          right: 14px;
+          bottom: 3px;
+          height: 2px;
+          border-radius: 2px;
+          background: var(--occ, #c6703d);
+          transform-origin: left;
+          transform: scaleX(0);
+        }
+        .pd-occ-tabs:not(.paused) .pd-otab.on::after {
+          animation: pd-tabprog 5.2s linear infinite;
+        }
+        @keyframes pd-tabprog {
+          to {
+            transform: scaleX(1);
+          }
+        }
+        .pd-hero-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-family: var(--pl-font-mono);
+          font-size: 11px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: ${GOLD_ACCENT};
+        }
+        .pd-hero-eyebrow::before {
+          content: '';
+          width: 22px;
+          height: 1px;
+          background: ${GOLD_ACCENT};
         }
         .pd-hero-key {
-          animation: pd-key-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+          animation: pd-key-in 0.62s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         @keyframes pd-key-in {
           from {
             opacity: 0;
             transform: translateY(10px);
+            filter: blur(3px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: none;
+            filter: blur(0);
           }
         }
         .pd-hero-h1 {
           font-family: var(--pl-font-display);
           font-weight: 400;
           font-optical-sizing: auto;
-          font-size: clamp(44px, 5.4vw, 88px);
+          font-size: clamp(46px, 5.6vw, 92px);
           line-height: 0.98;
           letter-spacing: -0.03em;
+          margin: 20px 0 0;
           color: ${CREAM};
-          margin: 0;
           text-shadow: 0 2px 26px rgba(11, 9, 6, 0.55), 0 1px 2px rgba(11, 9, 6, 0.4);
         }
         .pd-hero-h1 :global(em) {
@@ -424,7 +464,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .pd-hero-sub {
           margin: 22px 0 30px;
-          font-size: clamp(15px, 1.3vw, 18px);
+          font-size: clamp(16px, 1.35vw, 19px);
           line-height: 1.62;
           color: ${CREAM_SOFT};
           text-shadow: 0 1px 14px rgba(11, 9, 6, 0.6);
@@ -433,13 +473,13 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .pd-hero-form {
           display: flex;
+          gap: 9px;
           align-items: center;
-          gap: 8px;
-          background: rgba(253, 250, 240, 0.94);
+          background: rgba(253, 250, 240, 0.97);
           border-radius: 999px;
-          padding: 6px 6px 6px 20px;
-          max-width: 460px;
-          box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.7);
+          padding: 7px 7px 7px 20px;
+          box-shadow: 0 18px 50px -14px rgba(0, 0, 0, 0.6);
+          max-width: 440px;
         }
         .pd-hero-form input {
           flex: 1;
@@ -452,16 +492,16 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           color: #26231c;
         }
         .pd-hero-form input::placeholder {
-          color: #9b917f;
+          color: #7a6e5c;
         }
         .pd-ticker {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           margin-top: 22px;
           font-family: var(--pl-font-mono);
           font-size: 10px;
-          letter-spacing: 0.16em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: ${CREAM_MUTE};
         }
@@ -477,7 +517,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .pd-hero-stats {
           display: flex;
-          gap: 34px;
+          gap: 26px;
           margin-top: 34px;
           flex-wrap: wrap;
         }
@@ -491,30 +531,43 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         .pd-hstat .l {
           font-size: 11.5px;
           color: ${CREAM_MUTE};
-          margin-top: 5px;
+          margin-top: 4px;
           font-family: var(--pl-font-body);
         }
         .pd-std-wrap {
+          justify-self: center;
+          perspective: 1400px;
           position: relative;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 480px;
         }
         .pd-std {
           position: relative;
-          width: min(360px, 82vw);
-          background: #fbf7ee;
-          color: #26231c;
-          border-radius: 18px;
-          border: 1px solid #e2d9c3;
-          padding: 34px 30px 28px;
+          width: min(420px, 82vw);
+          border-radius: 8px;
+          background: linear-gradient(150deg, #fdfaf0, #f5ecda);
+          padding: 42px 40px 38px;
           text-align: center;
-          box-shadow: 0 40px 80px -34px rgba(0, 0, 0, 0.6);
-          z-index: 2;
+          box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.72), 0 2px 0 rgba(255, 255, 255, 0.7) inset,
+            0 0 0 1px rgba(120, 90, 50, 0.14);
+        }
+        .pd-std::before {
+          content: '';
+          position: absolute;
+          inset: 12px;
+          border: 1px solid var(--occ, #c6703d);
+          opacity: 0.32;
+          border-radius: 3px;
+          pointer-events: none;
         }
         .pd-std-lift {
-          animation: pd-key-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+          animation: pd-std-fade 0.55s ease;
+        }
+        @keyframes pd-std-fade {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
         .std-eyebrow {
           font-family: var(--pl-font-mono);
@@ -533,7 +586,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         .std-names {
           font-family: var(--pl-font-display);
           font-weight: 400;
-          font-size: clamp(30px, 4vw, 44px);
+          font-size: clamp(34px, 4.4vw, 52px);
           line-height: 1.04;
           letter-spacing: -0.02em;
           color: #26231c;
@@ -542,21 +595,22 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         .std-names .amp {
           font-style: italic;
           color: var(--occ, #c6703d);
-          padding: 0 0.05em;
+          padding: 0 0.04em;
         }
         .std-names .ghost {
-          color: #b8ad99;
+          color: #c8bfa5;
         }
         .std-post {
           font-family: var(--pl-font-display);
           font-style: italic;
-          font-size: 18px;
+          font-size: 19px;
           color: #4a5642;
           margin-top: 6px;
+          min-height: 1.2em;
         }
         .std-thread {
-          margin: 16px auto;
           max-width: 180px;
+          margin: 18px auto 16px;
         }
         .std-meta {
           font-family: var(--pl-font-mono);
@@ -564,46 +618,27 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           letter-spacing: 0.18em;
           text-transform: uppercase;
           color: #6f6557;
-          line-height: 1.8;
-        }
-        .pd-wax {
-          position: absolute;
-          right: -18px;
-          bottom: -18px;
-          width: 62px;
-          height: 62px;
-          border-radius: 999px;
-          display: grid;
-          place-items: center;
-          background: var(--occ, #c6703d);
-          box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.5);
-        }
-        .pd-wax span {
-          font-family: var(--pl-font-display);
-          font-style: italic;
-          font-size: 24px;
-          color: #fbf7ee;
+          line-height: 1.7;
         }
         .pd-pcard {
           position: absolute;
-          background: rgba(251, 247, 238, 0.94);
-          -webkit-backdrop-filter: blur(6px);
-          backdrop-filter: blur(6px);
-          border: 1px solid #e2d9c3;
-          border-radius: 14px;
-          padding: 14px 16px;
-          box-shadow: 0 24px 50px -26px rgba(0, 0, 0, 0.5);
           z-index: 3;
-          width: 200px;
-          animation: pd-drift 10s ease-in-out infinite;
+          border-radius: 14px;
+          background: rgba(253, 250, 240, 0.97);
+          box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          padding: 13px 15px;
+          animation: pd-drift 11s ease-in-out infinite;
         }
         .pd-pcard.dash {
-          top: 2%;
-          left: -2%;
+          top: -30px;
+          left: -58px;
+          width: 196px;
         }
         .pd-pcard.album {
-          bottom: 4%;
-          right: -4%;
+          bottom: -36px;
+          right: -48px;
+          width: 208px;
           animation-direction: reverse;
         }
         .pc-h {
@@ -662,36 +697,28 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         .pc-album {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 5px;
+          gap: 4px;
         }
         .pc-album .ph {
-          aspect-ratio: 1/1;
+          aspect-ratio: 1;
           border-radius: 6px;
-          background: linear-gradient(135deg, #c8bfa5, #d9a89e);
-        }
-        .pc-album .ph[data-i='1'] {
-          background: linear-gradient(135deg, #5c6b3f, #c19a4b);
-        }
-        .pc-album .ph[data-i='2'] {
-          background: linear-gradient(135deg, #c6703d, #e8c77a);
-        }
-        .pc-album .ph[data-i='3'] {
-          background: linear-gradient(135deg, #d9a89e, #c8bfa5);
+          background-size: cover;
+          background-position: center;
         }
         .pc-album .ph.more {
-          background: #2c3022;
-          color: #fbf7ee;
+          background: rgba(92, 107, 63, 0.15);
           display: grid;
           place-items: center;
           font-family: var(--pl-font-display);
-          font-size: 13px;
+          font-size: 12px;
+          color: #363f22;
         }
         .pd-scroll-cue {
           position: absolute;
-          bottom: 20px;
+          bottom: 22px;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 5;
+          z-index: 6;
           display: inline-flex;
           flex-direction: column;
           align-items: center;
@@ -703,64 +730,45 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           text-transform: uppercase;
         }
         .pd-scroll-cue :global(.arw) {
-          animation: pd-cue 1.8s ease-in-out infinite;
+          animation: pd-bob 1.9s ease-in-out infinite;
         }
-        @keyframes pd-cue {
-          0%,
-          100% {
-            transform: translateY(0);
-            opacity: 0.6;
-          }
+        @keyframes pd-bob {
           50% {
-            transform: translateY(5px);
-            opacity: 1;
+            transform: translateY(6px);
+          }
+        }
+        @media (max-width: 1120px) {
+          .pd-pcard.dash {
+            left: -22px;
+          }
+          .pd-pcard.album {
+            right: -18px;
           }
         }
         @media (max-width: 900px) {
           .pd-hero-inner {
             grid-template-columns: 1fr;
-            gap: 40px;
-            padding: 104px 22px 96px;
-          }
-          .pd-std-wrap {
-            min-height: 380px;
-          }
-          .pd-pcard.dash {
-            top: 0;
-            left: 2%;
-          }
-          .pd-pcard.album {
-            right: 2%;
+            gap: 44px;
+            padding: 120px 22px 80px;
           }
         }
         @media (max-width: 600px) {
-          /* On phones the decorative planning/album cards crowd the
-             invitation — keep only the invitation card, centered. */
           .pd-pcard {
             display: none;
-          }
-          .pd-std-wrap {
-            min-height: 0;
-          }
-          .pd-std {
-            width: 100%;
-            max-width: 360px;
           }
           .pd-occ-tabs {
             width: 100%;
             overflow-x: auto;
             flex-wrap: nowrap;
-            justify-content: flex-start;
-          }
-          .pd-hero-stats {
-            gap: 22px;
           }
         }
         @media (prefers-reduced-motion: reduce) {
+          .pd-hero-photos img.on,
           .pd-float,
           .pd-pcard,
           .pd-hero-key,
           .pd-std-lift,
+          .pd-occ-tabs .pd-otab.on::after,
           .pd-scroll-cue :global(.arw) {
             animation: none !important;
           }

@@ -13,6 +13,7 @@
 
 import { PenLine, Users, CalendarCheck, Images, Check, type LucideIcon } from 'lucide-react';
 import { PD, MONO_STYLE, DISPLAY_STYLE, Pearl, pdInkMix } from './DesignAtoms';
+import { U, ALBUM_IMGS } from './landing-data';
 
 // Translucent tint from a PD var() token — never string-concat an
 // alpha suffix onto a var(), color-mix instead.
@@ -313,24 +314,20 @@ function DayofWidget({ accent }: { accent: string }) {
   );
 }
 
-// ── Keepsake: gradient album tiles ────────────────────────────
+// ── Keepsake: a mini album of real photographs ────────────────
 function KeepsakeWidget() {
-  const tileTints: [string, string][] = [
-    [PD.rose, PD.gold],
-    [PD.gold, PD.olive],
-    [PD.olive, PD.stone],
-    [PD.stone, PD.rose],
-    [PD.rose, PD.olive],
-  ];
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-      {tileTints.map((t, i) => (
+      {ALBUM_IMGS.map((id) => (
         <span
-          key={i}
+          key={id}
           style={{
             aspectRatio: '1',
             borderRadius: 8,
-            background: `linear-gradient(135deg, ${mix(t[0], 55)}, ${mix(t[1], 40)})`,
+            backgroundImage: `url(${U(id, 200)})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'saturate(1.05) sepia(0.04)',
           }}
         />
       ))}
