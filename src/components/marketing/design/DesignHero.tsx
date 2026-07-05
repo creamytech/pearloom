@@ -1,678 +1,747 @@
 'use client';
 
-// Pearloom Home Hero — exact port of the design bundle's hero.jsx.
-// Two columns: left with copy + threading indicator + stats, right
-// with a 2D HeroPear + a switchable preview card
-// (wedding / milestone / memorial). Animated blobs, swirls, bloom,
-// and sparkles drift behind the grid.
+// ─────────────────────────────────────────────────────────────
+// Pearloom / marketing/design/DesignHero.tsx  (Landing v4)
+//
+// Full-bleed painterly hero with an occasion switcher. Five
+// occasions (wedding · milestone · memorial · baby · reunion)
+// each re-key the headline, the invitation card, and the WebGL
+// mesh backdrop. The name input drives the card live. A
+// Daylight / Midnight pill (bottom-right) flips the global theme
+// for the sections below. No stock photography (BRAND §10) — the
+// backdrop is the @paper-design mesh under a warm scrim + grain.
+// ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
-import { EVENT_TYPES } from '@/lib/event-os/event-types';
-import { Bloom, Sparkle, Swirl } from '@/components/brand/groove';
-import { HeroPear, Leaf, Pear, Pearl, PLButton, PD, DISPLAY_STYLE, Squiggle, pdInkMix, pdShadowMix } from './DesignAtoms';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MeshGradient } from '@paper-design/shaders-react';
+import { ArrowDown } from 'lucide-react';
+import { Thread } from '@/components/brand/Thread';
+import { Sprig } from '@/components/pearloom/motifs';
+import { useTheme } from '@/components/shell/ThemeProvider';
+import { Pearl, PLButton, MONO_STYLE } from './DesignAtoms';
+import { OCC, OCC_KEYS, THREADING, parseNames, type OccasionKey } from './landing-data';
 
-type Occasion = 'wedding' | 'milestone' | 'memorial';
+const CREAM = '#FDFAF0';
+const CREAM_SOFT = 'rgba(253,250,240,0.92)';
+const CREAM_MUTE = 'rgba(253,250,240,0.66)';
+const GOLD_ACCENT = '#F0C9A8';
 
-interface DesignHeroProps {
-  onGetStarted: () => void;
+interface HeroProps {
+  occ: OccasionKey;
+  setOcc: (k: OccasionKey | ((prev: OccasionKey) => OccasionKey)) => void;
+  names: string;
+  setNames: (v: string) => void;
+  onType: (v: string) => void;
+  onGetStarted?: () => void;
 }
 
-const THREADING_STEPS = [
-  'reading your photos',
-  'pressing a palette',
-  'writing your story',
-  'weaving your RSVP',
-  'setting the type',
-];
+export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted }: HeroProps) {
+  const O = OCC[occ];
+  const p = parseNames(names);
+  const [step, setStep] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const { theme, setPreference } = useTheme();
+  const typedRef = useRef(false);
 
-const DATA: Record<Occasion, {
-  hosts: string;
-  verb: string;
-  sub: string;
-  date: string;
-  loc: string;
-  slug: string;
-  accent: string;
-  pear: string;
-}> = {
-  wedding: {
-    hosts: 'Mira & Jun',
-    verb: 'are getting married',
-    sub: 'A bright Saturday in Point Reyes, two families, one very long table.',
-    date: 'Sept 6, 2026',
-    loc: 'Point Reyes, CA',
-    slug: 'mira-and-jun',
-    accent: PD.gold,
-    pear: PD.pear,
-  },
-  milestone: {
-    hosts: 'Maya turns 30',
-    verb: 'is throwing a supper',
-    sub: 'Citrus, rosé, the garden hose for the kids, no speeches longer than 90 seconds.',
-    date: 'Aug 15, 2026',
-    loc: 'Lark Hill Orchard',
-    slug: 'maya-at-thirty',
-    accent: PD.terra,
-    pear: PD.butter,
-  },
-  memorial: {
-    hosts: 'For Amara Osei',
-    verb: 'a quiet gathering',
-    sub: "Tea, her records, her people. Come as you are.",
-    date: 'Nov 15, 2026',
-    loc: 'The Lumen, Brooklyn',
-    slug: 'for-amara',
-    accent: PD.plum,
-    pear: PD.rose,
-  },
-};
-
-export function DesignHero({ onGetStarted }: DesignHeroProps) {
-  const [occasion, setOccasion] = useState<Occasion>('wedding');
-  const [draftStep, setDraftStep] = useState(0);
-
+  // Rotate the "Pear is …" ticker.
   useEffect(() => {
-    const id = setInterval(() => setDraftStep((s) => (s + 1) % THREADING_STEPS.length), 1500);
+    const id = setInterval(() => setStep((s) => (s + 1) % THREADING.length), 1600);
     return () => clearInterval(id);
   }, []);
 
-  const data = DATA[occasion];
+  // Auto-advance the occasion until the visitor interacts.
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => {
+      if (!document.hidden) setOcc((k) => OCC_KEYS[(OCC_KEYS.indexOf(k) + 1) % OCC_KEYS.length]);
+    }, 5200);
+    return () => clearInterval(id);
+  }, [paused, setOcc]);
+
+  // Keep the input showing the occasion default until the visitor types.
+  useEffect(() => {
+    if (!typedRef.current) setNames(O.ph);
+  }, [occ, O.ph, setNames]);
+
+  const pick = useCallback(
+    (k: OccasionKey) => {
+      setOcc(k);
+      setPaused(true);
+    },
+    [setOcc],
+  );
+
+  const submit = () => onGetStarted?.();
 
   return (
-    <section style={{ position: 'relative', padding: '56px 24px 160px', overflow: 'hidden' }}>
-      {/* Floating curvy background blobs */}
-      <div
-        className="pd-anim"
-        style={{
-          position: 'absolute',
-          top: -80,
-          left: -160,
-          width: 420,
-          height: 420,
-          background: PD.pearSkin,
-          borderRadius: '62% 38% 54% 46% / 49% 58% 42% 51%',
-          opacity: 'calc(0.55 * var(--pd-wash-fade, 1))',
-          filter: 'blur(22px)',
-          animation: 'pl-blob-morph 14s ease-in-out infinite',
-        }}
-      />
-      <div
-        className="pd-anim"
-        style={{
-          position: 'absolute',
-          top: 340,
-          right: -140,
-          width: 340,
-          height: 340,
-          background: PD.butter,
-          borderRadius: '55% 45% 38% 62% / 38% 52% 48% 62%',
-          opacity: 'calc(0.45 * var(--pd-wash-fade, 1))',
-          filter: 'blur(18px)',
-          animation: 'pl-blob-morph 14s ease-in-out infinite -5s',
-        }}
-      />
-      <div
-        className="pd-anim"
-        style={{
-          position: 'absolute',
-          bottom: 40,
-          left: '42%',
-          width: 220,
-          height: 220,
-          background: PD.rose,
-          borderRadius: '70% 30% 58% 42% / 44% 62% 38% 56%',
-          opacity: 'calc(0.35 * var(--pd-wash-fade, 1))',
-          filter: 'blur(16px)',
-          animation: 'pl-blob-morph 14s ease-in-out infinite -9s',
-        }}
-      />
+    <header className="pd-hero" onMouseEnter={() => setPaused(true)}>
+      {/* Painterly WebGL backdrop, per occasion. */}
+      <div className="pd-hero-mesh" aria-hidden>
+        <MeshGradient
+          colors={O.mesh}
+          speed={0.18}
+          distortion={0.55}
+          swirl={0.42}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div className="pd-hero-scrim" aria-hidden />
+      <div className="pd-hero-grain pl-grain" aria-hidden />
 
-      {/* Groovy swirl, bloom, sparkles */}
-      <div
-        className="pd-anim"
-        style={{ position: 'absolute', top: 80, right: '48%', opacity: 0.28, animation: 'pl-spin-slow 80s linear infinite' }}
-        aria-hidden
-      >
-        <Swirl size={140} color={PD.olive} strokeWidth={1.6} />
-      </div>
-      <div className="pd-anim" style={{ position: 'absolute', bottom: 120, right: 40, opacity: 0.45 }} aria-hidden>
-        <Bloom size={110} color={PD.pear} centerColor={PD.olive} speed={4} />
-      </div>
-      <div style={{ position: 'absolute', top: 180, left: 40 }} aria-hidden>
-        <Sparkle size={24} color={PD.gold} />
-      </div>
-      <div style={{ position: 'absolute', bottom: 220, left: 180, opacity: 0.7 }} aria-hidden>
-        <Sparkle size={14} color={PD.terra} />
+      {/* Daylight / Midnight — flips the global theme for the page below. */}
+      <div className="pd-hero-mood" role="group" aria-label="Theme">
+        <button className={theme === 'light' ? 'on' : ''} onClick={() => setPreference('light')}>
+          Daylight
+        </button>
+        <button className={theme === 'dark' ? 'on' : ''} onClick={() => setPreference('dark')}>
+          Midnight
+        </button>
       </div>
 
-      <div
-        className="pd-hero-grid"
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          maxWidth: 1320,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1.05fr 1fr',
-          gap: 60,
-          alignItems: 'center',
-        }}
-      >
-        {/* ── Left column ────────────────────────────────── */}
-        {/* Entrance choreography: the H1 presses into the paper, then
-            the copy, indicator, CTAs and stats thread up in sequence.
-            data-reveal is progressive-enhancement gated (visible with
-            no JS) and reduced-motion safe (animation.css). */}
+      <span className="pd-float f0" aria-hidden>
+        <Sprig size={56} color="rgba(240,201,168,0.85)" />
+      </span>
+      <span className="pd-float f1" aria-hidden>
+        <Pearl size={16} />
+      </span>
+      <span className="pd-float f2" aria-hidden>
+        <Pearl size={11} />
+      </span>
+
+      <div className="pd-hero-inner">
         <div className="pd-hero-copy">
-          <h1
-            className="pl-letterpress"
-            data-reveal="press"
-            style={{
-              ...DISPLAY_STYLE,
-              fontSize: 'clamp(54px, 7.8vw, 120px)',
-              lineHeight: 0.94,
-              fontWeight: 400,
-              margin: '0 0 22px',
-              letterSpacing: '-0.028em',
-              color: PD.ink,
-            }}
-          >
-            <span style={{ display: 'block' }}>The days that</span>
-            <span style={{ display: 'block', position: 'relative' }}>
-              <span
-                style={{
-                  fontStyle: 'italic',
-                  color: PD.olive,
-                  position: 'relative',
-                  display: 'inline-block',
-                }}
+          <div className="pd-occ-tabs" role="tablist" aria-label="Occasion">
+            {OCC_KEYS.map((k) => (
+              <button
+                key={k}
+                role="tab"
+                aria-selected={k === occ}
+                className={'pd-otab' + (k === occ ? ' on' : '')}
+                onClick={() => pick(k)}
               >
-                matter
-                <span style={{ position: 'absolute', left: '-4%', right: '-4%', bottom: '-6px' }}>
-                  <Squiggle width={220} height={14} color={PD.gold} strokeWidth={3} animated />
-                </span>
-              </span>
-              , woven
-            </span>
-            <span style={{ display: 'block' }}>in an afternoon.</span>
-          </h1>
-
-          <p
-            data-reveal="up"
-            data-reveal-delay="120"
-            style={{
-              fontFamily: 'var(--pl-font-body)',
-              fontSize: 'clamp(16px, 1.15vw, 19px)',
-              lineHeight: 1.55,
-              maxWidth: 520,
-              color: PD.inkSoft,
-              margin: '0 0 32px',
-            }}
-          >
-            Answer three questions. Hand over a few photos. Pearloom drafts the whole site: cover,
-            story, RSVP, schedule, travel guide, registry. Pear, our in-house planner, writes it
-            in your voice and stays with you from save the date to a year later.
-          </p>
-
-          {/* Pear is threading indicator */}
-          <div
-            aria-live="polite"
-            data-reveal="up"
-            data-reveal-delay="200"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 14px',
-              background: PD.paper3,
-              borderRadius: 999,
-              marginBottom: 28,
-              border: `1px solid ${pdInkMix(10)}`,
-            }}
-          >
-            <Pearl size={9} />
-            <span
-              style={{
-                fontFamily: 'var(--pl-font-mono)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                fontSize: 11,
-                opacity: 0.7,
-              }}
-            >
-              PEAR IS
-            </span>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: PD.olive,
-                fontStyle: 'italic',
-                fontFamily: '"Fraunces", Georgia, serif',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                minWidth: 180,
-                display: 'inline-block',
-              }}
-            >
-              {/* keyed so each step fades in rather than snapping */}
-              <span key={draftStep} className="pd-hero-word" style={{ display: 'inline-block' }}>
-                {THREADING_STEPS[draftStep]}...
-              </span>
-            </span>
+                {OCC[k].chip}
+              </button>
+            ))}
           </div>
 
-          <div className="pd-hero-cta" data-reveal="up" data-reveal-delay="280" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
-            <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
+          <div className="pd-hero-key" key={occ}>
+            <div style={{ ...MONO_STYLE, color: GOLD_ACCENT, marginBottom: 16 }}>{O.eyebrow}</div>
+            <h1 className="pd-hero-h1 pl-letterpress">
+              {O.h1a}
+              <em>{O.em}</em>
+              {O.h1b}
+            </h1>
+            <p className="pd-hero-sub">{O.sub}</p>
+          </div>
+
+          <div className="pd-hero-form">
+            <input
+              value={names}
+              onChange={(e) => {
+                typedRef.current = true;
+                onType(e.target.value);
+              }}
+              onFocus={() => setPaused(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') submit();
+              }}
+              placeholder={O.ph}
+              aria-label="Your names"
+            />
+            <PLButton variant="pearl" size="md" onClick={submit}>
               Start your loom <Pearl size={9} />
             </PLButton>
-            <PLButton
-              variant="ghost"
-              size="lg"
-              onClick={() => {
-                // No demo video exists — "watch" goes to the live
-                // three-acts walkthrough below, which IS Pear
-                // threading a site. (Was a dead button.)
-                document.getElementById('acts')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-flex',
-                  width: 22,
-                  height: 22,
-                  borderRadius: 99,
-                  border: `1px solid ${PD.ink}`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 10,
-                }}
-              >
-                ▶
-              </span>
-              Watch Pear thread a site
-            </PLButton>
           </div>
 
-          <div
-            className="pd-hero-stats"
-            data-reveal="up"
-            data-reveal-delay="360"
-            style={{
-              display: 'flex',
-              gap: 32,
-              alignItems: 'center',
-              paddingTop: 26,
-              borderTop: `1px solid ${pdInkMix(12)}`,
-              flexWrap: 'wrap',
-            }}
-          >
-            {/* Counters carry only claims the product actually makes:
-                the occasion count reads straight from the registry so
-                it can never drift, "20 sec" is the wizard's own
-                first-draft claim, and the free tier is real. (The old
-                "42,000 days already threaded" was a fabricated usage
-                stat — removed.) */}
-            {([
-              { n: String(EVENT_TYPES.length), l: 'occasions, one voice each', c: PD.olive },
-              { n: '20 sec', l: 'to a first draft', c: PD.gold },
-              { n: '$0', l: 'your first site, forever', c: PD.olive },
-            ] as const).map((s, i) => (
-              <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-                <div>
-                  <div
-                    style={{
-                      ...DISPLAY_STYLE,
-                      fontSize: 26,
-                      fontStyle: 'italic',
-                      color: s.c,
-                      lineHeight: 1,
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    }}
-                  >
-                    {s.n}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--pl-font-body)',
-                      fontSize: 12,
-                      color: PD.inkSoft,
-                      marginTop: 3,
-                      maxWidth: 140,
-                    }}
-                  >
-                    {s.l}
-                  </div>
-                </div>
-                {i < 2 && <div style={{ width: 1, height: 36, background: pdInkMix(12) }} />}
+          <div className="pd-ticker" aria-live="polite">
+            <Pearl size={9} /> Pear is <span className="verb">{THREADING[step]}…</span>
+          </div>
+
+          <div className="pd-hero-stats">
+            {(
+              [
+                ['31', 'occasions, one voice'],
+                ['20 sec', 'to a first draft'],
+                ['$0', 'your first site'],
+              ] as const
+            ).map(([n, l]) => (
+              <div className="pd-hstat" key={l}>
+                <div className="n">{n}</div>
+                <div className="l">{l}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── Right column — animated preview ─────────────── */}
-        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div
-            className="pd-anim"
-            style={{
-              position: 'absolute',
-              top: -40,
-              left: -60,
-              opacity: 0.85,
-              animation: 'pl-float-y 8s ease-in-out infinite',
-            }}
-            aria-hidden
-          >
-            <HeroPear size={200} />
-          </div>
-          <div
-            className="pd-anim"
-            style={{
-              position: 'absolute',
-              bottom: -30,
-              right: -30,
-              animation: 'pl-float-y 6s ease-in-out infinite -3s',
-            }}
-            aria-hidden
-          >
-            <Leaf size={64} color={PD.olive} rotate={35} />
-          </div>
-          <div
-            className="pd-anim"
-            style={{
-              position: 'absolute',
-              top: 60,
-              right: -40,
-              animation: 'pl-spin-slow 40s linear infinite',
-            }}
-            aria-hidden
-          >
-            <Swirl size={80} color={PD.gold} strokeWidth={1.5} />
-          </div>
-
-          <div style={{ position: 'relative' }} data-reveal="rise" data-reveal-delay="180">
-            {/* Preview site card */}
-            <div
-              style={{
-                width: 'min(460px, 92vw)',
-                background: PD.paperCard,
-                color: PD.ink,
-                borderRadius: 24,
-                border: `1px solid ${pdInkMix(12)}`,
-                overflow: 'hidden',
-                position: 'relative',
-                boxShadow: `0 30px 70px -20px ${pdShadowMix(35)}`,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 14px',
-                  borderBottom: `1px solid ${PD.line}`,
-                  background: PD.paper3,
-                }}
-              >
-                <div style={{ width: 8, height: 8, borderRadius: 99, background: PD.stone }} />
-                <div style={{ width: 8, height: 8, borderRadius: 99, background: PD.stone }} />
-                <div style={{ width: 8, height: 8, borderRadius: 99, background: PD.stone }} />
-                <div
-                  style={{
-                    marginLeft: 10,
-                    fontFamily: 'var(--pl-font-mono)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    fontSize: 9,
-                    opacity: 0.55,
-                  }}
-                >
-                  pearloom.com/{occasion}/{data.slug}
-                </div>
-              </div>
-
-              {/* key={occasion} re-mounts the card body per switch so the
-                  pd-hero-xfade entrance crossfades the new copy instead
-                  of the old hard swap. */}
-              <div key={occasion} className="pd-hero-xfade" style={{ padding: '36px 32px 28px', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 24, right: 24 }}>
-                  <Pear size={36} color={data.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    fontSize: 10,
-                    opacity: 0.6,
-                    marginBottom: 12,
-                  }}
-                >
-                  PRESSED BY PEAR · {data.date.toUpperCase()}
-                </div>
-                <div
-                  style={{
-                    ...DISPLAY_STYLE,
-                    fontSize: 44,
-                    lineHeight: 0.95,
-                    fontWeight: 400,
-                    letterSpacing: '-0.025em',
-                    fontVariationSettings: '"SOFT" 60, "opsz" 144',
-                  }}
-                >
-                  {data.hosts}
-                </div>
-                <div
-                  style={{
-                    ...DISPLAY_STYLE,
-                    fontSize: 17,
-                    fontStyle: 'italic',
-                    color: data.accent,
-                    margin: '6px 0 14px',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                  }}
-                >
-                  {data.verb}
-                </div>
-                <p
-                  style={{
-                    fontFamily: 'var(--pl-font-body)',
-                    fontSize: 13.5,
-                    lineHeight: 1.55,
-                    color: PD.inkSoft,
-                    margin: 0,
-                    maxWidth: 360,
-                  }}
-                >
-                  {data.sub}
-                </p>
-              </div>
-
-              {/* Inline timeline strip */}
-              <div style={{ padding: '18px 32px 24px', background: PD.paperDeep, borderTop: `1px solid ${PD.line}` }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--pl-font-mono)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    fontSize: 9,
-                    opacity: 0.6,
-                    marginBottom: 10,
-                  }}
-                >
-                  THE RUN OF THE DAY
-                </div>
-                <div
-                  style={{
-                    position: 'relative',
-                    height: 6,
-                    background: PD.line,
-                    borderRadius: 99,
-                    marginBottom: 8,
-                  }}
-                >
-                  <div
-                    key={occasion}
-                    className="pd-hero-xfade"
-                    style={{
-                      position: 'absolute',
-                      inset: '0 42% 0 0',
-                      background: `linear-gradient(90deg, ${data.accent}, ${PD.gold})`,
-                      borderRadius: 99,
-                    }}
-                  />
-                  {[4, 24, 42, 62, 82].map((p, i) => (
-                    <div
-                      key={p}
-                      style={{
-                        position: 'absolute',
-                        left: `${p}%`,
-                        top: -4,
-                        width: 14,
-                        height: 14,
-                        borderRadius: 99,
-                        background: PD.paper,
-                        border: `1.5px solid ${i < 3 ? data.accent : PD.stone}`,
-                        transform: 'translateX(-50%)',
-                      }}
-                    />
-                  ))}
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: 10,
-                    color: PD.inkSoft,
-                    fontFamily: 'var(--pl-font-body)',
-                  }}
-                >
-                  <span>arrive</span>
-                  <span>vows</span>
-                  <span>portraits</span>
-                  <span>supper</span>
-                  <span>dance</span>
-                </div>
-              </div>
-
-              {/* RSVP strip */}
-              <div
-                style={{
-                  padding: '16px 32px 22px',
-                  background: PD.paperCard,
-                  borderTop: `1px solid ${PD.line}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <Pearl size={10} />
-                <div style={{ flex: 1, fontSize: 13, fontFamily: 'var(--pl-font-body)' }}>
-                  Kindly reply by{' '}
-                  <em style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}>Aug 10</em>.
-                </div>
-                <button
-                  onClick={onGetStarted}
-                  className="pd-rsvp-mock"
-                  style={{
-                    background: data.accent,
-                    color: PD.paperCard,
-                    border: 'none',
-                    padding: '9px 16px',
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontFamily: 'var(--pl-font-body)',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Press RSVP →
-                </button>
+        {/* Floating cards — the invitation, framed by planning + album. */}
+        <div className="pd-std-wrap">
+          <div className="pd-pcard dash" aria-hidden>
+            <div className="pc-h">
+              <span>Planning</span>
+              <span>120 days to go</span>
+            </div>
+            <div className="pc-track">
+              <span className="pc-ring" />
+              <div>
+                <div className="pc-title">On track</div>
+                <div className="pc-sub">72% planned</div>
               </div>
             </div>
+            <div className="pc-row done">
+              <span className="tick">✓</span>Finalize catering
+            </div>
+            <div className="pc-row">
+              <span className="dot" />
+              Send save-the-dates
+            </div>
+          </div>
 
-            {/* occasion switcher */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '50%',
-                bottom: -60,
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                gap: 4,
-                padding: 4,
-                background: `color-mix(in oklab, ${PD.paperCard} 95%, transparent)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${pdInkMix(14)}`,
-                borderRadius: 999,
-                boxShadow: `0 10px 30px -10px ${pdShadowMix(25)}`,
-              }}
-            >
-              {([
-                { k: 'wedding', l: 'Wedding' },
-                { k: 'milestone', l: 'Milestone' },
-                { k: 'memorial', l: 'Memorial' },
-              ] as const).map((o) => (
-                <button
-                  key={o.k}
-                  onClick={() => setOccasion(o.k)}
-                  style={{
-                    background: occasion === o.k ? PD.ink : 'transparent',
-                    color: occasion === o.k ? PD.paper : PD.ink,
-                    border: 'none',
-                    borderRadius: 999,
-                    padding: '8px 16px',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'var(--pl-font-body)',
-                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
-                  }}
-                >
-                  {o.l}
-                </button>
+          <div className="pd-std" style={{ ['--occ' as string]: O.accent } as React.CSSProperties}>
+            <div className="pd-std-lift" key={occ}>
+              <div className="std-eyebrow">{O.eyebrow}</div>
+              <div className="std-pre">{O.pre}</div>
+              <div className="std-names">
+                {p.a ? (
+                  p.two ? (
+                    <>
+                      {p.a}
+                      <span className="amp">&amp;</span>
+                      {p.b}
+                    </>
+                  ) : (
+                    p.a
+                  )
+                ) : (
+                  <span className="ghost">Your names</span>
+                )}
+              </div>
+              <div className="std-post">{O.post || ' '}</div>
+              <div className="std-thread">
+                <Thread variant="weave" height={11} />
+              </div>
+              <div className="std-meta">
+                {O.meta[0]}
+                <br />
+                {O.meta[1]}
+              </div>
+            </div>
+            <div className="pd-wax" aria-hidden>
+              <span>{O.mono.length > 2 ? O.mono[0] : O.mono}</span>
+            </div>
+          </div>
+
+          <div className="pd-pcard album" aria-hidden>
+            <div className="pc-h">
+              <span>Memory album</span>
+              <span>+126</span>
+            </div>
+            <div className="pc-album">
+              {[0, 1, 2, 3].map((i) => (
+                <div className="ph" key={i} data-i={i} />
               ))}
+              <div className="ph more">126</div>
             </div>
           </div>
         </div>
       </div>
 
+      <div className="pd-scroll-cue" aria-hidden>
+        See it your way
+        <ArrowDown size={15} className="arw" />
+      </div>
+
       <style jsx>{`
-        @media (max-width: 900px) {
-          :global(.pd-hero-grid) {
-            grid-template-columns: 1fr !important;
-            gap: 80px !important;
+        .pd-hero {
+          position: relative;
+          min-height: 100svh;
+          overflow: hidden;
+          isolation: isolate;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          background: #14110c;
+        }
+        .pd-hero-mesh {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+        }
+        .pd-hero-mesh :global(canvas) {
+          width: 100% !important;
+          height: 100% !important;
+        }
+        .pd-hero-scrim {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          background:
+            linear-gradient(90deg, rgba(12, 10, 7, 0.82) 0%, rgba(12, 10, 7, 0.4) 42%, rgba(12, 10, 7, 0.15) 100%),
+            linear-gradient(0deg, rgba(12, 10, 7, 0.55) 0%, transparent 30%, transparent 70%, rgba(12, 10, 7, 0.35) 100%);
+        }
+        .pd-hero-grain {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          opacity: 0.4;
+          mix-blend-mode: soft-light;
+          pointer-events: none;
+        }
+        .pd-hero-mood {
+          position: absolute;
+          bottom: 22px;
+          right: 24px;
+          z-index: 6;
+          display: inline-flex;
+          gap: 2px;
+          padding: 3px;
+          border-radius: 999px;
+          background: rgba(20, 17, 12, 0.5);
+          border: 1px solid rgba(253, 250, 240, 0.22);
+          -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+        }
+        .pd-hero-mood button {
+          border: none;
+          background: transparent;
+          color: rgba(253, 250, 240, 0.72);
+          font-family: var(--pl-font-mono);
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          padding: 6px 13px;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .pd-hero-mood button.on {
+          background: ${CREAM};
+          color: #1a1712;
+          font-weight: 600;
+        }
+        .pd-float {
+          position: absolute;
+          z-index: 3;
+          pointer-events: none;
+          will-change: transform;
+        }
+        .pd-float.f0 {
+          top: 20%;
+          left: 7%;
+          animation: pd-drift 9s ease-in-out infinite;
+        }
+        .pd-float.f1 {
+          top: 66%;
+          right: 9%;
+          animation: pd-drift 11s ease-in-out infinite reverse;
+        }
+        .pd-float.f2 {
+          bottom: 20%;
+          left: 13%;
+          animation: pd-drift 8s ease-in-out infinite;
+        }
+        @keyframes pd-drift {
+          0%,
+          100% {
+            transform: translateY(0);
           }
-          /* Center the hero copy on mobile + trim badge clutter. */
-          :global(.pd-hero-copy) {
-            text-align: center;
-          }
-          :global(.pd-hero-copy) p {
-            margin-left: auto !important;
-            margin-right: auto !important;
-          }
-          :global(.pd-hero-eyebrows),
-          :global(.pd-hero-cta),
-          :global(.pd-hero-stats) {
-            justify-content: center !important;
-          }
-          /* One eyebrow is plenty on a phone — drop the announcement. */
-          :global(.pd-hero-eyebrows) > *:nth-child(2) {
-            display: none !important;
+          50% {
+            transform: translateY(-14px);
           }
         }
-        /* .pd-hero-xfade / .pd-hero-word / .pd-rsvp-mock live in
-           animation.css — keyframes in a scoped styled-jsx block get
-           hash-renamed and would never match. */
-        @media (prefers-reduced-motion: reduce) {
-          :global(.pd-anim),
-          :global(.pd-anim *) {
-            animation: none !important;
+        .pd-hero-inner {
+          position: relative;
+          z-index: 4;
+          width: 100%;
+          max-width: 1180px;
+          margin: 0 auto;
+          padding: 96px 24px 92px;
+          display: grid;
+          grid-template-columns: 1.05fr 0.95fr;
+          gap: 48px;
+          align-items: center;
+          box-sizing: border-box;
+        }
+        .pd-occ-tabs {
+          display: inline-flex;
+          flex-wrap: wrap;
+          gap: 2px;
+          padding: 4px;
+          border-radius: 999px;
+          background: rgba(20, 17, 12, 0.42);
+          border: 1px solid rgba(253, 250, 240, 0.2);
+          -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+          margin-bottom: 26px;
+        }
+        .pd-otab {
+          border: none;
+          background: transparent;
+          color: rgba(253, 250, 240, 0.82);
+          font-family: var(--pl-font-body);
+          font-size: 13px;
+          font-weight: 550;
+          padding: 8px 16px;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          white-space: nowrap;
+        }
+        .pd-otab:hover {
+          color: ${CREAM};
+        }
+        .pd-otab.on {
+          background: ${CREAM};
+          color: #1a1712;
+          box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.4);
+        }
+        .pd-hero-key {
+          animation: pd-key-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes pd-key-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
           }
-          :global(.pd-anim-draw) {
-            stroke-dashoffset: 0 !important;
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .pd-hero-h1 {
+          font-family: var(--pl-font-display);
+          font-weight: 400;
+          font-optical-sizing: auto;
+          font-size: clamp(44px, 5.4vw, 88px);
+          line-height: 0.98;
+          letter-spacing: -0.03em;
+          color: ${CREAM};
+          margin: 0;
+          text-shadow: 0 2px 26px rgba(11, 9, 6, 0.55), 0 1px 2px rgba(11, 9, 6, 0.4);
+        }
+        .pd-hero-h1 :global(em) {
+          font-style: italic;
+          color: ${GOLD_ACCENT};
+        }
+        .pd-hero-sub {
+          margin: 22px 0 30px;
+          font-size: clamp(15px, 1.3vw, 18px);
+          line-height: 1.62;
+          color: ${CREAM_SOFT};
+          text-shadow: 0 1px 14px rgba(11, 9, 6, 0.6);
+          max-width: 500px;
+          font-family: var(--pl-font-body);
+        }
+        .pd-hero-form {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(253, 250, 240, 0.94);
+          border-radius: 999px;
+          padding: 6px 6px 6px 20px;
+          max-width: 460px;
+          box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.7);
+        }
+        .pd-hero-form input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          background: transparent;
+          outline: none;
+          font-family: var(--pl-font-display);
+          font-size: 19px;
+          color: #26231c;
+        }
+        .pd-hero-form input::placeholder {
+          color: #9b917f;
+        }
+        .pd-ticker {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 22px;
+          font-family: var(--pl-font-mono);
+          font-size: 10px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: ${CREAM_MUTE};
+        }
+        .pd-ticker .verb {
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 15px;
+          letter-spacing: 0;
+          text-transform: none;
+          color: ${GOLD_ACCENT};
+          min-width: 150px;
+          text-align: left;
+        }
+        .pd-hero-stats {
+          display: flex;
+          gap: 34px;
+          margin-top: 34px;
+          flex-wrap: wrap;
+        }
+        .pd-hstat .n {
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 27px;
+          color: ${GOLD_ACCENT};
+          line-height: 1;
+        }
+        .pd-hstat .l {
+          font-size: 11.5px;
+          color: ${CREAM_MUTE};
+          margin-top: 5px;
+          font-family: var(--pl-font-body);
+        }
+        .pd-std-wrap {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 480px;
+        }
+        .pd-std {
+          position: relative;
+          width: min(360px, 82vw);
+          background: #fbf7ee;
+          color: #26231c;
+          border-radius: 18px;
+          border: 1px solid #e2d9c3;
+          padding: 34px 30px 28px;
+          text-align: center;
+          box-shadow: 0 40px 80px -34px rgba(0, 0, 0, 0.6);
+          z-index: 2;
+        }
+        .pd-std-lift {
+          animation: pd-key-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .std-eyebrow {
+          font-family: var(--pl-font-mono);
+          font-size: 9.5px;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          color: var(--occ, #c6703d);
+        }
+        .std-pre {
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 17px;
+          color: #6f6557;
+          margin: 16px 0 6px;
+        }
+        .std-names {
+          font-family: var(--pl-font-display);
+          font-weight: 400;
+          font-size: clamp(30px, 4vw, 44px);
+          line-height: 1.04;
+          letter-spacing: -0.02em;
+          color: #26231c;
+          min-height: 1.1em;
+        }
+        .std-names .amp {
+          font-style: italic;
+          color: var(--occ, #c6703d);
+          padding: 0 0.05em;
+        }
+        .std-names .ghost {
+          color: #b8ad99;
+        }
+        .std-post {
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 18px;
+          color: #4a5642;
+          margin-top: 6px;
+        }
+        .std-thread {
+          margin: 16px auto;
+          max-width: 180px;
+        }
+        .std-meta {
+          font-family: var(--pl-font-mono);
+          font-size: 9.5px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #6f6557;
+          line-height: 1.8;
+        }
+        .pd-wax {
+          position: absolute;
+          right: -18px;
+          bottom: -18px;
+          width: 62px;
+          height: 62px;
+          border-radius: 999px;
+          display: grid;
+          place-items: center;
+          background: var(--occ, #c6703d);
+          box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.5);
+        }
+        .pd-wax span {
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 24px;
+          color: #fbf7ee;
+        }
+        .pd-pcard {
+          position: absolute;
+          background: rgba(251, 247, 238, 0.94);
+          -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+          border: 1px solid #e2d9c3;
+          border-radius: 14px;
+          padding: 14px 16px;
+          box-shadow: 0 24px 50px -26px rgba(0, 0, 0, 0.5);
+          z-index: 3;
+          width: 200px;
+          animation: pd-drift 10s ease-in-out infinite;
+        }
+        .pd-pcard.dash {
+          top: 2%;
+          left: -2%;
+        }
+        .pd-pcard.album {
+          bottom: 4%;
+          right: -4%;
+          animation-direction: reverse;
+        }
+        .pc-h {
+          display: flex;
+          justify-content: space-between;
+          font-family: var(--pl-font-mono);
+          font-size: 8.5px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #8a8069;
+          margin-bottom: 12px;
+        }
+        .pc-track {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .pc-ring {
+          width: 26px;
+          height: 26px;
+          border-radius: 999px;
+          flex-shrink: 0;
+          background: conic-gradient(#5c6b3f 0 72%, #e2d9c3 72% 100%);
+        }
+        .pc-title {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #26231c;
+          font-family: var(--pl-font-body);
+        }
+        .pc-sub {
+          font-size: 10.5px;
+          color: #8a8069;
+          font-family: var(--pl-font-body);
+        }
+        .pc-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 11.5px;
+          color: #4a4437;
+          font-family: var(--pl-font-body);
+          padding: 3px 0;
+        }
+        .pc-row .tick {
+          color: #5c6b3f;
+          font-weight: 700;
+        }
+        .pc-row .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: var(--occ, #c6703d);
+        }
+        .pc-album {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 5px;
+        }
+        .pc-album .ph {
+          aspect-ratio: 1/1;
+          border-radius: 6px;
+          background: linear-gradient(135deg, #c8bfa5, #d9a89e);
+        }
+        .pc-album .ph[data-i='1'] {
+          background: linear-gradient(135deg, #5c6b3f, #c19a4b);
+        }
+        .pc-album .ph[data-i='2'] {
+          background: linear-gradient(135deg, #c6703d, #e8c77a);
+        }
+        .pc-album .ph[data-i='3'] {
+          background: linear-gradient(135deg, #d9a89e, #c8bfa5);
+        }
+        .pc-album .ph.more {
+          background: #2c3022;
+          color: #fbf7ee;
+          display: grid;
+          place-items: center;
+          font-family: var(--pl-font-display);
+          font-size: 13px;
+        }
+        .pd-scroll-cue {
+          position: absolute;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 5;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          color: ${CREAM_MUTE};
+          font-family: var(--pl-font-mono);
+          font-size: 9px;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+        }
+        .pd-scroll-cue :global(.arw) {
+          animation: pd-cue 1.8s ease-in-out infinite;
+        }
+        @keyframes pd-cue {
+          0%,
+          100% {
+            transform: translateY(0);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translateY(5px);
+            opacity: 1;
+          }
+        }
+        @media (max-width: 900px) {
+          .pd-hero-inner {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            padding: 104px 22px 96px;
+          }
+          .pd-std-wrap {
+            min-height: 420px;
+          }
+          .pd-pcard.dash {
+            left: 0;
+          }
+          .pd-pcard.album {
+            right: 0;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pd-float,
+          .pd-pcard,
+          .pd-hero-key,
+          .pd-std-lift,
+          .pd-scroll-cue :global(.arw) {
+            animation: none !important;
           }
         }
       `}</style>
-    </section>
+    </header>
   );
 }

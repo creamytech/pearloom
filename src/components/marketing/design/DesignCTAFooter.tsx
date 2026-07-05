@@ -27,11 +27,11 @@ const FOOTER_COLS: Array<{ h: string; l: Array<[string, string]> }> = [
   {
     h: 'The product',
     l: [
-      ['The three acts', '#acts'],
-      ['The Director', '#director'],
+      ['Everything', '#product'],
+      ['Themes', '#themes'],
       ['Occasions', '#occasions'],
+      ['The day-of room', '#day'],
       ['Pricing', '#pricing'],
-      ['Journal', '#journal'],
     ],
   },
   {

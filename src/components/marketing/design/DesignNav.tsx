@@ -19,11 +19,10 @@ interface DesignNavProps {
 // Absolute (/#…) so the nav works from any page (legal, etc.), not
 // just the landing — on the homepage these still just scroll.
 const LINKS: Array<[string, string]> = [
-  ['The three acts', '/#acts'],
+  ['Everything', '/#product'],
+  ['Themes', '/#themes'],
   ['Occasions', '/#occasions'],
-  ['The Director', '/#director'],
   ['Pricing', '/#pricing'],
-  ['Journal', '/#journal'],
 ];
 
 export function DesignNav({ onGetStarted }: DesignNavProps) {
