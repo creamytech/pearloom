@@ -18,8 +18,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
-import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
-import { Icon } from '@/components/pearloom/motifs';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
+import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import {
   useSelectedSite,
   patchSiteManifestInCache,
@@ -173,6 +173,39 @@ const fieldLabel: React.CSSProperties = {
   fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 4, display: 'block',
 };
 const plum = 'var(--plum, #C6563D)';
+
+// ── Per-vendor accent + initials ──────────────────────────────
+// A stable tint drawn from the vendor's name (a hash, never a
+// stored/fabricated field) so each avatar reads distinct — the
+// zip's four-way sage / lavender / gold / peach cycle.
+
+const VENDOR_ACCENTS: Array<{ bg: string; ink: string }> = [
+  { bg: 'var(--sage-tint)', ink: 'var(--sage-deep, #5C6B3F)' },
+  { bg: 'var(--lavender-bg)', ink: 'var(--lavender-ink, #6B5B8A)' },
+  { bg: 'rgba(193,154,75,0.16)', ink: '#8A6A2E' },
+  { bg: 'var(--peach-bg)', ink: 'var(--peach-ink, #C6703D)' },
+];
+
+function vendorAccent(name: string): { bg: string; ink: string } {
+  let h = 0;
+  for (let i = 0; i < name.length; i += 1) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return VENDOR_ACCENTS[Math.abs(h) % VENDOR_ACCENTS.length];
+}
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '·';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// The relationship-stage pill — a gold→lavender→sage ladder from
+// tentative to settled. `paid` wears a check.
+const STATUS_PILL: Record<VendorStatus, { label: string; bg: string; ink: string }> = {
+  considering: { label: 'Considering', bg: 'rgba(193,154,75,0.16)', ink: '#8A6A2E' },
+  booked: { label: 'Booked', bg: 'var(--lavender-bg)', ink: 'var(--lavender-ink, #6B5B8A)' },
+  paid: { label: 'Paid', bg: 'var(--sage-tint)', ink: 'var(--sage-deep, #5C6B3F)' },
+};
 
 // ── The page ──────────────────────────────────────────────────
 
@@ -408,22 +441,44 @@ export function VendorBookClient() {
     { status: 'paid', label: 'Paid', rows: vendors.filter((v) => v.status === 'paid') },
   ];
 
-  // Quiet StatStrip (plan rule 3) — roster totals as 40px chips;
-  // zeros collapse into one muted trailing chip. Past-due counts
-  // every unpaid deposit/balance whose date has slipped.
-  const overdueCount = vendors.reduce(
-    (n, v) =>
-      n +
-      (v.depositDue && !v.depositPaid && v.depositDue < today ? 1 : 0) +
-      (v.balanceDue && !v.balancePaid && v.balanceDue < today ? 1 : 0),
-    0,
-  );
-  const statItems: StatStripItem[] = [
-    { label: 'Booked', value: groups[1].rows.length, tone: 'sage' },
-    { label: 'Paid', value: groups[2].rows.length },
+  // Every past-due deposit/balance across the roster, earliest
+  // first — feeds the rail's "next payment" line + its "needs
+  // attention" card. Real dates only; nothing is fabricated.
+  const overdueDues = useMemo<DueEntry[]>(() => {
+    const all: DueEntry[] = [];
+    for (const v of vendors) {
+      if (v.depositDue && !v.depositPaid && v.depositDue < today) {
+        all.push({ key: `${v.id}:deposit`, vendorName: v.name, kind: 'deposit', date: v.depositDue, amountCents: v.depositCents, overdue: true });
+      }
+      if (v.balanceDue && !v.balancePaid && v.balanceDue < today) {
+        all.push({ key: `${v.id}:balance`, vendorName: v.name, kind: 'balance', date: v.balanceDue, amountCents: balanceCents(v), overdue: true });
+      }
+    }
+    all.sort((a, b) => a.date.localeCompare(b.date));
+    return all;
+  }, [vendors, today]);
+  const overdueCount = overdueDues.length;
+
+  // The rail's "next payment" — the soonest unpaid due (overdue in
+  // plum), else a quiet "All set" once a schedule exists at all.
+  const nextDue = dues[0] ?? null;
+  const nextPayment = nextDue
+    ? { label: fmtDueDate(nextDue.date), overdue: nextDue.overdue }
+    : hasSchedule ? { label: 'All set', overdue: false } : null;
+
+  // "The team" rail summary — roster totals + the next payment.
+  const teamRows: Array<{ label: string; value: React.ReactNode; small?: boolean; color?: string }> = [
+    { label: 'Booked', value: groups[1].rows.length },
     { label: 'Considering', value: groups[0].rows.length },
-    { label: 'Past due', value: overdueCount, tone: 'plum' },
+    { label: 'Paid', value: groups[2].rows.length },
+    ...(nextPayment
+      ? [{ label: 'Next payment', value: nextPayment.label, small: true, color: nextPayment.overdue ? plum : 'var(--ink)' }]
+      : []),
   ];
+
+  // Rail only when there's roster data — a form opened over an empty
+  // book keeps the single-column layout (no all-zeros summary).
+  const showRail = vendors.length > 0;
 
   return (
     <DashLayout active="vendors" hideTopbar>
@@ -436,7 +491,6 @@ export function VendorBookClient() {
         <PageIntro
           eyebrow="Vendors"
           title="The vendor book."
-          meta={!loading && !listLoading && vendors.length > 0 ? <StatStrip items={statItems} /> : undefined}
           actions={
             <button
               type="button"
@@ -455,9 +509,6 @@ export function VendorBookClient() {
           padding: '0 var(--pl-dash-pad) 60px',
           maxWidth: 'var(--pl-dash-maxw)',
           margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
           position: 'relative',
           zIndex: 1,
         }}
@@ -494,133 +545,139 @@ export function VendorBookClient() {
               Open the celebration switcher in the sidebar to keep its vendor book.
             </div>
           </PLCard>
-        ) : (
-          <>
+        ) : vendors.length === 0 && !form ? (
+          /* ── Honest empty state — full width, no summary rail ── */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {loadError && (
               <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
                 The book didn&rsquo;t load — refresh to try again.
               </div>
             )}
-
-            {/* ── Payment-schedule strip — what's due next ── */}
-            {dues.length === 0 && hasSchedule && (
-              <PLCard tone="paper" title="Due next" icon="calendar">
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: 'var(--sage-deep)',
-                  }}
-                >
-                  <Icon name="check" size={13} /> All paid — nothing on the schedule.
-                </div>
-              </PLCard>
-            )}
-            {dues.length > 0 && (
-              <PLCard tone="paper" title="Due next" icon="calendar">
-                <div className="pd-vb-strip" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 2 }}>
-                  {dues.map((d) => (
-                    <div
-                      key={d.key}
-                      style={{
-                        flex: '0 0 auto',
-                        minWidth: 190,
-                        border: `1px solid ${d.overdue ? plum : 'var(--line-soft)'}`,
-                        borderRadius: 12,
-                        padding: '10px 14px',
-                        background: 'var(--cream)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                        <span
-                          style={{
-                            fontFamily: 'var(--pl-font-mono, monospace)',
-                            fontSize: 10.5,
-                            fontWeight: 700,
-                            letterSpacing: '0.14em',
-                            textTransform: 'uppercase',
-                            color: d.overdue ? plum : 'var(--ink-muted)',
-                          }}
-                        >
-                          {fmtDueDate(d.date)}
-                        </span>
-                        {d.amountCents != null && (
-                          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--ink)' }}>
-                            {fmtMoney(d.amountCents)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink)', fontWeight: 500 }}>
-                        {d.vendorName}
-                        <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>
-                          {' '}· {d.kind === 'deposit' ? 'deposit' : 'balance'}
-                        </span>
-                      </div>
-                      {d.overdue && (
-                        <div style={{ marginTop: 3, fontSize: 11.5, color: plum }}>Past due</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </PLCard>
-            )}
-
-            {/* ── Add / edit form — opened from the header's
-                Add a vendor action (plan rule 6). ── */}
-            {form && (
-              <VendorForm
-                key={form.mode === 'edit' ? form.vendor.id : 'add'}
-                initial={form.mode === 'edit' ? draftFrom(form.vendor) : EMPTY_DRAFT}
-                heading={form.mode === 'edit' ? `Edit ${form.vendor.name}` : 'Add a vendor'}
-                suggestions={suggestions}
-                saving={saving}
-                error={formError}
-                onCancel={() => { setForm(null); setFormError(null); }}
-                onSave={saveDraft}
-              />
-            )}
-
-            {budgetError && (
-              <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
-                {budgetError}
+            <PLCard tone="paper" style={{ padding: '44px 24px', textAlign: 'center' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 21,
+                  color: 'var(--ink)',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  marginBottom: 8,
+                }}
+              >
+                Nothing yet.
               </div>
-            )}
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
+                The first name in the book is usually the venue.
+              </div>
+            </PLCard>
+            <DirectoryLink />
+          </div>
+        ) : (
+          /* ── The vendor book — roster (left) + a sticky summary rail
+                (right): the zip's two-column layout. The rail only
+                rides along once there's real roster data. ── */
+          <div
+            className={showRail ? 'pd-vendors-main' : undefined}
+            style={{
+              display: showRail ? 'grid' : 'flex',
+              ...(showRail
+                ? { gridTemplateColumns: 'minmax(0, 1fr) 300px', alignItems: 'flex-start' }
+                : { flexDirection: 'column' }),
+              gap: 20,
+            }}
+          >
+            {/* MAIN — the due-next strip, the add/edit form, the roster */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+              {loadError && (
+                <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
+                  The book didn&rsquo;t load — refresh to try again.
+                </div>
+              )}
 
-            {/* ── Roster, grouped by status ── */}
-            {vendors.length === 0 && !form ? (
-              <PLCard tone="paper" style={{ padding: '44px 24px', textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontStyle: 'italic',
-                    fontSize: 21,
-                    color: 'var(--ink)',
-                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    marginBottom: 8,
-                  }}
-                >
-                  Nothing yet.
-                </div>
-                <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
-                  The first name in the book is usually the venue.
-                </div>
-              </PLCard>
-            ) : (
-              groups.map((g) =>
-                g.rows.length === 0 ? null : (
-                  <section key={g.status}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '6px 0 12px' }}>
-                      <span className="eyebrow" style={{ margin: 0 }}>{g.label}</span>
-                      <span
+              {/* Payment-schedule strip — what's due next */}
+              {dues.length === 0 && hasSchedule && (
+                <PLCard tone="paper" title="Due next" icon="calendar">
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--sage-deep)' }}>
+                    <Icon name="check" size={13} /> All paid — nothing on the schedule.
+                  </div>
+                </PLCard>
+              )}
+              {dues.length > 0 && (
+                <PLCard tone="paper" title="Due next" icon="calendar">
+                  <div className="pd-vb-strip" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 2 }}>
+                    {dues.map((d) => (
+                      <div
+                        key={d.key}
                         style={{
-                          fontFamily: 'var(--pl-font-mono, monospace)',
-                          fontSize: 11,
-                          color: 'var(--ink-muted)',
+                          flex: '0 0 auto',
+                          minWidth: 190,
+                          border: `1px solid ${d.overdue ? plum : 'var(--line-soft)'}`,
+                          borderRadius: 12,
+                          padding: '10px 14px',
+                          background: 'var(--cream)',
                         }}
                       >
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
+                          <span
+                            style={{
+                              fontFamily: 'var(--pl-font-mono, monospace)',
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              letterSpacing: '0.14em',
+                              textTransform: 'uppercase',
+                              color: d.overdue ? plum : 'var(--ink-muted)',
+                            }}
+                          >
+                            {fmtDueDate(d.date)}
+                          </span>
+                          {d.amountCents != null && (
+                            <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--ink)' }}>
+                              {fmtMoney(d.amountCents)}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink)', fontWeight: 500 }}>
+                          {d.vendorName}
+                          <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>
+                            {' '}· {d.kind === 'deposit' ? 'deposit' : 'balance'}
+                          </span>
+                        </div>
+                        {d.overdue && (
+                          <div style={{ marginTop: 3, fontSize: 11.5, color: plum }}>Past due</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </PLCard>
+              )}
+
+              {/* Add / edit form — opened from the header's action */}
+              {form && (
+                <VendorForm
+                  key={form.mode === 'edit' ? form.vendor.id : 'add'}
+                  initial={form.mode === 'edit' ? draftFrom(form.vendor) : EMPTY_DRAFT}
+                  heading={form.mode === 'edit' ? `Edit ${form.vendor.name}` : 'Add a vendor'}
+                  suggestions={suggestions}
+                  saving={saving}
+                  error={formError}
+                  onCancel={() => { setForm(null); setFormError(null); }}
+                  onSave={saveDraft}
+                />
+              )}
+
+              {budgetError && (
+                <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
+                  {budgetError}
+                </div>
+              )}
+
+              {/* Roster, grouped by status */}
+              {groups.map((g) =>
+                g.rows.length === 0 ? null : (
+                  <section key={g.status}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0 12px' }}>
+                      <span className="eyebrow" style={{ margin: 0 }}>{g.label}</span>
+                      <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: 'var(--ink-muted)' }}>
                         {g.rows.length}
                       </span>
                       <div aria-hidden style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
@@ -629,7 +686,7 @@ export function VendorBookClient() {
                       className="pd-vb-grid"
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                         gap: 16,
                       }}
                     >
@@ -650,20 +707,83 @@ export function VendorBookClient() {
                     </div>
                   </section>
                 ),
-              )
-            )}
+              )}
 
-            {/* ── Quiet cross-link to the public directory ── */}
-            <div style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-              Browsing?{' '}
-              <Link href="/vendors" style={{ color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}>
-                The directory has ideas →
-              </Link>
+              <DirectoryLink />
             </div>
-          </>
+
+            {/* RAIL — "The team" summary + a real attention / ledger note */}
+            {showRail && (
+              <aside
+                className="pd-vendors-rail"
+                style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}
+              >
+                <section style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 16, padding: '16px 18px' }}>
+                  <span className="eyebrow" style={{ margin: 0 }}>The team</span>
+                  <div style={{ marginTop: 4 }}>
+                    {teamRows.map((r, i) => (
+                      <div
+                        key={r.label}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 12,
+                          padding: '9px 0',
+                          borderTop: i ? '1px solid var(--line-soft)' : 'none',
+                        }}
+                      >
+                        <span style={{ fontSize: 13, color: 'var(--ink)' }}>{r.label}</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: r.small ? 15 : 19, lineHeight: 1, color: r.color ?? 'var(--ink)' }}>
+                          {r.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {overdueCount > 0 && overdueDues[0] ? (
+                  <section style={{ background: 'var(--peach-bg)', borderRadius: 16, padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <PearloomGlyph size={16} color="var(--peach-ink, #C6703D)" />
+                      <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--peach-ink, #C6703D)' }}>
+                        Needs attention
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5 }}>
+                      <strong style={{ fontWeight: 600 }}>{overdueDues[0].vendorName}</strong>&rsquo;s {overdueDues[0].kind} was due {fmtDueDate(overdueDues[0].date)}.
+                      {overdueCount > 1 ? ` ${overdueCount} payments past due.` : ''}
+                    </div>
+                    <div style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                      Mark it paid on the vendor&rsquo;s card once it&rsquo;s settled.
+                    </div>
+                  </section>
+                ) : (
+                  <section style={{ background: 'var(--cream-2)', border: '1px solid var(--line-soft)', borderRadius: 16, padding: '16px 18px' }}>
+                    <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+                      Every figure here is yours — Pearloom keeps the ledger and never touches vendor money.
+                    </div>
+                  </section>
+                )}
+              </aside>
+            )}
+          </div>
         )}
       </div>
     </DashLayout>
+  );
+}
+
+// ── Quiet cross-link to the public directory ──────────────────
+
+function DirectoryLink() {
+  return (
+    <div style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
+      Browsing?{' '}
+      <Link href="/vendors" style={{ color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}>
+        The directory has ideas →
+      </Link>
+    </div>
   );
 }
 
@@ -706,6 +826,8 @@ function VendorCard({
   };
 
   const bal = balanceCents(v);
+  const accent = vendorAccent(v.name);
+  const pill = STATUS_PILL[v.status];
   const contactBits = [
     v.contactName && <span key="n" style={{ color: 'var(--ink)' }}>{v.contactName}</span>,
     v.phone && (
@@ -727,9 +849,20 @@ function VendorCard({
 
   return (
     <PLCard tone="paper">
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>
+      {/* Header — avatar · name + category chip · status pill (zip anatomy) */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <span
+          aria-hidden
+          style={{
+            width: 40, height: 40, borderRadius: 11, flexShrink: 0, display: 'grid', placeItems: 'center',
+            background: accent.bg, color: accent.ink,
+            fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, fontWeight: 600,
+          }}
+        >
+          {initialsOf(v.name)}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {v.name}
           </div>
           <span
@@ -739,10 +872,10 @@ function VendorCard({
               fontFamily: 'var(--pl-font-mono, monospace)',
               fontSize: 10,
               fontWeight: 700,
-              letterSpacing: '0.14em',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: 'var(--sage-deep)',
-              background: 'var(--sage-tint)',
+              color: accent.ink,
+              background: accent.bg,
               borderRadius: 999,
               padding: '3px 9px',
             }}
@@ -750,24 +883,27 @@ function VendorCard({
             {v.category}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-          <button type="button" onClick={onEdit} aria-label={`Edit ${v.name}`} style={iconBtn}>
-            <Icon name="brush" size={13} />
-          </button>
-          {armed ? (
-            <button
-              type="button"
-              onClick={onRemove}
-              style={{ ...iconBtn, width: 'auto', padding: '0 8px', color: plum, borderColor: plum, fontSize: 11.5, fontWeight: 700 }}
-            >
-              Remove?
-            </button>
-          ) : (
-            <button type="button" onClick={() => setArmed(true)} aria-label={`Remove ${v.name}`} style={{ ...iconBtn, color: plum }}>
-              <Icon name="trash" size={13} />
-            </button>
-          )}
-        </div>
+        <span
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '3px 10px',
+            borderRadius: 999,
+            background: pill.bg,
+            color: pill.ink,
+            fontFamily: 'var(--pl-font-mono, monospace)',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {v.status === 'paid' && <Icon name="check" size={10} color={pill.ink} />}
+          {pill.label}
+        </span>
       </div>
 
       {contactBits.length > 0 && (
@@ -843,42 +979,81 @@ function VendorCard({
         </details>
       )}
 
-      {/* ── Budget linkage + call sheet — booked/paid vendors only ── */}
-      {v.status !== 'considering' && (
-        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 14px' }}>
-          {linked ? (
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sage-deep)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Icon name="check" size={12} /> In the budget
+      {/* ── Footer — budget + call sheet (booked/paid) left · edit /
+          remove right. Present for every card so those actions stay
+          reachable; considering rests on a quiet "Still deciding". ── */}
+      <div
+        style={{
+          marginTop: 14,
+          paddingTop: 12,
+          borderTop: '1px solid var(--line-soft)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px 12px',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 14px', minWidth: 0 }}>
+          {v.status === 'considering' ? (
+            <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--ink-muted)' }}>
+              Still deciding
             </span>
           ) : (
-            <button type="button" className="btn btn-outline btn-sm" disabled={budgetBusy} onClick={onAddToBudget}>
-              {budgetBusy ? 'Adding…' : 'Add to budget'}
+            <>
+              {linked ? (
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sage-deep)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Icon name="check" size={12} /> In the budget
+                </span>
+              ) : (
+                <button type="button" className="btn btn-outline btn-sm" disabled={budgetBusy} onClick={onAddToBudget}>
+                  {budgetBusy ? 'Adding…' : 'Add to budget'}
+                </button>
+              )}
+              {/* One printable sheet the vendor keeps: /vp/{token}. */}
+              <button
+                type="button"
+                onClick={handleCallSheet}
+                disabled={sheetState === 'busy'}
+                style={{
+                  border: 'none', background: 'transparent', padding: 0, cursor: 'pointer',
+                  fontSize: 12, fontWeight: 700,
+                  color:
+                    sheetState === 'copied' ? 'var(--sage-deep)'
+                    : sheetState === 'error' ? plum
+                    : 'var(--peach-ink, #C6703D)',
+                }}
+              >
+                {sheetState === 'copied'
+                  ? 'Copied — send it along'
+                  : sheetState === 'error'
+                    ? 'Couldn’t copy — try again'
+                    : sheetState === 'busy'
+                      ? 'Threading…'
+                      : 'Call sheet →'}
+              </button>
+            </>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          <button type="button" onClick={onEdit} aria-label={`Edit ${v.name}`} style={iconBtn}>
+            <Icon name="brush" size={13} />
+          </button>
+          {armed ? (
+            <button
+              type="button"
+              onClick={onRemove}
+              style={{ ...iconBtn, width: 'auto', padding: '0 8px', color: plum, borderColor: plum, fontSize: 11.5, fontWeight: 700 }}
+            >
+              Remove?
+            </button>
+          ) : (
+            <button type="button" onClick={() => setArmed(true)} aria-label={`Remove ${v.name}`} style={{ ...iconBtn, color: plum }}>
+              <Icon name="trash" size={13} />
             </button>
           )}
-          {/* One printable sheet the vendor keeps: /vp/{token}. */}
-          <button
-            type="button"
-            onClick={handleCallSheet}
-            disabled={sheetState === 'busy'}
-            style={{
-              border: 'none', background: 'transparent', padding: 0, cursor: 'pointer',
-              fontSize: 12, fontWeight: 700,
-              color:
-                sheetState === 'copied' ? 'var(--sage-deep)'
-                : sheetState === 'error' ? plum
-                : 'var(--peach-ink, #C6703D)',
-            }}
-          >
-            {sheetState === 'copied'
-              ? 'Copied — send it along'
-              : sheetState === 'error'
-                ? 'Couldn’t copy — try again'
-                : sheetState === 'busy'
-                  ? 'Threading…'
-                  : 'Call sheet →'}
-          </button>
         </div>
-      )}
+      </div>
     </PLCard>
   );
 }

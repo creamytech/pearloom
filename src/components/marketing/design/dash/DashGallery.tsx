@@ -1,16 +1,37 @@
 'use client';
 
-// The Reel — real photos aggregated across all user sites via
-// /api/dashboard/reel. Masonry / strip / slideshow views.
+// ─────────────────────────────────────────────────────────────
+// The Reel — every photograph across every site the host has made,
+// aggregated by /api/dashboard/reel. Restyled to the design-handoff
+// "Gallery" screen (kits/dashboard/ScreensStudio → Gallery):
+//   · a three-beat intake ribbon (guests add → your nod → the wall)
+//   · the moderation queue + a "guests can add" share card, side by side
+//   · album/source filter chips + a masonry/strip/slideshow view switch
+//   · the masonry wall itself, real photos, tinted-tile fallback
+//
+// Every value is real: photos from the reel endpoint, pending photos
+// from /api/guest-photos/moderate, the upload link from the selected
+// site's real /sites/{slug}/upload route. Nothing is invented — the
+// counts, the queue, and the wall all reflect the host's own data,
+// and each surface has an honest empty state. NO stock photography:
+// a real <img> per item, a warm tinted tile with the Pear glyph when
+// a url is missing or fails to load.
+//
+// Tokens: the .pl8 dashboard chrome aliases (--ink / --cream* /
+// --card / --line + the sage / peach / lavender / gold accents),
+// NOT the editor-only --pl-chrome-* family.
+// ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
-import { useUserSites } from './hooks';
+import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
+import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { useSelectedSite, useUserSites, type SiteSummary } from './hooks';
+
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
 
 interface ReelPhoto {
   id: string;
@@ -33,6 +54,23 @@ function proxied(url: string, w: number) {
   return url;
 }
 
+// Deterministic warm tint per photo — the tile shows while a real
+// <img> loads and stays if it fails, so a broken url degrades to a
+// paper tile with the Pear glyph, never a stock image or a dead box.
+const TINTS = ['var(--sage-tint)', 'var(--peach-bg)', 'var(--lavender-bg)'];
+function tintFor(key: string) {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return TINTS[h % TINTS.length];
+}
+
+const SOURCE_LABEL: Record<ReelPhoto['source'], string> = {
+  cover: 'cover',
+  hero: 'hero',
+  chapter: 'chapter',
+  guest: 'guest',
+};
+
 export function DashGallery() {
   const { sites, loading: sitesLoading } = useUserSites();
   // Tagged result so loading + error + photos all derive from
@@ -49,11 +87,10 @@ export function DashGallery() {
       .then((r) => r.json())
       .then((data: { photos?: Array<Partial<ReelPhoto>> }) => {
         if (cancelled) return;
-        // Harden every row (plan-2 §3.7): an unknown `source` or a
-        // missing `id` on ONE photo used to kill the whole page to
-        // the error boundary. Unknown sources bucket as 'guest',
-        // the key falls back to the url, and rows with no url at
-        // all are skipped.
+        // Harden every row: an unknown `source` or a missing `id` on
+        // ONE photo used to kill the whole page to the error boundary.
+        // Unknown sources bucket as 'guest', the key falls back to the
+        // url, and rows with no url at all are skipped.
         const KNOWN = new Set<ReelPhoto['source']>(['cover', 'hero', 'chapter', 'guest']);
         const photos: ReelPhoto[] = (data.photos ?? [])
           .filter((p): p is Partial<ReelPhoto> & { url: string } => typeof p?.url === 'string' && p.url.length > 0)
@@ -98,100 +135,70 @@ export function DashGallery() {
     return c;
   }, [photos]);
 
-  // Empty state — moved AFTER the hooks so the order is the
-  // same on every render (rules-of-hooks).
+  // Empty state — AFTER the hooks so the order is stable on every
+  // render (rules-of-hooks). One empty state: the header carries the
+  // eyebrow + title, the card below carries the sentence + action.
   if (!sitesLoading && (!sites || sites.length === 0)) {
-    // ONE empty state (plan rule 5): the header never restates
-    // emptiness — the card below carries the sentence + action.
     return (
       <DashLayout active="gallery" hideTopbar>
-        <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
-          <PageIntro eyebrow="The Reel" title="Every frame, in one place." />
-          <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
-        </div>
+        <main style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
+          <ReelHeader />
+          <NoSitesCard />
+        </main>
       </DashLayout>
     );
   }
 
-  const viewSwitcher = (
-    <div
-      style={{
-        display: 'flex',
-        background: PD.paper3,
-        borderRadius: 999,
-        padding: 3,
-        border: '1px solid rgba(31,36,24,0.1)',
-      }}
-    >
-      {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
-        <button
-          key={v}
-          onClick={() => setView(v)}
-          style={{
-            padding: '6px 14px',
-            fontSize: 12,
-            borderRadius: 999,
-            background: view === v ? PD.ink : 'transparent',
-            color: view === v ? PD.paper : PD.ink,
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            textTransform: 'capitalize',
-            fontWeight: 500,
-          }}
-        >
-          {v}
-        </button>
-      ))}
-    </div>
-  );
+  const ALBUMS: Array<{ k: Filter; l: string }> = [
+    { k: 'all', l: 'All' },
+    { k: 'cover', l: 'Covers' },
+    { k: 'hero', l: 'Hero' },
+    { k: 'chapter', l: 'Chapters' },
+    { k: 'guest', l: 'From guests' },
+  ];
 
   return (
     <DashLayout active="gallery" hideTopbar>
       <main style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Quiet header (plan rule 1): one line, no paragraph — the
-            grid explains itself. Never restates emptiness (rule 5). */}
-        <PageIntro eyebrow="The Reel" title="Every frame, in one place." style={{ marginBottom: 14 }} />
+        <ReelHeader />
 
-        {/* View toggle + source filter — ONE row (plan rule 6),
-            hscroll on phones. */}
-        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2, alignItems: 'center' }}>
-          {viewSwitcher}
-          <span aria-hidden style={{ width: 1, height: 22, background: 'rgba(31,36,24,0.12)', flexShrink: 0 }} />
-          {([
-            { k: 'all', l: `All · ${counts.all}` },
-            { k: 'cover', l: `Covers · ${counts.cover}` },
-            { k: 'hero', l: `Hero · ${counts.hero}` },
-            { k: 'chapter', l: `Chapters · ${counts.chapter}` },
-            { k: 'guest', l: `Guests · ${counts.guest}` },
-          ] as const).map((t) => (
-            <button
-              key={t.k}
-              onClick={() => setFilter(t.k)}
-              style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                borderRadius: 999,
-                background: filter === t.k ? PD.ink : 'transparent',
-                color: filter === t.k ? PD.paper : PD.ink,
-                border: `1px solid ${filter === t.k ? PD.ink : 'rgba(31,36,24,0.15)'}`,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-              }}
-            >
-              {t.l}
-            </button>
-          ))}
-        </div>
+        {/* The three-beat intake ribbon. */}
+        <IntakeRibbon />
+
+        {/* Moderation queue + the "guests can add" share card. */}
+        <IntakeRow />
 
         {error && (
-          <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, color: PD.terra, fontSize: 13 }}>
+          <div
+            style={{
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderRadius: 12,
+              background: 'var(--peach-bg)',
+              border: '1px solid var(--peach-ink)',
+              color: 'var(--peach-ink)',
+              fontSize: 13,
+            }}
+          >
             {error}
-          </Panel>
+          </div>
         )}
 
-        <PhotoModerationQueue />
+        {/* Album filter chips + view switch — ONE row, hscroll on
+            phones. Counts are real; chips read {label} · {count}. */}
+        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2, alignItems: 'center' }}>
+          {ALBUMS.map((t) => (
+            <Chip key={t.k} on={filter === t.k} onClick={() => setFilter(t.k)}>
+              {t.l} · {counts[t.k]}
+            </Chip>
+          ))}
+          <span aria-hidden style={{ width: 1, height: 22, background: 'var(--line)', flexShrink: 0 }} />
+          {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
+            <Chip key={v} on={view === v} onClick={() => setView(v)} style={{ textTransform: 'capitalize' }}>
+              {v}
+            </Chip>
+          ))}
+        </div>
 
         {loading ? (
           <LoadingGrid />
@@ -211,11 +218,96 @@ export function DashGallery() {
   );
 }
 
-// ── Pending guest-photo moderation ──────────────────────────────
-// Guests upload through /sites/[domain]/upload; each lands as
-// `pending` and waits here for the host's nod before it can show on
-// the live wall. (Explicit content is auto-rejected upstream, so
-// this queue should never carry anything unpleasant.)
+// ── Editorial header — mono eyebrow (gold tick) + letterpress title ─
+function ReelHeader() {
+  return (
+    <header style={{ marginBottom: 18 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontFamily: MONO,
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        <span aria-hidden style={{ width: 14, height: 1, background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+        The Reel
+      </div>
+      <h1
+        className="pl-letterpress"
+        style={{
+          fontFamily: DISPLAY,
+          fontSize: 'clamp(28px, 3.4vw, 40px)',
+          fontWeight: 500,
+          lineHeight: 1.04,
+          letterSpacing: '-0.02em',
+          color: 'var(--ink)',
+          margin: '6px 0 0',
+        }}
+      >
+        Every frame, <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>gathered.</span>
+      </h1>
+    </header>
+  );
+}
+
+// ── The intake ribbon ───────────────────────────────────────────
+// A quiet explainer of the flow: guests add on the live site → the
+// host approves → it joins the wall. Static, educational chrome; no
+// data, so nothing to fabricate.
+function IntakeRibbon() {
+  const steps: Array<[icon: string, label: string, color: string]> = [
+    ['image', 'Guests add on the site', 'var(--sage)'],
+    ['check', 'Your nod', 'var(--peach-ink)'],
+    ['sparkles', 'Live on the wall', 'var(--lavender-ink)'],
+  ];
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        padding: '12px 18px',
+        marginBottom: 20,
+        borderRadius: 12,
+        background: 'var(--cream-2)',
+        border: '1px solid var(--line)',
+      }}
+    >
+      {steps.map(([ic, l, c], i) => (
+        <span key={l} style={{ display: 'contents' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 8,
+                display: 'grid',
+                placeItems: 'center',
+                background: 'var(--card)',
+                color: c,
+                border: `1px solid ${c}`,
+              }}
+            >
+              <Icon name={ic} size={13} color={c} />
+            </span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink)', fontWeight: 500 }}>{l}</span>
+          </span>
+          {i < steps.length - 1 ? (
+            <span aria-hidden style={{ flex: 1, minWidth: 24, margin: '0 12px', height: 0, borderTop: '2px dashed var(--line)' }} />
+          ) : null}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── The intake row: moderation queue + the share card ───────────
 interface PendingPhoto {
   id: string;
   siteSubdomain: string;
@@ -226,10 +318,16 @@ interface PendingPhoto {
   createdAt: string;
 }
 
-function PhotoModerationQueue() {
+function IntakeRow() {
   const [photos, setPhotos] = useState<PendingPhoto[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [openUp, setOpenUp] = useState(true);
+  const { site } = useSelectedSite();
+  const isNarrow = useIsMobile(900);
 
+  // Guests upload through /sites/[domain]/upload; each lands as
+  // `pending` and waits here for the host's nod before it can show on
+  // the live wall. (Explicit content is auto-rejected upstream.)
   useEffect(() => {
     let cancelled = false;
     fetch('/api/guest-photos/moderate?status=pending', { cache: 'no-store' })
@@ -262,60 +360,118 @@ function PhotoModerationQueue() {
     }
   };
 
-  // Nothing pending (or still loading) → render nothing. The queue
-  // only appears when the host actually has photos to review.
-  if (!photos || photos.length === 0) return null;
+  const showShare = Boolean(site);
+  const twoCol = showShare && openUp && !isNarrow;
 
   return (
-    <Panel bg={PD.paperCard} style={{ padding: 20, marginBottom: 24, border: `1px solid ${PD.gold}` }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>NEEDS YOUR NOD</span>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            background: PD.gold,
-            color: PD.ink,
-            borderRadius: 999,
-            padding: '1px 8px',
-          }}
-        >
-          {photos.length}
-        </span>
-        <span style={{ fontSize: 13, color: PD.inkSoft }}>
-          Guest photos waiting to join the wall.
-        </span>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
-        {photos.map((p) => (
-          <div
-            key={p.id}
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: twoCol ? 'minmax(0, 1fr) 280px' : '1fr',
+        gap: 20,
+        marginBottom: 24,
+        alignItems: 'flex-start',
+      }}
+    >
+      {/* LEFT — the moderation queue (or its honest resting states). */}
+      {photos === null ? (
+        <QueueSkeleton />
+      ) : photos.length === 0 ? (
+        <CaughtUpCard />
+      ) : (
+        <ModerationQueueCard photos={photos} busy={busy} act={act} />
+      )}
+
+      {/* RIGHT — the "guests can add" share card, tied to the
+          selected celebration. Collapses to a slim reopen strip. */}
+      {showShare && site ? (
+        openUp ? (
+          <GuestUploadCard site={site} onCollapse={() => setOpenUp(false)} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOpenUp(true)}
             style={{
-              borderRadius: 14,
-              overflow: 'hidden',
-              border: `1px solid ${PD.line ?? 'rgba(31,36,24,0.15)'}`,
-              background: PD.paper3,
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderRadius: 12,
+              background: 'var(--card)',
+              border: '1px solid var(--line)',
+              color: 'var(--ink)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 12.5,
+              fontWeight: 500,
+              width: isNarrow ? '100%' : undefined,
+              justifySelf: isNarrow ? 'stretch' : 'end',
             }}
           >
-            <div
-              style={{
-                aspectRatio: '4/5',
-                background: `url(${proxied(p.url, 480)}) center/cover`,
-              }}
-            />
-            <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: PD.ink }}>{p.uploaderName}</div>
-                <div style={{ fontSize: 11, color: PD.inkSoft }}>{p.siteName}</div>
-                {p.caption && (
-                  <div style={{ fontSize: 11.5, color: PD.inkSoft, marginTop: 2, fontStyle: 'italic' }}>
-                    “{p.caption}”
-                  </div>
-                )}
+            <Icon name="image" size={14} color="var(--sage-deep)" /> Show the upload link
+          </button>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function QueueSkeleton() {
+  return (
+    <div style={cardStyle(20)}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <div style={{ ...shimmer, width: 140, height: 12, borderRadius: 999 }} />
+        <div style={{ ...shimmer, width: 24, height: 12, borderRadius: 999 }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ ...shimmer, height: 168, borderRadius: 12 }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CaughtUpCard() {
+  return (
+    <div style={{ ...cardStyle(40), textAlign: 'center' }}>
+      <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 22, color: 'var(--sage-deep)' }}>All caught up.</div>
+      <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 6 }}>Nothing waiting. New guest photos land here.</div>
+    </div>
+  );
+}
+
+function ModerationQueueCard({
+  photos,
+  busy,
+  act,
+}: {
+  photos: PendingPhoto[];
+  busy: string | null;
+  act: (id: string, action: 'approved' | 'rejected') => void;
+}) {
+  return (
+    <div style={{ ...cardStyle(20), border: '1px solid var(--gold-line, var(--pl-gold))' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', color: 'var(--peach-ink)' }}>AWAITING YOUR NOD</span>
+        <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--pl-gold)', color: 'var(--pl-ink)', borderRadius: 999, padding: '1px 8px' }}>
+          {photos.length}
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--ink-soft)', flex: 1, minWidth: 160 }}>Guests added these. Approve what fits the wall.</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
+        {photos.map((p) => (
+          <div key={p.id} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', background: 'var(--card)' }}>
+            <PendingImage url={p.url} />
+            <div style={{ padding: '10px 12px' }}>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)' }}>
+                <strong>{p.uploaderName}</strong>
+                {p.siteName ? <span style={{ color: 'var(--ink-muted)' }}> · {p.siteName}</span> : null}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
+              {p.caption ? (
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2, fontStyle: 'italic' }}>“{p.caption}”</div>
+              ) : null}
+              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
                 <button
                   type="button"
                   disabled={busy === p.id}
@@ -324,12 +480,12 @@ function PhotoModerationQueue() {
                     flex: 1,
                     padding: '7px 0',
                     borderRadius: 999,
-                    background: PD.ink,
-                    color: PD.paper,
+                    background: 'var(--ink)',
+                    color: 'var(--cream)',
                     border: 'none',
                     fontSize: 12,
                     fontWeight: 600,
-                    cursor: 'pointer',
+                    cursor: busy === p.id ? 'wait' : 'pointer',
                     fontFamily: 'inherit',
                     opacity: busy === p.id ? 0.5 : 1,
                   }}
@@ -344,39 +500,197 @@ function PhotoModerationQueue() {
                     padding: '7px 12px',
                     borderRadius: 999,
                     background: 'transparent',
-                    color: PD.terra,
-                    border: `1px solid ${PD.terra}`,
+                    color: 'var(--peach-ink)',
+                    border: '1px solid var(--peach-ink)',
                     fontSize: 12,
                     fontWeight: 600,
-                    cursor: 'pointer',
+                    cursor: busy === p.id ? 'wait' : 'pointer',
                     fontFamily: 'inherit',
                     opacity: busy === p.id ? 0.5 : 1,
                   }}
                 >
-                  Remove
+                  Hide
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </Panel>
+    </div>
   );
 }
 
+function PendingImage({ url }: { url: string }) {
+  const [broken, setBroken] = useState(false);
+  return (
+    <div style={{ height: 110, position: 'relative', background: tintFor(url), display: 'grid', placeItems: 'center' }}>
+      {broken ? (
+        <PearloomGlyph size={28} color="var(--ink-soft)" />
+      ) : (
+        <img
+          src={proxied(url, 480)}
+          alt=""
+          onError={() => setBroken(true)}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      )}
+    </div>
+  );
+}
+
+function GuestUploadCard({ site, onCollapse }: { site: SiteSummary; onCollapse: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const displayUrl = formatSiteDisplayUrl(site.domain, 'upload');
+  const fullUrl = buildSiteUrl(site.domain, 'upload');
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked — the link is shown above to copy by hand */
+    }
+  };
+  return (
+    <div style={cardStyle(20)}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontFamily: MONO,
+            fontSize: 9.5,
+            fontWeight: 600,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          <span aria-hidden style={{ width: 12, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
+          Guests can add
+        </span>
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label="Collapse"
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted)', display: 'inline-flex', padding: 2 }}
+        >
+          <Icon name="chev-up" size={14} />
+        </button>
+      </div>
+      <div
+        style={{
+          width: 92,
+          height: 92,
+          margin: '4px auto 12px',
+          borderRadius: 12,
+          background: 'var(--cream-3)',
+          border: '1px solid var(--line)',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        <PearloomGlyph size={40} />
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--ink-muted)', textAlign: 'center', marginBottom: 12, wordBreak: 'break-all' }}>
+        {displayUrl}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderTop: '1px solid var(--line-soft)' }}>
+        <span style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)' }}>Review before posting</span>
+        <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--sage-deep)' }}>ON</span>
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        style={{
+          width: '100%',
+          marginTop: 8,
+          padding: '8px 12px',
+          borderRadius: 999,
+          background: 'transparent',
+          border: '1px solid var(--line)',
+          color: 'var(--ink)',
+          fontSize: 12.5,
+          fontWeight: 600,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+        }}
+      >
+        <Icon name={copied ? 'check' : 'copy'} size={13} color={copied ? 'var(--sage-deep)' : 'var(--ink)'} />
+        {copied ? 'Copied' : 'Copy upload link'}
+      </button>
+      <Link
+        href="/dashboard/keepsakes"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          marginTop: 12,
+          paddingTop: 12,
+          borderTop: '1px solid var(--line-soft)',
+          fontSize: 11.5,
+          color: 'var(--ink-muted)',
+          textDecoration: 'none',
+          lineHeight: 1.4,
+        }}
+      >
+        Turn the Reel into a printed book
+        <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+      </Link>
+    </div>
+  );
+}
+
+// ── Chip — the shared filter / view pill ────────────────────────
+function Chip({
+  on,
+  onClick,
+  children,
+  style,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '6px 14px',
+        fontSize: 12,
+        borderRadius: 999,
+        background: on ? 'var(--ink)' : 'transparent',
+        color: on ? 'var(--cream)' : 'var(--ink)',
+        border: `1px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── The wall ────────────────────────────────────────────────────
 function MasonryGrid({ photos, onOpen }: { photos: ReelPhoto[]; onOpen: (p: ReelPhoto) => void }) {
-  // 4-up was hardcoded — at 390px that's four 75px slivers. Follow
-  // the viewport instead: 2-up on phones, 3-up on tablets.
+  // Follow the viewport: 2-up on phones, 3-up on tablets, 4-up up top.
   const isPhone = useIsMobile(640);
   const isTablet = useIsMobile(1024);
   const cols = isPhone ? 2 : isTablet ? 3 : 4;
   const split: ReelPhoto[][] = Array.from({ length: cols }, () => []);
   photos.forEach((p, i) => split[i % cols].push(p));
   return (
-    <div
-      className="pd-gallery-masonry pl8-dash-stagger"
-      style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 14 }}
-    >
+    <div className="pl8-dash-stagger" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 14 }}>
       {split.map((col, ci) => (
         <div key={ci} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {col.map((p) => (
@@ -400,94 +714,9 @@ function StripRow({ photos, onOpen }: { photos: ReelPhoto[]; onOpen: (p: ReelPho
   );
 }
 
-function Slideshow({ photos }: { photos: ReelPhoto[] }) {
-  const [i, setI] = useState(0);
-  const p = photos[i];
-  if (!p) return null;
-  return (
-    <Panel bg={PD.ink} style={{ padding: 0, overflow: 'hidden', border: 'none' }}>
-      <div
-        style={{
-          height: 'clamp(260px, 60vw, 520px)',
-          background: `url(${proxied(p.url, 1400)}) center/cover`,
-          position: 'relative',
-        }}
-      >
-        {p.alt && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 18,
-              left: 24,
-              color: PD.paper,
-              background: 'rgba(31,36,24,0.55)',
-              padding: '6px 12px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontFamily: 'var(--pl-font-body)',
-            }}
-          >
-            {p.alt}
-          </div>
-        )}
-      </div>
-      <div
-        style={{
-          padding: '14px 20px',
-          color: PD.paper,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-        }}
-      >
-        <button
-          onClick={() => setI((v) => (v === 0 ? photos.length - 1 : v - 1))}
-          style={{
-            background: PD.paper,
-            color: PD.ink,
-            border: 'none',
-            borderRadius: 999,
-            width: 38,
-            height: 38,
-            fontSize: 16,
-            cursor: 'pointer',
-          }}
-          aria-label="Previous"
-        >
-          ←
-        </button>
-        <button
-          onClick={() => setI((v) => (v + 1) % photos.length)}
-          style={{
-            background: PD.paper,
-            color: PD.ink,
-            border: 'none',
-            borderRadius: 999,
-            width: 38,
-            height: 38,
-            fontSize: 16,
-            cursor: 'pointer',
-          }}
-          aria-label="Next"
-        >
-          →
-        </button>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>{p.siteName ?? p.siteDomain}</div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            {p.source} · {p.uploadedAt ? new Date(p.uploadedAt).toLocaleDateString() : ''}
-          </div>
-        </div>
-        <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.55 }}>
-          {i + 1} OF {photos.length}
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
 function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto) => void; fixedHeight?: number }) {
   const h = fixedHeight ?? 180 + ((p.id.length * 47) % 180);
+  const [broken, setBroken] = useState(false);
   return (
     <button
       onClick={() => onOpen(p)}
@@ -495,12 +724,9 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
         display: 'block',
         width: '100%',
         height: h,
-        background: `#${(parseInt(p.id.slice(-6), 16) % 0xffffff).toString(16).padStart(6, '0')}`,
-        backgroundImage: `url(${proxied(p.url, 600)})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        background: tintFor(p.id),
         borderRadius: 14,
-        border: 'none',
+        border: '1px solid var(--line)',
         cursor: 'pointer',
         padding: 0,
         position: 'relative',
@@ -512,37 +738,65 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
         e.currentTarget.style.transform = 'translateY(-3px)';
         // 1px gold ring (BRAND: gold is the punctuation hairline) +
         // a deeper lift shadow — matches the templates card language.
-        e.currentTarget.style.boxShadow = `0 0 0 1px ${PD.gold}, 0 18px 40px rgba(40,28,12,0.16)`;
+        e.currentTarget.style.boxShadow = `0 0 0 1px var(--pl-gold, #C19A4B), 0 18px 40px rgba(40,28,12,0.16)`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = '0 2px 8px rgba(40,28,12,0.06)';
       }}
     >
+      {broken ? (
+        <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', opacity: 0.5 }}>
+          <PearloomGlyph size={36} />
+        </span>
+      ) : (
+        <img
+          src={proxied(p.url, 600)}
+          alt={p.alt ?? ''}
+          onError={() => setBroken(true)}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      )}
+      {p.source === 'cover' ? (
+        <span
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            padding: '3px 9px',
+            borderRadius: 999,
+            background: 'var(--pl-gold)',
+            color: 'var(--pl-ink)',
+            fontFamily: MONO,
+            fontSize: 9,
+            letterSpacing: '0.12em',
+          }}
+        >
+          COVER
+        </span>
+      ) : null}
       <div
         style={{
           position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
+          inset: 'auto 0 0 0',
           padding: '18px 12px 10px',
-          background: 'linear-gradient(to top, rgba(31,36,24,0.7), transparent)',
-          color: PD.paper,
+          background: 'linear-gradient(to top, rgba(24,24,27,0.7), transparent)',
+          color: 'var(--pl-cream)',
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
           alignItems: 'flex-start',
         }}
       >
-        <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.75 }}>
-          {p.source.toUpperCase()}
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', opacity: 0.85 }}>
+          {SOURCE_LABEL[p.source].toUpperCase()}
         </div>
-        {p.siteName && (
+        {p.siteName ? (
           <div
             style={{
-              fontFamily: '"Fraunces", Georgia, serif',
+              fontFamily: DISPLAY,
               fontStyle: 'italic',
-              fontSize: 12,
+              fontSize: 13,
               maxWidth: '100%',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -551,9 +805,66 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
           >
             {p.siteName}
           </div>
-        )}
+        ) : null}
       </div>
     </button>
+  );
+}
+
+function Slideshow({ photos }: { photos: ReelPhoto[] }) {
+  const [i, setI] = useState(0);
+  const p = photos[i];
+  if (!p) return null;
+  return (
+    <div style={{ borderRadius: 16, overflow: 'hidden', background: 'var(--ink)', border: '1px solid var(--line)' }}>
+      <div style={{ height: 'clamp(260px, 60vw, 520px)', background: tintFor(p.id), position: 'relative' }}>
+        <img
+          src={proxied(p.url, 1400)}
+          alt={p.alt ?? ''}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+        {p.alt ? (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 18,
+              left: 24,
+              color: 'var(--pl-cream)',
+              background: 'rgba(24,24,27,0.55)',
+              padding: '6px 12px',
+              borderRadius: 999,
+              fontSize: 13,
+            }}
+          >
+            {p.alt}
+          </div>
+        ) : null}
+      </div>
+      <div style={{ padding: '14px 20px', color: 'var(--pl-cream)', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button
+          onClick={() => setI((v) => (v === 0 ? photos.length - 1 : v - 1))}
+          style={navBtn}
+          aria-label="Previous"
+        >
+          ←
+        </button>
+        <button onClick={() => setI((v) => (v + 1) % photos.length)} style={navBtn} aria-label="Next">
+          →
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.siteName ?? p.siteDomain}
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>
+            {p.source}
+            {p.uploadedAt ? ` · ${new Date(p.uploadedAt).toLocaleDateString()}` : ''}
+          </div>
+        </div>
+        <div style={{ fontFamily: MONO, fontSize: 10, opacity: 0.55 }}>
+          {i + 1} OF {photos.length}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -561,16 +872,7 @@ function LoadingGrid() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(150px, 100%), 1fr))', gap: 14 }}>
       {[200, 280, 220, 300, 260, 240, 200, 320].map((h, i) => (
-        <div
-          key={i}
-          style={{
-            height: h,
-            borderRadius: 14,
-            background: `linear-gradient(120deg, ${PD.paper3} 40%, ${PD.paper2} 50%, ${PD.paper3} 60%)`,
-            backgroundSize: '300% 100%',
-            animation: 'pl-pearl-shimmer 2.4s ease-in-out infinite',
-          }}
-        />
+        <div key={i} style={{ ...shimmer, height: h, borderRadius: 14 }} />
       ))}
     </div>
   );
@@ -578,28 +880,45 @@ function LoadingGrid() {
 
 function EmptyReel({ sitesCount }: { sitesCount: number }) {
   return (
-    <Panel bg={PD.paperCard} style={{ padding: 60, textAlign: 'center' }}>
+    <div style={{ ...cardStyle(60), textAlign: 'center' }}>
       <div
         style={{
-          ...DISPLAY_STYLE,
+          fontFamily: DISPLAY,
           fontSize: 30,
           fontStyle: 'italic',
-          color: PD.olive,
+          color: 'var(--sage-deep)',
           marginBottom: 12,
           fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
         }}
       >
         Nothing yet.
       </div>
-      <p style={{ fontSize: 14, color: PD.inkSoft, maxWidth: 480, margin: '0 auto 20px', lineHeight: 1.55 }}>
+      <p style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 480, margin: '0 auto 20px', lineHeight: 1.55 }}>
         {sitesCount === 0
           ? "Create your first site and upload some photos — they'll collect here."
-          : "Your sites have no photos yet. Open any site to add a cover, hero, or chapter images."}
+          : 'Your sites have no photos yet. Open any site to add a cover, hero, or chapter images.'}
       </p>
-      <Link href="/dashboard" className="pl8-btnfx" style={{ ...btnInk, textDecoration: 'none' }}>
-        ← Back to Sites
+      <Link href="/dashboard" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+        <Icon name="arrow-left" size={13} /> Back to Sites
       </Link>
-    </Panel>
+    </div>
+  );
+}
+
+function NoSitesCard() {
+  return (
+    <div style={{ ...cardStyle(48), textAlign: 'center' }}>
+      <div style={{ width: 72, height: 72, margin: '0 auto 16px', borderRadius: 16, background: 'var(--cream-3)', border: '1px solid var(--line)', display: 'grid', placeItems: 'center' }}>
+        <PearloomGlyph size={34} />
+      </div>
+      <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 24, color: 'var(--ink)' }}>Nothing on the reel yet.</div>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '10px auto 20px', lineHeight: 1.55 }}>
+        Create a site and upload a photo — your Reel fills up as you go.
+      </p>
+      <Link href="/wizard/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+        Begin a thread <Icon name="sparkles" size={12} color="var(--cream)" />
+      </Link>
+    </div>
   );
 }
 
@@ -610,7 +929,7 @@ function Lightbox({ photo, onClose }: { photo: ReelPhoto; onClose: () => void })
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(31,36,24,0.85)',
+        background: 'rgba(24,24,27,0.85)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         zIndex: 1000,
@@ -624,42 +943,28 @@ function Lightbox({ photo, onClose }: { photo: ReelPhoto; onClose: () => void })
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: '90vw',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 12,
-        }}
+        style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
       >
         <img
           src={proxied(photo.url, 1600)}
           alt={photo.alt ?? ''}
           style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: 12, objectFit: 'contain' }}
         />
-        <div
-          style={{
-            color: PD.paper,
-            fontSize: 13,
-            fontFamily: 'var(--pl-font-body)',
-            textAlign: 'center',
-          }}
-        >
+        <div style={{ color: 'var(--pl-cream)', fontSize: 13, textAlign: 'center' }}>
           {photo.siteName ?? photo.siteDomain} · {photo.source}
           {photo.uploadedAt && ` · ${new Date(photo.uploadedAt).toLocaleDateString()}`}
         </div>
         <button
           onClick={onClose}
           style={{
-            background: PD.paper,
-            color: PD.ink,
+            background: 'var(--pl-cream)',
+            color: 'var(--pl-ink)',
             border: 'none',
             borderRadius: 999,
             padding: '8px 18px',
             fontSize: 13,
             cursor: 'pointer',
-            fontFamily: 'var(--pl-font-body)',
+            fontFamily: 'inherit',
           }}
         >
           Close
@@ -669,6 +974,30 @@ function Lightbox({ photo, onClose }: { photo: ReelPhoto; onClose: () => void })
   );
 }
 
-// Inline style tags for responsive
-const _style: CSSProperties = {};
-void _style;
+// ── shared style atoms ──────────────────────────────────────────
+function cardStyle(padding: number): React.CSSProperties {
+  return {
+    background: 'var(--card)',
+    border: '1px solid var(--line)',
+    borderRadius: 16,
+    padding,
+  };
+}
+
+const shimmer: React.CSSProperties = {
+  background: 'linear-gradient(120deg, var(--cream-3) 40%, var(--cream-2) 50%, var(--cream-3) 60%)',
+  backgroundSize: '300% 100%',
+  animation: 'pl-pearl-shimmer 2.4s ease-in-out infinite',
+};
+
+const navBtn: React.CSSProperties = {
+  background: 'var(--pl-cream)',
+  color: 'var(--pl-ink)',
+  border: 'none',
+  borderRadius: 999,
+  width: 38,
+  height: 38,
+  fontSize: 16,
+  cursor: 'pointer',
+  flexShrink: 0,
+};

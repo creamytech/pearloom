@@ -1,18 +1,87 @@
 'use client';
 
-// Analytics — real /api/analytics/visit + /api/analytics/section.
-// Visit counts drive the 4 KPI tiles and the bar chart; section
-// stats drive the scroll-depth list. No demo numbers.
+// Analytics — the zip's "Analytics" screen (handoff kits/dashboard/
+// ScreensExtra), ported onto the real product surface. Every number
+// is live: /api/analytics/visit drives the four KPI tiles + the
+// arrival sources, /api/analytics/section drives the engagement-by-
+// section bars, and the guest roster (/api/guests) drives the RSVP
+// funnel + conversion. No demo numbers; a failed read renders '—'
+// and a soft banner (honesty rule), never a real-looking 0.
+//
+// Styling rides the .pl8 dashboard chrome tokens (--ink / --card /
+// --line + the sage / peach / lavender / gold accents) — NOT the
+// editor-only --pl-chrome-* family — so light + editorial-midnight
+// both work. Big Fraunces stat numbers, mono editorial eyebrows,
+// letterpress italic accent titles, calm CSS bars in olive/gold/
+// sage. No stock photography.
 
-import { useEffect, useMemo, useState } from 'react';
-import { Swirl } from '@/components/brand/groove';
-import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { EmptyShell } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PageIntro, StatStrip, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
+import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getAnalyticsCopy, getAnalyticsSectionsToWatch } from '@/lib/event-os/dashboard-presets';
 import { normaliseRsvpStatus } from '@/lib/rsvp-status';
+
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+// Shared card chrome — the house cockpit/day-of card (paper surface,
+// hairline ring, 16px radius). The zip's `<Card>` in .pl8 clothes.
+const card: CSSProperties = {
+  background: 'var(--card)',
+  border: '1px solid var(--card-ring, var(--line))',
+  borderRadius: 16,
+};
+
+/** Mono uppercase editorial eyebrow — the zip's `<Eyebrow rule="none">`. */
+function CardEyebrow({ children, color }: { children: ReactNode; color?: string }) {
+  return (
+    <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: color ?? 'var(--ink-muted)' }}>
+      {children}
+    </div>
+  );
+}
+
+/** Card header: mono eyebrow + a Fraunces letterpress line with one
+ *  italic accent clause. A plain `<div>` (not `.display`) so the
+ *  ≤640px `.display` clamp never inflates it on phones. */
+function SectionHead({
+  eyebrow,
+  eyebrowColor,
+  title,
+  accent,
+  accentColor = 'var(--lavender-ink)',
+}: {
+  eyebrow: ReactNode;
+  eyebrowColor?: string;
+  title: ReactNode;
+  accent?: ReactNode;
+  accentColor?: string;
+}) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <CardEyebrow color={eyebrowColor}>{eyebrow}</CardEyebrow>
+      <div style={{ fontFamily: DISPLAY, fontSize: 22, fontWeight: 600, lineHeight: 1.16, color: 'var(--ink)', margin: '8px 0 0' }}>
+        {title}
+        {accent ? <> <span style={{ fontStyle: 'italic', color: accentColor }}>{accent}</span></> : null}
+      </div>
+    </div>
+  );
+}
+
+/** A big-number KPI tile — mono label, a 40px Fraunces numeral, and
+ *  an accent-colored delta line. The number is the zip's signature
+ *  letterpress figure. */
+function Kpi({ label, value, delta, color }: { label: string; value: string; delta: string; color: string }) {
+  return (
+    <div style={{ ...card, padding: '18px 20px' }}>
+      <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: DISPLAY, fontSize: 40, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.025em', color: 'var(--ink)' }}>{value}</div>
+      <div style={{ fontSize: 11.5, color, marginTop: 8, fontWeight: 500 }}>{delta}</div>
+    </div>
+  );
+}
 
 interface VisitStats {
   visits: number;
@@ -126,6 +195,7 @@ export function DashAnalytics() {
   const sources = result?.sources ?? null;
   const error = result?.error ?? null;
   const conversionPct = funnel && funnel.invited > 0 ? Math.round((funnel.replied / funnel.invited) * 100) : 0;
+  const hasFunnel = Boolean(funnel && funnel.invited > 0);
 
   const mobileShare = useMemo(() => {
     if (!visit || visit.visits === 0) return 0;
@@ -140,7 +210,7 @@ export function DashAnalytics() {
     return top.map((s, i) => ({
       s: humanSectionId(s.sectionId),
       pct: max > 0 ? Math.round((s.views / max) * 100) : 0,
-      c: i < 3 ? PD.olive : i < 5 ? PD.gold : i < 7 ? PD.terra : PD.plum,
+      c: i < 3 ? 'var(--sage)' : i < 5 ? 'var(--pl-gold)' : i < 7 ? 'var(--peach-ink)' : 'var(--lavender-ink)',
     }));
   }, [sections]);
 
@@ -213,79 +283,98 @@ export function DashAnalytics() {
     URL.revokeObjectURL(url);
   };
 
-  // Quiet StatStrip (plan rule 3) — replaces the four 40px-display
-  // KPI tiles. Honesty rule holds: a failed read contributes NO
-  // chip (the soft banner explains) instead of a real-looking 0.
-  const statItems: StatStripItem[] = [
-    ...(visit
-      ? [
-          { label: 'visits', value: visit.visits },
-          { label: 'today', value: visit.today },
-          { label: 'mobile %', value: mobileShare },
-        ]
-      : []),
-    ...(funnel && funnel.invited > 0
-      ? [{ label: 'replied %', value: conversionPct, tone: 'sage' as const }]
-      : []),
+  // The four big-number KPI tiles (zip row 1). Honesty rule holds:
+  // a failed/awaited read shows '—', never a real-looking 0.
+  const dash = '—';
+  const kpis: { label: string; value: string; delta: string; color: string }[] = [
+    {
+      label: 'Site visits · all time',
+      value: visit ? visit.visits.toLocaleString() : dash,
+      delta: visit ? `${visit.today.toLocaleString()} today` : loading ? 'Threading…' : 'no visits yet',
+      color: 'var(--sage-deep)',
+    },
+    {
+      label: 'Today',
+      value: visit ? visit.today.toLocaleString() : dash,
+      delta: 'Since midnight',
+      color: 'var(--pl-gold)',
+    },
+    {
+      label: 'Mobile share',
+      value: visit ? `${mobileShare}%` : dash,
+      delta: visit ? `${visit.mobile.toLocaleString()} mobile · ${visit.desktop.toLocaleString()} desktop` : dash,
+      color: 'var(--lavender-ink)',
+    },
+    {
+      label: 'RSVP conversion',
+      value: hasFunnel ? `${conversionPct}%` : dash,
+      delta: hasFunnel ? `${funnel!.replied} of ${funnel!.invited} invited` : loading ? 'Threading…' : 'no guests yet',
+      color: 'var(--peach-ink)',
+    },
   ];
+
+  const quietCount = funnel ? Math.max(0, funnel.invited - funnel.replied) : 0;
 
   return (
     <DashLayout active="analytics" hideTopbar>
-      {/* Quiet header (plan rule 1): occasion title in ONE line;
-          the body paragraph is gone — the panels speak for
-          themselves and the strip carries the numbers. */}
+      {/* Quiet header (house convention): occasion title in ONE line;
+          the KPI tiles below carry the numbers. */}
       <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
         <PageIntro
           eyebrow={siteName ? `Analytics · ${siteName}` : 'Analytics'}
-          title={<span>{copy.title} <i style={{ color: PD.olive }}>{copy.italic}</i></span>}
-          meta={!loading && statItems.length > 0 ? <StatStrip items={statItems} /> : undefined}
+          title={<span>{copy.title} <i style={{ color: 'var(--lavender-ink)' }}>{copy.italic}</i></span>}
           actions={
-            <button className="pl8-btnfx" style={btnGhost} onClick={exportCsv}>Export CSV</button>
+            <button type="button" className="btn btn-outline btn-sm" onClick={exportCsv}>Export CSV</button>
           }
           style={{ marginBottom: 16 }}
         />
       </div>
 
-      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 40px', maxWidth: 1240, margin: '0 auto' }}>
         {error && (
-          <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, fontSize: 13, color: PD.terra }}>
+          <div style={{ ...card, background: 'var(--peach-bg)', border: '1px solid var(--peach)', padding: 14, marginBottom: 16, fontSize: 13, color: 'var(--peach-ink)' }}>
             {error}
-          </Panel>
+          </div>
         )}
 
-        {/* RSVP funnel + (still quiet · how they arrived) — v2
-            Analytics row, all from real guest + referrer data. */}
+        {/* Row 1 — the four big-number KPI tiles. */}
+        <div
+          className="pd-analytics-kpi"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}
+        >
+          {kpis.map((k) => (
+            <Kpi key={k.label} label={k.label} value={k.value} delta={k.delta} color={k.color} />
+          ))}
+        </div>
+
+        {/* Row 2 — RSVP funnel + (still quiet · how they arrived),
+            all from real guest + referrer data. */}
         <div
           className="pd-analytics-charts"
           style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, marginBottom: 20 }}
         >
-          <Panel bg={PD.paper3} style={{ padding: 28 }}>
-            <SectionTitle
-              eyebrow="FROM SENT TO REPLIED"
-              title="The RSVP"
-              italic="funnel."
-              accent={PD.olive}
-            />
-            {funnel && funnel.invited > 0 ? (
+          <div style={{ ...card, padding: 28 }}>
+            <SectionHead eyebrow="From sent to replied" title="The RSVP" accent="funnel." />
+            {hasFunnel ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {([
-                  { s: 'Invited', n: funnel.invited, c: PD.ink },
-                  { s: 'Opened', n: funnel.opened, c: PD.olive },
-                  { s: 'Started a reply', n: funnel.started, c: PD.gold },
-                  { s: 'Replied', n: funnel.replied, c: PD.terra },
+                  { s: 'Invited', n: funnel!.invited, c: 'var(--ink)' },
+                  { s: 'Opened', n: funnel!.opened, c: 'var(--sage)' },
+                  { s: 'Started a reply', n: funnel!.started, c: 'var(--pl-gold)' },
+                  { s: 'Replied', n: funnel!.replied, c: 'var(--peach-ink)' },
                 ] as const).map((f, i, arr) => {
-                  const pct = Math.round((f.n / funnel.invited) * 100);
+                  const pct = Math.round((f.n / funnel!.invited) * 100);
                   return (
                     <div key={f.s}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
-                        <span style={{ fontSize: 13, fontWeight: 500 }}>{f.s}</span>
-                        <span style={{ ...MONO_STYLE, fontSize: 11.5, opacity: 0.7 }}>{f.n} · {pct}%</span>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{f.s}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 11.5, color: 'var(--ink-muted)' }}>{f.n} · {pct}%</span>
                       </div>
-                      <div style={{ height: 14, background: PD.paperCard, borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ height: 14, background: 'var(--cream-3)', borderRadius: 8, overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: f.c, borderRadius: 8, transition: 'width var(--pl-dur-slow) var(--pl-ease-out)' }} />
                       </div>
                       {i < arr.length - 1 && (
-                        <div style={{ ...MONO_STYLE, fontSize: 9.5, opacity: 0.55, marginTop: 4, textAlign: 'right' }}>
+                        <div style={{ fontFamily: MONO, fontSize: 9.5, color: 'var(--ink-muted)', marginTop: 4, textAlign: 'right' }}>
                           ↓ {arr[i].n - arr[i + 1].n} dropped
                         </div>
                       )}
@@ -294,44 +383,50 @@ export function DashAnalytics() {
                 })}
               </div>
             ) : (
-              <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 520 }}>
                 {loading
                   ? 'Threading…'
                   : funnel
-                    ? 'No guests yet — the funnel fills in as you add guests and replies land.'
+                    ? 'Nothing yet. The funnel fills in as you add guests and replies land.'
                     : 'The guest list couldn’t be read just now — refresh to retry.'}
               </div>
             )}
-          </Panel>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <Panel bg={PD.paperCard} style={{ padding: 24, border: `1px solid ${PD.gold}` }}>
-              <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 8 }}>STILL QUIET</div>
-              <div style={{ ...DISPLAY_STYLE, fontSize: 38, lineHeight: 1 }}>
-                {loading || !funnel
-                  ? '—'
-                  : `${Math.max(0, funnel.invited - funnel.replied)} ${(funnel.invited - funnel.replied) === 1 ? 'guest' : 'guests'}`}
+            {/* Still quiet — the accent (peach) callout. */}
+            <div style={{ ...card, background: 'var(--peach-bg)', border: '1px solid var(--peach)', padding: 24 }}>
+              <CardEyebrow color="var(--peach-ink)">Still quiet</CardEyebrow>
+              <div style={{ fontFamily: DISPLAY, fontSize: 38, lineHeight: 1, color: 'var(--ink)', marginTop: 8 }}>
+                {loading || !funnel ? dash : `${quietCount} ${quietCount === 1 ? 'guest' : 'guests'}`}
               </div>
-              <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 14px', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', margin: '8px 0 14px', lineHeight: 1.5 }}>
                 haven&rsquo;t replied yet.
               </div>
-              <a href="/dashboard/rsvp" className="pl8-btnfx" style={{ ...btnInk, width: '100%', textAlign: 'center', display: 'block', textDecoration: 'none', boxSizing: 'border-box' }}>
+              <a href="/dashboard/rsvp" className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
                 See who in Guests →
               </a>
-            </Panel>
-            <Panel bg={PD.paper3} style={{ padding: 24 }}>
-              <SectionTitle eyebrow="HOW THEY ARRIVED" title="Where" italic="they came from." accent={PD.gold} />
+            </div>
+            {/* How they arrived — referrer sources. */}
+            <div style={{ ...card, padding: 24 }}>
+              <div style={{ marginBottom: 14 }}>
+                <CardEyebrow>How they arrived</CardEyebrow>
+              </div>
               {sources && sources.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {sources.map((s) => {
-                    const c = s.label === 'Direct' ? PD.olive : s.label === 'Email' ? PD.gold : s.label === 'Social' ? PD.plum : PD.terra;
+                    const c =
+                      s.label === 'Direct' ? 'var(--sage)'
+                        : s.label === 'Email' ? 'var(--pl-gold)'
+                          : s.label === 'Social' ? 'var(--lavender-ink)'
+                            : 'var(--peach-ink)';
                     return (
                       <div key={s.label}>
                         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 12.5 }}>{s.label}</span>
-                          <span style={{ ...MONO_STYLE, fontSize: 11, color: c }}>{s.pct}%</span>
+                          <span style={{ fontSize: 12.5, color: 'var(--ink)' }}>{s.label}</span>
+                          <span style={{ fontFamily: MONO, fontSize: 11, color: c }}>{s.pct}%</span>
                         </div>
-                        <div style={{ height: 8, background: PD.paperCard, borderRadius: 99, overflow: 'hidden' }}>
+                        <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
                           <div style={{ width: `${s.pct}%`, height: '100%', background: c, borderRadius: 99 }} />
                         </div>
                       </div>
@@ -339,48 +434,39 @@ export function DashAnalytics() {
                   })}
                 </div>
               ) : (
-                <div style={{ fontSize: 12.5, color: PD.inkSoft, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
                   {loading
                     ? 'Threading…'
                     : sources
-                      ? 'No visits with a known source yet.'
+                      ? 'Nothing yet. Sources appear once visits arrive with a known referrer.'
                       : 'Sources couldn’t be read just now — refresh to retry.'}
                 </div>
               )}
-            </Panel>
+            </div>
           </div>
         </div>
 
-        {/* Scroll depth */}
+        {/* Row 3 — engagement by section + Pear's reading. */}
         <div
           className="pd-analytics-scroll"
           style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20 }}
         >
-          <Panel bg={PD.paper} style={{ padding: 28 }}>
-            <SectionTitle
-              eyebrow="WHAT PEOPLE READ"
+          <div style={{ ...card, padding: 28 }}>
+            <SectionHead
+              eyebrow="What people read"
+              eyebrowColor="var(--lavender-ink)"
               title="Engagement"
-              italic="by section."
-              accent={PD.plum}
+              accent="by section."
             />
             {watchSections.length > 0 && (
-              <div
-                style={{
-                  ...MONO_STYLE,
-                  fontSize: 10,
-                  color: PD.inkSoft,
-                  marginTop: -10,
-                  marginBottom: 14,
-                  opacity: 0.75,
-                }}
-              >
-                KEEP AN EYE ON: {watchSections.map((s) => humanSectionId(s)).join(' · ')}
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: -8, marginBottom: 14 }}>
+                Keep an eye on: {watchSections.map((s) => humanSectionId(s)).join(' · ')}
               </div>
             )}
             {depth.length === 0 ? (
-              <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
-                No section views yet. Sections start showing up here once guests scroll past them on
-                your published site.
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 520 }}>
+                Nothing yet. Sections start showing up here once guests scroll past them on your
+                published site.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -388,97 +474,59 @@ export function DashAnalytics() {
                   <div
                     key={r.s}
                     className="pd-analytics-depthrow"
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '140px 1fr 54px',
-                      gap: 14,
-                      alignItems: 'center',
-                    }}
+                    style={{ display: 'grid', gridTemplateColumns: '140px 1fr 54px', gap: 14, alignItems: 'center' }}
                   >
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{r.s}</div>
-                    <div
-                      style={{
-                        height: 12,
-                        background: PD.paper3,
-                        borderRadius: 99,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${r.pct}%`,
-                          height: '100%',
-                          background: r.c,
-                          borderRadius: 99,
-                          transition: 'width var(--pl-dur-slow) var(--pl-ease-out)',
-                        }}
-                      />
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{r.s}</div>
+                    <div style={{ height: 12, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ width: `${r.pct}%`, height: '100%', background: r.c, borderRadius: 99, transition: 'width var(--pl-dur-slow) var(--pl-ease-out)' }} />
                     </div>
-                    <div
-                      style={{
-                        ...MONO_STYLE,
-                        fontSize: 11,
-                        textAlign: 'right',
-                        color: r.c,
-                        fontWeight: 500,
-                      }}
-                    >
-                      {r.pct}%
-                    </div>
+                    <div style={{ fontFamily: MONO, fontSize: 11, textAlign: 'right', color: r.c, fontWeight: 500 }}>{r.pct}%</div>
                   </div>
                 ))}
               </div>
             )}
-          </Panel>
+          </div>
 
           {!readingDismissed && (
-          <Panel
-            bg={PD.ink}
-            style={{
-              padding: 28,
-              color: PD.paper,
-              border: 'none',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ position: 'absolute', bottom: -40, right: -30, opacity: 0.4 }} aria-hidden>
-              <Swirl size={180} color={PD.butter} strokeWidth={2} />
-            </div>
-            <div style={{ ...MONO_STYLE, fontSize: 10, color: PD.butter, marginBottom: 8 }}>
-              PEAR&rsquo;S READING
-            </div>
-            <div
-              style={{
-                ...DISPLAY_STYLE,
-                fontSize: 22,
-                lineHeight: 1.3,
-                fontStyle: 'italic',
-                fontWeight: 400,
-                marginBottom: 18,
-                position: 'relative',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-              }}
-            >
-              {depth.length === 0
-                ? '"Your site’s quiet for now. Every visit tells us a little more."'
-                : depth.length >= 4 && depth[3].pct < 50
-                ? '"Guests drop off around the middle sections. Want me to tighten them?"'
-                : '"Your top sections are holding attention. Keep the thread going."'}
-            </div>
-            <div style={{ display: 'flex', gap: 8, position: 'relative', flexWrap: 'wrap' }}>
-              <button
-                className="pl8-btnfx"
-                // Dark-panel ghost: btnGhost's cream --card fill +
-                // cream text rendered a blank pill on the ink panel
-                // (plan-2 §3.2) — transparent fill, cream hairline.
-                style={{ ...btnGhost, background: 'transparent', color: PD.paper, borderColor: 'rgba(244,236,216,0.4)' }}
-                onClick={() => setReadingDismissed(true)}
+            <div style={{ ...card, background: 'var(--ink)', color: 'var(--cream)', border: 'none', padding: 28, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-gold)', marginBottom: 8 }}>
+                Pear&rsquo;s reading
+              </div>
+              <div
+                style={{
+                  fontFamily: DISPLAY,
+                  fontSize: 22,
+                  lineHeight: 1.3,
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  marginBottom: 18,
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
               >
-                Dismiss
-              </button>
+                {depth.length === 0
+                  ? '“Your site’s quiet for now. Every visit tells us a little more.”'
+                  : depth.length >= 4 && depth[3].pct < 50
+                    ? '“Guests drop off around the middle sections. Want me to tighten them?”'
+                    : '“Your top sections are holding attention. Keep the thread going.”'}
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a
+                  href="/dashboard/director"
+                  className="btn btn-sm"
+                  style={{ background: 'var(--cream)', color: 'var(--ink)', border: 'none', textDecoration: 'none' }}
+                >
+                  Ask Pear why
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{ background: 'transparent', color: 'var(--cream)', border: '1px solid rgba(247,242,230,0.28)' }}
+                  onClick={() => setReadingDismissed(true)}
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-          </Panel>
           )}
         </div>
       </main>
@@ -488,6 +536,11 @@ export function DashAnalytics() {
           :global(.pd-analytics-charts),
           :global(.pd-analytics-scroll) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 860px) {
+          :global(.pd-analytics-kpi) {
+            grid-template-columns: repeat(2, 1fr) !important;
           }
         }
         /* Phones: give the depth bars their width back — the fixed
