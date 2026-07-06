@@ -33,7 +33,7 @@ interface SiblingSummary {
 interface SiteRow {
   subdomain: string;
   ai_manifest: {
-    celebration?: { id?: string; name?: string };
+    celebration?: { id?: string; name?: string; linkVisible?: boolean };
     occasion?: string;
     names?: [string, string];
     seoTitle?: string;
@@ -84,10 +84,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, celebration: anchorCeleb, siblings: [] });
   }
 
+  // Sensitive occasions are private by default (see CLAUDE-PRODUCT Q2):
+  // a bachelor/ette site must NEVER be advertised on a sibling's public
+  // strip, even when the host linked it into the celebration — the
+  // wedding site shouldn't out the bachelor party to every guest.
+  const SENSITIVE_OCCASIONS = new Set(['bachelor-party', 'bachelorette-party']);
+
   const siblings: SiblingSummary[] = ((rows ?? []) as SiteRow[])
     .filter((r) => {
       const c = r.ai_manifest?.celebration;
-      return !!c?.id && c.id === anchorCeleb.id;
+      if (!c?.id || c.id !== anchorCeleb.id) return false;
+      // Per-sibling opt-out: a host can hide any one linked site from the
+      // strip by setting celebration.linkVisible = false.
+      if (c.linkVisible === false) return false;
+      // Sensitive-pair guard — unconditional, regardless of linking.
+      if (SENSITIVE_OCCASIONS.has(normalizeOccasion(r.ai_manifest?.occasion))) return false;
+      return true;
     })
     .map((r) => {
       const m = r.ai_manifest ?? {};
