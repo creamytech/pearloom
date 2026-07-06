@@ -239,9 +239,8 @@ export default function LandingPageWrapper() {
             main.pd-landing [data-rv] {
               opacity: 0;
               transform: translateY(30px);
-              filter: blur(6px);
               transition: opacity 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)),
-                transform 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)), filter 0.8s ease;
+                transform 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1));
               transition-delay: var(--rv-d, 0ms);
               /* No lingering will-change — it would leave every reveal
                  section promoted to its own compositor layer for the
@@ -250,7 +249,22 @@ export default function LandingPageWrapper() {
             main.pd-landing [data-rv].rv-in {
               opacity: 1;
               transform: none;
-              filter: blur(0);
+            }
+            /* The soft blur-in is a compositor-expensive filter to
+               animate across a full section. On touch devices, a batch
+               of sections blurring in as you scroll down is the main
+               reason scrolling back up "hangs" a second later. Keep the
+               blur for fine-pointer (desktop) only; touch gets the
+               cheaper opacity + rise, which reads nearly identical. */
+            @media (pointer: fine) {
+              main.pd-landing [data-rv] {
+                filter: blur(6px);
+                transition: opacity 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)),
+                  transform 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)), filter 0.8s ease;
+              }
+              main.pd-landing [data-rv].rv-in {
+                filter: blur(0);
+              }
             }
           }
           @media (prefers-reduced-motion: reduce) {

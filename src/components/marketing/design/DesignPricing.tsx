@@ -167,6 +167,11 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                   ? `0 30px 60px -20px ${pdShadowMix(35)}`
                   : `0 1px 3px ${pdShadowMix(6)}`,
                 position: 'relative',
+                // Featured card floats above its siblings so the raised
+                // "MOST CHOSEN" badge is never painted over by the
+                // neighbouring cards (whose reveal transform makes them
+                // their own stacking context).
+                zIndex: t.featured ? 2 : 1,
                 display: 'flex',
                 flexDirection: 'column',
               }}
@@ -178,6 +183,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                     position: 'absolute',
                     top: -11,
                     left: 32,
+                    zIndex: 3,
                     background: t.accent,
                     // Constant dark ink — the butter badge keeps its
                     // color in dark mode, so its text must not flip

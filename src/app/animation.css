@@ -19,7 +19,13 @@
    (ms) or a parent [data-reveal-stagger] sequences children. */
 [data-reveal] {
   opacity: 0;
-  will-change: opacity, transform;
+  /* No `will-change` here. It's a one-shot reveal, but a permanent
+     will-change leaves every [data-reveal] element (each pricing card,
+     each staggered child) promoted to its own compositor layer for the
+     LIFE of the page — dozens of hot layers that stall touch scrolling
+     right after a batch reveals. (Same call the landing [data-rv]
+     system already made.) The transition below still runs fine without
+     the hint. */
   transition:
     opacity var(--pl-dur-slow) var(--pl-ease-emphasis),
     transform var(--pl-dur-slow) var(--pl-ease-emphasis),
