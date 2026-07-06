@@ -152,17 +152,18 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
           {TIERS.map((t) => (
             <div
               key={t.name}
-              className="pl-lift"
+              className={`pl-lift pd-tier${t.featured ? ' pd-tier-featured' : ''}`}
               style={{
                 background: t.bg,
                 color: t.fg ?? PD.ink,
                 border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
                 borderRadius: 20,
                 padding: '36px 32px 32px',
-                // Featured offset via `top`, not transform — an inline
-                // transform would defeat both the reveal rise and the
-                // .pl-lift hover (inline beats stylesheet).
-                top: t.featured ? -14 : 0,
+                // Featured lift (top: -14) is a desktop-only flourish —
+                // handled in the <style jsx> below at ≥901px. On a
+                // single-column mobile stack the raise only crowds the
+                // "MOST CHOSEN" badge up into the card above it, so the
+                // badge sits in a clean 20px gap on phones instead.
                 boxShadow: t.featured
                   ? `0 30px 60px -20px ${pdShadowMix(35)}`
                   : `0 1px 3px ${pdShadowMix(6)}`,
@@ -181,7 +182,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                   style={{
                     ...MONO_STYLE,
                     position: 'absolute',
-                    top: -11,
+                    top: -12,
                     left: 32,
                     zIndex: 3,
                     background: t.accent,
@@ -194,6 +195,11 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                     fontSize: 10,
                     fontWeight: 600,
                     letterSpacing: '0.08em',
+                    whiteSpace: 'nowrap',
+                    // A soft drop-shadow so the ribbon reads as floating
+                    // ABOVE the card edge — without it the butter pill can
+                    // blend into a light card behind it and look clipped.
+                    boxShadow: '0 6px 16px -6px rgba(20, 16, 10, 0.5)',
                   }}
                 >
                   MOST CHOSEN
@@ -299,6 +305,14 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
       </div>
 
       <style jsx>{`
+        /* The featured tier lifts above its neighbours only on the
+           three-across desktop layout. On the single-column mobile
+           stack the lift just crowds the badge, so it stays flush. */
+        @media (min-width: 901px) {
+          :global(.pd-tier-featured) {
+            top: -14px;
+          }
+        }
         @media (max-width: 900px) {
           :global(.pd-pricing-grid) {
             grid-template-columns: 1fr !important;
