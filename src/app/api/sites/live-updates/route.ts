@@ -21,6 +21,7 @@ import { authOptions } from '@/lib/auth';
 import { Resend } from 'resend';
 import { buildBroadcastEmail } from '@/lib/email/brand-emails';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -318,8 +319,12 @@ async function emailBroadcastToGuests({
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
   const resend = resendKey ? new Resend(resendKey) : null;
 
+  // Skip opted-out / bounced addresses. Fail-open on lookup error.
+  const suppressed = await suppressedEmails(supabase, recipients.map((r) => r.email), siteId);
+
   let sent = 0;
   for (const r of recipients) {
+    if (r.email && suppressed.has(r.email.toLowerCase())) continue;
     try {
       const cta = r.guest_token
         ? `${baseUrl}/g/${r.guest_token}`
@@ -332,7 +337,7 @@ async function emailBroadcastToGuests({
           subject: `${couple} — quick update`,
           html,
           text: htmlToText(html),
-          headers: listUnsubHeaders(),
+          headers: listUnsubHeaders({ email: r.email, siteId, channel: 'broadcast' }),
           tags: [
             { name: 'channel', value: 'broadcast' },
             { name: 'site_id', value: siteId },

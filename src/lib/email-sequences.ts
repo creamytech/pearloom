@@ -204,6 +204,12 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
               <p style="font-size:10.5px;color:${t.muted};margin:6px 0 0;font-family:${bodyStack};letter-spacing:0.04em;opacity:0.85">
                 The operating system for the days that matter
               </p>
+              <!-- CAN-SPAM §5(a)(5): a valid physical postal address.
+                   PLACEHOLDER — replace [MAILING ADDRESS] with the real
+                   registered address before launch. -->
+              <p style="font-size:10px;color:${t.muted};margin:10px 0 0;font-family:${bodyStack};opacity:0.7">
+                Pearloom · [MAILING ADDRESS] · California, USA
+              </p>
             </td>
           </tr>
         </table>

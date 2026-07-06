@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildMemoryPromptEmail } from '@/lib/email/brand-emails';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -74,6 +75,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ sent: 0, skipped: 0, error: 'No prompts to send' }, { status: 400 });
   }
 
+  // Skip opted-out / bounced addresses. Fail-open on lookup error.
+  const suppressed = await suppressedEmails(
+    supabase,
+    prompts.map((p) => (p as unknown as { pearloom_guests: { email?: string | null } }).pearloom_guests?.email),
+    siteId,
+  );
+
   let sent = 0;
   let skipped = 0;
   const errors: string[] = [];
@@ -81,6 +89,10 @@ export async function POST(req: NextRequest) {
   for (const p of prompts) {
     const guest = (p as unknown as { pearloom_guests: { email?: string | null; guest_token: string } }).pearloom_guests;
     if (!guest?.email) {
+      skipped += 1;
+      continue;
+    }
+    if (suppressed.has(guest.email.toLowerCase())) {
       skipped += 1;
       continue;
     }
@@ -94,7 +106,7 @@ export async function POST(req: NextRequest) {
         subject: `A memory for ${names}`,
         html,
         text: htmlToText(html),
-        headers: listUnsubHeaders(),
+        headers: listUnsubHeaders({ email: guest.email, siteId, channel: 'memory' }),
       });
       sent += 1;
     } catch (err) {

@@ -21,6 +21,7 @@ import { getAppOrigin } from '@/lib/site-urls';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, buildSaveTheDateEmail } from '@/lib/email-sequences';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -127,11 +128,15 @@ export async function POST(req: NextRequest) {
     const revealBase = `${getAppOrigin()}/std/${encodeURIComponent(siteSlug)}`;
     const message = (body.message?.trim()) || `${coupleDisplay} are getting married! Save the date${body.dateDisplay ? ` for ${body.dateDisplay}` : ''}. A formal invitation will follow.`;
 
-    let sent = 0; let failed = 0;
+    // Skip opted-out / bounced addresses. Fail-open on lookup error.
+    const suppressed = await suppressedEmails(supabase, guests.map((g) => g.email as string), siteRow.id);
+
+    let sent = 0; let failed = 0; let skipped = 0;
     const BATCH = 10;
     for (let i = 0; i < guests.length; i += BATCH) {
       const batch = guests.slice(i, i + BATCH);
       await Promise.all(batch.map(async (g) => {
+        if (g.email && suppressed.has(String(g.email).toLowerCase())) { skipped++; return; }
         try {
           const { subject, html } = buildSaveTheDateEmail({
             coupleDisplay,
@@ -161,7 +166,7 @@ export async function POST(req: NextRequest) {
               subject,
               html,
               text: htmlToText(html),
-              headers: listUnsubHeaders(),
+              headers: listUnsubHeaders({ email: String(g.email), siteId: siteRow.id, channel: 'save-the-date' }),
             }),
           });
           if (res.ok) sent++; else failed++;
@@ -171,7 +176,7 @@ export async function POST(req: NextRequest) {
       }));
     }
 
-    return NextResponse.json({ sent, failed });
+    return NextResponse.json({ sent, failed, ...(skipped > 0 ? { skipped } : {}) });
   } catch (err) {
     console.error('[save-the-date] send failed:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

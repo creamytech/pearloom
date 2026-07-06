@@ -21,6 +21,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 
 export const dynamic = 'force-dynamic';
 
@@ -243,6 +244,11 @@ function buildEmailHtml(opts: {
             <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#6F6557;">
               Sent with love · Made with Pearloom
             </div>
+            <!-- CAN-SPAM §5(a)(5): a valid physical postal address.
+                 PLACEHOLDER — replace [MAILING ADDRESS] before launch. -->
+            <div style="font-family:'Geist',Arial,sans-serif;font-size:10px;color:#8A8172;margin-top:8px;">
+              Pearloom · [MAILING ADDRESS] · California, USA
+            </div>
           </td>
         </tr>
 
@@ -368,14 +374,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Skip anyone who opted out (one-click List-Unsubscribe) or whose
+  // address hard-bounced. Fail-open on lookup error.
+  let suppressed = new Set<string>();
+  try {
+    suppressed = await suppressedEmails(getSupabase(), toSend.map((g) => g.email), siteId);
+  } catch (err) {
+    console.error('[invite/bulk] suppression lookup failed (sending anyway):', err);
+  }
+
   let sent = 0;
   let failed = 0;
+  let skipped = 0;
 
   const BATCH = 10;
   for (let i = 0; i < toSend.length; i += BATCH) {
     const batch = toSend.slice(i, i + BATCH);
     await Promise.all(
       batch.map(async (guest) => {
+        if (suppressed.has(guest.email.toLowerCase())) {
+          skipped++;
+          return;
+        }
         const token = guest.id ? tokensByGuestId.get(guest.id) : undefined;
         const ctaUrl = token ? `${baseUrl}/i/${token}` : `${siteUrl}/rsvp`;
 
@@ -403,7 +423,7 @@ export async function POST(req: NextRequest) {
               subject: `You are invited — ${coupleDisplay}`,
               html,
               text: htmlToText(html),
-              headers: listUnsubHeaders(),
+              headers: listUnsubHeaders({ email: guest.email, siteId, channel: 'invite' }),
             }),
           });
           if (res.ok) sent++;
@@ -415,5 +435,5 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ sent, failed, total: toSend.length });
+  return NextResponse.json({ sent, failed, total: toSend.length, ...(skipped > 0 ? { skipped } : {}) });
 }

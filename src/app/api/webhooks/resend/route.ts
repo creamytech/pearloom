@@ -63,22 +63,74 @@ const EVENT_COLUMNS: Record<string, string> = {
   'email.complained':'email_bounced_at', // treat as a bounce
 };
 
-function verifySignature(rawBody: string, header: string | null, secret: string): boolean {
-  if (!header) return false;
-  // Svix-style signature header: "v1,<base64sig> v1,<base64sig>"
-  // We accept either base64 OR hex HMAC-SHA256 of the raw body.
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64');
-  const expectedHex = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-  return header.includes(expected) || header.toLowerCase().includes(expectedHex);
+/**
+ * Verify a Resend webhook the way Resend actually signs it: via Svix.
+ *
+ * Svix signs `${svix-id}.${svix-timestamp}.${body}` with HMAC-SHA256
+ * keyed on the *base64-decoded* secret (the `whsec_` prefix is not part
+ * of the key), and sends the result base64-encoded in `svix-signature`
+ * as a space-separated list of `v1,<sig>` pairs. We recompute and
+ * constant-time compare against every `v1` entry — a match on any is a
+ * pass. (The previous implementation HMAC'd the raw body only, so real
+ * Svix signatures never matched — with the secret set, genuine bounce
+ * events were rejected and tracking went dark.)
+ */
+function verifySvixSignature(
+  rawBody: string,
+  headers: { id: string | null; timestamp: string | null; signature: string | null },
+  secret: string,
+): boolean {
+  const { id, timestamp, signature } = headers;
+  if (!id || !timestamp || !signature) return false;
+
+  // Reject stale timestamps (replay guard) — 5-minute tolerance,
+  // matching Svix's own default. A non-numeric timestamp fails closed.
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) return false;
+  const skewSeconds = Math.abs(Date.now() / 1000 - ts);
+  if (skewSeconds > 5 * 60) return false;
+
+  // The signing key is the base64 payload after the `whsec_` prefix.
+  const rawSecret = secret.startsWith('whsec_') ? secret.slice(6) : secret;
+  const key = Buffer.from(rawSecret, 'base64');
+  if (key.length === 0) return false;
+
+  const signedContent = `${id}.${timestamp}.${rawBody}`;
+  const expected = crypto.createHmac('sha256', key).update(signedContent).digest();
+
+  // Header: "v1,<base64sig> v1,<base64sig> …". Compare each v1 entry.
+  for (const part of signature.split(' ')) {
+    const comma = part.indexOf(',');
+    if (comma === -1) continue;
+    const version = part.slice(0, comma);
+    if (version !== 'v1') continue;
+    const provided = Buffer.from(part.slice(comma + 1), 'base64');
+    if (provided.length === expected.length && crypto.timingSafeEqual(provided, expected)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export async function POST(req: NextRequest) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   const rawBody = await req.text();
 
+  // When the secret is configured (production), require a valid Svix
+  // signature — unsigned or badly-signed requests are rejected, so
+  // events can't be forged. Unset (dev) → accept, so local testing
+  // works without a secret.
   if (secret) {
-    const sig = req.headers.get('svix-signature') ?? req.headers.get('resend-signature');
-    if (!verifySignature(rawBody, sig, secret)) {
+    const ok = verifySvixSignature(
+      rawBody,
+      {
+        id: req.headers.get('svix-id'),
+        timestamp: req.headers.get('svix-timestamp'),
+        signature: req.headers.get('svix-signature'),
+      },
+      secret,
+    );
+    if (!ok) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
   }

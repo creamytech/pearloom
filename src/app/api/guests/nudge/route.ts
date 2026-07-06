@@ -21,6 +21,7 @@ import { Resend } from 'resend';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { buildNudgeEmail } from '@/lib/email/brand-emails';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -106,6 +107,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0, skipped: guestIds.length });
   }
 
+  // Drop opted-out / bounced addresses before sending. Fail-open.
+  const suppressed = await suppressedEmails(sb, recipients.map((r) => r.email), site.id);
+
   const names = (site.ai_manifest?.names ?? site.site_config?.names ?? []).filter(Boolean);
   const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'us');
   const subjectLine = subject || `A nudge from ${couple}`;
@@ -122,9 +126,14 @@ export async function POST(req: NextRequest) {
 
   let sent = 0;
   let failed = 0;
+  let skipped = 0;
   const errors: string[] = [];
 
   for (const r of recipients) {
+    if (r.email && suppressed.has(r.email.toLowerCase())) {
+      skipped++;
+      continue;
+    }
     try {
       // Per-guest deep link to /g/{token} when we have it; falls
       // back to the public site so the recipient can RSVP.
@@ -140,7 +149,7 @@ export async function POST(req: NextRequest) {
           subject: subjectLine,
           html,
           text: htmlToText(html),
-          headers: listUnsubHeaders(),
+          headers: listUnsubHeaders({ email: r.email, siteId: site.id, channel: 'rsvp-nudge' }),
           tags: [
             { name: 'channel', value: 'rsvp-nudge' },
             { name: 'site_id', value: site.id },
@@ -159,7 +168,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, failed, errors: errors.slice(0, 10) });
+  return NextResponse.json({ ok: true, sent, failed, skipped, errors: errors.slice(0, 10) });
 }
 
 

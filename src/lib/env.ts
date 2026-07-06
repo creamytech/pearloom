@@ -41,6 +41,12 @@ export const env = {
 
   // Email
   RESEND_API_KEY: optional('RESEND_API_KEY'),
+  // Svix signing secret for the Resend webhook (whsec_…). When set,
+  // unsigned/badly-signed webhook posts are rejected.
+  RESEND_WEBHOOK_SECRET: optional('RESEND_WEBHOOK_SECRET'),
+  // HMAC key for one-click List-Unsubscribe tokens. Falls back to
+  // NEXTAUTH_SECRET when unset (see lib/email/unsubscribe.ts).
+  EMAIL_UNSUB_SECRET: optional('EMAIL_UNSUB_SECRET'),
 
   // Storage
   CLOUDFLARE_ACCOUNT_ID: optional('CLOUDFLARE_ACCOUNT_ID'),

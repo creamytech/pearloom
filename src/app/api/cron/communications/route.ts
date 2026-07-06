@@ -21,6 +21,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildCadenceEmail } from '@/lib/email/brand-emails';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { buildSiteUrl } from '@/lib/site-urls';
@@ -149,6 +151,9 @@ export async function GET(req: NextRequest) {
       const recipients = audienceFilter((guestRows ?? []) as GuestRow[], row.audience)
         .filter((g) => g.email);
 
+      // Drop opted-out / bounced addresses. Fail-open on lookup error.
+      const suppressed = await suppressedEmails(sb, recipients.map((g) => g.email), (site as { id: string }).id);
+
       if (recipients.length === 0) {
         await sb.from('scheduled_communications').update({
           status: 'sent',
@@ -168,7 +173,9 @@ export async function GET(req: NextRequest) {
 
       let sent = 0;
       let failed = 0;
+      let skipped = 0;
       for (const g of recipients) {
+        if (g.email && suppressed.has(g.email.toLowerCase())) { skipped++; continue; }
         try {
           const cta = g.guest_token ? `${baseUrl}/g/${g.guest_token}` : siteUrl;
           const { html } = buildCadenceEmail({ couple, body: bodyText, ctaLabel, ctaUrl: cta, theme });
@@ -181,6 +188,8 @@ export async function GET(req: NextRequest) {
                 to: [g.email],
                 subject,
                 html,
+                text: htmlToText(html),
+                headers: listUnsubHeaders({ email: g.email, siteId: (site as { id: string }).id, channel: 'cadence' }),
                 tags: [
                   { name: 'channel', value: 'cadence' },
                   { name: 'phase_id', value: row.phase_id },
@@ -204,7 +213,10 @@ export async function GET(req: NextRequest) {
       await sb.from('scheduled_communications').update({
         status: failed > 0 && sent === 0 ? 'failed' : 'sent',
         status_detail: resendKey
-          ? (failed > 0 ? `${failed} of ${recipients.length} failed` : null)
+          ? [
+              failed > 0 ? `${failed} of ${recipients.length} failed` : null,
+              skipped > 0 ? `${skipped} suppressed` : null,
+            ].filter(Boolean).join(' · ') || null
           : 'dry-run: RESEND_API_KEY not set',
         sent_at: new Date().toISOString(),
         sent_count: sent,

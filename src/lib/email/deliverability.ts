@@ -44,11 +44,38 @@ export function htmlToText(html: string): string {
   return s;
 }
 
-/** List-Unsubscribe + one-click headers for guest-facing sends. */
-export function listUnsubHeaders(): Record<string, string> {
+import { buildUnsubscribeUrl } from './unsubscribe';
+
+/** Who a message is going to, so the unsubscribe link can identify
+ *  exactly whom to suppress on a one-click POST. */
+export interface UnsubRecipient {
+  email?: string | null;
+  /** Scope the opt-out to one site (a guest saying "stop" for one
+   *  couple shouldn't unsubscribe them from another). Omit for a
+   *  global opt-out. */
+  siteId?: string | null;
+  channel?: string | null;
+}
+
+/**
+ * List-Unsubscribe + one-click headers for guest-facing sends.
+ *
+ * Pass the recipient so the link carries a signed, per-recipient
+ * token (RFC 8058 one-click works without auth). Called with no
+ * recipient it falls back to the bare /unsubscribe page — still a
+ * real surface, just without pre-identifying who to suppress.
+ */
+export function listUnsubHeaders(recipient?: UnsubRecipient): Record<string, string> {
   const base = (process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com').replace(/\/$/, '');
+  const url = recipient?.email
+    ? buildUnsubscribeUrl({
+        email: recipient.email,
+        siteId: recipient.siteId ?? null,
+        channel: recipient.channel ?? null,
+      })
+    : `${base}/unsubscribe`;
   return {
-    'List-Unsubscribe': `<mailto:unsubscribe@pearloom.com>, <${base}/unsubscribe>`,
+    'List-Unsubscribe': `<mailto:unsubscribe@pearloom.com>, <${url}>`,
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   };
 }

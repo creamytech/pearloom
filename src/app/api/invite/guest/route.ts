@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { authOptions } from '@/lib/auth';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { getSiteConfig } from '@/lib/db';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
@@ -151,17 +152,31 @@ export async function POST(req: NextRequest) {
     }
     const resend = new Resend(process.env.RESEND_API_KEY);
 
+    /* Skip anyone who opted out (one-click List-Unsubscribe) or whose
+       address hard-bounced. Fail-open: a lookup hiccup returns an
+       empty set, never blocking the whole send. */
+    const suppressed = await suppressedEmails(
+      supabase,
+      guests.map((g) => (g as Record<string, unknown>).email as string | undefined),
+      siteId,
+    );
+
     let sent = 0;
     let failed = 0;
     /* Guests with no email aren't failures — the host needs to
        know to add addresses, not to retry. Counted separately. */
     let noEmail = 0;
+    let skipped = 0;
     const tokens: string[] = [];
 
     for (const guest of guests) {
       const guestEmail = (guest as Record<string, unknown>).email as string | undefined;
       if (!guestEmail) {
         noEmail++;
+        continue;
+      }
+      if (suppressed.has(guestEmail.toLowerCase())) {
+        skipped++;
         continue;
       }
 
@@ -277,7 +292,7 @@ export async function POST(req: NextRequest) {
         subject,
         html,
         text: htmlToText(html),
-        headers: listUnsubHeaders(),
+        headers: listUnsubHeaders({ email: guestEmail, siteId, channel: cardType }),
         // Tag with site_id + guest_id so the Resend webhook
         // (/api/webhooks/resend) lands delivered/opened events
         // on the right guests row. The dashboard's tracking pips
@@ -305,7 +320,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ sent, failed, noEmail, tokens });
+    return NextResponse.json({ sent, failed, noEmail, tokens, ...(skipped > 0 ? { skipped } : {}) });
   } catch (err) {
     console.error('[invite/guest] error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

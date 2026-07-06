@@ -14,6 +14,7 @@ import { guestTokenColumns } from '@/lib/guest-tokens';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { buildGuestInviteEmail } from '@/lib/email/brand-emails';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { isSuppressed } from '@/lib/email/suppression';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'That guest has no email on file.' }, { status: 400 });
   }
 
+  // Respect an opt-out / bounce even on an explicit resend.
+  if (await isSuppressed(supabase, String(guest.email), siteId)) {
+    return NextResponse.json({ ok: true, sent: false, suppressed: true });
+  }
+
   // Ensure a personal token exists.
   let token = (guest as { guest_token?: string }).guest_token;
   if (!token) {
@@ -101,7 +107,7 @@ export async function POST(req: NextRequest) {
       subject,
       html,
       text: htmlToText(html),
-      headers: listUnsubHeaders(),
+      headers: listUnsubHeaders({ email: String(guest.email), siteId, channel: 'guest-invite' }),
       tags: [{ name: 'channel', value: 'guest-invite' }, { name: 'site_id', value: String(siteId) }],
     });
     await supabase.from('guests').update({ email_sent_at: new Date().toISOString() }).eq('id', guestId);

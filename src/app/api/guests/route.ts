@@ -6,6 +6,7 @@ import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } f
 import { linkGuestRowToPerson } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { isSuppressed } from '@/lib/email/suppression';
 
 export const dynamic = 'force-dynamic';
 
@@ -238,6 +239,8 @@ export async function POST(req: NextRequest) {
     if (sendInvite && data?.email && process.env.RESEND_API_KEY) {
       void (async () => {
         try {
+          // Honor opt-outs / bounces even on the add-a-guest send.
+          if (await isSuppressed(supabase, String(data.email), siteId)) return;
           const { data: site } = await supabase
             .from('sites')
             .select('subdomain, site_config, ai_manifest')
@@ -265,7 +268,7 @@ export async function POST(req: NextRequest) {
             subject,
             html,
             text: htmlToText(html),
-            headers: listUnsubHeaders(),
+            headers: listUnsubHeaders({ email: String(data.email), siteId, channel: 'guest-invite' }),
             tags: [{ name: 'channel', value: 'guest-invite' }, { name: 'site_id', value: String(siteId) }],
           });
           await supabase.from('guests').update({ email_sent_at: new Date().toISOString() }).eq('id', data.id);

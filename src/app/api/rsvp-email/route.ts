@@ -235,7 +235,7 @@ Just write the body paragraph(s).`;
       subject,
       html: htmlBody,
       text: htmlToText(htmlBody),
-      headers: listUnsubHeaders(),
+      headers: listUnsubHeaders({ email: guestEmail, siteId: (site as { id: string }).id, channel: 'rsvp-confirmation' }),
       tags: [
         { name: 'channel', value: 'rsvp-confirmation' },
         { name: 'site_id', value: String(siteId) },
