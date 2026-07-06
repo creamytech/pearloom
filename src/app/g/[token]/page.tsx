@@ -27,7 +27,7 @@ import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
 import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
 import { HostYourOwnCard } from '@/components/guest-experience/HostYourOwnCard';
-import { GuestThreadCard, CelebratedTogetherCard } from '@/components/guest-experience/GuestCircleCards';
+import { GuestThreadCard, CelebratedTogetherCard, YourCircleCard } from '@/components/guest-experience/GuestCircleCards';
 import { buildSitePath, normalizeOccasion } from '@/lib/site-urls';
 import { isManifestPublished } from '@/lib/next-step';
 import { GuestPearChat } from '@/components/pearloom/site/GuestPearChat';
@@ -625,6 +625,12 @@ export default async function PersonalGuestPage({
       {/* Opt-in connections — mutual, first-names-only, default off. */}
       <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
         <CelebratedTogetherCard token={token} accent={accent} headingFont={headingFont} />
+      </section>
+
+      {/* Your circle — the light friend layer. Self-hides until the
+          guest opts in above AND there's someone to connect with. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <YourCircleCard token={token} accent={accent} headingFont={headingFont} />
       </section>
 
       {celebrations.length > 0 && (

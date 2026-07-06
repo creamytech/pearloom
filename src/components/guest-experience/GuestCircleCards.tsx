@@ -430,6 +430,167 @@ export function CelebratedTogetherCard({
   );
 }
 
+/* ── YourCircleCard ──────────────────────────────────────────
+   The light friend layer (GRAND-PLAN Phase 4) on top of the
+   opt-in connections base. Default-quiet: renders ONLY once the
+   guest has opted in (via the Celebrated card above) AND there's
+   someone to connect with — a friend, a pending request, or a
+   familiar face they can add. First names only, consent-first
+   (request → accept), off whenever they like. */
+
+interface CircleState {
+  available: boolean;
+  optedIn: boolean;
+  friends: Array<{ firstName: string }>;
+  incoming: Array<{ firstName: string; otherId: string }>;
+  candidates: Array<{ firstName: string; personId: string }>;
+}
+
+export function YourCircleCard({
+  token, accent, headingFont,
+}: {
+  token: string;
+  accent: string;
+  headingFont: string;
+}) {
+  const [state, setState] = useState<CircleState | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const r = await fetch(`/api/guest/friends?token=${encodeURIComponent(token)}`, { cache: 'no-store', signal });
+      if (!r.ok) return;
+      const data = (await r.json()) as Partial<CircleState>;
+      setState({
+        available: Boolean(data.available),
+        optedIn: Boolean(data.optedIn),
+        friends: data.friends ?? [],
+        incoming: data.incoming ?? [],
+        candidates: data.candidates ?? [],
+      });
+    } catch { /* the card simply doesn't render */ }
+  }, [token]);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    void load(ctrl.signal);
+    return () => ctrl.abort();
+  }, [load]);
+
+  async function act(action: 'request' | 'accept' | 'decline', otherPersonId: string) {
+    if (busyId) return;
+    setBusyId(otherPersonId);
+    try {
+      const r = await fetch('/api/guest/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action, otherPersonId }),
+      });
+      if (r.ok) await load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // Quiet until we know — and never before the guest opts in, or when
+  // there's simply no one woven in to show.
+  if (!state || !state.available || !state.optedIn) return null;
+  const { friends, incoming, candidates } = state;
+  if (friends.length === 0 && incoming.length === 0 && candidates.length === 0) return null;
+
+  const chip: React.CSSProperties = {
+    display: 'inline-block',
+    padding: '5px 12px',
+    borderRadius: 999,
+    background: 'color-mix(in oklab, ' + accent + ' 12%, var(--card, #FBF7EE))',
+    border: `1px solid color-mix(in oklab, ${accent} 26%, transparent)`,
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    color: 'var(--ink, #0E0D0B)',
+  };
+  const smallBtn = (primary: boolean, disabled: boolean): React.CSSProperties => ({
+    padding: '6px 14px',
+    borderRadius: 999,
+    border: primary ? 'none' : '1px solid var(--line, rgba(14,13,11,0.14))',
+    background: primary ? accent : 'transparent',
+    color: primary ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)',
+    fontSize: '0.76rem',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    cursor: disabled ? 'wait' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+  });
+
+  return (
+    <div style={cardShell}>
+      <Eyebrow accent={accent}>Your circle</Eyebrow>
+      <div style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--ink, #0E0D0B)', marginBottom: 4 }}>
+        People you&apos;ve woven in.
+      </div>
+      <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 16px' }}>
+        First names only, both sides always choose, off whenever you like.
+      </p>
+
+      {/* Requests addressed to you — accept or set aside. */}
+      {incoming.length > 0 && (
+        <div style={{ marginBottom: friends.length || candidates.length ? 18 : 0 }}>
+          <div style={{ fontFamily: MONO, fontSize: '0.58rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 8 }}>
+            Would like to connect
+          </div>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {incoming.map((i) => (
+              <li key={i.otherId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{i.firstName}</span>
+                <span style={{ display: 'inline-flex', gap: 6 }}>
+                  <button type="button" onClick={() => void act('accept', i.otherId)} disabled={busyId === i.otherId} style={smallBtn(true, busyId === i.otherId)}>
+                    {busyId === i.otherId ? 'Threading…' : 'Accept'}
+                  </button>
+                  <button type="button" onClick={() => void act('decline', i.otherId)} disabled={busyId === i.otherId} style={smallBtn(false, busyId === i.otherId)}>
+                    Not now
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Accepted friends — first-name chips. */}
+      {friends.length > 0 && (
+        <div style={{ marginBottom: candidates.length ? 18 : 0 }}>
+          <div style={{ fontFamily: MONO, fontSize: '0.58rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 8 }}>
+            {friends.length === 1 ? 'One friend here' : `${friends.length} friends here`}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {friends.map((f, idx) => (
+              <span key={`${f.firstName}-${idx}`} style={chip}>{f.firstName}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Familiar faces you can add — mutual-opt-in candidates only. */}
+      {candidates.length > 0 && (
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: '0.58rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 8 }}>
+            Celebrated with before
+          </div>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {candidates.map((c) => (
+              <li key={c.personId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{c.firstName}</span>
+                <button type="button" onClick={() => void act('request', c.personId)} disabled={busyId === c.personId} style={smallBtn(true, busyId === c.personId)}>
+                  {busyId === c.personId ? 'Threading…' : 'Add as a friend'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── GIFs in the thread ───────────────────────────────────────
    A message body that IS a GIPHY media URL renders as the GIF.
    Strict host allowlist — only giphy media subdomains pass, so
@@ -441,12 +602,13 @@ export function isGifBody(body: string): boolean {
 function GifPicker({ token, onPick, onClose }: { token: string; onPick: (url: string) => void; onClose: () => void }) {
   const [q, setQ] = useState('');
   const [gifs, setGifs] = useState<Array<{ id: string; url: string; preview: string }>>([]);
-  const [state, setState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
+  const [state, setState] = useState<'idle' | 'loading' | 'unavailable'>('loading');
 
   useEffect(() => {
     let cancelled = false;
-    setState('loading');
     const t = setTimeout(() => {
+      if (cancelled) return;
+      setState('loading');
       void (async () => {
         try {
           const r = await fetch(`/api/giphy/search?token=${encodeURIComponent(token)}&q=${encodeURIComponent(q)}`);
