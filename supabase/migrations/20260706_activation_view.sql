@@ -23,10 +23,9 @@
 -- revoked below (a view runs with its owner's table privileges by
 -- default, so an accidental anon grant would leak the whole funnel).
 --
--- NOTE: per CLAUDE-DESIGN §12 this file must ALSO be applied to
--- prod (project vpwnpxowqflajvqpgvyb) via MCP and recorded in
--- _pearloom_migrations. It has NOT been applied automatically —
--- do that at review time, not from this session.
+-- APPLIED to prod (project vpwnpxowqflajvqpgvyb) 2026-07-06 via
+-- Supabase MCP + recorded in _pearloom_migrations. Idempotent —
+-- safe to re-run.
 -- ─────────────────────────────────────────────────────────────
 
 -- Defensive: the funnel references sites.published_at (added by

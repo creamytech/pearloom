@@ -22,8 +22,9 @@
 -- case-sensitively — the API's case-insensitive `.ilike('creator_email', …)`
 -- fallback resolves mixed-case legacy rows at read time.
 --
--- Idempotent — re-running is a no-op. NOT auto-applied to prod; apply
--- via the usual MCP flow + record in _pearloom_migrations after review.
+-- Idempotent — re-running is a no-op. APPLIED to prod (project
+-- vpwnpxowqflajvqpgvyb) 2026-07-06 via Supabase MCP + recorded in
+-- _pearloom_migrations.
 -- ─────────────────────────────────────────────────────────────
 
 UPDATE sites

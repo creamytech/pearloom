@@ -16,8 +16,9 @@
 -- Resend complaint webhook). Read before every guest-facing send by
 -- src/lib/email/suppression.ts. deny-anon RLS, belt-and-braces.
 --
--- NOTE: not yet applied to prod (project vpwnpxowqflajvqpgvyb) —
--- apply via the Supabase MCP + record in _pearloom_migrations.
+-- APPLIED to prod (project vpwnpxowqflajvqpgvyb) 2026-07-06 via
+-- Supabase MCP + recorded in _pearloom_migrations. Idempotent —
+-- safe to re-run.
 -- ─────────────────────────────────────────────────────────────
 
 create table if not exists public.email_opt_outs (

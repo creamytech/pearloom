@@ -21,10 +21,9 @@
 -- Belt-and-braces RLS: restrictive deny-anon; all reads/writes go
 -- through the owner-gated service-role route (CLAUDE-DESIGN §12).
 --
--- NOTE: per CLAUDE-DESIGN §12 this file must ALSO be applied to prod
--- (project vpwnpxowqflajvqpgvyb) via MCP and recorded in
--- _pearloom_migrations. It has NOT been applied automatically — do
--- that at review time, not from this session.
+-- APPLIED to prod (project vpwnpxowqflajvqpgvyb) 2026-07-06 via
+-- Supabase MCP + recorded in _pearloom_migrations. Idempotent —
+-- safe to re-run.
 -- ─────────────────────────────────────────────────────────────
 
 create table if not exists public.budget_lines (

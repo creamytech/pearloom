@@ -31,10 +31,9 @@
 -- copied verbatim from 20260703_gift_pledges.sql. Service-role
 -- writes only; no client reads or writes this table directly.
 --
--- NOTE: per CLAUDE-DESIGN §12 this file must ALSO be applied to
--- prod (project vpwnpxowqflajvqpgvyb) via MCP and recorded in
--- _pearloom_migrations. It has NOT been applied automatically —
--- do that at review time, not from this session.
+-- APPLIED to prod (project vpwnpxowqflajvqpgvyb) 2026-07-06 via
+-- Supabase MCP + recorded in _pearloom_migrations. Idempotent —
+-- safe to re-run.
 -- ─────────────────────────────────────────────────────────────
 
 create table if not exists public.product_events (
