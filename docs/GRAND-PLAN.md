@@ -19,7 +19,7 @@
 - **Round 4 (2026-07-06):** opinionated review of all ~31 dashboard routes (4 clusters) → added **Pillar 8 (Dashboard consolidation)**. Verdict: the dashboard needs *deduplicating*, not building. Root cause = **three disagreeing nav registries** (sidebar ~20 / sub-nav 5 / ⌘K ~13); `/tools` is scar tissue. ~31 routes → ~8 areas; a route-by-route keep/improve/merge/demote/kill table is in Pillar 8.
 - **Round 5 (2026-07-06):** Pear/AI surfaces · the Remember pillar (keepsake/film) · retention/lifecycle · vendor marketplace → added **Pillars 9–12**. Dominant theme: **an enormous amount of value is built but dark, broken, or disconnected** — the anniversary + weekly-digest crons exist but aren't scheduled; the lifecycle-email engine runs on a permanently empty queue; guest photos never reach the keepsake (three unsynced photo tables); the film is UI-less dead scaffold; the Director is the best AI asset but buried; Pear never acts unprompted though the pieces exist. The biggest wins here are **turning on / connecting what already exists**, not building new.
 - **Round 6 (2026-07-06):** the companion app · security/RLS/abuse · performance/cost at scale → added **Pillars 13–15**. The companion app is an orphaned prototype built backwards (invert it: thin shell + push + WebView). Security core is strong but has **one critical unauthenticated financial-data leak** (`pear-chat`) that's a hard launch gate. Perf has a one-line index bug + a platform-wide guest-traffic scan — and the **`celebrations` table fixes the privacy leak + the worst scan + a DoS lever in one move**.
-- Future rounds: i18n/accessibility · the section-variant/renderer depth · email/deliverability · testing/QA coverage · onboarding/activation metrics.
+- **Round 7 (2026-07-06) — series complete:** i18n/accessibility · rendering-engine depth · email/deliverability · testing/QA · activation metrics → added **Pillars 16–20**. Highlights: i18n is English-only with an 80%-built dead translation layer (+ 3 fixable a11y defects); the **rendering engine is genuinely deep and honest** (~100+ variants, 37 kits — the one clean bill of health; weakness only at the landing↔renderer seam); email has **existential deliverability holes** (no domain auth, 404 unsubscribe, wrong webhook signature); **CI runs none of the 1,052 tests**; and there's **zero host-activation instrumentation**. **Seven rounds now cover the whole product surface** — see §9 · Conclusion.
 
 ---
 
@@ -464,6 +464,95 @@ Native **only** where an OS capability (push, contacts, wallet, camera) is load-
 
 ---
 
+## 4n · Pillar 16 — i18n & accessibility (unlock the diverse-guest market)
+
+**Goal:** serve the cultural events + multilingual/elderly guests the product courts (quinceañera, mitzvah, memorials across cultures).
+
+**Ground truth (audit round 7):** the product is **effectively English-only with dead scaffolding.** The translation pipe is **~80% built** — `manifest.translations`, `applyLocale`, `?lang=` readers, and a Gemini `/api/translate` route supporting **10 locales incl. Hebrew + Arabic** — but **nothing writes translations, nothing calls the route, and there's no language switcher**, so it's a dead gimmick. `<html lang="en">` is hardcoded, dates default `en-US`, currency is `$`-only, name order is Western, and there's **no RTL** (blocking the advertised he/ar). **Accessibility is mixed:** the motion story is genuinely strong (`prefers-reduced-motion` respected across ~76 files, skip link, focus-visible ring, good modal ARIA) — but three real defects: **gold-on-cream text fails WCAG (~2.5:1)**, the WebGL `GradientMesh` + `CustomCursor` **ignore reduced-motion** (a BRAND §6 violation), and dialogs have **no focus trap** (the `use-focus-trap` hook exists but is used in one place).
+
+**Plan:**
+1. **Wire up the translation layer** (it's 80% there) — an editor/wizard "translate" action → `/api/translate` → persist `manifest.translations[locale]`, plus a guest-facing language switcher reading `availableLocales()`. The single biggest lever for the non-English-guest story — mostly plumbing. *(Or cut the dead scaffold.)*
+2. **Drive `<html lang>` + `dir` from `activeLocale`** (with an RTL map for he/ar).
+3. **Fix gold contrast** (darken it for any text/focus use; keep the hue for decorative hairlines only) **+ gate `GradientMesh`/`CustomCursor` on reduced-motion.**
+4. **Add a shared focus trap** to the guest RSVP modal + ⌘K palettes; restore focus on close.
+5. **Locale-aware date/currency helper** — replace the ~10 hardcoded `en-US`/`$` sites.
+6. **Audit host-photo alt text + passport landmarks** (the memorial/screen-reader case). *(Multi-language is also a natural premium lever — Pillar 5.)*
+
+---
+
+## 4o · Pillar 17 — The rendering engine (the good news — polish the seams)
+
+**Goal:** protect and extend the strongest part of the product.
+
+**Ground truth (audit round 7) — this is the series' one unambiguously good finding.** The rendering engine is **genuinely deep, coherent, and honest** — **~100+ variant renderers** (the docs' "~48" undercounts), **37 real kits**, **18 textures**, **10 themes**, all truly wired via `data-pl-*` + CSS, host-data-preserving across layouts, with an honesty contract (empty + published → `null`) and a test that enforces the registry. Occasion→variant recommendations are coherent and never auto-apply; the editor variant UX is well-built (the on-canvas Layout bar, ThemeRail, and the FittingRoom "drape" preview). **The weaknesses are all at the seams between layers, not in the renderer:**
+- **The landing Studio is a standalone reimplementation** with its own `data-kit`/`sk-mat-*` CSS that *doesn't exist* in the renderer, and **5 drifted kit ids** (`tasting`↔`menu`, `waxseal`↔`wax-seal`, …). So the marketing demo can **silently drift from the product** — the single biggest coherence risk.
+- **Three kit lists must be hand-synced** (editor `KITS` 24, `MOTION_KITS` 8, `packs.ts` `Kit` union ~16 — missing many), so a pack literally can't be *typed* to carry a kraft/index kit.
+- **5 pack-exclusive kits + 6 pack-only textures are reachable only by purchase** — hidden premium depth.
+- An IA smell: three skinning axes all borrow the word **"layout"** (site layout / section layout / kit).
+
+**Plan:**
+1. **Kill the landing/renderer split** — drive the landing preview off the *real* renderer CSS (`data-pl-kit`/`data-pl-texture`) and fix the id drift, so the demo is guaranteed to match the product. *(The recently-shipped landing Studio uses the parallel CSS — fold it back.)*
+2. **Unify one `KIT_REGISTRY`** (id, label, blurb, tier, `cssPresent`) consumed by editor + packs + landing + a CSS-coverage test.
+3. **Surface the invisible premium depth** — a "premium finishes" teaser for the pack-exclusive kits/textures (monetization; Pillar 5).
+4. **Expose more of the 18 textures** in the editor (flecked/smooth for free).
+5. **Disambiguate the "layout" vocabulary** — Page style / Section style / Card finish.
+6. **Delete the confirmed dead micro-code** (`HotelWrap.disableLink`, the stale `_shared.tsx` "fall through" comment).
+
+---
+
+## 4p · Pillar 18 — Email & deliverability (existential for an invitation product)
+
+**Goal:** invites reach the inbox and the product is CAN-SPAM/one-click compliant. *If invites land in spam, the product fails.*
+
+**Ground truth (audit round 7):** a rich, mostly-live email inventory with the *right instincts* (plaintext alternative, `List-Unsubscribe` headers, batching, per-site caps) — but **launch-critical holes:**
+- **Zero evidence of SPF/DKIM/DMARC**, and **bulk guest invites (500/send) share one root domain** with password-reset/verification mail — a bounce spike from a blast degrades the reputation account-recovery depends on. No transactional/bulk domain split.
+- **The `/unsubscribe` page doesn't exist** — every bulk invite ships a **404 unsubscribe link** (fails the Gmail/Yahoo one-click rule + CAN-SPAM, and actively hurts placement). There's **no per-guest opt-out** at all.
+- **The Resend webhook signature check is written for the wrong scheme** (plain HMAC vs Resend's Svix `id.timestamp.body`) → with the secret set, real **bounce** events are rejected (tracking dark); unset, they're forgeable. And **nothing suppresses sends to already-bounced addresses.**
+- **The anniversary + weekly-digest crons aren't scheduled**; the `scheduled_emails` reminder pipeline is dead (confirms Pillar 11).
+- No CAN-SPAM postal address; unsanitized From display name (header-injection); the recap `to:` exposes co-hosts' addresses; email rate limits are in-memory.
+
+**Plan (existential first):**
+1. **Send-time bounce/complaint suppression** (an address-keyed suppression table read before every send).
+2. **Fix the Resend/Svix webhook signature** + reject unsigned in prod.
+3. **Ship a real `/unsubscribe` page + per-recipient opt-out** honoring `List-Unsubscribe`.
+4. **Separate sending domains** (a `send.` subdomain) + configure **SPF/DKIM/DMARC** (DMARC `p=none` → enforce).
+5. **Wire the retention crons** (weekly-digest + anniversary) into `vercel.json`.
+6. **Wire or delete `scheduled_emails`** (the automated RSVP reminder never sends today).
+7. CAN-SPAM address · sanitize From · bcc the recap · move email limits to Redis + a daily ceiling.
+
+---
+
+## 4q · Pillar 19 — Testing & CI (turn the safety net on)
+
+**Goal:** make the existing test discipline actually protect the product.
+
+**Ground truth (audit round 7):** the **~1,052 tests are real** but concentrated in pure utilities + a small set of *excellent* money-idempotency route tests (the Stripe-webhook test is a model). Route coverage is **~10%** (23/221), component **~6%**. **The safety net is off: CI is effectively nonexistent** — the only workflow is the screenshot tour; **no tsc/eslint/vitest/build runs on PRs**, so the whole suite is local + unenforced, and nothing mechanical stops a bad merge. Critical **untested** paths: **auth core** (`lib/auth.ts` has *zero* tests — including the `PEARLOOM_E2E` bypass gate that must never activate in prod), **ownership/RLS** (no wrong-owner→403 harness), **`billing/webhook`** (a second money webhook with none of the good coverage), the **privacy-leak surfaces** (`pear-chat`/`celebrations-siblings`/`guest-connections` — no isolation test), **PII/GDPR** (`delete-account`/`export-data`), **SSRF** (guard exists, no regression test), and the shipped cost-split.
+
+**Plan (CI gates first — highest ROI in the whole plan):**
+1. **Add `ci.yml`: `tsc → eslint → vitest → next build`, required on every PR + branch protection.** This converts the 1,052 tests you already have from local discipline into a real merge gate. *The single highest-ROI move — the tests exist; they just don't run.*
+2. Coverage report with a floor on `src/lib/**` + `src/app/api/**`.
+3. **Auth + ownership harness** (prove the E2E provider is inert without its env gate; wrong-owner→403 across mutating routes).
+4. **`billing/webhook` tests** mirroring the Stripe-webhook discipline.
+5. **Privacy-isolation tests** for `pear-chat`/`celebrations-siblings`/`guest-connections` (user A can't derive user B's data).
+6. **SSRF regression + PII** tests.
+7. **One true guest-facing e2e** (RSVP submit + registry claim) — today 43 of 64 e2e tests are on the stationery-studio chrome.
+
+---
+
+## 4r · Pillar 20 — Activation instrumentation (stop flying blind)
+
+**Goal:** be able to measure — and therefore improve — whether a new host succeeds.
+
+**Ground truth (audit round 7):** **no product analytics of any kind** (no PostHog/Amplitude/Mixpanel/GA; Sentry is error monitoring only). The only instrumentation is **guest-side** (site visits + the RSVP funnel). **The host funnel is entirely unmeasured** — welcome-flow drop-off lives in local state, wizard drop-off in localStorage, and `POST /api/sites` fires **no event on create or publish** — so no one can answer "what % of signups publish?" or "time-to-first-RSVP?". The aha moment: **`site_published`** (leading) + **`first_rsvp_received`** (true activation — the two-sided loop closing). (Published state lives only inside `ai_manifest` JSONB with no `published_at` column — friction for both analytics and perf.)
+
+**Plan:**
+1. **A lightweight first-party `product_events` table** (`id, event, email, site_id, props, created_at`) — a pattern the codebase already uses three times (`site_analytics`, `guests.invite_opened_at`, `welcome_emails`). Fire server-side (`signed_up`, `welcome_completed`, `site_created`, `site_published`, `first_rsvp_received`, `keepsake_generated`) + a `/api/events` beacon for the client funnels (welcome/wizard steps). Enough to compute the whole funnel. *(Or adopt PostHog for hosted funnels/cohorts/replay.)*
+2. **Promote a real `sites.published_at` column** (clean analytics + ends the JSONB spelunking; helps Pillar 15).
+3. **Compute the funnel from existing data today** — a single SQL view over `welcome_emails` / `user_preferences.onboarded_at` / `sites.created_at` / `guests.responded_at` yields signup → onboarded → created → published → first-RSVP + **time-to-publish** + **time-to-first-RSVP** with zero new instrumentation. The only gaps needing new events: welcome/wizard step-level drop-off + landing→signup.
+**North-star metric:** % of signups **activated** (published + ≥1 RSVP) within 14 days.
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -574,6 +663,12 @@ Small, mostly self-contained fixes that punch above their weight — good "warm-
 - [ ] **⚡ Fix the `creator_email` index filter** — one-line change (filter the indexed column, not the JSONB path) that turns two full-table scans into index seeks; highest ROI / lowest risk perf fix.
 - [ ] **Adopt `next/image` + resize-on-upload** for guest photos — configured but used zero times; full-res images ship to guest phones today (`sharp` is already a dep).
 - [ ] **Migrate abuse/AI endpoints to the Redis rate-limiter** — in-memory limits are per-instance (`max × instances`) and XFF-spoofable; this also closes the unauthenticated AI cost-abuse vector.
+- [ ] **⭐ Add `ci.yml` (`tsc → eslint → vitest → build`, required)** — the 1,052 tests currently run *nowhere* on PRs. Half a day converts the whole suite into a real merge gate. Highest-ROI move in the plan.
+- [ ] **🔴 Email launch-critical trio** — ship a real `/unsubscribe` page (every bulk invite currently ships a **404**), fix the Resend/**Svix** webhook signature (bounce tracking is broken), and configure **SPF/DKIM/DMARC** + a bulk sending subdomain. Without these, invitations land in spam.
+- [ ] **Bounce suppression** — read `email_bounced_at` before every send; stop re-mailing dead addresses.
+- [ ] **Fix gold contrast + gate GradientMesh/CustomCursor on reduced-motion** — the one WCAG contrast failure + two BRAND §6 motion violations.
+- [ ] **Ship the SQL activation view** — signup → onboarded → published → first-RSVP + time-to-first-RSVP, computable from existing tables today (no new instrumentation).
+- [ ] **Fix the landing↔renderer kit-id drift** — the landing Studio's `sk-mat-*`/`data-kit` demo CSS drifts from the real `data-pl-kit` renderer (5 mismatched ids); drive the preview off the real CSS.
 
 ---
 
@@ -593,4 +688,38 @@ It's the missing primitive the entire collaborative-money vision hangs on, it ha
 
 ---
 
-*This is a live plan. It supersedes the scattered budget notes in CLAUDE-PRODUCT §6.7 (the `cost_shares` table planned there and never built is realized here as `expenses`/`expense_shares`). Update it as phases land.*
+---
+
+## 9 · Conclusion — 20 pillars, 7 audit rounds, one throughline
+
+Seven rounds audited the whole product surface — money, collaboration, events, journey, dashboard, AI, keepsake, retention, vendors, mobile, security, performance, i18n/a11y, rendering, email, testing, activation. **The single finding that recurs in every round: most of the value is already built — it's just siloed, buried, duplicated, or switched off.** The rendering engine is deep and honest; the retention loop, the translation layer, the email spine, the test suite, and the Director agent are all substantially built and *not wired on*. So the work sorts into three tracks, not one backlog:
+
+### Track A — 🔴 Launch gates (must fix before real users)
+Non-negotiable for a product handling money + guest PII + sending mail:
+- **Security C1** — gate `pear-chat` (unauthenticated private-money leak).
+- **Email trio** — real `/unsubscribe` (invites ship a 404 today), fix the Svix webhook signature, configure SPF/DKIM/DMARC + a bulk subdomain. *Invitations that land in spam = a dead product.*
+- **CI gate** — run the 1,052 tests you already have on every PR.
+- Config verification (E2E provider off in prod; all secrets set).
+
+### Track B — ⚡ "Turn it on" (days of wiring, outsized impact)
+The meta-finding cashed out — connect what's already built:
+- **Schedule the anniversary + weekly-digest crons** → the whole retention loop switches on.
+- **Unify the photo layer** (`guest_photos`) → keepsake + recap + day-after email all light up.
+- **Wire the translation layer** (80% built) → the cultural-events / non-English market.
+- **The `creator_email` index fix** + **`next/image`** → dashboard + guest-phone perf.
+- **The SQL activation view** → stop flying blind, from existing data.
+
+### Track C — 🏗 The product vision (the sequenced build)
+The roadmap in §6, anchored by the keystone (§7). The spine: **Money (P1) → Group Split (P2, the headline) → Journey free-flow (P6) → the three hubs + dashboard consolidation (P3/P8) → the Social layer (P4) → the Celebration Model (P7) → Remember/retention depth (P10/P11).** Premium gating (P5) and Pear-as-agent (P9) weave throughout; the companion app (P13) inverts to a thin push shell once the backend social/money layers exist.
+
+### The convergences worth remembering
+A few single moves each close several findings at once:
+- **The `celebrations` table (P7)** → fixes the privacy leak **+** the worst perf scan **+** a DoS lever **+** unlocks celebration-scoped budgets/pricing.
+- **The Participant primitive (P2)** → the group split **+** the friend-graph anchor (P4) **+** cross-event identity.
+- **The Redis limiter** → the anti-abuse control **+** AI cost abuse. **AI dollar caps** → three pillars.
+
+**If you build in one order:** Track A (launch gates) → the Track B "turn-it-on" wins (visible impact, low risk) → Track C starting **Phase 0 (Money Spine) → Phase 1 (the group split)**. That sequence de-risks the launch, banks quick wins the reviews all agreed on, and then builds the headline feature on a foundation that's already been made sound.
+
+---
+
+*This is a live plan (20 pillars across 7 audit rounds, 2026-07-06). It supersedes the scattered budget notes in CLAUDE-PRODUCT §6.7 (the `cost_shares` table planned there and never built is realized here as `expenses`/`expense_shares`). Update it as phases land.*
