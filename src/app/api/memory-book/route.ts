@@ -19,7 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getSiteConfig } from '@/lib/db';
+import { getSiteConfig, getApprovedGuestPhotos } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,6 +129,25 @@ export async function GET(req: NextRequest) {
       if (chapterPhotos.length >= 12) break;
     }
     if (chapterPhotos.length >= 12) break;
+  }
+
+  // Guest-uploaded photos (the live photo wall) are keyed by
+  // subdomain — the SAME key getSiteConfig + memory_prompts use for
+  // `siteId` here — so they merge straight in. Only host-APPROVED
+  // photos surface (pending/rejected never reach the book). Deduped
+  // against the manifest photos by URL; capped so a big wall doesn't
+  // bloat the payload (the client renders a handful anyway).
+  const seenPhotoUrls = new Set<string>([
+    ...(coverPhoto ? [coverPhoto] : []),
+    ...heroSlideshow,
+    ...chapterPhotos.map((p) => p.url),
+  ]);
+  const approvedGuestPhotos = await getApprovedGuestPhotos(siteId);
+  for (const gp of approvedGuestPhotos) {
+    if (!gp.url || seenPhotoUrls.has(gp.url)) continue;
+    seenPhotoUrls.add(gp.url);
+    chapterPhotos.push({ url: gp.url, caption: gp.caption ?? '' });
+    if (chapterPhotos.length >= 60) break;
   }
 
   return NextResponse.json({

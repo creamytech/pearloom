@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { getApprovedGuestPhotos } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -157,8 +158,13 @@ async function runDayAfter(force?: string) {
     const names = (siteConfig.names as [string, string]) || ['', ''];
     const coupleDisplay = names.filter(Boolean).join(' & ') || 'You';
 
-    // Gather counts for the email copy.
-    const [galleryCount, guestbookCount] = await Promise.all([
+    // Gather counts for the email copy. gallery_photos is keyed by
+    // the sites.id UUID; the guest photo wall (guest_photos) is keyed
+    // by subdomain — both feed the recap, so the "N photos" line must
+    // count both, otherwise a guest-only wall reads as an empty book.
+    // Only APPROVED guest photos count (pending/rejected never
+    // surface on the recap the email links to).
+    const [galleryCount, guestbookCount, guestPhotos] = await Promise.all([
       supabase
         .from('gallery_photos')
         .select('id', { count: 'exact', head: true })
@@ -169,7 +175,9 @@ async function runDayAfter(force?: string) {
         .select('id', { count: 'exact', head: true })
         .eq('site_id', site.id as string)
         .then((r) => r.count || 0),
+      getApprovedGuestPhotos(site.subdomain as string),
     ]);
+    const photoCount = galleryCount + guestPhotos.length;
 
     // Recipient list: creator + every co-host with editor / guest-manager role.
     const { data: hosts } = await supabase
@@ -189,7 +197,7 @@ async function runDayAfter(force?: string) {
     const html = buildEmailHtml({
       coupleDisplay,
       recapUrl,
-      photoCount: galleryCount,
+      photoCount,
       messageCount: guestbookCount,
     });
 

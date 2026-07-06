@@ -753,6 +753,28 @@ export async function getGuestPhotos(siteId: string, status?: GuestPhoto['status
   return (data as Record<string, unknown>[]).map(toGuestPhoto);
 }
 
+/**
+ * getApprovedGuestPhotos — the single read every keepsake surface
+ * (dashboard memory book, the public /recap page, the day-after
+ * "your memory book is ready" email) shares so the moderation
+ * filter can't drift apart again.
+ *
+ * `guest_photos.site_id` is the SUBDOMAIN string (see migration
+ * 20260614_guest_photos_with_attribution.sql) — NOT the sites.id
+ * UUID. Pass the site's subdomain / slug. Only host-APPROVED photos
+ * are returned; pending + rejected never surface on a public or
+ * keepsake surface. Fails soft to [] (missing env / DB blip must
+ * never break a keepsake).
+ */
+export async function getApprovedGuestPhotos(subdomain: string): Promise<GuestPhoto[]> {
+  if (!subdomain) return [];
+  try {
+    return await getGuestPhotos(subdomain, 'approved');
+  } catch {
+    return [];
+  }
+}
+
 export async function moderateGuestPhoto(id: string, status: 'approved' | 'rejected'): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase
