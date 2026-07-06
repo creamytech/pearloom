@@ -18,7 +18,8 @@
 - **Round 3 (2026-07-06):** celebration/weekend linking model + visibility/privacy · single-site-multi-event feasibility · guest identity across events → added **Pillar 7 (The Celebration Model)**. Key findings: the linked-events strip is **all-or-nothing public** (a wedding site leaks a linked bachelor site to guests — confirmed bug); one-site-many-events is a heavy renderer rebuild, so the win is a **first-class Celebration object** (shared roster, unified headcount, timeline) + **per-link directional visibility** (default hidden), *not* merging events into one site.
 - **Round 4 (2026-07-06):** opinionated review of all ~31 dashboard routes (4 clusters) → added **Pillar 8 (Dashboard consolidation)**. Verdict: the dashboard needs *deduplicating*, not building. Root cause = **three disagreeing nav registries** (sidebar ~20 / sub-nav 5 / ⌘K ~13); `/tools` is scar tissue. ~31 routes → ~8 areas; a route-by-route keep/improve/merge/demote/kill table is in Pillar 8.
 - **Round 5 (2026-07-06):** Pear/AI surfaces · the Remember pillar (keepsake/film) · retention/lifecycle · vendor marketplace → added **Pillars 9–12**. Dominant theme: **an enormous amount of value is built but dark, broken, or disconnected** — the anniversary + weekly-digest crons exist but aren't scheduled; the lifecycle-email engine runs on a permanently empty queue; guest photos never reach the keepsake (three unsynced photo tables); the film is UI-less dead scaffold; the Director is the best AI asset but buried; Pear never acts unprompted though the pieces exist. The biggest wins here are **turning on / connecting what already exists**, not building new.
-- Future rounds: the companion app (`pearloom-app/` Expo tree) tie-in · security/RLS/abuse · performance/cost at scale · i18n/accessibility · the section-variant / renderer depth.
+- **Round 6 (2026-07-06):** the companion app · security/RLS/abuse · performance/cost at scale → added **Pillars 13–15**. The companion app is an orphaned prototype built backwards (invert it: thin shell + push + WebView). Security core is strong but has **one critical unauthenticated financial-data leak** (`pear-chat`) that's a hard launch gate. Perf has a one-line index bug + a platform-wide guest-traffic scan — and the **`celebrations` table fixes the privacy leak + the worst scan + a DoS lever in one move**.
+- Future rounds: i18n/accessibility · the section-variant/renderer depth · email/deliverability · testing/QA coverage · onboarding/activation metrics.
 
 ---
 
@@ -405,6 +406,64 @@ One nav model, one home per surface, occasion-gated everywhere:
 
 ---
 
+## 4k · Pillar 13 — The companion app (invert it)
+
+**Goal:** a mobile companion that carries the plan's social/money/retention value — not a second full app to maintain.
+
+**Ground truth (audit round 6):** `pearloom-app/` is a **polished but orphaned prototype** — dropped in a single commit (2026-07-02), untouched since, **not wired into the web build/CI/types**. It has 35 real native screens, but it **cannot authenticate against the backend**: the sign-in is a TODO stub, and it targets a Bearer-token `/api/auth/google/callback` that doesn't exist (the web is NextAuth **session cookies** + `getServerSession`). Its API layer is written against an **imagined REST surface** (many invented paths); it **natively re-implements** the renderer, editor, wizard, and types. It's ~85% host-side and contains **none** of the plan's social/money vision. The *only* working integration is the unauthenticated guest companion (`/api/companion/[token]`).
+
+**The insight: it's built backwards.** It natively rebuilt the *high-effort, low-native-value* surfaces (renderer/editor/wizard) and **stubbed the two things that actually justify going native** — push notifications and device capabilities.
+
+**Plan — invert it:**
+1. **A thin Expo shell whose primary job is push** — register device tokens against the **existing** web notification spine (`src/lib/notifications/*`, `/api/notifications/push`), consuming the plan's new kinds (`friend_request`/`added_to_event` from Pillar 4, expense/settle-up from Pillar 2, guest anniversary from Pillar 11). Push is the linchpin of the retention thesis (pull a guest back a year later).
+2. **Auth that reuses the web session** (WebView NextAuth login or a real token bridge) — resolve the Bearer-vs-cookie incompatibility once.
+3. **~4 native surfaces mapped to the plan** — Your-Celebrations timeline (Pillar 11), add-a-friend via **contacts** (Pillar 4), split-the-bill/settle-up + **wallet** (Pillar 2), RSVP + **camera** (guest photos). Load the renderer/editor/wizard as the **existing responsive web in a WebView**.
+4. **Delete the ~2,700 lines of duplicated native renderer/editor/wizard.**
+
+Native **only** where an OS capability (push, contacts, wallet, camera) is load-bearing; everything else stays PWA/web. **Risk:** two codebases silently diverge — the plan is all web/backend, so the native fork drifts for free. Fund the thin shell, not the fork.
+
+---
+
+## 4l · Pillar 14 — Security & launch-readiness
+
+**Goal:** clear the hard gates before a real launch (this product handles money + guest PII).
+
+**Ground truth (audit round 6): the core architecture is strong** — deny-anon RLS applied consistently, the service-role client confined to server routes (never `NEXT_PUBLIC`, never imported client-side), Stripe webhooks signature-verified + idempotent, all crons `Bearer CRON_SECRET`-gated, the add-by-URL SSRF guards solid (scheme allowlist + DNS private-IP check + re-vet every redirect + caps), sound crypto (scrypt + `timingSafeEqual` + `randomUUID` tokens with expiries), the vendor packet's privacy contract verified, guest PII CRUD ownership-gated + AES-256-GCM at rest. **The exploitable gaps cluster in one pattern: unauthenticated endpoints that use the service-role client to touch private data or spend money.**
+
+**Must-fix before launch (ranked):**
+1. **🔴 CRITICAL — `pear-chat` leaks the couple's private money, unauthenticated.** The route has **no session/token check** (IP rate-limit only), and the server never enforces `mode:'guest'` — so an anonymous `POST /api/pear-chat` with a known public subdomain reads back the **Vendor Book ledger** (cost/deposit/balance/paid/due + vendor names) and RSVP counts via the service-role client. Textbook broken-access-control on **financial data** — an automatic pentest/SOC2 fail. **Gate the stats path behind a host session + ownership check; never run it in the public concierge flow.**
+2. **🟠 HIGH — `seating/lookup` filter injection.** Guest-supplied name is interpolated raw into a PostgREST `.or(...)` with no escaping of `%_\,()`, and the query isn't site-scoped. Escape wildcards + scope to the site.
+3. **🟡 MEDIUM — systemic:** rate limiting is **in-memory per-instance** (115 routes; effective limit = `max × instances`, and `x-forwarded-for` is trusted raw/spoofable) → move abuse-sensitive/expensive/AI endpoints to the Redis limiter. Unauthenticated **AI cost-abuse** (`pear-chat`, `decor/megasheet` image gen). **`address-book` unauthenticated overwrite** — knowing a guest name + subdomain lets an attacker **redirect where printed invitations/gifts mail** → require the guest `?g=` token or store as pending. Public **RSVP overwrite/spam** → `guestListOnly` + token as the safer default.
+4. **Config verification:** confirm in prod that `PEARLOOM_E2E` is unset and `STRIPE_WEBHOOK_SECRET` / `CRON_SECRET` / `PEARLOOM_ENCRYPTION_KEY` / `SITE_GATE_PASSWORD` are all set.
+5. **Hardening (low):** guest-photo R2 keys use `Math.random()` → `randomUUID`; `og` route SSRF-lite (allowlist the photo host); `decor/upload-svg` uses a regex blocklist → use the existing `sanitize-svg.ts`; the site-gate token is non-crypto with a default password.
+
+**The theme:** C1 is the **same class** as the celebration-siblings privacy leak (Pillar 7) — *unauthenticated service-role endpoints exposing private data.* Fix it systematically: every service-role endpoint needs an ownership/token gate, or must return only already-public data.
+
+---
+
+## 4m · Pillar 15 — Performance & cost at scale
+
+**Goal:** fix the scaling cliffs before traffic finds them.
+
+**Ground truth (audit round 6) — top cliffs:**
+1. **A one-line index bug, big blast radius.** `GET /api/sites` (every dashboard load) and the plan-gate create-count filter the JSONB path `site_config->>creator_email` instead of the **indexed top-level `creator_email` column** → **full-table scan every time**, and the list ships the full `ai_manifest` per site.
+2. **`celebrations/siblings` is a platform-wide scan on guest traffic** — loads *every published site's* manifest and filters in JS, no limit/index; cost grows with total platform sites × guest views. **The worst blast radius, and it's *also* a DoS lever (security M5).**
+3. **The notification-digest cron** runs ~10 queries × N sites **sequentially**, hard-capped at 500 → ~5,000 round-trips inside the 300s wall, and **site #501+ silently gets no digest.**
+4. **AI spend is uncapped in dollars** — the Director fires up to 12 Opus calls re-sending a growing context (only the system prompt cached); decor burns **4× `gpt-image-2` ≈ $0.24/gen**; raw-`fetch` Gemini is unmetered; `ai-usage.ts` is a dashboard, not a fuse.
+5. **Client weight on guest phones:** ~**118 KB gzipped CSS on every page** (`pearloom.css` 93 KB + `globals.css` 25 KB — hand-authored, not purged; ~1,854 lines are editor/dash/wizard chrome a guest never renders), and **`next/image` is used zero times** despite being configured → full-resolution, un-optimized images on guest phones. *(Verified non-issues: the 6k-line renderer is well code-split; three.js/shaders/framer-motion are all lazy — don't chase these.)*
+
+**Ranked fixes:**
+- **Tier 1:** fix the `creator_email` index filter (highest ROI, lowest risk) · give celebrations a real `celebration_id` column + index · **cap AI spend** ($/day per-user + global) · drop `ai_manifest` from the `/api/sites` list projection.
+- **Tier 2:** parallelize + paginate the digest cron (cursor past 500) · **adopt `next/image`** for guest photos · resize/re-encode on upload (`sharp` is already a dep).
+- **Tier 3:** move the 115 in-memory rate-limiters to Redis (also the security M1 fix) · prune dead CSS + un-globalize editor CSS off guest pages · cache the guest render (it's `force-dynamic` with no ISR today).
+
+**⚡ The convergences (one move, many wins):**
+- **Build Pillar 7's `celebrations` table** → fixes the privacy leak (P7) **＋** the worst perf scan (P15 #2) **＋** the DoS lever (P14 M5). *Three findings, one move.*
+- **Migrate to the Redis rate-limiter** → fixes the anti-abuse control (P14 M1) **＋** unauthenticated AI cost-abuse (P14 M2).
+- **Add AI dollar caps** → serves P9 (retire vanity spend) **＋** P15 (#4) **＋** P14 (M2).
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -510,6 +569,11 @@ Small, mostly self-contained fixes that punch above their weight — good "warm-
 - [ ] **Feed or delete the orphaned email engine** — `email-sequences.ts` + `/api/cron/email` runs every 5 min on an empty queue; either enqueue reminders/thank-yous or remove the illusion.
 - [ ] **Add AI dollar caps + meter the Gemini calls** — metering is observability-only and most Gemini spend bypasses it (raw `fetch`); before scaling AI, cap per-account cost and route the cheap/high-volume tier through the meter.
 - [ ] **Ship the vendor click/lead event** — the directory's `booking_url` clicks are the affiliate primitive the migration already promises but never implemented (money-free, no Connect).
+- [ ] **🔴 LAUNCH GATE — gate `pear-chat`** — it currently leaks the couple's private Vendor Book ledger to *any anonymous* request with a known subdomain. Require host session + ownership on the stats path. Must-fix before launch.
+- [ ] **Fix the `seating/lookup` filter injection** + site-scope it (unescaped guest input into a PostgREST `.or()`).
+- [ ] **⚡ Fix the `creator_email` index filter** — one-line change (filter the indexed column, not the JSONB path) that turns two full-table scans into index seeks; highest ROI / lowest risk perf fix.
+- [ ] **Adopt `next/image` + resize-on-upload** for guest photos — configured but used zero times; full-res images ship to guest phones today (`sharp` is already a dep).
+- [ ] **Migrate abuse/AI endpoints to the Redis rate-limiter** — in-memory limits are per-instance (`max × instances`) and XFF-spoofable; this also closes the unauthenticated AI cost-abuse vector.
 
 ---
 
