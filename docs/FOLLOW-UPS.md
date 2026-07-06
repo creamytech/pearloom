@@ -26,12 +26,23 @@ all migrations applied to prod):
 - **Phase 6.** Chip-in group gifting confirmed already complete end-to-end;
   sibling-strip privacy leak closed (§G item — bachelor/ette never advertised).
 
-**Still open below:** §C's remaining Phase-1 nicety (expected-share), and the
-LARGE architectural phases — **Phase 4 (social/friend graph)** and **Phase 5
-(Celebration Model / `celebrations` table)** — plus **Phase 3's People/Plan hubs
-+ Team & task assignment**, premium gating (§D + needs the monetization
-decision), and the Track-B leftovers (§E). These are the deliberate
-next-focused-session items; each is multi-file + (4/5) a new migration.
+**Extended further** (commits through `2d8094be`):
+- **Phase 5 STARTED + live**: the `celebrations` table (first-class, backfilled in
+  prod — 2 celebrations, 6 sites) + `sites.celebration_id` FK + `syncCelebration`
+  maintenance on `PATCH /api/celebrations`, and the first reader — a **unified
+  headcount across a celebration's events** on `/dashboard/connections`.
+- **Track B — AI dollar caps DONE**: `ai_spend` per-account daily counter +
+  `overBudget` gate (fail-open) wired into the 5 top AI routes; applied to prod,
+  advisor-clean (RPC execute revoked from anon/authenticated).
+
+**Still open:** Phase 5 DEPTH (shared roster / enter-guests-once, budget→celebration
+scope, timeline/arc, per-link opt-in toggle), **Phase 4** (friend graph — base
+exists; add-friend-to-event), **Phase 3** People/Plan hubs + Team & tasks,
+**premium gating** (§D, needs the monetization decision), and the **translation
+layer** (§E, investigative). Plus: wire the AI cap into the **~35 remaining AI
+routes** (one-liner each now the gate exists — ai-blocks, ai-chat, story-draft,
+cadence/draft, look/from-story, wizard/*, decor/*, pear-*, translate, …), and
+Phase 1's **expected-share** on RSVP cost-acknowledge.
 
 ---
 
