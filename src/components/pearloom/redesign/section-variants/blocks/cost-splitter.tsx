@@ -24,6 +24,7 @@
 import type { CSSProperties } from 'react';
 import { VariantSectionHead } from '../_section-head';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { CostSplitterLive } from './cost-splitter-live';
 
 export interface CostRowData { id?: string; label?: string; amount?: string; paidBy?: string }
 
@@ -125,7 +126,32 @@ function computeMath(manifest: BlockSectionProps['manifest'], costs: CostRowData
 
 /* ─── section ─────────────────────────────────────────────────── */
 
-export function CostSplitterSection({ manifest, pad, editable, variant, onEditCopy }: BlockSectionProps) {
+/** True when the legacy manifest.bachelor.costs list carries any
+ *  usable row — the single "is there a static display?" test, shared
+ *  by StaticCostSplitter and the live fallback so they can't drift. */
+export function hasStaticCosts(manifest: BlockSectionProps['manifest']): boolean {
+  return readCosts(manifest).some((c) => (c.label ?? '').trim() || (c.amount ?? '').trim());
+}
+
+/**
+ * The costSplitter section. Two surfaces, one honesty rule
+ * (CLAUDE-DESIGN §7 — `editable` is the ONLY gate for demo content):
+ *
+ *   • editor canvas (editable) → the STATIC demo over
+ *     manifest.bachelor.costs, unchanged. Guests never reach this.
+ *   • published site           → CostSplitterLive, which reads the
+ *     LIVE ledger (/api/split) and falls back to this same static
+ *     display when there's no ledger yet, so an existing site with
+ *     manifest.bachelor.costs and no rows renders exactly as before.
+ */
+export function CostSplitterSection(props: BlockSectionProps) {
+  if (props.editable) return <StaticCostSplitter {...props} />;
+  return <CostSplitterLive {...props} />;
+}
+
+/* ─── static display — the legacy manifest.bachelor.costs ledger ── */
+
+export function StaticCostSplitter({ manifest, pad, editable, variant, onEditCopy }: BlockSectionProps) {
   const costs = readCosts(manifest).filter((c) => (c.label ?? '').trim() || (c.amount ?? '').trim());
   const empty = costs.length === 0;
   if (empty && !editable) return null;
