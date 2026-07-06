@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { PL_AVATARS, PlAvatar } from '@/components/pearloom/avatars';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const PAPER = 'var(--pl-cream, #F5EFE2)';
@@ -100,6 +101,12 @@ export function WelcomeFlowClient({
   function advance() {
     setStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
   }
+
+  // Activation instrumentation (Pillar 20) — welcome-flow funnel
+  // beacons: one on entry, one per movement, so drop-off between
+  // steps is finally measurable. Non-blocking + SSR-guarded.
+  useEffect(() => { trackEvent('welcome_started'); }, []);
+  useEffect(() => { trackEvent('welcome_step', { step }); }, [step]);
 
   // The arrival movement breathes for a beat, then walks forward
   // on its own — it's an overture, not a gate.

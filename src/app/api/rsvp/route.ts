@@ -231,6 +231,41 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Activation instrumentation (Pillar 20): a site's FIRST
+    // attending RSVP is true activation — the two-sided loop
+    // closing. Deduped on a prior product_events row so re-submits
+    // by the same first guest don't re-fire. Fire-and-forget and
+    // fully swallowed: a telemetry miss never touches the reply.
+    // (The product_events query also fails the block CLOSED before
+    // 20260706 is applied — analytics isn't live until the table
+    // exists, which is fine.)
+    const effectiveStatus = status || 'attending';
+    if (effectiveStatus === 'attending' && !error && data) {
+      void (async () => {
+        try {
+          const { data: prior, error: priorErr } = await supabase
+            .from('product_events')
+            .select('id')
+            .eq('event', 'first_rsvp_received')
+            .eq('site_id', resolvedSiteId)
+            .limit(1);
+          if (priorErr || (prior && prior.length > 0)) return;
+          const { data: ownerRow } = await supabase
+            .from('sites')
+            .select('creator_email')
+            .eq('id', resolvedSiteId)
+            .maybeSingle();
+          const { recordProductEvent } = await import('@/lib/analytics/product-events');
+          await recordProductEvent('first_rsvp_received', {
+            email: (ownerRow as { creator_email?: string } | null)?.creator_email ?? null,
+            siteId: resolvedSiteId,
+          });
+        } catch {
+          /* telemetry only — never affects the reply */
+        }
+      })();
+    }
+
     // Song answer → the song_requests table, so RSVP-form picks
     // land in the same queue the Music dashboard and the site's
     // guest playlist read (they used to die on the guest row —

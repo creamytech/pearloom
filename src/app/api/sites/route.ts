@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { saveSiteDraft } from '@/lib/db';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isGriefExempt } from '@/lib/plan-gate';
 import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
+import { recordProductEvent } from '@/lib/analytics/product-events';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -432,6 +433,18 @@ export async function POST(req: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 409 });
+    }
+
+    // Activation instrumentation (Pillar 20). A genuine CREATE
+    // (wizard finish, create:true) is the funnel's site_created
+    // moment — autosave / unload-beacon UPDATES to this same route
+    // are not. Fire-and-forget; never blocks or fails the save.
+    if (body.create === true) {
+      void recordProductEvent('site_created', {
+        email: session.user.email,
+        siteId: subdomain,
+        props: { occasion: (manifest as { occasion?: string } | null)?.occasion ?? null },
+      });
     }
 
     // `subdomain` may differ from the requested one on a create —

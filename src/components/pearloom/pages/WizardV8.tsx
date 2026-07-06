@@ -47,6 +47,7 @@ import { draftFirstPressing, FIRST_PRESSING_ENABLED } from '@/lib/first-pressing
 import { mergeDraft } from '@/lib/first-pressing/merge';
 import { applySectionPicks, essentialSectionsFor } from '@/lib/event-os/wizard-sections';
 import { WizardSectionChooser } from './wizard-sections';
+import { trackEvent } from '@/lib/analytics/beacon';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor } from '@/lib/site-look/look-recipes';
 import { WizardStructureSection } from './wizard-structure';
@@ -2516,6 +2517,12 @@ export function WizardV8() {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
   }, [stepIndex]);
+
+  // Activation instrumentation (Pillar 20) — wizard funnel beacons:
+  // one on entry, one per step, so step-level drop-off is measurable
+  // (it lived only in localStorage before). Non-blocking + SSR-guarded.
+  useEffect(() => { trackEvent('wizard_started'); }, []);
+  useEffect(() => { trackEvent('wizard_step', { step }); }, [step]);
 
   // Enter advances the step (the Welcome flow's established house
   // pattern). Guards: only when the step's gate is satisfied, never

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { createClient } from '@supabase/supabase-js';
 import { authOptions } from '@/lib/auth';
+import { recordProductEvent } from '@/lib/analytics/product-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -127,12 +128,21 @@ export async function PATCH(req: NextRequest) {
       .select('*')
       .eq('email', email)
       .maybeSingle();
+    const alreadyOnboarded = Boolean((existing as { onboarded_at?: string | null } | null)?.onboarded_at);
     const { data, error } = await sb()
       .from('user_preferences')
       .upsert({ ...DEFAULTS, ...(existing ?? {}), ...patch, email }, { onConflict: 'email' })
       .select('*')
       .single();
     if (error) throw error;
+
+    // Activation instrumentation (Pillar 20): the welcome flow just
+    // completed. Fire once — the alreadyOnboarded guard dedupes a
+    // repeated { onboarded: true } PATCH. Fire-and-forget.
+    if (milestones.onboarded === true && !alreadyOnboarded) {
+      void recordProductEvent('welcome_completed', { email });
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     console.error('[user/preferences PATCH]', err);

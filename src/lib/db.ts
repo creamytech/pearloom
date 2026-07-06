@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient } from '@supabase/supabase-js';
+import { recordProductEvent } from '@/lib/analytics/product-events';
 import type {
   SiteConfig,
   RsvpResponse,
@@ -218,6 +219,38 @@ export async function saveSiteDraft(
   }
 }
 
+/**
+ * markSitePublished — stamp sites.published_at on the FIRST publish
+ * and fire the site_published funnel event exactly once (Pillar 20).
+ *
+ * Fully failure-tolerant: the published_at column may not exist yet
+ * on deployments where 20260706_product_events.sql hasn't been
+ * applied, so any error here is swallowed — publishing is NEVER lost
+ * to instrumentation. The `.is('published_at', null)` guard means a
+ * re-publish is a no-op (no row updated → no duplicate event), so
+ * the funnel counts first-publish only.
+ */
+async function markSitePublished(
+  supabase: ReturnType<typeof getSupabase>,
+  subdomain: string,
+  email: string,
+): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .update({ published_at: new Date().toISOString() })
+      .eq('subdomain', subdomain)
+      .is('published_at', null)
+      .select('id');
+    if (error) return; // column absent (pre-migration) or DB blip — skip.
+    if (data && data.length > 0) {
+      void recordProductEvent('site_published', { email, siteId: subdomain });
+    }
+  } catch {
+    /* instrumentation only — never block a publish */
+  }
+}
+
 export async function publishSite(
   userId: string,
   subdomain: string,
@@ -262,6 +295,9 @@ export async function publishSite(
         console.error('Publish update error:', error);
         return { success: false, error: `Database update failed: ${error.message}` };
       }
+      // Activation instrumentation (Pillar 20) — stamp published_at +
+      // fire site_published on the first publish only. Fire-and-forget.
+      await markSitePublished(supabase, subdomain, normalizedUserId);
       return { success: true };
     }
 
@@ -284,6 +320,9 @@ export async function publishSite(
       console.error('Publish insert error:', error);
       return { success: false, error: `Database insert failed: ${error.message}` };
     }
+    // Activation instrumentation (Pillar 20) — a brand-new site
+    // inserted straight to published: stamp published_at + fire once.
+    await markSitePublished(supabase, subdomain, normalizedUserId);
     return { success: true };
 
   } catch (err: unknown) {
