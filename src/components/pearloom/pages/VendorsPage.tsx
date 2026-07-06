@@ -205,6 +205,22 @@ function VendorCard({ v }: { v: Vendor }) {
       href={v.booking_url || v.website_url || '#'}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => {
+        // Record the lead the directory promised (the affiliate
+        // primitive) — fire-and-forget, keepalive so it survives the
+        // new-tab open; a failed beacon never blocks the link.
+        if (!v.booking_url && !v.website_url) return;
+        try {
+          fetch('/api/vendors/click', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ vendorId: v.id, target: v.booking_url ? 'booking' : 'website' }),
+            keepalive: true,
+          }).catch(() => {});
+        } catch {
+          /* never block the outbound link */
+        }
+      }}
       style={{
         background: 'var(--card)',
         border: '1px solid var(--card-ring)',
