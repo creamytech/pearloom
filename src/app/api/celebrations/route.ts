@@ -30,7 +30,9 @@ function getSupabase() {
 
 interface PatchBody {
   siteId?: string;                              // domain / subdomain
-  celebration?: { id?: string; name?: string } | null;
+  // `linkVisible` (Phase 5): per-link opt-out for the public weekend
+  // strip. undefined/true = shown on siblings' strips; false = hidden.
+  celebration?: { id?: string; name?: string; linkVisible?: boolean } | null;
 }
 
 export async function PATCH(req: NextRequest) {
@@ -75,7 +77,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   // Compute next celebration value.
-  let nextCelebration: { id: string; name: string } | null = null;
+  let nextCelebration: { id: string; name: string; linkVisible?: boolean } | null = null;
   if (body.celebration !== null && body.celebration !== undefined) {
     const rawName = (body.celebration.name ?? '').trim();
     if (!rawName) {
@@ -87,6 +89,14 @@ export async function PATCH(req: NextRequest) {
     const rawId = (body.celebration.id ?? '').trim();
     const id = rawId || crypto.randomUUID();
     nextCelebration = { id, name: rawName.slice(0, 80) };
+    // Preserve the per-link strip-visibility flag (Phase 5) when the
+    // caller supplies it. Default (omitted) = shown, so existing linked
+    // sites are unaffected; only an explicit `false` hides this event
+    // from siblings' public weekend strips (read by /api/celebrations/
+    // siblings, which treats linkVisible === false as hidden).
+    if (typeof body.celebration.linkVisible === 'boolean') {
+      nextCelebration.linkVisible = body.celebration.linkVisible;
+    }
   }
 
   // Patch manifest.celebration only — leave everything else untouched.

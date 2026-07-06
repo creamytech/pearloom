@@ -16,6 +16,7 @@ import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhos
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useUserSites, resolveStickySite, type SiteSummary } from './hooks';
+import { parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 
 interface CelebrationRef {
   id: string;
@@ -23,7 +24,7 @@ interface CelebrationRef {
 }
 
 interface ManifestWithCelebration {
-  celebration?: CelebrationRef;
+  celebration?: { id?: string; name?: string; linkVisible?: boolean };
 }
 
 function celebrationFromSite(site: SiteSummary): CelebrationRef | null {
@@ -31,6 +32,28 @@ function celebrationFromSite(site: SiteSummary): CelebrationRef | null {
   return m?.celebration?.id && m.celebration.name
     ? { id: m.celebration.id, name: m.celebration.name }
     : null;
+}
+
+// Per-link visibility on the public weekend strip. Default (undefined
+// or true) = shown; only an explicit `false` opts the event out. Kept
+// in sync with /api/celebrations/siblings, which hides linkVisible ===
+// false from the strip on the OTHER sites in the celebration.
+function linkVisibleFromSite(site: SiteSummary): boolean {
+  const m = site.manifest as ManifestWithCelebration | undefined;
+  return m?.celebration?.linkVisible !== false;
+}
+
+// Occasions that are private-by-default (CLAUDE-PRODUCT Q2): the
+// siblings route NEVER advertises these on a public strip regardless
+// of linkVisible, so the toggle would be a lie — show a locked state
+// instead. Mirrors SENSITIVE_OCCASIONS in the siblings route.
+const STRIP_SENSITIVE_OCCASIONS = new Set(['bachelor-party', 'bachelorette-party']);
+
+// The deduped cross-event roster returned by /api/celebrations/roster.
+interface RosterResponse {
+  events?: Array<{ subdomain: string; occasion: string; title: string; attending: number; invited: number }>;
+  totals?: { events: number; attending: number; invited: number; guests: number };
+  roster?: Array<{ firstName: string; status: 'attending' | 'pending' | 'declined'; events: string[] }>;
 }
 
 function occasionColor(o?: string): string {
@@ -65,8 +88,9 @@ export function DashConnections() {
   const [newCelebName, setNewCelebName] = useState('');
   const [linkOpen, setLinkOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
-  // Unified headcount across the focused celebration's events (Phase 5).
-  const [roster, setRoster] = useState<{ events: number; attending: number; invited: number } | null>(null);
+  // Unified headcount + deduped guest union across the focused
+  // celebration's events (Phase 5).
+  const [roster, setRoster] = useState<RosterResponse | null>(null);
 
   // Group sites by celebration id.
   const grouped = useMemo(() => {
@@ -100,8 +124,8 @@ export function DashConnections() {
     setRoster(null);
     fetch(`/api/celebrations/roster?celebrationId=${encodeURIComponent(focusCelebId)}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { ok?: boolean; totals?: { events: number; attending: number; invited: number } } | null) => {
-        if (!cancelled && d?.ok && d.totals) setRoster(d.totals);
+      .then((d: (RosterResponse & { ok?: boolean }) | null) => {
+        if (!cancelled && d?.ok) setRoster({ events: d.events, totals: d.totals, roster: d.roster });
       })
       .catch(() => { /* the headcount is a nicety */ });
     return () => { cancelled = true; };
@@ -141,6 +165,31 @@ export function DashConnections() {
     if (!name) return;
     await link(siteDomain, { id: '', name });
     setNewCelebName('');
+  }
+
+  // Flip a single linked site's public-strip visibility. Re-sends the
+  // celebration {id,name} (the PATCH route requires the name) plus the
+  // linkVisible flag it now preserves; the siblings route reads it to
+  // hide/show this event on the OTHER sites' strips.
+  async function setStripVisible(siteDomain: string, celebration: CelebrationRef, linkVisible: boolean) {
+    setSaving(siteDomain);
+    try {
+      const r = await fetch('/api/celebrations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: siteDomain,
+          celebration: { id: celebration.id, name: celebration.name, linkVisible },
+        }),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        console.error('[celebrations PATCH visible]', err);
+      }
+      await refresh();
+    } finally {
+      setSaving(null);
+    }
   }
 
   if (!loading && (!sites || sites.length === 0)) {
@@ -299,6 +348,9 @@ export function DashConnections() {
                 celebration={focusCeleb.celebration}
                 sites={focusCeleb.sites}
                 onUnlink={(siteId) => void link(siteId, null)}
+                onToggleVisible={(siteId, next) =>
+                  void setStripVisible(siteId, focusCeleb.celebration, next)
+                }
                 saving={saving}
               />
             ) : grouped.unlinked.length > 0 ? (
@@ -362,7 +414,7 @@ export function DashConnections() {
                 ? `${focusCeleb.sites.length} thread${focusCeleb.sites.length === 1 ? '' : 's'}`
                 : `${grouped.unlinked.length} site${grouped.unlinked.length === 1 ? '' : 's'} waiting`}
             </div>
-            {focusCeleb && roster && roster.invited > 0 && (
+            {focusCeleb && roster?.totals && roster.totals.invited > 0 && (
               <div
                 style={{
                   ...MONO_STYLE,
@@ -373,7 +425,7 @@ export function DashConnections() {
                   letterSpacing: '0.16em',
                 }}
               >
-                {roster.attending} attending · {roster.invited} invited across the weekend
+                {roster.totals.attending} attending · {roster.totals.invited} invited across the weekend
               </div>
             )}
             {focusCeleb && (
@@ -401,37 +453,19 @@ export function DashConnections() {
 
             {focusCeleb && (
               <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid rgba(31,36,24,0.1)' }}>
-                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 10 }}>SITES IN THIS CELEBRATION</div>
-                {focusCeleb.sites.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/editor/${s.domain}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '7px 0',
-                      textDecoration: 'none',
-                      color: PD.ink,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 99,
-                        background: occasionColor(s.occasion),
-                      }}
-                    />
-                    <div style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{siteDisplayName(s)}</div>
-                    <span style={{ fontSize: 11, opacity: 0.55, textTransform: 'capitalize' }}>
-                      {s.occasion?.replace(/-/g, ' ') ?? 'event'}
-                    </span>
-                  </Link>
-                ))}
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 12 }}>THE WEEKEND, IN ORDER</div>
+                <CelebrationTimeline sites={focusCeleb.sites} />
               </div>
             )}
           </Panel>
+
+          {/* Across the weekend — the deduped guest union (Phase 5).
+              Owner-gated to the caller's own events; first names only. */}
+          {focusCeleb && roster?.roster && roster.roster.length > 0 && (
+            <Panel bg={PD.paperCard} style={{ padding: 22 }}>
+              <RosterSection roster={roster} />
+            </Panel>
+          )}
 
           <Panel
             bg={PD.ink}
@@ -502,11 +536,13 @@ function CelebrationGraph({
   celebration,
   sites,
   onUnlink,
+  onToggleVisible,
   saving,
 }: {
   celebration: CelebrationRef;
   sites: SiteSummary[];
   onUnlink: (siteId: string) => void;
+  onToggleVisible: (siteId: string, next: boolean) => void;
   saving: string | null;
 }) {
   // Nodes on a circle around the celebration label. Positions are
@@ -599,6 +635,8 @@ function CelebrationGraph({
         const y = cy + Math.sin(angle) * radius;
         const color = occasionColor(s.occasion);
         const isSaving = saving === s.domain;
+        const visible = linkVisibleFromSite(s);
+        const sensitive = STRIP_SENSITIVE_OCCASIONS.has(s.occasion ?? '');
         return (
           <div
             key={s.id}
@@ -655,22 +693,78 @@ function CelebrationGraph({
               >
                 {siteDisplayName(s)}
               </div>
-              <button
-                disabled={isSaving}
-                onClick={() => onUnlink(s.domain)}
-                style={{
-                  fontSize: 10,
-                  padding: '3px 8px',
-                  borderRadius: 999,
-                  background: 'transparent',
-                  border: `1px solid rgba(31,36,24,0.18)`,
-                  color: PD.inkSoft,
-                  cursor: isSaving ? 'wait' : 'pointer',
-                  fontFamily: 'var(--pl-font-body)',
-                }}
-              >
-                Unlink
-              </button>
+              <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  disabled={isSaving}
+                  onClick={() => onUnlink(s.domain)}
+                  style={{
+                    fontSize: 10,
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    background: 'transparent',
+                    border: `1px solid rgba(31,36,24,0.18)`,
+                    color: PD.inkSoft,
+                    cursor: isSaving ? 'wait' : 'pointer',
+                    fontFamily: 'var(--pl-font-body)',
+                  }}
+                >
+                  Unlink
+                </button>
+                {sensitive ? (
+                  // Private-by-default occasions are never advertised on a
+                  // sibling's public strip — a working toggle would lie.
+                  <span
+                    title="Private events are never shown on the weekend strip"
+                    style={{
+                      fontSize: 10,
+                      padding: '3px 8px',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      border: `1px solid rgba(31,36,24,0.14)`,
+                      color: PD.inkSoft,
+                      fontFamily: 'var(--pl-font-body)',
+                      opacity: 0.75,
+                    }}
+                  >
+                    Private
+                  </span>
+                ) : (
+                  <button
+                    disabled={isSaving}
+                    onClick={() => onToggleVisible(s.domain, !visible)}
+                    title={
+                      visible
+                        ? 'Shown on the other sites’ weekend strip — tap to hide'
+                        : 'Hidden from the other sites’ weekend strip — tap to show'
+                    }
+                    style={{
+                      fontSize: 10,
+                      padding: '3px 8px',
+                      borderRadius: 999,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      background: visible ? PD.paperCard : 'transparent',
+                      border: `1px solid ${visible ? PD.gold : 'rgba(31,36,24,0.18)'}`,
+                      color: visible ? PD.ink : PD.inkSoft,
+                      cursor: isSaving ? 'wait' : 'pointer',
+                      fontFamily: 'var(--pl-font-body)',
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 99,
+                        background: visible ? PD.gold : PD.stone,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {visible ? 'On strip' : 'Hidden'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -871,6 +965,204 @@ function StandaloneList({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Celebration timeline (the arc) ────────────────────────────
+// The celebration's member events in DATE order — a small vertical
+// timeline down a two-strand olive+gold thread spine (BRAND §3).
+// Reader-only, built from the sites already grouped in DashConnections
+// (each SiteSummary carries eventDate from manifest.logistics.date), so
+// there's no extra fetch. Undated events sort last; the earliest still-
+// upcoming event wears a gold "up next" bead — the arc grows over time.
+function CelebrationTimeline({ sites }: { sites: SiteSummary[] }) {
+  // Lazy init — never a render-time Date.now() (React Compiler).
+  const [nowMs] = useState(() => Date.now());
+
+  const rows = useMemo(
+    () =>
+      sites
+        .map((s) => {
+          const d = parseLocalDate(s.eventDate);
+          return { site: s, ms: d ? d.getTime() : null };
+        })
+        .sort((a, b) => {
+          if (a.ms == null && b.ms == null) return 0;
+          if (a.ms == null) return 1; // undated last
+          if (b.ms == null) return -1;
+          return a.ms - b.ms;
+        }),
+    [sites],
+  );
+
+  // Today's local midnight, so an event happening TODAY still reads as
+  // upcoming. Derived from the stable lazy nowMs, not a live clock.
+  const todayStart = new Date(nowMs);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayMs = todayStart.getTime();
+  const nextIdx = rows.findIndex((r) => r.ms != null && r.ms >= todayMs);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {rows.map((r, i) => {
+        const s = r.site;
+        const color = occasionColor(s.occasion);
+        const isFirst = i === 0;
+        const isLast = i === rows.length - 1;
+        const isNext = i === nextIdx;
+        const past = r.ms != null && r.ms < todayMs;
+        const dateLabel =
+          r.ms != null
+            ? formatLocalDate(s.eventDate, { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Date to come';
+        return (
+          <Link
+            key={s.id}
+            href={`/editor/${s.domain}`}
+            style={{
+              display: 'flex',
+              gap: 12,
+              textDecoration: 'none',
+              color: PD.ink,
+              padding: '7px 0',
+              alignItems: 'stretch',
+            }}
+          >
+            {/* Two-strand thread spine (olive + gold) with the node bead */}
+            <div style={{ position: 'relative', width: 16, flexShrink: 0 }}>
+              <span
+                aria-hidden
+                style={{ position: 'absolute', left: 6, top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0, width: 1, background: PD.olive, opacity: 0.5 }}
+              />
+              <span
+                aria-hidden
+                style={{ position: 'absolute', left: 8, top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0, width: 1, background: PD.gold, opacity: 0.6 }}
+              />
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  left: 2,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 11,
+                  height: 11,
+                  borderRadius: 99,
+                  background: isNext ? PD.gold : color,
+                  border: `2px solid ${PD.paperCard}`,
+                  boxShadow: isNext ? `0 0 0 3px color-mix(in oklab, ${PD.gold} 30%, transparent)` : 'none',
+                  opacity: past ? 0.55 : 1,
+                }}
+              />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.25 }}>{siteDisplayName(s)}</span>
+                {isNext && (
+                  <span style={{ ...MONO_STYLE, fontSize: 8, color: PD.gold, letterSpacing: '0.18em' }}>UP NEXT</span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: PD.inkSoft, marginTop: 1 }}>
+                <span style={{ textTransform: 'capitalize' }}>{s.occasion?.replace(/-/g, ' ') ?? 'event'}</span>
+                {' · '}
+                <span style={{ opacity: r.ms != null ? 1 : 0.7 }}>{dateLabel}</span>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Across the weekend (shared roster) ────────────────────────
+// The deduped guest union across the caller's OWN events in the
+// celebration (privacy: never another host's guests; the API returns
+// first names only). Shows who's on which events + their overall
+// status — the read-only half of "enter guests once, don't drift".
+// Write-back ("add this person to those other events") is the heavier
+// follow-up and is deliberately NOT here.
+function RosterSection({ roster }: { roster: RosterResponse }) {
+  const guests = roster.roster ?? [];
+  const eventMeta = useMemo(() => {
+    const map: Record<string, { title: string; occasion: string }> = {};
+    for (const e of roster.events ?? []) map[e.subdomain] = { title: e.title, occasion: e.occasion };
+    return map;
+  }, [roster.events]);
+
+  const CAP = 60;
+  const shown = guests.slice(0, CAP);
+  const overflow = guests.length - shown.length;
+  const total = roster.totals?.guests ?? guests.length;
+
+  const statusMeta: Record<'attending' | 'pending' | 'declined', { label: string; color: string }> = {
+    attending: { label: 'Coming', color: PD.olive },
+    pending: { label: 'Pending', color: PD.gold },
+    declined: { label: 'Regrets', color: PD.stone },
+  };
+
+  return (
+    <div>
+      <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 4 }}>ACROSS THE WEEKEND</div>
+      <div style={{ ...DISPLAY_STYLE, fontSize: 18, fontWeight: 500, marginBottom: 12 }}>
+        {total} {total === 1 ? 'guest' : 'guests'}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9, maxHeight: 320, overflowY: 'auto' }}>
+        {shown.map((g, i) => {
+          const sm = statusMeta[g.status] ?? statusMeta.pending;
+          return (
+            <div key={`${g.firstName}-${i}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span
+                aria-hidden
+                title={sm.label}
+                style={{ width: 7, height: 7, borderRadius: 99, background: sm.color, marginTop: 6, flexShrink: 0 }}
+              />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{g.firstName}</span>
+                  <span style={{ fontSize: 10, color: sm.color, fontWeight: 600 }}>{sm.label}</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
+                  {g.events.map((sub) => {
+                    const meta = eventMeta[sub];
+                    return (
+                      <span
+                        key={sub}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 10,
+                          padding: '2px 7px',
+                          borderRadius: 999,
+                          background: PD.paper2,
+                          border: '1px solid rgba(31,36,24,0.08)',
+                          color: PD.inkSoft,
+                          maxWidth: 150,
+                        }}
+                      >
+                        <span
+                          aria-hidden
+                          style={{ width: 5, height: 5, borderRadius: 99, background: occasionColor(meta?.occasion), flexShrink: 0 }}
+                        />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {meta?.title ?? sub}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {overflow > 0 && (
+        <div style={{ fontSize: 11, color: PD.inkSoft, marginTop: 10, opacity: 0.8 }}>
+          + {overflow} more across the weekend
+        </div>
+      )}
     </div>
   );
 }
