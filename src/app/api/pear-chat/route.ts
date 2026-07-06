@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { ownerEmailOf } from '@/lib/cohost-access';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, budgetKey } from '@/lib/ai-budget';
 import { condensedFaqForPrompt } from '@/lib/help-faq';
 import {
   summarizeVendorBook,
@@ -517,6 +518,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'manifest, coupleNames, and prompt are required' }, { status: 400 });
   }
 
+  // Resolve the caller once — account email when authenticated (host
+  // editor), else null (anonymous guest concierge). Used for BOTH
+  // the daily budget key AND the owner-gated stats block below.
+  const session = await getServerSession(authOptions);
+  const sessionEmail = session?.user?.email?.toLowerCase().trim() || null;
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email for hosts, by IP for anonymous guests — so guest-concierge
+  // abuse is bounded too. Fails open; only blocks on a confirmed
+  // over-budget read.
+  const budget = budgetKey(sessionEmail, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const summary = summariseManifest(body.manifest, body.coupleNames);
   const history = (body.history ?? []).slice(-6);
 
@@ -528,10 +547,8 @@ export async function POST(req: NextRequest) {
   // non-owner is treated as the public/guest concierge and answers
   // only from the manifest the client already sent. Cached 30s.
   let statsBlock = '';
-  if (body.siteSlug) {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email?.toLowerCase().trim();
-    if (email && (await callerOwnsSite(body.siteSlug, email))) {
+  if (body.siteSlug && sessionEmail) {
+    if (await callerOwnsSite(body.siteSlug, sessionEmail)) {
       const stats = await fetchActivityStats(body.siteSlug).catch(() => null);
       if (stats) statsBlock = '\n\n' + summariseStats(stats);
     }
@@ -568,16 +585,41 @@ export async function POST(req: NextRequest) {
   // patches); host mode is the full editor experience.
   const systemPrompt = body.mode === 'guest' ? SYSTEM_GUEST : SYSTEM;
 
+  // Estimate this turn's cost for the daily budget. Streaming makes
+  // the real token count awkward to capture, so charge a
+  // conservative estimate (full manifest summary in + max output)
+  // once we commit to the model call. ~4 chars/token.
+  const maxOut = body.mode === 'guest' ? 512 : 1024;
+  const inputChars =
+    summary.length +
+    statsBlock.length +
+    contextLine.length +
+    (body.prompt?.length ?? 0) +
+    history.reduce((n, m) => n + (m.content?.length ?? 0), 0);
+  const inputTokens = Math.ceil(inputChars / 4);
+
   /* Provider choice — Sonnet for editorial quality when
      ANTHROPIC_API_KEY is set, Gemini Flash as fallback. The
      audit-recommended path: Sonnet 4.6 reads as much more
      "Pear" than Gemini Flash for the concierge surface. */
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (anthropicKey) {
+    // Charge the estimated Sonnet cost before streaming (fire-and-
+    // forget) — a client that opens streams and aborts still accrues.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: 'claude-sonnet-4-6',
+        inputTokens,
+        outputTokens: maxOut,
+        ms: 0,
+      })
+    );
     return streamFromAnthropic({
       systemPrompt,
       contents,
-      maxTokens: body.mode === 'guest' ? 512 : 1024,
+      maxTokens: maxOut,
     });
   }
 
@@ -601,6 +643,18 @@ export async function POST(req: NextRequest) {
     const err = await upstream.text().catch(() => 'Pear is asleep');
     return NextResponse.json({ error: `Pear couldn't think (${upstream.status}): ${err.slice(0, 200)}` }, { status: 502 });
   }
+
+  // Model call is live — charge the estimated Gemini Flash cost.
+  void chargeAi(
+    budget,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.5-flash',
+      inputTokens,
+      outputTokens: maxOut,
+      ms: 0,
+    })
+  );
 
   // Re-emit as our own SSE — `data: { delta: "<token>" }` for each
   // chunk, `data: { done: true }` at the end. The client can

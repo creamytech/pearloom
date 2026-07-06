@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,16 @@ export async function POST(req: NextRequest) {
   if (!rateCheck.allowed) {
     return NextResponse.json(
       { error: 'Rate limit exceeded. Please wait before generating more FAQs.' },
+      { status: 429 }
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
       { status: 429 }
     );
   }
@@ -149,6 +160,17 @@ Categories to use: "logistics", "dress-code", "travel", "gifts", "ceremony", "ge
     let parsed: unknown;
     try {
       const raw = await callGemini(fullPrompt, apiKey);
+      // Charge the estimated cost once the model call succeeded.
+      void chargeAi(
+        budget,
+        centsForUsage({
+          provider: 'gemini',
+          model: 'gemini-3.1-flash-lite-preview',
+          inputTokens: approxTokens(fullPrompt),
+          outputTokens: approxTokens(raw),
+          ms: 0,
+        })
+      );
       parsed = JSON.parse(raw);
     } catch {
       console.warn('[ai-faq] Gemini parse failed, using fallback');

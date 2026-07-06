@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,16 @@ export async function POST(req: NextRequest) {
   if (!rateCheck.allowed) {
     return NextResponse.json(
       { error: 'Rate limit exceeded. Please wait before requesting more rewrites.' },
+      { status: 429 }
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Fails open — only
+  // blocks on a confirmed over-budget read. Keyed by account email.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
       { status: 429 }
     );
   }
@@ -190,6 +201,18 @@ Rules:
     if (!cleaned) {
       return NextResponse.json({ error: 'Rewrite generation failed' }, { status: 500 });
     }
+
+    // Charge the estimated cost to today's budget (fire-and-forget).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'gemini',
+        model: 'gemini-3.1-flash-lite-preview',
+        inputTokens: approxTokens(prompt),
+        outputTokens: approxTokens(cleaned),
+        ms: 0,
+      })
+    );
 
     // Return every alias so either contract's clients read successfully.
     return NextResponse.json({

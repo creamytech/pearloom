@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
@@ -93,6 +94,16 @@ export async function POST(req: NextRequest) {
       ].filter(Boolean)
     : [];
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, getClientIp(req));
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     // Graceful degrade — return the original text so the UI still
@@ -106,7 +117,6 @@ export async function POST(req: NextRequest) {
        fetch this replaced bypassed model-id central management
        — when client.ts bumps Haiku, this endpoint stays in sync. */
     const { generate, textFrom, cached, CLAUDE_HAIKU } = await import('@/lib/claude/client');
-    void CLAUDE_HAIKU; // model id is read via tier alias below
     const msg = await generate({
       tier: 'haiku',
       /* Static system prompt → wrapped in cached() so every
@@ -137,6 +147,22 @@ export async function POST(req: NextRequest) {
     });
     const rewritten = textFrom(msg).trim();
     if (!rewritten) return NextResponse.json({ rewritten: text });
+
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(`${text}${instruction}`),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(rewritten),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
+
     return NextResponse.json({ rewritten });
   } catch (err) {
     console.warn('[inline-rewrite] claude error:', err instanceof Error ? err.message : err);
