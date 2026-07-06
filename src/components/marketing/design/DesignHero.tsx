@@ -6,8 +6,9 @@
 // Full-bleed photographic hero with an occasion switcher. Five
 // occasions crossfade a per-occasion photograph (ken-burns) behind a
 // warm scrim + fine grain; each re-keys the headline and the letter-
-// press invitation card. The name input drives the card live. A
-// Daylight / Midnight pill flips the global theme for the page below.
+// press invitation card. The name input drives the card live. The
+// headline + subhead reserve a fixed height (em-based min-heights) so
+// the occasion rotation never reflows the hero.
 // (Photos are Unsplash placeholders per the design handoff — swap for
 // licensed assets before launch.)
 // ─────────────────────────────────────────────────────────────
@@ -16,7 +17,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Thread } from '@/components/brand/Thread';
 import { Sprig } from '@/components/pearloom/motifs';
-import { useTheme } from '@/components/shell/ThemeProvider';
 import { Pearl, PLButton } from './DesignAtoms';
 import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, U, parseNames, type OccasionKey } from './landing-data';
 
@@ -39,7 +39,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
   const p = parseNames(names);
   const [step, setStep] = useState(0);
   const [paused, setPaused] = useState(false);
-  const { theme, setPreference } = useTheme();
   const typedRef = useRef(false);
 
   useEffect(() => {
@@ -86,15 +85,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
       </div>
       <div className="pd-hero-scrim" aria-hidden />
       <div className="pd-hero-grain" aria-hidden />
-
-      <div className="pd-hero-mood" role="group" aria-label="Theme">
-        <button className={theme === 'light' ? 'on' : ''} onClick={() => setPreference('light')}>
-          Daylight
-        </button>
-        <button className={theme === 'dark' ? 'on' : ''} onClick={() => setPreference('dark')}>
-          Midnight
-        </button>
-      </div>
 
       <span className="pd-float f0" aria-hidden>
         <Sprig size={54} color="rgba(240,201,168,0.85)" />
@@ -244,6 +234,10 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         .pd-hero {
           position: relative;
           min-height: 100vh;
+          /* svh = the small viewport (address bar shown) — the hero
+             stays a fixed height as the mobile bar collapses/expands
+             instead of resizing under the reader (a real scroll jump). */
+          min-height: 100svh;
           overflow: hidden;
           isolation: isolate;
           display: flex;
@@ -292,38 +286,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           background-size: 180px;
           opacity: 0.12;
           pointer-events: none;
-        }
-        .pd-hero-mood {
-          position: absolute;
-          top: 84px;
-          right: clamp(20px, 4vw, 48px);
-          z-index: 7;
-          display: inline-flex;
-          gap: 3px;
-          padding: 4px;
-          border-radius: 999px;
-          background: rgba(20, 16, 10, 0.42);
-          border: 1px solid rgba(253, 250, 240, 0.22);
-          -webkit-backdrop-filter: blur(12px);
-          backdrop-filter: blur(12px);
-        }
-        .pd-hero-mood button {
-          border: none;
-          background: transparent;
-          color: rgba(253, 250, 240, 0.8);
-          font-family: var(--pl-font-mono);
-          font-size: 9.5px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          padding: 6px 13px;
-          border-radius: 999px;
-          cursor: pointer;
-          transition: all 0.16s ease;
-        }
-        .pd-hero-mood button.on {
-          background: ${CREAM};
-          color: #14110c;
-          font-weight: 600;
         }
         .pd-float {
           position: absolute;
@@ -457,6 +419,12 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           margin: 20px 0 0;
           color: ${CREAM};
           text-shadow: 0 2px 26px rgba(11, 9, 6, 0.55), 0 1px 2px rgba(11, 9, 6, 0.4);
+          /* Reserve height for the longest headline (em-based, so it
+             scales with the clamp) so the height doesn't change as
+             occasions rotate — the hero stays put instead of reflowing
+             every ~5s. On desktop the copy column sits beside the taller
+             stationery card, so any slack here is absorbed by the row. */
+          min-height: 2.94em;
         }
         .pd-hero-h1 :global(em) {
           font-style: italic;
@@ -470,6 +438,9 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           text-shadow: 0 1px 14px rgba(11, 9, 6, 0.6);
           max-width: 500px;
           font-family: var(--pl-font-body);
+          /* Reserve three lines so the subhead height is constant across
+             occasions (they run 2–3 lines) — no reflow on rotation. */
+          min-height: 4.86em;
         }
         .pd-hero-form {
           display: flex;
@@ -790,10 +761,15 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           .pd-hero-h1 {
             font-size: clamp(34px, 9vw, 46px);
             overflow-wrap: break-word;
+            /* Narrower column → the longest headline wraps to 3 lines;
+               reserve them so rotation never reflows the mobile hero. */
+            min-height: 2.94em;
           }
           .pd-hero-sub {
             font-size: 15.5px;
             max-width: 100%;
+            /* The longest subhead runs ~5 lines at this width. */
+            min-height: 8.1em;
           }
           .pd-hero-form {
             max-width: 100%;
