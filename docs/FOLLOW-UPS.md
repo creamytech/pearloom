@@ -26,23 +26,29 @@ all migrations applied to prod):
 - **Phase 6.** Chip-in group gifting confirmed already complete end-to-end;
   sibling-strip privacy leak closed (§G item — bachelor/ette never advertised).
 
-**Extended further** (commits through `2d8094be`):
-- **Phase 5 STARTED + live**: the `celebrations` table (first-class, backfilled in
-  prod — 2 celebrations, 6 sites) + `sites.celebration_id` FK + `syncCelebration`
-  maintenance on `PATCH /api/celebrations`, and the first reader — a **unified
-  headcount across a celebration's events** on `/dashboard/connections`.
-- **Track B — AI dollar caps DONE**: `ai_spend` per-account daily counter +
-  `overBudget` gate (fail-open) wired into the 5 top AI routes; applied to prod,
-  advisor-clean (RPC execute revoked from anon/authenticated).
+**GRAND-PLAN executed end-to-end** (commits through `~1d3b497f`, all on `main`,
+11 migrations applied to prod, full suite 1213/1213): the rest of the plan
+landed — **AI dollar caps across ~40 routes**; **Phase 3 Team & assignable
+tasks**; **Phase 4** the friend graph + add-friend-to-event; **Phase 5 depth**
+(strip-visibility toggle, celebration timeline, deduped shared roster); and the
+**translation layer surfaced** (guest switcher + host action). See
+CLAUDE-PRODUCT §10 (2026-07-06) for the full ledger.
 
-**Still open:** Phase 5 DEPTH (shared roster / enter-guests-once, budget→celebration
-scope, timeline/arc, per-link opt-in toggle), **Phase 4** (friend graph — base
-exists; add-friend-to-event), **Phase 3** People/Plan hubs + Team & tasks,
-**premium gating** (§D, needs the monetization decision), and the **translation
-layer** (§E, investigative). Plus: wire the AI cap into the **~35 remaining AI
-routes** (one-liner each now the gate exists — ai-blocks, ai-chat, story-draft,
-cadence/draft, look/from-story, wizard/*, decor/*, pear-*, translate, …), and
-Phase 1's **expected-share** on RSVP cost-acknowledge.
+**What genuinely remains** (small or blocked — none is a plan phase left undone):
+- 👤 **Premium tiers** — BLOCKED on the monetization-model decision (§8 Q3):
+  `requirePlan` has no callers and the sold capabilities (customDomain, co-hosts,
+  linked celebrations) have no features behind them yet, so there's nothing to
+  gate until the model is chosen. Not code we can write for you.
+- **Phase 5 shared-roster WRITE-BACK** — the union is surfaced read-only; "add
+  this person to these other events" (inserting guest rows on sibling sites) is
+  the deliberate heavier follow-up.
+- **Phase 1 expected-share** — RSVP cost-acknowledge creates the participant;
+  pre-creating an expected share needs a target expense (noted in the RSVP hook).
+- ⚙️ **`applyLocale` FAQ bug** — it reads `manifest.faq` but the field is
+  `manifest.faqs`, so FAQ translations never render; the host translate action
+  skips FAQ for now. One-line fix in `src/lib/i18n/apply-locale.ts` + re-add FAQ
+  to the SharePanel translate call.
+- The §F testing hardening + §G/§H long-tail below stand as before.
 
 ---
 

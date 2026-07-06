@@ -2,7 +2,7 @@
 
 > **BRAND.md declares *why we exist*. CLAUDE-DESIGN.md documents *what's in the code*. This file documents *what the product does, what it doesn't, and what we're building next*.**
 >
-> Last updated: **2026-06-12**.
+> Last updated: **2026-07-06** (GRAND-PLAN executed end-to-end — see §10).
 
 **Renderer contract (as of 2026-06-12):** `src/components/pearloom/redesign/ThemedSite.tsx` is THE renderer — one component for both the editor canvas (via `EditorRedesign`) and published sites (via `PublishedSiteShell`); the `editable` prop is the only difference. There is no dispatch, no fallback, no legacy path. Its predecessors (`ThemedSiteRenderer`, `SiteV8Renderer`, the V1 tree) are all deleted — see CLAUDE-DESIGN.md §15 (deleted-architecture ledger).
 
@@ -443,6 +443,58 @@ How we actually ship this over many sessions without re-explaining every time.
 ---
 
 ## 10 · Changelog
+
+### 2026-07-06 — GRAND-PLAN executed end-to-end (docs/GRAND-PLAN.md, 20 pillars → shipped)
+
+The 20-pillar GRAND-PLAN driven to completion across all tracks — ~34
+commits on `main`, 11 migrations applied to prod (advisor-clean), full
+suite 1213/1213. What shipped:
+
+- **Track A (launch gates):** pear-chat private-money leak gated on
+  server-side ownership; seating-lookup injection hardened; email trio
+  (real one-click `/unsubscribe`, Svix webhook signature, send-time
+  suppression); a CI workflow so the test suite gates every PR.
+- **Track B (turn-it-on):** anniversary + weekly-digest crons scheduled;
+  the photo layer unified so `guest_photos` reach the memory book /
+  recap / day-after email; the `creator_email` index fix + a fail-open
+  plan-gate bug; a11y (gold-text contrast, reduced-motion, focus traps);
+  activation instrumentation (`product_events` + `activation_funnel`
+  view + `sites.published_at`); `next/image` + resize-on-upload; the
+  vendor booking-click affiliate primitive; **per-account AI dollar
+  caps** (`ai_spend` + a fail-open gate across ~40 AI routes); and the
+  **translation layer surfaced** (guest language switcher + host
+  "offer in <language>" action over the existing i18n plumbing).
+- **Phase 0 — Money Spine:** `budget_lines` + rollup math +
+  `/dashboard/budget` + a real vendor→budget FK + cockpit door.
+- **Phase 1 — the Keystone (collaborative split), live end-to-end:**
+  `participants`/`expenses`/`expense_shares` + settle-up math, the
+  `/api/split/*` API, the published costSplitter graduated to a live
+  guest-editable ledger with P2P settle-up deep-links, RSVP→participant
+  seeding, and the new-expense notification bell.
+- **Phase 2 — journey free-flow:** guest→host CTA on every passport;
+  the "just looking" intent → the live `/demo`; the finish-time 401
+  dead-end caught (state preserved, `?next` forwarded through
+  `/welcome`); Vibe + Palette made non-blocking.
+- **Phase 3:** the Money hub (Budget surfaced in nav) + **Team &
+  assignable tasks** (`event_tasks` + a role-gated board on the Plan
+  hub).
+- **Phase 4 — the Social layer:** a light, privacy-first friend graph
+  (`friendships`, mutual-consent, first-names-only) on the event-graph
+  base + "add a friend to an event" as a split participant.
+- **Phase 5 — the Celebration Model:** first-class `celebrations` table
+  (backfilled) + FK + sync; unified cross-event headcount; the per-link
+  strip-visibility toggle; a celebration timeline; and a deduped shared
+  roster ("everyone across the weekend").
+- **Phase 6:** confirmed chip-in group gifting already complete;
+  closed the sibling-strip privacy leak (bachelor/ette never advertised).
+
+Deliberately deferred (tracked in `docs/FOLLOW-UPS.md`): **premium
+tiers** (blocked on the monetization-model decision — §8 Q3; `requirePlan`
+has no callers and the sold capabilities have no features yet), the
+Phase-5 shared-roster *write-back*, Phase-1 expected-share, and a latent
+`applyLocale` bug (reads `manifest.faq`; the field is `manifest.faqs`).
+Still needs the human: email SPF/DKIM/DMARC DNS + the free-tier-limit
+enforcement sign-off.
 
 ### 2026-07-04 — Wizard Sections step, three waves (docs/WIZARD-SECTIONS-PLAN.md executed in full)
 
