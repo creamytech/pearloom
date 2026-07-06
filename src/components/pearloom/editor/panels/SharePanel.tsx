@@ -16,6 +16,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
+import { availableLocales } from '@/lib/i18n/apply-locale';
+import { TRANSLATABLE_LOCALES, localeEnglishName } from '@/lib/i18n/locales';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
@@ -472,6 +475,16 @@ export function SharePanel({
               } as unknown as StoryManifest);
             }}
           />
+        </FGroup>
+
+        {/* Languages — offer the whole site in another language. Pear
+            translates the story + details; guests pick their language
+            from a switcher on the published site. */}
+        <FGroup
+          label="Languages"
+          hint="Offer your site in another language. Pear translates your story and details; guests switch languages from a small menu on the site. Names and places stay as you wrote them."
+        >
+          <LanguagesSection manifest={manifest} onChange={onChange} />
         </FGroup>
 
         {/* Bulk invite handoff. */}
@@ -1050,6 +1063,202 @@ function ArrivalPicker({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/* ─── LanguagesSection — the host's "offer this site in another
+   language" control. Chapters go through /api/translate's chapter
+   mode; the hero lines + event details go through its segment mode.
+   The merged result is written to manifest.translations[locale] and
+   persisted through the panel's normal onChange (autosave) path —
+   no bespoke endpoint. Guests then get the on-site switcher.
+   ───────────────────────────────────────────────────────────── */
+type LocaleEntry = NonNullable<StoryManifest['translations']>[string];
+
+const POETRY_KEYS = ['heroTagline', 'closingLine', 'rsvpIntro', 'welcomeStatement'] as const;
+
+function LanguagesSection({
+  manifest, onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const liveSet = new Set(availableLocales(manifest).filter((l) => l && l !== 'en'));
+  // Every offerable language, plus any already-live locale that isn't
+  // in the standard set (so a host can still remove an older one).
+  const codes = [
+    ...TRANSLATABLE_LOCALES.map((l) => l.code),
+    ...[...liveSet].filter((c) => !TRANSLATABLE_LOCALES.some((l) => l.code === c)),
+  ];
+
+  async function offer(locale: string) {
+    if (busy) return;
+    setBusy(locale);
+    setError(null);
+    try {
+      const chapters = manifest.chapters ?? [];
+      const names = manifest.names ?? ['', ''];
+      const entry: LocaleEntry = { updatedAt: new Date().toISOString() };
+
+      // Chapters — the route's chapter mode (auth-gated; the host is).
+      if (chapters.length > 0) {
+        const res = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chapters,
+            targetLocale: locale,
+            coupleNames: [names[0] ?? '', names[1] ?? ''],
+          }),
+        });
+        const j = await res.json().catch(() => ({} as { error?: string; translations?: unknown }));
+        if (!res.ok) throw new Error((j as { error?: string }).error || 'Translation failed — try again');
+        const tr = Array.isArray((j as { translations?: unknown }).translations)
+          ? (j as { translations: Array<{ title?: string; subtitle?: string; description?: string }> }).translations
+          : [];
+        entry.chapters = chapters.map((c, i) => ({
+          id: c.id,
+          title: tr[i]?.title,
+          subtitle: tr[i]?.subtitle,
+          description: tr[i]?.description,
+        }));
+      }
+
+      // Hero lines + event names/descriptions — the route's segment
+      // mode. Best-effort: if it fails, we still keep the chapters.
+      const plan: Array<{ t: 'poetry'; k: (typeof POETRY_KEYS)[number] } | { t: 'evName' | 'evDesc'; i: number }> = [];
+      const segs: string[] = [];
+      const poetry = (manifest.poetry ?? {}) as Record<string, unknown>;
+      for (const k of POETRY_KEYS) {
+        const v = poetry[k];
+        if (typeof v === 'string' && v.trim()) { plan.push({ t: 'poetry', k }); segs.push(v); }
+      }
+      const events = manifest.events ?? [];
+      events.forEach((e, i) => {
+        if (e.name && e.name.trim()) { plan.push({ t: 'evName', i }); segs.push(e.name); }
+        if (e.description && e.description.trim()) { plan.push({ t: 'evDesc', i }); segs.push(e.description); }
+      });
+      if (segs.length > 0) {
+        try {
+          const res2 = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ segments: segs, targetLocale: locale }),
+          });
+          const j2 = await res2.json().catch(() => ({} as { segments?: unknown }));
+          const out = (j2 as { segments?: unknown }).segments;
+          if (res2.ok && Array.isArray(out) && out.length === segs.length) {
+            const poetryTr: NonNullable<LocaleEntry['poetry']> = {};
+            const eventsTr: NonNullable<LocaleEntry['events']> = events.map((e) => ({ id: e.id }));
+            plan.forEach((p, idx) => {
+              const val = String(out[idx] ?? '');
+              if (!val) return;
+              if (p.t === 'poetry') poetryTr[p.k] = val;
+              else if (p.t === 'evName') eventsTr[p.i].name = val;
+              else eventsTr[p.i].description = val;
+            });
+            if (Object.keys(poetryTr).length > 0) entry.poetry = poetryTr;
+            if (eventsTr.some((e) => e.name || e.description)) entry.events = eventsTr;
+          }
+        } catch { /* hero/details are a bonus; chapters carry the site */ }
+      }
+
+      if (!entry.chapters?.length && !entry.poetry && !entry.events) {
+        throw new Error('Add your story or schedule first — there’s nothing to translate yet.');
+      }
+
+      onChange({
+        ...(manifest as unknown as Record<string, unknown>),
+        translations: { ...(manifest.translations ?? {}), [locale]: entry },
+      } as unknown as StoryManifest);
+    } catch (e) {
+      setError(pearErrorMessage(e, 'Translation failed — try again'));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function remove(locale: string) {
+    const nextTr: Record<string, LocaleEntry> = { ...(manifest.translations ?? {}) };
+    delete nextTr[locale];
+    const patch: Record<string, unknown> = {
+      ...(manifest as unknown as Record<string, unknown>),
+      translations: nextTr,
+    };
+    // If the removed language was the site's default, fall back to English.
+    if (manifest.activeLocale === locale) patch.activeLocale = undefined;
+    onChange(patch as unknown as StoryManifest);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {codes.map((code) => {
+        const live = liveSet.has(code);
+        const working = busy === code;
+        return (
+          <div
+            key={code}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 10px', borderRadius: 10,
+              background: 'var(--cream-2)',
+              border: `1px solid ${live ? 'rgba(92,107,63,0.28)' : 'var(--line)'}`,
+            }}
+          >
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+              {localeEnglishName(code)}
+            </span>
+            {live ? (
+              <>
+                <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--sage-deep)' }}>
+                  ✓ Live
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(code)}
+                  disabled={working}
+                  style={{
+                    border: 'none', background: 'transparent', color: 'var(--ink-muted)',
+                    fontSize: 11, fontWeight: 600, cursor: working ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit', flexShrink: 0,
+                  }}
+                >
+                  Remove
+                </button>
+              </>
+            ) : working ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
+                <WeaveLoader size="xs" inline color="var(--ink-soft)" color2="var(--peach-ink)" ariaLabel="Threading" />
+                Threading…
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => offer(code)}
+                disabled={!!busy}
+                style={{
+                  padding: '5px 12px', borderRadius: 999,
+                  background: 'transparent', border: '1px solid var(--line)',
+                  fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)',
+                  cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.5 : 1,
+                  fontFamily: 'inherit', flexShrink: 0,
+                }}
+              >
+                Offer in {localeEnglishName(code)}
+              </button>
+            )}
+          </div>
+        );
+      })}
+      {error && (
+        <div style={{ fontSize: 11, color: 'var(--plum-ink, #A14A2C)', lineHeight: 1.4, padding: '2px 2px' }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

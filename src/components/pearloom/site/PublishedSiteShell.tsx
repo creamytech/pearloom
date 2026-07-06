@@ -33,6 +33,7 @@ import { LazyArrivalReveal } from '@/components/pearloom/site/LazyArrivalReveal'
 import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
 import { LazySiteToast } from '@/components/pearloom/site/LazySiteToast';
 import { StoreFonts } from '@/lib/theme-store/fonts';
+import { GuestLanguageSwitcher } from '@/components/pearloom/site/GuestLanguageSwitcher';
 import { getTheme } from '@/components/pearloom/site/themes';
 import { LivingBackground } from '@/components/pearloom/site/LivingBackground';
 import { trackGuestFunnel } from '@/lib/guest-track';
@@ -192,6 +193,15 @@ export function PublishedSiteShell(props: Props) {
           GuestCrashFallback boundary. */}
       <ErrorBoundary fallback={<></>}>
         <LazyStickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
+      </ErrorBoundary>
+      {/* On-site language switcher — only renders when the host has
+          published ≥1 non-English translation (availableLocales).
+          Sibling of ThemedSite's root, so it takes the resolved theme
+          bag rather than inheriting the site's --t-* vars. A broken
+          switcher must never take the site down, hence its own
+          empty-fragment boundary. */}
+      <ErrorBoundary fallback={<></>}>
+        <GuestLanguageSwitcher manifest={hydrated} theme={themeBag} />
       </ErrorBoundary>
       <AnalyticsBeacon siteId={props.siteSlug} />
       <ErrorBoundary fallback={<></>}>
