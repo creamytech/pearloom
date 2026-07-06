@@ -29,8 +29,9 @@
    working "look up by name" flow because we accept any name + email.
    ========================================================================= */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { trackGuestFunnel } from '@/lib/guest-track';
+import { useFocusTrap } from '@/lib/use-focus-trap';
 import type { StoryManifest } from '@/types';
 import { getEventType, type RsvpPreset } from '@/lib/event-os/event-types';
 import { RsvpCeremony } from './RsvpCeremony';
@@ -155,6 +156,12 @@ function inputStyle(): React.CSSProperties {
 
 export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const [open, setOpen] = useState(false);
+  /* Focus trap: keep Tab inside the dialog while open, and restore
+     focus to whatever opened it (the RSVP CTA) on close. autoFocus on
+     the name input still wins the first focus — the hook only seeds
+     focus when nothing inside is already focused. Escape-to-close stays
+     in its own effect below. */
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   /* Two-state mount so close eases out — the modal used to animate
      in over 240ms and vanish in one frame. `render` keeps it mounted
      through the exit; `vis` drives the transitions. The immediate
@@ -391,6 +398,8 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     };
   }, [open]);
 
+  useFocusTrap(open, dialogRef);
+
   /* anyYes derives from the per-guest response map. Declared BEFORE
      the early-return guard so the hook order stays stable on every
      render (the modal mounts hidden until the open event fires, so
@@ -577,6 +586,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="RSVP"

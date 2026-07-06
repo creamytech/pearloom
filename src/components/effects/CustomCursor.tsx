@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from 'framer-motion';
 
 type CursorShape = 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
 
@@ -86,8 +87,14 @@ export function CustomCursor({ shape, accentColor = '#5C6B3F' }: CustomCursorPro
   const [visible, setVisible] = useState(false);
   const [clicking, setClicking] = useState(false);
 
+  // BRAND §6 / WCAG 2.3.3 — the trailing lag is a full-page motion effect.
+  // Under prefers-reduced-motion we skip it entirely and leave the native
+  // OS cursor in place (never hide it, never run the rAF lerp loop).
+  const reduced = useReducedMotion();
+
   useEffect(() => {
     if (shape === 'none') return;
+    if (reduced) return;
 
     // Only activate on fine pointer (non-touch) devices
     if (!window.matchMedia('(pointer: fine)').matches) return;
@@ -145,9 +152,9 @@ export function CustomCursor({ shape, accentColor = '#5C6B3F' }: CustomCursorPro
       cancelAnimationFrame(rafRef.current);
       document.getElementById('pl-custom-cursor-style')?.remove();
     };
-  }, [shape, visible]);
+  }, [shape, visible, reduced]);
 
-  if (shape === 'none') return null;
+  if (shape === 'none' || reduced) return null;
 
   return (
     <>

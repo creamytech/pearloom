@@ -75,6 +75,9 @@
      Aliased to the canonical --pl-gold; --gold-line is its hairline
      tint, derived so it can never drift on its own again. */
   --gold:        var(--pl-gold, #C19A4B);
+  /* --gold is decorative (hairlines/glyphs, ~2.5:1). For gold TEXT on
+     cream use --gold-text (AA). Flows per-theme via --pl-gold-text. */
+  --gold-text:   var(--pl-gold-text, #836829);
   --gold-line:   color-mix(in oklab, var(--pl-gold, #C19A4B) 76%, #FFF6E4);
   --heart:       #E8A07A;
 
@@ -281,7 +284,7 @@
 
 /* Misc — unscoped */
 .heart { color: var(--heart); }
-.spark { color: var(--gold); }
+.spark { color: var(--gold-text); }
 hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 0; }
 .prose { max-width: 64ch; }
 .prose p { margin: 0 0 14px; }
@@ -751,7 +754,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 
 .pl8 .heart { color: var(--heart); }
-.pl8 .spark { color: var(--gold); }
+.pl8 .spark { color: var(--gold-text); }
 .pl8 hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 0; }
 .pl8 .prose { max-width: 64ch; }
 .pl8 .prose p { margin: 0 0 14px; }

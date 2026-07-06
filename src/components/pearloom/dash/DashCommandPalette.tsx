@@ -14,7 +14,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusTrap } from '@/lib/use-focus-trap';
 import { DASH_SECTIONS } from './DashShell';
 import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, useUserSites, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
@@ -83,6 +84,10 @@ export function DashCommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
+  // Trap Tab inside the palette while open; restore focus to the
+  // trigger (topbar search button / whatever had focus) on close.
+  // The search input keeps first focus via autoFocus.
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // Global Cmd+K / Ctrl+K hotkey + the topbar search button
   // (dispatches `pl-open-command`).
@@ -227,10 +232,13 @@ export function DashCommandPalette() {
     }
   }, [router]);
 
+  useFocusTrap(open, dialogRef);
+
   if (!open) return null;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"

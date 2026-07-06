@@ -6,6 +6,7 @@
    ========================================================================= */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useFocusTrap } from '@/lib/use-focus-trap';
 import type { StoryManifest } from '@/types';
 import { EVENT_TYPES } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
@@ -73,6 +74,9 @@ export function CommandPalette({
   const [sel, setSel] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  // Trap Tab within the palette while open; restore focus to the
+  // trigger on close. The search input keeps first focus (below).
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // Two-state mount so close eases out (the old `if (!open) return
   // null` cut everything — including the 0.4-opacity backdrop — in
@@ -155,6 +159,8 @@ export function CommandPalette({
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }, [sel, open]);
 
+  useFocusTrap(open, dialogRef);
+
   if (!render) return null;
 
   const groups: [string, Command[]][] = [];
@@ -163,7 +169,7 @@ export function CommandPalette({
 
   let idx = -1;
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh', opacity: vis ? 1 : 0, transition: 'opacity 160ms var(--pl-ease-out, ease)', pointerEvents: vis ? 'auto' : 'none' } as CSSProperties}>
+    <div ref={dialogRef} onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh', opacity: vis ? 1 : 0, transition: 'opacity 160ms var(--pl-ease-out, ease)', pointerEvents: vis ? 'auto' : 'none' } as CSSProperties}>
       <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--pl-glass)',
         backgroundImage: 'var(--pl-glass-sheen)', backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', borderRadius: 16, boxShadow: 'var(--pl-glass-shadow-lg)', overflow: 'hidden', border: '1px solid var(--pl-glass-border)',
         transform: vis ? 'none' : 'translateY(-8px) scale(0.99)', transition: 'transform 180ms cubic-bezier(0.16,1,0.3,1), opacity 160ms ease' }}>

@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import { MeshGradient as PaperMeshGradient } from '@paper-design/shaders-react';
 
 type MeshPreset = 'none' | 'aurora' | 'sunset' | 'ocean' | 'forest' | 'rose' | 'champagne' | 'twilight' | 'custom';
@@ -55,6 +56,10 @@ const SPEED_MAP: Record<MeshSpeed, number> = {
 };
 
 export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMeshProps) {
+  // BRAND §6 / WCAG 2.3.3 — a full-viewport flowing shader is motion.
+  // Under prefers-reduced-motion we render a single still frame (speed 0).
+  const reduced = useReducedMotion();
+
   const colors = useMemo(() => {
     if (preset === 'custom' && accentColor) {
       // Derive 4 shades from the accent color
@@ -65,7 +70,7 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
 
   if (preset === 'none' || opacity <= 0) return null;
 
-  const shaderSpeed = SPEED_MAP[speed];
+  const shaderSpeed = reduced ? 0 : SPEED_MAP[speed];
   const finalOpacity = (opacity / 100) * 0.7;
 
   return (
