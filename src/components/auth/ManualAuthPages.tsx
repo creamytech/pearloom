@@ -138,6 +138,19 @@ function PasswordField({
 
 /* ── /signup ─────────────────────────────────────────────────── */
 
+/** Read a `?next=` deep link, but only honour a same-origin absolute
+ *  path (starts with a single `/`, never `//host`) so it can't become
+ *  an open-redirect. Read at redirect time from window.location so the
+ *  component needs no useSearchParams Suspense boundary. Forwarded
+ *  THROUGH /welcome so onboarding (terms) is never skipped — e.g. a
+ *  logged-out wizard finisher returns to /wizard/new with their
+ *  answers restored (WizardV8's 401 catch). */
+function welcomeHref(): string {
+  if (typeof window === 'undefined') return '/welcome';
+  const n = new URLSearchParams(window.location.search).get('next');
+  return n && /^\/(?!\/)/.test(n) ? `/welcome?next=${encodeURIComponent(n)}` : '/welcome';
+}
+
 export function SignupClient() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -177,7 +190,7 @@ export function SignupClient() {
         router.replace('/login');
         return;
       }
-      router.replace('/welcome');
+      router.replace(welcomeHref());
     } catch {
       setError('Something went wrong. Try again?');
     } finally {
@@ -194,7 +207,7 @@ export function SignupClient() {
 
       <button
         type="button"
-        onClick={() => { setBusy('google'); void signIn('google', { callbackUrl: '/welcome' }); }}
+        onClick={() => { setBusy('google'); void signIn('google', { callbackUrl: welcomeHref() }); }}
         disabled={busy !== null}
         style={{
           width: '100%', padding: '14px 18px',

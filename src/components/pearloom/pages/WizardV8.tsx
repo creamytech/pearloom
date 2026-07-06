@@ -2554,9 +2554,20 @@ export function WizardV8() {
       case 'Basics':
         return nameModeIsValid(st.occasion, st.names);
       case 'Vibe':
-        return st.vibes.length > 0;
+        // Optional (GRAND-PLAN Phase 2). A host can advance with no
+        // vibe chosen: generation falls back to the occasion's own
+        // voice + look when vibeString is empty (applyWizardLook and
+        // lookRecipesFor key off occasion, not vibes), so an empty
+        // Vibe step still assembles a valid manifest.
+        return true;
       case 'Palette':
-        return !!st.palette;
+        // Never a forced stop (GRAND-PLAN Phase 2). A palette is
+        // always resolved — the occasion default (PALETTES[0]), the
+        // "from your photos" extraction, or a smart/classic pick — so
+        // Continue is always enabled and the host is never made to
+        // click a tile they are happy to leave. Picking one still
+        // auto-advances.
+        return true;
       case 'Review':
         return nameModeIsValid(st.occasion, st.names) && !!st.occasion;
       default:
@@ -2872,6 +2883,27 @@ export function WizardV8() {
         body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames, create: true }),
       });
       const resData = await res.json().catch(() => null);
+      // ── Logged-out finish line ──────────────────────────────
+      // A host who filled every step while signed out used to hit a
+      // raw "Failed to create site (401)" dead-end after nine steps.
+      // Instead: stop the press choreography, flush their answers to
+      // the SAME localStorage draft the wizard already mirrors and
+      // restores on mount (photos stripped, exactly like the debounced
+      // persister below), then send them to sign up with a return
+      // path. They come back to /wizard/new and the mount-time restore
+      // resumes them where they left off — no error, nothing lost.
+      if (res.status === 401) {
+        scriptTimers.forEach(clearTimeout);
+        if (typeof window !== 'undefined') {
+          try {
+            const { photos: _photos, ...persisted } = stRef.current;
+            void _photos;
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+          } catch {}
+        }
+        router.push('/signup?next=/wizard/new');
+        return;
+      }
       if (!res.ok) {
         throw new Error(resData?.error ?? `Failed to create site (${res.status})`);
       }
@@ -3787,7 +3819,7 @@ export function WizardV8() {
                     }}
                   >
                     {st.vibes.length === 0
-                      ? 'Pick one to continue — 2–4 feels right'
+                      ? 'Optional — 2–4 feels right, or let Pear choose'
                       : `${st.vibes.length} of 4 selected`}
                   </p>
                   {/* Each chip wears its own vibe — the typography IS the
@@ -3822,6 +3854,22 @@ export function WizardV8() {
                       );
                     })}
                   </div>
+                  {/* Skip affordance (GRAND-PLAN Phase 2). Vibe is
+                      optional — a host with no mood in mind can hand it
+                      to Pear (empty vibes resolve to the occasion's own
+                      voice at generation). The bottom Continue is always
+                      enabled too; this is the discoverable "skipping is
+                      fine" signal, shown only while nothing is picked. */}
+                  {st.vibes.length === 0 && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{ marginTop: 18 }}
+                      onClick={() => setStepIndex((i) => nextStepIndex(i))}
+                    >
+                      Let Pear choose the vibe <Icon name="arrow-right" size={13} />
+                    </button>
+                  )}
                 </>
               )}
 
@@ -3833,6 +3881,25 @@ export function WizardV8() {
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.
+                  </p>
+                  {/* Ready signal (GRAND-PLAN Phase 2). A palette is
+                      always resolved (occasion default or your photos),
+                      so the host is never stuck choosing — this removes
+                      the "must I pick one?" beat. Mirrors the Vibe
+                      counter's style; sage (never plum) for the calm
+                      positive state. */}
+                  <p
+                    aria-live="polite"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'var(--sage-deep)',
+                      margin: '0 0 18px',
+                    }}
+                  >
+                    Your palette is ready — continue whenever, or pick another
                   </p>
                   {/* The live save-the-date preview in the right rail
                       re-renders the moment a palette is tapped, so the
