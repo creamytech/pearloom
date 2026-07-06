@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
+import { syncCelebration, linkSiteCelebration } from '@/lib/celebrations';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 15;
@@ -108,6 +109,21 @@ export async function PATCH(req: NextRequest) {
       { ok: false, error: 'Could not update celebration.' },
       { status: 500 },
     );
+  }
+
+  // Maintain the first-class celebrations row + sites.celebration_id FK
+  // (Phase 5). manifest.celebration (written above) stays the working
+  // projection; this keeps the table in sync so celebration-scoped
+  // features resolve. Best-effort — never fails the manifest write.
+  if (nextCelebration) {
+    const celId = await syncCelebration(supabase, {
+      legacyId: nextCelebration.id,
+      name: nextCelebration.name,
+      ownerEmail: sessionEmail,
+    });
+    await linkSiteCelebration(supabase, siteId, celId);
+  } else {
+    await linkSiteCelebration(supabase, siteId, null);
   }
 
   return NextResponse.json({
