@@ -9,6 +9,13 @@
 > recurring theme: **~80% of the plumbing already exists — it's just siloed
 > and host-only.** This plan is mostly *connecting and collaborating*, not
 > building from scratch.
+>
+> **This is a living doc — it grows one audit round at a time.**
+
+### Audit rounds
+- **Round 1 (2026-07-06):** money/budget · collaboration/group-events · all 31 event types · end-to-end journey → Pillars 1–3, per-event map, roadmap Phases 0–4, keystone.
+- **Round 2 (in progress):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → will add **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)** and re-sequence the roadmap. (Grounding audits running now; sections marked ⏳ below get filled from them.)
+- Future rounds: keepsake/film pipeline · AI/Pear surfaces · vendor marketplace · analytics/retention · the companion app tie-in.
 
 ---
 
@@ -151,6 +158,50 @@ Today: sidebar (19) vs sub-nav (5) vs ⌘K (12), with money and planning buried.
 
 ---
 
+## 4b · Pillar 4 — The Social Layer (friends + accounts) ⏳ *grounding — audit round 2*
+
+**Goal:** users can **add other users** to events (e.g. add friends to a bachelor party). The strategic bet: today Pearloom has *guests* (an email on a list) and *accounts* (a login) as two disconnected things, plus an opt-in "people you've celebrated with" graph — but **no real user↔user friend graph**. Building one turns every celebration into an acquisition loop and sets up the future companion app.
+
+**Direction (to be grounded by the accounts/social audit):**
+- **Close the guest↔user gap** — the missing seam. A guest's email → a real account; a `person_id` that spans "guest of an event" and "logged-in user." The `people` graph (email-keyed, `connections_opt_in`, `familiarFacesForPerson`) and the co-host `lookup` (already probes "is this invitee a Pearloom user?") are the seeds.
+- **A friend graph** — bidirectional connections (accept/decline), built on the opt-in-connections foundation but promoted from "faces you've celebrated with" to "friends you can pull into an event."
+- **Add friends to an event** — invite a *user* (not just an email) into a group event as a **participant** (Pillar 2) — so they're a co-payer + can see the split immediately, no re-entering details. This is where the social layer and the money layer fuse.
+- **The acquisition loop** — every guest/participant is one tap from an account; every account gains a friend graph; every friend can be pulled into the next bachelor trip / birthday / reunion. Ties directly into the companion app.
+- **Privacy-first** — inherit the strict opt-in, mutual-consent, first-names-only stance of `people.ts`; a friend graph never leaks event history across hosts without consent.
+
+*(This pillar is the connective tissue for "the app we build later" — a mobile companion where your friends, your events, and your shared money live in one place.)*
+
+---
+
+## 4c · Pillar 5 — Premium tiers (monetization) ⏳ *grounding — audit round 2*
+
+**Goal:** more ways to tie premium tiers in — **capability + scale + collaboration** gating, not just cosmetics. Today monetization looks thin (one-time theme packs + prints + a parked Stripe rail + a "$0 free / $48 one-time per occasion" promise); premium should attach to the *new value* this plan creates.
+
+**Premium hooks the roadmap creates (to be grounded by the monetization audit):**
+- **Money/budget:** free = basic budget; premium = planned-vs-committed-vs-paid reconciliation, vendor→budget auto-flow, multi-category templates, export.
+- **Group split:** free = split among a small group; premium = unlimited participants, receipts/attachments, celebration-level split across sibling sites, reminders/nudges to settle.
+- **Collaboration:** free = 1 co-host; premium = unlimited co-hosts + roles + assignable tasks (the Team hub).
+- **Social:** free = add friends; premium = friend-group templates ("my usual crew"), one-tap re-invite, cross-event history.
+- **Scale:** free = 1 active site; premium = the whole weekend/celebration cluster, multi-site.
+- **Keepsake/print + domain + Pear AI depth** — existing cosmetic/one-time lines stay, layered under a recurring tier.
+- **Model question (open):** per-account subscription vs per-celebration one-time vs hybrid. The plan's celebration object (Phase 5) makes *per-celebration* pricing coherent ("one price for the whole weekend"), which fits the brand better than per-seat SaaS.
+
+---
+
+## 4d · Pillar 6 — Journey free-flow (make it effortless) ⏳ *grounding — audit round 2*
+
+**Goal:** the user journey should be **easy, free-flowing, and not complicated.** Round-1 already found the big leaks (landing bypasses `/welcome`; no budget/guest step; empty guest list; buried money/planner; `exploring` dead-end). This pillar makes *entry itself* frictionless.
+
+**Direction (to be grounded by the auth/onboarding audit):**
+- **Try before you sign up** — let a cold visitor reach a drafted site (or a live playground) *before* forcing an account; defer account creation to the save/publish moment. The landing hero already has a live occasion+names playground — extend it into "start weaving, sign up to keep it."
+- **Kill / retire the pre-launch `/gate` wall** at launch — it's the very first thing a real visitor hits today.
+- **Guest → host in one tap** — a guest on `/g/[token]` who loves their experience should be able to start their *own* event instantly (huge acquisition surface, currently a gap). Fuses with the social layer.
+- **Fewer forced choices in the wizard** — smart defaults, everything skippable, no asking for something before it's needed.
+- **One coherent path** — collapse the confusing forks (which auth path lands where; sidebar vs sub-nav vs ⌘K) into a single free-flowing spine.
+- **Mobile-first** — the whole entry flow effortless on a phone (where most invite links are opened).
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -165,24 +216,70 @@ Occasion is threaded through ~11 systems, all derived from **one registry** (`ev
 
 ---
 
-## 6 · Phased roadmap
+## 6 · Roadmap (trackable)
 
-Ranked to de-risk (the money spine underpins everything) and to front-load the headline wow.
+Ordered to de-risk (the money spine underpins everything), front-load the headline wow (the group split), and make entry effortless early. **Premium hooks (💎) are called out per phase — monetization weaves through, it isn't a single phase.** Check boxes as phases land.
 
-### Phase 0 — Unify the money (foundation)
-`budget_lines` table + `/dashboard/budget` route reconciling planned/committed/paid · Vendor→budget real FK (kill the string match) · wizard budget+guest step · occasion category templates · cockpit BudgetBreakdown → door into the route.
+### ▸ Phase 0 — Unify the money (foundation)
+- [ ] `budget_lines` table (`scope`, `category`, `planned_cents`, `kind`, `source_ref`)
+- [ ] `/dashboard/budget` route — Planned ↔ Committed ↔ Paid, over-budget in plum
+- [ ] Vendor→budget **real FK** (kill the `VendorBookClient.addToBudget` string match)
+- [ ] Wizard "rough budget + guest count" step (skippable) → seeds categories + milestones + Director
+- [ ] Occasion-aware category templates (`event-os/`)
+- [ ] Cockpit `BudgetBreakdown` → door into the route (kill the terminal card)
+- 💎 *premium: reconciliation view, vendor auto-flow, export*
 
-### Phase 1 — The Participant + collaborative split (headline)
-`participants` + `expenses` + `expense_shares` tables · guest-side add-expense + settle-up + P2P deep-links · `costSplitter` graduates to the live ledger (back-compat migration) · RSVP cost-ack → participant · bell notifications. **Ship on bachelor/ette first, then reunion.**
+### ▸ Phase 1 — The Participant + collaborative split (HEADLINE) ⭐
+- [ ] `participants` + `expenses` + `expense_shares` tables (anchored to `person_id`)
+- [ ] Guest-side **add-expense** + split modes (even/share/custom/exclude)
+- [ ] **Live settle-up** (who-owes-whom minimized) + P2P deep-links (reuse `registry-funds.ts`)
+- [ ] `costSplitter` graduates from `manifest.bachelor.costs` → live ledger (back-compat migration)
+- [ ] RSVP `cost-acknowledge` → auto-create participant + expected share
+- [ ] New-expense → bell notifications; private-by-default gating
+- [ ] **Ship bachelor/ette first**, then reunion
+- 💎 *premium: unlimited participants, receipts, reminders/nudges*
 
-### Phase 2 — Three hubs + funnel fixes
-Money / People / Plan hubs · Team (collaboration home + roles + assignable tasks) · landing→welcome fix · guest-list seeding · `intent:'exploring'` destination · nav-naming cleanup.
+### ▸ Phase 2 — Journey free-flow (make entry effortless) — Pillar 6
+- [ ] Try-before-signup: reach a drafted site before an account; defer account to save/publish
+- [ ] Landing → `/welcome` intent actually fires (or carry intent into wizard entry)
+- [ ] Retire the pre-launch `/gate` wall (at launch)
+- [ ] `intent:'exploring'` → a real destination (gallery / demo)
+- [ ] Guest-list seeding moment in the wizard (paste/import/skip)
+- [ ] Fewer forced wizard choices; smart skippable defaults; mobile-first entry
+- 💎 *premium: nothing gated here — free-flow is top-of-funnel; monetize downstream*
 
-### Phase 3 — Celebration scope
-Promote budget + split from `site` to `celebration` scope for weekend clusters · first-class **celebration object** (today it's just a shared `manifest.celebration.id` string across independent sites — no shared roster/budget/roles).
+### ▸ Phase 3 — Three hubs + the Team (collaboration home) — Pillar 3
+- [ ] **Money hub** (Budget · Vendors · Payments · Split) — promote Payments out of ⌘K
+- [ ] **People hub** (Guests · Messages · Team · Connections)
+- [ ] **Plan hub** — promote the Director out of ⌘K (milestones · cadence · budget · tasks)
+- [ ] **Team**: co-host roles + assignable tasks (build on `viewerRole` + `usePearTodos`)
+- [ ] Nav-naming cleanup (Guests→rsvp, Studio→invite drift)
+- 💎 *premium: 1 free co-host → unlimited co-hosts + roles + task assignment*
 
-### Phase 4 — Group-gifting finish + per-event polish
-Finish chip-in group gifting for single-honoree events · per-event trip tools (room cost, packing sync, per-day dates) · pre-event post-loop surfacing · dead-end next-actions.
+### ▸ Phase 4 — The Social Layer (friends + accounts) — Pillar 4
+- [ ] Close the **guest↔user** gap (email → account, one `person_id` across both)
+- [ ] Guest → host **one-tap** ("start your own event") from `/g/[token]`
+- [ ] **Friend graph** — bidirectional accept/decline on the opt-in-connections base
+- [ ] **Add a friend (a user) to an event** → drops them in as a Pillar-2 participant
+- [ ] The acquisition loop (guest → account → friends → next event) + companion-app seam
+- 💎 *premium: friend-group templates ("my crew"), one-tap re-invite, cross-event history*
+
+### ▸ Phase 5 — Celebration scope
+- [ ] First-class **celebration object** (replace the shared-string `manifest.celebration.id`)
+- [ ] Budget + split promoted from `site` → `celebration` scope (weekend clusters)
+- [ ] Shared roster + roles across sibling sites
+- 💎 *premium: per-celebration pricing ("one price for the whole weekend") — the brand-fit tier*
+
+### ▸ Phase 6 — Group-gifting finish + per-event polish
+- [ ] Finish chip-in group gifting for single-honoree events (`gift_pledges`/`group_gifts` are half-built)
+- [ ] Per-event trip tools (room cost, packing sync, per-day dates)
+- [ ] Pre-event surfacing of the keepsake/post-event loop
+- [ ] Next-actions on read-only dead-ends (Analytics/Payments/Print)
+
+### ▸ Cross-cutting — Premium tiers (Pillar 5)
+- [ ] Decide the model: per-account sub vs per-celebration one-time vs hybrid (recommend celebration-first)
+- [ ] Wire capability gating at each 💎 above (server-side entitlement, not just cosmetic)
+- [ ] Layer recurring tier over existing one-time lines (theme packs, prints, domain, Pear depth)
 
 ---
 
