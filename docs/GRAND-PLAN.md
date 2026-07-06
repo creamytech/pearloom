@@ -15,6 +15,7 @@
 ### Audit rounds
 - **Round 1 (2026-07-06):** money/budget · collaboration/group-events · all 31 event types · end-to-end journey → Pillars 1–3, per-event map, roadmap Phases 0–4, keystone.
 - **Round 2 (2026-07-06):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → added **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)**, all grounded. Key corrections vs. assumptions: monetization is a **real 3-tier system** (`plan-gate.ts`, not thin); the journey friction is **structural gating**, not the flows; the guest↔user gap is an **unlinked shared email**, and **no friend edge table exists** (the one new primitive).
+- **Round 3 (2026-07-06):** celebration/weekend linking model + visibility/privacy · single-site-multi-event feasibility · guest identity across events → added **Pillar 7 (The Celebration Model)**. Key findings: the linked-events strip is **all-or-nothing public** (a wedding site leaks a linked bachelor site to guests — confirmed bug); one-site-many-events is a heavy renderer rebuild, so the win is a **first-class Celebration object** (shared roster, unified headcount, timeline) + **per-link directional visibility** (default hidden), *not* merging events into one site.
 - Future rounds: keepsake/film pipeline · AI/Pear surfaces · vendor marketplace · analytics/retention · the companion app tie-in.
 
 ---
@@ -222,6 +223,47 @@ Today: sidebar (19) vs sub-nav (5) vs ⌘K (12), with money and planning buried.
 
 ---
 
+## 4e · Pillar 7 — The Celebration Model (link milestones, keep audiences separate)
+
+**Goal:** stop making a whole separate site *feel* like a whole separate event to manage, and let a host's milestones (anniversary → bachelor → bachelorette → wedding → …) link into one arc **that grows over time — without a wedding guest ever seeing the bachelor site.**
+
+**Ground truth (audit round 3):**
+- A "celebration" is *only* `manifest.celebration = { id, name }` — **no table, no timeline, no shared roster, no visibility control.** Siblings are discovered by matching that string across independent `sites` rows.
+- **The privacy hole is real and confirmed.** Linking == public cross-advertising: `LinkedEventsStrip` renders **unconditionally** on every published home page (unlike the guestbook, which is opt-in), and `/api/celebrations/siblings` is **public + unauthenticated**, filtering on *only* `published=true` + matching id. A `privacyGate` password does **not** hide a sibling from the strip — it only stops a visitor *after* they click; the name, occasion, and URL still leak. The *only* way to hide a sibling is to keep it an unpublished draft (which also hides it from its own guests). **No middle ground.** So a wedding site really would advertise a linked bachelor party to every wedding guest.
+- **One-site-many-events is NOT feasible today** and would be a heavy rebuild: the renderer treats a site as *one occasion rendered as sections*; "pages" are a fixed 8-block whitelist (`V8_PAGE_KEYS`); the arbitrary-page mechanism (`customPages`) was deleted; `manifest.events[]` renders as **schedule rows**, not events; RSVP is **one `guests` row per guest per site** (`onConflict: site_id,email`) with no per-event status/meal/deadline/headcount. Making one site hold distinct events = new per-event schema + generalized routing + per-event RSVP + shared roster + multi-event editor.
+- Rosters are **fully per-site**; the only bridge is a one-time `guests/copy-from` (then they drift). The `people` graph gives *identity continuity* (recognition), not a shared roster.
+- Weekend cluster and life-arc are the **same primitive today** (sites sharing `celebration.id`); nothing sequences them over time or models "what's next." (`offsetDays` already spans ~6 months: engagement −180 → brunch +1.)
+
+**The design decision — and the course-correction:** *don't* collapse everything into one site. One site = one audience; merging a bachelor party and a wedding into one site is exactly the wrong merge (it makes the privacy problem worse), and it's a heavy renderer rebuild. **Instead, keep separate sites (separate audiences = the privacy guarantee, by construction) and make the *Celebration* a first-class object that collapses the *operational* cost of N sites to near-one.** Two layers:
+
+### Layer 1 — The Celebration container (host-private)
+A real `celebrations` table (`id`, `name`, `owner_email`, `arc_type`, `created_at`) replacing the manifest string (back-compat: the old id becomes the FK). It owns:
+- **A shared roster** — enter/import guests **once** at the celebration level; each event draws its invited *subset*. Kills the copy-then-drift problem. Per-event invitation/attendance state layers on top of one person list.
+- **A unified RSVP / headcount view** — "who's coming to what," one grid across all events.
+- **One budget (Pillar 1) + one split (Pillar 2)** at celebration scope.
+- **A timeline / arc** — ordered milestones over time, "what's next" prompting, a host hub showing the whole arc. *This is the "grows over time" vision:* a year on, Pear nudges "add your anniversary to the same celebration" (feeds the keepsake/anniversary-rebroadcast loop, currently unbuilt).
+- **One dashboard hub** — manage the celebration without flipping the `SiteCrest` 4 ways per task.
+
+### Layer 2 — Per-link public visibility (the privacy fix)
+Cross-visibility becomes a **separate, opt-in, directional, per-pair** decision, **default hidden**:
+- `LinkedEventsStrip` stops being unconditional — it reads a **directed** `show_from → show_on` visibility flag (default off). *Link ≠ show.* You can show the welcome party on the wedding site but **never** the bachelor on the wedding site, even while both are linked in your private arc.
+- **Guest-overlap aware** — default the toggle from audience overlap (shared-roster subsets); disjoint audiences (bachelor vs wedding) never auto-suggest cross-linking.
+- **Sensitive-pair guard** — private-by-default occasions (bachelor/ette) never appear in another site's strip without an explicit, *warned* opt-in.
+- The siblings API becomes **visibility-aware** (not just `published + id`) and respects `privacyGate`.
+
+**Weekend cluster vs. life-arc = one primitive:** a Celebration with a timeline. They differ only in *when* events are added and whether cross-visibility is on (weekend: overlapping audiences, often on; life-arc: disjoint audiences over time, off).
+
+**What it buys:**
+- *"Don't want a site per event"* → solved operationally: N sites now **feel like one** (shared roster, unified headcount, one hub, one budget). The per-event site still exists (needed for separate audiences/tones/URLs) — but the management cost collapses.
+- *"Don't show the bachelor from the wedding"* → solved twice over: separate audiences by construction **+** private-by-default directional visibility.
+- *"Grow over time"* → the Celebration is a persistent, extensible timeline.
+- Fixes the confirmed privacy bug.
+- **Billing (Pillar 5):** a real Celebration object makes **per-celebration pricing** coherent ("one price for the whole arc") — resolves the open per-site-vs-per-group question on-brand.
+
+**Optional, later (heavier):** a true one-site-multi-event mode for the *tightest* same-audience clusters (welcome/ceremony/brunch under one guest list) — per-event pages + per-event RSVP over the shared roster. The Celebration object delivers most of the value first; this is a P-later renderer/editor/schema change.
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -284,11 +326,16 @@ Ordered to de-risk (the money spine underpins everything), front-load the headli
 - [ ] The acquisition loop (guest → account → friends → next event) + companion-app seam
 - 💎 *premium: friend-group templates ("my crew"), one-tap re-invite, cross-event history*
 
-### ▸ Phase 5 — Celebration scope
-- [ ] First-class **celebration object** (replace the shared-string `manifest.celebration.id`)
-- [ ] Budget + split promoted from `site` → `celebration` scope (weekend clusters)
-- [ ] Shared roster + roles across sibling sites
-- 💎 *premium: per-celebration pricing ("one price for the whole weekend") — the brand-fit tier*
+### ▸ Phase 5 — The Celebration Model (Pillar 7)
+- [ ] First-class **`celebrations` table** (replace the shared-string `manifest.celebration.id`; old id → FK)
+- [ ] **Shared celebration roster** (enter guests once; each event draws its subset) — kills copy-then-drift
+- [ ] **Unified RSVP / headcount** view across all events
+- [ ] Budget + split promoted from `site` → `celebration` scope
+- [ ] **Timeline / arc** semantics (ordered milestones, "what's next", grows over time → anniversary loop)
+- [ ] One dashboard hub (manage without flipping the crest)
+- [ ] **Per-link directional visibility** (default hidden) — `LinkedEventsStrip` opt-in + guest-overlap aware + sensitive-pair guard; siblings API visibility-aware
+- [ ] *(later, heavier)* true one-site-multi-event mode for tightest same-audience clusters
+- 💎 *premium: per-celebration pricing ("one price for the whole arc") — the brand-fit tier*
 
 ### ▸ Phase 6 — Group-gifting finish + per-event polish
 - [ ] Finish chip-in group gifting for single-honoree events (`gift_pledges`/`group_gifts` are half-built)
@@ -311,6 +358,7 @@ Small, mostly self-contained fixes that punch above their weight — good "warm-
 - [ ] **Make Vibe optional** + auto-advance Palette → zero forced wizard choices beyond occasion + names.
 - [ ] **Move Google Photos scope out of sign-in** → request it only at photo-pick time.
 - [ ] **Reconcile the two Stripe webhooks** + retire the stale `stripe.ts` subscription residue.
+- [ ] **Plug the sibling-strip privacy leak** — gate `LinkedEventsStrip` behind a per-sibling opt-in (default off) so a linked bachelor/private site can't be advertised on the wedding site. (Stopgap before the full Celebration Model; today it's unconditional + public.)
 
 ---
 
