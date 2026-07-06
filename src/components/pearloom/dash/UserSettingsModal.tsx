@@ -25,7 +25,6 @@ import { Icon, Pear } from '../motifs';
 import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
-import { useTheme } from '@/components/shell/ThemeProvider';
 import { useUserSites, resolveStickySite } from '@/components/marketing/design/dash/hooks';
 import { PlAvatar, PL_AVATARS, useUserAvatar } from '../avatars';
 
@@ -396,40 +395,11 @@ function PreferencesTab() {
      was a no-op. Email notification choices live in the
      Notifications tab (per-category, actually persisted); reduced
      motion follows the OS `prefers-reduced-motion` setting. */
-  const { preference, setPreference } = useTheme();
   return (
     <div>
       <SettingsHead title="Preferences" sub="How Pearloom behaves for you." />
-      {/* Appearance — light / dark / follow-system. The theme has
-          been switchable since the boot script shipped, but nothing
-          in settings ever exposed it. */}
-      <UsRow>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div style={{ fontSize: 14, fontWeight: 500 }}>Appearance</div>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Editorial paper or editorial midnight.</div>
-        </div>
-        <div style={{ display: 'flex', gap: 3, padding: 3, background: 'var(--cream-2)', borderRadius: 999, flexShrink: 0 }}>
-          {([['light', 'Light'], ['dark', 'Dark'], ['system', 'System']] as const).map(([id, label]) => {
-            const on = preference === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setPreference(id)}
-                style={{
-                  padding: '5px 12px', borderRadius: 999, fontSize: 11.5, fontWeight: 600,
-                  background: on ? 'var(--ink)' : 'transparent',
-                  color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </UsRow>
+      {/* Appearance control removed — the product is light-mode across
+          the board now (no per-account dark toggle). */}
       <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: 'var(--pl-plum, #b4543a)' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: 'var(--pl-plum, #b4543a)', borderColor: 'color-mix(in oklab, var(--pl-plum, #b4543a) 30%, transparent)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
     </div>
   );

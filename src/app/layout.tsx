@@ -70,10 +70,13 @@ export default function RootLayout({
       className={`h-full antialiased ${fraunces.variable} ${geist.variable} ${geistMono.variable}`}
     >
       <head>
-        {/* Inline boot script: read theme from localStorage before paint to avoid flash. */}
+        {/* The product is light-mode across the board. Force it before
+            paint (and drop any stale pl-theme='dark' a user set back when
+            the toggle existed) so nobody is left on dark. Per-site guest
+            themes are unaffected — they carry their own --t-* theme bag. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('pl-theme');document.documentElement.dataset.theme=(t==='dark')?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}})();`,
+            __html: `(function(){try{document.documentElement.dataset.theme='light';localStorage.removeItem('pl-theme');}catch(e){document.documentElement.dataset.theme='light';}})();`,
           }}
         />
       </head>

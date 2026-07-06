@@ -15,7 +15,6 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Blob, Heart, Icon, Pear, PearloomLogo } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
-import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useDashDrawer } from './useDashDrawer';
 import { DashTabBar } from './DashTabBar';
 import { AskPearTrigger, DashAskPear } from './DashAskPear';
@@ -1268,7 +1267,6 @@ export function DashMobileBar() {
         </button>
         {/* Ask Pear (sheet mounts once, from DashUtilityBar). */}
         <AskPearTrigger variant="icon" />
-        <ThemeToggle size="md" />
         <NotificationBell />
         <TopbarAvatarButton />
       </div>
@@ -1306,7 +1304,6 @@ export function DashUtilityBar() {
           global cluster; the sheet itself mounts once here (portal
           to body, so the bar's mobile display:none can't hide it). */}
       <AskPearTrigger variant="labeled" />
-      <ThemeToggle size="md" />
       <NotificationBell />
       <TopbarAvatarButton />
       <DashAskPear />

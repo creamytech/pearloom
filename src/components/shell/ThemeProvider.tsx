@@ -34,11 +34,11 @@ function readPreference(): ThemePreference {
   return 'system';
 }
 
-function resolveTheme(pref: ThemePreference): Theme {
-  // Light-first: an explicit choice wins; otherwise default to the
-  // brand's primary "editorial paper" light. Dark is opt-in via the
-  // toggle (persisted to localStorage), not auto-followed from the OS.
-  return pref === 'dark' ? 'dark' : 'light';
+function resolveTheme(_pref: ThemePreference): Theme {
+  // The product is light-mode across the board. Dark ("editorial
+  // midnight") tokens are kept in CSS so it's a one-line revert, but
+  // every preference now resolves to light — nobody is left on dark.
+  return 'light';
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
