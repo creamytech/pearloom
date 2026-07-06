@@ -23,6 +23,8 @@ import {
   U,
   STUDIO_THEMES,
   STUDIO_SANS,
+  STUDIO_KITS,
+  STUDIO_PAPERS,
   CORE_BLOCKS,
   BLOCKS_BY_OCC,
   parseNames,
@@ -40,13 +42,38 @@ const CONTROL_LABEL: CSSProperties = {
   display: 'block',
 };
 
+// A control label that carries an inline count pill (Component kit · Paper).
+const CONTROL_LABEL_ROW: CSSProperties = {
+  ...CONTROL_LABEL,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+};
+
+const COUNT_BADGE: CSSProperties = {
+  ...MONO_STYLE,
+  fontSize: 9,
+  letterSpacing: '0.1em',
+  fontWeight: 600,
+  color: PD.inkSoft,
+  background: `color-mix(in oklab, ${PD.olive} 12%, transparent)`,
+  padding: '1px 7px',
+  borderRadius: 999,
+  opacity: 1,
+};
+
 export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; names?: string }) {
   const O = OCC[occ];
   const displayNames = names || O.ph;
   const p = parseNames(displayNames);
 
   const [theme, setTheme] = useState<StudioTheme>(STUDIO_THEMES[0]);
+  const [kit, setKit] = useState('classic');
+  const [paper, setPaper] = useState('linen');
   const [serif, setSerif] = useState(true);
+
+  const kitName = STUDIO_KITS.find((k) => k.id === kit)?.name ?? 'Classic';
+  const paperName = STUDIO_PAPERS.find((pp) => pp.id === paper)?.name ?? 'Linen';
 
   const blocks = BLOCKS_BY_OCC[occ] || BLOCKS_BY_OCC.wedding;
 
@@ -93,8 +120,9 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          Every Pearloom site arrives fully drafted, then re-skins live. Pick a palette and a
-          typeface, and watch the whole thing re-ink — real components on real paper.
+          Every Pearloom site arrives fully drafted, then re-skins live. Pick a palette, a
+          component kit, a paper and a typeface, and watch the whole thing re-ink — real
+          components on real paper.
         </p>
       </div>
 
@@ -178,6 +206,56 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
             })}
           </div>
 
+          {/* Component kit — re-frames the preview cards */}
+          <span style={CONTROL_LABEL_ROW}>
+            Component kit
+            <span style={COUNT_BADGE}>{STUDIO_KITS.length}</span>
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              maxHeight: 132,
+              overflowY: 'auto',
+              padding: '2px 2px 4px',
+              marginBottom: 26,
+            }}
+          >
+            {STUDIO_KITS.map((k) => (
+              <button
+                key={k.id}
+                type="button"
+                className={'kchip2' + (k.id === kit ? ' on' : '')}
+                onClick={() => setKit(k.id)}
+                aria-pressed={k.id === kit}
+                title={k.blurb}
+              >
+                {k.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Paper — re-grains the preview surface */}
+          <span style={CONTROL_LABEL_ROW}>
+            Paper
+            <span style={COUNT_BADGE}>{STUDIO_PAPERS.length}</span>
+          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 26 }}>
+            {STUDIO_PAPERS.map((pp) => (
+              <button
+                key={pp.id}
+                type="button"
+                className={'pchip' + (pp.id === paper ? ' on' : '')}
+                onClick={() => setPaper(pp.id)}
+                aria-pressed={pp.id === paper}
+              >
+                <span className={'pchip-sw sk-mat-' + pp.id} />
+                {pp.name}
+              </button>
+            ))}
+          </div>
+
           <span style={CONTROL_LABEL}>Type</span>
           <div
             style={{
@@ -225,7 +303,8 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         {/* Right — live device preview */}
         <div>
           <div
-            className="pd-studio-device"
+            className="pd-studio-device sk-device"
+            data-kit={kit}
             style={{
               ...vars,
               background: 'var(--dv-bg)',
@@ -293,6 +372,8 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
               </span>
             </div>
 
+            {/* paper surface — carries the chosen texture under cover + body */}
+            <div className={`sk-paper sk-mat-${paper}`}>
             {/* cover — real occasion photo under the live accent tint */}
             <div
               style={{
@@ -364,14 +445,14 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
               }}
             >
               {/* Our story */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <MiniLabel>Our story</MiniLabel>
                 <span style={{ height: 6, width: '100%', borderRadius: 3, background: 'var(--dv-line)' }} />
                 <span style={{ height: 6, width: '72%', borderRadius: 3, background: 'var(--dv-line)' }} />
               </div>
 
               {/* Schedule */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <MiniLabel>Schedule</MiniLabel>
                 {[
                   ['Ceremony', '4:00'],
@@ -396,7 +477,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
               </div>
 
               {/* RSVP */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <MiniLabel>Will you come?</MiniLabel>
                 <span style={{ display: 'flex', gap: 8 }}>
                   {[
@@ -423,6 +504,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                 </span>
               </div>
             </div>
+            </div>
           </div>
 
           {/* caption */}
@@ -438,7 +520,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
               marginTop: 12,
             }}
           >
-            {theme.name} · {serif ? 'Letterpress serif' : 'Modern sans'}
+            {theme.name} · {kitName} kit · {paperName} paper
           </div>
 
           {/* blocks panel */}
@@ -527,6 +609,287 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         :global(.pd-studio-device),
         :global(.pd-studio-device *) {
           transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+        }
+
+        /* ── Component-kit chips (STUDIO_KITS) ── */
+        :global(.kchip2) {
+          border: 1px solid var(--pd-line, #d8cfb8);
+          background: var(--pd-paperCard, #fbf7ee);
+          color: var(--pd-inkSoft, #3a332c);
+          font-family: var(--pl-font-body);
+          font-size: 12px;
+          font-weight: 550;
+          padding: 6px 11px;
+          border-radius: 999px;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        :global(.kchip2:hover) {
+          border-color: var(--occ, var(--pd-olive, #5c6b3f));
+          color: var(--pd-ink, #0e0d0b);
+        }
+        :global(.kchip2.on) {
+          background: var(--pd-ink, #0e0d0b);
+          color: var(--pd-paper, #f5efe2);
+          border-color: var(--pd-ink, #0e0d0b);
+        }
+
+        /* ── Paper chips (STUDIO_PAPERS) ── */
+        :global(.pchip) {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          border: 1px solid var(--pd-line, #d8cfb8);
+          background: var(--pd-paperCard, #fbf7ee);
+          color: var(--pd-inkSoft, #3a332c);
+          font-family: var(--pl-font-body);
+          font-size: 11.5px;
+          font-weight: 550;
+          padding: 5px 11px 5px 6px;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+            box-shadow 0.15s ease;
+        }
+        :global(.pchip:hover) {
+          border-color: var(--occ, var(--pd-olive, #5c6b3f));
+        }
+        :global(.pchip.on) {
+          border-color: var(--pd-ink, #0e0d0b);
+          color: var(--pd-ink, #0e0d0b);
+          box-shadow: 0 0 0 1px var(--pd-ink, #0e0d0b);
+        }
+        :global(.pchip-sw) {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 1px solid var(--pd-line, #d8cfb8);
+          background-color: var(--pd-paper, #f5efe2);
+          flex-shrink: 0;
+        }
+        :global(.pchip-sw.sk-mat-velvet) {
+          background-color: #2a2440;
+        }
+
+        /* ── Paper surface + component cards inside the device ── */
+        :global(.sk-paper) {
+          background-color: var(--dv-bg, #fff);
+        }
+        :global(.sk-block) {
+          position: relative;
+          background: color-mix(in oklab, var(--dv-bg) 90%, var(--dv-ink) 6%);
+          border: 1px solid var(--dv-line);
+          border-radius: 12px;
+          padding: 15px 16px;
+          transition: border-radius 0.35s ease, box-shadow 0.35s ease, background 0.35s ease,
+            transform 0.35s ease, border-color 0.35s ease;
+        }
+
+        /* Per-kit card framing (ported from the design handoff). The two
+           text-recolouring kits — marquee/chalkboard — intentionally fall
+           back to classic here: the preview's copy is inline-styled, so
+           their child-text overrides can't recolour it. */
+        :global(.sk-device[data-kit='minimal'] .sk-block) {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--dv-line);
+          border-radius: 0;
+        }
+        :global(.sk-device[data-kit='ticket'] .sk-block) {
+          border: 1.5px dashed var(--dv-line);
+          border-radius: 6px;
+        }
+        :global(.sk-device[data-kit='plate'] .sk-block) {
+          border: none;
+          border-radius: 1px;
+          box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--dv-ink) 40%, transparent),
+            inset 0 0 0 4px var(--dv-bg), inset 0 0 0 5px color-mix(in oklab, var(--dv-ink) 20%, transparent);
+        }
+        :global(.sk-device[data-kit='scrapbook'] .sk-block) {
+          border: none;
+          border-radius: 2px;
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+          transform: rotate(-1.1deg);
+        }
+        :global(.sk-device[data-kit='index'] .sk-block) {
+          border: none;
+          border-left: 2px solid rgba(199, 80, 80, 0.55);
+          border-radius: 2px;
+          background-image: repeating-linear-gradient(
+            180deg,
+            transparent 0 18px,
+            rgba(74, 118, 196, 0.13) 18px 19px
+          );
+        }
+        :global(.sk-device[data-kit='arch'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 22px 22px 8px 8px;
+        }
+        :global(.sk-device[data-kit='stamp'] .sk-block) {
+          border: 5px solid color-mix(in oklab, var(--dv-bg) 90%, var(--dv-ink) 4%);
+          outline: 2px dotted color-mix(in oklab, var(--dv-ink) 30%, transparent);
+          outline-offset: -9px;
+          border-radius: 3px;
+        }
+        :global(.sk-device[data-kit='deco'] .sk-block) {
+          border: none;
+          border-radius: 1px;
+          box-shadow: inset 0 0 0 1px var(--dv-accent), inset 0 0 0 4px var(--dv-bg),
+            inset 0 0 0 5px color-mix(in oklab, var(--dv-accent) 55%, transparent);
+        }
+        :global(.sk-device[data-kit='gallery'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 2px;
+          box-shadow: inset 0 0 0 7px var(--dv-bg), inset 0 0 0 8px var(--dv-line);
+        }
+        :global(.sk-device[data-kit='tasting'] .sk-block) {
+          border: none;
+          border-top: 1px solid var(--dv-accent);
+          border-bottom: 1px solid var(--dv-accent);
+          border-radius: 0;
+          background: transparent;
+        }
+        :global(.sk-device[data-kit='glass'] .sk-block) {
+          background: color-mix(in oklab, var(--dv-bg) 55%, transparent);
+          border: 1px solid color-mix(in oklab, #fff 35%, var(--dv-line));
+          border-radius: 14px;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 20px rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(4px);
+        }
+        :global(.sk-device[data-kit='boarding'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-left: 6px solid var(--dv-accent);
+          border-radius: 6px;
+        }
+        :global(.sk-device[data-kit='nursery'] .sk-block) {
+          border: none;
+          border-radius: 18px;
+          background: color-mix(in oklab, var(--dv-accent) 12%, var(--dv-bg));
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        }
+        :global(.sk-device[data-kit='kraft'] .sk-block) {
+          border: 1px dashed color-mix(in oklab, var(--dv-ink) 35%, transparent);
+          border-radius: 3px;
+          background: color-mix(in oklab, #c9a876 26%, var(--dv-bg));
+        }
+        :global(.sk-device[data-kit='memoriam'] .sk-block) {
+          border: 1px solid var(--dv-ink);
+          border-radius: 0;
+        }
+        :global(.sk-device[data-kit='certificate'] .sk-block) {
+          border: none;
+          border-radius: 2px;
+          box-shadow: inset 0 0 0 2px var(--dv-accent), inset 0 0 0 5px var(--dv-bg),
+            inset 0 0 0 6px color-mix(in oklab, var(--dv-accent) 40%, transparent);
+        }
+        :global(.sk-device[data-kit='luggage'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 10px;
+          background: color-mix(in oklab, #c9a876 22%, var(--dv-bg));
+        }
+        :global(.sk-device[data-kit='luggage'] .sk-block::before) {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: 10px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          border: 1.5px solid var(--dv-line);
+        }
+        :global(.sk-device[data-kit='linenpress'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 3px;
+          box-shadow: inset 0 0 0 4px var(--dv-bg), inset 0 0 0 5px var(--dv-line);
+        }
+        :global(.sk-device[data-kit='waxseal'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 6px;
+        }
+        :global(.sk-device[data-kit='waxseal'] .sk-block::before) {
+          content: '';
+          position: absolute;
+          top: -6px;
+          right: 12px;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+          background: var(--dv-accent);
+          box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+        }
+        :global(.sk-device[data-kit='pennant'] .sk-block) {
+          border: 1px solid var(--dv-line);
+          border-radius: 6px 6px 0 0;
+        }
+        :global(.sk-device[data-kit='pennant'] .sk-block::after) {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -5px;
+          height: 6px;
+          background: radial-gradient(
+              circle at 6px -3px,
+              transparent 6px,
+              var(--dv-line) 6px 6.5px,
+              transparent 7px
+            )
+            0 0 / 12px 6px repeat-x;
+        }
+        :global(.sk-device[data-kit='embossed'] .sk-block) {
+          border: none;
+          border-radius: 6px;
+          box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.55),
+            inset -1px -1px 2px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ── Paper textures (STUDIO_PAPERS · shared by swatch + surface) ── */
+        :global(.sk-mat-linen) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.09) 0 1px, transparent 1px 5px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.09) 0 1px, transparent 1px 5px);
+          background-size: 5px 5px;
+        }
+        :global(.sk-mat-paper) {
+          background-image: radial-gradient(rgba(92, 80, 55, 0.11) 0.5px, transparent 0.7px);
+          background-size: 6px 6px;
+        }
+        :global(.sk-mat-cotton) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.06) 0 1px, transparent 1px 7px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.06) 0 1px, transparent 1px 7px);
+          background-size: 7px 7px;
+        }
+        :global(.sk-mat-watercolor) {
+          background-image: radial-gradient(circle at 25% 20%, rgba(150, 120, 90, 0.11), transparent 45%),
+            radial-gradient(circle at 75% 65%, rgba(110, 140, 110, 0.11), transparent 42%);
+        }
+        :global(.sk-mat-velvet) {
+          background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 42%),
+            radial-gradient(circle at 70% 25%, rgba(0, 0, 0, 0.1), transparent 55%);
+        }
+        :global(.sk-mat-canvas) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.1) 0 1px, transparent 1px 3px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.1) 0 1px, transparent 1px 3px);
+          background-size: 3px 3px;
+        }
+        :global(.sk-mat-kraft) {
+          background-color: color-mix(in oklab, #c9a876 24%, var(--dv-bg));
+          background-image: radial-gradient(rgba(92, 60, 30, 0.1) 0.5px, transparent 0.7px);
+          background-size: 5px 5px;
+        }
+        :global(.sk-mat-vellum) {
+          background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 60%);
+        }
+        :global(.sk-mat-letterpress) {
+          box-shadow: inset 0 0 26px rgba(92, 70, 40, 0.1);
+        }
+        :global(.sk-mat-newsprint) {
+          background-image: radial-gradient(rgba(40, 40, 40, 0.15) 0.6px, transparent 0.8px);
+          background-size: 4px 4px;
+        }
+        :global(.sk-mat-marble) {
+          background-image: linear-gradient(115deg, transparent 42%, rgba(120, 120, 120, 0.14) 43%, transparent 45%),
+            linear-gradient(158deg, transparent 60%, rgba(120, 120, 120, 0.1) 61%, transparent 63%);
         }
       `}</style>
     </section>

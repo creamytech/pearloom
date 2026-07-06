@@ -150,6 +150,61 @@ export const STUDIO_THEMES: StudioTheme[] = [
 
 export const STUDIO_SANS = '"Geist", system-ui, sans-serif';
 
+// ── Studio playground: component kits + paper textures ─────────
+// Ported verbatim from the design handoff (Landing v4 · STUDIO_KITS /
+// STUDIO_PAPERS). The studio preview re-frames its cards per kit
+// (`data-kit`) and re-grains its paper per texture (`sk-mat-*`).
+export interface StudioKit {
+  id: string;
+  name: string;
+  blurb: string;
+}
+export const STUDIO_KITS: StudioKit[] = [
+  { id: 'classic', name: 'Classic', blurb: 'Theme-native cards & rules' },
+  { id: 'minimal', name: 'Minimal', blurb: 'Hairlines · big numerals' },
+  { id: 'ticket', name: 'Ticket', blurb: 'Perforated stubs · monospace' },
+  { id: 'plate', name: 'Plate', blurb: 'Engraved frames · Roman' },
+  { id: 'scrapbook', name: 'Scrapbook', blurb: 'Taped, tilted, handwritten' },
+  { id: 'index', name: 'Index', blurb: 'Ruled cards · red margin' },
+  { id: 'arch', name: 'Arch', blurb: 'Arched cards · soft domes' },
+  { id: 'stamp', name: 'Stamp', blurb: 'Postage frames · postmarks' },
+  { id: 'deco', name: 'Deco', blurb: 'Gold frames · geometric' },
+  { id: 'gallery', name: 'Gallery', blurb: 'Museum mats · exhibit numbers' },
+  { id: 'tasting', name: 'Tasting Menu', blurb: 'Gold rules · dotted leaders' },
+  { id: 'glass', name: 'Glass', blurb: 'Liquid panes · aurora light' },
+  { id: 'boarding', name: 'Boarding pass', blurb: 'Accent band · dashed tear line' },
+  { id: 'marquee', name: 'Marquee', blurb: 'Dotted gold bulbs · glow' },
+  { id: 'chalkboard', name: 'Chalkboard', blurb: 'Slate board · chalk ink' },
+  { id: 'nursery', name: 'Nursery', blurb: 'Soft pillow · pastel wash' },
+  { id: 'kraft', name: 'Kraft', blurb: 'Field-notes · stitched edge' },
+  { id: 'memoriam', name: 'Memoriam', blurb: 'Mourning keyline · ink edge' },
+  { id: 'certificate', name: 'Certificate', blurb: 'Gold frame · wax seal' },
+  { id: 'luggage', name: 'Luggage tag', blurb: 'Manila tag · punched hole' },
+  { id: 'linenpress', name: 'Linen press', blurb: 'Woven inset · rustic press' },
+  { id: 'waxseal', name: 'Wax seal', blurb: 'Stamped seal · formal invites' },
+  { id: 'pennant', name: 'Pennant', blurb: 'Scalloped banner edge' },
+  { id: 'embossed', name: 'Embossed', blurb: 'Blind-pressed, no ink' },
+];
+
+export interface StudioPaper {
+  id: string;
+  name: string;
+}
+export const STUDIO_PAPERS: StudioPaper[] = [
+  { id: 'none', name: 'None' },
+  { id: 'linen', name: 'Linen' },
+  { id: 'paper', name: 'Paper' },
+  { id: 'cotton', name: 'Cotton' },
+  { id: 'watercolor', name: 'Watercolor' },
+  { id: 'velvet', name: 'Velvet' },
+  { id: 'canvas', name: 'Canvas' },
+  { id: 'kraft', name: 'Kraft' },
+  { id: 'vellum', name: 'Vellum' },
+  { id: 'letterpress', name: 'Letterpress' },
+  { id: 'newsprint', name: 'Newsprint' },
+  { id: 'marble', name: 'Marble' },
+];
+
 // Blocks each occasion gets (core in ink, specialty in accent).
 export const CORE_BLOCKS = ['Story', 'Schedule', 'Travel', 'RSVP', 'Registry', 'Gallery', 'FAQ', 'Details'];
 export const BLOCKS_BY_OCC: Record<OccasionKey, string[]> = {
