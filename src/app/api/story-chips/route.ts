@@ -29,6 +29,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
@@ -92,6 +93,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ chips: [] });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, getClientIp(req));
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   /* Build the Claude context. Skip empty fields so the prompt
      stays focused — empty strings + undefined just bloat tokens. */
   const ctxLines: string[] = [];
@@ -115,7 +126,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { generate, textFrom } = await import('@/lib/claude/client');
+    const { generate, textFrom, CLAUDE_HAIKU } = await import('@/lib/claude/client');
     const msg = await generate({
       tier: 'haiku',
       system: [
@@ -142,6 +153,20 @@ export async function POST(req: NextRequest) {
       temperature: 0.75,
     });
     const raw = textFrom(msg).trim();
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(ctxLines.join('\n')),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(raw),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     /* Split on newlines, strip leading bullets / numerals / quotes,
        trim, dedupe (case-insensitive), and cap at 8. */
     const seen = new Set<string>();

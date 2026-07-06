@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,16 @@ export async function POST(req: NextRequest) {
   if (!rateCheck.allowed) {
     return NextResponse.json(
       { error: 'Rate limit exceeded. Please wait before searching again.' },
+      { status: 429 }
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budgetK = budgetKey(session.user.email, '');
+  if (await overBudget(budgetK)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
       { status: 429 }
     );
   }
@@ -105,6 +116,17 @@ Make the descriptions warm and helpful, like a knowledgeable friend giving hotel
     let parsed: unknown;
     try {
       const raw = await callGemini(prompt, apiKey);
+      // Charge the estimated cost once the model call succeeded.
+      void chargeAi(
+        budgetK,
+        centsForUsage({
+          provider: 'gemini',
+          model: 'gemini-3.1-flash-lite-preview',
+          inputTokens: approxTokens(prompt),
+          outputTokens: approxTokens(raw),
+          ms: 0,
+        })
+      );
       parsed = JSON.parse(raw);
     } catch {
       console.warn('[ai-hotels] Gemini parse failed, using fallback');

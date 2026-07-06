@@ -23,7 +23,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimitAsync, RATE_LIMITS } from '@/lib/rate-limit';
-import { generate, textFrom } from '@/lib/claude';
+import { generate, textFrom, CLAUDE_HAIKU } from '@/lib/claude';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -138,6 +139,7 @@ async function fetchDetails(placeId: string, apiKey: string): Promise<PlaceDetai
 async function blurbifyOne(
   hotel: { name: string; address: string; rating?: number; amenities: string; distanceText: string; editorialSummary?: string },
   context: { venueCity?: string; eventDate?: string },
+  budgetK: string,
 ): Promise<string> {
   const system =
     'You write a single short line for a wedding website hotel block. 12-22 words. Specific over generic. Mention character (boutique, family-run, garden) or distance/setting. No exclamation marks, no "stunning"/"perfect"/"breathtaking".';
@@ -161,6 +163,20 @@ async function blurbifyOne(
       temperature: 0.55,
     });
     const raw = textFrom(msg).trim();
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budgetK,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(`${system}${user}`),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(raw),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     return raw.replace(/^["']|["']$/g, '').slice(0, 240);
   } catch {
     return hotel.editorialSummary ?? '';
@@ -219,9 +235,20 @@ export async function POST(req: NextRequest) {
   const name = details.displayName?.text ?? '';
   const address = details.formattedAddress ?? '';
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
   const blurb = await blurbifyOne(
     { name, address, rating: details.rating, amenities, distanceText, editorialSummary },
     { venueCity: body.venueCity, eventDate: body.eventDate },
+    budget,
   );
 
   // Pull a real nightly-rate range when Google has one.

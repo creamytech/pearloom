@@ -15,8 +15,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateJson } from '@/lib/claude/structured';
+import { CLAUDE_HAIKU } from '@/lib/claude/client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { buildPearContext } from '@/lib/pear/context';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -115,6 +117,16 @@ export async function POST(req: NextRequest) {
     .filter(Boolean)
     .join('\n\n');
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   try {
     /* Forced tool_use: the schema below mirrors SpeechAnalysis so
        any field drift fails fast at the tool-call layer instead of
@@ -154,6 +166,18 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: approxTokens(`${sys}${text}`),
+        outputTokens: approxTokens(JSON.stringify(parsed)),
+        ms: 0,
+      })
+    );
 
     // Override the model's duration/cliches with our objective values.
     const result: SpeechAnalysis = {

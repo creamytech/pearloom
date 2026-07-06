@@ -18,6 +18,7 @@ import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ drafts: shuffleDefaults(type, count) });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const manifest = (site as { ai_manifest?: Record<string, unknown> }).ai_manifest ?? {};
   const m = manifest as {
     occasion?: string;
@@ -152,6 +163,17 @@ No prose, no markdown fences, just the JSON.`;
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
   };
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budget,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.5-flash',
+      inputTokens: approxTokens(prompt),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   let parsed: { drafts?: unknown } = {};
   try { parsed = JSON.parse(raw); } catch { /* fall through */ }
 

@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 import type { Chapter } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
   // are unlimited.
   const { blocked } = await checkPearGate(session.user.email);
   if (blocked) return blocked;
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return Response.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
@@ -84,6 +95,17 @@ Keep title under 6 words. Subtitle: 1 poetic sentence. Description: 3-4 sentence
     let result: { title: string; subtitle: string; description: string };
     try {
       const raw = await callGemini(prompt, apiKey);
+      // Charge the estimated cost once the model call succeeded.
+      void chargeAi(
+        budget,
+        centsForUsage({
+          provider: 'gemini',
+          model: 'gemini-3.1-flash-lite-preview',
+          inputTokens: approxTokens(prompt),
+          outputTokens: approxTokens(raw),
+          ms: 0,
+        })
+      );
       result = JSON.parse(raw);
     } catch {
       console.warn('[rewrite-chapter] Gemini parse failed, returning original');

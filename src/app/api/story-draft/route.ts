@@ -31,6 +31,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
@@ -83,6 +84,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ draft: '' });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, getClientIp(req));
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const names = Array.isArray(body.names) ? body.names.filter(Boolean).join(' & ') : '';
   const chips = Array.isArray(body.chips) ? body.chips.filter(Boolean).slice(0, 6) : [];
   const fs = body.factSheet ?? {};
@@ -113,7 +124,7 @@ export async function POST(req: NextRequest) {
   const isRefining = !!(body.existing && body.existing.trim().length >= 20);
 
   try {
-    const { generate, textFrom } = await import('@/lib/claude/client');
+    const { generate, textFrom, CLAUDE_HAIKU } = await import('@/lib/claude/client');
     const msg = await generate({
       tier: 'haiku',
       system: [
@@ -147,6 +158,20 @@ export async function POST(req: NextRequest) {
       temperature: 0.78,
     });
     const draft = textFrom(msg).trim().replace(/^["“]|["”]$/g, '');
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(ctxLines.join('\n')),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(draft),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     return NextResponse.json({ draft });
   } catch (err) {
     console.warn('[story-draft] claude error:', err instanceof Error ? err.message : err);

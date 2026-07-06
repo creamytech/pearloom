@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, checkPearGate } from '@/lib/rate-limit';
 import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +87,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Slow down a tick — try again in an hour.' }, { status: 429 });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'Pear isn\'t connected to a model on this server.' }, { status: 503 });
@@ -120,6 +131,17 @@ export async function POST(req: NextRequest) {
 
   const data = await upstream.json();
   const raw: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budget,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.1-flash-lite-preview',
+      inputTokens: approxTokens(SYSTEM_PROMPT(body)),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   const cleaned = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
 
   let parsed: unknown;

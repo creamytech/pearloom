@@ -10,6 +10,7 @@ import { getSiteConfig } from '@/lib/db';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import type { Chapter } from '@/types';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
@@ -52,7 +53,7 @@ function stripCodeFences(s: string): string {
 
 // ── Handler ────────────────────────────────────────────────────
 
-async function handle(subdomain: string | null, force: boolean) {
+async function handle(subdomain: string | null, force: boolean, budgetK: string) {
   if (!subdomain) {
     return NextResponse.json({ error: 'subdomain is required' }, { status: 400 });
   }
@@ -87,6 +88,15 @@ async function handle(subdomain: string | null, force: boolean) {
     return NextResponse.json(
       { skipped: true, reason: 'Wedding date has not passed yet' },
       { status: 200 }
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP.
+  // Fails open — only blocks on a confirmed over-budget read.
+  if (await overBudget(budgetK)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
     );
   }
 
@@ -150,6 +160,17 @@ Return JSON only — no markdown, no explanation:
     const geminiData = await res.json();
     const rawText: string =
       geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budgetK,
+      centsForUsage({
+        provider: 'gemini',
+        model: 'gemini-3.1-pro-preview',
+        inputTokens: approxTokens(prompt),
+        outputTokens: approxTokens(rawText),
+        ms: 0,
+      })
+    );
     const cleaned = stripCodeFences(rawText);
     generated = JSON.parse(cleaned);
   } catch (err) {
@@ -235,7 +256,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const subdomain: string | null = body?.subdomain ?? null;
     const force = Boolean(body?.force);
-    return handle(subdomain, force);
+    return handle(subdomain, force, budgetKey(null, ip));
   } catch (err) {
     console.error('[anniversary/nudge] POST error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -251,5 +272,5 @@ export async function GET(req: NextRequest) {
 
   const subdomain = req.nextUrl.searchParams.get('subdomain');
   const force = req.nextUrl.searchParams.get('force') === 'true';
-  return handle(subdomain, force);
+  return handle(subdomain, force, budgetKey(null, ip));
 }

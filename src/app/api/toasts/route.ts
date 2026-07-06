@@ -18,6 +18,7 @@ import { uploadToR2 } from '@/lib/r2';
 import { getGuestByToken, listVoiceToasts } from '@/lib/event-os/db';
 import { isSoftEmptyError } from '@/lib/event-os/soft-empty';
 import { generate, CLAUDE_HAIKU, textFrom } from '@/lib/claude';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -179,6 +180,16 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'toastId and rawTranscript required' }, { status: 400 });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   try {
     const msg = await generate({
       tier: 'haiku',
@@ -188,6 +199,20 @@ export async function PATCH(req: NextRequest) {
       temperature: 0.2,
     });
     const cleaned = textFrom(msg).trim();
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(rawTranscript),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(cleaned),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
 
     await sb()
       .from('voice_toasts')

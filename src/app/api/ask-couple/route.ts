@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,6 +148,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP
+  // (guest-facing). Fails open — only blocks on a confirmed
+  // over-budget read.
+  const budgetK = budgetKey(null, ip);
+  if (await overBudget(budgetK)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 });
 
@@ -261,6 +273,18 @@ ${name1} & ${name2}'s reply:`;
     const data = await res.json();
     const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
       || (isPostWedding ? "Let's catch up soon!" : "See you at the wedding!");
+
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budgetK,
+      centsForUsage({
+        provider: 'gemini',
+        model: 'gemini-3.1-flash-lite-preview',
+        inputTokens: approxTokens(systemPrompt),
+        outputTokens: approxTokens(answer),
+        ms: 0,
+      })
+    );
 
     // ── Generate suggested questions on first message ──
     let suggestions: string[] | undefined;

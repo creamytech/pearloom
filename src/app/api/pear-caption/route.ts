@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GEMINI_FLASH, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/pear-caption
@@ -43,6 +44,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ caption: 'A quiet moment, kept.' });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP
+  // (guest-facing). Fails open — only blocks on a confirmed
+  // over-budget read.
+  const budget = budgetKey(null, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   let body: CaptionRequest;
   try {
     body = await req.json();
@@ -83,6 +95,17 @@ export async function POST(req: NextRequest) {
     }
     const data = await res.json();
     const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'gemini',
+        model: 'gemini-3.5-flash',
+        inputTokens: approxTokens(`${SYSTEM}${ctxLine}${body.photoUrl}`),
+        outputTokens: approxTokens(raw),
+        ms: 0,
+      })
+    );
     // Strip surrounding quotes/backticks the model sometimes adds.
     const cleaned = raw.replace(/^[`"'\s]+|[`"'\s]+$/g, '').slice(0, 120);
     return NextResponse.json({ caption: cleaned || 'A quiet moment, kept.' });

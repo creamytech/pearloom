@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -45,10 +46,12 @@ async function generateIntrosForTable({
   apiKey,
   tableLabel,
   guests,
+  budgetK,
 }: {
   apiKey: string;
   tableLabel: string;
   guests: GuestRow[];
+  budgetK: string;
 }): Promise<Array<{ guestId: string; intro: string; seatmates: Array<{ name: string; blurb?: string }> }>> {
   const roster = guests
     .map(
@@ -83,6 +86,17 @@ Return ONLY valid JSON (no markdown) in this shape:
   if (!res.ok) throw new Error(`Gemini ${res.status}`);
   const data = await res.json();
   const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budgetK,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.1-pro-preview',
+      inputTokens: approxTokens(prompt),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
   const parsed = JSON.parse(cleaned);
   if (!Array.isArray(parsed)) throw new Error('Not an array');
@@ -102,6 +116,16 @@ export async function POST(req: NextRequest) {
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many intro runs in a row — try again in a few minutes.' },
+      { status: 429 },
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
       { status: 429 },
     );
   }
@@ -140,7 +164,7 @@ export async function POST(req: NextRequest) {
     if (!roster.length) continue;
     let result: Array<{ guestId: string; intro: string; seatmates: Array<{ name: string; blurb?: string }> }> = [];
     try {
-      result = await generateIntrosForTable({ apiKey, tableLabel: t.label, guests: roster });
+      result = await generateIntrosForTable({ apiKey, tableLabel: t.label, guests: roster, budgetK: budget });
     } catch (err) {
       console.error('[seatmate-intros]', err);
       continue;

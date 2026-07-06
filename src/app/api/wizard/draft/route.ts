@@ -26,6 +26,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
 import { getEventType } from '@/lib/event-os/event-types';
 import { DRAFT_SCHEMA, VOICE_DIRECTIVE, type DraftResult } from '@/lib/first-pressing/schema';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -180,19 +181,41 @@ export async function POST(req: NextRequest) {
     facts.push('Draft heroTagline: 5–8 words, a register/tone line, no fabricated facts.');
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, getClientIp(req));
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   try {
     const { generateJson } = await import('@/lib/claude/structured');
-    const { cached } = await import('@/lib/claude/client');
+    const { cached, CLAUDE_SONNET } = await import('@/lib/claude/client');
+    const userTurn = facts.join('\n');
     const drafted = await generateJson<DraftResult>({
       tier: 'sonnet',
       system: [cached(SYSTEM)],
-      messages: [{ role: 'user', content: facts.join('\n') }],
+      messages: [{ role: 'user', content: userTurn }],
       schema: DRAFT_SCHEMA,
       schemaName: 'emit_first_pressing',
       schemaDescription: 'Emit the first-pressing draft. Every field optional — omit any slot you cannot honestly ground.',
       maxTokens: 1400,
       temperature: 0.7,
     });
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_SONNET,
+        inputTokens: approxTokens(`${SYSTEM}${userTurn}`),
+        outputTokens: approxTokens(JSON.stringify(drafted ?? {})),
+        ms: 0,
+      })
+    );
     return NextResponse.json({ drafted: drafted && typeof drafted === 'object' ? drafted : {} });
   } catch (err) {
     console.warn('[wizard/draft] claude error:', err instanceof Error ? err.message : err);

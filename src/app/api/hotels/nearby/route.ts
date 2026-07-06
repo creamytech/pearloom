@@ -18,7 +18,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimitAsync, RATE_LIMITS } from '@/lib/rate-limit';
-import { generate, textFrom } from '@/lib/claude';
+import { generate, textFrom, CLAUDE_HAIKU } from '@/lib/claude';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -257,7 +258,7 @@ function distanceText(meters?: number): string {
   return `${Math.round(miles)} mi · ~${driveMin} min drive`;
 }
 
-async function blurbifyClaude(hotels: PlaceHotel[], context: { venueCity?: string; eventDate?: string }): Promise<Record<string, string>> {
+async function blurbifyClaude(hotels: PlaceHotel[], context: { venueCity?: string; eventDate?: string }, budgetK: string): Promise<Record<string, string>> {
   if (hotels.length === 0) return {};
   const list = hotels.map((h) => `- ${h.name} · ${h.address}${h.rating ? ` · rating ${h.rating}` : ''}${h.distanceMeters ? ` · ${distanceText(h.distanceMeters)} from venue` : ''}`).join('\n');
   const system = 'You write short, useful one-line hotel blurbs for a wedding website. 12-22 words. Specific over generic. Mention walking distance, neighborhood character, or notable features. No exclamation marks, no clichés like "stunning" or "perfect."';
@@ -271,6 +272,20 @@ async function blurbifyClaude(hotels: PlaceHotel[], context: { venueCity?: strin
       temperature: 0.6,
     });
     const raw = textFrom(msg).trim();
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budgetK,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(`${system}${user}`),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(raw),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
     const parsed = JSON.parse(cleaned) as Record<string, string>;
     return parsed;
@@ -338,7 +353,18 @@ export async function POST(req: NextRequest) {
   const top = [...hotels]
     .sort((a, b) => qualityScore(b) - qualityScore(a))
     .slice(0, 6);
-  const blurbs = await blurbifyClaude(top, { venueCity: body.venueCity, eventDate: body.eventDate });
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
+  const blurbs = await blurbifyClaude(top, { venueCity: body.venueCity, eventDate: body.eventDate }, budget);
 
   const decorated = top.map((h) => ({
     id: h.id,

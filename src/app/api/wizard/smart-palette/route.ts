@@ -17,7 +17,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { generateJson } from '@/lib/claude';
+import { generateJson, CLAUDE_HAIKU } from '@/lib/claude';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 import { MOTIF_KINDS } from '@/components/pearloom/site/MotifScatter';
 import { MOTIF_LAYOUTS } from '@/lib/site-look/motif-layouts';
 
@@ -139,6 +140,16 @@ export async function POST(req: NextRequest) {
 
   const context = lines.join('\n');
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, getClientIp(req));
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
   const system =
     `You are Pearloom's palette advisor. You pick THREE distinct four-color palettes for a ` +
     `celebration site. One palette MUST be venue-aware when a venue is given (e.g. ` +
@@ -196,6 +207,18 @@ export async function POST(req: NextRequest) {
       schemaName: 'emit_palettes',
       schemaDescription: 'Emit three color palettes tuned to the event details.',
     });
+
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: approxTokens(`${system}${context}`),
+        outputTokens: approxTokens(JSON.stringify(result)),
+        ms: 0,
+      })
+    );
 
     const raw = Array.isArray(result?.palettes) ? result.palettes : [];
     const normalized = raw

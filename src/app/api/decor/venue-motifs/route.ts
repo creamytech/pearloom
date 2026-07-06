@@ -17,8 +17,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { generate, parseJsonFromText, text, textFrom } from '@/lib/claude/client';
+import { generate, parseJsonFromText, text, textFrom, CLAUDE_HAIKU } from '@/lib/claude/client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 interface MotifResponse {
   motifs: Array<{ id: string; label: string; prompt: string }>;
@@ -80,6 +81,16 @@ export async function POST(req: NextRequest) {
     .filter(Boolean)
     .join('\n');
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
   try {
     const msg = await generate({
       tier: 'haiku',
@@ -89,6 +100,20 @@ export async function POST(req: NextRequest) {
       temperature: 0.6,
     });
     const raw = textFrom(msg);
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(`${venue}${occasion}${vibe}`),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(raw),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     const parsed = parseJsonFromText<MotifResponse>(raw);
 
     // Validate + clean. Drop anything that doesn't have all three

@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, checkPearGate } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
   const rl = checkRateLimit(`draft-nudge:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many drafts — try again in an hour.' }, { status: 429 });
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
   }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
@@ -114,6 +125,17 @@ Output ONLY the body text, no quotes, no markdown.`;
   }
   const data = await upstream.json();
   const raw: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budget,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.1-flash-lite-preview',
+      inputTokens: approxTokens(prompt),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   let cleaned = raw.trim().replace(/^["']|["']$/g, '');
   if (!cleaned) {
     cleaned = `Just a quick note — we'd love to know if you can join us for ${eventDate || 'the day'}${

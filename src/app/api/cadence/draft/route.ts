@@ -14,10 +14,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { generate, textFrom } from '@/lib/claude';
+import { generate, textFrom, CLAUDE_HAIKU } from '@/lib/claude';
 import { getSiteConfig } from '@/lib/db';
 import { parseLocalDate } from '@/lib/date-utils';
 import { getCadencePreset } from '@/lib/cadence/cadence-presets';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -80,6 +81,16 @@ SUBJECT: <one short subject line>
 BODY:
 <the body text>${voicePreface}`;
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   try {
     const msg = await generate({
       tier: 'haiku',
@@ -89,6 +100,20 @@ BODY:
       temperature: 0.7,
     });
     const text = textFrom(msg).trim();
+    // Charge the real token cost from the returned Message's usage
+    // (falls back to a length estimate if usage is absent).
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: msg.usage?.input_tokens ?? approxTokens(`${system}${filledPrompt}`),
+        outputTokens: msg.usage?.output_tokens ?? approxTokens(text),
+        cacheReadTokens: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: msg.usage?.cache_creation_input_tokens ?? 0,
+        ms: 0,
+      })
+    );
     const subjectMatch = text.match(/SUBJECT:\s*(.+)/i);
     const bodyMatch = text.match(/BODY:\s*([\s\S]+)/i);
     return NextResponse.json({

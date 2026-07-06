@@ -34,11 +34,13 @@ import {
   textFrom,
   parseJsonFromText,
   cached,
+  CLAUDE_HAIKU,
 } from '@/lib/claude/client';
 import {
   generateLookFromStory,
   type SuggestedLook,
 } from '@/lib/look-engine/generate-from-story';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 interface LookResponse extends SuggestedLook {
   /** Whether the result came from Claude or the deterministic fallback. */
@@ -133,6 +135,16 @@ export async function POST(req: Request) {
     return NextResponse.json(heuristicResponse);
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
   try {
     /* Use forced tool_use (generateJson) so Claude can't return
        prose-wrapped JSON. The schema below mirrors SuggestedLook
@@ -162,6 +174,18 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: approxTokens(`${SYSTEM_PROMPT}${text}`),
+        outputTokens: approxTokens(JSON.stringify(parsed)),
+        ms: 0,
+      })
+    );
 
     /* Defensive validation — the schema gives us almost everything
        but we still want belt-and-braces on the field VALUES

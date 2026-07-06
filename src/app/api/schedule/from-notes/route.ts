@@ -11,6 +11,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generateJson } from '@/lib/claude/structured';
+import { CLAUDE_HAIKU } from '@/lib/claude/client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +32,16 @@ export async function POST(req: NextRequest) {
     if (!notes) return NextResponse.json({ error: 'notes required' }, { status: 400 });
     if (notes.length > 2000) {
       return NextResponse.json({ error: 'Notes too long — keep it under 2000 characters.' }, { status: 400 });
+    }
+
+    // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+    // email. Fails open — only blocks on a confirmed over-budget read.
+    const budget = budgetKey(session.user.email, '');
+    if (await overBudget(budget)) {
+      return NextResponse.json(
+        { error: "You've reached today's AI limit — try again tomorrow." },
+        { status: 429 }
+      );
     }
 
     const result = await generateJson<{ events: Array<{ name: string; time: string; venue?: string }> }>({
@@ -59,6 +71,18 @@ export async function POST(req: NextRequest) {
         { role: 'user', content: `Parse these notes into a clean timeline:\n\n${notes}` },
       ],
     });
+
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: approxTokens(notes),
+        outputTokens: approxTokens(JSON.stringify(result)),
+        ms: 0,
+      })
+    );
 
     return NextResponse.json({
       events: (result.events ?? []).slice(0, 12).map((e) => ({

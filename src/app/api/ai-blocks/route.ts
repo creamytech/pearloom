@@ -10,6 +10,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { checkPlanAccess } from '@/lib/plan-gate';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -176,6 +177,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
@@ -267,6 +278,17 @@ ${schema.schema}`;
     let parsed: unknown;
     try {
       const raw = await callGemini(fullPrompt, apiKey);
+      // Charge the estimated cost once the model call succeeded.
+      void chargeAi(
+        budget,
+        centsForUsage({
+          provider: 'gemini',
+          model: 'gemini-3.1-flash-lite-preview',
+          inputTokens: approxTokens(fullPrompt),
+          outputTokens: approxTokens(raw),
+          ms: 0,
+        })
+      );
       parsed = JSON.parse(raw);
     } catch {
       console.warn(`[ai-blocks] Gemini parse failed for ${blockType}, using fallback`);

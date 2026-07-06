@@ -22,7 +22,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { generateJson } from '@/lib/claude/structured';
+import { CLAUDE_HAIKU } from '@/lib/claude/client';
 import { getSiteConfig } from '@/lib/db';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -85,6 +87,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No usable text in the samples.' }, { status: 400 });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 },
+    );
+  }
+
   const system = `You are a linguistic profiler. Read the host's spoken transcripts and extract a voice profile that captures HOW they speak — the rhythm, vocabulary, formality, signature phrases. The output drives downstream AI copywriting that needs to sound like THEM.
 
 Rules:
@@ -135,6 +147,18 @@ Rules:
         },
       },
     });
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_HAIKU,
+        inputTokens: approxTokens(`${system}${transcripts}`),
+        outputTokens: approxTokens(JSON.stringify(parsed)),
+        ms: 0,
+      })
+    );
+
     const profile: VoiceDNA = {
       tone: parsed.tone || 'warm and personal',
       formality: typeof parsed.formality === 'number' ? Math.max(1, Math.min(5, parsed.formality)) : 3,

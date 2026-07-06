@@ -15,6 +15,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -78,6 +79,17 @@ export async function PATCH(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI unavailable' }, { status: 503 });
   const supabase = sb();
@@ -138,6 +150,17 @@ Return ONLY valid JSON, no markdown:
   if (!res.ok) return NextResponse.json({ error: `Gemini ${res.status}` }, { status: 502 });
   const data = await res.json();
   const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budget,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.1-pro-preview',
+      inputTokens: approxTokens(prompt),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   let parsed: Array<{ guestId: string; body: string }>;
   try {
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();

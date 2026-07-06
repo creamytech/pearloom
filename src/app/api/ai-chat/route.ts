@@ -8,7 +8,8 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
-import { generate, cached, textFrom, parseJsonFromText } from '@/lib/claude';
+import { generate, cached, textFrom, parseJsonFromText, CLAUDE_SONNET } from '@/lib/claude';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -165,6 +166,16 @@ export async function POST(req: NextRequest) {
   const { blocked, gate } = await checkPearGate(userEmail);
   if (blocked) return blocked;
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(userEmail, '');
+  if (await overBudget(budget)) {
+    return Response.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   const useClaude = claudeEnabled();
   if (!useClaude && !apiKey) {
@@ -270,9 +281,16 @@ ${names?.filter(Boolean).length ? `HOSTS: ${names.filter(Boolean).join(' & ')}` 
     const safeMessage = message.trim().replace(/["`]/g, "'");
 
     let raw: string;
+    // Track which provider/model actually produced `raw` so the
+    // budget charge below reflects the real path taken (Claude
+    // primary, or the Gemini fallback).
+    let chargeProvider: 'claude' | 'gemini' = 'gemini';
+    let chargeModel = 'gemini-3.1-flash-lite-preview';
     try {
       if (useClaude) {
         raw = await callClaude(SYSTEM_PROMPT, contextBlock, safeMessage);
+        chargeProvider = 'claude';
+        chargeModel = CLAUDE_SONNET;
       } else {
         const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
         raw = await callGemini(fullPrompt, apiKey!);
@@ -282,10 +300,24 @@ ${names?.filter(Boolean).length ? `HOSTS: ${names.filter(Boolean).join(' & ')}` 
       if (useClaude && apiKey) {
         const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
         raw = await callGemini(fullPrompt, apiKey);
+        chargeProvider = 'gemini';
+        chargeModel = 'gemini-3.1-flash-lite-preview';
       } else {
         throw err;
       }
     }
+
+    // Charge the estimated cost once a model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: chargeProvider,
+        model: chargeModel,
+        inputTokens: approxTokens(`${SYSTEM_PROMPT}${contextBlock}${safeMessage}`),
+        outputTokens: approxTokens(raw),
+        ms: 0,
+      })
+    );
 
     let parsed: { action: string; data: unknown; reply: string };
     try {

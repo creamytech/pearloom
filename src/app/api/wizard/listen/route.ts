@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,9 +96,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false });
   }
 
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, ip);
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit — try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
   try {
     const { generateJson } = await import('@/lib/claude/structured');
-    const { cached } = await import('@/lib/claude/client');
+    const { cached, CLAUDE_SONNET } = await import('@/lib/claude/client');
     const result = await generateJson<Listened>({
       tier: 'sonnet',
       maxTokens: 1000,
@@ -123,6 +134,17 @@ export async function POST(req: NextRequest) {
       schemaName: 'emit_listened',
       schemaDescription: 'The facts and anchors heard in the host\'s story.',
     });
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budget,
+      centsForUsage({
+        provider: 'claude',
+        model: CLAUDE_SONNET,
+        inputTokens: approxTokens(story),
+        outputTokens: approxTokens(JSON.stringify(result)),
+        ms: 0,
+      })
+    );
     return NextResponse.json({
       ok: true,
       names: (result.names ?? []).map((n) => String(n).trim()).filter(Boolean).slice(0, 2),

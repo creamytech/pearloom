@@ -16,6 +16,7 @@ import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -43,6 +44,7 @@ async function geminiGeneratePrompts({
   coupleNames,
   occasion,
   voice,
+  budgetK,
 }: {
   apiKey: string;
   chaptersText: string;
@@ -50,6 +52,7 @@ async function geminiGeneratePrompts({
   coupleNames: [string, string];
   occasion: string;
   voice: string;
+  budgetK: string;
 }): Promise<Array<{ name: string; prompt: string }>> {
   const prompt = `You are Pear, a warm editorial assistant for Pearloom.
 ${coupleNames.filter(Boolean).join(' & ')} are hosting a ${occasion}. Tone: ${voice}.
@@ -87,6 +90,17 @@ One object per guest, in the same order.`;
   if (!res.ok) throw new Error(`Gemini ${res.status}`);
   const data = await res.json();
   const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+  // Charge the estimated cost once the model call succeeded.
+  void chargeAi(
+    budgetK,
+    centsForUsage({
+      provider: 'gemini',
+      model: 'gemini-3.1-pro-preview',
+      inputTokens: approxTokens(prompt),
+      outputTokens: approxTokens(raw),
+      ms: 0,
+    })
+  );
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
   const parsed = JSON.parse(cleaned);
   if (!Array.isArray(parsed)) throw new Error('Not an array');
@@ -106,6 +120,16 @@ export async function POST(req: NextRequest) {
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many weave runs in a row — try again in a few minutes.' },
+      { status: 429 },
+    );
+  }
+
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+  // email. Fails open — only blocks on a confirmed over-budget read.
+  const budget = budgetKey(session.user.email, '');
+  if (await overBudget(budget)) {
+    return NextResponse.json(
+      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
       { status: 429 },
     );
   }
@@ -167,6 +191,7 @@ export async function POST(req: NextRequest) {
       coupleNames: names,
       occasion,
       voice,
+      budgetK: budget,
     });
   } catch (err) {
     console.error('[memory-weave]', err);
