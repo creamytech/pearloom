@@ -73,8 +73,9 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
   },
   {
     id: 'vendors',
-    label: 'Vendors & money',
+    label: 'Money',
     items: [
+      { id: 'budget',   label: 'Budget',   icon: 'bars',   href: '/dashboard/budget' },
       { id: 'vendors',  label: 'Vendors',  icon: 'pin',    href: '/dashboard/vendors' },
       { id: 'payments', label: 'Payments', icon: 'ticket', href: '/dashboard/payments' },
     ],
