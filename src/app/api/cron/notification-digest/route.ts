@@ -109,10 +109,12 @@ export async function GET(req: NextRequest) {
       const counts = [
         { n: digestItems.filter((i) => i.category === 'replies').length, noun: 'replies' },
         { n: digestItems.filter((i) => i.category === 'declines').length, noun: 'regrets' },
-        // Vendor payment reminders ride the 'gifts' (money) category
-        // but aren't claims — count them under their own noun.
-        { n: digestItems.filter((i) => i.category === 'gifts' && i.kind !== 'vendor').length, noun: 'gifts claimed' },
+        // Vendor payment reminders + shared split expenses ride the
+        // 'gifts' (money) category but aren't claims — count each
+        // under its own noun so "gifts claimed" stays truthful.
+        { n: digestItems.filter((i) => i.category === 'gifts' && i.kind !== 'vendor' && i.kind !== 'split').length, noun: 'gifts claimed' },
         { n: digestItems.filter((i) => i.kind === 'vendor').length, noun: 'vendor payments coming due' },
+        { n: digestItems.filter((i) => i.kind === 'split').length, noun: 'shared expenses added' },
         { n: digestItems.filter((i) => i.category === 'content').length, noun: 'notes & photos' },
       ];
       const theme = site.ai_manifest

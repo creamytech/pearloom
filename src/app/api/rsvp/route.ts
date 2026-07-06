@@ -5,7 +5,8 @@ import { buildHostRsvpNotificationEmail } from '@/lib/email/brand-emails';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
-import { linkGuestRowToPerson } from '@/lib/people';
+import { linkGuestRowToPerson, resolvePersonId, normalizePersonEmail } from '@/lib/people';
+import { isGroupSplitOccasion } from '@/lib/event-os/event-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -262,6 +263,54 @@ export async function POST(req: NextRequest) {
           });
         } catch {
           /* telemetry only — never affects the reply */
+        }
+      })();
+    }
+
+    // Collaborative split — seed a participant (GRAND-PLAN Phase 1).
+    // An attending RSVP to a GROUP-SPLIT-shaped event (bachelor/ette,
+    // reunion — occasion carried on the manifest) adds this guest to
+    // the split roster (public.participants), so the host never has
+    // to re-key everyone by hand to start sharing costs. Anchored to
+    // their person identity when an email is present, and deduped on
+    // the (site_id, person_id) unique index so a repeat RSVP never
+    // doubles them; a guest with no email still gets a name-only
+    // participant. Fire-and-forget and FULLY SWALLOWED — this must
+    // NEVER block, delay, or fail an RSVP (the RSVP path is sacred).
+    // Follow-up: this is roster membership only; pre-creating an
+    // "expected share" needs a target expense and is out of scope.
+    if (
+      effectiveStatus === 'attending' && !error && data &&
+      isGroupSplitOccasion((siteRow.ai_manifest as { occasion?: string } | null)?.occasion)
+    ) {
+      void (async () => {
+        try {
+          const displayName = String(guestName).trim().slice(0, 80);
+          if (!displayName) return;
+          const normEmail = normalizePersonEmail(email);
+          const personId = normEmail
+            ? await resolvePersonId(supabase, { email: normEmail, name: displayName })
+            : null;
+          if (personId) {
+            // Already on the roster for this site → no duplicate.
+            const { data: existing } = await supabase
+              .from('participants')
+              .select('id')
+              .eq('site_id', resolvedSiteId)
+              .eq('person_id', personId)
+              .maybeSingle();
+            if (existing) return;
+          }
+          await supabase.from('participants').insert({
+            site_id: resolvedSiteId,
+            person_id: personId,
+            display_name: displayName,
+            email: normEmail,
+          });
+        } catch (err) {
+          // Unique-index race or a missing table pre-migration —
+          // the roster is a nicety, never the reply.
+          console.warn('[RSVP] split participant seed failed (non-fatal):', err);
         }
       })();
     }

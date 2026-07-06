@@ -32,11 +32,18 @@ const h = vi.hoisted(() => {
      site (no guestListOnly); gate tests queue their own. */
   const defaults: Record<string, unknown> = {
     'sites.maybeSingle': { id: 'demo', ai_manifest: {} },
+    // The split participant seed + linkGuestRowToPerson both resolve a
+    // person. Default to "no existing person → insert returns an id" so
+    // the fire-and-forget identity paths don't depend on queue counting.
+    'people.maybeSingle': null,
+    'people.single': { id: 'person-1' },
   };
 
   function makeChain(table: string) {
     const chain: Record<string, unknown> = {};
-    const passVerbs = ['from', 'upsert', 'update', 'select', 'eq', 'ilike'];
+    // `insert` joined the pass verbs when the split-participant seed
+    // landed (participants + people upserts flow through it).
+    const passVerbs = ['from', 'upsert', 'update', 'insert', 'select', 'eq', 'ilike', 'in'];
     // Terminal verbs resolve { data, error } from the queue (or the
     // defaults map): .single() ends the upsert chain, .maybeSingle()
     // ends the site/token lookups, .limit() ends the email check.
@@ -53,6 +60,9 @@ const h = vi.hoisted(() => {
         const key = `${table}.${verb}`;
         const q = queues[key]?.shift()
           ?? (key in defaults ? { value: defaults[key] } : undefined);
+        // A queued Error value REJECTS — lets a test prove the split
+        // seed's fail-open try/catch swallows a thrown query.
+        if (q?.isError && q.value instanceof Error) return Promise.reject(q.value);
         return Promise.resolve(
           q?.isError ? { data: null, error: q.value } : { data: q?.value ?? null, error: null },
         );
@@ -496,5 +506,124 @@ describe('POST /api/rsvp', () => {
     await new Promise((r) => setImmediate(r));
 
     expect(h.resendSendMock).not.toHaveBeenCalled();
+  });
+
+  // ── Collaborative-split participant seed (fire-and-forget) ──
+  // An attending RSVP to a group-split-shaped occasion (bachelor/ette,
+  // reunion) auto-adds the guest to the split roster. Must never
+  // regress the RSVP: it runs AFTER the response, voided + swallowed.
+  // The seed runs post-response, so flush microtasks before asserting.
+  const flush = () => new Promise((r) => setImmediate(r));
+
+  it('a bachelor-party RSVP seeds a split participant', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'bachelor-party' } });
+    h.queue('guests.single', { id: 'g1', name: 'Ben', status: 'attending' });
+    // participants dedup lookup → no existing → insert proceeds.
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Ben',
+      email: 'ben@example.test',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    await flush();
+
+    const insert = h.calls.find((c) => c.table === 'participants' && c.method === 'insert');
+    expect(insert).toBeDefined();
+    expect(insert!.args[0]).toMatchObject({
+      site_id: 'demo',
+      person_id: 'person-1',      // resolved from the email
+      display_name: 'Ben',
+      email: 'ben@example.test',
+    });
+  });
+
+  it('a name-only bachelor RSVP still seeds a participant (person_id null)', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'reunion' } });
+    h.queue('guests.single', { id: 'g1', name: 'Sam', status: 'attending' });
+    const res = await POST(makePost({ siteId: 'demo', guestName: 'Sam' }));
+    expect(res.status).toBe(200);
+    await flush();
+
+    const insert = h.calls.find((c) => c.table === 'participants' && c.method === 'insert');
+    expect(insert).toBeDefined();
+    expect(insert!.args[0]).toMatchObject({
+      site_id: 'demo',
+      person_id: null,            // no email → name-only participant
+      display_name: 'Sam',
+      email: null,
+    });
+    // No email → no person lookup/dedup was attempted.
+    expect(h.calls.find((c) => c.table === 'participants' && c.method === 'maybeSingle')).toBeUndefined();
+  });
+
+  it('a wedding RSVP does NOT seed a split participant', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'wedding' } });
+    h.queue('guests.single', { id: 'g1', name: 'Alice', status: 'attending' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      email: 'alice@example.test',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    await flush();
+
+    expect(h.calls.find((c) => c.table === 'participants')).toBeUndefined();
+  });
+
+  it('a declined bachelor RSVP does NOT seed a participant', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'bachelor-party' } });
+    h.queue('guests.single', { id: 'g1', name: 'Ben', status: 'declined' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Ben',
+      email: 'ben@example.test',
+      status: 'declined',
+    }));
+    expect(res.status).toBe(200);
+    await flush();
+
+    expect(h.calls.find((c) => c.table === 'participants')).toBeUndefined();
+  });
+
+  it('a repeat bachelor RSVP does not duplicate the participant', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'bachelor-party' } });
+    h.queue('guests.single', { id: 'g1', name: 'Ben', status: 'attending' });
+    // The person is already on this site's split roster.
+    h.queue('participants.maybeSingle', { id: 'part-existing' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Ben',
+      email: 'ben@example.test',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    await flush();
+
+    // Dedup lookup ran, but the insert did NOT.
+    expect(h.calls.find((c) => c.table === 'participants' && c.method === 'maybeSingle')).toBeDefined();
+    expect(h.calls.find((c) => c.table === 'participants' && c.method === 'insert')).toBeUndefined();
+  });
+
+  it('an RSVP still succeeds when the participant seed throws', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { occasion: 'bachelor-party' } });
+    h.queue('guests.single', { id: 'g1', name: 'Ben', status: 'attending' });
+    // The dedup lookup rejects — the seed's try/catch must swallow it
+    // and the RSVP response must already have returned 200.
+    h.queue('participants.maybeSingle', new Error('boom'), true);
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Ben',
+      email: 'ben@example.test',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.success).toBe(true);
+    // Flushing the swallowed rejection must not throw / crash.
+    await expect(flush()).resolves.toBeUndefined();
+    // The throw happened before the insert → no participant row written.
+    expect(h.calls.find((c) => c.table === 'participants' && c.method === 'insert')).toBeUndefined();
   });
 });

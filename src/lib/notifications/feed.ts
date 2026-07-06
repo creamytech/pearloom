@@ -20,7 +20,7 @@ import type { NotificationCategory } from './prefs';
 
 export interface FeedItem {
   id: string;
-  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor';
+  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor' | 'split';
   category: NotificationCategory;
   label: string;
   preview?: string;
@@ -28,9 +28,11 @@ export interface FeedItem {
   createdAt: string;
 }
 
-// ── Vendor-due helpers ─────────────────────────────────────────
-// Host-entered cents → "$1,200" (matches the Vendor Book's fmt).
-function fmtVendorCents(cents: number): string {
+// ── Money helpers ──────────────────────────────────────────────
+// Integer cents → "$1,200" / "$12.50" (matches the Vendor Book +
+// split ledger fmt). Shared by the vendor-due + shared-expense
+// sources below.
+function fmtCents(cents: number): string {
   const whole = cents % 100 === 0;
   return '$' + (cents / 100).toLocaleString('en-US', {
     minimumFractionDigits: whole ? 0 : 2,
@@ -320,7 +322,7 @@ export async function fetchNotificationFeed(
           ? `${d.due}T00:00:00.000Z`
           : new Date(Date.parse(`${d.due}T00:00:00.000Z`) - 7 * 86_400_000).toISOString();
         if (firedAt < since) continue; // already surfaced in an earlier window
-        const amount = d.amountCents != null ? ` · ${fmtVendorCents(d.amountCents)}` : '';
+        const amount = d.amountCents != null ? ` · ${fmtCents(d.amountCents)}` : '';
         items.push({
           id: `vendor-${v.id}-${d.kind}-${d.due}`,
           kind: 'vendor',
@@ -331,6 +333,63 @@ export async function fetchNotificationFeed(
           preview: v.name,
           href: `/dashboard/vendors`,
           createdAt: firedAt,
+        });
+      }
+    }
+  } catch { /* table missing on this deployment — silent skip */ }
+
+  // ── Shared split expenses ──────────────────────────────────
+  // The collaborative split (participants / expenses,
+  // 20260706_group_split.sql): a new group expense on a
+  // bachelor/ette / reunion site surfaces to the host's bell.
+  // Owner-scoped: this pass already runs per the host's OWN site.
+  // Unlike the vendor reminders above, an expense is a STORED row,
+  // so its own immutable created_at IS the deterministic fire
+  // moment — read-state sticks the same way an RSVP's does, no
+  // synthesized timestamp needed. Paid / settle-up is derived in
+  // lib/budget/split.ts; the bell only announces the new line.
+  try {
+    const { data: expenses } = await supabase
+      .from('expenses')
+      .select('id, description, amount_cents, payer_id, created_at')
+      .eq('site_id', siteId)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    const rows = (expenses ?? []) as Array<{
+      id: string; description: string; amount_cents: number;
+      payer_id: string | null; created_at: string;
+    }>;
+    if (rows.length > 0) {
+      // Resolve payer first names in one read (id → first name).
+      const payerIds = Array.from(
+        new Set(rows.map((e) => e.payer_id).filter((x): x is string => !!x)),
+      );
+      const nameById = new Map<string, string>();
+      if (payerIds.length > 0) {
+        const { data: parts } = await supabase
+          .from('participants')
+          .select('id, display_name')
+          .eq('site_id', siteId)
+          .in('id', payerIds);
+        for (const p of (parts ?? []) as Array<{ id: string; display_name: string | null }>) {
+          const first = String(p.display_name ?? '').trim().split(/\s+/)[0];
+          if (first) nameById.set(p.id, first);
+        }
+      }
+      for (const e of rows) {
+        const who = e.payer_id ? nameById.get(e.payer_id) : null;
+        const amount = Number.isFinite(e.amount_cents) ? ` · ${fmtCents(e.amount_cents)}` : '';
+        const desc = String(e.description ?? '').trim().slice(0, 60) || 'an expense';
+        items.push({
+          id: `split-${e.id}`,
+          kind: 'split',
+          // The money category (like vendor + gifts). Defaults to
+          // instant → bell-only unless the host routes gifts to digest.
+          category: 'gifts',
+          label: `New shared expense: ${desc}${amount}${who ? ` by ${who}` : ''}`,
+          href: `/dashboard/budget`,
+          createdAt: e.created_at,
         });
       }
     }

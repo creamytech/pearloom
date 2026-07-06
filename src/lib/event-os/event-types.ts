@@ -745,6 +745,33 @@ export function getEventTypesByCategory(cat: EventCategory): EventType[] {
   return EVENT_TYPES.filter((e) => e.category === cat);
 }
 
+/**
+ * Occasions shaped around a shared GROUP cost — the collaborative
+ * split (participants / expenses, 20260706_group_split.sql). These
+ * are exactly the events whose block set carries `costSplitter`:
+ * bachelor-party + bachelorette-party (default) and reunion
+ * (optional). An attending RSVP to one auto-seeds a split
+ * participant (roster membership).
+ *
+ * Kept EXPLICIT (not derived from the block list) so that adding
+ * `costSplitter` to some other event's optional set later can't
+ * silently opt it into money-collection semantics — that should be
+ * a deliberate edit here.
+ */
+export const GROUP_SPLIT_OCCASIONS: ReadonlySet<SiteOccasion> = new Set<SiteOccasion>([
+  'bachelor-party',
+  'bachelorette-party',
+  'reunion',
+]);
+
+/** True when an attending RSVP should seed a collaborative-split
+ *  participant for this occasion. */
+export function isGroupSplitOccasion(
+  occasion: SiteOccasion | string | null | undefined,
+): boolean {
+  return !!occasion && GROUP_SPLIT_OCCASIONS.has(occasion as SiteOccasion);
+}
+
 /** Returns every event type that's currently production-shipping. */
 export function getShippingEventTypes(): EventType[] {
   return EVENT_TYPES.filter((e) => e.status === 'shipping');
