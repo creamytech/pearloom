@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { ownerEmailOf } from '@/lib/cohost-access';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { condensedFaqForPrompt } from '@/lib/help-faq';
@@ -54,12 +57,16 @@ interface ChatRequest {
    *   • 'host'  — full editor mode, can suggest patches (default)
    *   • 'guest' — public-site concierge for visitors. No patches,
    *               warmer hospitality voice, only answers questions
-   *               grounded in the manifest. */
+   *               grounded in the manifest.
+   *  Advisory only: `mode` picks the voice/patch behaviour, but it
+   *  NEVER unlocks the privileged server-side stats — that is gated
+   *  on a server-derived ownership check (see `callerOwnsSite`). */
   mode?: 'host' | 'guest';
-  /** Site subdomain. When present in host mode, the route fetches
-   *  live activity stats (RSVP counts, photo uploads, registry
-   *  claims) and surfaces them to Pear so it can give specific
-   *  next-step nudges instead of generic copy suggestions. */
+  /** Site subdomain. Live activity stats (RSVP counts, registry
+   *  claims, and the vendor-book money ledger) are fetched and
+   *  surfaced to Pear ONLY when the request carries a valid session
+   *  whose email owns this slug — never for anonymous callers who
+   *  merely know a public subdomain. */
   siteSlug?: string;
 }
 
@@ -222,6 +229,31 @@ function getStatsSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+// Server-side ownership check — the ONLY gate for the privileged
+// host-advisor stats path (RSVP counts + the vendor-book money
+// ledger). The client-supplied `mode` field is advisory (it only
+// picks Pear's voice/patch behaviour); it can NEVER unlock a
+// server-side read of another host's private data. A caller gets
+// the stats block only when they hold a valid session whose email
+// owns `siteSlug`. Returns false for anon callers, non-owners, or
+// unknown slugs.
+async function callerOwnsSite(siteSlug: string, email: string): Promise<boolean> {
+  const sb = getStatsSupabase();
+  if (!sb) return false;
+  try {
+    const { data: site } = await sb
+      .from('sites')
+      .select('creator_email, site_config')
+      .eq('subdomain', siteSlug)
+      .maybeSingle();
+    if (!site) return false;
+    const owner = ownerEmailOf(site);
+    return owner.length > 0 && owner === email.toLowerCase().trim();
+  } catch {
+    return false;
+  }
 }
 
 async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | null> {
@@ -488,12 +520,21 @@ export async function POST(req: NextRequest) {
   const summary = summariseManifest(body.manifest, body.coupleNames);
   const history = (body.history ?? []).slice(-6);
 
-  // Host mode + a known site slug → fetch live stats (cached 30s).
-  // Guest mode skips this; visitors don't need RSVP counts.
+  // Host-advisor stats (RSVP counts + the vendor-book money ledger)
+  // are PRIVATE. Whether the caller may see them is derived on the
+  // SERVER — a valid session whose email OWNS `siteSlug` — never
+  // from the client-supplied `mode`. An anonymous POST that knows a
+  // public subdomain must not be able to read these back, so a
+  // non-owner is treated as the public/guest concierge and answers
+  // only from the manifest the client already sent. Cached 30s.
   let statsBlock = '';
-  if (body.mode !== 'guest' && body.siteSlug) {
-    const stats = await fetchActivityStats(body.siteSlug).catch(() => null);
-    if (stats) statsBlock = '\n\n' + summariseStats(stats);
+  if (body.siteSlug) {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email?.toLowerCase().trim();
+    if (email && (await callerOwnsSite(body.siteSlug, email))) {
+      const stats = await fetchActivityStats(body.siteSlug).catch(() => null);
+      if (stats) statsBlock = '\n\n' + summariseStats(stats);
+    }
   }
 
   // Stitch a short "you're currently looking at X" line into the

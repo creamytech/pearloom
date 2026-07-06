@@ -17,6 +17,17 @@ function getSupabase() {
   );
 }
 
+// Guest-supplied text is interpolated into a PostgREST `.or()`
+// filter string, where commas/parens delimit and group conditions
+// and `%` `_` `\` are SQL LIKE wildcards. Strip those control
+// characters (plus `*`) so the input can only ever be matched
+// literally — never used to inject filter structure or a match-all
+// wildcard. Real names don't contain them. Collapse whitespace so a
+// clean first-word split follows.
+function sanitizeName(input: string): string {
+  return input.replace(/[%_\\,()*]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 export async function POST(req: NextRequest) {
   // Rate limit: 20 req/min per IP
   const ip = getClientIp(req);
@@ -40,21 +51,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'subdomain and name are required' }, { status: 400 });
   }
 
-  const trimmedName = name.trim();
-  if (!trimmedName) {
+  const rawTrimmed = name.trim();
+  if (!rawTrimmed) {
     return NextResponse.json({ error: 'name must not be empty' }, { status: 400 });
+  }
+
+  // Sanitize before the value ever reaches a PostgREST filter. If
+  // nothing survives (e.g. the caller sent only wildcards), refuse —
+  // an empty pattern would otherwise match every guest on the site.
+  const trimmedName = sanitizeName(rawTrimmed);
+  if (!trimmedName) {
+    return NextResponse.json({ found: false });
   }
 
   const supabase = getSupabase();
 
-  // 1. Get site by subdomain → creator_email (userId)
+  // 1. Get site by subdomain → id + creator_email (userId)
   const { data: siteRow, error: siteErr } = await supabase
     .from('sites')
-    .select('site_config')
+    .select('id, site_config')
     .eq('subdomain', subdomain)
     .single();
 
   if (siteErr || !siteRow) {
+    return NextResponse.json({ found: false });
+  }
+
+  const siteId = (siteRow as { id?: string }).id;
+  if (!siteId) {
     return NextResponse.json({ found: false });
   }
 
@@ -83,6 +107,7 @@ export async function POST(req: NextRequest) {
   const { data: rsvpMatches } = await supabase
     .from('rsvps')
     .select('id, name, site_id')
+    .eq('site_id', siteId)
     .or(`name.ilike.%${trimmedName}%,name.ilike.%${firstWord}%`);
 
   if (rsvpMatches && rsvpMatches.length > 0) {
@@ -140,6 +165,7 @@ export async function POST(req: NextRequest) {
     const { data: rsvpRows } = await supabase
       .from('rsvps')
       .select('id, name')
+      .eq('site_id', siteId)
       .in('id', guestIds)
       .or(`name.ilike.%${trimmedName}%,name.ilike.%${firstWord}%`);
 
