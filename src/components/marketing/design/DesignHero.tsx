@@ -747,19 +747,59 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         @media (max-width: 900px) {
           .pd-hero-inner {
-            grid-template-columns: 1fr;
+            /* minmax(0, 1fr) — NOT 1fr. A bare 1fr is minmax(auto, 1fr),
+               and the auto floor refuses to shrink below the widest
+               child's min-content, blowing the single column past the
+               viewport (the copy, h1, form + card then clip under the
+               page's overflow:hidden). minmax(0, …) lets the track
+               shrink to the viewport so children reflow instead. */
+            grid-template-columns: minmax(0, 1fr);
             gap: 44px;
             padding: 120px 22px 80px;
+            align-items: start;
+          }
+          .pd-hero-copy,
+          .pd-std-wrap {
+            min-width: 0;
+            max-width: 100%;
+          }
+          .pd-hero-copy {
+            justify-self: center;
+            width: 100%;
+            max-width: 560px;
           }
         }
         @media (max-width: 600px) {
           .pd-pcard {
             display: none;
           }
+          .pd-hero-inner {
+            padding: 104px 18px 64px;
+          }
           .pd-occ-tabs {
             width: 100%;
+            max-width: 100%;
             overflow-x: auto;
             flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .pd-occ-tabs::-webkit-scrollbar {
+            display: none;
+          }
+          .pd-hero-h1 {
+            font-size: clamp(34px, 9vw, 46px);
+            overflow-wrap: break-word;
+          }
+          .pd-hero-sub {
+            font-size: 15.5px;
+            max-width: 100%;
+          }
+          .pd-hero-form {
+            max-width: 100%;
+          }
+          .pd-hero-stats {
+            gap: 18px 22px;
           }
         }
         @media (prefers-reduced-motion: reduce) {
