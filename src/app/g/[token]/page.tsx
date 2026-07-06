@@ -26,6 +26,7 @@ import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastReco
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
 import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
+import { HostYourOwnCard } from '@/components/guest-experience/HostYourOwnCard';
 import { GuestThreadCard, CelebratedTogetherCard } from '@/components/guest-experience/GuestCircleCards';
 import { buildSitePath, normalizeOccasion } from '@/lib/site-urls';
 import { isManifestPublished } from '@/lib/next-step';
@@ -631,6 +632,11 @@ export default async function PersonalGuestPage({
           <YourCelebrationsCard entries={celebrations} accent={accent} headingFont={headingFont} />
         </section>
       )}
+
+      {/* The guest → host growth loop — always here, for every visitor. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <HostYourOwnCard accent={accent} headingFont={headingFont} />
+      </section>
 
       <section style={{ padding: 'calc(48px * var(--pl-density-scale, 1)) 24px', maxWidth: 760, margin: '0 auto' }}>
         {personalization.chapter_highlights.length > 0 && (
