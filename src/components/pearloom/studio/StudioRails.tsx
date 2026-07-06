@@ -19,6 +19,59 @@ import { AssetGlyph } from './StudioAssetGlyph';
 import { PearThinking } from '../pear-thinking';
 import { PlColorPicker } from '../redesign/PlColorPicker';
 
+// Editorial chrome tokens — the .pl8 handoff family (cockpit.tsx /
+// QuietDash pattern). Mono eyebrows lead with a gold hairline;
+// display titles are Fraunces with an italic-accent glyph.
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+/** The house editorial eyebrow — mono uppercase label with a
+ *  leading gold hairline rule (BRAND §4; matches PageIntro /
+ *  CockpitGreeting). Replaces the plain uppercase rail labels so
+ *  every Studio section reads with the same mono-caps + gold rule
+ *  the rest of the dashboard wears. */
+function RailEyebrow({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        fontFamily: MONO, fontSize: 10, fontWeight: 600,
+        letterSpacing: '0.2em', textTransform: 'uppercase',
+        color: 'var(--ink-muted)', ...style,
+      }}
+    >
+      <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+    </span>
+  );
+}
+
+/** The Studio brand lockup — a mono "STUDIO" eyebrow over the
+ *  letterpress Fraunces couple/honoree name, its ampersand set in
+ *  italic gold (the cockpit HeroBanner pattern). Used in both the
+ *  desktop and compact topbars so the editor opens on an editorial
+ *  header, not a plain bold string. */
+function BrandLockup({ nameA, nameB, meta, compact }: { nameA: string; nameB: string; meta?: React.ReactNode; compact?: boolean }) {
+  return (
+    <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <RailEyebrow style={{ fontSize: 8.5, letterSpacing: '0.22em', gap: 6 }}>Studio</RailEyebrow>
+      <div
+        style={{
+          fontFamily: DISPLAY, fontWeight: 500,
+          fontSize: compact ? 15 : 16, lineHeight: 1.05,
+          letterSpacing: '-0.01em', color: 'var(--ink)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}
+      >
+        {nameA}
+        {nameB ? <span style={{ fontStyle: 'italic', color: 'var(--gold, #C19A4B)', margin: '0 0.14em' }}>&amp;</span> : null}
+        {nameB}
+      </div>
+      {meta ? <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{meta}</div> : null}
+    </div>
+  );
+}
+
 interface RailProps {
   state: StudioState;
   setField: SetStudioField;
@@ -126,6 +179,37 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
         : null;
   const savedLabelColor = saveError ? 'var(--plum-ink, #7A2D2D)' : 'var(--ink-muted)';
 
+  // The date + save-state line under the brand lockup. Built once
+  // and reused by both the compact + desktop topbars.
+  const savedMeta = (
+    <>
+      {dateShort}
+      {savedLabel && (
+        <>
+          {' · '}
+          <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>{savedLabel}</span>
+          {saveError && onRetrySave && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => void onRetrySave()}
+                style={{
+                  background: 'none', border: 'none', padding: 0,
+                  color: 'var(--peach-ink, #C6703D)', fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit',
+                  textDecoration: 'underline',
+                }}
+              >
+                Try again
+              </button>
+            </>
+          )}
+        </>
+      )}
+    </>
+  );
+
   // ── Phone topbar — two rows. Row 1 keeps the affordances that
   // matter (back · who/when/saved · Send); row 2 is the
   // stationery-type switch, horizontally scrollable so all three
@@ -145,35 +229,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           </Link>
           <Pear size={24} tone="sage" shadow={false} />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Studio · {nameB ? `${nameA} & ${nameB}` : nameA}
-            </div>
-            <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {dateShort}
-              {savedLabel && (
-                <>
-                  {' · '}
-                  <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>{savedLabel}</span>
-                  {saveError && onRetrySave && (
-                    <>
-                      {' · '}
-                      <button
-                        type="button"
-                        onClick={() => void onRetrySave()}
-                        style={{
-                          background: 'none', border: 'none', padding: 0,
-                          color: 'var(--peach-ink, #C6703D)', fontWeight: 600,
-                          cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit',
-                          textDecoration: 'underline',
-                        }}
-                      >
-                        Try again
-                      </button>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+            <BrandLockup nameA={nameA} nameB={nameB} compact meta={savedMeta} />
           </div>
           <button
             type="button"
@@ -242,44 +298,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           <Icon name="chev-left" size={13} />
         </Link>
         <Pear size={26} tone="sage" shadow={false} />
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Studio · {nameB ? `${nameA} & ${nameB}` : nameA}
-          </div>
-          <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
-            {dateShort}
-            {savedLabel && (
-              <>
-                {' · '}
-                <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>
-                  {savedLabel}
-                </span>
-                {saveError && onRetrySave && (
-                  <>
-                    {' · '}
-                    <button
-                      type="button"
-                      onClick={() => void onRetrySave()}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        color: 'var(--peach-ink, #C6703D)',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        fontSize: 'inherit',
-                        textDecoration: 'underline',
-                      }}
-                    >
-                      Try again
-                    </button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <BrandLockup nameA={nameA} nameB={nameB} meta={savedMeta} />
       </div>
 
       {/* Middle: stationery type tabs */}
@@ -437,7 +456,9 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Pear size={20} tone="sage" shadow={false} sparkle />
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Pear&apos;s drafts</div>
+          <div style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.05 }}>
+            Pear&rsquo;s <span style={{ fontStyle: 'italic', color: 'var(--sage-deep, #4B5A2E)' }}>drafts</span>
+          </div>
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
           Three directions, all editable. Click one to make it the canvas.
@@ -518,7 +539,7 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
         marginTop: 'auto', padding: 12,
         background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12,
       }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>This send</div>
+        <RailEyebrow style={{ marginBottom: 6 }}>This send</RailEyebrow>
         <div style={{ fontSize: 12, color: 'var(--ink)', marginBottom: 2 }}>
           {sendStats?.sent != null
             ? `${sendStats.sent} sent · ${sendStats.total ?? 0} guests`
@@ -600,7 +621,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
   return (
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Drag onto card</div>
+        <RailEyebrow>Drag onto card</RailEyebrow>
         <button
           type="button"
           onClick={() => setField('showAssets', !state.showAssets)}
@@ -751,9 +772,9 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
 function RailGroup({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{label}</div>
-        {sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{sub}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+        <RailEyebrow style={{ flexShrink: 0 }}>{label}</RailEyebrow>
+        {sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>}
       </div>
       {children}
     </div>
@@ -764,7 +785,10 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
   return (
     <>
       <RailGroup label="Colors" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+        {/* Palette rows — the zip's Studio palette card: a four-swatch
+            strip (paper · ink · accent · wash) + name, the active row
+            washed in cream-3 with a peach hairline + check. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {PALETTES.map(p => {
             const on = state.palette === p.id;
             return (
@@ -773,18 +797,22 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
                 type="button"
                 onClick={() => setField('palette', p.id)}
                 aria-pressed={on}
-                title={p.name}
+                title={p.sub}
                 style={{
-                padding: 4, borderRadius: 10,
-                border: on ? '2px solid var(--ink)' : '2px solid transparent',
-                background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                <div style={{ borderRadius: 6, overflow: 'hidden', display: 'flex', height: 36 }}>
-                  <div style={{ flex: 2, background: p.paper }} />
-                  <div style={{ flex: 1, background: p.accent }} />
-                  <div style={{ flex: 1, background: p.accent2 }} />
-                </div>
-                <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink)', marginTop: 4, textAlign: 'center' }}>{p.name}</div>
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '8px 10px', borderRadius: 10, textAlign: 'left',
+                  background: on ? 'var(--cream-3)' : 'transparent',
+                  border: `1px solid ${on ? 'var(--peach-ink)' : 'transparent'}`,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <span style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--line)', flexShrink: 0 }}>
+                  {[p.paper, p.ink, p.accent, p.accent2].map((c, j) => (
+                    <span key={j} style={{ width: 15, height: 24, background: c }} />
+                  ))}
+                </span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                {on ? <Icon name="check" size={14} color="var(--peach-ink)" strokeWidth={2.4} /> : null}
               </button>
             );
           })}

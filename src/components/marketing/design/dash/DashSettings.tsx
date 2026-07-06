@@ -8,6 +8,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Bloom } from '@/components/brand/groove';
+import { Icon } from '@/components/pearloom/motifs';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
@@ -126,6 +127,35 @@ export function DashSettings() {
     && deleteConfirm.trim().toLowerCase() === session.user.email.toLowerCase()
     && deleteState !== 'working';
 
+  // Grouped section list — labels stay the product's editorial names;
+  // each sub-detail is real (email, live-site count, voice, plan).
+  const siteCount = sites?.length ?? 0;
+  const liveCount = sites?.filter((s) => s.published).length ?? 0;
+  const voiceLabel = prefs.voice ? prefs.voice[0].toUpperCase() + prefs.voice.slice(1) : 'Gentle';
+  const NAV_GROUPS: Array<{ g: string; items: Array<{ k: Section; label: string; icon: string; sub: string }> }> = [
+    {
+      g: 'Account',
+      items: [
+        { k: 'profile', label: 'You, in the loom', icon: 'user', sub: session?.user?.email ?? fullName },
+        { k: 'pear', label: "Pear's voice", icon: 'sparkles', sub: `${voiceLabel}${prefs.quiet_hours ? ' · quiet hours on' : ''}` },
+      ],
+    },
+    {
+      g: 'This celebration',
+      items: [
+        { k: 'domain', label: 'Your web address', icon: 'layout', sub: siteCount ? `${siteCount} ${siteCount === 1 ? 'site' : 'sites'} · ${liveCount} live` : 'No sites yet' },
+        { k: 'privacy', label: 'Who can see what', icon: 'lock', sub: 'Set per-site in the editor' },
+      ],
+    },
+    {
+      g: 'Plan',
+      items: [
+        { k: 'billing', label: 'Plan', icon: 'gift', sub: `${plan.label} plan` },
+        { k: 'export', label: 'Weave a backup', icon: 'download', sub: 'Download your data as JSON' },
+      ],
+    },
+  ];
+
   return (
     <DashLayout
       active="settings"
@@ -161,37 +191,170 @@ export function DashSettings() {
           maxWidth: 1040,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: '200px minmax(0, 1fr)',
+          gridTemplateColumns: '256px minmax(0, 1fr)',
           gap: 26,
           alignItems: 'flex-start',
         }}
       >
+        {/* Grouped section list — the design-handoff "Settings" shape:
+            mono-eyebrow groups of icon-tile rows, each with a live
+            sub-detail from real session/site/plan data. Rows drive the
+            same setSection() the detail pane reads, so every wired
+            feature stays reachable. */}
         <aside
           className="pd-settings-nav"
-          style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: 2 }}
+          style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: 20 }}
         >
-          {SECTIONS.map((s) => (
+          {NAV_GROUPS.map((grp) => (
+            <div key={grp.g}>
+              <div
+                style={{
+                  ...MONO_STYLE,
+                  fontSize: 9.5,
+                  letterSpacing: '0.2em',
+                  color: 'var(--ink-muted)',
+                  marginBottom: 8,
+                }}
+              >
+                {grp.g}
+              </div>
+              <div
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--card-ring)',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                }}
+              >
+                {grp.items.map((it, i) => {
+                  const on = section === it.k;
+                  return (
+                    <button
+                      key={it.k}
+                      onClick={() => setSection(it.k)}
+                      className="pd-settings-row"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderBottom: i < grp.items.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        background: on ? 'var(--cream-2)' : 'transparent',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 9,
+                          flexShrink: 0,
+                          display: 'grid',
+                          placeItems: 'center',
+                          background: on ? 'var(--ink)' : 'var(--cream-3)',
+                          color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                        }}
+                      >
+                        <Icon name={it.icon} size={15} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 13.5, fontWeight: on ? 700 : 550, color: 'var(--ink)' }}>
+                          {it.label}
+                        </span>
+                        <span
+                          style={{
+                            display: 'block',
+                            fontSize: 11.5,
+                            color: 'var(--ink-muted)',
+                            marginTop: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {it.sub}
+                        </span>
+                      </span>
+                      <Icon name="chev-right" size={14} color="var(--ink-muted)" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Delicate actions — plum-tinted, kept its own group. */}
+          <div>
+            <div
+              style={{ ...MONO_STYLE, fontSize: 9.5, letterSpacing: '0.2em', color: 'var(--peach-ink)', marginBottom: 8 }}
+            >
+              Delicate
+            </div>
             <button
-              key={s.k}
-              onClick={() => setSection(s.k)}
+              onClick={() => setSection('danger')}
+              className="pd-settings-row"
               style={{
-                padding: '9px 13px',
-                background: section === s.k && s.k !== 'danger' ? 'var(--cream-2)' : 'transparent',
-                border: 'none',
-                borderRadius: 9,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                width: '100%',
+                padding: '12px 14px',
+                border: '1px solid color-mix(in oklab, var(--pl-plum, #7A2D2D) 22%, transparent)',
+                borderRadius: 14,
+                background: section === 'danger' ? 'color-mix(in oklab, var(--pl-plum, #7A2D2D) 8%, transparent)' : 'transparent',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 textAlign: 'left',
-                fontSize: 13,
-                fontWeight: section === s.k ? 700 : 500,
-                color: s.k === 'danger' ? 'var(--peach-ink)' : 'var(--ink)',
-                marginTop: s.k === 'danger' ? 4 : 0,
-                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
-              {s.l}
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: 'color-mix(in oklab, var(--pl-plum, #7A2D2D) 12%, transparent)',
+                  color: 'var(--peach-ink)',
+                }}
+              >
+                <Icon name="trash" size={15} color="var(--peach-ink)" />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--peach-ink)' }}>Delicate actions</span>
+                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 1 }}>Sign out · delete account</span>
+              </span>
+              <Icon name="chev-right" size={14} color="var(--ink-muted)" />
             </button>
-          ))}
+          </div>
+
+          <button
+            onClick={() => void signOut({ callbackUrl: '/' })}
+            style={{
+              alignSelf: 'flex-start',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '9px 16px',
+              borderRadius: 999,
+              border: '1px solid color-mix(in oklab, var(--pl-plum, #7A2D2D) 45%, transparent)',
+              background: 'transparent',
+              color: 'var(--pl-plum, #7A2D2D)',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Icon name="arrow-left" size={14} color="var(--pl-plum, #7A2D2D)" /> Log out
+          </button>
         </aside>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -888,6 +1051,9 @@ export function DashSettings() {
       </main>
 
       <style jsx>{`
+        :global(.pd-settings-row:hover) {
+          background: var(--cream-2) !important;
+        }
         @media (max-width: 900px) {
           :global(.pd-settings-main) {
             grid-template-columns: 1fr !important;
@@ -895,18 +1061,6 @@ export function DashSettings() {
           :global(.pd-settings-nav) {
             position: relative !important;
             top: auto !important;
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            gap: 6px !important;
-            margin: 0 -4px 4px !important;
-            padding: 0 4px 6px !important;
-            scrollbar-width: none;
-          }
-          :global(.pd-settings-nav)::-webkit-scrollbar { display: none; }
-          :global(.pd-settings-nav) button {
-            flex: 0 0 auto !important;
-            white-space: nowrap !important;
           }
           :global(.pd-settings-fields),
           :global(.pd-voice-grid) {

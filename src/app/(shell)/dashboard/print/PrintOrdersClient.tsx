@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
+import { Icon } from '@/components/pearloom/motifs';
 
 interface PrintJob {
   id: string;
@@ -63,6 +65,42 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 const dollars = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+// ── Handoff chrome (ScreensShop Print) ────────────────────────
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
+
+// The tinted header band + icon per card kind — the handoff's four
+// editorial tints, keyed off the real batch.kind so a sheet of
+// batches reads as a set. Unknown kinds fall back to gold.
+const KIND_TINT: Record<string, { bg: string; ink: string; icon: string; label: string }> = {
+  'save-the-date': { bg: 'var(--sage-tint)', ink: 'var(--sage-deep)', icon: 'send', label: 'Save the date' },
+  invitation: { bg: 'var(--peach-bg)', ink: 'var(--peach-ink)', icon: 'ticket', label: 'Invitation' },
+  thankyou: { bg: 'var(--lavender-bg)', ink: 'var(--lavender-ink)', icon: 'heart-icon', label: 'Thank-you' },
+};
+const KIND_FALLBACK = { bg: 'rgba(193,154,75,0.16)', ink: '#8A6A2E', icon: 'mail', label: 'Mailing' };
+function kindTint(kind: string) {
+  return KIND_TINT[kind] ?? KIND_FALLBACK;
+}
+
+// The single glass tag over the header band — the most-advanced
+// status the batch has reached, with its real count. Never invents
+// a number; falls back to the total card count.
+function headlineStatus(b: Batch): { label: string } {
+  const order: Array<[string, string]> = [
+    ['delivered', 'Delivered'],
+    ['mailed', 'Mailed'],
+    ['submitted', 'Submitted'],
+    ['rendered', 'Rendered'],
+    ['pending', 'Pending'],
+    ['failed', 'Failed'],
+  ];
+  for (const [k, label] of order) {
+    const n = b.statusCounts[k] ?? 0;
+    if (n > 0) return { label: `${label} · ${n}` };
+  }
+  return { label: `${b.jobs.length} ${b.jobs.length === 1 ? 'card' : 'cards'}` };
+}
 
 export function PrintOrdersClient({
   siteFilter,
@@ -150,6 +188,45 @@ export function PrintOrdersClient({
       </div>
       <div style={{ padding: '0 var(--pl-dash-pad) 32px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
 
+        {/* Intro banner (handoff Print) — the same weave, now on real
+            paper. Links to the Studio, where the print jobs originate. */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: 18,
+            marginBottom: 18,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 11,
+              background: 'var(--card)',
+              border: '1px solid var(--line)',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--pl-gold)',
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="sparkles" size={18} color="var(--pl-gold)" />
+          </span>
+          <span style={{ flex: 1, minWidth: 220, fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+            Everything carries your Studio palette and type — the same weave, now on real paper. Printed, stamped, and
+            mailed for you.
+          </span>
+          <Link href="/dashboard/invite" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
+            Open the Studio
+          </Link>
+        </div>
+
         {orderBanner === 'success' && (
           <div role="status" style={{
             padding: '12px 16px', marginBottom: 16, borderRadius: 12,
@@ -184,7 +261,15 @@ export function PrintOrdersClient({
             actions={[{ label: 'Open the Studio', href: '/dashboard/invite' }]}
           />
         ) : (
-          <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+          <div
+            className="pl8-dash-stagger"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
+              gap: 16,
+              marginBottom: 20,
+            }}
+          >
             {batches.map((b) => (
               <BatchCard key={b.batchId} batch={b} />
             ))}
@@ -536,68 +621,102 @@ function BatchCard({ batch }: { batch: Batch }) {
   const failed = batch.statusCounts.failed ?? 0;
   const inFlight = total - delivered - failed;
 
+  const tint = kindTint(batch.kind);
+  const tag = headlineStatus(batch);
+  // A fully-delivered batch wears the gold "feature" edge — the
+  // handoff's completed-object signal.
+  const complete = delivered === total && total > 0;
+  const sentLabel = new Date(batch.createdAt).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  });
+
   return (
     <div
       className="pl8-card-lift"
       style={{
-        background: 'var(--cream-2, #FBF7EE)',
+        background: 'var(--card)',
         borderRadius: 16,
-        border: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
-        padding: 18,
+        border: `1px solid ${complete ? 'var(--pl-gold)' : 'var(--card-ring, var(--line))'}`,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {/* flexWrap + a real minWidth on the info column: at phone
-          widths the price/recipients column drops to its own line
-          instead of squeezing the batch summary to nothing. */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <img
-          src={batch.frontUrl}
-          alt=""
+      {/* Tinted header band — the real card front, or the kind glyph;
+          a glass status tag rides the top-left corner. */}
+      <div
+        style={{
+          height: 128,
+          background: tint.bg,
+          borderBottom: '1px solid var(--line)',
+          display: 'grid',
+          placeItems: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {batch.frontUrl ? (
+          <img
+            src={batch.frontUrl}
+            alt=""
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <Icon name={tint.icon} size={34} color={tint.ink} />
+        )}
+        <span
+          className="pl-glass-surface"
           style={{
-            width: 84,
-            height: 120,
-            objectFit: 'cover',
-            borderRadius: 6,
-            flexShrink: 0,
-            border: '1px solid var(--line)',
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            padding: '3px 9px',
+            borderRadius: 999,
+            fontFamily: MONO,
+            fontSize: 9,
+            letterSpacing: '0.06em',
+            color: 'var(--ink)',
           }}
-        />
-        <div style={{ flex: 1, minWidth: 170 }}>
-          <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4 }}>
-            {batch.kind.replace(/-/g, ' ')} · {batch.product}
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
-            {batch.siteSlug} · {total} {total === 1 ? 'card' : 'cards'}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 10 }}>
-            Sent {new Date(batch.createdAt).toLocaleDateString('en-US', {
-              month: 'long', day: 'numeric', year: 'numeric',
-              hour: 'numeric', minute: '2-digit',
-            })}
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Pill label={`${delivered} delivered`} tone={STATUS_TONE.delivered} />
-            <Pill label={`${mailed} mailed`} tone={STATUS_TONE.mailed} />
-            <Pill label={`${submitted} submitted`} tone={STATUS_TONE.submitted} />
-            {inFlight - submitted - mailed > 0 && <Pill label={`${inFlight - submitted - mailed} pending`} tone={STATUS_TONE.pending} />}
-            {failed > 0 && <Pill label={`${failed} failed`} tone={STATUS_TONE.failed} />}
-          </div>
+        >
+          {tag.label}
+        </span>
+      </div>
+
+      {/* Body — kind heading, italic sub, status pills, cost + toggle. */}
+      <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.15 }}>
+          {batch.siteSlug}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div className="display" style={{ fontSize: 22, color: 'var(--ink)' }}>
-            ${(batch.costCents / 100).toFixed(2)}
-          </div>
+        <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 13, color: tint.ink, marginTop: 2 }}>
+          {tint.label} · {batch.product} · {total} {total === 1 ? 'card' : 'cards'}
+        </div>
+        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.04em', color: 'var(--ink-muted)', marginTop: 6 }}>
+          Sent {sentLabel}
+        </div>
+
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+          {delivered > 0 && <Pill label={`${delivered} delivered`} tone={STATUS_TONE.delivered} />}
+          {mailed > 0 && <Pill label={`${mailed} mailed`} tone={STATUS_TONE.mailed} />}
+          {submitted > 0 && <Pill label={`${submitted} submitted`} tone={STATUS_TONE.submitted} />}
+          {inFlight - submitted - mailed > 0 && <Pill label={`${inFlight - submitted - mailed} pending`} tone={STATUS_TONE.pending} />}
+          {failed > 0 && <Pill label={`${failed} failed`} tone={STATUS_TONE.failed} />}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 'auto', paddingTop: 14 }}>
+          <span style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--ink-muted)' }}>
+            {dollars(batch.costCents)}
+          </span>
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
             style={{
-              marginTop: 4,
-              padding: '6px 12px',
+              padding: '7px 14px',
               borderRadius: 999,
               background: 'transparent',
               color: 'var(--ink)',
               border: '1.5px solid var(--line)',
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
@@ -608,8 +727,8 @@ function BatchCard({ batch }: { batch: Batch }) {
         </div>
       </div>
       {open && (
-        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line-soft)' }}>
-          <div style={{ display: 'grid', gap: 6 }}>
+        <div style={{ padding: '0 18px 16px' }}>
+          <div style={{ paddingTop: 14, borderTop: '1px solid var(--line-soft)', display: 'grid', gap: 6 }}>
             {batch.jobs.map((j) => (
               <div key={j.id} style={{
                 display: 'grid',

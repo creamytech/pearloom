@@ -122,6 +122,39 @@ const POSTER_SIZES: PosterSizePreset[] = [
   },
 ];
 
+// ── Handoff rail chrome (ScreensShop QRPoster) ────────────────
+// The controls ride the right rail as titled paper cards with a
+// mono eyebrow + a leading gold hairline — the same grouped-Card
+// vocabulary as the handoff.
+const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
+const railCard: React.CSSProperties = {
+  background: 'var(--card)',
+  border: '1px solid var(--card-ring, var(--line))',
+  borderRadius: 16,
+  padding: 18,
+};
+function RailEyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        fontFamily: MONO,
+        fontSize: 9.5,
+        fontWeight: 600,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'var(--ink-muted)',
+        marginBottom: 12,
+      }}
+    >
+      <span aria-hidden style={{ width: 12, height: 1, background: 'var(--pl-gold)', flexShrink: 0 }} />
+      {children}
+    </div>
+  );
+}
+
 export function QrPosterPage() {
   const { site } = useSelectedSite();
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -313,8 +346,10 @@ export function QrPosterPage() {
             of dead rail. The phone stack (grid-row rules) is
             unaffected — sticky is inert in a single column. */}
         <div className="pl8-no-print pl8-qr-controls" style={{ display: 'grid', gap: 14, alignContent: 'start', minWidth: 0, position: 'sticky', top: 16 }}>
-          {/* Mode toggle: classic editorial vs AI-themed */}
-          <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2, alignSelf: 'flex-start' }}>
+          {/* Format — classic editorial vs AI-themed (handoff rail card) */}
+          <div style={railCard}>
+            <RailEyebrow>Format</RailEyebrow>
+            <div style={{ display: 'flex', padding: 3, background: 'var(--cream-2)', borderRadius: 10, gap: 2 }}>
             {(
               [
                 { v: 'classic' as const, l: 'Classic editorial' },
@@ -343,17 +378,14 @@ export function QrPosterPage() {
                 </button>
               );
             })}
+            </div>
           </div>
 
-          {/* Print-size presets — pure client-side layout scaling;
+          {/* Size — print-size presets; pure client-side layout scaling,
               the @page rule below follows the pick. */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}>
-              Size
-            </span>
+          <div style={railCard}>
+            <RailEyebrow>Size</RailEyebrow>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             {POSTER_SIZES.map((s) => (
               <button
                 key={s.id}
@@ -375,9 +407,13 @@ export function QrPosterPage() {
                 {s.label}
               </button>
             ))}
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {/* Message — copy preset + custom kicker/hint (handoff rail card) */}
+          <div style={railCard}>
+            <RailEyebrow>Message</RailEyebrow>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {copyPresets.map((p) => (
               <button
                 key={p.id}
@@ -401,7 +437,7 @@ export function QrPosterPage() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 10, maxWidth: 720 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10, marginTop: 10 }}>
             <input
               type="text"
               value={headline}
@@ -417,14 +453,12 @@ export function QrPosterPage() {
               style={poseInput}
             />
           </div>
+          </div>
 
-          {/* AI theme picker + Paint button — only visible in themed mode */}
+          {/* Pick a world for Pear — AI theme picker + Paint (handoff rail card) */}
           {posterMode === 'themed' && (
             <div className="pl8-tab-enter" style={{
-              padding: 16,
-              background: 'var(--cream-2)',
-              border: '1px solid var(--line-soft)',
-              borderRadius: 14,
+              ...railCard,
               display: 'flex',
               flexDirection: 'column',
               gap: 14,
@@ -558,6 +592,19 @@ export function QrPosterPage() {
             URL is set, the AI painting fills the entire surface and
             the QR is composited at center. */}
         <div className="pl8-qr-main" style={{ minWidth: 0 }}>
+        {/* Stage — the poster sits on a cream-3 paper frame (handoff
+            QRPoster main Card). Neutralised when printing. */}
+        <div
+          className="pl8-qr-stage"
+          style={{
+            background: 'var(--cream-3)',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 18,
+            padding: 'clamp(20px, 4vw, 40px)',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
         <div
           className="pl8-qr-poster"
           style={{
@@ -715,6 +762,7 @@ export function QrPosterPage() {
         </div>
         </div>
         </div>
+        </div>
       </div>
       {/* Painting toast — same bottom-right pill the InviteDesigner uses. */}
       <DecorGenerationToast />
@@ -750,6 +798,12 @@ export function QrPosterPage() {
         @media print {
           body { background: #fff !important; }
           .pl8-no-print { display: none !important; }
+          .pl8-qr-stage {
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+          }
           .pl8-qr-poster {
             box-shadow: none !important;
             border: none !important;
