@@ -16,6 +16,7 @@
 - **Round 1 (2026-07-06):** money/budget · collaboration/group-events · all 31 event types · end-to-end journey → Pillars 1–3, per-event map, roadmap Phases 0–4, keystone.
 - **Round 2 (2026-07-06):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → added **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)**, all grounded. Key corrections vs. assumptions: monetization is a **real 3-tier system** (`plan-gate.ts`, not thin); the journey friction is **structural gating**, not the flows; the guest↔user gap is an **unlinked shared email**, and **no friend edge table exists** (the one new primitive).
 - **Round 3 (2026-07-06):** celebration/weekend linking model + visibility/privacy · single-site-multi-event feasibility · guest identity across events → added **Pillar 7 (The Celebration Model)**. Key findings: the linked-events strip is **all-or-nothing public** (a wedding site leaks a linked bachelor site to guests — confirmed bug); one-site-many-events is a heavy renderer rebuild, so the win is a **first-class Celebration object** (shared roster, unified headcount, timeline) + **per-link directional visibility** (default hidden), *not* merging events into one site.
+- **Round 4 (2026-07-06):** opinionated review of all ~31 dashboard routes (4 clusters) → added **Pillar 8 (Dashboard consolidation)**. Verdict: the dashboard needs *deduplicating*, not building. Root cause = **three disagreeing nav registries** (sidebar ~20 / sub-nav 5 / ⌘K ~13); `/tools` is scar tissue. ~31 routes → ~8 areas; a route-by-route keep/improve/merge/demote/kill table is in Pillar 8.
 - Future rounds: keepsake/film pipeline · AI/Pear surfaces · vendor marketplace · analytics/retention · the companion app tie-in.
 
 ---
@@ -264,6 +265,70 @@ Cross-visibility becomes a **separate, opt-in, directional, per-pair** decision,
 
 ---
 
+## 4f · Pillar 8 — Dashboard consolidation (the route audit)
+
+**Goal:** ~31 dashboard routes → a coherent, lean IA a real host can navigate. A four-cluster opinionated review found the dashboard **mostly doesn't need building — it needs *deduplicating*.**
+
+### The root cause: three navigations that disagree
+There are **three nav registries that tell different stories** — a half-finished 22→10 trim that then quietly re-expanded:
+- `DASH_NAV_GROUPS` (`DashShell.tsx`) — the sidebar, **~20 items, not occasion-gated**.
+- `DASH_SECTIONS` — 5 sub-nav umbrellas (site/guests/day/studio/memory).
+- `DEPROMOTED_DESTINATIONS` (`DashCommandPalette.tsx`) — ~13 "⌘K-only" items feeding both ⌘K **and** `/dashboard/tools`.
+
+They contradict each other: **Payments is listed twice** (sidebar + ⌘K), **Vendors three times** (sidebar + Day-of sub-tab + Day-of call-sheet), Music in both; `/dashboard/tools` claims to list "surfaces the sidebar doesn't carry" while listing Director/Analytics/Payments **which the sidebar does carry**; and because the sidebar isn't occasion-gated, **bachelor/memorial hosts see a Registry/Payments the rest of the app hides**. `/dashboard/tools` is scar tissue — the third rendering of the de-promoted list. **The single highest-value fix is collapsing the three registries into one model, one home per surface.**
+
+### Verdict per route
+
+| Route | Verdict | Move |
+|---|---|---|
+| `/dashboard` (cockpit) | **KEEP + trim** | ~18 cards → 5–6; kill vanity (TheLongView, Blessing, HomeSitePreview) + the **fake local-only ChecklistCard**; Budget card → *door* into Money hub |
+| `/rsvp` (Guests roster) | **KEEP (anchor)** | pull merge + VIP tag in from guest-review |
+| `/submissions` | **KEEP** | absorb the Messages broadcast thread (inbound + moderated in one place) |
+| `/cadence` (Sends) | **KEEP + PROMOTE** | out of ⌘K → the single outbound-message spine ("Sends"); roster nudge becomes a deep-link, not a parallel impl |
+| `/guest-review` | **MERGE → KILL** | dupe/stale already re-implemented on the roster; move merge + VIP onto the roster |
+| `/messages` | **MERGE/trim** | broadcast thread → Submissions; **kill the per-guest DM inbox** → a per-row roster action |
+| `/bridge` | **KILL (junk drawer)** | seat-intros → Seating; Memory Weave/Capsule/Whispers → Memory; Pear-SMS → Sends |
+| `/voice` | **DEMOTE** | a one-time setup step inside the drafting flow, not a destination |
+| `/day-of` | **KEEP (scope it)** | read-only cockpit; swap vanity hero stats for day-relevant; lead with timeline + toast jukebox; **stop parenting editing tools** |
+| `/seating` | **KEEP** | tool + read-only Day-of glance (already the right shape) |
+| `/vendors` | **KEEP → re-home** | move to **Money hub**; drop the Day-of sub-tab; replace string-match budget merge with a real FK |
+| `/payments` | **MERGE → KILL** | read-only dead-end; → an income *tab* in Money, backed by Registry's richer aggregation |
+| `/registry` | **KEEP** | items + thank-yous stay; money-in feeds the Money hub; dedupe the two-way "see payments / manage registry" links |
+| `/invite` (Studio) | **KEEP (anchor)** | fix the Studio→Print seam (today you export an SVG and **re-upload** it) |
+| `/gallery` (Reel) | **KEEP moderation** | kill the strip/slideshow **view switcher** (vanity); merge the wall into Photos |
+| `/library` | **MERGE** | → one **Photos** surface (tabs: My uploads · The Reel · Pending approval) |
+| `/speech` | **KEEP** | distinct, high-value AI tool (cool *and* used) |
+| `/music` | **KEEP** | fix the sidebar/⌘K double-listing |
+| `/keepsakes` | **MERGE → KILL** | a lobby for the book one click away (same data); fold hero + thank-you tools into memory-book |
+| `/memory-book` | **KEEP** | the real finished artifact |
+| `/print` | **KEEP (parent)** | becomes the **Print shop** housing passport + qr |
+| `/passport-cards` | **MERGE** | → Print shop tab (welcome-bag flourish most skip) |
+| `/qr-poster` | **MERGE** | → Print shop tab (keep the AI-theme feature) |
+| `/director` | **KEEP → Plan hub** | strip the ⌘K/tools dup; the cockpit RoadCard links here |
+| `/analytics` | **DEMOTE / borderline KILL** | read-only vanity; fold conversion + quiet-guest into cockpit/Guests; needs a next-action to survive |
+| `/event` (My sites) | **KEEP** | the site-management anchor; hosts the "start a celebration" entry |
+| `/weekend` | **MERGE** | → Celebration hub (the *create* half) |
+| `/connections` | **MERGE** | → Celebration hub (the *manage* half); fix the four-names problem |
+| `/profile` (Settings) | **KEEP + fix** | rename route → `/settings` (label already says Settings); trim pointer-only Domain/Privacy sections; dedupe the 3 billing doors |
+| `/help` | **KEEP as-is** | best-scoped page in the set |
+| `/tools` | **KILL** | a symptom of the three-registry rot, not a feature |
+
+### Target IA (~31 routes → ~8 areas)
+One nav model, one home per surface, occasion-gated everywhere:
+- **Home** — the trimmed cockpit (5–6 load-bearing cards, each a door).
+- **Guests** — roster (＋guest-review) · **Sends** (Cadence, the one outreach spine) · **Submissions** (all inbound/moderated, ＋the broadcast thread).
+- **Money** — Budget · Vendors · Registry (money-in) · Payments (income tab) · Split.
+- **Plan** — Director (brain) · milestone road · tasks (Cadence's schedule shows here as the timeline).
+- **Create** — Studio · **Photos** (Library＋Reel) · Speech · Music.
+- **Remember** — Memory book (＋Keepsakes) · **Print shop** (Print＋Passport＋QR).
+- **Day-of** — the live read-only cockpit (Seating as its tool).
+- **Celebration** — Weekend＋Connections unified (Pillar 7) · My sites.
+- **Meta** — Settings · Help. (`/tools` deleted.)
+
+*The throughline: four routes (guest-review, weekend, connections, analytics) are second/third copies of a concept that lives better elsewhere; `/bridge`, `/keepsakes`, `/passport`, `/qr` collapse into their real parents; `/tools` + the stale ⌘K list are scar tissue. Almost nothing needs building — it needs merging.*
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -359,6 +424,11 @@ Small, mostly self-contained fixes that punch above their weight — good "warm-
 - [ ] **Move Google Photos scope out of sign-in** → request it only at photo-pick time.
 - [ ] **Reconcile the two Stripe webhooks** + retire the stale `stripe.ts` subscription residue.
 - [ ] **Plug the sibling-strip privacy leak** — gate `LinkedEventsStrip` behind a per-sibling opt-in (default off) so a linked bachelor/private site can't be advertised on the wedding site. (Stopgap before the full Celebration Model; today it's unconditional + public.)
+- [ ] **Collapse the three nav registries into one** — reconcile `DASH_NAV_GROUPS` / `DASH_SECTIONS` / `DEPROMOTED_DESTINATIONS`; one home per surface; **delete `/dashboard/tools`** and the triple-listings (Payments ×2, Vendors ×3). Occasion-gate the sidebar so bachelor/memorial hosts stop seeing hidden routes.
+- [ ] **Fix the Studio→Print artwork seam** — push Studio artwork straight into a print batch instead of "export SVG → re-upload" (`PrintOrdersClient.tsx:506`).
+- [ ] **Un-bury Cadence** — the cockpit keeps linking to a ⌘K-only page; promote it to the Guests/Sends surface.
+- [ ] **Trim the cockpit** — cut TheLongView, CockpitBlessing, HomeSitePreview; kill or make-real the fake local-only ChecklistCard.
+- [ ] **Rename `/dashboard/profile` → `/dashboard/settings`** (label already says "Settings") with a redirect.
 
 ---
 
