@@ -17,7 +17,8 @@
 - **Round 2 (2026-07-06):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → added **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)**, all grounded. Key corrections vs. assumptions: monetization is a **real 3-tier system** (`plan-gate.ts`, not thin); the journey friction is **structural gating**, not the flows; the guest↔user gap is an **unlinked shared email**, and **no friend edge table exists** (the one new primitive).
 - **Round 3 (2026-07-06):** celebration/weekend linking model + visibility/privacy · single-site-multi-event feasibility · guest identity across events → added **Pillar 7 (The Celebration Model)**. Key findings: the linked-events strip is **all-or-nothing public** (a wedding site leaks a linked bachelor site to guests — confirmed bug); one-site-many-events is a heavy renderer rebuild, so the win is a **first-class Celebration object** (shared roster, unified headcount, timeline) + **per-link directional visibility** (default hidden), *not* merging events into one site.
 - **Round 4 (2026-07-06):** opinionated review of all ~31 dashboard routes (4 clusters) → added **Pillar 8 (Dashboard consolidation)**. Verdict: the dashboard needs *deduplicating*, not building. Root cause = **three disagreeing nav registries** (sidebar ~20 / sub-nav 5 / ⌘K ~13); `/tools` is scar tissue. ~31 routes → ~8 areas; a route-by-route keep/improve/merge/demote/kill table is in Pillar 8.
-- Future rounds: keepsake/film pipeline · AI/Pear surfaces · vendor marketplace · analytics/retention · the companion app tie-in.
+- **Round 5 (2026-07-06):** Pear/AI surfaces · the Remember pillar (keepsake/film) · retention/lifecycle · vendor marketplace → added **Pillars 9–12**. Dominant theme: **an enormous amount of value is built but dark, broken, or disconnected** — the anniversary + weekly-digest crons exist but aren't scheduled; the lifecycle-email engine runs on a permanently empty queue; guest photos never reach the keepsake (three unsynced photo tables); the film is UI-less dead scaffold; the Director is the best AI asset but buried; Pear never acts unprompted though the pieces exist. The biggest wins here are **turning on / connecting what already exists**, not building new.
+- Future rounds: the companion app (`pearloom-app/` Expo tree) tie-in · security/RLS/abuse · performance/cost at scale · i18n/accessibility · the section-variant / renderer depth.
 
 ---
 
@@ -54,6 +55,8 @@ Pearloom becomes the place a celebration *lives*, not just where its site is mad
 - A bachelor trip's **whole group sees what's been bought and splits it live** — add an expense, pick a split, watch the settle-up update, tap Venmo. No spreadsheet, no Splitwise.
 - Co-planners get a **real shared workspace** with roles and assignable tasks, not a scattered set of invite links.
 - The journey **carries momentum** from "★ For you" onboarding → a wizard that seeds budget + guests → a dashboard organized around *Money · People · Plan* instead of 30 scattered tools.
+
+> **The meta-finding (rounds 1–5): most of this is already built — it's just siloed, buried, duplicated, or switched off.** The retention loop is written but un-cron'd; the lifecycle-email engine runs on an empty queue; guest photos never reach the keepsake because three tables don't sync; the film is UI-less scaffold; the Director is the best AI asset but buried; the dashboard has 31 routes across 3 disagreeing navs; the celebration link leaks privately-intended sites publicly. **So the highest-ROI work is *connecting and turning on*, not greenfield building** — and a surprising amount of the wow (the anniversary loop, the keepsake photos, a proactive Pear) is days of wiring, not months. Sequence the "turn it on / connect it" wins first.
 
 ---
 
@@ -329,6 +332,79 @@ One nav model, one home per surface, occasion-gated everywhere:
 
 ---
 
+## 4g · Pillar 9 — Pear as a real agent (make the AI a person, not toys)
+
+**Goal:** deliver the brand's "Pear is a person, not a product" promise — a proactive assistant, not a box of AI gimmicks.
+
+**Ground truth (audit round 5):** the router stack is solid (Claude opus/sonnet/haiku + Gemini + `gpt-image-2`), but **metering is observability-only — no dollar caps** — and most Gemini spend bypasses the meter entirely (raw `fetch`), so the cheapest/highest-volume tier is invisible. The **defensible Pear is a narrow set**: voice-matched drafting (`wizard/draft`, `cadence/draft`, `rewrite-text`, `inline-rewrite`), the **pear-chat host advisor** (folds in live RSVP stats + the Vendor Book ledger, and can *act* via the `pearloom:patch` / `send_nudge_pending` envelope), **Voice DNA** (train once → every draft sounds like the host — the most differentiated thing in the codebase, and the most under-leveraged), and **the Director** (the only real tool-use agent, Opus + tools — but buried at a lonely tab with 4 tools and, ironically, *less* agency than pear-chat). The rest is **decorative image spend diluting the budget and the persona**: AI-painted QR posters, decor generation (4 `gpt-image-2` calls each), stylize filters, venue-color "smart palette," and a `/api/ai-*` grab-bag with no persona continuity.
+
+**Plan:**
+1. **Make the Director the product** — merge it with pear-chat's action-envelope + manifest-patch tools so it can *fill blank sections, send the nudge, own the timeline*, and put it at the center of the Plan hub (Pillar 8), not a buried tab.
+2. **Close the proactive loop** — Pear should act *unprompted*. The pieces exist and aren't stitched: `guests/intelligence` computes "12 haven't RSVP'd," `guests/draft-nudge` writes it, `cadence` schedules it. One proactive card — *"Deadline in 6 days, 12 pending — here's a draft in your voice. Send?"* — changes the felt intelligence more than any new model.
+3. **Vendor Book → budget advice** — Pear reports the ledger but never advises; benchmark host spend against the directory's price tiers ("florals ~15% above typical for 120 guests in your city"). A differentiator competitors structurally can't copy (ties to Pillar 12).
+4. **Ship "draft my story from photos"** — named debt (CLAUDE-DESIGN §16); `factSheet`/`eventDetails` already ride the manifest and `pear-caption` proves vision works. This is the *emotional* core of "Pear is a person."
+5. **Make Voice DNA ambient** — learn it passively from what the host types in the editor (not a separate `/dashboard/voice` chore), and pipe it into the **guest concierge** so Pear answers guests in the *couple's* voice.
+6. **Give guest-list intelligence a real model** — relationship/dietary inference from freeform guest messages → feed the proactive loop.
+7. **Retire the vanity + fix metering** — convert `qr/poster` + most `decor/*` image gen to curated templates (deterministic, cheaper, more on-brand), add per-account **dollar caps**, and route the raw-`fetch` Gemini calls through the meter. (AI depth is a natural premium lever — Pillar 5.)
+
+---
+
+## 4h · Pillar 10 — The Remember pillar (make the keepsake real)
+
+**Goal:** deliver the third act (Remember = the keepsake + the film + the anniversary) that the product *positions* but hasn't wired.
+
+**Ground truth (audit round 5) — a structural data break poisons the pillar:** **photos live in three tables that never sync** — `guest_photos` (what real guests upload at the event), `gallery_photos` (host uploads), and `photos` (what the film reads). The dashboard **memory book reads only *manifest* photos**; the **recap page + the "your memory book is ready" day-after email read `gallery_photos`** (which guests never write to). **So guest-uploaded photos never reach the keepsake, the recap, or the day-after email** — the flagship post-event artifact is structurally empty of the actual photos. (Plus two guestbooks — `guestbook` vs `guestbook_messages` — and two guest tables.) By contrast the **words pipeline is genuinely end-to-end** (memory/whisper/capsule/song/tribute/toast → the book, keyed by `site_id`). **Voice** reaches only the day-of jukebox, never a durable keepsake. **The film is dead scaffold** — no UI entry point, `FILM_RENDERER_WEBHOOK_URL` unset so it self-finalizes to `output_url=null`; **no video is ever produced**, yet "auto-cut highlight reel" is core positioning. **"Order printed book"** routes to a Lob *card* composer — there's no bound-book fulfillment.
+
+**Plan:**
+1. **Unify the photo layer** — make `guest_photos` the single source of truth that the memory book, recap, and film all read. *This one change lights up the keepsake photos, the recap page, and the day-after email simultaneously* — the highest-leverage fix in the pillar.
+2. **Fix the recap wiring** (`guest_photos` + `guestbook`) and **converge** the recap and the dashboard memory book onto one aggregation so "the memory book" means one thing.
+3. **Make voice durable** — embed an audio player in the recap/book "In their own voices" section; auto-transcribe on upload (`voice-dna/transcribe` exists) — which also feeds the film's toast-quote ambition.
+4. **Deliver a real bound book** — the button + the aggregation exist; add the book-fulfillment path in `print-engine` and turn the best-built asset into a paid physical keepsake.
+5. **Ship the film or cut it from positioning** — cheapest honest version: render the existing Claude storyboard + guest photos + Ken Burns + toast audio to an MP4 with a real worker + a dashboard entry point. Until then, stop calling it a pillar.
+6. **De-dupe the doubled tables** (guestbook/guestbook_messages, pearloom_guests/guests) — foundational cleanup the whole pillar rests on.
+
+---
+
+## 4i · Pillar 11 — The return loop (retention for an episodic product)
+
+**Goal:** survive the episodic gap ("one event, then silence") — the core business question the docs flag as the reason a social network was rejected.
+
+**Ground truth (audit round 5) — the retention machinery is largely BUILT but DARK:**
+- **The "come back next year" mechanic is written but off.** `cron/anniversary` and `cron/weekly-digest` are fully built, gated, and idempotent — but **not in `vercel.json`, so they never fire.**
+- **The lifecycle-email engine is a cron on an empty queue.** `email-sequences.ts` + `scheduled_emails` + `/api/cron/email` (every 5 min) exists, but **nothing ever enqueues to it** — the "email spine" is an illusion.
+- **Cadence ends at thank-you + 7 days** (no anniversary phase, though the `'milestone'` product value exists unused).
+- The anniversary email reaches **the host only**, **milestone years only** (1/5/10…). `AnniversaryCard`'s own comment: *"a feature with no entry point."* The guest's lovely "one year ago today" passport view has **no email/push that ever drives them back to it.** Time capsules open **silently** (no notification).
+- **The guest→host CTA does not exist** — `/g/[token]` and `YourCelebrationsCard` are the perfect surfaces and offer no "make your own," the only true viral loop in a one-off product.
+- Analytics has **no retention/cohort/return-visitor tracking** at all.
+
+**Plan:**
+1. **Turn on the dark crons** — schedule `cron/anniversary` + `cron/weekly-digest` in `vercel.json`. Nearly free, and the single highest-leverage retention fix on the board.
+2. **Feed or delete the orphaned email engine** — enqueue rsvp-reminder / event-reminder / thank-you from the real flows, or remove it so the spine isn't fiction.
+3. **Guest-facing anniversary rebroadcast + capsule-open cron** — extend the anniversary email to RSVP-yes guests (already resolvable) and to *every* year, and notify when a time capsule opens. ~1 session on existing infra — *the actual retention engine.*
+4. **The guest→host CTA** on `/g/[token]` + `YourCelebrationsCard` → pre-seeded `/wizard/new`. The only viral loop; fuses with Pillar 4 (social) + Pillar 6 (free-flow).
+5. **Extend cadence past thank-you** (use the unused `'milestone'` phase).
+6. **Push, not pull** — surface the keepsake *before* the event (anticipation), and email/push guests to their year-ago passport.
+7. **Real retention analytics** (cohort / return-visitor) — none exists today.
+
+---
+
+## 4j · Pillar 12 — Vendors: lead-gen, not a Connect marketplace
+
+**Goal:** monetize the vendor surface *without* breaking the "Pearloom never touches the money" constraint.
+
+**Ground truth (audit round 5):** the **private Vendor Book is shipped and strong** — hosts voluntarily catalogue *real vendors* + *real host-entered spend* + booked/paid status + regions. That is **proprietary demand-side data** Zola/The Knot pay enormous sums to approximate. But the **public directory is an empty stub** (zero seed data — "the directory is filling up" is its live state; no ingestion path; the `VendorCard` is a bare outbound link with **no lead tracking** despite the migration claiming affiliate revenue; `vendor_shortlists` is dead; the `directory_vendor_id` book-bridge is plumbed but no UI sets it). The **8% Connect booking marketplace is fully parked *and contradicts* the architecture** — `createVendorBooking` is never called, there is **no vendor side at all** (no accounts, onboarding, or profiles), and turning on Connect makes Pearloom a payment facilitator (the exact money-transmitter weight the never-touch-money principle avoids). Plus a `vendors` table-name collision and an orphaned legacy `/api/vendors/route.ts`.
+
+**Plan (constraint-safe, in order):**
+1. **Do NOT build the Connect booking marketplace** — it's a company pivot, not a feature (breaks never-touch-money, two-sided cold-start with zero supply, a whole second app). Park it.
+2. **Seed the directory + ship the click/lead event** the migration already promises — outbound `booking_url` clicks are the affiliate/referral primitive, and need **no Connect and no merchant-of-record**.
+3. **Surface the directory→book bridge** (`directory_vendor_id`) — a "Save to your book / Request a quote" action turns the book's private demand signal into a routable, money-free lead.
+4. **Monetize the vendor side without payments** — featured/subscription listings + per-lead referral fees.
+5. **Only much later**, if supply + lead volume prove out, consider Connect for actual booking — the last step, not the first.
+
+**Risks (be honest):** Connect violates the constraint (licensing/compliance weight); empty-directory cold-start; a **privacy landmine** — the book's vendor contacts are private/unconsented, so *never* scrape them to bootstrap supply (host-initiated, consented intros only); and focus cost vs. the near-term thesis. Clean up the table-name collision + the orphaned legacy route while here.
+
+---
+
 ## 5 · Per-event application (all 31)
 
 Occasion is threaded through ~11 systems, all derived from **one registry** (`event-os/event-types.ts`) — so per-event upgrades are low-friction. Three shapes:
@@ -429,6 +505,11 @@ Small, mostly self-contained fixes that punch above their weight — good "warm-
 - [ ] **Un-bury Cadence** — the cockpit keeps linking to a ⌘K-only page; promote it to the Guests/Sends surface.
 - [ ] **Trim the cockpit** — cut TheLongView, CockpitBlessing, HomeSitePreview; kill or make-real the fake local-only ChecklistCard.
 - [ ] **Rename `/dashboard/profile` → `/dashboard/settings`** (label already says "Settings") with a redirect.
+- [ ] **⭐ Turn on the dark crons** — add `cron/anniversary` + `cron/weekly-digest` to `vercel.json`. The "come back next year" retention loop is fully built and simply **not scheduled**. Nearly-zero effort, highest-leverage retention fix in the plan.
+- [ ] **⭐ Unify the photo layer** — point the memory book + recap + day-after email at `guest_photos` (the table real guests actually write to). Today guest photos reach *none* of the keepsake surfaces; this one change lights up all three.
+- [ ] **Feed or delete the orphaned email engine** — `email-sequences.ts` + `/api/cron/email` runs every 5 min on an empty queue; either enqueue reminders/thank-yous or remove the illusion.
+- [ ] **Add AI dollar caps + meter the Gemini calls** — metering is observability-only and most Gemini spend bypasses it (raw `fetch`); before scaling AI, cap per-account cost and route the cheap/high-volume tier through the meter.
+- [ ] **Ship the vendor click/lead event** — the directory's `booking_url` clicks are the affiliate primitive the migration already promises but never implemented (money-free, no Connect).
 
 ---
 
