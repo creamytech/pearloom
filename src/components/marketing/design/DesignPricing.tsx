@@ -152,29 +152,18 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
           {TIERS.map((t) => (
             <div
               key={t.name}
-              className={`pl-lift pd-tier${t.featured ? ' pd-tier-featured' : ''}`}
+              className={`pd-tier${t.featured ? ' pd-tier-featured' : ''}`}
               style={{
-                background: t.bg,
-                color: t.fg ?? PD.ink,
-                border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
-                borderRadius: 20,
-                padding: '36px 32px 32px',
-                // Featured lift (top: -14) is a desktop-only flourish —
-                // handled in the <style jsx> below at ≥901px. On a
-                // single-column mobile stack the raise only crowds the
-                // "MOST CHOSEN" badge up into the card above it, so the
-                // badge sits in a clean 20px gap on phones instead.
-                boxShadow: t.featured
-                  ? `0 30px 60px -20px ${pdShadowMix(35)}`
-                  : `0 1px 3px ${pdShadowMix(6)}`,
                 position: 'relative',
-                // Featured card floats above its siblings so the raised
-                // "MOST CHOSEN" badge is never painted over by the
-                // neighbouring cards (whose reveal transform makes them
-                // their own stacking context).
+                // The featured tier floats above its neighbours so the
+                // raised ribbon is never covered by an adjacent card.
                 zIndex: t.featured ? 2 : 1,
                 display: 'flex',
                 flexDirection: 'column',
+                // Featured lift (top: -14) is a desktop-only flourish,
+                // applied to this wrapper in the <style jsx> below at
+                // ≥901px. On the single-column mobile stack the raise
+                // only crowds the ribbon, so the card stays flush there.
               }}
             >
               {t.featured && (
@@ -206,6 +195,29 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                 </div>
               )}
 
+              {/* The card body. The ribbon lives on the wrapper ABOVE,
+                  never inside this rounded box: WebKit/iOS clips a child
+                  that overflows a border-radius element which also forms
+                  a stacking context / is transformed — that sheared the
+                  ribbon's top on Safari (Chromium doesn't, so it looked
+                  fine in preview). Keeping the ribbon out of the rounded
+                  card sidesteps the clip on every engine. */}
+              <div
+                className="pl-lift"
+                style={{
+                  background: t.bg,
+                  color: t.fg ?? PD.ink,
+                  border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
+                  borderRadius: 20,
+                  padding: '36px 32px 32px',
+                  boxShadow: t.featured
+                    ? `0 30px 60px -20px ${pdShadowMix(35)}`
+                    : `0 1px 3px ${pdShadowMix(6)}`,
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
               <div
                 style={{
                   ...DISPLAY_STYLE,
@@ -284,6 +296,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
               >
                 {t.price === 0 ? 'Begin a thread' : `Choose ${t.name}`} <Pearl size={8} />
               </PLButton>
+              </div>
             </div>
           ))}
         </div>
