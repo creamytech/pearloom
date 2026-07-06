@@ -876,14 +876,16 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         <div style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
           Track what you&rsquo;re spending against what you&rsquo;ve set aside — Pear keeps the running total.
         </div>
-        <button
-          type="button"
-          onClick={() => { setDraft([{ cat: '', used: 0, cap: 0 }]); setEditing(true); }}
-          className="btn btn-outline btn-sm"
-          style={{ marginTop: 14 }}
-        >
-          <Icon name="plus" size={12} /> Set a budget
-        </button>
+        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => { setDraft([{ cat: '', used: 0, cap: 0 }]); setEditing(true); }}
+            className="btn btn-outline btn-sm"
+          >
+            <Icon name="plus" size={12} /> Set a budget
+          </button>
+          <Link href="/dashboard/budget" style={budgetDoorLink}>The full budget →</Link>
+        </div>
       </div>
     );
   }
@@ -953,12 +955,26 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
           );
         })}
       </div>
-      <button type="button" onClick={() => setEditing(true)} className="btn btn-outline btn-sm" style={{ marginTop: 14 }}>
-        <Icon name="brush" size={12} /> Edit budget
-      </button>
+      <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setEditing(true)} className="btn btn-outline btn-sm">
+          <Icon name="brush" size={12} /> Edit budget
+        </button>
+        {/* The door to the rich, cents-precise ledger (vendors woven
+            in, planned/committed/paid) — this card is the quick
+            back-of-napkin view, never a dead end. */}
+        <Link href="/dashboard/budget" style={budgetDoorLink}>The full budget →</Link>
+      </div>
     </div>
   );
 }
+
+const budgetDoorLink: React.CSSProperties = {
+  fontSize: 12.5,
+  fontWeight: 700,
+  color: 'var(--peach-ink, #C6703D)',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+};
 
 // ── TheLongView (LongViewCard) ───────────────────────────────
 // The forward-looking keepsake timeline. Occasion-aware (a solemn

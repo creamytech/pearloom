@@ -20,11 +20,9 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
-import {
-  useSelectedSite,
-  patchSiteManifestInCache,
-} from '@/components/marketing/design/dash/hooks';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
+import { vendorToBudgetLine } from '@/lib/budget/lines';
 import { todayLocal, formatLocalDate } from '@/lib/date-utils';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -53,8 +51,6 @@ interface BookVendor {
   packetToken: string | null;
   createdAt: string;
 }
-
-interface BudgetLine { cat: string; used: number; cap: number }
 
 // The form's working shape — dollars as strings so the host can
 // type freely; converted to cents on save.
@@ -363,18 +359,33 @@ export function VendorBookClient() {
   }, [siteId, setVendors]);
 
   // ── Budget linkage ──
-  const budgetLines = useMemo<BudgetLine[]>(() => {
-    const raw = (site?.manifest as { budget?: unknown } | undefined)?.budget;
-    if (!Array.isArray(raw)) return [];
-    return raw
-      .filter((l): l is BudgetLine => !!l && typeof l === 'object' && typeof (l as BudgetLine).cat === 'string')
-      .map((l) => ({ cat: l.cat, used: Number(l.used) || 0, cap: Number(l.cap) || 0 }));
-  }, [site]);
+  // A vendor line lives in the budget_lines ledger (source_kind =
+  // 'vendor', source_id = the vendor's id) — the real FK, not a
+  // name-string merge into manifest.budget. We fetch which vendors
+  // are already linked so the card can read "In the budget", and
+  // add one via POST /api/sites/budget/lines.
+  const [linkedVendorIds, setLinkedVendorIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!siteId) { setLinkedVendorIds(new Set()); return; }
+    let cancelled = false;
+    fetch(`/api/sites/budget/lines?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('load failed'))))
+      .then((data: { lines?: Array<{ sourceKind?: string | null; sourceId?: string | null }> }) => {
+        if (cancelled) return;
+        const ids = new Set<string>();
+        for (const l of data.lines ?? []) {
+          if (l.sourceKind === 'vendor' && l.sourceId) ids.add(l.sourceId);
+        }
+        setLinkedVendorIds(ids);
+      })
+      .catch(() => { if (!cancelled) setLinkedVendorIds(new Set()); });
+    return () => { cancelled = true; };
+  }, [siteId]);
 
   const inBudget = useCallback(
-    (v: BookVendor) =>
-      budgetLines.some((l) => l.cat.trim().toLowerCase() === v.name.trim().toLowerCase()),
-    [budgetLines],
+    (v: BookVendor) => linkedVendorIds.has(v.id),
+    [linkedVendorIds],
   );
 
   const [budgetBusy, setBudgetBusy] = useState<string | null>(null);
@@ -382,47 +393,34 @@ export function VendorBookClient() {
 
   const addToBudget = useCallback(async (v: BookVendor) => {
     if (!siteId) return;
-    // The budget is host-entered DOLLARS ({cat, used, cap} — see
-    // /api/sites/budget + cockpit's BudgetBreakdown). used = what's
-    // actually been paid so far; cap = the vendor's full cost.
-    let paidCents = 0;
-    if (v.depositPaid && v.depositCents) paidCents += v.depositCents;
-    if (v.balancePaid) paidCents += balanceCents(v) ?? 0;
-    const line: BudgetLine = {
-      cat: v.name.trim(),
-      used: Math.round(paidCents / 100),
-      cap: Math.round((v.costCents ?? 0) / 100),
-    };
-    // Merge by name — replace an existing line, else append. The
-    // route replaces the whole array, so we send the merged set.
-    const key = line.cat.toLowerCase();
-    const existingIdx = budgetLines.findIndex((l) => l.cat.trim().toLowerCase() === key);
-    const merged = existingIdx >= 0
-      ? budgetLines.map((l, i) => (i === existingIdx ? line : l))
-      : [...budgetLines, line];
-
     setBudgetBusy(v.id);
     setBudgetError(null);
     try {
-      const res = await fetch('/api/sites/budget', {
-        method: 'PATCH',
+      // vendorToBudgetLine derives the linked line (committed = cost,
+      // paid = whichever of deposit/balance is marked paid). The
+      // (site_id, source_id) unique index makes a repeat add update
+      // the line in place rather than duplicating it.
+      const res = await fetch('/api/sites/budget/lines', {
+        method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ siteId, budget: merged }),
+        body: JSON.stringify({ siteId, line: vendorToBudgetLine(v) }),
       });
       const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
       if (!res.ok || !data?.ok) {
         setBudgetError(data?.error ?? 'The budget didn’t save — try again.');
         return;
       }
-      // Reflect immediately: the cached site manifest is what
-      // inBudget() reads.
-      patchSiteManifestInCache(siteId, { budget: merged });
+      setLinkedVendorIds((prev) => {
+        const next = new Set(prev);
+        next.add(v.id);
+        return next;
+      });
     } catch {
       setBudgetError('The budget didn’t save — check your connection and try again.');
     } finally {
       setBudgetBusy(null);
     }
-  }, [siteId, budgetLines]);
+  }, [siteId]);
 
   // ── Derived views ──
   // `dues` recomputes from `vendors`, so a "Mark paid" (patchVendor
