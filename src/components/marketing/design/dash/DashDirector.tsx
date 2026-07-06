@@ -21,6 +21,7 @@ import { EmptyShell } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite, useUserSites } from './hooks';
+import { TeamTasksPanel } from './TeamTasksPanel';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
 import { parseLocalDate, todayLocal } from '@/lib/date-utils';
 import {
@@ -664,6 +665,10 @@ export function DashDirector() {
             </div>
           </div>
         </div>
+
+        {/* THE TEAM — co-host roles + assignable tasks (GRAND-PLAN
+            Phase 3, Pillar 3 — the collaboration home). */}
+        <TeamTasksPanel siteId={site.id} />
 
         {/* This week's weave + mood reading */}
         <div className="pd-week-weave" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20 }}>
