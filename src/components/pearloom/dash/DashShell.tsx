@@ -94,6 +94,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     id: 'house',
     label: 'The house',
     items: [
+      { id: 'circle',   label: 'Circle',       icon: 'grid',     href: '/dashboard/circle' },
       { id: 'director', label: 'The Director', icon: 'compass',  href: '/dashboard/director' },
       { id: 'analytics', label: 'Analytics',   icon: 'bars',     href: '/dashboard/analytics' },
       { id: 'settings', label: 'Settings',     icon: 'settings', href: '/dashboard/profile' },
