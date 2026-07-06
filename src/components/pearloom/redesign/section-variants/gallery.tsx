@@ -4,6 +4,7 @@
    lives in ThemedSite.tsx; these are the alternative layouts the
    LAYOUTS registry can dispatch into. */
 
+import Image from 'next/image';
 import { useState, type CSSProperties } from 'react';
 import type { GalleryVariantCtx, PhotoTone } from './types';
 import { VariantSectionHead } from './_section-head';
@@ -62,15 +63,32 @@ const TONE_BG: Record<string, string> = {
  *  original eagerly at first paint (no lazy-load, no async decode) —
  *  a real first-scroll hitch on photo-heavy sites. The parent keeps
  *  its aspect-ratio box (so no layout shift) and must be
- *  position:relative + overflow:hidden. */
-function LazyPhoto({ url }: { url: string }) {
+ *  position:relative + overflow:hidden.
+ *
+ *  next/image `fill` serves a device-sized, modern-format variant
+ *  (per `sizes`) instead of the full-res original, and stays lazy by
+ *  default. `data:` / `blob:` sources (used transiently in the editor
+ *  before a pick uploads) can't go through the optimizer, so they
+ *  fall back to a plain <img>. */
+function LazyPhoto({ url, sizes }: { url: string; sizes?: string }) {
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return (
+      <img
+        src={url}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
+    );
+  }
   return (
-    <img
+    <Image
       src={url}
       alt=""
-      loading="lazy"
-      decoding="async"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      fill
+      sizes={sizes ?? '(max-width: 520px) 100vw, (max-width: 860px) 50vw, 25vw'}
+      style={{ objectFit: 'cover' }}
     />
   );
 }
@@ -175,7 +193,7 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
           cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
         }}
       >
-        {hasPhotos && <LazyPhoto key={stageIdx} url={photos[stageIdx]} />}
+        {hasPhotos && <LazyPhoto key={stageIdx} url={photos[stageIdx]} sizes="(max-width: 800px) 100vw, 760px" />}
       </div>
       {/* Caption for the ACTIVE stage photo — under the stage,
           centered, in the variant's editorial voice. */}

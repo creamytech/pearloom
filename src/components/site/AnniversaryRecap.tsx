@@ -6,6 +6,7 @@
 // Scroll-driven, photo-heavy, warm. Not a magazine; a scrapbook.
 // ─────────────────────────────────────────────────────────────
 
+import Image from 'next/image';
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { StoryManifest } from '@/types';
@@ -305,15 +306,13 @@ export function AnniversaryRecap({
                     borderRadius: 'var(--pl-radius-xs)',
                   }}
                 >
-                  <img
+                  <Image
                     src={p.url}
                     alt={p.caption || p.by || ''}
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 50vw, 25vw"
                     style={{
-                      width: '100%',
-                      height: '100%',
                       objectFit: 'cover',
-                      display: 'block',
                       filter: 'saturate(0.95)',
                     }}
                   />

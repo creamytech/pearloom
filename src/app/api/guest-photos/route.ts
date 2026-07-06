@@ -141,7 +141,12 @@ export async function POST(req: NextRequest) {
     const uuid = Math.random().toString(36).substring(2, 15);
     const filename = `guest-photos/${Date.now()}_${uuid}.${ext}`;
 
-    const plaintext = Buffer.from(await file.arrayBuffer());
+    // Downscale + re-encode before anything touches storage or the
+    // moderation API — a full-resolution phone capture shouldn't ship
+    // to every guest's wall. Fails open (returns the original bytes)
+    // so a resize hiccup never drops the photo. See lib/photo-resize.
+    const { downscalePhoto } = await import('@/lib/photo-resize');
+    const plaintext = await downscalePhoto(Buffer.from(await file.arrayBuffer()), ext);
 
     // ── NSFW screen ──────────────────────────────────────────────
     // Before the photo ever touches storage or the host's queue, run

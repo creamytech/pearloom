@@ -75,8 +75,11 @@ export async function POST(req: NextRequest) {
     const uuid = Math.random().toString(36).substring(2, 15);
     const storagePath = `gallery/${siteId}/${Date.now()}_${uuid}.${ext}`;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Downscale + re-encode before upload so full-resolution originals
+    // don't ship to guests. Fails open (returns the original bytes) so
+    // a resize hiccup never drops the photo. See lib/photo-resize.
+    const { downscalePhoto } = await import('@/lib/photo-resize');
+    const buffer = await downscalePhoto(Buffer.from(await file.arrayBuffer()), ext);
 
     const supabase = getSupabase();
 
