@@ -65,6 +65,8 @@ export function DashConnections() {
   const [newCelebName, setNewCelebName] = useState('');
   const [linkOpen, setLinkOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
+  // Unified headcount across the focused celebration's events (Phase 5).
+  const [roster, setRoster] = useState<{ events: number; attending: number; invited: number } | null>(null);
 
   // Group sites by celebration id.
   const grouped = useMemo(() => {
@@ -89,6 +91,21 @@ export function DashConnections() {
       if (keys.length > 0) setFocusCelebId(keys[0]);
     }
   }, [grouped, focusCelebId]);
+
+  // Roll up the celebration's combined headcount (Phase 5). Owner-gated
+  // to the caller's own events; re-fetched when the focus changes.
+  useEffect(() => {
+    if (focusCelebId === 'unlinked') { setRoster(null); return; }
+    let cancelled = false;
+    setRoster(null);
+    fetch(`/api/celebrations/roster?celebrationId=${encodeURIComponent(focusCelebId)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { ok?: boolean; totals?: { events: number; attending: number; invited: number } } | null) => {
+        if (!cancelled && d?.ok && d.totals) setRoster(d.totals);
+      })
+      .catch(() => { /* the headcount is a nicety */ });
+    return () => { cancelled = true; };
+  }, [focusCelebId]);
 
   const celebrations = Object.values(grouped.byCeleb);
   const focusCeleb =
@@ -345,6 +362,20 @@ export function DashConnections() {
                 ? `${focusCeleb.sites.length} thread${focusCeleb.sites.length === 1 ? '' : 's'}`
                 : `${grouped.unlinked.length} site${grouped.unlinked.length === 1 ? '' : 's'} waiting`}
             </div>
+            {focusCeleb && roster && roster.invited > 0 && (
+              <div
+                style={{
+                  ...MONO_STYLE,
+                  fontSize: 9.5,
+                  color: PD.inkSoft,
+                  marginTop: 10,
+                  position: 'relative',
+                  letterSpacing: '0.16em',
+                }}
+              >
+                {roster.attending} attending · {roster.invited} invited across the weekend
+              </div>
+            )}
             {focusCeleb && (
               <div style={{ marginTop: 18, position: 'relative' }}>
                 <Link
