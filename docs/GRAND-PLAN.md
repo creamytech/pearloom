@@ -14,7 +14,7 @@
 
 ### Audit rounds
 - **Round 1 (2026-07-06):** money/budget · collaboration/group-events · all 31 event types · end-to-end journey → Pillars 1–3, per-event map, roadmap Phases 0–4, keystone.
-- **Round 2 (in progress):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → will add **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)** and re-sequence the roadmap. (Grounding audits running now; sections marked ⏳ below get filled from them.)
+- **Round 2 (2026-07-06):** premium tiers/monetization · accounts + social graph (friend network) · auth/onboarding free-flow → added **Pillar 4 (Social Layer)**, **Pillar 5 (Premium tiers)**, **Pillar 6 (Journey free-flow)**, all grounded. Key corrections vs. assumptions: monetization is a **real 3-tier system** (`plan-gate.ts`, not thin); the journey friction is **structural gating**, not the flows; the guest↔user gap is an **unlinked shared email**, and **no friend edge table exists** (the one new primitive).
 - Future rounds: keepsake/film pipeline · AI/Pear surfaces · vendor marketplace · analytics/retention · the companion app tie-in.
 
 ---
@@ -158,47 +158,67 @@ Today: sidebar (19) vs sub-nav (5) vs ⌘K (12), with money and planning buried.
 
 ---
 
-## 4b · Pillar 4 — The Social Layer (friends + accounts) ⏳ *grounding — audit round 2*
+## 4b · Pillar 4 — The Social Layer (friends + accounts)
 
-**Goal:** users can **add other users** to events (e.g. add friends to a bachelor party). The strategic bet: today Pearloom has *guests* (an email on a list) and *accounts* (a login) as two disconnected things, plus an opt-in "people you've celebrated with" graph — but **no real user↔user friend graph**. Building one turns every celebration into an acquisition loop and sets up the future companion app.
+**Goal:** users can **add other users** to events (e.g. add friends to a bachelor party). This is the connective tissue for the future companion app and turns every celebration into an acquisition loop.
 
-**Direction (to be grounded by the accounts/social audit):**
-- **Close the guest↔user gap** — the missing seam. A guest's email → a real account; a `person_id` that spans "guest of an event" and "logged-in user." The `people` graph (email-keyed, `connections_opt_in`, `familiarFacesForPerson`) and the co-host `lookup` (already probes "is this invitee a Pearloom user?") are the seeds.
-- **A friend graph** — bidirectional connections (accept/decline), built on the opt-in-connections foundation but promoted from "faces you've celebrated with" to "friends you can pull into an event."
-- **Add friends to an event** — invite a *user* (not just an email) into a group event as a **participant** (Pillar 2) — so they're a co-payer + can see the split immediately, no re-entering details. This is where the social layer and the money layer fuse.
-- **The acquisition loop** — every guest/participant is one tap from an account; every account gains a friend graph; every friend can be pulled into the next bachelor trip / birthday / reunion. Ties directly into the companion app.
-- **Privacy-first** — inherit the strict opt-in, mutual-consent, first-names-only stance of `people.ts`; a friend graph never leaks event history across hosts without consent.
+**Ground truth (audit round 2):**
+- **A "user" is just an email.** There is *no* `users` table and no user id — email is the PK everywhere (`src/lib/auth.ts`, JWT sessions). Password accounts live in `account_credentials`; **Google-only accounts appear only in `user_preferences`** — so "does an account exist?" must probe *both* tables (this OR-probe already exists in `src/app/api/co-host/lookup/route.ts`).
+- **The guest↔user gap is an unlinked shared email.** A guest = an email/name on a per-site `guests`/`pearloom_guests` row; the `people` node (`src/lib/people.ts`, email-keyed) is the per-human node both *could* share — but **no code joins guest-email to account-email, and `people` has no "has an account" flag.**
+- **No friend graph exists** (confirmed by full grep). The only relationship surfaces are the anonymized opt-in guest connection (`people.connections_opt_in` + `familiarFacesForPerson`, mutual-consent, first-names-only) and host-authored `relationship_graph` (single-site guest metadata, unused). Neither is a user↔user edge.
 
-*(This pillar is the connective tissue for "the app we build later" — a mobile companion where your friends, your events, and your shared money live in one place.)*
+**Plan:**
+1. **Make account-ness first-class.** Promote the `co-host/lookup` two-table probe to a shared `resolveAccount(email)` lib and add a `has_account`/`account_email` marker on `people` — so the identity node knows who has a login. *This one change closes the guest↔user seam the whole social + money vision needs.*
+2. **The friend edge (the one new primitive):** `user_connections(a_person_id, b_person_id, status ∈ pending|accepted|blocked, requested_by, created_at, accepted_at)` anchored on `people.id`. Friend-request/accept **generalizes the co-host invite/accept mechanics** (`src/app/api/sites/co-host/route.ts` + `co-host/invitations`) from "email → site + role" to "email → email + status," with the `connections_opt_in` mutual-consent stance as the privacy template.
+3. **Add a friend to an event.** Reuse the existing "pull people in" primitive — **`src/app/api/guests/copy-from/route.ts`** already bulk-copies humans (name/email/phone/`person_id`) between a host's sites, deduped by email. Point it at friend rows → creates a `guests` row + `link_guests_to_people`; if the event is a group-money event, **also mint a Participant (Pillar 2)** so the friend is a co-payer and sees the split instantly. *This is where the social layer and the money layer fuse.*
+4. **The acquisition loop.** Guest → account (one-tap, Pillar 6) → friend graph (seeded from co-celebrants + the account-resolver) → pull friends into the next bachelor trip / birthday. "You've celebrated with X three times — add as a friend."
+5. **Notifications.** Add a `social` category to `src/lib/notifications/prefs.ts` and feed kinds (`friend_request`, `added_to_event`) to `src/lib/notifications/feed.ts`; reuse `notifyHost` (already has a `cohost` category) + `sendHostPush`.
+6. **Privacy-first.** Inherit the strict opt-in / mutual / first-names stance of `people.ts`; a friend graph never auto-exposes cross-host event history.
 
----
-
-## 4c · Pillar 5 — Premium tiers (monetization) ⏳ *grounding — audit round 2*
-
-**Goal:** more ways to tie premium tiers in — **capability + scale + collaboration** gating, not just cosmetics. Today monetization looks thin (one-time theme packs + prints + a parked Stripe rail + a "$0 free / $48 one-time per occasion" promise); premium should attach to the *new value* this plan creates.
-
-**Premium hooks the roadmap creates (to be grounded by the monetization audit):**
-- **Money/budget:** free = basic budget; premium = planned-vs-committed-vs-paid reconciliation, vendor→budget auto-flow, multi-category templates, export.
-- **Group split:** free = split among a small group; premium = unlimited participants, receipts/attachments, celebration-level split across sibling sites, reminders/nudges to settle.
-- **Collaboration:** free = 1 co-host; premium = unlimited co-hosts + roles + assignable tasks (the Team hub).
-- **Social:** free = add friends; premium = friend-group templates ("my usual crew"), one-tap re-invite, cross-event history.
-- **Scale:** free = 1 active site; premium = the whole weekend/celebration cluster, multi-site.
-- **Keepsake/print + domain + Pear AI depth** — existing cosmetic/one-time lines stay, layered under a recurring tier.
-- **Model question (open):** per-account subscription vs per-celebration one-time vs hybrid. The plan's celebration object (Phase 5) makes *per-celebration* pricing coherent ("one price for the whole weekend"), which fits the brand better than per-seat SaaS.
+*Build on: `co-host/lookup` (account probe) · `people.id` (anchor) · `connections_opt_in` (consent pattern) · `guests/copy-from` (pull-into-event) · `notifyHost`/bell/push (spine). The one genuinely new table is the friend edge.*
 
 ---
 
-## 4d · Pillar 6 — Journey free-flow (make it effortless) ⏳ *grounding — audit round 2*
+## 4c · Pillar 5 — Premium tiers (monetization)
 
-**Goal:** the user journey should be **easy, free-flowing, and not complicated.** Round-1 already found the big leaks (landing bypasses `/welcome`; no budget/guest step; empty guest list; buried money/planner; `exploring` dead-end). This pillar makes *entry itself* frictionless.
+**Goal:** more ways to tie premium in — gate the **new value** (capability/scale/collaboration), not just cosmetics.
 
-**Direction (to be grounded by the auth/onboarding audit):**
-- **Try before you sign up** — let a cold visitor reach a drafted site (or a live playground) *before* forcing an account; defer account creation to the save/publish moment. The landing hero already has a live occasion+names playground — extend it into "start weaving, sign up to keep it."
-- **Kill / retire the pre-launch `/gate` wall** at launch — it's the very first thing a real visitor hits today.
-- **Guest → host in one tap** — a guest on `/g/[token]` who loves their experience should be able to start their *own* event instantly (huge acquisition surface, currently a gap). Fuses with the social layer.
-- **Fewer forced choices in the wizard** — smart defaults, everything skippable, no asking for something before it's needed.
-- **One coherent path** — collapse the confusing forks (which auth path lands where; sidebar vs sub-nav vs ⌘K) into a single free-flowing spine.
-- **Mobile-first** — the whole entry flow effortless on a phone (where most invite links are opened).
+**Ground truth (audit round 2) — bigger than expected:** monetization is **not** thin. There's a real 3-tier ladder in `src/lib/plan-gate.ts` (canonical spec `docs/MONETIZATION.md`): **Journal $0 · Atelier $19 one-time · Legacy $129 lifetime**, stored in `user_plans` (per-account, email-keyed). `PLAN_LIMITS` gate `{sites, guests, photos, aiGens, customDomain}`. A **single choke point** — `checkPlanAccess()`/`requirePlan()` → HTTP 402 with `upgradeUrl` — already enforces: AI block generation (Atelier), site/guest/photo limits, and paid-theme-pack publishing. Memorials/funerals are unconditionally exempt (`isGriefExempt`). Fee rails exist (3% gifts/registry as merchant-of-record, 8% vendor Connect) but are parked behind `hasStripe()` → everything runs free when Stripe env keys are absent.
+
+**Plan — attach premium to this roadmap's new value (one-line `requirePlan()` guards, mirroring `src/app/api/ai-blocks/route.ts`):**
+- **Budgets (Pillar 1):** free = basic budget; Atelier = planned↔committed↔paid reconciliation, vendor auto-flow, category templates, export.
+- **Group split (Pillar 2):** free = split a small group; Atelier = unlimited participants, receipts/attachments, settle-up reminders; Legacy = celebration-level split across sibling sites.
+- **Collaboration (Pillar 3):** free = 1 co-host; Atelier/Legacy = unlimited co-hosts + roles + assignable tasks. **Note:** co-hosts + linked celebrations are *sold* as Legacy in `DesignPricing.tsx` but **not code-gated today** — wire them.
+- **Social (Pillar 4):** free = add friends; premium = crew templates ("my usual crew"), one-tap re-invite, cross-event history.
+- **Wire the unenforced gates** already defined/marketed: `customDomain` (in `PLAN_LIMITS`, zero enforcement in code), co-hosts, linked celebrations.
+- **Model decision (open):** keep one-time (Journal/Atelier/Legacy) or add a recurring tier. Recommendation: the plan's **celebration object** (Phase 5) makes **per-celebration one-time** pricing coherent and on-brand ("one price for the whole weekend") — better than reviving the stale subscription plumbing in the legacy `src/lib/stripe.ts` (`free`/`pro` $12, subscription-shaped — dead residue).
+- **Reconcile debt:** two webhook endpoints (`/api/billing/webhook` + `/api/stripe/webhook`) both handle `checkout.session.completed`; unify them. Retire the stale `stripe.ts` `PLANS`.
+
+*Build on: `requirePlan()`/`checkPlanAccess()` (the choke point) · `user_plans` (storage) · `theme_pack_purchases`/entitlements (the "owned SKU" ledger) · the parked 3%/8% fee rail (turns live when a group-split settle-up wants a real rail — optional, brand permitting).*
+
+---
+
+## 4d · Pillar 6 — Journey free-flow (make it effortless)
+
+**Goal:** the journey should be **easy, free-flowing, not complicated.**
+
+**Ground truth (audit round 2):** the flows are *already light* — a draft needs only **occasion + names + one vibe** (everything else is skippable or pre-satisfied). The friction is almost entirely **structural gating**, in three places:
+
+**The three structural fixes (highest leverage):**
+1. **Lift the pre-launch gate for guests now; retire it at launch.** `src/proxy.ts` (122–148) + `src/lib/site-gate.ts` make `/gate` a **hard proxy wall that also blocks guest passports (`/g/[token]`), published sites, and RSVP** behind a shared password. Add `/g/`, `/rsvp`, and published site-hosts to the exemptions immediately; flip `SITE_GATE_ENABLED=false` at launch. *No invited guest should ever hit a password wall.*
+2. **Move the account wall from the END of the wizard to the SAVE moment.** Today a logged-out visitor can traverse all 9 wizard steps → `POST /api/sites` returns **401** → a raw "Failed to create site (401)" dead-end (`WizardV8.tsx` handleFinish + error render). The wizard already persists state to `localStorage`. Fix: catch the 401 → route to `/signup?next=/wizard/new` preserving state (or build anonymously and gate only the save). *"Try before you sign up."*
+3. **Guest → host one-tap loop.** `/g/[token]` (988 lines) has **zero** path to make your own event — the single biggest growth-loop gap. Add a "Make one of your own" CTA → `/wizard/new` pre-seeded with the occasion. Fuses with the Social Layer.
+
+**Plus the polish that collapses the "9 steps" feeling:**
+- Merge Palette into Vibe (Palette is default-satisfied — a ceremonial empty gate); hide the empty Sections step until its chooser ships.
+- Make **Vibe optional** (Pear infers a default from occasion) → effectively **zero forced choices** beyond occasion + names.
+- **Ask occasion once** — dedupe the welcome intent step vs the wizard Occasion step (wizard already prefills from intent).
+- **Move Google-Photos OAuth scope out of sign-in** — auth with One Tap / basic `openid email profile`; request the Photos scope only when the host clicks "Pick from Google Photos" (today the sign-in button front-loads a scary consent screen, `auth.ts` 48–59).
+- **Defer the co-host invite** from Review to the post-build editor (ask *after* the host has seen value).
+- **`intent:'exploring'` → a real destination:** the fully-rendered `/demo` site (with live look dials) already exists — route "Just looking" there, or into a pre-seeded sample wizard.
+- **Wire the landing playground into the wizard** — the hero name/occasion inputs + the Studio device preview are decorative today; carry "what you typed/skinned" straight into a pre-seeded `/wizard/new` draft.
+
+*Net: the build quality is high; fix the gate wall + the account-wall placement + the missing guest→host loop and the journey becomes free-flowing.*
 
 ---
 
@@ -280,6 +300,17 @@ Ordered to de-risk (the money spine underpins everything), front-load the headli
 - [ ] Decide the model: per-account sub vs per-celebration one-time vs hybrid (recommend celebration-first)
 - [ ] Wire capability gating at each 💎 above (server-side entitlement, not just cosmetic)
 - [ ] Layer recurring tier over existing one-time lines (theme packs, prints, domain, Pear depth)
+
+### ▸ Quick wins (high value · low effort · surfaced by round 2)
+Small, mostly self-contained fixes that punch above their weight — good "warm-up" work before the big phases.
+- [ ] **Lift the gate for guests** — exempt `/g/`, `/rsvp`, published site-hosts in `site-gate.ts`/`proxy.ts` so invited guests never hit the password wall (today they do).
+- [ ] **Catch the wizard 401** — a logged-out finisher currently gets a raw "(401)" dead-end after 9 steps; route to `/signup?next=/wizard/new` preserving the `localStorage` state.
+- [ ] **Guest→host CTA** on `/g/[token]` → pre-seeded `/wizard/new` (biggest growth loop, ~1 component).
+- [ ] **Wire the gates already sold** — `customDomain`, co-hosts, linked celebrations are in `PLAN_LIMITS`/marketing but not enforced (`requirePlan()` one-liners).
+- [ ] **`intent:'exploring'` → `/demo`** (the fully-rendered demo already exists) instead of a no-op.
+- [ ] **Make Vibe optional** + auto-advance Palette → zero forced wizard choices beyond occasion + names.
+- [ ] **Move Google Photos scope out of sign-in** → request it only at photo-pick time.
+- [ ] **Reconcile the two Stripe webhooks** + retire the stale `stripe.ts` subscription residue.
 
 ---
 
