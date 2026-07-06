@@ -144,11 +144,13 @@ export function WelcomeFlowClient({
   }
 
   const firstName = name.trim().split(/\s+/)[0] || 'friend';
-  /* Sign-in always lands on the DASHBOARD — home base with the
-     kickoff cards, never a forced march into the wizard. Starting
-     a site is the explicit secondary choice below. An explicit
-     ?next= deep link still wins. */
-  const beginHref = nextHref ?? '/dashboard';
+  /* Sign-in lands on the DASHBOARD — home base with the kickoff
+     cards, never a forced march into the wizard. Starting a site is
+     the explicit secondary choice below. Explorers ("just looking")
+     are sent to the fully-rendered /demo so "wander the loom first"
+     is a real door, not a drop onto an empty dashboard. An explicit
+     ?next= deep link still wins over both. */
+  const beginHref = nextHref ?? (intent === 'exploring' ? '/demo' : '/dashboard');
 
   // Enter advances wherever a primary action is live.
   useEffect(() => {
@@ -453,7 +455,7 @@ export function WelcomeFlowClient({
                       border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    Step into your loom
+                    {intent === 'exploring' ? 'Wander a finished site' : 'Step into your loom'}
                   </button>
                   <button
                     type="button"
