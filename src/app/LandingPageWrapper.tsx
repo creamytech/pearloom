@@ -92,7 +92,13 @@ export default function LandingPageWrapper() {
   }, [router]);
 
   return (
-    <GrooveMotion>
+    // Native scroll on the landing: the smooth-scroll (Lenis) layer
+    // visibly stalls ("hangs up") whenever a frame drops on this
+    // heavy page (hero ken-burns, the fixed glass nav's backdrop
+    // blur, the scroll-reveal layers). The browser's native scroll
+    // never does that. Scroll-linked effects (reveal observer,
+    // ripening pear, tracing thread) all read native scroll fine.
+    <GrooveMotion disabled>
       <main
         className="pd-landing"
         style={{
@@ -237,7 +243,9 @@ export default function LandingPageWrapper() {
               transition: opacity 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)),
                 transform 1s var(--pl-ease-emphasis, cubic-bezier(0.2, 0.8, 0.2, 1)), filter 0.8s ease;
               transition-delay: var(--rv-d, 0ms);
-              will-change: opacity, transform;
+              /* No lingering will-change — it would leave every reveal
+                 section promoted to its own compositor layer for the
+                 life of the page, which compounds scroll stutter. */
             }
             main.pd-landing [data-rv].rv-in {
               opacity: 1;
