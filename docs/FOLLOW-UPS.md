@@ -10,6 +10,31 @@
 
 ---
 
+## 0 · Progress log (what shipped since this file was written)
+
+Extended in the same session (commits through `73a3b88b`, all on `main`,
+all migrations applied to prod):
+
+- **Phase 1 keystone — COMPLETE + live.** costSplitter graduated to the live
+  ledger on published sites (guest add-expense + settle-up with P2P deep-links,
+  static fallback), the `/api/split/*` API + owner-only seed route, RSVP →
+  participant roster, and the new-expense notification bell.
+- **Phase 2 core.** Guest→host CTA on every passport; explorer intent → `/demo`;
+  the finish-time 401 dead-end caught (state preserved → `/signup?next=` forwarded
+  through `/welcome`); Vibe + Palette made non-blocking.
+- **Phase 3 start.** Budget surfaced in the sidebar ("Money" hub).
+- **Phase 6.** Chip-in group gifting confirmed already complete end-to-end;
+  sibling-strip privacy leak closed (§G item — bachelor/ette never advertised).
+
+**Still open below:** §C's remaining Phase-1 nicety (expected-share), and the
+LARGE architectural phases — **Phase 4 (social/friend graph)** and **Phase 5
+(Celebration Model / `celebrations` table)** — plus **Phase 3's People/Plan hubs
++ Team & task assignment**, premium gating (§D + needs the monetization
+decision), and the Track-B leftovers (§E). These are the deliberate
+next-focused-session items; each is multi-file + (4/5) a new migration.
+
+---
+
 ## A · Needs YOU — human action, not code (do before real users)
 
 - 🔴👤 **Email DNS**: publish SPF, DKIM, DMARC and a dedicated bulk sending
