@@ -287,14 +287,19 @@ export async function isSiteGriefExempt(
 ): Promise<boolean> {
   if (!db || !siteId) return false;
   try {
+    // Extract ONLY the occasion strings (manifest-first, site_config
+    // legacy — same order as /api/sites GET), never the full blobs.
+    // The table column is `ai_manifest`, NOT `manifest`: the old
+    // `.select('manifest, …')` errored, so this helper always returned
+    // false and grief sites were wrongly gated on guest/create limits.
     const { data } = await (db as SiteLookupClient)
       .from('sites')
-      .select('manifest, site_config')
+      .select('occasion:ai_manifest->>occasion, configOccasion:site_config->>occasion')
       .eq('id', siteId)
       .maybeSingle();
     if (!data) return false;
-    const row = data as { manifest?: { occasion?: string } | null; site_config?: { occasion?: string } | null };
-    return isGriefExempt(row.manifest?.occasion ?? row.site_config?.occasion);
+    const row = data as { occasion?: string | null; configOccasion?: string | null };
+    return isGriefExempt(row.occasion ?? row.configOccasion);
   } catch {
     return false;
   }

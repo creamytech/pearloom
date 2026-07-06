@@ -68,13 +68,14 @@ export async function GET() {
       return NextResponse.json({ sites: [] }, { status: 200 });
     }
 
-    // Match on site_config->>creator_email. saveSiteDraft +
-    // publishSite + adoptSite all normalise to lowercase + trim on
-    // write, so a plain `.eq()` against the lowercased session email
-    // catches every site the user owns. The follow-up ilike pass
-    // backstops legacy rows from before the normalisation landed —
-    // if the eq query returns 0 rows we widen to a case-insensitive
-    // match so an old "Foo@Bar.com" row still resolves.
+    // Filter on the INDEXED top-level `creator_email` column
+    // (idx_sites_creator_email, 20260415) — NOT the
+    // `site_config->>creator_email` JSONB extraction, which can't use
+    // that index and sequential-scanned the whole `sites` table on
+    // every dashboard load. saveSiteDraft + publishSite + adoptSite
+    // all keep this column in sync with the JSON (lowercased +
+    // trimmed) on write, and 20260415 backfilled it from site_config,
+    // so the indexed column is authoritative for ownership.
     // Note: `published` is intentionally NOT in the SELECT. The
     // sites table doesn't have that column in current deployments —
     // we derive published-state from manifest.published instead, so
@@ -84,16 +85,22 @@ export async function GET() {
     const initial = await supabase
       .from('sites')
       .select(SELECT_COLUMNS)
-      .eq('site_config->>creator_email', sessionEmail)
+      .eq('creator_email', sessionEmail)
       .order('updated_at', { ascending: false, nullsFirst: false });
     let data = initial.data;
     const error = initial.error;
 
+    // Legacy backstop: 20260415 backfilled creator_email from
+    // site_config VERBATIM (no lowercasing), so a pre-normalisation
+    // "Foo@Bar.com" row can sit in the column with mixed case and miss
+    // the exact `.eq` above. A case-insensitive match on the SAME
+    // (indexed) column catches it. Only fires when the exact match
+    // returns nothing (new users, or all-legacy owners).
     if (!error && (!data || data.length === 0)) {
       const { data: legacyData, error: legacyError } = await supabase
         .from('sites')
         .select(SELECT_COLUMNS)
-        .ilike('site_config->>creator_email', sessionEmail)
+        .ilike('creator_email', sessionEmail)
         .order('updated_at', { ascending: false, nullsFirst: false });
       if (!legacyError) {
         data = legacyData;
@@ -285,24 +292,33 @@ export async function POST(req: NextRequest) {
           .eq('subdomain', subdomain)
           .maybeSingle();
         if (!existsError && !existingRow) {
-          // CREATE path — count this user's NON-exempt sites with the
-          // same ownership filter the GET handler lists by. Occasion
-          // lives in manifest (canonical) or site_config (legacy), so
-          // fetch both and count in JS rather than fighting JSONB
-          // operators in the filter.
+          // CREATE path — count this user's NON-grief-exempt sites.
+          // Two fixes over the previous version:
+          //   1. Filter on the INDEXED top-level `creator_email`
+          //      column (idx_sites_creator_email), matching the GET
+          //      list, instead of the un-indexed
+          //      site_config->>creator_email JSONB path.
+          //   2. Extract ONLY the occasion strings server-side
+          //      (occasion lives on the manifest, with site_config as
+          //      the legacy fallback — same read order as the GET
+          //      list) rather than pulling up to 500 full
+          //      manifest/site_config blobs to count in JS. The
+          //      previous query also selected a non-existent `manifest`
+          //      column (the table column is `ai_manifest`), so every
+          //      count errored and the gate silently failed open.
+          // Grief exemption can't be expressed cleanly in one PostgREST
+          // filter (COALESCE across two JSON paths + NULL semantics),
+          // so it stays a JS filter over the tiny occasion projection —
+          // correct, and still blob-free.
           const { plan, limits } = await getPlanWithLimitsForEmail(sessionEmail);
           const { data: ownedRows, error: countError } = await gateDb
             .from('sites')
-            .select('id, manifest, site_config')
-            .eq('site_config->>creator_email', sessionEmail)
-            .limit(500);
+            .select('occasion:ai_manifest->>occasion, configOccasion:site_config->>occasion')
+            .eq('creator_email', sessionEmail);
           const count = countError || !ownedRows
             ? null
-            : ownedRows.filter((r) => {
-                const m = r.manifest as { occasion?: string } | null;
-                const c = r.site_config as { occasion?: string } | null;
-                return !isGriefExempt(m?.occasion ?? c?.occasion);
-              }).length;
+            : ownedRows.filter((r: { occasion?: string | null; configOccasion?: string | null }) =>
+                !isGriefExempt(r.occasion ?? r.configOccasion)).length;
           if (typeof count === 'number'
             && Number.isFinite(limits.maxSites) && count >= limits.maxSites) {
             return NextResponse.json(
