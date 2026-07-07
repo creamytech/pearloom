@@ -242,9 +242,13 @@ iMessage rich card — that's ②, and we're 80% there already.)*
 
 ---
 
-## 5 · Two forks I need your call on
+## 5 · Two forks — DECIDED (2026-07-07)
 
-Everything above assumes my recommended answers; both change sequencing.
+> **Locked:** Fork A → **Circle-on-celebrations**. Fork B →
+> **Web-first**. Build to the recommended path below; do not re-open
+> without a new owner decision.
+
+Everything above assumes these answers; both change sequencing.
 
 **Fork A — the ambition dial.**
 - *Recommended:* **Circle-on-celebrations** — the graph is earned from
