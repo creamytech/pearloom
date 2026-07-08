@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { Icon, Sprig, PearloomGlyph } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
+import { daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -84,7 +85,11 @@ function HeartDoodle({ size = 20, color = 'var(--lavender-ink)' }: { size?: numb
 // prefers-reduced-motion (BRAND §6 honours reduced-motion for
 // everything else). `has` is false when there's no event date.
 
-interface Countdown { d: number; h: number; m: number; s: number; has: boolean }
+/** `past` is calendar-day-accurate, not a raw-ms sign check — an
+ *  event dated "today" must read as upcoming for the WHOLE day
+ *  (see daysBetweenCalendarDates). `d` is the whole-day magnitude
+ *  either way: days-to-go while upcoming, days-since once past. */
+interface Countdown { d: number; h: number; m: number; s: number; has: boolean; past: boolean }
 
 function useCockpitCountdown(eventDate: Date | null): Countdown {
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -94,14 +99,17 @@ function useCockpitCountdown(eventDate: Date | null): Countdown {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, [key]);
-  if (!eventDate) return { d: 0, h: 0, m: 0, s: 0, has: false };
+  if (!eventDate) return { d: 0, h: 0, m: 0, s: 0, has: false, past: false };
+  const daysDiff = daysBetweenCalendarDates(eventDate, new Date(nowMs));
+  const past = daysDiff < 0;
   const ms = Math.max(0, eventDate.getTime() - nowMs);
   return {
-    d: Math.floor(ms / 86_400_000),
+    d: past ? -daysDiff : Math.floor(ms / 86_400_000),
     h: Math.floor((ms % 86_400_000) / 3_600_000),
     m: Math.floor((ms % 3_600_000) / 60_000),
     s: Math.floor((ms % 60_000) / 1000),
     has: true,
+    past,
   };
 }
 
@@ -191,9 +199,11 @@ export function HeroBanner({
   const a = names[0];
   const b = names[1];
   const occLabel = occasion.replace(/-/g, ' ').toUpperCase();
-  const eyebrow = c.has
-    ? `YOUR ${occLabel} · ${c.d === 0 ? 'TODAY' : `${c.d} ${c.d === 1 ? 'DAY' : 'DAYS'} TO GO`}`
-    : `YOUR ${occLabel}`;
+  const eyebrow = !c.has
+    ? `YOUR ${occLabel}`
+    : c.past
+      ? `YOUR ${occLabel} · ${formatDaysAgo(c.d).toUpperCase()}`
+      : `YOUR ${occLabel} · ${c.d === 0 ? 'TODAY' : `${c.d} ${c.d === 1 ? 'DAY' : 'DAYS'} TO GO`}`;
   const cells: [string, number][] = [['DAYS', c.d], ['HRS', c.h], ['MIN', c.m], ['SEC', c.s]];
   const dateLines = [dateLabel, venueLabel].filter(Boolean) as string[];
 
@@ -217,7 +227,7 @@ export function HeroBanner({
           ) : (
             <div style={{ fontSize: 14.5, color: HERO_SOFT, marginTop: 14, lineHeight: 1.5 }}>Add a date in the editor to start the countdown.</div>
           )}
-          {c.has ? (
+          {c.has && !c.past ? (
             <div style={{ display: 'flex', gap: 8, margin: '22px 0 4px' }}>
               {cells.map(([l, v]) => (
                 <div key={l} style={{ flex: 1, maxWidth: 76, textAlign: 'center', background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)', borderRadius: 12, padding: '10px 4px' }}>
@@ -225,6 +235,16 @@ export function HeroBanner({
                   <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.16em', color: HERO_SOFT, marginTop: 5 }}>{l}</div>
                 </div>
               ))}
+            </div>
+          ) : c.has && c.past ? (
+            /* A frozen 00:00:00:00 flip-clock reads as broken for an
+               event that's over — the eyebrow above already carries
+               "3 weeks ago"; this line just marks the day as closed. */
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '22px 0 4px', padding: '9px 14px', borderRadius: 999, background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)' }}>
+              <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: HERO_GOLD, flexShrink: 0 }} />
+              <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: HERO_SOFT }}>
+                The day has come and gone
+              </span>
             </div>
           ) : null}
           <div style={{ display: 'flex', gap: 10, marginTop: 22, flexWrap: 'wrap' }}>

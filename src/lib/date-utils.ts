@@ -45,3 +45,33 @@ export function todayLocal(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+/** Whole-CALENDAR-day difference between two dates, ignoring
+ *  time-of-day. `(a.getTime() - b.getTime()) / 86_400_000` with
+ *  Math.round looks close enough but drifts near midnight — an
+ *  event dated "today" reads as already past for most of the day
+ *  (now is always later than today's midnight) and can round to
+ *  -1 in the evening. Re-zero both dates to LOCAL midnight before
+ *  subtracting so the sign and magnitude are exact all day long —
+ *  this is the fix for "an ended event still says today": the old
+ *  raw-ms math got clamped to 0 downstream and could never tell a
+ *  3-week-old event from one happening right now. */
+export function daysBetweenCalendarDates(target: Date, from: Date): number {
+  const t = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  const f = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime();
+  return Math.round((t - f) / 86_400_000);
+}
+
+/** "3 weeks ago" / "yesterday" / "a year ago" — the shared past-
+ *  tense formatter for any card that shows a date which may have
+ *  already happened. `daysAgo` is the (positive) number of days
+ *  since; 0 or negative reads as "today". */
+export function formatDaysAgo(daysAgo: number): string {
+  if (daysAgo <= 0) return 'today';
+  if (daysAgo === 1) return 'yesterday';
+  if (daysAgo < 14) return `${daysAgo} days ago`;
+  if (daysAgo < 60) return `${Math.round(daysAgo / 7)} weeks ago`;
+  if (daysAgo < 365) return `${Math.round(daysAgo / 30)} months ago`;
+  const years = Math.round(daysAgo / 365);
+  return years <= 1 ? 'a year ago' : `${years} years ago`;
+}

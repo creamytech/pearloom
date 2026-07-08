@@ -38,7 +38,7 @@ import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, patchSiteManifestInCache } from '@/components/marketing/design/dash/hooks';
-import { parseLocalDate } from '@/lib/date-utils';
+import { parseLocalDate, daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, isManifestPublished, type RsvpMomentum } from '@/lib/next-step';
 import { FirstThreadCard } from '../dash/FirstThreadCard';
@@ -134,9 +134,11 @@ export function WelcomeHome() {
      cards key off it. (The old `daysUntil < 0` checks could never
      fire because of the Math.max clamp; the RememberingCard had
      been dead code since it shipped.) `daysUntil` stays clamped
-     for the countdown/stage math that expects ≥ 0. */
+     for the countdown/stage math that expects ≥ 0.
+     Calendar-day math (not raw ms), so "today" stays 0 for the
+     WHOLE day rather than drifting negative by evening. */
   const rawDaysUntil = eventDate
-    ? Math.round((eventDate.getTime() - now) / 86_400_000)
+    ? daysBetweenCalendarDates(eventDate, new Date(now))
     : null;
   const daysUntil = rawDaysUntil != null ? Math.max(0, rawDaysUntil) : null;
   const eventDateLabel = eventDate
@@ -336,7 +338,15 @@ export function WelcomeHome() {
   }, [milestones]);
 
   const phaseLabel = stage === 'late' ? 'Final stretch' : stage === 'early' ? 'Planning' : 'Mid-planning';
-  const phaseNote = daysUntil != null ? (daysUntil === 0 ? 'today' : `${daysUntil} days out`) : undefined;
+  // Unclamped: a past event reports "3 weeks ago", not a permanent
+  // "today" (the old code read the clamped, always-≥0 `daysUntil`).
+  const phaseNote = rawDaysUntil == null
+    ? undefined
+    : rawDaysUntil > 0
+      ? `${rawDaysUntil} days out`
+      : rawDaysUntil === 0
+        ? 'today'
+        : formatDaysAgo(-rawDaysUntil);
   const latelyItems: LatelyItem[] = recentActivity.map((g) => {
     const tone: LatelyItem['tone'] = g.status === 'no' || g.status === 'declined' ? 'no' : g.status === 'maybe' ? 'maybe' : 'yes';
     const action = tone === 'no' ? 'declined' : tone === 'maybe' ? 'said maybe' : g.plusOneName ? `said yes — +1 ${g.plusOneName}` : 'said yes';

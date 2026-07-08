@@ -23,7 +23,7 @@ import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite, useUserSites } from './hooks';
 import { TeamTasksPanel } from './TeamTasksPanel';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
-import { parseLocalDate, todayLocal } from '@/lib/date-utils';
+import { parseLocalDate, todayLocal, daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
 import {
   summarizeVendorBook,
   fmtCentsPlain,
@@ -64,6 +64,11 @@ interface DirectorState {
   guestCountEstimate?: number | null;
 }
 
+/** Signed whole-day distance to `iso` — negative once the date has
+ *  passed. Callers that only want "days to go" clamp explicitly;
+ *  don't clamp inside here, or a past date can never be told apart
+ *  from "happening right now" (the fixed "always says 0 days to go"
+ *  bug on an ended event). */
 function diffDays(iso: string): number {
   try {
     // Bare YYYY-MM-DD parses as UTC midnight, which is the day
@@ -72,8 +77,9 @@ function diffDays(iso: string): number {
     // Treat date-only inputs as local midnight via parseLocalDate.
     const target = parseLocalDate(iso);
     if (!target) return 0;
-    const now = Date.now();
-    return Math.round((target.getTime() - now) / 86400000);
+    // Calendar-day math (not raw ms) — exact all day regardless of
+    // the hour, so "today" can't drift to -1 by evening.
+    return daysBetweenCalendarDates(target, new Date());
   } catch {
     return 0;
   }
@@ -115,7 +121,10 @@ function deriveTimeline(
   occasion: string | null | undefined,
 ): Array<{ p: number; label: string; t: string; done: boolean; now: boolean; color: string; note: string }> {
   const stops = getDirectorTimeline(occasion);
-  const daysOut = targetDate ? Math.max(0, diffDays(targetDate)) : null;
+  // Unclamped — once the event has passed, every stop with a
+  // positive offset is correctly "done" (a clamp-to-0 previously
+  // froze `done` at the last handful of stops forever).
+  const daysOut = targetDate ? diffDays(targetDate) : null;
   const now = daysOut ?? 0;
 
   // Pick a "now" window proportional to the longest offset, so short
@@ -351,7 +360,10 @@ export function DashDirector() {
   }
 
   const timeline = deriveTimeline(state?.targetDate, state?.checklist ?? [], site?.occasion);
-  const daysToGo = state?.targetDate ? Math.max(0, diffDays(state.targetDate)) : null;
+  // Unclamped — negative once the day has passed. Every render site
+  // below branches on the sign instead of assuming ≥ 0.
+  const daysToGo = state?.targetDate ? diffDays(state.targetDate) : null;
+  const eventPast = daysToGo !== null && daysToGo < 0;
 
   const conversation: DirectorMsg[] = (state?.conversation ?? []).map((m) => ({
     role: m.role === 'user' ? 'me' : 'pear',
@@ -364,7 +376,7 @@ export function DashDirector() {
   // never a fabricated value.
   const dateVal = state?.targetDate
     ? new Date(state.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-      (daysToGo !== null ? ` · ${daysToGo}d` : '')
+      (daysToGo !== null ? ` · ${daysToGo >= 0 ? `${daysToGo}d` : formatDaysAgo(-daysToGo)}` : '')
     : null;
   const holding: Array<{ label: string; value: string; set: boolean }> = state
     ? [
@@ -397,9 +409,15 @@ export function DashDirector() {
           eyebrow="The Director"
           title={
             daysToGo !== null ? (
-              <>
-                {daysToGo} days to the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>day.</span>
-              </>
+              eventPast ? (
+                <>
+                  It happened <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>{formatDaysAgo(-daysToGo)}.</span>
+                </>
+              ) : (
+                <>
+                  {daysToGo} days to the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>day.</span>
+                </>
+              )
             ) : (
               <>
                 Tell Pear what you&rsquo;re <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>planning.</span>
@@ -609,9 +627,13 @@ export function DashDirector() {
         {/* THE LOOM — the signature production timeline, full width. */}
         <div style={{ ...card, padding: '28px 32px 32px' }}>
           <SecHead
-            eyebrow={state?.targetDate ? `THE LOOM · ${daysToGo} DAYS` : 'THE LOOM'}
+            eyebrow={
+              state?.targetDate
+                ? `THE LOOM · ${eventPast ? formatDaysAgo(-daysToGo!).toUpperCase() : `${daysToGo} DAYS`}`
+                : 'THE LOOM'
+            }
             title="The thread"
-            italic={state?.targetDate ? 'to the day.' : 'so far.'}
+            italic={state?.targetDate && !eventPast ? 'to the day.' : 'so far.'}
             accent="var(--lavender-ink)"
             style={{ marginBottom: 20 }}
           />
@@ -727,7 +749,7 @@ export function DashDirector() {
               )}
               {daysToGo !== null && (
                 <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', padding: '5px 10px', background: 'rgba(244,236,216,0.12)', borderRadius: 999 }}>
-                  {daysToGo}D TO GO
+                  {eventPast ? formatDaysAgo(-daysToGo).toUpperCase() : `${daysToGo}D TO GO`}
                 </span>
               )}
             </div>
