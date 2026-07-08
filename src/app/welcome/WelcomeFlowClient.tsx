@@ -28,7 +28,7 @@
 // /api/user/avatar (it is already the user's own deliberate act).
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { PL_AVATARS, PlAvatar, AccountMark, MonogramSeal, monogramFrom, useUserAvatar } from '@/components/pearloom/avatars';
@@ -52,15 +52,17 @@ const MONO = 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)';
 /* Letterpress — type sits INTO the paper (the landing recipe). */
 const PRESSED = '0 1px 1px rgba(255,255,255,0.85), 0 -1px 1px rgba(38,35,28,0.16)';
 
-type StepId = 'arrival' | 'name' | 'mark' | 'occasion' | 'agreement' | 'done';
-const STEPS: StepId[] = ['arrival', 'name', 'mark', 'occasion', 'agreement', 'done'];
+type StepId = 'arrival' | 'name' | 'mark' | 'people' | 'occasion' | 'agreement' | 'done';
 
+/* Folio names — numbered positionally at render time, since the
+   "Your people" movement only appears when someone is waiting. */
 const STEP_LABELS: Record<StepId, string> = {
   arrival: 'Welcome',
-  name: '01 · The name',
-  mark: '02 · The mark',
-  occasion: '03 · The first thread',
-  agreement: '04 · The colophon',
+  name: 'The name',
+  mark: 'The mark',
+  people: 'Your people',
+  occasion: 'The first thread',
+  agreement: 'The colophon',
   done: 'Begin',
 };
 
@@ -95,16 +97,49 @@ const PROMISES = [
 ];
 
 export function WelcomeFlowClient({
-  sessionFirstName, nextHref,
+  sessionFirstName, nextHref, previewIncoming,
 }: {
   sessionFirstName: string;
   nextHref: string | null;
+  /** Dev-harness only — seeds the "Your people" movement without a
+   *  session so the envelopes can be screenshot-verified. */
+  previewIncoming?: Array<{ firstName: string; otherId: string }>;
 }) {
   const router = useRouter();
   const reduced = !!useReducedMotion();
 
   const [stepIndex, setStepIndex] = useState(0);
+  /* O3 — THE AWAITED ARRIVAL. If someone wove this person in before
+     they ever signed up (SOCIAL-PLAN S1's email-keyed invite), their
+     pending requests are waiting on first sign-in. The arrival sheet
+     is addressed, and a "Your people" movement of sealed envelopes
+     appears after the mark. Frozen once the walker passes the mark
+     so a slow fetch never shifts the ground underfoot. */
+  const [incoming, setIncoming] = useState<Array<{ firstName: string; otherId: string }>>(previewIncoming ?? []);
+  const stepIndexRef = useRef(0);
+  stepIndexRef.current = stepIndex;
+  useEffect(() => {
+    if (previewIncoming) return;
+    const ctrl = new AbortController();
+    fetch('/api/friends', { credentials: 'include', cache: 'no-store', signal: ctrl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { incoming?: Array<{ firstName: string; otherId: string }> } | null) => {
+        // Only seat the movement if the walker hasn't passed the mark.
+        if (d?.incoming?.length && stepIndexRef.current <= 2) setIncoming(d.incoming);
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const STEPS = useMemo<StepId[]>(
+    () => (incoming.length > 0
+      ? ['arrival', 'name', 'mark', 'people', 'occasion', 'agreement', 'done']
+      : ['arrival', 'name', 'mark', 'occasion', 'agreement', 'done']),
+    [incoming.length],
+  );
   const step = STEPS[stepIndex];
+  const stepsRef = useRef(STEPS);
+  stepsRef.current = STEPS;
   const [name, setName] = useState(sessionFirstName);
   const [mark, setMark] = useState<string | null>(null);
   const [intent, setIntent] = useState<string | null>(null);
@@ -125,14 +160,29 @@ export function WelcomeFlowClient({
 
   const goldThread = useMemo(
     () => (STEPS.indexOf(step) / (STEPS.length - 1)) * 100,
-    [step],
+    [step, STEPS],
   );
 
-  function back() {
+  const back = useCallback(() => {
     setStepIndex((i) => Math.max(0, i - 1));
-  }
-  function advance() {
-    setStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
+  }, []);
+  const advance = useCallback(() => {
+    setStepIndex((i) => Math.min(stepsRef.current.length - 1, i + 1));
+  }, []);
+  /* Accept a waiting request — the envelope's "Keep them". "Not
+     now" simply dismisses locally: the request stays pending in
+     their Circle, undecided rather than declined (calm law 7 —
+     onboarding is a welcome, not a judgment). */
+  const [kept, setKept] = useState<Set<string>>(new Set());
+  const [opened, setOpened] = useState<Set<string>>(new Set());
+  function keepPerson(otherId: string) {
+    setKept((prev) => new Set(prev).add(otherId));
+    void fetch('/api/friends', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'accept', otherPersonId: otherId }),
+    }).catch(() => {});
   }
 
   // Activation instrumentation (Pillar 20) — welcome-flow funnel
@@ -145,9 +195,9 @@ export function WelcomeFlowClient({
   // on its own — it's an overture, not a gate.
   useEffect(() => {
     if (step !== 'arrival') return;
-    const t = setTimeout(advance, reduced ? 900 : 2600);
+    const t = setTimeout(advance, reduced ? 900 : incoming.length > 0 ? 3400 : 2600);
     return () => clearTimeout(t);
-  }, [step, reduced]);
+  }, [step, reduced, incoming.length, advance]);
 
   async function uploadCropped(blob: Blob) {
     setUploading(true);
@@ -298,7 +348,9 @@ export function WelcomeFlowClient({
           Pearloom
         </span>
         <span style={{ fontFamily: MONO, fontSize: '0.6rem', letterSpacing: '0.26em', textTransform: 'uppercase', color: MUTED }}>
-          {STEP_LABELS[step]}
+          {stepIndex > 0 && stepIndex < STEPS.length - 1
+            ? `0${stepIndex} · ${STEP_LABELS[step]}`
+            : STEP_LABELS[step]}
         </span>
       </header>
 
@@ -329,6 +381,18 @@ export function WelcomeFlowClient({
                   Before the first thread, a few small things — a name,
                   a mark, and what brings you here. Half a minute, no more.
                 </p>
+                {incoming.length > 0 && (
+                  <motion.p
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: reduced ? 0 : 0.7, ease: EASE }}
+                    style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: '1.02rem', color: OLIVE, marginTop: 16 }}
+                  >
+                    {incoming.length === 1
+                      ? `${incoming[0].firstName} is keeping you a seat.`
+                      : `${incoming[0].firstName} and ${incoming.length - 1} other${incoming.length > 2 ? 's' : ''} are keeping you a seat.`}
+                  </motion.p>
+                )}
               </>
             )}
 
@@ -455,6 +519,120 @@ export function WelcomeFlowClient({
                   onNext={advance}
                   nextLabel={photoUrl || mark ? 'Wear it' : 'Keep my seal'}
                 />
+              </>
+            )}
+
+            {step === 'people' && (
+              <>
+                <h2 style={h2Style}>Your people.</h2>
+                <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px', maxWidth: 440, marginInline: 'auto' }}>
+                  {incoming.length === 1
+                    ? 'Someone was waiting for you to arrive — a sealed note, first names only.'
+                    : 'Some people were waiting for you to arrive — sealed notes, first names only.'}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400, margin: '0 auto' }}>
+                  {incoming.map((r, i) => {
+                    const isOpen = opened.has(r.otherId);
+                    const isKept = kept.has(r.otherId);
+                    return (
+                      <motion.div
+                        key={r.otherId}
+                        initial={reduced ? false : { opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: reduced ? 0 : 0.08 * i, ease: EASE }}
+                      >
+                        {!isOpen ? (
+                          /* Sealed — an envelope with a wax seal; tap
+                             to break it. */
+                          <button
+                            type="button"
+                            onClick={() => setOpened((prev) => new Set(prev).add(r.otherId))}
+                            style={{
+                              width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                              padding: '16px 18px', borderRadius: 10, cursor: 'pointer',
+                              backgroundImage: 'repeating-linear-gradient(0deg, rgba(38,35,28,0.028) 0 1px, transparent 1px 3px), linear-gradient(150deg, #fdfaf0, #f5ecda)',
+                              border: `1px solid ${LINE}`,
+                              boxShadow: '0 10px 26px -14px rgba(40,28,12,0.35), 0 1px 0 rgba(255,255,255,0.7) inset',
+                              fontFamily: 'inherit', textAlign: 'left',
+                            }}
+                          >
+                            <span
+                              aria-hidden
+                              style={{
+                                width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                                display: 'grid', placeItems: 'center',
+                                background: `radial-gradient(circle at 34% 30%, #77875A, ${OLIVE} 62%, #48542F)`,
+                                color: 'var(--pl-cream, #F5EFE2)',
+                                fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 16,
+                                boxShadow: 'inset 0 1.5px 3px rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.28)',
+                              }}
+                            >
+                              {r.firstName[0]?.toUpperCase() ?? '·'}
+                            </span>
+                            <span style={{ flex: 1 }}>
+                              <span style={{ display: 'block', fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: MUTED }}>
+                                A sealed note
+                              </span>
+                              <span style={{ display: 'block', fontFamily: DISPLAY, fontStyle: 'italic', fontSize: '1.05rem', color: INK, marginTop: 2 }}>
+                                From {r.firstName}
+                              </span>
+                            </span>
+                            <span style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: GOLD }}>
+                              Break the seal
+                            </span>
+                          </button>
+                        ) : (
+                          /* Open — the note + keep/not-now. */
+                          <div
+                            style={{
+                              padding: '16px 18px', borderRadius: 10,
+                              background: CARD, border: `1px solid ${isKept ? OLIVE : LINE}`,
+                              textAlign: 'left',
+                            }}
+                          >
+                            <div style={{ fontFamily: DISPLAY, fontSize: '1rem', color: INK, marginBottom: 4 }}>
+                              <em style={{ color: OLIVE }}>{r.firstName}</em> would keep you in their circle.
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: MUTED, marginBottom: 12 }}>
+                              First names only, and only what you both choose to share.
+                            </div>
+                            {isKept ? (
+                              <div style={{ fontFamily: MONO, fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: OLIVE }}>
+                                ✓ Woven in
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => keepPerson(r.otherId)}
+                                  style={{
+                                    padding: '8px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                                    background: OLIVE, color: 'var(--pl-cream, #F5EFE2)',
+                                    fontSize: '0.8rem', fontWeight: 700, fontFamily: 'inherit',
+                                  }}
+                                >
+                                  Keep them
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setOpened((prev) => { const n = new Set(prev); n.delete(r.otherId); return n; })}
+                                  style={{
+                                    padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+                                    border: `1px solid ${LINE}`, background: 'transparent',
+                                    color: MUTED, fontSize: '0.8rem', fontWeight: 600, fontFamily: 'inherit',
+                                  }}
+                                >
+                                  Not now
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <Nav onBack={back} onNext={advance} nextLabel={kept.size > 0 ? 'Continue' : 'Decide later'} />
               </>
             )}
 
