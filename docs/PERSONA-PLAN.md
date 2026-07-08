@@ -512,7 +512,7 @@ redesign (it's fresh); copy + wiring only.
 
 ---
 
-### S6 — The first five minutes · **status: IN PROGRESS 2026-07-08** · P1
+### S6 — The first five minutes · **status: SHIPPED 2026-07-08** · P1
 
 > Thread 1 SHIPPED — THE PREVIEW PEEK (F10): under 960px (where the
 > live-preview aside hides) a floating glass "See it so far" pill
@@ -530,8 +530,14 @@ redesign (it's fresh); copy + wiring only.
 > "Invite your guests →" into /dashboard/guests (a live site with
 > no guests is a stage with no audience).
 >
-> Thread 3 OPEN — return-visit reassurance (Linda closes the tab
-> mid-edit; the return must say "everything you set is here").
+> Thread 3 SHIPPED — RETURN REASSURANCE: on a return visit (never
+> over the First Pressing) the editor shows one quiet glass pill,
+> once per browser session per site: "Everything you set is here."
+> + "Nothing is public until you publish." while unpublished.
+> Auto-dismisses in ~5.6s; sessionStorage-suppressed thereafter
+> (both verified live). Shot: `editor-return-note.png`. vitest
+> 1246/1246 (one pre-existing stylize-rate-limit flake re-ran
+> clean).
 
 ```
 ## Active focus — S6 · The first five minutes (from pressed to proud)
@@ -757,6 +763,13 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S6 shipped (The first five minutes)
+F10 closed + the publish/return moments. The phone preview peek
+(glass pill → bottom sheet, exactly where the aside hides); the
+publish moment speaks the house verb and gains the "Invite your
+guests" door; the editor's return-visit reassurance pill (one per
+session per site, first-pressing-suppressed). vitest 1246/1246.
 
 ### 2026-07-08 — S5 shipped (Every door is the front door)
 F5 closed. The POPULAR shelf is the acquisition list (bachelorette +

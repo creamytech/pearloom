@@ -424,6 +424,31 @@ export default function EditorRedesign({
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
 
+  /* Return-visit reassurance (PERSONA-PLAN S6, thread 3) — Linda
+     closed the tab mid-edit and came back afraid her work is gone.
+     One quiet pill, once per browser session per site, says it
+     plainly: everything is here (+ nothing public until publish,
+     while unpublished). The first pressing owns the true first
+     arrival, so it suppresses this. */
+  const [returnNote, setReturnNote] = useState(false);
+  useEffect(() => {
+    if (pressing) return;
+    const key = `pl-return-note-${siteSlug}`;
+    const show = window.setTimeout(() => {
+      try {
+        if (window.sessionStorage.getItem(key)) return;
+        window.sessionStorage.setItem(key, '1');
+        setReturnNote(true);
+      } catch { /* storage denied → skip the nicety */ }
+    }, 1100);
+    return () => window.clearTimeout(show);
+  }, [siteSlug, pressing]);
+  useEffect(() => {
+    if (!returnNote) return;
+    const hide = window.setTimeout(() => setReturnNote(false), 5600);
+    return () => window.clearTimeout(hide);
+  }, [returnNote]);
+
   /* Deep surfaces (SharePanel writes, PublishChecklist jumps, the
      topbar Theme button) fire window events; the shell mounts one
      listener that owns the state. __plPearApply is the manifest-
@@ -870,6 +895,40 @@ export default function EditorRedesign({
           siteSlug={siteSlug}
           suppressed={pressing}
         />
+      )}
+
+      {/* Return-visit reassurance (S6) — one quiet glass pill, once
+          per browser session per site. Floating chrome per BRAND §9. */}
+      {returnNote && (
+        <div
+          role="status"
+          className="pl-glass-surface"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            /* Clears the mobile bottom bar; on desktop it simply
+               floats a touch higher — quiet either way. */
+            bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
+            zIndex: 70,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 18px',
+            borderRadius: 999,
+            border: '1px solid var(--line)',
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            maxWidth: 'min(92vw, 520px)',
+          }}
+        >
+          <Icon name="check" size={13} color="var(--sage-deep, #5C6B3F)" />
+          <span>
+            Everything you set is here.
+            {!isManifestPublished(bridge.manifest) && ' Nothing is public until you publish.'}
+          </span>
+        </div>
       )}
     </div>
   );
