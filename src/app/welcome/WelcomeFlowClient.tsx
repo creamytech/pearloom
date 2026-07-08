@@ -61,7 +61,7 @@ const STEP_LABELS: Record<StepId, string> = {
   name: 'The name',
   mark: 'The mark',
   people: 'Your people',
-  occasion: 'The first thread',
+  occasion: 'Your event',
   agreement: 'The agreement',
   done: 'Begin',
 };
@@ -253,7 +253,7 @@ export function WelcomeFlowClient({
       savedRef.current = true;
       advance();
     } catch {
-      setSaveError('The thread slipped — try once more?');
+      setSaveError('Something went wrong — try once more?');
     } finally {
       setSaving(false);
     }
@@ -378,7 +378,7 @@ export function WelcomeFlowClient({
                 </h1>
                 <ThreadRule reduced={reduced} />
                 <p style={{ fontSize: '0.95rem', color: INK_SOFT, lineHeight: 1.65, maxWidth: 460, margin: '0 auto' }}>
-                  Before the first thread, a few small things — a name,
+                  Before we begin, a few small things — a name,
                   a mark, and what brings you here. Half a minute, no more.
                 </p>
                 {incoming.length > 0 && (
@@ -640,7 +640,7 @@ export function WelcomeFlowClient({
               <>
                 <h2 style={h2Style}>What brings you to the loom?</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
-                  Pear sets the table differently for each — watch the pressing.
+                  Pear sets the table differently for each — watch it update.
                 </p>
                 <div className="pl-wf-occasion" style={{ display: 'flex', gap: 22, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, maxWidth: 360, flex: '1 1 300px', textAlign: 'left' }}>
@@ -761,7 +761,7 @@ export function WelcomeFlowClient({
                 <Nav
                   onBack={back}
                   onNext={() => void confirmAgreement()}
-                  nextLabel={saving ? 'Threading…' : 'Agree & continue'}
+                  nextLabel={saving ? 'Saving…' : 'Agree & continue'}
                   nextDisabled={!agreed || saving}
                 />
               </>
@@ -773,13 +773,13 @@ export function WelcomeFlowClient({
                   <AccountMark photoUrl={photoUrl} markId={mark} name={name || sessionFirstName} size={68} />
                 </div>
                 <h1 className="pl-type-press" style={{ fontFamily: DISPLAY, fontWeight: 460, fontStyle: 'italic', fontSize: 'clamp(2rem, 5.5vw, 3.2rem)', lineHeight: 1.05, margin: 0, textShadow: PRESSED }}>
-                  The loom is yours, {firstName}.
+                  You're all set, {firstName}.
                 </h1>
                 <ThreadRule reduced={reduced} />
                 <p style={{ fontSize: '0.92rem', color: INK_SOFT, lineHeight: 1.6, maxWidth: 420, margin: '0 auto 28px' }}>
                   {intent === 'memorial'
                     ? 'We’ll move gently. Begin whenever it feels right.'
-                    : 'Your loom is set up and waiting — and whenever you’re ready, Pear drafts a first site in about twenty seconds, every word of it yours to change.'}
+                    : 'Your account is ready. Whenever you’re ready, Pear can draft your first site in about twenty seconds — and every word is yours to change.'}
                 </p>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button
@@ -794,7 +794,7 @@ export function WelcomeFlowClient({
                       border: 'none', cursor: leaving ? 'wait' : 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    {intent === 'exploring' ? 'Wander a finished site' : 'Step into your loom'}
+                    {intent === 'exploring' ? 'See a finished site' : 'Open your dashboard'}
                   </button>
                   <button
                     type="button"
@@ -835,7 +835,7 @@ export function WelcomeFlowClient({
       )}
 
       {/* M7 — the threshold out. */}
-      {leaving && <ThreadingDoor label="Warping your loom." />}
+      {leaving && <ThreadingDoor label="Getting everything ready…" />}
     </div>
   );
 }

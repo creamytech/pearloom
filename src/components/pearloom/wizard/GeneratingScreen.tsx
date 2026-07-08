@@ -168,7 +168,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
               }}
             >
               <Sparkle size={12} color="var(--gold)" />
-              Weaving step {stageIdx + 1} of {stages.length}
+              Step {stageIdx + 1} of {stages.length}
             </div>
           </Reveal>
 

@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 import { WizardNewClient } from './WizardNewClient';
 
 export const metadata: Metadata = {
-  title: 'Begin a thread · Pearloom',
+  title: 'Create your site · Pearloom',
   description: 'Pear walks you through it. One step at a time, or all at once.',
 };
 

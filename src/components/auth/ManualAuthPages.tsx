@@ -235,7 +235,7 @@ function WizardClaimCard({ claim }: { claim: WizardClaim & { dateLabel?: string 
           <span key={i} style={{ width: 13, height: 13, borderRadius: 999, background: c, border: '1px solid var(--line-soft, var(--line))' }} />
         ))}
         <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
-          Pressed and saved — it will be here the moment you're in.
+          Saved — it will be here the moment you're in.
         </span>
       </div>
     </div>
@@ -311,15 +311,15 @@ export function SignupClient() {
     <AuthShell>
       {claim ? (
         <>
-          <Heading line1="Claim your" line2="pressing." />
+          <Heading line1="Claim your" line2="site." />
           <WizardClaimCard claim={claim} />
           <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-            An account keeps it — the moment you're in, the press finishes on its own.
+            An account keeps it — the moment you're in, it's saved to you.
           </p>
         </>
       ) : (
         <>
-          <Heading line1="Begin your" line2="own thread." />
+          <Heading line1="Create your" line2="account." />
           <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
             An account keeps your sites, guests, and keepsakes in one place — no Google required.
           </p>
@@ -379,7 +379,7 @@ export function SignupClient() {
           className="btn btn-primary btn-lg pl-pearl-accent"
           style={{ width: '100%', justifyContent: 'center', marginTop: 8, opacity: !email.trim() || !password ? 0.55 : 1 }}
         >
-          {busy === 'email' ? 'Threading…' : 'Create my account'}
+          {busy === 'email' ? 'Creating…' : 'Create my account'}
           <Pear size={14} tone="cream" shadow={false} />
         </button>
       </form>
@@ -435,7 +435,7 @@ export function ForgotClient() {
 
   return (
     <AuthShell>
-      <Heading line1="Lost the" line2="thread?" />
+      <Heading line1="Forgot your" line2="password?" />
       <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
         Tell us your email — if it has a Pearloom account, a one-hour reset link is on its way.
       </p>
@@ -462,7 +462,7 @@ export function ForgotClient() {
               className="btn btn-primary btn-lg pl-pearl-accent"
               style={{ width: '100%', justifyContent: 'center', opacity: !email.trim() ? 0.55 : 1 }}
             >
-              {busy ? 'Threading…' : 'Send the reset link'}
+              {busy ? 'Sending…' : 'Send the reset link'}
             </button>
           </form>
         </>
@@ -545,7 +545,7 @@ export function ResetClient({ token }: { token: string }) {
               className="btn btn-primary btn-lg pl-pearl-accent"
               style={{ width: '100%', justifyContent: 'center', opacity: !password ? 0.55 : 1 }}
             >
-              {busy ? 'Threading…' : 'Save & sign in'}
+              {busy ? 'Saving…' : 'Save & sign in'}
             </button>
           </form>
         </>

@@ -1825,7 +1825,7 @@ function PearsQuestions({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
         <Pear size={16} tone="sage" shadow={false} />
         <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
-          {solemn ? 'A few quiet questions before we press' : 'Pear noticed a few open threads'}
+          {solemn ? 'A few quiet questions before we begin' : 'Pear noticed a few things to fill in'}
         </span>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12 }}>
@@ -5288,7 +5288,7 @@ export function WizardV8() {
                   </button>
                 ) : (
                   <button type="button" className="btn btn-pearl btn-lg" disabled={!canContinue || busy} onClick={handleFinish}>
-                    {busy ? 'Weaving your site…' : 'Weave my site'}
+                    {busy ? 'Creating your site…' : 'Create my site'}
                     <Pearl size={9} />
                   </button>
                 )}

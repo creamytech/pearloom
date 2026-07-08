@@ -250,10 +250,10 @@ export function ThresholdClient({ cards, firstName }: { cards: ThresholdCard[]; 
               +
             </span>
             <span style={{ fontFamily: DISPLAY, fontSize: 16.5, fontWeight: 600, color: 'var(--ink)' }}>
-              Begin a new thread
+              Start a new event
             </span>
             <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', maxWidth: 170, lineHeight: 1.5 }}>
-              Another day worth weaving.
+              Another day worth remembering.
             </span>
           </button>
         </div>
@@ -269,7 +269,7 @@ export function ThresholdClient({ cards, firstName }: { cards: ThresholdCard[]; 
             textUnderlineOffset: 3, fontFamily: 'inherit',
           }}
         >
-          Skip — take me to the loom
+          Skip — go to my dashboard
         </button>
       </div>
     </div>

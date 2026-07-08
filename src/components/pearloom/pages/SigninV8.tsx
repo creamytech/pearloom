@@ -181,11 +181,11 @@ export function SigninV8({
       {/* THE INVITATION — the landing hero's pressed card, holding
           the form. Foil hairline frame, paper grain, letterpress. */}
       <main className="pl-auth-card">
-        <div className="au-eyebrow">The loom · Sign in</div>
+        <div className="au-eyebrow">Sign in</div>
         <h1 className="au-title">
-          Welcome back
+          Welcome
           <br />
-          <em>to the loom.</em>
+          <em>back.</em>
         </h1>
         <div className="au-thread">
           <Thread variant="weave" height={11} />
@@ -257,14 +257,14 @@ export function SigninV8({
             className="btn btn-primary btn-lg pl-pearl-accent"
             style={{ width: '100%', justifyContent: 'center', opacity: !email.trim() || !password ? 0.55 : 1 }}
           >
-            {busy === 'email' || leaving ? 'Threading…' : 'Sign in'}
+            {busy === 'email' || leaving ? 'Signing in…' : 'Sign in'}
             <Pear size={14} tone="cream" shadow={false} />
           </button>
         </form>
 
         <div className="au-signup">
           New to Pearloom?{' '}
-          <Link href="/signup" className="au-link">Begin a thread</Link>
+          <Link href="/signup" className="au-link">Create an account</Link>
         </div>
       </main>
 
