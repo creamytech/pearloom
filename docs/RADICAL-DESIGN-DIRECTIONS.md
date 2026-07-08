@@ -42,11 +42,19 @@
 >   swatch and mount, laid-paper grain, previews rest un-inked and ink
 >   in on hover/focus). The full drawer IA (leafing, drawer filtering)
 >   remains a named rebuild if ever wanted.
-> - Remaining, each a real session of its own: §D wizard INVERSION
->   (site-as-stage, controls-as-tray — an 8-step WizardV8 refactor),
->   §D editor chrome recession (riskiest; last), §B kinetic scroll
->   type, and the flagged bible-bending stretches (workbench ground,
->   leafed reading mode, wizard/editor merge — need owner sign-off).
+> - §D wizard, stage one — **SHIPPED**: the occasion step is a title
+>   page (the question at up-to-74px pressed scale with the type-press
+>   arrival; the occasion plates LEAD; search demoted to a quiet field
+>   beneath the plates, kept prominent only atop the 31-event
+>   directory). Owner signed off on continuing the dedicated §D track
+>   (2026-07-08).
+> - Remaining on the §D track: the full INVERSION (site-as-stage,
+>   controls-as-tray — apply the title-page treatment step by step,
+>   then invert the stage), then editor chrome recession (riskiest;
+>   last). Also §B kinetic scroll type (needs real-device perf testing
+>   — scroll-linked font-variation is the jank class fixed 2026-07-08)
+>   and the bible-bending stretches (workbench ground, leafed reading
+>   mode, wizard/editor merge).
 
 ---
 

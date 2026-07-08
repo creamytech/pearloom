@@ -13,6 +13,7 @@ import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Pearl } from '@/components/brand/Pearl';
+import { letterpressShadow } from '@/components/brand/pressed';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -1071,11 +1072,69 @@ function OccasionPicker({
     );
   };
 
+  // The search field — prominent atop the full 31-event directory
+  // (where scanning needs it), quiet and narrow beneath the popular
+  // plates (RADICAL §D: the plates lead; search is the escape hatch,
+  // never the first thing a host meets).
+  const searchBlock = (quiet: boolean) => (
+    <div
+      style={{
+        position: 'relative',
+        marginBottom: quiet ? 14 : 18,
+        maxWidth: quiet ? 340 : undefined,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 14,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: 'var(--ink-muted)',
+          display: 'inline-grid',
+          placeItems: 'center',
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+      </span>
+      <input
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (e.target.value && !showAll) setShowAll(true);
+        }}
+        placeholder={`Search ${OCCASIONS.length} events…`}
+        style={{
+          width: '100%',
+          padding: quiet ? '10px 14px 10px 38px' : '12px 14px 12px 38px',
+          borderRadius: 12,
+          border: quiet ? '1px solid var(--line-soft, var(--line))' : '1px solid var(--line)',
+          background: quiet ? 'transparent' : 'var(--card)',
+          fontSize: 14,
+          fontFamily: 'inherit',
+          color: 'var(--ink)',
+          outline: 'none',
+        }}
+      />
+    </div>
+  );
+
   return (
     <>
+      {/* The first question is a TITLE PAGE (RADICAL §D): one
+          enormous line that presses into the paper on arrival. */}
       <h2
-        className="display"
-        style={{ fontSize: 'clamp(36px, 5vw, 52px)', margin: '0 0 10px', lineHeight: 1.05 }}
+        className="display pl-type-press"
+        style={{
+          fontSize: 'clamp(40px, 6.5vw, 74px)',
+          margin: '0 0 12px',
+          lineHeight: 1.02,
+          textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)'),
+        }}
       >
         What are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>celebrating?</span>
       </h2>
@@ -1083,7 +1142,7 @@ function OccasionPicker({
         style={{
           color: 'var(--ink-soft)',
           fontSize: 15,
-          margin: '0 0 24px',
+          margin: '0 0 26px',
           maxWidth: 540,
         }}
       >
@@ -1095,52 +1154,9 @@ function OccasionPicker({
         )}
       </p>
 
-      {/* Search input + popular tiles. The 31-tile directory is the
-          escape hatch ("Show all"); 90% of users land on one of the
-          popular ones and never expand. */}
-      <div
-        style={{
-          position: 'relative',
-          marginBottom: 18,
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: 14,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'var(--ink-muted)',
-            display: 'inline-grid',
-            placeItems: 'center',
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.3-4.3" />
-          </svg>
-        </span>
-        <input
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            if (e.target.value && !showAll) setShowAll(true);
-          }}
-          placeholder={`Search ${OCCASIONS.length} events…`}
-          style={{
-            width: '100%',
-            padding: '12px 14px 12px 38px',
-            borderRadius: 12,
-            border: '1px solid var(--line)',
-            background: 'var(--card)',
-            fontSize: 14,
-            fontFamily: 'inherit',
-            color: 'var(--ink)',
-            outline: 'none',
-          }}
-        />
-      </div>
+      {/* Directory view keeps the prominent search on top — 31 tiles
+          need scanning. The popular view leads with the plates. */}
+      {showCategorised && searchBlock(false)}
 
       {!showCategorised && (
         <>
@@ -1197,6 +1213,8 @@ function OccasionPicker({
               </div>
             </button>
           </div>
+          {/* The quiet search — beneath the plates, never before them. */}
+          {searchBlock(true)}
           {/* Soft note — the all-events view stays reachable via the
               Other-event tile and the search box above. */}
           <div
