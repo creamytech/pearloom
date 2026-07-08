@@ -176,7 +176,7 @@ export function CommandPalette({
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--pl-chrome-border)' }}>
           <Icon name="search" size={17} color="var(--pl-chrome-text-muted)"/>
           <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sections, themes, actions…" style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 15.5, outline: 'none', color: 'var(--pl-chrome-text)', fontFamily: 'inherit' }}/>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--pl-chrome-text-muted)', background: 'var(--cream-2)', padding: '3px 7px', borderRadius: 6 }}>ESC</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--pl-chrome-text-muted)', background: 'var(--pl-chrome-surface-2)', padding: '3px 7px', borderRadius: 6 }}>ESC</span>
         </div>
         <div ref={listRef} style={{ maxHeight: '52vh', overflow: 'auto', padding: 8 }}>
           {results.length === 0 && <div style={{ padding: '34px 0', textAlign: 'center', color: 'var(--pl-chrome-text-muted)', fontSize: 13.5 }}><Pear size={36} tone="sage" shadow={false}/><div style={{ marginTop: 8 }}>No matches</div></div>}
@@ -187,7 +187,7 @@ export function CommandPalette({
                 idx++; const i = idx; const on = i === sel;
                 return (
                   <button key={c.id || c.label} onMouseEnter={() => setSel(i)} onClick={() => run(c)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: on ? 'var(--pl-chrome-text)' : 'transparent', color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)', cursor: 'pointer', transition: 'background var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease), color var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease)' } as CSSProperties}>
-                    <span style={{ width: 30, height: 30, borderRadius: 8, background: on ? 'rgba(255,255,255,0.14)' : 'var(--cream-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <span style={{ width: 30, height: 30, borderRadius: 8, background: on ? 'rgba(255,255,255,0.14)' : 'var(--pl-chrome-surface-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                       {c.swatch ? <span style={{ width: 16, height: 16, borderRadius: '50%', background: c.swatch }}/> : <Icon name={c.icon || 'arrow-right'} size={15} color={on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-soft)'}/>}
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>

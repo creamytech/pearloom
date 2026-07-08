@@ -60,14 +60,47 @@
   }
 }
 
-/* Aside content — slide-in entrance when the rail mounts. */
+/* ════════════════════════════════════════════════════════════════
+   CHROME RECESSION (RADICAL §D) — the rails are quiet type cases.
+   At rest they sit back a step so the canvas gets the light; reach
+   toward one (hover / keyboard focus inside) and it wakes to full
+   ink. Pointer-gated: touch devices never see a permanently dimmed
+   rail, and reduced-motion drops the fade (the wake still happens,
+   instantly).
+   ════════════════════════════════════════════════════════════════ */
+@media (hover: hover) and (pointer: fine) {
+  .pl-redesign aside.pl-rd-rail-left,
+  .pl-redesign aside.pl-rd-rail-right {
+    opacity: 0.82;
+    transition: opacity 300ms var(--pl-ease-out, ease-out);
+  }
+  .pl-redesign aside.pl-rd-rail-left:hover,
+  .pl-redesign aside.pl-rd-rail-left:focus-within,
+  .pl-redesign aside.pl-rd-rail-right:hover,
+  .pl-redesign aside.pl-rd-rail-right:focus-within {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-redesign aside.pl-rd-rail-left,
+  .pl-redesign aside.pl-rd-rail-right {
+    transition: none;
+  }
+}
+
+/* Aside content — slide-in entrance when the rail mounts.
+   The `to` frames deliberately DON'T declare opacity: with fill
+   `both`, a `to { opacity: 1 }` would pin the rails at full ink
+   forever (animation fill outranks the cascade), defeating the
+   chrome-recession rest state below. Omitting it makes the
+   entrance interpolate 0 → the cascade value and release opacity
+   when it finishes. */
 @keyframes pl-rd-rail-in {
   from {
     opacity: 0;
     transform: translateX(8px);
   }
   to {
-    opacity: 1;
     transform: translateX(0);
   }
 }
@@ -77,7 +110,6 @@
     transform: translateX(-8px);
   }
   to {
-    opacity: 1;
     transform: translateX(0);
   }
 }

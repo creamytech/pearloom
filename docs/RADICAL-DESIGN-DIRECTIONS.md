@@ -57,13 +57,26 @@
 >   site. Phone aside hidden on Review. Also: vibe→look engine, live
 >   vibe re-pressing in the phone preview, personal Pear voice, woven
 >   phase connectors (same date).
+> - §D EDITOR CHROME RECESSION — **SHIPPED** (2026-07-08), the
+>   three-pass editor rework: (P0) the on-canvas layout switcher is
+>   a chip + glass popover of VariantThumb schematic cards (shared
+>   with the wizard's Sections step) and editor chrome rides above
+>   the z-100 paper grain (frame 104 / tags 106 / layout UI 110 /
+>   editable sticky nav 112 — published sites untouched); (P1)
+>   Pear's away-card docks to a pill, the topbar degrades by
+>   shedding labels instead of clipping, Names lead the Opening
+>   panel; (P2) rails rest at 0.82 ink and wake on hover /
+>   focus-within (pointer-gated; the rail entrance keyframes release
+>   opacity so fill-forwards can't pin them), and the selected
+>   section wears the DEBOSSED GOLD HAIRLINE (1px foil + inner
+>   deboss; hover basting thread gold to match; pressed paper
+>   "● EDITING" tag). §16 lint debt cleared with it — repo lints 0/0.
 > - Remaining on the §D track: extend the inversion to the WORKING
 >   steps (site-as-stage behind a floating control tray, mobile-first
->   — the remaining big rebuild), then editor chrome recession
->   (riskiest; last). Also §B kinetic scroll type (needs real-device
->   perf testing — scroll-linked font-variation is the jank class
->   fixed 2026-07-08) and the bible-bending stretches (workbench
->   ground, leafed reading mode, wizard/editor merge).
+>   — the remaining big rebuild). Also §B kinetic scroll type (needs
+>   real-device perf testing — scroll-linked font-variation is the
+>   jank class fixed 2026-07-08) and the bible-bending stretches
+>   (workbench ground, leafed reading mode, wizard/editor merge).
 
 ---
 

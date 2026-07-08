@@ -97,7 +97,7 @@ On `.pl8-guest`: `data-pl-texture` (paper grain variant), `data-pl-kit` (`classi
 
 ### 3.5 Editor chrome insulation
 
-Editor panels bind to `--pl-chrome-*` tokens only (never site-theme vars) so panels don't re-paint when the edited site's theme changes. Enforced by the `no-restricted-syntax` ESLint rule in `eslint.config.mjs` for `pearloom/editor/**`. `atoms.tsx` carries 55 chrome-token references. Known violator: `CommandPalette.tsx` (pre-existing errors — see §16).
+Editor panels bind to `--pl-chrome-*` tokens only (never site-theme vars) so panels don't re-paint when the edited site's theme changes. Enforced by the `no-restricted-syntax` ESLint rule in `eslint.config.mjs` for `pearloom/editor/**`. `atoms.tsx` carries 55 chrome-token references. No known violators (CommandPalette migrated; full tree lints clean as of 2026-07-08).
 
 ---
 
@@ -235,7 +235,7 @@ Supabase: migrations in `supabase/migrations/` AND applied to prod (project `vpw
 
 ## 14 · Validation loop
 
-`npx tsc --noEmit` → `npx eslint <touched files>` → `npx vitest run` (667 tests green as of 2026-06-12) → `npm run build`. Full-repo eslint carries ~106 pre-existing errors (CommandPalette chrome tokens, PLChrome render rule) — your touched files must be clean; the backlog is §16.
+`npx tsc --noEmit` → `npx eslint <touched files>` → `npx vitest run` (1221 tests green as of 2026-07-08) → `npm run build`. Full-repo eslint is CLEAN (0 errors, 0 warnings as of 2026-07-08) — keep it that way; the remaining backlog is §16.
 
 ---
 
@@ -257,14 +257,17 @@ Before resurrecting anything from git history, ask whether the redesign equivale
 
 ---
 
-## 16 · Active debt (2026-06-12)
+## 16 · Active debt (2026-07-08)
 
-1. **CommandPalette chrome-token violations** — ~90 pre-existing `no-restricted-syntax` errors (site-theme vars in editor chrome). Migrate to `--pl-chrome-*`.
-2. **PLChrome.tsx** — "Cannot create components during render" lint error.
-3. **Unused eslint-disable directives** — ~40 warnings repo-wide, mostly stale `no-restricted-syntax` file-top disables; remove when touching those files.
-4. **`pearloom.css` is 8.4k lines** — carries per-kit/texture/edition CSS plus sediment from deleted surfaces. Worth a dead-selector audit now that the V1/V8 trees are gone.
-5. **Story drafting in the editor** — the wizard no longer drafts story content; the editor's "draft my story from these photos/facts" flow is the named successor (the factSheet + eventDetails already ride the manifest for it).
-6. **`user_preferences.intent`** (onboarding) prefills the wizard occasion, but nothing else reads it yet.
+1. **`pearloom.css` is 8.4k lines** — carries per-kit/texture/edition CSS plus sediment from deleted surfaces. Worth a dead-selector audit now that the V1/V8 trees are gone.
+2. **Story drafting in the editor** — the wizard no longer drafts story content; the editor's "draft my story from these photos/facts" flow is the named successor (the factSheet + eventDetails already ride the manifest for it).
+3. **`user_preferences.intent`** (onboarding) prefills the wizard occasion, but nothing else reads it yet.
+
+**Cleared 2026-07-08** (were items 1-3): the CommandPalette
+chrome-token violations, the PLChrome render-rule error, and the
+stale eslint-disable directives are all gone — `npx eslint src` runs
+0 errors / 0 warnings repo-wide. Keep it that way: touched files
+must lint clean, no new file-top disables.
 
 ---
 

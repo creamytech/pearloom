@@ -2939,14 +2939,18 @@ html { scroll-behavior: smooth; }
    The dashed basting outline + section label on hover are pure
    CSS — hover used to be React state at the editor root, so every
    mouse crossing re-rendered the entire canvas tree. The ACTIVE
-   (selected) state stays inline in TSection; its inline outline
-   outranks the hover rule here, and the active label removes the
-   .pl8-tsec-label class entirely. */
+   (selected) state stays inline in TSection — a debossed gold
+   hairline BORDER (RADICAL §D) with an inline outline:none that
+   suppresses this hover rule while selected; the active label
+   removes the .pl8-tsec-label class entirely. */
 .pl8-tsec-frame {
   transition: outline-color var(--pl-dur-quick, 140ms) var(--pl-ease-out, ease);
 }
 .pl8-guest[data-pl-editable] [data-section-id]:hover > .pl8-tsec-frame {
-  outline: 1.5px dashed rgba(198, 112, 61, 0.5);
+  /* Gold basting thread — matches the debossed gold hairline the
+     SELECTED state wears (RADICAL §D one-material-accent; was
+     peach before 2026-07-08). */
+  outline: 1.5px dashed rgba(193, 154, 75, 0.55);
   outline-offset: -2px;
 }
 .pl8-tsec-label {

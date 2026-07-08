@@ -60,7 +60,7 @@ function EditorCrashFallback({ siteSlug }: { siteSlug: string }) {
           {/* Use raw <a> here, not next/link — the editor just
               crashed, so we want a full page reload to escape any
               broken React state, not client-side navigation. */}
-          {/* eslint-disable @next/next/no-html-link-for-pages */}
+          { }
           <a
             href={typeof window !== 'undefined' ? window.location.pathname : `/editor/${siteSlug}`}
             style={{ padding: '10px 18px', borderRadius: 999, background: 'var(--ink, #0E0D0B)', color: 'var(--cream, #FBF7EE)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}
@@ -73,7 +73,7 @@ function EditorCrashFallback({ siteSlug }: { siteSlug: string }) {
           >
             Open dashboard
           </a>
-          {/* eslint-enable @next/next/no-html-link-for-pages */}
+          { }
         </div>
       </div>
     </div>

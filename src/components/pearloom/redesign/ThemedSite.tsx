@@ -4769,13 +4769,24 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
               backgrounds — grain over the SITE is the brand, but
               grain over the editor's own tools read as dirt on the
               chrome. 104/106/110 keep frame < labels < layout UI. */}
+          {/* Selection chrome, RADICAL §D: one material accent. The
+              selected section wears a DEBOSSED GOLD HAIRLINE — a 1px
+              foil line pressed into the paper (inner deboss + a
+              whisper of outer gold), not a flat highlight. Hover
+              keeps the faint dashed basting line (pure CSS,
+              .pl8-tsec-frame in pearloom.css); the inline
+              outline:none below suppresses it while selected. */}
           <div
             aria-hidden
             className="pl8-tsec-frame"
             style={{
               position: 'absolute', inset: 4, borderRadius: 6,
-              outline: isActive ? '2px solid #C6703D' : undefined,
-              outlineOffset: -2, pointerEvents: 'none', zIndex: 104,
+              border: isActive ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid transparent',
+              outline: isActive ? 'none' : undefined,
+              boxShadow: isActive
+                ? 'inset 0 1.5px 4px rgba(31,36,24,0.10), inset 0 -1px 0 rgba(255,255,255,0.5), 0 0 0 1px rgba(193,154,75,0.30)'
+                : undefined,
+              pointerEvents: 'none', zIndex: 104,
             }}
           />
           {!hideHandle && (
@@ -4783,16 +4794,23 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
               className={isActive ? undefined : 'pl8-tsec-label'}
               style={{
                 position: 'absolute', top: 8, left: 12, padding: '3px 9px', borderRadius: 8,
-                background: isActive ? '#C6703D' : 'var(--pl-cream-card, #FBF7EE)',
-                color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
-                border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
+                background: 'var(--pl-cream-card, #FBF7EE)',
+                color: 'var(--pl-ink-soft, #3A332C)',
+                border: isActive ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid rgba(193,154,75,0.45)',
                 fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
                 display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 106,
-                boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
+                boxShadow: isActive
+                  ? 'inset 0 1px 2px rgba(31,36,24,0.08), inset 0 -1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(40,28,12,0.16)'
+                  : 'none',
                 fontFamily: 'var(--pl-font-mono, monospace)',
                 pointerEvents: 'none',
               }}
             >
+              {isActive && (
+                /* The gold pearl — the same "this one" glyph the
+                   layout popover and wizard use. */
+                <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+              )}
               {isActive ? `Editing · ${label}` : label}
             </div>
           )}
