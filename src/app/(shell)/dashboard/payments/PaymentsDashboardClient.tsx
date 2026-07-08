@@ -20,6 +20,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { PaymentsLedger, type Payment, type Totals } from '@/components/dashboard/PaymentsPanel';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
@@ -115,14 +116,11 @@ export function PaymentsDashboardClient() {
             </div>
           </PLCard>
         ) : !site?.id ? (
-          <PLCard tone="sage" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 22, color: 'var(--sage-deep)', fontVariationSettings: LETTERPRESS, marginBottom: 8 }}>
-              Pick a celebration first.
-            </div>
-            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
-              Open the celebration switcher in the sidebar to see its gifts and payments.
-            </div>
-          </PLCard>
+          <EmptyShell
+            inline
+            cta={null}
+            message="Pick a celebration first — the switcher in the sidebar shows its gifts and payments."
+          />
         ) : (
           /* Zip Payments shape: the ledger card leads the content
              column; the sticky rail carries the running total + the

@@ -26,6 +26,7 @@ import { Thread } from '@/components/brand/Thread';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { budgetCategoriesFor } from '@/lib/event-os/budget-categories';
 import { rollupBudget, type BudgetLine, type BudgetLineInput, type BudgetKind } from '@/lib/budget/lines';
 
@@ -314,19 +315,11 @@ export function BudgetClient() {
             <WeaveLoader size="md" label="Threading…" />
           </PLCard>
         ) : !site?.id ? (
-          <PLCard tone="sage" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22,
-                color: 'var(--sage-deep)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1', marginBottom: 8,
-              }}
-            >
-              Pick a celebration first.
-            </div>
-            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
-              Open the celebration switcher in the sidebar to keep its budget.
-            </div>
-          </PLCard>
+          <EmptyShell
+            inline
+            cta={null}
+            message="Pick a celebration first — the switcher in the sidebar keeps its budget."
+          />
         ) : (
           <>
             {loadError && (

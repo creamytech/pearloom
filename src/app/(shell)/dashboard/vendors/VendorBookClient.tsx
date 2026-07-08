@@ -21,6 +21,7 @@ import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { getEventType } from '@/lib/event-os/event-types';
 import { vendorToBudgetLine } from '@/lib/budget/lines';
 import { todayLocal, formatLocalDate } from '@/lib/date-utils';
@@ -525,23 +526,11 @@ export function VendorBookClient() {
             </div>
           </PLCard>
         ) : !site?.id ? (
-          <PLCard tone="sage" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 22,
-                color: 'var(--sage-deep)',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                marginBottom: 8,
-              }}
-            >
-              Pick a celebration first.
-            </div>
-            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
-              Open the celebration switcher in the sidebar to keep its vendor book.
-            </div>
-          </PLCard>
+          <EmptyShell
+            inline
+            cta={null}
+            message="Pick a celebration first — the switcher in the sidebar keeps its vendor book."
+          />
         ) : vendors.length === 0 && !form ? (
           /* ── Honest empty state — full width, no summary rail ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

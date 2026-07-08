@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { RegistryItemsManager } from '@/components/dashboard/RegistryItemsManager';
 import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/components/registry/RegistryClaimsFeed';
 import { formatCents } from '@/lib/registry-funds';
@@ -287,23 +288,11 @@ export function RegistryDashboardClient() {
             </div>
           </PLCard>
         ) : !site?.id ? (
-          <PLCard tone="sage" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: DISPLAY,
-                fontStyle: 'italic',
-                fontSize: 22,
-                color: 'var(--sage-deep)',
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                marginBottom: 8,
-              }}
-            >
-              Pick a celebration first.
-            </div>
-            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>
-              Open the celebration switcher in the sidebar to manage its registry.
-            </div>
-          </PLCard>
+          <EmptyShell
+            inline
+            cta={null}
+            message="Pick a celebration first — the switcher in the sidebar opens its registry."
+          />
         ) : (
           /* Zip Registry shape: the gift grid leads the content
              column with the thank-you ledger beneath it; the sticky

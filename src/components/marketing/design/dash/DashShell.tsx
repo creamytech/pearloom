@@ -903,10 +903,22 @@ export function SectionTitle({
 // "no site / no celebration yet" dashboard tabs so they read as one
 // intentional family. Honors prefers-reduced-motion (thread renders
 // fully drawn, no animation).
-export function EmptyShell({ message, cta }: { message: string; cta?: { label: string; href: string } }) {
-  const link = cta ?? { label: '← Back to Sites', href: '/dashboard' };
+export function EmptyShell({
+  message,
+  cta,
+  inline = false,
+}: {
+  message: string;
+  /** Pass null to render no action (e.g. "pick from the sidebar" prompts). */
+  cta?: { label: string; href: string } | null;
+  /** Inline mode drops the <main> wrapper + shrinks the sheet so the
+      pressed page can sit inside a route client's own layout. */
+  inline?: boolean;
+}) {
+  const link = cta === null ? null : cta ?? { label: '← Back to Sites', href: '/dashboard' };
+  const Wrapper = inline ? 'div' : 'main';
   return (
-    <main style={{ padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 1160, margin: '0 auto' }}>
+    <Wrapper style={inline ? undefined : { padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 1160, margin: '0 auto' }}>
       <style>{`
         @keyframes pl8-esh-draw { from { stroke-dashoffset: 600; } to { stroke-dashoffset: 0; } }
         @keyframes pl8-esh-dot { from { opacity: 0; } to { opacity: 1; } }
@@ -924,9 +936,10 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
           background: 'var(--card)',
           border: '1px solid var(--line-soft, var(--line))',
           borderRadius: 18,
-          minHeight: 'clamp(400px, 52vh, 540px)',
-          padding:
-            'clamp(120px, 16vw, 170px) clamp(28px, 7vw, 96px) clamp(48px, 6vw, 72px)',
+          minHeight: inline ? 'clamp(280px, 34vh, 360px)' : 'clamp(400px, 52vh, 540px)',
+          padding: inline
+            ? 'clamp(96px, 12vw, 120px) clamp(24px, 5vw, 56px) clamp(32px, 4vw, 44px)'
+            : 'clamp(120px, 16vw, 170px) clamp(28px, 7vw, 96px) clamp(48px, 6vw, 72px)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
@@ -948,9 +961,9 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
           viewBox="0 0 560 120"
           style={{
             position: 'absolute',
-            top: 'clamp(30px, 5vw, 52px)',
+            top: inline ? 'clamp(18px, 3vw, 30px)' : 'clamp(30px, 5vw, 52px)',
             left: 0,
-            width: 'min(560px, 86%)',
+            width: inline ? 'min(420px, 78%)' : 'min(560px, 86%)',
             height: 'auto',
             display: 'block',
           }}
@@ -994,8 +1007,8 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
             position: 'absolute',
             right: 'clamp(20px, 4vw, 44px)',
             bottom: 'clamp(20px, 4vw, 40px)',
-            width: 74,
-            height: 74,
+            width: inline ? 56 : 74,
+            height: inline ? 56 : 74,
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
@@ -1006,7 +1019,7 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
             opacity: 0.75,
           }}
         >
-          <Pear size={34} color="transparent" stem={PD.stone} leaf={PD.stone} />
+          <Pear size={inline ? 26 : 34} color="transparent" stem={PD.stone} leaf={PD.stone} />
         </div>
 
         <div
@@ -1030,37 +1043,39 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
             margin: 0,
             fontStyle: 'italic',
             fontWeight: 480,
-            fontSize: 'clamp(30px, 4.6vw, 54px)',
+            fontSize: inline ? 'clamp(24px, 3vw, 36px)' : 'clamp(30px, 4.6vw, 54px)',
             lineHeight: 1.08,
             letterSpacing: '-0.02em',
             color: 'var(--ink)',
-            maxWidth: '19ch',
+            maxWidth: inline ? '30ch' : '19ch',
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
             textWrap: 'balance',
           }}
         >
           {message}
         </h2>
-        <Link
-          href={link.href}
-          className="pl-pearl-accent"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            marginTop: 6,
-            padding: '12px 22px',
-            borderRadius: 999,
-            fontSize: 13.5,
-            fontWeight: 700,
-            textDecoration: 'none',
-            fontFamily: 'var(--pl-font-body)',
-          }}
-        >
-          {link.label}
-        </Link>
+        {link && (
+          <Link
+            href={link.href}
+            className="pl-pearl-accent"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 6,
+              padding: '12px 22px',
+              borderRadius: 999,
+              fontSize: 13.5,
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontFamily: 'var(--pl-font-body)',
+            }}
+          >
+            {link.label}
+          </Link>
+        )}
       </div>
-    </main>
+    </Wrapper>
   );
 }
 
