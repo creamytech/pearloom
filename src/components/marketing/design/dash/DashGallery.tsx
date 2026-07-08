@@ -646,7 +646,7 @@ function GuestUploadCard({ site, onCollapse }: { site: SiteSummary; onCollapse: 
           lineHeight: 1.4,
         }}
       >
-        Turn the Reel into a printed book
+        Weave the Reel into the memory book
         <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
       </Link>
     </div>

@@ -38,7 +38,6 @@ import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { StudioPrintPreview } from './StudioPrintPreview';
 import { StudioProofSheet } from './StudioProofSheet';
-import { studioCardToPrintSvg, inlineRemoteImage } from './studio-card-svg';
 import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -185,10 +184,6 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   // production keeps the full editor as the home base and opens
   // this overlay on demand.
   const [showPrintPair, setShowPrintPair] = useState(false);
-  // When true, the Send overlay opens directly on the "Mail it
-  // for you" (Pearloom Print) flow — used by the print preview's
-  // toolbar button. Reset whenever the overlay closes.
-  const [sendMailFirst, setSendMailFirst] = useState(false);
   // Suite Phase 3 — "Pear pressed six proofs" overlay. Opened
   // from the left rail; fetches /api/suite/proofs on mount.
   const [showProofSheet, setShowProofSheet] = useState(false);
@@ -326,32 +321,6 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     }
     return merged;
   }, [baseContent, state.drafts, state.copyOverrides, state.type]);
-
-  // ── Pearloom Print: serialize the live card to print SVG ───
-  // The mail flow (Send overlay → "Mail it for you") POSTs this
-  // to /api/print/checkout, whose Sharp/librsvg renderer can't
-  // fetch remote images — so the couple photo + AI motif are
-  // inlined as data URIs first. Failures degrade to the same
-  // tonal placeholder the canvas shows.
-  async function buildPrintSvg(): Promise<string> {
-    const [photoDataUrl, motifDataUrl] = await Promise.all([
-      inlineRemoteImage((manifest.coverPhoto as string | undefined) ?? null),
-      inlineRemoteImage(state.customMotifUrl),
-    ]);
-    return studioCardToPrintSvg({
-      type: state.type,
-      layout: state.layout,
-      motif: state.motif,
-      palette,
-      font,
-      content,
-      nameA,
-      nameB,
-      monogram,
-      photoDataUrl,
-      motifDataUrl,
-    });
-  }
 
   // When stationery type changes, reset to the first draft of that
   // type so palette/layout/motif pick up sensible defaults.
@@ -968,11 +937,6 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           returnAddress={returnAddress}
           manifest={manifest}
           onPrint={() => window.print()}
-          onMailIt={() => {
-            setShowPrintPair(false);
-            setSendMailFirst(true);
-            setField('showSend', true);
-          }}
           onClose={() => setShowPrintPair(false)}
         />
       )}
@@ -1000,14 +964,12 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               rsvpDeadline={rsvpDeadline}
             />
           }
-          onClose={() => {
-            setField('showSend', false);
-            setSendMailFirst(false);
-          }}
+          onClose={() => setField('showSend', false)}
           onSent={() => setStatsTick((t) => t + 1)}
-          buildPrintSvg={buildPrintSvg}
-          defaultReturnName={displayNames}
-          initialMail={sendMailFirst}
+          onPressReadyPdf={() => {
+            setField('showSend', false);
+            setShowPrintPair(true);
+          }}
         />
       )}
 

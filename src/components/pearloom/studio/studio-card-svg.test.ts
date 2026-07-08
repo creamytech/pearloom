@@ -1,7 +1,6 @@
-// Tests for the Studio → Pearloom Print SVG serializer. The
-// print pipeline (Sharp/librsvg) is strict XML — every layout ×
-// motif combination must produce well-formed, escaped SVG at the
-// 1000×1400 viewBox lib/print-engine/render.ts expects.
+// Tests for the Studio press-ready SVG serializer. Strict-XML
+// rasterizers demand well-formed, escaped SVG — every layout ×
+// motif combination must produce it at the 1000×1400 viewBox.
 
 import { describe, it, expect } from 'vitest';
 import { studioCardToPrintSvg, escapeXml, wrapText, type StudioCardSvgArgs } from './studio-card-svg';

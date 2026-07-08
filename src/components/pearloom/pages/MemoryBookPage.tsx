@@ -333,17 +333,6 @@ export function MemoryBookPage() {
               >
                 <Icon name="sparkles" size={13} /> Print or save as PDF
               </button>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/dashboard/print';
-                  }
-                }}
-              >
-                <Icon name="bookmark" size={13} /> Order printed book
-              </button>
             </>
           }
         />

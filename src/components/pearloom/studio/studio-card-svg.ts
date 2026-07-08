@@ -1,21 +1,20 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / studio/studio-card-svg.ts
 //
-// Pure-SVG serialization of the Studio card front for Pearloom
-// Print. The Studio canvas renders the card as DOM (StudioCard +
-// StudioLayouts); the print pipeline (/api/print/checkout →
-// lib/print-engine/render) rasterizes SVG via Sharp/librsvg,
-// which does NOT support <foreignObject> HTML. So this module
-// mirrors the five card layouts + motif overlay as honest SVG
-// primitives (<text>, <rect>, <path>, <image>) built from the
-// exact same StudioPalette / StudioFontPair / StudioContent
-// state the canvas reads — one source of design truth, two
-// render targets.
+// Pure-SVG serialization of the Studio card front — the seed of
+// the PRESS-READY export (Pearloom presses the artwork; the
+// host's printer presses the paper — there is no fulfillment
+// service). The Studio canvas renders the card as DOM
+// (StudioCard + StudioLayouts); strict SVG rasterizers don't
+// support <foreignObject> HTML, so this module mirrors the five
+// card layouts + motif overlay as honest SVG primitives
+// (<text>, <rect>, <path>, <image>) built from the exact same
+// StudioPalette / StudioFontPair / StudioContent state the
+// canvas reads — one source of design truth, two render targets.
 //
-// Geometry: the DOM card is 420×588 (5×7"). The print pipeline
-// expects a 1000×1400 viewBox (see render.ts), so every DOM px
-// value here is scaled by S = 1000/420 to keep the proportions
-// identical to what the host sees on the desk.
+// Geometry: the DOM card is 420×588 (5×7"), serialized at a
+// 1000×1400 viewBox so every DOM px value here is scaled by
+// S = 1000/420 to keep proportions identical to the desk view.
 //
 // Remote images (couple photo, AI motif) must be inlined as
 // data: URIs before serialization — librsvg refuses external
@@ -295,7 +294,7 @@ function motifSvg(a: StudioCardSvgArgs): string {
 
 /**
  * Serialize the Studio card front to a print-ready SVG string
- * (1000×1400 viewBox, the shape lib/print-engine/render expects).
+ * (1000×1400 viewBox — the press-ready artboard).
  */
 export function studioCardToPrintSvg(args: StudioCardSvgArgs): string {
   const { palette: p, layout } = args;

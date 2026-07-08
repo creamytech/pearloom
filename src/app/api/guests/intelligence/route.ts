@@ -199,7 +199,7 @@ function findAddressGaps(guests: GuestRow[]): GuestInsight[] {
     kind: 'address-gap',
     severity: 'info',
     title: `${missing.length} guest${missing.length === 1 ? '' : 's'} missing a mailing address`,
-    detail: 'Pearloom Print can mail printed save-the-dates / invites — but not without addresses. Send guests a quick collection link.',
+    detail: 'Addressed envelopes need addresses — send guests a quick collection link before you print at home.',
     guestIds: missing.map((g) => g.id),
     action: { label: 'Collect addresses', kind: 'collect-address' },
   }];

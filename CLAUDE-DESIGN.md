@@ -252,7 +252,20 @@ Supabase: migrations in `supabase/migrations/` AND applied to prod (project `vpw
 
 ## 15 · Deleted-architecture ledger
 
-If an old doc, comment, or memory references these: **they're gone, on purpose.** Deleted 2026-06-12 (~90k lines) after a production check found zero rows carrying vibeSkin/customPages and the import graph confirmed zero live consumers:
+If an old doc, comment, or memory references these: **they're gone, on purpose.**
+
+Deleted 2026-07-08 — **Pearloom Print**, the paid physical print-and-mail
+service (owner decision: no physical anything; ATELIER-PLAN §1):
+`src/lib/print-engine/` (Lob.com client, fulfillment, pricing, render),
+`/api/print/checkout` + `/api/print/orders`, `/dashboard/print` +
+`PrintOrdersClient`, `StudioMailFlow`, the Send overlay's mail mode, the
+"Print shop" nav + ⌘K entries, the "$50 Pearloom Print credit" pricing
+promise, and the stripe-webhook print branch. Print-at-home / press-ready
+PDF is the only print story ("Pearloom presses the artwork; your printer
+presses the paper"); `src/lib/no-physical-promises.test.ts` is the fence.
+The `print_jobs` / `print_order_intents` tables remain for history.
+
+Deleted 2026-06-12 (~90k lines) after a production check found zero rows carrying vibeSkin/customPages and the import graph confirmed zero live consumers:
 
 - **vibeSkin** — the AI-generated design layer. Field removed from StoryManifest; nothing generates or reads it. OG cards read the suite theme contract (`src/lib/suite/theme.ts`) with house-default fallbacks.
 - **`ThemedSiteRenderer.tsx`** (pearloom/site, 7.7k lines) — the pre-redesign renderer — and **`SiteV8Renderer`** before it (deleted 2026-06-01). Also the old V8 editor canvas (`editor/canvas/CanvasStage` + the EditableText/HoverToolbar canvas-overlay family) and **EditorV8** itself.

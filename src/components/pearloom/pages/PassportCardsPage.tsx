@@ -391,13 +391,6 @@ export function PassportCardsPage() {
               >
                 <Icon name="sparkles" size={13} /> Print / save as PDF
               </button>
-              <Link
-                href="/dashboard/print"
-                className="btn btn-outline btn-sm"
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                Print &amp; mail via shop
-              </Link>
             </div>
           </aside>
         </div>

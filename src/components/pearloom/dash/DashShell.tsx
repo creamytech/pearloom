@@ -86,7 +86,6 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     label: 'Keepsakes',
     items: [
       { id: 'memory',   label: 'Memory book',    icon: 'heart-icon', href: '/dashboard/keepsakes' },
-      { id: 'print',    label: 'Print shop',     icon: 'copy',       href: '/dashboard/print' },
       { id: 'passport', label: 'Passport cards', icon: 'grid',       href: '/dashboard/passport-cards' },
       { id: 'qr',       label: 'QR poster',      icon: 'image',      href: '/dashboard/qr-poster' },
     ],

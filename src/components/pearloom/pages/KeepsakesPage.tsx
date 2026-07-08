@@ -260,8 +260,8 @@ export function KeepsakesPage() {
             <Link href="/dashboard/memory-book" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
               Open the book <Pearl size={8} />
             </Link>
-            <Link href="/dashboard/print" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-              <Icon name="bookmark" size={13} /> Order in print
+            <Link href="/dashboard/memory-book" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+              <Icon name="bookmark" size={13} /> Print at home
             </Link>
           </>
         }
@@ -301,8 +301,8 @@ export function KeepsakesPage() {
               <Link href="/dashboard/memory-book" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
                 Open the book <Pearl size={8} />
               </Link>
-              <Link href="/dashboard/print" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-                Order in print
+              <Link href="/dashboard/memory-book" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+                Print at home
               </Link>
             </div>
           </div>

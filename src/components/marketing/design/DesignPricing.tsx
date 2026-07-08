@@ -75,7 +75,7 @@ const TIERS: Tier[] = [
       'Co-hosts on every site',
       'Linked celebrations — one weekend, many sites',
       'Heirloom memory book (print-ready)',
-      '$50 Pearloom Print credit',
+      'Press-ready PDFs for every card',
     ],
     bg: PD.paper2,
     accent: PD.gold,
