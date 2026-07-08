@@ -26,7 +26,8 @@ import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { useUserSites, resolveStickySite } from '@/components/marketing/design/dash/hooks';
-import { PlAvatar, PL_AVATARS, useUserAvatar } from '../avatars';
+import { PlAvatar, PL_AVATARS, useUserAvatar, AccountMark, MonogramSeal } from '../avatars';
+import { AvatarCropModal } from './AvatarCropModal';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -176,7 +177,38 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
   const shareSite = resolveStickySite(sites);
   /* The orchard mark — shared cache, so the topbar + sidebar
      update the moment a tile is tapped. */
-  const { avatarId, setAvatarId } = useUserAvatar();
+  const { avatarId, avatarUrl, setAvatarId, setAvatarUrl } = useUserAvatar();
+  /* Photograph upload (ONBOARDING-PLAN O1) — file → circular seat
+     (AvatarCropModal) → POST /api/user/avatar → the chain updates
+     everywhere at once via the shared cache. */
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoErr, setPhotoErr] = useState<string | null>(null);
+  async function uploadCropped(blob: Blob) {
+    setUploading(true);
+    setPhotoErr(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+      const r = await fetch('/api/user/avatar', { method: 'POST', credentials: 'include', body: fd });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; url?: string; error?: string } | null;
+      if (r.ok && d?.ok && d.url) {
+        setAvatarUrl(d.url);
+        setCropFile(null);
+      } else {
+        setPhotoErr(d?.error ?? 'Could not save your photo.');
+      }
+    } catch {
+      setPhotoErr('Could not save — check your connection.');
+    } finally {
+      setUploading(false);
+    }
+  }
+  async function removePhoto() {
+    setAvatarUrl(null); // optimistic
+    setPhotoErr(null);
+    try { await fetch('/api/user/avatar', { method: 'DELETE', credentials: 'include' }); } catch { /* re-syncs */ }
+  }
   useEffect(() => {
     let cancelled = false;
     fetch('/api/user/preferences', { credentials: 'include' })
@@ -209,26 +241,58 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
     <div>
       <SettingsHead title="Account" sub="Your profile and how we reach you." />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 18px', flexWrap: 'wrap' }}>
-        {avatarId ? (
-          <PlAvatar id={avatarId} size={64} />
-        ) : user.image ? (
-          <img src={user.image} alt={effectiveName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
-        ) : (
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 26, fontWeight: 700 }}>{user.initials}</div>
-        )}
+        <AccountMark photoUrl={avatarUrl} markId={avatarId} signInImage={user.image} name={effectiveName} size={64} />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{effectiveName}</div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{user.joined}</div>
         </div>
       </div>
 
-      {/* Your mark — the orchard avatars. Picked by id, rendered
-          everywhere the account shows a face (topbar, sidebar,
-          this modal). "No mark" falls back to photo / initials. */}
+      {/* Your mark — three ways to fill one frame (ONBOARDING-PLAN
+          O1): a photograph (uploaded, circularly seated), an orchard
+          mark, or the monogram seal pressed from your name — the
+          default, so nobody is ever blank. Chain: photo → mark →
+          sign-in photo → seal. */}
       <div style={{ padding: '2px 0 16px' }}>
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>
           Your mark
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+          {avatarUrl
+            ? <AccountMark photoUrl={avatarUrl} name={effectiveName} size={44} />
+            : <MonogramSeal name={effectiveName} size={44} />}
+          <label
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+              border: '1px solid var(--line)', background: 'var(--cream-2)',
+              fontSize: 12.5, fontWeight: 600, color: 'var(--ink)',
+            }}
+          >
+            <Icon name="camera" size={13} color="var(--ink-soft)" />
+            {avatarUrl ? 'Change photograph' : 'Upload a photograph'}
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) { setPhotoErr(null); setCropFile(f); }
+                e.target.value = '';
+              }}
+            />
+          </label>
+          {avatarUrl && (
+            <button
+              type="button"
+              onClick={() => void removePhoto()}
+              style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        {photoErr && <div style={{ fontSize: 12, color: 'var(--pl-plum, #7A2D2D)', marginBottom: 10 }}>{photoErr}</div>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {PL_AVATARS.map((a) => {
             const on = avatarId === a.id;
@@ -256,11 +320,21 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
           })}
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 8 }}>
-          {avatarId
-            ? 'Tap your mark again to go back to your photo or initials.'
-            : 'Pick a mark, or stay with your sign-in photo.'}
+          {avatarUrl
+            ? 'Your photograph leads; picking a mark below replaces it.'
+            : avatarId
+              ? 'Tap your mark again to fall back to your monogram seal.'
+              : 'No pick needed — your monogram seal is already pressed from your name.'}
         </div>
       </div>
+      {cropFile && (
+        <AvatarCropModal
+          file={cropFile}
+          busy={uploading}
+          onCancel={() => { if (!uploading) setCropFile(null); }}
+          onSave={(blob) => void uploadCropped(blob)}
+        />
+      )}
       <UsRow>
         {editing ? (
           <>

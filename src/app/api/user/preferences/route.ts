@@ -76,7 +76,19 @@ export async function GET() {
       .maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json(DEFAULTS);
-    return NextResponse.json(data);
+    /* A row may be sparse — /api/user/avatar inserts a minimal
+       first-touch row (email + avatar_url only), and columns that
+       carry real behavior (voice, autonomy, quiet_hours) must never
+       reach the UI as null. Merge over defaults, then re-assert the
+       three structural fields. */
+    const row = data as Partial<PrefsRow>;
+    return NextResponse.json({
+      ...DEFAULTS,
+      ...row,
+      voice: row.voice ?? DEFAULTS.voice,
+      quiet_hours: typeof row.quiet_hours === 'boolean' ? row.quiet_hours : DEFAULTS.quiet_hours,
+      autonomy: row.autonomy ?? DEFAULTS.autonomy,
+    });
   } catch (err) {
     // Supabase unreachable — return defaults so the UI still renders.
     console.error('[user/preferences GET]', err);

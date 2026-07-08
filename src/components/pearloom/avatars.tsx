@@ -149,9 +149,131 @@ export function PlAvatar({
   );
 }
 
+/* ── MonogramSeal — the zero-effort default mark ──────────────
+   ONBOARDING-PLAN O1: nobody leaves blank. When a person has no
+   photo and no mark, they carry their initial(s) letterpressed in
+   a wax-seal roundel — pressed from their name, tinted
+   deterministically so the same name always wears the same seal.
+   Not a gray silhouette; a made thing. */
+
+const SEAL_TINTS: ReadonlyArray<{ bg: string; ink: string }> = [
+  { bg: '#E7E5D3', ink: '#586A3C' }, // sage
+  { bg: '#F3EAD6', ink: '#6F6557' }, // cream
+  { bg: '#F1DECE', ink: '#BB6A39' }, // peach
+  { bg: '#F0DCD6', ink: '#C0543B' }, // rose
+  { bg: '#EFE4CB', ink: '#9A7838' }, // gold
+];
+
+export function monogramFrom(name: string | null | undefined): string {
+  const parts = String(name ?? '').trim().split(/\s+/).filter(Boolean);
+  const a = parts[0]?.[0] ?? '';
+  const b = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
+  return (a + b).toUpperCase() || '·';
+}
+
+export function MonogramSeal({
+  name, size = 32, round = true, style,
+}: {
+  name: string | null | undefined;
+  size?: number;
+  round?: boolean;
+  style?: React.CSSProperties;
+}) {
+  const initials = monogramFrom(name);
+  const sum = Array.from(String(name ?? '')).reduce((n, c) => n + c.charCodeAt(0), 0);
+  const t = SEAL_TINTS[sum % SEAL_TINTS.length];
+  return (
+    <span
+      role="img"
+      aria-label={name ? `${name}'s mark` : 'Account mark'}
+      style={{
+        width: size, height: size, borderRadius: round ? '50%' : Math.round(size * 0.25),
+        display: 'inline-grid', placeItems: 'center', flexShrink: 0,
+        background: t.bg,
+        color: t.ink,
+        border: '1px solid rgba(193,154,75,0.4)',
+        /* The blind deboss — the seal is pressed, not printed. */
+        boxShadow: 'inset 0 1.5px 3px rgba(31,36,24,0.12), inset 0 -1px 1px rgba(255,255,255,0.75)',
+        fontFamily: 'var(--pl-font-display, var(--font-display, serif))',
+        fontStyle: 'italic',
+        fontWeight: 500,
+        fontSize: size * (initials.length > 1 ? 0.36 : 0.46),
+        letterSpacing: initials.length > 1 ? '0.02em' : 0,
+        lineHeight: 1,
+        userSelect: 'none',
+        ...style,
+      }}
+    >
+      {initials}
+    </span>
+  );
+}
+
+/* ── AccountMark — THE fallback chain, one component ──────────
+   avatar photo (uploaded) → orchard mark → sign-in photo →
+   monogram seal. Every chrome surface that shows the account's
+   face renders this instead of hand-rolling the chain. */
+
+export function AccountMark({
+  photoUrl, markId, signInImage, name, size = 32, round = true, style,
+}: {
+  /** user_preferences.avatar_url — the uploaded photograph. */
+  photoUrl?: string | null;
+  /** user_preferences.avatar — an orchard mark id. */
+  markId?: string | null;
+  /** OAuth profile image (Google) — below an explicit pick. */
+  signInImage?: string | null;
+  name?: string | null;
+  size?: number;
+  round?: boolean;
+  style?: React.CSSProperties;
+}) {
+  const radius = round ? '50%' : Math.round(size * 0.25);
+  if (photoUrl) {
+    return (
+      <span
+        role="img"
+        aria-label={name ? `${name}'s photo` : 'Account photo'}
+        style={{
+          width: size, height: size, borderRadius: radius, flexShrink: 0,
+          display: 'inline-block', overflow: 'hidden',
+          background: `#F3EAD6 center / cover no-repeat url("${photoUrl.replace(/"/g, '%22')}")`,
+          border: '1px solid rgba(193,154,75,0.4)',
+          ...style,
+        }}
+      />
+    );
+  }
+  if (markId && avatarById(markId)) {
+    return <PlAvatar id={markId} size={size} round={round} style={style} />;
+  }
+  if (signInImage) {
+    return (
+      <span
+        role="img"
+        aria-label={name ? `${name}'s photo` : 'Account photo'}
+        style={{
+          width: size, height: size, borderRadius: radius, flexShrink: 0,
+          display: 'inline-block', overflow: 'hidden',
+          background: `#F3EAD6 center / cover no-repeat url("${signInImage.replace(/"/g, '%22')}")`,
+          ...style,
+        }}
+      />
+    );
+  }
+  return <MonogramSeal name={name} size={size} round={round} style={style} />;
+}
+
 /* ── useUserAvatar — one cache, every chrome surface ─────────── */
 
-let avatarCache: string | null | undefined; // undefined = not loaded yet
+interface AvatarState {
+  /** Orchard mark id (user_preferences.avatar). */
+  id: string | null;
+  /** Uploaded photo (user_preferences.avatar_url) — wins the chain. */
+  url: string | null;
+}
+
+let avatarCache: AvatarState | undefined; // undefined = not loaded yet
 let avatarFetch: Promise<void> | null = null;
 const avatarSubs = new Set<() => void>();
 function notifyAvatar() { avatarSubs.forEach((fn) => fn()); }
@@ -159,19 +281,22 @@ function subscribeAvatar(cb: () => void) {
   avatarSubs.add(cb);
   return () => { avatarSubs.delete(cb); };
 }
-function getAvatarSnapshot(): string | null | undefined { return avatarCache; }
-function getAvatarServerSnapshot(): string | null | undefined { return undefined; }
+function getAvatarSnapshot(): AvatarState | undefined { return avatarCache; }
+function getAvatarServerSnapshot(): AvatarState | undefined { return undefined; }
 
 function ensureAvatarLoaded() {
   if (avatarCache !== undefined || avatarFetch) return;
   avatarFetch = fetch('/api/user/preferences', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((d: { avatar?: string | null } | null) => {
-      avatarCache = typeof d?.avatar === 'string' && d.avatar ? d.avatar : null;
+    .then((d: { avatar?: string | null; avatar_url?: string | null } | null) => {
+      avatarCache = {
+        id: typeof d?.avatar === 'string' && d.avatar ? d.avatar : null,
+        url: typeof d?.avatar_url === 'string' && d.avatar_url ? d.avatar_url : null,
+      };
       notifyAvatar();
     })
     .catch(() => {
-      avatarCache = null;
+      avatarCache = { id: null, url: null };
       notifyAvatar();
     });
 }
@@ -179,16 +304,23 @@ function ensureAvatarLoaded() {
 export function useUserAvatar(): {
   /** Picked mark id, null = none picked, undefined = still loading. */
   avatarId: string | null | undefined;
+  /** Uploaded photo URL — wins the fallback chain when set. */
+  avatarUrl: string | null | undefined;
   setAvatarId: (id: string | null) => void;
+  /** Optimistic local update after /api/user/avatar succeeds. */
+  setAvatarUrl: (url: string | null) => void;
 } {
-  const avatarId = useSyncExternalStore(subscribeAvatar, getAvatarSnapshot, getAvatarServerSnapshot);
+  const state = useSyncExternalStore(subscribeAvatar, getAvatarSnapshot, getAvatarServerSnapshot);
 
   useEffect(() => {
     ensureAvatarLoaded();
   }, []);
 
   const setAvatarId = useCallback((id: string | null) => {
-    avatarCache = id; // optimistic — all chrome updates at once
+    /* Picking a mark is an explicit choice — it also retires the
+       uploaded photo (the chain would otherwise hide the pick). */
+    const hadPhoto = Boolean(avatarCache?.url);
+    avatarCache = { id, url: null }; // optimistic — all chrome updates at once
     notifyAvatar();
     void fetch('/api/user/preferences', {
       method: 'PATCH',
@@ -196,7 +328,21 @@ export function useUserAvatar(): {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ avatar: id }),
     }).catch(() => { /* re-syncs on next load */ });
+    if (hadPhoto) {
+      void fetch('/api/user/avatar', { method: 'DELETE', credentials: 'include' })
+        .catch(() => { /* re-syncs on next load */ });
+    }
   }, []);
 
-  return { avatarId, setAvatarId };
+  const setAvatarUrl = useCallback((url: string | null) => {
+    avatarCache = { id: avatarCache?.id ?? null, url };
+    notifyAvatar();
+  }, []);
+
+  return {
+    avatarId: state === undefined ? undefined : state.id,
+    avatarUrl: state === undefined ? undefined : state.url,
+    setAvatarId,
+    setAvatarUrl,
+  };
 }

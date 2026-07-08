@@ -124,7 +124,7 @@ Review's seal, quarter scale). Consent stamps stay server-side
 
 | Phase | Scope | Est. |
 |---|---|---|
-| **O1 — the mark system** | Migration `avatar_url` on `user_preferences` (+ prod apply); `POST /api/user/avatar` (R2, 512px, EXIF strip, rate-limited); MonogramSeal component; fallback chain swapped product-wide (`useUserAvatar` + `PlAvatar` call sites); circular Reframe on the upload. | 1 session |
+| **O1 — the mark system** — **SHIPPED 2026-07-08** (code; prod migration pending an authed session) | Migration `20260708_avatar_url.sql` (⚠ NOT yet applied to prod — Supabase MCP was unauthenticated; apply + record before the feature is live); `POST/DELETE /api/user/avatar` (sharp rotate+resize 512², metadata dropped, R2 under hashed-email keys, 10/hr cap); `MonogramSeal` + `AccountMark` (the chain: photo → mark → sign-in image → seal) in avatars.tsx; `useUserAvatar` carries `avatarUrl` (picking a mark retires the photo); Settings → Account grew "Upload a photograph" with `AvatarCropModal` (circular drag-to-seat, client-side canvas crop strips EXIF before upload); chrome swapped to AccountMark (dash topbar, sidebar menu, editor topbar, settings header). The preferences GET now merges sparse rows over defaults so a minimal avatar-first row can't null out voice/autonomy. | 1 session |
 | **O2 — the flow re-pressed** | WelcomeFlowClient reskinned to the pressed vocabulary; M2 live-press; M3 three-way mark frame; M5 live miniature; M6 colophon + seal; M7 ThreadingDoor handoff. | 1–2 sessions |
 | **O3 — the awaited arrival** | M1 addressed sheet + M4 sealed-envelope requests (reads `pendingIncoming`; S1 is shipped so this is UI only); claim-context from guest rows. | 1 session |
 

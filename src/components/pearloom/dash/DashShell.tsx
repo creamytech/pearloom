@@ -21,7 +21,7 @@ import { AskPearTrigger, DashAskPear } from './DashAskPear';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
 import { useSelectedSite, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
-import { PlAvatar, useUserAvatar } from '../avatars';
+import { AccountMark, useUserAvatar } from '../avatars';
 
 interface DashNavItem {
   id: string;
@@ -352,7 +352,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const { openTab } = useUserSettings();
-  const { avatarId } = useUserAvatar();
+  const { avatarId, avatarUrl } = useUserAvatar();
 
   useEffect(() => {
     if (!open) return;
@@ -402,26 +402,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
           if (!open) e.currentTarget.style.background = 'var(--card)';
         }}
       >
-        {avatarId ? (
-          <PlAvatar id={avatarId} size={30} />
-        ) : (
-          <div
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: 'var(--lavender)',
-              display: 'grid',
-              placeItems: 'center',
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--ink)',
-              flexShrink: 0,
-            }}
-          >
-            {initial}
-          </div>
-        )}
+        <AccountMark photoUrl={avatarUrl} markId={avatarId} name={name} size={30} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {name}
@@ -1319,9 +1300,8 @@ export function DashUtilityBar() {
 export function TopbarAvatarButton() {
   const { data: session } = useSession();
   const { openTab } = useUserSettings();
-  const { avatarId } = useUserAvatar();
+  const { avatarId, avatarUrl } = useUserAvatar();
   const name = session?.user?.name ?? 'Guest';
-  const initial = (name.trim()[0] ?? 'P').toUpperCase();
   return (
     <button
       type="button"
@@ -1335,14 +1315,9 @@ export function TopbarAvatarButton() {
         borderRadius: '50%',
         cursor: 'pointer',
         flexShrink: 0,
-        background: avatarId
-          ? 'transparent'
-          : 'linear-gradient(135deg, var(--sage-deep), var(--sage, #9ca77a))',
-        color: 'var(--cream)',
+        background: 'transparent',
         display: 'grid',
         placeItems: 'center',
-        fontSize: 13,
-        fontWeight: 700,
         border: '2px solid var(--card)',
         boxShadow: '0 1px 3px rgba(61,74,31,0.18)',
         overflow: 'hidden',
@@ -1351,7 +1326,14 @@ export function TopbarAvatarButton() {
       onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
       onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
     >
-      {avatarId ? <PlAvatar id={avatarId} size={28} /> : initial}
+      {/* photo → mark → sign-in image → monogram seal (never blank). */}
+      <AccountMark
+        photoUrl={avatarUrl}
+        markId={avatarId}
+        signInImage={session?.user?.image}
+        name={name}
+        size={28}
+      />
     </button>
   );
 }

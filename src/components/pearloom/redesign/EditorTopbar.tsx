@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
-import { PlAvatar, useUserAvatar } from '../avatars';
+import { AccountMark, PlAvatar, useUserAvatar } from '../avatars';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
 import type { StoryManifest } from '@/types';
@@ -58,12 +58,11 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
   const sessionUser = session?.user;
   const userImage = sessionUser?.image ?? null;
   const userLabel = sessionUser?.name || sessionUser?.email || 'Account';
-  const userInitials = avatarInitials(sessionUser?.name, sessionUser?.email);
   /* The orchard mark — same shared cache the dashboard topbar and
      settings read (mark → photo → initials). The editor previously
      skipped the chain, so a host with a mark saw a different face
      here than everywhere else. */
-  const { avatarId } = useUserAvatar();
+  const { avatarId, avatarUrl } = useUserAvatar();
   const saveLabel = saveState === 'saving' ? 'Saving…'
     : saveState === 'unsaved' ? 'Saving…'
     : saveState === 'error' ? 'Save failed'
@@ -554,24 +553,21 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           style={{
             width: 30, height: 30, borderRadius: 999,
             padding: 0,
-            background: !avatarId && userImage
-              ? `var(--cream-2) center / cover no-repeat url("${userImage.replace(/"/g, '%22')}")`
-              : avatarId
-                ? 'transparent'
-                : 'linear-gradient(135deg, var(--lavender-2), var(--peach-2))',
+            background: 'transparent',
             border: '1px solid var(--line)',
             cursor: 'pointer',
-            color: 'var(--ink)', fontSize: 11, fontWeight: 700,
             display: 'grid', placeItems: 'center',
             overflow: 'hidden',
           }}
         >
-          {/* mark → sign-in photo (background) → initials. */}
-          {avatarId ? (
-            <PlAvatar id={avatarId} size={28} />
-          ) : !userImage ? (
-            <span>{userInitials}</span>
-          ) : null}
+          {/* photo → mark → sign-in photo → monogram seal. */}
+          <AccountMark
+            photoUrl={avatarUrl}
+            markId={avatarId}
+            signInImage={userImage}
+            name={sessionUser?.name ?? userLabel}
+            size={28}
+          />
         </button>
           </>
         )}
@@ -645,17 +641,6 @@ function MenuRow({ icon, label, onClick }: { icon: string; label: string; onClic
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
     </button>
   );
-}
-
-/* Pull initials from name (preferred) or email. Email-based initial
-   is single-letter, name-based is up to two. */
-function avatarInitials(name?: string | null, email?: string | null): string {
-  if (name) {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
-  }
-  if (email) return (email.trim()[0] ?? '?').toUpperCase();
-  return '?';
 }
 
 /* ─── GoLiveBadge ─────────────────────────────────────────────
