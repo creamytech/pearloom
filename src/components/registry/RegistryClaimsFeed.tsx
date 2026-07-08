@@ -25,6 +25,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { StateChip } from '@/components/shell';
 
 export interface ClaimRow {
   id: string;
@@ -572,24 +573,18 @@ function formatDollars(cents: number): string {
    item reservation), "paid" (Stripe purchase), "gave directly"
    (honor-ledger pledge), "claimed link" (link-out store claim). */
 function KindChip({ kind }: { kind: 'link' | 'reserved' | 'paid' | 'pledge' }) {
-  const label = kind === 'reserved' ? 'reserved'
-    : kind === 'paid' ? 'paid'
-      : kind === 'pledge' ? 'gave directly'
-        : 'claimed link';
-  const ink = kind === 'paid' || kind === 'pledge' ? 'var(--sage-deep, #3D4A1F)' : 'var(--peach-ink, #C6703D)';
+  const label = kind === 'reserved' ? 'Reserved'
+    : kind === 'paid' ? 'Paid'
+      : kind === 'pledge' ? 'Gave directly'
+        : 'Claimed link';
   return (
-    <span
-      style={{
-        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-        fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em',
-        textTransform: 'uppercase', color: ink,
-        border: `1px solid color-mix(in oklab, ${ink} 35%, transparent)`,
-        borderRadius: 999, padding: '2px 7px', whiteSpace: 'nowrap',
-        flexShrink: 0,
-      }}
+    <StateChip
+      size="sm"
+      kind={kind === 'paid' || kind === 'pledge' ? 'good' : 'attention'}
+      style={{ flexShrink: 0 }}
     >
       {label}
-    </span>
+    </StateChip>
   );
 }
 

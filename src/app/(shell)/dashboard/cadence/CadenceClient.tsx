@@ -9,6 +9,7 @@ import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
 import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
+import { StateChip, type StateKind } from '@/components/shell';
 
 interface MergedPhase {
   id: string;
@@ -28,13 +29,17 @@ interface MergedPhase {
   hasOverride: boolean;
 }
 
-const STATUS_TONE: Record<MergedPhase['status'], { bg: string; fg: string; label: string }> = {
-  preset:    { bg: 'rgba(14,13,11,0.06)',  fg: 'var(--ink-muted)', label: 'Suggested' },
-  draft:     { bg: 'rgba(184,147,90,0.14)', fg: '#5C4F2E',          label: 'Draft' },
-  scheduled: { bg: 'rgba(92,107,63,0.12)',  fg: '#3D4A1F',          label: 'Scheduled' },
-  sent:      { bg: 'rgba(92,107,63,0.18)',  fg: '#3D4A1F',          label: 'Sent' },
-  cancelled: { bg: 'rgba(122,45,45,0.08)',  fg: '#7A2D2D',          label: 'Cancelled' },
-  failed:    { bg: 'rgba(122,45,45,0.18)',  fg: '#7A2D2D',          label: 'Failed' },
+// Status renders through the shared shell <StateChip> (TASTE-PLAN
+// T.1): suggested/cancelled rest quiet, drafts wait on paper,
+// scheduled is lavender info, sent is settled sage, failed is the
+// one plum in the room.
+const STATUS_CHIP: Record<MergedPhase['status'], { kind: StateKind; label: string }> = {
+  preset:    { kind: 'quiet',       label: 'Suggested' },
+  draft:     { kind: 'waiting',     label: 'Draft' },
+  scheduled: { kind: 'info',        label: 'Scheduled' },
+  sent:      { kind: 'good',        label: 'Sent' },
+  cancelled: { kind: 'quiet',       label: 'Cancelled' },
+  failed:    { kind: 'destructive', label: 'Failed' },
 };
 
 export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | null }) {
@@ -167,7 +172,7 @@ function PhaseRow({
   onToggle: () => void;
   onChange: () => void;
 }) {
-  const tone = STATUS_TONE[phase.status];
+  const tone = STATUS_CHIP[phase.status];
   const dateLabel = useMemo(() => {
     if (!phase.scheduledAt) return '—';
     return new Date(phase.scheduledAt).toLocaleDateString('en-US', {
@@ -214,18 +219,7 @@ function PhaseRow({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
             <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--ink)' }}>{phase.label}</span>
-            <span style={{
-              padding: '3px 10px',
-              borderRadius: 999,
-              background: tone.bg,
-              color: tone.fg,
-              fontSize: 10.5,
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-            }}>
-              {tone.label}
-            </span>
+            <StateChip size="sm" kind={tone.kind}>{tone.label}</StateChip>
             {phase.channels.map((c) => (
               <span key={c} style={{
                 fontSize: 10.5,

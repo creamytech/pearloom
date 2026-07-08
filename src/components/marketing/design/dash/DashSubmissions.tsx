@@ -18,6 +18,7 @@ import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
 import { nameVotePollWithId, optionIdsFor, votePollsWithIds } from '@/lib/event-os/activity-votes';
 import type { StoryManifest } from '@/types';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
+import { StateChip } from '@/components/shell';
 
 function submissionsBodyFor(occasion?: string | null): string {
   const preset = getEventType(occasion as never)?.rsvpPreset ?? 'wedding';
@@ -416,32 +417,10 @@ export function DashSubmissions() {
                     </div>
                   </div>
                   {moderatable && s.status === 'flagged' && (
-                    <span
-                      style={{
-                        ...MONO_STYLE,
-                        fontSize: 9,
-                        padding: '4px 9px',
-                        borderRadius: 999,
-                        background: PD.terra,
-                        color: PD.paper,
-                      }}
-                    >
-                      FLAGGED
-                    </span>
+                    <StateChip size="sm" kind="destructive">Flagged</StateChip>
                   )}
                   {moderatable && s.status === 'approved' && (
-                    <span
-                      style={{
-                        ...MONO_STYLE,
-                        fontSize: 9,
-                        padding: '4px 9px',
-                        borderRadius: 999,
-                        background: PD.olive,
-                        color: PD.paper,
-                      }}
-                    >
-                      APPROVED
-                    </span>
+                    <StateChip size="sm" kind="good">Approved</StateChip>
                   )}
                 </div>
                 <div

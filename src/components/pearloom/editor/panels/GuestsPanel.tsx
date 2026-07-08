@@ -12,6 +12,7 @@ import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { getAppOrigin } from '@/lib/site-urls';
+import { StateChip, rsvpStateKind } from '@/components/shell';
 
 type GuestStatus = 'pending' | 'attending' | 'declined';
 interface Guest {
@@ -27,10 +28,10 @@ interface Guest {
 
 type FilterTab = 'all' | GuestStatus;
 
-const STATUS_TONE: Record<GuestStatus, { bg: string; ink: string; label: string }> = {
-  pending:   { bg: 'var(--cream-2)',    ink: 'var(--ink-soft)',    label: 'Pending' },
-  attending: { bg: 'var(--sage-bg)',    ink: 'var(--sage-deep)',   label: 'Going' },
-  declined:  { bg: 'var(--peach-bg)',   ink: 'var(--peach-ink)',   label: 'Can’t make it' },
+// Status renders through the shared shell <StateChip> (TASTE-PLAN
+// T.1); only the labels are local to this panel's voice.
+const STATUS_LABEL: Record<GuestStatus, string> = {
+  pending: 'Pending', attending: 'Going', declined: 'Can’t make it',
 };
 
 export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
@@ -316,7 +317,6 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
           {filtered.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 360, overflowY: 'auto' }}>
               {filtered.map((g) => {
-                const tone = STATUS_TONE[g.status];
                 return (
                   <div
                     key={g.id}
@@ -334,9 +334,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
                         <div style={{ fontSize: 11, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.email}</div>
                       )}
                     </div>
-                    <span style={{ padding: '3px 8px', borderRadius: 999, background: tone.bg, color: tone.ink, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                      {tone.label}
-                    </span>
+                    <StateChip size="sm" kind={rsvpStateKind(g.status)}>{STATUS_LABEL[g.status]}</StateChip>
                     <button
                       type="button"
                       onClick={() => deleteGuest(g.id)}

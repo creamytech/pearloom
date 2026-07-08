@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
 import { BlurFade } from '@/components/brand/groove';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { StateChip, rsvpStateKind } from '@/components/shell';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 
 // Force dynamic since we pull live RSVP data
@@ -105,54 +106,14 @@ function StatCard({
   );
 }
 
-// ─── Status Badge ─────────────────────────────────────────────
+// ─── Status Badge — the shared StateChip (TASTE-PLAN T.1) ─────
 
 function StatusBadge({ status }: { status: Guest['status'] }) {
-  const map: Record<
-    Guest['status'],
-    { label: string; bg: string; color: string; icon: React.ReactNode }
-  > = {
-    attending: {
-      label: 'Attending',
-      bg: 'rgba(163,177,138,0.15)',
-      color: '#6a8c5a',
-      icon: <CheckCircle2 size={11} />,
-    },
-    declined: {
-      label: 'Declined',
-      bg: 'rgba(220,80,80,0.10)',
-      color: '#b54a4a',
-      icon: <XCircle size={11} />,
-    },
-    pending: {
-      label: 'Pending',
-      bg: 'rgba(214,198,168,0.25)',
-      color: '#9a7a3a',
-      icon: <Clock size={11} />,
-    },
-  };
-
-  const s = map[status] ?? map.pending;
-
+  const label = status === 'attending' ? 'Attending' : status === 'declined' ? 'Declined' : 'Pending';
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.3rem',
-        padding: '0.25rem 0.65rem',
-        borderRadius: 'var(--pl-radius-full)',
-        background: s.bg,
-        color: s.color,
-        fontSize: '0.72rem',
-        fontWeight: 600,
-        letterSpacing: '0.03em',
-        fontFamily: 'var(--pl-font-body)',
-      }}
-    >
-      {s.icon}
-      {s.label}
-    </span>
+    <StateChip kind={rsvpStateKind(status)} dot>
+      {label}
+    </StateChip>
   );
 }
 

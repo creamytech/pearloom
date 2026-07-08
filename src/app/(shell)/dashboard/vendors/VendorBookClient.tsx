@@ -25,6 +25,7 @@ import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { getEventType } from '@/lib/event-os/event-types';
 import { vendorToBudgetLine } from '@/lib/budget/lines';
 import { todayLocal, formatLocalDate } from '@/lib/date-utils';
+import { StateChip, vendorStateKind } from '@/components/shell';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -196,12 +197,11 @@ function initialsOf(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// The relationship-stage pill — a gold→lavender→sage ladder from
-// tentative to settled. `paid` wears a check.
-const STATUS_PILL: Record<VendorStatus, { label: string; bg: string; ink: string }> = {
-  considering: { label: 'Considering', bg: 'rgba(193,154,75,0.16)', ink: '#8A6A2E' },
-  booked: { label: 'Booked', bg: 'var(--lavender-bg)', ink: 'var(--lavender-ink, #6B5B8A)' },
-  paid: { label: 'Paid', bg: 'var(--sage-tint)', ink: 'var(--sage-deep, #5C6B3F)' },
+// The relationship-stage chip — the shared shell <StateChip>
+// (TASTE-PLAN T.1): waiting → info → good from tentative to
+// settled. `paid` wears a check.
+const STATUS_LABEL: Record<VendorStatus, string> = {
+  considering: 'Considering', booked: 'Booked', paid: 'Paid',
 };
 
 // ── The page ──────────────────────────────────────────────────
@@ -813,7 +813,6 @@ function VendorCard({
 
   const bal = balanceCents(v);
   const accent = vendorAccent(v.name);
-  const pill = STATUS_PILL[v.status];
   const contactBits = [
     v.contactName && <span key="n" style={{ color: 'var(--ink)' }}>{v.contactName}</span>,
     v.phone && (
@@ -869,27 +868,10 @@ function VendorCard({
             {v.category}
           </span>
         </div>
-        <span
-          style={{
-            flexShrink: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            padding: '3px 10px',
-            borderRadius: 999,
-            background: pill.bg,
-            color: pill.ink,
-            fontFamily: 'var(--pl-font-mono, monospace)',
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {v.status === 'paid' && <Icon name="check" size={10} color={pill.ink} />}
-          {pill.label}
-        </span>
+        <StateChip kind={vendorStateKind(v.status)} style={{ flexShrink: 0 }}>
+          {v.status === 'paid' && <Icon name="check" size={10} color="currentColor" />}
+          {STATUS_LABEL[v.status]}
+        </StateChip>
       </div>
 
       {contactBits.length > 0 && (

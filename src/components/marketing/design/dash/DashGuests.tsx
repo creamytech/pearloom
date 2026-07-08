@@ -10,6 +10,7 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, StatStrip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
+import { StateChip, rsvpStateKind } from '@/components/shell';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
@@ -801,13 +802,11 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// RSVP-status pill palette — the ScreensGuests tokens: Yes = sage,
-// Pending = warm gold/peach, Maybe = lavender, No = stone/muted.
-const rsvpMap: Record<RsvpKey, { bg: string; fg: string; label: string }> = {
-  yes: { bg: 'var(--sage-tint, #E3E6C8)', fg: 'var(--sage-deep, #6d7d3f)', label: 'Yes' },
-  no: { bg: 'var(--cream-3)', fg: 'var(--ink-muted, #6A6A56)', label: 'No' },
-  maybe: { bg: 'var(--lavender-bg, #E8E0F0)', fg: 'var(--lavender-ink, #6B5A8C)', label: 'Maybe' },
-  pending: { bg: 'rgba(193,154,75,0.16)', fg: 'var(--peach-ink, #C6703D)', label: 'Pending' },
+// RSVP-status labels — the chip itself is the shared shell
+// <StateChip> (TASTE-PLAN T.1): sage yes, lavender maybe, quiet
+// paper pending, muted-outline no.
+const RSVP_LABEL: Record<RsvpKey, string> = {
+  yes: 'Yes', no: 'No', maybe: 'Maybe', pending: 'Pending',
 };
 
 // Avatar ink — a deterministic tint per guest so the initials-in-a-
@@ -1551,7 +1550,7 @@ export function DashGuests() {
                   ))}
                 </div>
                 {filtered.map((g, i) => {
-                  const r = rsvpMap[g.rsvp];
+                  
                   return (
                     <div
                       key={g.id}
@@ -1776,21 +1775,7 @@ export function DashGuests() {
                           (plan-2 §2 rsvp: no duplicated name column). */}
                       <div style={{ fontSize: 13 }}>{g.party === g.n ? '' : g.party}</div>
                       <div>
-                        <span
-                          style={{
-                            ...MONO_STYLE,
-                            fontSize: 10,
-                            padding: '4px 10px',
-                            borderRadius: 999,
-                            background: r.bg,
-                            color: r.fg,
-                            // r.fg is a var(--pd-*) string now — alpha
-                            // suffixes can't be concatenated onto it.
-                            border: `1px solid color-mix(in oklab, ${r.fg} 15%, transparent)`,
-                          }}
-                        >
-                          {r.label}
-                        </span>
+                        <StateChip size="sm" kind={rsvpStateKind(g.rsvp)}>{RSVP_LABEL[g.rsvp]}</StateChip>
                       </div>
                       <div
                         style={{
@@ -2486,7 +2471,7 @@ function GuestDetailSheet({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const r = rsvpMap[guest.rsvp];
+  
   const chosenEvents =
     guest.eventIds.length > 0 && guest.eventIds.length < events.length
       ? events.filter((ev) => guest.eventIds.includes(ev.id))
@@ -2559,20 +2544,7 @@ function GuestDetailSheet({
               </div>
             )}
           </div>
-          <span
-            style={{
-              ...MONO_STYLE,
-              flexShrink: 0,
-              fontSize: 10,
-              padding: '4px 10px',
-              borderRadius: 999,
-              background: r.bg,
-              color: r.fg,
-              border: `1px solid color-mix(in oklab, ${r.fg} 15%, transparent)`,
-            }}
-          >
-            {r.label}
-          </span>
+          <StateChip kind={rsvpStateKind(guest.rsvp)} style={{ flexShrink: 0 }}>{RSVP_LABEL[guest.rsvp]}</StateChip>
         </div>
 
         {/* Detail rows. */}

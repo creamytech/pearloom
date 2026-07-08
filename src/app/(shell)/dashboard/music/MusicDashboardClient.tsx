@@ -42,6 +42,7 @@ import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { EmptyState } from '@/components/shell/EmptyState';
 import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { StateChip, type StateKind } from '@/components/shell';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -191,10 +192,11 @@ const spotifyLink: React.CSSProperties = {
 };
 
 // ── The board (prop-driven; /dev/dash-music renders it) ────────
-const MODE_CHIP: Record<MusicMode, { label: string; ink: string; bg: string }> = {
-  auto: { label: 'Auto-add on', ink: 'var(--sage-deep)', bg: 'var(--sage-tint)' },
-  approve: { label: 'Approve first', ink: 'var(--peach-ink)', bg: 'var(--peach-bg)' },
-  closed: { label: 'Suggestions closed', ink: 'var(--pl-plum, #7A2D40)', bg: 'var(--pl-plum-mist)' },
+// Mode renders through the shared shell <StateChip> (TASTE-PLAN T.1).
+const MODE_CHIP: Record<MusicMode, { label: string; kind: StateKind }> = {
+  auto: { label: 'Auto-add on', kind: 'good' },
+  approve: { label: 'Approve first', kind: 'attention' },
+  closed: { label: 'Suggestions closed', kind: 'quiet' },
 };
 
 export function MusicBoard({
@@ -370,9 +372,7 @@ export function MusicBoard({
                   <span style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, flex: 1, minWidth: 160 }}>
                     Guests add songs from your site. Wave them onto the floor, or let them pass.
                   </span>
-                  <span style={{ padding: '3px 10px', borderRadius: 999, background: mode.bg, color: mode.ink, fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                    {mode.label}
-                  </span>
+                  <StateChip size="sm" kind={mode.kind}>{mode.label}</StateChip>
                 </div>
 
                 <div style={{ marginTop: 14 }}>
