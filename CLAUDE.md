@@ -27,11 +27,12 @@ to the literal sprint-focus heading that the Stop hook greps
 for, and fill in goal / direction / open threads /
 counts-as-done / what-to-skip in the same shape as before.
 
-**The next sprints are already written:** `docs/PERSONA-PLAN.md`'s
-nine sprints (S1–S9) are all SHIPPED (2026-07-08) — nothing left to
-arm there. The live queue is now `docs/GRAND-PLAN-2.md` (2026-07-08):
-one card system for the dashboard, a lightweight Weekend Builder
-rethink, and Circle rebuilt as a real (simple) social network — ten
-ready-to-paste sprint blocks (A.1–A.2, B.1–B.2, C.1–C.6, ranked) at
-§7. Paste a block over this heading to arm one; §8 gives the
-recommended order.
+**Both sprint queues are fully executed** (2026-07-08):
+`docs/PERSONA-PLAN.md` S1–S9 and `docs/GRAND-PLAN-2.md` A.1–A.2 /
+B.1–B.2 / C.1–C.6 are all stamped SHIPPED — nothing left to arm in
+either. All four 2026-07-08 migrations (person_threads, avatar_url,
+circle_invites, crew_threads) are applied to prod and recorded;
+advisors clean. The next plan doc hasn't been written yet — start
+from a fresh audit or a user directive, and follow GRAND-PLAN-2 §9's
+open questions for the known decision points (per-photo focal point
+for cover crops is queued there too).
