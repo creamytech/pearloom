@@ -325,7 +325,26 @@ way the editable gate is pinned.
 
 ---
 
-### S3 — The unbroken thread · **status: planned** · P0
+### S3 — The unbroken thread · **status: SHIPPED 2026-07-08** · P0
+
+> Shipped: (1) THE CLAIM MOMENT — the signed-out 401 branch stashes
+> a claim payload (`pl-wizard-claim`: occasion eyebrow via
+> previewFrameFor, names, date, location, palette) and /signup
+> renders it as a pressed claim card under a "Claim your pressing."
+> heading — Tyler's phone shows "SAVE THE DATE / Tyler / Saturday,
+> July 25, 2026 · Austin, TX / Pressed and saved — it will be here
+> the moment you're in." (2) THE PRESS RESUMES ITSELF — the 401
+> branch persists `pendingPress` with the draft; when the host
+> returns authenticated, a fire-once effect honors the click they
+> already made (straight into the press choreography → editor). The
+> stash + draft clear on success. (3) THE PALETTE GATE — signed-out,
+> smart-palette never fires; the step renders an honest slat ("Pear
+> mixes palettes from your story once you're signed in — after the
+> press. The classics below work beautifully now."); "Sign in
+> required." can no longer render in the wizard (verified in the
+> walk DOM). (4) SAVE DRAFT audited: honest (localStorage draft +
+> truthful tooltip). After-shot: `claim-moment-fixed.png`. vitest
+> 1246/1246.
 
 ```
 ## Active focus — S3 · The unbroken thread (signed-out never loses work)
@@ -679,6 +698,14 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S3 shipped (The unbroken thread)
+F3 + F4 closed. The claim card on /signup (pl-wizard-claim stash +
+WizardClaimCard), the self-resuming press (pendingPress on the
+persisted draft + a fire-once effect), and the signed-out palette
+slat (smart-palette never fires unauthenticated; no raw auth error
+can reach the wizard). Tyler phone walk re-verified end-to-end.
+vitest 1246/1246.
 
 ### 2026-07-08 — S2 shipped (The honest proof)
 F2 closed. ThemedSite `proof` mode + `redesign/proof.ts` drafting

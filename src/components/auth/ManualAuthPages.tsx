@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { PearloomMark } from '@/components/brand/PearloomMark';
@@ -151,8 +151,100 @@ function welcomeHref(): string {
   return n && /^\/(?!\/)/.test(n) ? `/welcome?next=${encodeURIComponent(n)}` : '/welcome';
 }
 
+/* ── The claim card (PERSONA-PLAN S3, law 3: never drop the thing
+   they just made). A host who pressed "Weave my site" signed out
+   lands here — the wizard stashes a small claim payload
+   (pl-wizard-claim) and this card carries their pressed site
+   through the account gate: name, date, palette, and one sentence
+   that says it's safe. The wizard clears the stash on a
+   successful press. ── */
+interface WizardClaim {
+  eyebrow?: string;
+  title?: string;
+  date?: string;
+  location?: string;
+  colors?: string[];
+  ts?: number;
+}
+
+function useWizardClaim(): (WizardClaim & { dateLabel?: string }) | null {
+  const [claim, setClaim] = useState<(WizardClaim & { dateLabel?: string }) | null>(null);
+  useEffect(() => {
+    // Deferred a tick — the compiler lint (rightly) bans synchronous
+    // setState in effects, and localStorage is client-only anyway.
+    const t = window.setTimeout(() => {
+      try {
+        const raw = window.localStorage.getItem('pl-wizard-claim');
+        if (!raw) return;
+        const c = JSON.parse(raw) as WizardClaim;
+        if (!c || typeof c !== 'object') return;
+        // A week-old stash is a different visit — don't resurrect it.
+        if (typeof c.ts === 'number' && Date.now() - c.ts > 7 * 24 * 3600_000) return;
+        let dateLabel: string | undefined;
+        if (typeof c.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(c.date)) {
+          const [y, m, d] = c.date.split('-').map(Number);
+          dateLabel = new Date(y, m - 1, d).toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+          });
+        }
+        setClaim({ ...c, dateLabel });
+      } catch { /* a malformed stash is just no card */ }
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
+  return claim;
+}
+
+function WizardClaimCard({ claim }: { claim: WizardClaim & { dateLabel?: string } }) {
+  const meta = [claim.dateLabel, claim.location].filter(Boolean).join(' · ');
+  return (
+    <div
+      style={{
+        border: '1px solid var(--line)',
+        borderRadius: 16,
+        background: 'var(--card)',
+        padding: '20px 22px',
+        marginBottom: 24,
+        boxShadow: '0 18px 40px -30px rgba(60,50,20,0.35)',
+      }}
+    >
+      {claim.eyebrow ? (
+        <div
+          style={{
+            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+            fontSize: 9.5,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+            marginBottom: 8,
+          }}
+        >
+          {claim.eyebrow}
+        </div>
+      ) : null}
+      {claim.title ? (
+        <div className="display" style={{ fontSize: 26, lineHeight: 1.1, color: 'var(--ink)' }}>
+          {claim.title}
+        </div>
+      ) : null}
+      {meta ? (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>{meta}</div>
+      ) : null}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+        {(claim.colors ?? []).slice(0, 4).map((c, i) => (
+          <span key={i} style={{ width: 13, height: 13, borderRadius: 999, background: c, border: '1px solid var(--line-soft, var(--line))' }} />
+        ))}
+        <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
+          Pressed and saved — it will be here the moment you're in.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function SignupClient() {
   const router = useRouter();
+  const claim = useWizardClaim();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -200,10 +292,22 @@ export function SignupClient() {
 
   return (
     <AuthShell>
-      <Heading line1="Begin your" line2="own thread." />
-      <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-        An account keeps your sites, guests, and keepsakes in one place — no Google required.
-      </p>
+      {claim ? (
+        <>
+          <Heading line1="Claim your" line2="pressing." />
+          <WizardClaimCard claim={claim} />
+          <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
+            An account keeps it — the moment you're in, the press finishes on its own.
+          </p>
+        </>
+      ) : (
+        <>
+          <Heading line1="Begin your" line2="own thread." />
+          <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
+            An account keeps your sites, guests, and keepsakes in one place — no Google required.
+          </p>
+        </>
+      )}
 
       <button
         type="button"

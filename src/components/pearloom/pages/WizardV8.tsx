@@ -393,6 +393,11 @@ interface WizardState {
    *  when the host picks a preset/photo palette instead. */
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
+  /** The unbroken thread (PERSONA-PLAN S3): "Weave my site" hit the
+   *  signed-out 401 — the click is honored after sign-in. Set by the
+   *  401 branch (persisted with the draft), consumed once by the
+   *  resume-press effect when the host returns authenticated. */
+  pendingPress?: boolean;
 }
 
 const defaultState: WizardState = {
@@ -2295,8 +2300,13 @@ export function WizardV8() {
   const searchParams = useSearchParams();
   // Pear addresses the host by first name (the /welcome flow already
   // asked "what should Pear call you?"; the session carries it).
-  const { data: session } = useSession();
+  const { data: session, status: authStatus } = useSession();
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || undefined;
+  /* Signed-out hosts still finish the whole wizard (GRAND-PLAN
+     Phase 2) — but Pear's palette advisor is a signed-in nicety.
+     Locked ≠ an error: the UI shows a quiet slat, never the API's
+     "Sign in required." (PERSONA-PLAN S3, F4). */
+  const pearPaletteLocked = authStatus === 'unauthenticated';
   const templateId = searchParams.get('template');
   /* ?occasion=rehearsal-dinner — deep link from the dashboard's
      "around your wedding" sibling-event card. Prefills the
@@ -2518,6 +2528,9 @@ export function WizardV8() {
   // automatically on step enter AND from the "Re-read my event"
   // button.
   const fetchSmartPalettes = async () => {
+    // Signed-out: never fire (the route 401s) — the Palette step
+    // renders the honest slat instead of a raw auth error.
+    if (authStatus !== 'authenticated') return;
     setSt((s) => ({ ...s, smartPalettesLoading: true, smartPalettesError: undefined }));
     try {
       const res = await fetch('/api/wizard/smart-palette', {
@@ -2572,6 +2585,9 @@ export function WizardV8() {
   // on step-navigation back-and-forth by checking existing results.
   useEffect(() => {
     if (step !== 'Palette') return;
+    // Session still resolving → wait (the effect re-runs on status);
+    // signed out → never fire, the step shows the slat instead.
+    if (authStatus !== 'authenticated') return;
     if (st.smartPalettesLoading) return;
     if ((st.smartPalettes?.length ?? 0) > 0) return;
     // Don't auto-fire if the user hasn't given us enough to work with.
@@ -2581,7 +2597,26 @@ export function WizardV8() {
     if (st.photos.length > 0 && !photoPalette && !photoWaitExpired) return;
     void fetchSmartPalettes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, photoPalette, photoWaitExpired]);
+  }, [step, photoPalette, photoWaitExpired, authStatus]);
+
+  // The unbroken thread (PERSONA-PLAN S3) — a "Weave my site" click
+  // interrupted by the signed-out 401 resumes ITSELF: the 401 branch
+  // flags the persisted draft (pendingPress), signup forwards back
+  // here, the mount restore rehydrates the draft, and this effect
+  // honors the click the host already made. Fires at most once.
+  const resumedPressRef = useRef(false);
+  useEffect(() => {
+    if (resumedPressRef.current) return;
+    if (!st.pendingPress) return;
+    if (authStatus !== 'authenticated') return;
+    if (busy) return;
+    resumedPressRef.current = true;
+    setSt((s) => ({ ...s, pendingPress: false }));
+    // A beat so the restored state settles (and the host sees the
+    // wizard resume) before the press choreography takes over.
+    window.setTimeout(() => { void handleFinish(); }, 900);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.pendingPress, authStatus, busy]);
 
   // Steps that are redundant when a template is selected — the
   // template already picked the occasion, vibes, palette, and
@@ -3053,7 +3088,29 @@ export function WizardV8() {
           try {
             const { photos: _photos, ...persisted } = stRef.current;
             void _photos;
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+            // pendingPress: the host DID press the seal — honor the
+            // click the moment they return signed-in (resume-press
+            // effect below the restore).
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...persisted, pendingPress: true }));
+            // The claim card — the signup page carries the pressed
+            // site through the gate (name, date, palette) so the
+            // account wall never reads as "your work is gone."
+            const cur = stRef.current;
+            const claimNames = cur.names.filter((n) => n.trim());
+            const claimTitle = claimNames.length
+              ? claimNames.join(nameModeFor(cur.occasion).mode === 'couple' ? ' & ' : ', ')
+              : '';
+            window.localStorage.setItem('pl-wizard-claim', JSON.stringify({
+              eyebrow: previewFrameFor(cur.occasion).eyebrow,
+              title: claimTitle,
+              occasion: cur.occasion,
+              date: cur.eventDate,
+              location: cur.location,
+              colors: (cur.paletteColors && cur.paletteColors.length > 0
+                ? cur.paletteColors
+                : PALETTES.find((p) => p.id === cur.palette)?.colors ?? []).slice(0, 4),
+              ts: Date.now(),
+            }));
           } catch {}
         }
         router.push('/signup?next=/wizard/new');
@@ -3122,7 +3179,7 @@ export function WizardV8() {
       // to keep the draft. Prevents the wizard from showing yesterday's
       // answers if the user starts a second site later.
       if (typeof window !== 'undefined') {
-        try { window.localStorage.removeItem(STORAGE_KEY); } catch {}
+        try { window.localStorage.removeItem(STORAGE_KEY); window.localStorage.removeItem('pl-wizard-claim'); } catch {}
         // Arm the First Pressing — the editor plays the reveal
         // sequence exactly once for this freshly-woven site.
         try {
@@ -4114,23 +4171,44 @@ export function WizardV8() {
                     >
                       <Sparkle size={11} color="var(--gold)" /> Pear's picks for you
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void fetchSmartPalettes()}
-                      className="btn btn-outline btn-sm"
-                      disabled={!!st.smartPalettesLoading}
-                      style={{ whiteSpace: 'nowrap' }}
-                    >
-                      <Icon name="wand" size={12} />{' '}
-                      {st.smartPalettesLoading
-                        ? 'Mixing palette…'
-                        : (st.smartPalettes?.length ?? 0) > 0
-                          ? 'Re-read my event'
-                          : 'Ask Pear again'}
-                    </button>
+                    {!pearPaletteLocked && (
+                      <button
+                        type="button"
+                        onClick={() => void fetchSmartPalettes()}
+                        className="btn btn-outline btn-sm"
+                        disabled={!!st.smartPalettesLoading}
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        <Icon name="wand" size={12} />{' '}
+                        {st.smartPalettesLoading
+                          ? 'Mixing palette…'
+                          : (st.smartPalettes?.length ?? 0) > 0
+                            ? 'Re-read my event'
+                            : 'Ask Pear again'}
+                      </button>
+                    )}
                   </div>
 
-                  {st.smartPalettesError && (
+                  {/* Signed-out: an honest slat, never an auth error —
+                      the classics below work now; Pear's custom mixes
+                      arrive with the account they're stored under. */}
+                  {pearPaletteLocked && (
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-display, Fraunces, serif)',
+                        fontStyle: 'italic',
+                        fontSize: 14.5,
+                        color: 'var(--ink-soft)',
+                        marginBottom: 18,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Pear mixes palettes from your story once you're signed in — after the press.
+                      The classics below work beautifully now.
+                    </div>
+                  )}
+
+                  {!pearPaletteLocked && st.smartPalettesError && (
                     <div style={{ fontSize: 12, color: 'var(--pl-warning, #A14A2C)', marginBottom: 10 }}>
                       {st.smartPalettesError}
                     </div>
