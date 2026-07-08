@@ -3,7 +3,7 @@
  
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L137-234 SectionRail. */
 
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 import { PlAvatar } from '../avatars';
 import type { StoryManifest } from '@/types';
@@ -224,9 +224,14 @@ interface Props {
   /** Live co-editors, for per-section presence ("Maya is editing
    *  this section"). Each carries the section id they're focused on. */
   peers?: Array<{ key: string; name: string; email: string; color: string; avatar?: string | null; section?: string | null }>;
+  /** Pear's suggestions card (BastedIn) — rendered inline on the
+   *  Sections tab, right under "＋ Add section", because Pear's
+   *  bastings ARE section suggestions. Mounted by EditorRedesign
+   *  (desktop edit mode only) so this rail stays presentation. */
+  pearSlot?: ReactNode;
 }
 
-export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage, peers = [] }: Props) {
+export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage, peers = [], pearSlot }: Props) {
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -954,6 +959,11 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
         {pickerOpen && availableOptional.length > 0 && renderPicker(null)}
       </div>
       )}
+
+      {/* Pear's suggestions — inline, right where sections are
+          added. In flow, so it never covers rail rows the way the
+          old floating card did. */}
+      {tab === 'sections' && pearSlot}
 
       {/* Tools — only visible on the Sections tab so it lives
           alongside the canvas sections. Each row mounts a host-only

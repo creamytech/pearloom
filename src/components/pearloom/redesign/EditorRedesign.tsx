@@ -637,6 +637,15 @@ export default function EditorRedesign({
           canvasPage={canvasPage}
           setCanvasPage={setCanvasPage}
           peers={peers}
+          /* Pear's bastings, inline under "＋ Add section" — was a
+             floating bottom-left card/pill that covered rail rows. */
+          pearSlot={mode === 'edit' ? (
+            <BastedIn
+              manifest={bridge.manifest}
+              siteSlug={siteSlug}
+              onApply={(next) => bridge.editField(() => next)}
+            />
+          ) : undefined}
         />
       )}
 
@@ -823,16 +832,8 @@ export default function EditorRedesign({
           "in 3 styles" asks (pearloom:pressings). Picks chain into
           the Fitting Room. */}
       <ThreePressings names={bridge.names} />
-      {/* Basted in — Pear's while-you-were-away stitches. Hidden on
-          phone viewports (the FAB corner is already contested) and
-          in preview mode. */}
-      {!viewportMobile && mode === 'edit' && (
-        <BastedIn
-          manifest={bridge.manifest}
-          siteSlug={siteSlug}
-          onApply={(next) => bridge.editField(() => next)}
-        />
-      )}
+      {/* (BastedIn moved into EditorRailLeft's pearSlot — inline
+          under "＋ Add section" instead of a floating corner card.) */}
 
       {pressing && (
         <FirstPressing
@@ -1053,8 +1054,11 @@ function EditorCanvas({
         onClick={() => setActive(null)}
         style={{
           /* Real phone: the canvas IS the device — no 390px frame
-             inside a 390px screen. Edge-to-edge, no chrome. */
-          width: viewportMobile ? '100%' : isMobile ? 390 : 1100,
+             inside a 390px screen. Edge-to-edge, no chrome.
+             Desktop: fill the cell (was a fixed 1100px, which left
+             a moat of dead cream on big monitors) up to 1440 —
+             past that, editing eye-travel gets worse, not better. */
+          width: viewportMobile ? '100%' : isMobile ? 390 : 'min(1440px, 100%)',
           maxWidth: '100%',
           background: 'var(--paper)',
           borderRadius: viewportMobile ? 0 : isMobile ? 36 : 14,
