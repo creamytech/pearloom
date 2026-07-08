@@ -1751,7 +1751,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   padding: 6px 12px; border-radius: 999px;
   background: rgba(20,14,8,0.72); color: #FBF7EE;
   font-family: var(--pl-font-body, system-ui, sans-serif); font-size: 11.5px; font-weight: 700; white-space: nowrap;
-  opacity: 0; pointer-events: none; z-index: 5;
+  /* 106: editor chrome rides above the z-100 paper grain
+     ([data-pl-texture]::before) — grain over the site is the
+     brand; grain over the editor's own tools reads as dirt. */
+  opacity: 0; pointer-events: none; z-index: 106;
   transition: opacity .16s ease, transform .16s ease;
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }

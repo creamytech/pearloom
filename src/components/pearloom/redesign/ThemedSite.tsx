@@ -32,6 +32,7 @@ import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant, LAYOUTS, recommendedVariantFor } from './layouts';
+import { VariantThumb } from './variant-thumb';
 import type { SectionId } from './EditorRedesign';
 /* Occasion gating for the nine core sections — leaf module shared
    with EditorRedesign / SectionRail (importing from EditorRedesign
@@ -4631,15 +4632,20 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
 }) {
   const isActive = active === id;
-  /* Inline Layout bar — the v2 on-canvas section-layout switcher
-     (editor.jsx InlineLayoutBar). Shows over the SELECTED section
-     when it has more than one layout, writing manifest.layouts[id]. */
+  /* Inline Layout chip — the on-canvas section-layout switcher.
+     Shows over the SELECTED section when it has more than one
+     layout, writing manifest.layouts[id]. Redesigned 2026-07-08:
+     the old strip of 7-10 text pills overflowed and collided with
+     the "Editing ·" tag; now a single quiet chip (top-right, clear
+     of the tag at top-left) opens a glass popover of VariantThumb
+     schematic cards — the same visual language as the wizard's
+     Sections step. */
   const layoutVariants = LAYOUTS[id];
   const showLayoutBar = editable && isActive && !!onEditField && !!manifest
     && Array.isArray(layoutVariants) && layoutVariants.length > 1;
   const currentVariant = manifest ? readVariant(manifest, id) : undefined;
   /* Occasion-recommended variant (layouts.ts) — a gold pearl on the
-     pill, never an auto-apply. */
+     card, never an auto-apply. */
   const recommendedId = showLayoutBar
     ? recommendedVariantFor(id, (manifest as unknown as { occasion?: string } | undefined)?.occasion)
     : undefined;
@@ -4652,10 +4658,20 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       },
     } as unknown as StoryManifest));
   };
-  /* Keep the inline Layout bar on screen as the host scrolls through a
-     tall section (the v2 bar tracks the section instead of sitting at a
-     fixed top that scrolls away). barTop is the bar's offset within the
-     section, pinned just below the canvas's visible top edge. */
+  /* Popover open state. Reset on deselect via render-time
+     adjustment (not setState-in-effect — React Compiler lint):
+     when the chip unmounts, a stale `true` would otherwise
+     reopen the popover on the next select. */
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbWasShown, setLbWasShown] = useState(showLayoutBar);
+  if (lbWasShown !== showLayoutBar) {
+    setLbWasShown(showLayoutBar);
+    if (!showLayoutBar && lbOpen) setLbOpen(false);
+  }
+  /* Keep the layout chip on screen as the host scrolls through a
+     tall section (it tracks the section instead of sitting at a
+     fixed top that scrolls away). The chip's offset within the
+     section is pinned just below the canvas's visible top edge. */
   const secRef = useRef<HTMLDivElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -4666,7 +4682,7 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
     /* rAF-coalesced: the raw handler did two getBoundingClientRect
        reads + offsetHeight + a setState per scroll EVENT (several can
        land per frame on trackpads) inside the selected section's hot
-       path. One measurement per frame is enough for a tracking bar. */
+       path. One measurement per frame is enough for a tracking chip. */
     let rafId = 0;
     const update = () => {
       rafId = 0;
@@ -4677,23 +4693,13 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       const above = top0 - sr.top; // px the section top is scrolled above the visible edge
       // Direct style write, not setState — this fires per scroll
       // frame while a tall section is selected, and a render+commit
-      // per frame is exactly the jank the bar is meant to avoid.
+      // per frame is exactly the jank the chip is meant to avoid.
       bar.style.top = `${Math.max(8, Math.min(above + 8, el.offsetHeight - 48))}px`;
     };
     const schedule = () => {
       if (!rafId) rafId = requestAnimationFrame(update);
     };
     schedule();
-    /* Seat the ACTIVE pill in view when the bar appears — on narrow
-       viewports the strip scrolls, and the current layout may
-       otherwise sit off-screen to the right. */
-    {
-      const bar = barRef.current;
-      const on = bar?.querySelector<HTMLElement>('button[data-on="true"]');
-      if (bar && on) {
-        bar.scrollLeft = Math.max(0, on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2);
-      }
-    }
     const target: HTMLElement | Window = scroller ?? window;
     target.addEventListener('scroll', schedule, { passive: true } as AddEventListenerOptions);
     window.addEventListener('resize', schedule);
@@ -4703,6 +4709,19 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       window.removeEventListener('resize', schedule);
     };
   }, [showLayoutBar]);
+  /* Close the popover on any pointer-down outside it — checked via
+     containment (not stopPropagation ordering, which React's root
+     delegation makes fragile). */
+  useEffect(() => {
+    if (!lbOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const bar = barRef.current;
+      if (bar && e.target instanceof Node && bar.contains(e.target)) return;
+      setLbOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [lbOpen]);
   return (
     <div
       ref={secRef}
@@ -4720,7 +4739,11 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       }
       style={{
         position: stickyTop ? 'sticky' : 'relative',
-        ...(stickyTop ? { top: 0, zIndex: 50 } : {}),
+        /* Editor canvas: the sticky nav must ride above the other
+           sections' selection chrome (now z 104–110, above the
+           z-100 grain) so chrome scrolling beneath it is covered.
+           Published site keeps 50 — under the grain, as designed. */
+        ...(stickyTop ? { top: 0, zIndex: editable ? 112 : 50 } : {}),
         cursor: editable ? 'pointer' : 'default',
         scrollMarginTop: 80,
       }}
@@ -4740,13 +4763,19 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
               root, so every mouse crossing re-rendered the whole
               canvas tree. Active keeps its inline style, which also
               outranks the CSS hover rule. */}
+          {/* Chrome z-indexes sit ABOVE 100: the paper-grain texture
+              (`[data-pl-texture]::before`, pearloom.css) rides
+              z-index 100 with mix-blend multiply so it covers section
+              backgrounds — grain over the SITE is the brand, but
+              grain over the editor's own tools read as dirt on the
+              chrome. 104/106/110 keep frame < labels < layout UI. */}
           <div
             aria-hidden
             className="pl8-tsec-frame"
             style={{
               position: 'absolute', inset: 4, borderRadius: 6,
               outline: isActive ? '2px solid #C6703D' : undefined,
-              outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
+              outlineOffset: -2, pointerEvents: 'none', zIndex: 104,
             }}
           />
           {!hideHandle && (
@@ -4758,7 +4787,7 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
                 color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
                 border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
                 fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-                display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
+                display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 106,
                 boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
                 fontFamily: 'var(--pl-font-mono, monospace)',
                 pointerEvents: 'none',
@@ -4768,61 +4797,90 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
             </div>
           )}
           {showLayoutBar && layoutVariants && (
-            /* A horizontally-SCROLLING strip. flexShrink: 0 on every
-               pill is the load-bearing bit — without it, narrow
-               viewports squeezed all 7+ pills into one row: labels
-               collided ("Full photoBig type") and the active olive
-               pill collapsed into a circle clipping its own text
-               (2026-07-03 phone screenshot). Now pills keep their
-               size, the strip scrolls (scrollbar hidden — the
-               half-clipped last pill is the affordance), and the
-               active pill auto-centers on mount. */
+            /* One chip at top-RIGHT (clear of the "Editing ·" tag at
+               top-left), naming the current layout. Tapping it opens
+               a glass popover grid of schematic cards — VariantThumb,
+               the same drawings the wizard's Sections step uses. */
             <div
               ref={barRef}
               onClick={(e) => e.stopPropagation()}
               className="pl-rd-layoutbar"
               style={{
-                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
-                display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
-                background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
-                border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
-                maxWidth: 'calc(100% - 24px)', overflowX: 'auto',
-                scrollbarWidth: 'none', touchAction: 'pan-x', WebkitOverflowScrolling: 'touch',
+                position: 'absolute', top: 8, right: 12, zIndex: 110,
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
                 fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
               }}
             >
-              <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)', padding: '0 7px 0 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h10" /></svg>
-                Layout
-              </span>
-              {layoutVariants.map((v) => {
-                const on = v.id === currentVariant;
-                const rec = v.id === recommendedId;
-                const sub = v.sub ? `${v.label} — ${v.sub}` : v.label;
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    data-on={on ? 'true' : undefined}
-                    title={rec ? `${sub} · Recommended for this occasion` : sub}
-                    onClick={(e) => { e.stopPropagation(); pickLayout(v.id); }}
-                    style={{
-                      padding: '8px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                      fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', fontFamily: 'inherit',
-                      flexShrink: 0,
-                      background: on ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
-                      color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink-soft, #3A332C)',
-                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                    }}
-                  >
-                    {v.label}
-                    {rec && (
-                      /* The gold pearl — occasion recommendation. */
-                      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
-                    )}
-                  </button>
-                );
-              })}
+              <button
+                type="button"
+                aria-expanded={lbOpen}
+                title="Change this section's layout"
+                onClick={(e) => { e.stopPropagation(); setLbOpen((o) => !o); }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
+                  padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
+                  background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
+                  border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
+                  fontFamily: 'inherit', whiteSpace: 'nowrap',
+                }}
+              >
+                <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h10" /></svg>
+                  Layout
+                </span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--pl-ink-soft, #3A332C)' }}>
+                  {layoutVariants.find((v) => v.id === currentVariant)?.label ?? 'Default'}
+                </span>
+                <svg aria-hidden width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--pl-ink-muted, #9B9384)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: lbOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s var(--pl-ease-out, ease)' }}><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              {lbOpen && (
+                <div
+                  role="listbox"
+                  aria-label={`${label} layouts`}
+                  style={{
+                    marginTop: 8,
+                    width: 'min(324px, calc(100vw - 40px))',
+                    maxHeight: 336, overflowY: 'auto', overscrollBehavior: 'contain',
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4,
+                    padding: 8, borderRadius: 14,
+                    background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)',
+                    border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 18px 44px -12px rgba(40,28,12,0.45)',
+                  }}
+                >
+                  {layoutVariants.map((v) => {
+                    const on = v.id === currentVariant;
+                    const rec = v.id === recommendedId;
+                    const sub = v.sub ? `${v.label} — ${v.sub}` : v.label;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        role="option"
+                        aria-selected={on}
+                        data-on={on ? 'true' : undefined}
+                        title={rec ? `${sub} · Recommended for this occasion` : sub}
+                        onClick={(e) => { e.stopPropagation(); pickLayout(v.id); setLbOpen(false); }}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                          padding: '9px 6px 7px', borderRadius: 10, cursor: 'pointer',
+                          border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid transparent',
+                          background: on ? 'rgba(92,107,63,0.08)' : 'transparent',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        <VariantThumb section={id} variant={v.id} />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 600, lineHeight: 1.2, color: 'var(--pl-ink-soft, #3A332C)', textAlign: 'center' }}>
+                          {v.label}
+                          {rec && (
+                            /* The gold pearl — occasion recommendation. */
+                            <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </>
@@ -5417,7 +5475,8 @@ function EditPhotoCorner({ editable, slot }: { editable: boolean; slot: CanvasPh
       title="Change photo"
       onClick={(e) => { e.stopPropagation(); open(); }}
       style={{
-        position: 'absolute', top: 14, right: 14, zIndex: 6,
+        // 106: editor chrome rides above the z-100 paper grain.
+        position: 'absolute', top: 14, right: 14, zIndex: 106,
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '7px 12px', borderRadius: 999, border: 'none',
         background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',

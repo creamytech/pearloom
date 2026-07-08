@@ -401,11 +401,18 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
-   ON-CANVAS LAYOUT BAR — horizontally-scrolling pill strip.
-   The inline styles set scrollbar-width: none (Firefox); this
-   hides the WebKit scrollbar so the strip reads as a clean rail
-   on phones (the half-clipped last pill is the scroll affordance).
+   ON-CANVAS LAYOUT CHIP + POPOVER — the popover grid scrolls
+   vertically when a section has many variants; give it a slim
+   quiet scrollbar instead of the chunky platform default.
    ════════════════════════════════════════════════════════════════ */
-.pl-rd-layoutbar::-webkit-scrollbar {
-  display: none;
+.pl-rd-layoutbar [role='listbox'] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line, #e4dccb) transparent;
+}
+.pl-rd-layoutbar [role='listbox']::-webkit-scrollbar {
+  width: 6px;
+}
+.pl-rd-layoutbar [role='listbox']::-webkit-scrollbar-thumb {
+  background: var(--line, #e4dccb);
+  border-radius: 999px;
 }
