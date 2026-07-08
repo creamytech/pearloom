@@ -6,6 +6,7 @@ import { saveSiteDraft } from '@/lib/db';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isGriefExempt } from '@/lib/plan-gate';
 import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
 import { recordProductEvent } from '@/lib/analytics/product-events';
+import { listSitesForEmail } from '@/lib/sites-list';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -62,179 +63,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = getSupabase();
-    if (!supabase) {
-      // Missing env vars — return empty list rather than crashing the dashboard
-      console.warn('[api/sites] Supabase not configured — returning empty sites list');
-      return NextResponse.json({ sites: [] }, { status: 200 });
-    }
-
-    // Filter on the INDEXED top-level `creator_email` column
-    // (idx_sites_creator_email, 20260415) — NOT the
-    // `site_config->>creator_email` JSONB extraction, which can't use
-    // that index and sequential-scanned the whole `sites` table on
-    // every dashboard load. saveSiteDraft + publishSite + adoptSite
-    // all keep this column in sync with the JSON (lowercased +
-    // trimmed) on write, and 20260415 backfilled it from site_config,
-    // so the indexed column is authoritative for ownership.
-    // Note: `published` is intentionally NOT in the SELECT. The
-    // sites table doesn't have that column in current deployments —
-    // we derive published-state from manifest.published instead, so
-    // the row schema stays narrow and migrations stay optional.
-    const SELECT_COLUMNS = 'id, subdomain, ai_manifest, site_config, created_at, updated_at';
-    const sessionEmail = session.user.email.toLowerCase().trim();
-    const initial = await supabase
-      .from('sites')
-      .select(SELECT_COLUMNS)
-      .eq('creator_email', sessionEmail)
-      .order('updated_at', { ascending: false, nullsFirst: false });
-    let data = initial.data;
-    const error = initial.error;
-
-    // Legacy backstop: 20260415 backfilled creator_email from
-    // site_config VERBATIM (no lowercasing), so a pre-normalisation
-    // "Foo@Bar.com" row can sit in the column with mixed case and miss
-    // the exact `.eq` above. A case-insensitive match on the SAME
-    // (indexed) column catches it. Only fires when the exact match
-    // returns nothing (new users, or all-legacy owners).
-    if (!error && (!data || data.length === 0)) {
-      const { data: legacyData, error: legacyError } = await supabase
-        .from('sites')
-        .select(SELECT_COLUMNS)
-        .ilike('creator_email', sessionEmail)
-        .order('updated_at', { ascending: false, nullsFirst: false });
-      if (!legacyError) {
-        data = legacyData;
-      }
-    }
-
-    // Log a one-line summary so production logs answer "did the query
-    // find the user's sites?" without needing to attach a debugger.
-    // Cheap and grep-able: `grep "[api/sites] list"`.
-    console.log(`[api/sites] list email=${sessionEmail} count=${data?.length ?? 0}`);
-
-    // Diagnostic safety net: if both queries returned 0 rows but the
-    // service-role client can see ANY rows where the JSON extraction
-    // matches a substring of the user's email, surface that in the
-    // log so we can tell missing-data from broken-filter at a glance.
-    if (!data || data.length === 0) {
-      try {
-        const { data: probe } = await supabase
-          .from('sites')
-          .select('id, subdomain, site_config')
-          .limit(8);
-        const probeRows = (probe ?? []) as Array<{ id: string; subdomain: string; site_config: Record<string, unknown> | null }>;
-        const matches = probeRows
-          .map((r) => ({
-            id: r.id,
-            subdomain: r.subdomain,
-            owner: String((r.site_config as Record<string, unknown> | null)?.creator_email ?? ''),
-          }))
-          .filter((r) => r.owner.toLowerCase() === sessionEmail);
-        if (matches.length > 0) {
-          console.warn(
-            `[api/sites] FILTER MISMATCH — ${matches.length} site(s) match in JS but not in SQL. Subdomains:`,
-            matches.map((m) => m.subdomain).join(','),
-          );
-          // Fall back to the JS-side filter so the user gets their
-          // sites even if the JSONB filter syntax isn't matching.
-          const { data: allRows } = await supabase
-            .from('sites')
-            .select(SELECT_COLUMNS)
-            .order('updated_at', { ascending: false, nullsFirst: false })
-            .limit(200);
-          const filtered = (allRows ?? []).filter((r) => {
-            const owner = String((r.site_config as Record<string, unknown> | null)?.creator_email ?? '').toLowerCase().trim();
-            return owner === sessionEmail;
-          });
-          if (filtered.length > 0) {
-            data = filtered;
-          }
-        }
-      } catch (probeErr) {
-        console.warn('[api/sites] probe failed (non-fatal):', probeErr);
-      }
-    }
-
-    if (error) {
-      console.error('Database error fetching sites:', error);
-      // Return empty list instead of 500 so the dashboard still renders
-      return NextResponse.json({ sites: [], _error: error.message }, { status: 200 });
-    }
-
-    const mappedSites = data?.map(site => {
-      const manifest = site.ai_manifest as Record<string, unknown> | null;
-      const config = site.site_config as Record<string, unknown> | null;
-      // Surface occasion at the top level so consumers don't have to
-      // dig into manifest. Read order: manifest.occasion (canonical) →
-      // site_config.occasion (legacy fallback for sites generated
-      // before occasion landed on the manifest). Without this the
-      // dashboard fell back to /sites/{slug} URLs whenever the
-      // streaming generation failed to write the field.
-      const occasion = (manifest?.occasion as string | undefined)
-        ?? (config?.occasion as string | undefined)
-        ?? null;
-      // Derive published-state from manifest.published rather than a
-      // dedicated column. The sites table doesn't ship a `published`
-      // boolean in current deployments and selecting it threw 42703
-      // ("column sites.published does not exist"). The publish
-      // pipeline already stamps manifest.published = true on the row
-      // it writes, so this is the canonical signal anyway.
-      const published = Boolean(manifest?.published);
-      return {
-        id: site.id,
-        domain: site.subdomain,
-        occasion,
-        manifest,
-        created_at: site.created_at,
-        updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
-        published,
-        // Ensure names is always an array
-        names: Array.isArray(config?.names) ? config.names : ['', ''],
-      };
-    }) || [];
-
-    // ── Co-host sites — sites shared WITH this user. Appended
-    //    after owned sites with a coHostRole marker so the
-    //    dashboard can badge them ("Co-hosting · editor") and the
-    //    co-host actually has a path to the editor.
-    try {
-      const { data: cohostRows } = await supabase
-        .from('cohosts')
-        .select('site_id, role')
-        .eq('email', sessionEmail)
-        .limit(50);
-      const ownedIds = new Set(mappedSites.map((s) => s.id));
-      const sharedIds = (cohostRows ?? [])
-        .filter((r) => !ownedIds.has(r.site_id as string));
-      if (sharedIds.length > 0) {
-        const roleById = new Map(sharedIds.map((r) => [r.site_id as string, r.role as string]));
-        const { data: sharedSites } = await supabase
-          .from('sites')
-          .select(SELECT_COLUMNS)
-          .in('id', [...roleById.keys()]);
-        for (const site of sharedSites ?? []) {
-          const manifest = site.ai_manifest as Record<string, unknown> | null;
-          const config = site.site_config as Record<string, unknown> | null;
-          mappedSites.push({
-            id: site.id,
-            domain: site.subdomain,
-            occasion: (manifest?.occasion as string | undefined)
-              ?? (config?.occasion as string | undefined) ?? null,
-            manifest,
-            created_at: site.created_at,
-            updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
-            published: Boolean(manifest?.published),
-            names: Array.isArray(config?.names) ? config.names : ['', ''],
-            coHostRole: roleById.get(site.id as string),
-          } as (typeof mappedSites)[number] & { coHostRole?: string });
-        }
-      }
-    } catch (cohostErr) {
-      console.warn('[api/sites] co-host site lookup failed (non-fatal):', cohostErr);
-    }
-
-    return NextResponse.json({ sites: mappedSites }, { status: 200 });
+    // The listing core (indexed creator_email query + legacy
+    // mixed-case fallback + filter-mismatch probe + co-host append)
+    // lives in @/lib/sites-list so the dashboard's server layout can
+    // run the SAME query to seed the first paint. Owned + co-host
+    // queries run in parallel there.
+    const sites = await listSitesForEmail(session.user.email);
+    // null = hard failure inside the lib — keep the route's historic
+    // degrade-gracefully contract (empty list, 200).
+    return NextResponse.json({ sites: sites ?? [] }, { status: 200 });
   } catch (error) {
     console.error('Error fetching sites:', error);
     // Return empty list so the UI degrades gracefully

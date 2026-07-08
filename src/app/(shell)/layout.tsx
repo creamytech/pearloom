@@ -13,7 +13,12 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { listSitesForEmail } from '@/lib/sites-list';
 import { ShellPersistentLayout } from '@/components/pearloom/dash/ShellPersistentLayout';
+import { SitesHydrator } from '@/components/marketing/design/dash/SitesHydrator';
+import type { ApiSiteRow } from '@/components/marketing/design/dash/hooks';
 
 // Opt every (shell) route out of static prerendering. The sidebar
 // site picker uses useSearchParams() internally; without dynamic
@@ -23,6 +28,29 @@ import { ShellPersistentLayout } from '@/components/pearloom/dash/ShellPersisten
 // working everywhere without per-page boundaries.
 export const dynamic = 'force-dynamic';
 
-export default function ShellLayout({ children }: { children: ReactNode }) {
-  return <ShellPersistentLayout>{children}</ShellPersistentLayout>;
+export default async function ShellLayout({ children }: { children: ReactNode }) {
+  // Server-side seed: run the SAME sites query the client would fire
+  // after hydration and hand it to the cache hydrator, so the host's
+  // event is in the very first paint ("5 seconds to show my event",
+  // 2026-07-08). Layouts render once per hard load — tab navigation
+  // inside the shell never re-runs this. Best-effort: any failure
+  // just falls back to the old client-side fetch.
+  let seed: ApiSiteRow[] | null = null;
+  try {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.email) {
+      seed = (await listSitesForEmail(session.user.email)) as unknown as ApiSiteRow[];
+    }
+  } catch (err) {
+    console.warn('[shell] sites seed failed (falling back to client fetch):', err);
+  }
+  return (
+    <ShellPersistentLayout>
+      {/* Seed on success — including the genuinely-empty list (new
+          accounts skip the client refetch too). null = query failed;
+          no hydrator, the client fetch path retries. */}
+      {seed !== null && <SitesHydrator sites={seed} />}
+      {children}
+    </ShellPersistentLayout>
+  );
 }

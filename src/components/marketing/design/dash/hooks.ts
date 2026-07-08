@@ -46,6 +46,7 @@ export interface UserSitesState {
 // memoisation — enough for dashboard navigation.
 let sitesCache: SiteSummary[] | null = null;
 let sitesCacheAt = 0;
+let sitesInFlight: Promise<void> | null = null;
 const SITES_CACHE_TTL_MS = 30_000;
 const sitesSubscribers: Set<() => void> = new Set();
 
@@ -72,24 +73,64 @@ export function invalidateSitesCache(): void {
   notifySitesSubscribers();
 }
 
+export interface ApiSiteRow {
+  id: string;
+  domain: string;
+  /** Top-level occasion from /api/sites (extracted server-side from
+   *  manifest.occasion or site_config.occasion). Falls back to
+   *  manifest.occasion below if the API hasn't been redeployed. */
+  occasion?: string | null;
+  names?: unknown;
+  manifest?: unknown;
+  published?: boolean;
+  updated_at?: string;
+  created_at?: string;
+}
+
 interface ApiSitesResponse {
-  sites: Array<{
-    id: string;
-    domain: string;
-    /** Top-level occasion from /api/sites (extracted server-side from
-     *  manifest.occasion or site_config.occasion). Falls back to
-     *  manifest.occasion below if the API hasn't been redeployed. */
-    occasion?: string | null;
-    names?: [string, string] | null;
-    manifest?: {
+  sites: ApiSiteRow[];
+}
+
+/** Shape raw /api/sites rows into SiteSummary — shared by the client
+ *  refresh path and the server-side seed. */
+function shapeApiSites(rows: ApiSiteRow[]): SiteSummary[] {
+  return rows.map((s) => {
+    const m = s.manifest as {
       occasion?: string;
       coverPhoto?: string;
       logistics?: { date?: string; venue?: string };
+      names?: [string, string];
     } | null;
-    published?: boolean;
-    updated_at?: string;
-    created_at?: string;
-  }>;
+    return {
+      id: s.id,
+      domain: s.domain,
+      names: ((s.names ?? m?.names ?? null) || null) as [string, string] | null,
+      // Prefer the API's top-level occasion (extracted server-side,
+      // defensive against legacy sites where it lived only on
+      // site_config). Falls back to manifest for older deployments.
+      occasion: s.occasion ?? m?.occasion ?? undefined,
+      manifest: s.manifest,
+      coverPhoto: m?.coverPhoto ?? null,
+      eventDate: m?.logistics?.date ?? null,
+      venue: m?.logistics?.venue ?? null,
+      published: s.published,
+      updated_at: s.updated_at,
+      created_at: s.created_at,
+    };
+  });
+}
+
+/** Seed the module cache from server-rendered data (the shell layout
+ *  runs the same DB query and hands the rows to <SitesHydrator/>),
+ *  so the first dashboard paint has the host's sites WITHOUT a
+ *  hydrate → session → /api/sites round trip. Render-safe: writes
+ *  the module cache only (no notify — it runs before consumers
+ *  mount, and they read the snapshot directly). A fresher client-
+ *  side cache always wins. */
+export function seedSitesCache(rows: ApiSiteRow[]): void {
+  if (sitesCache !== null && Date.now() - sitesCacheAt <= SITES_CACHE_TTL_MS) return;
+  sitesCache = shapeApiSites(rows);
+  sitesCacheAt = Date.now();
 }
 
 function notifySitesSubscribers() {
@@ -114,55 +155,49 @@ export function useUserSites(): UserSitesState {
   // read gets memoized away — sibling components stopped seeing
   // cache refreshes (new site created → stale picker).
   const sites = useSyncExternalStore(subscribeSites, getSitesSnapshot, getSitesServerSnapshot);
-  const [loading, setLoading] = useState(sitesCache === null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
     setError(null);
+    // In-flight dedupe: a dashboard page mounts ~10 useUserSites
+    // consumers (sidebar picker, home, bell, palette, …) whose
+    // effects all fire before any fetch resolves — without this,
+    // one load stampeded TEN parallel /api/sites calls, each
+    // serializing every manifest ("5 seconds to show my event").
+    // All concurrent callers now await the same promise.
+    if (!sitesInFlight) {
+      sitesInFlight = (async () => {
+        try {
+          const res = await fetch('/api/sites', { cache: 'no-store' });
+          if (!res.ok) throw new Error(`sites ${res.status}`);
+          const data = (await res.json()) as ApiSitesResponse;
+          sitesCache = shapeApiSites(data.sites ?? []);
+          sitesCacheAt = Date.now();
+          notifySitesSubscribers();
+        } finally {
+          sitesInFlight = null;
+        }
+      })();
+    }
     try {
-      const res = await fetch('/api/sites', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`sites ${res.status}`);
-      const data = (await res.json()) as ApiSitesResponse;
-      const shaped: SiteSummary[] = (data.sites ?? []).map((s) => {
-        const m = s.manifest as {
-          occasion?: string;
-          coverPhoto?: string;
-          logistics?: { date?: string; venue?: string };
-          names?: [string, string];
-        } | null;
-        return {
-          id: s.id,
-          domain: s.domain,
-          names: (s.names ?? m?.names ?? null) as [string, string] | null,
-          // Prefer the API's top-level occasion (now extracted server-
-          // side, defensive against legacy sites where it lived only on
-          // site_config). Falls back to manifest for older deployments.
-          occasion: s.occasion ?? m?.occasion ?? undefined,
-          manifest: s.manifest,
-          coverPhoto: m?.coverPhoto ?? null,
-          eventDate: m?.logistics?.date ?? null,
-          venue: m?.logistics?.venue ?? null,
-          published: s.published,
-          updated_at: s.updated_at,
-          created_at: s.created_at,
-        };
-      });
-      sitesCache = shaped;
-      sitesCacheAt = Date.now();
-      notifySitesSubscribers();
+      await sitesInFlight;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     const stale = sitesCache === null || Date.now() - sitesCacheAt > SITES_CACHE_TTL_MS;
     if (stale) void refresh();
-    else setLoading(false);
   }, [refresh]);
+
+  // Derived, not stateful: a useState(sitesCache === null) initial
+  // differs between the server render (cache always null) and a
+  // seeded client render (SitesHydrator) — a hydration mismatch.
+  // Deriving from the store snapshot keeps both passes consistent,
+  // and stale background refreshes no longer flash the skeleton
+  // over data we already have.
+  const loading = sites === null && !error;
 
   return { sites, loading, error, refresh };
 }
