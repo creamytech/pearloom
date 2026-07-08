@@ -7,6 +7,8 @@ import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { Icon } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
+import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
 
 interface MergedPhase {
   id: string;
@@ -69,6 +71,13 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
     void reload();
   }, [reload]);
 
+  /* One clock (cockpit-phase): a past event stands the ladder
+     down — sent rows are history; unsent suggestions retire. */
+  const parsedEventDate = parseLocalDate(eventDate);
+  const rawDaysUntil = parsedEventDate ? daysBetweenCalendarDates(parsedEventDate, new Date()) : null;
+  const postEvent = isPostEventPhase(cockpitPhaseFor(rawDaysUntil));
+  const visiblePhases = postEvent ? (phases ?? []).filter((p) => p.status === 'sent') : phases;
+
   return (
     <DashLayout active="guests" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) var(--pl-dash-pad)', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
@@ -77,15 +86,27 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
             timeline rail leads. */}
         <PageIntro
           eyebrow="Guests"
-          title="Send timeline"
+          title={postEvent ? 'What went out' : 'Send timeline'}
           meta={
-            <HintChip
-              storageKey="pl-hint-cadence"
-              hint="Pear suggests every send your event needs."
-              detail="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you — anchored to your event date. Approve, edit copy, or schedule each one."
-            />
+            postEvent ? undefined : (
+              <HintChip
+                storageKey="pl-hint-cadence"
+                hint="Pear suggests every send your event needs."
+                detail="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you — anchored to your event date. Approve, edit copy, or schedule each one."
+              />
+            )
           }
         />
+
+        {/* The day has passed — the ladder stands down (ATELIER-PLAN
+            DR.2). Only what actually went out renders below; unsent
+            suggestions never pressure a finished event. */}
+        {postEvent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--gold-line, #D0B070)', background: 'var(--card)', margin: '0 0 14px', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+            <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
+            The day has come and gone — the send ladder stands down. This is the record of what went out.
+          </div>
+        )}
 
         {!eventDate && !loading && (
           <DashEmpty
@@ -101,7 +122,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
           <DashSkeleton kind="list" count={6} label="Threading the cadence" />
         ) : error ? (
           <div style={{ padding: 14, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 12 }}>{error}</div>
-        ) : phases && phases.length > 0 ? (
+        ) : visiblePhases && visiblePhases.length > 0 ? (
           <div className="pl8-dash-stagger" style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* Timeline rail */}
             <div aria-hidden style={{
@@ -113,7 +134,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
               background: 'linear-gradient(to bottom, var(--peach-ink, #C6703D) 0%, var(--peach-ink, #C6703D) 50%, transparent 100%)',
               opacity: 0.18,
             }} />
-            {phases.map((p) => (
+            {visiblePhases.map((p) => (
               <PhaseRow
                 key={p.id}
                 phase={p}

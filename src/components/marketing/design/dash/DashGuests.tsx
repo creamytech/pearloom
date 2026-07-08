@@ -12,6 +12,8 @@ import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
+import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
 import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
@@ -1350,6 +1352,11 @@ export function DashGuests() {
             </div>
           )}
           {!solemn && rows && (() => {
+            /* Post-event, nobody gets nudged — the replies are what
+               they were (ATELIER-PLAN DR.2; cockpit-phase clock). */
+            const gd = parseLocalDate(site?.eventDate);
+            const gPost = gd != null && isPostEventPhase(cockpitPhaseFor(daysBetweenCalendarDates(gd, new Date())));
+            if (gPost) return null;
             const deadlineSoon = rsvpDeadline != null && rsvpDeadline.daysLeft >= 0 && rsvpDeadline.daysLeft <= 14;
             if (deadlineSoon && counts.pending > 0) {
               const pendingWithEmail = rows.filter((g) => g.rsvp === 'pending' && g.em);

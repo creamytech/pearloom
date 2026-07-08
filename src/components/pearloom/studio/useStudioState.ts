@@ -17,6 +17,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { studioDefaultsFromLook } from './studio-defaults-from-look';
+import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
+import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
 import {
   DEFAULT_ASSET_PALETTE,
   PALETTES,
@@ -160,8 +162,18 @@ function pick<T extends string>(value: unknown, allowed: ReadonlySet<T>, fallbac
   return typeof value === 'string' && allowed.has(value as T) ? (value as T) : fallback;
 }
 
+/** Has this site's day already passed? (Drives the default card
+ *  type — thank-yous after the day, never save-the-dates.) */
+function manifestPostEvent(manifest: StoryManifest | null | undefined): boolean {
+  const raw = (manifest as unknown as { logistics?: { date?: string } } | null)?.logistics?.date;
+  const d = parseLocalDate(raw);
+  if (!d) return false;
+  return isPostEventPhase(cockpitPhaseFor(daysBetweenCalendarDates(d, new Date())));
+}
+
 function readInitialState(manifest: StoryManifest | null | undefined): StudioState {
   const studio = (manifest as unknown as { studio?: ManifestStudio } | null)?.studio;
+  const postEvent = manifestPostEvent(manifest);
   /* First-time Studio open on this site (no persisted studio
      state) — seed from the host's Site Look (Edition / Kit /
      accent / voice) so the stationery matches the site rather
@@ -179,11 +191,19 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
       tone: VALID_TONES.has(lookSeeded.tone) ? lookSeeded.tone : DEFAULT_STATE.tone,
       /* The site's own grain rides in on first open. */
       texture: sanitizeTexture(lookSeeded.texture),
+      /* After the day, the Studio opens on thank-yous — the card
+         that still has work to do (ATELIER-PLAN DR.2). */
+      ...(postEvent ? { type: 'thanks' as StationeryType } : {}),
     };
   }
   return {
     ...DEFAULT_STATE,
-    type: pick(studio.type, VALID_TYPES, DEFAULT_STATE.type),
+    /* A saved save-the-date after the day is always wrong — flip
+       to thank-yous; other saved types are respected. */
+    type: (() => {
+      const saved = pick(studio.type, VALID_TYPES, DEFAULT_STATE.type);
+      return postEvent && saved === 'std' ? 'thanks' : saved;
+    })(),
     view: pick(studio.view, VALID_VIEWS, DEFAULT_STATE.view),
     draft: studio.draft ?? DEFAULT_STATE.draft,
     palette: pick(studio.palette, VALID_PALETTES, DEFAULT_STATE.palette),
