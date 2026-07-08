@@ -18,10 +18,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { Icon } from '../motifs';
 import { useDashDrawer } from './useDashDrawer';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { isDashSurfaceApplicable, type DashSurfaceId } from '@/lib/event-os/dashboard-applicability';
+import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
+import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
 
 interface TabDef {
   id: string;
@@ -50,8 +53,16 @@ const STANDBY_TAB: TabDef = { id: 'registry', label: 'Registry', icon: 'gift', h
 
 /** Routes that ship their own fixed bottom chrome on phones —
  *  the bar stands down there instead of stacking two bars.
- *  (Studio mounts StudioMobileBar at /dashboard/invite.) */
-const OWN_BOTTOM_CHROME = ['/dashboard/invite'];
+ *  (Studio mounts StudioMobileBar at /dashboard/invite.)
+ *  Exported: DashMobileBar shows its hamburger ONLY here, where
+ *  the bar's More tab (the drawer's thumb-zone door) is absent —
+ *  one drawer door per screen, never two. */
+export const OWN_BOTTOM_CHROME = ['/dashboard/invite'];
+
+/** The day passes; the tab follows (the same cockpit clock every
+ *  dashboard card reads). Post-event, "Day" hands its slot to
+ *  "Memory" — the room the host actually lives in now. */
+const MEMORY_TAB: TabDef = { id: 'memory', label: 'Memory', icon: 'heart-icon', href: '/dashboard/keepsakes' };
 
 function isActiveTab(tab: TabDef, pathname: string): boolean {
   if (tab.exact) return pathname === tab.href;
@@ -62,14 +73,21 @@ export function DashTabBar() {
   const pathname = usePathname() ?? '';
   const { open: drawerOpen, toggle: toggleDrawer } = useDashDrawer();
   const { site } = useSelectedSite();
+  const [todayD] = useState<Date | null>(() => new Date());
 
   if (OWN_BOTTOM_CHROME.some((r) => pathname === r || pathname.startsWith(`${r}/`))) {
     return null;
   }
 
   const occasion = site?.occasion;
-  let tabs = PRIMARY_TABS.filter((t) => !t.gate || isDashSurfaceApplicable(t.gate, occasion));
-  if (tabs.length < PRIMARY_TABS.length && isDashSurfaceApplicable(STANDBY_TAB.gate!, occasion)) {
+  const eventD = parseLocalDate(site?.eventDate);
+  const post = eventD !== null && todayD !== null
+    && isPostEventPhase(cockpitPhaseFor(daysBetweenCalendarDates(eventD, todayD)));
+  const primary = post
+    ? PRIMARY_TABS.map((t) => (t.id === 'day' ? MEMORY_TAB : t))
+    : PRIMARY_TABS;
+  let tabs = primary.filter((t) => !t.gate || isDashSurfaceApplicable(t.gate, occasion));
+  if (tabs.length < primary.length && isDashSurfaceApplicable(STANDBY_TAB.gate!, occasion)) {
     tabs = [...tabs, STANDBY_TAB];
   }
 

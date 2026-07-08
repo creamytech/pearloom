@@ -21,6 +21,7 @@ import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, useUserSites, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { Icon } from '../motifs';
+import { toggleAskPear } from './DashAskPear';
 
 interface CmdItem {
   id: string;
@@ -164,6 +165,20 @@ export function DashCommandPalette() {
     // destination — the nav-settings entry above covers it). The
     // modal keeps only its clearly-named quick views: billing and
     // usage.
+    /* Ask Pear's help-desk sheet — on phones the palette is the ONE
+       pear door (the mobile bar's duplicate circle was cut in the
+       2026-07-08 nav rework), so the sheet lives one row inside. */
+    items.push({
+      id: 'action-ask-pear',
+      kind: 'action',
+      label: 'Ask Pear a question',
+      hint: 'The help desk — advice on your event',
+      icon: 'sparkles',
+      onSelect: () => {
+        setOpen(false);
+        toggleAskPear();
+      },
+    });
     items.push({
       id: 'action-settings-usage',
       kind: 'action',

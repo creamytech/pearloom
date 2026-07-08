@@ -17,7 +17,7 @@ import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { WhisperPill } from './WhisperPill';
 import { useDashDrawer } from './useDashDrawer';
-import { DashTabBar } from './DashTabBar';
+import { DashTabBar, OWN_BOTTOM_CHROME } from './DashTabBar';
 import { AskPearTrigger, DashAskPear } from './DashAskPear';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
@@ -1192,40 +1192,48 @@ function NavLinkPending({ isActive }: { isActive: boolean }) {
  *  Hidden ≥960px via .pl8-dash-mobilebar (the drawer breakpoint). */
 export function DashMobileBar() {
   const { toggle, open } = useDashDrawer();
+  const pathname = usePathname() ?? '';
+  /* One drawer door per screen (nav rework 2026-07-08): the bottom
+     bar's More tab is the drawer's thumb-zone door everywhere it
+     mounts. The hamburger appears ONLY on routes that ship their
+     own bottom chrome (Studio) — where More is absent. */
+  const showHamburger = OWN_BOTTOM_CHROME.some((r) => pathname === r || pathname.startsWith(`${r}/`));
   return (
     <div className="pl8-dash-mobilebar">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-label={open ? 'Close menu' : 'Open menu'}
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 999,
-          border: '1px solid var(--line)',
-          background: 'var(--card)',
-          color: 'var(--ink)',
-          cursor: 'pointer',
-          display: 'grid',
-          placeItems: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          {open ? (
-            <>
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </>
-          ) : (
-            <>
-              <line x1="3" y1="7" x2="21" y2="7" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="17" x2="21" y2="17" />
-            </>
-          )}
-        </svg>
-      </button>
+      {showHamburger && (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 999,
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            color: 'var(--ink)',
+            cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            {open ? (
+              <>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </>
+            ) : (
+              <>
+                <line x1="3" y1="7" x2="21" y2="7" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="17" x2="21" y2="17" />
+              </>
+            )}
+          </svg>
+        </button>
+      )}
       <Link href="/dashboard" aria-label="Dashboard home" style={{ display: 'flex', alignItems: 'center', color: 'var(--ink)' }}>
         <PearloomLogo size={24} />
       </Link>
@@ -1257,8 +1265,9 @@ export function DashMobileBar() {
         >
           <Icon name="search" size={16} />
         </button>
-        {/* Ask Pear (sheet mounts once, from DashUtilityBar). */}
-        <AskPearTrigger variant="icon" />
+        {/* Ask Pear's sheet stays one tap away INSIDE the palette
+            ("Ask Pear a question") — two adjacent pear-flavored
+            circles read as the same button twice. */}
         <NotificationBell />
         <TopbarAvatarButton />
       </div>
