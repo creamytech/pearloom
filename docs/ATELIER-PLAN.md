@@ -291,7 +291,9 @@ commit → stamp this file → push both branches.
 
 ---
 
-### PR.1 — Retire Pearloom Print · status: not started · P0
+### PR.1 — Retire Pearloom Print · status: SHIPPED 2026-07-08 (`bde6c615`) · P0
+
+> **Executed:** print-engine/, /api/print/*, /dashboard/print, StudioMailFlow, stripe print branches all deleted (−2,564 lines); no-physical-promises fence test guards the copy + imports.
 
 ```
 ## Active focus — PR.1 · No physical anything (retire Pearloom Print)
@@ -323,7 +325,9 @@ PR.1). Historical print_jobs data (leave tables).
 
 ---
 
-### INV.1 — One themed email system · status: not started · P0
+### INV.1 — One themed email system · status: SHIPPED 2026-07-08 (`25f4bd75`) · P0
+
+> **Executed:** batch invite joins buildStationeryEmail on the SuiteTheme contract; one DEFAULT_EMAIL_THEME; postalLine honest omission; 9 tests pin the register.
 
 ```
 ## Active focus — INV.1 · The email wears the couple's theme
@@ -352,7 +356,9 @@ named consistently; vitest green.
 
 ---
 
-### INV.2 — The click-through + the preview · status: not started · P0
+### INV.2 — The click-through + the preview · status: SHIPPED 2026-07-08 (`63d72a58`) · P0
+
+> **Executed:** invites land on the published site with ?g= passport tokens → Sealed Arrival (postmark + "Held for {first}" on Quiet Arrival); /i/ is a legacy 301; /g/ pages carry themed OG cards.
 
 ```
 ## Active focus — INV.2 · Break the seal (one arrival, one link, a real preview)
@@ -383,7 +389,9 @@ invite_tokens table (redirect needs it).
 
 ---
 
-### ST.1 — Studio theme spine · status: not started · P1
+### ST.1 — Studio theme spine · status: SHIPPED 2026-07-08 (`a2d633c1`) · P1
+
+> **Executed:** the 'site' sentinel palette/font resolves the real --t-* bag via siteThemeRootStyle inside .pl8-guest; texture inherits; the mount-time autosave clobber fixed.
 
 ```
 ## Active focus — ST.1 · The card wears the site's theme bag
@@ -414,7 +422,9 @@ in THEIR theme (screenshots); texture/customColor edits autosave
 
 ---
 
-### ST.2 — Composition + the shared envelope · status: not started · P1
+### ST.2 — Composition + the shared envelope · status: SHIPPED 2026-07-08 (`ee2d2b86`) · P1
+
+> **Executed:** KitFrame corners/arch/hairlines by kitId; the envelope wears the site's seal medallion + dated postmark; real QR on envelope + invite/thanks backs. MotifLayer placement port deferred — the shared seal/postmark shipped instead.
 
 ```
 ## Active focus — ST.2 · The envelope you send is the envelope they open
@@ -442,7 +452,9 @@ vitest green.
 
 ---
 
-### ST.3 — Press-ready PDF export · status: not started · P2
+### ST.3 — Press-ready PDF export · status: SHIPPED 2026-07-08 (`42edd2d6`) · P2
+
+> **Executed:** StudioPressSheet: 3 pages at exact size (5×7+⅛" bleed, A7 rotated) with crop marks; DOM print path (site fonts/texture/kit/QR ride along) beat SVG serialization — studio-card-svg retired, geometry pinned by press-sheet-geometry tests; Send overlay offers Email / Press-ready PDF.
 
 ```
 ## Active focus — ST.3 · The press-ready PDF (the print shop's replacement)
@@ -467,7 +479,9 @@ Email / Press-ready PDF; vitest green.
 
 ---
 
-### DR.1 — Route merges · status: not started · P1
+### DR.1 — Route merges · status: SHIPPED 2026-07-08 (`39d2b7ad`) · P1
+
+> **Executed:** payments→registry + connections→weekend shipped as permanentRedirects; keepsakes/Book and gallery/library were ALREADY one section each via sub-nav pills — false merges skipped, documented.
 
 ```
 ## Active focus — DR.1 · One home per job (keepsakes, photos, money)
@@ -494,7 +508,9 @@ green + screenshots.
 
 ---
 
-### DR.2 — The routes learn the phase · status: not started · P1
+### DR.2 — The routes learn the phase · status: SHIPPED 2026-07-08 (`9ae2c633`) · P1
+
+> **Executed:** Studio seeds thank-yous post-event; Cadence stands down to "What went out"; Guests drops nudge strips after the day; all on cockpit-phase.
 
 ```
 ## Active focus — DR.2 · Every route knows the day has passed
@@ -522,7 +538,9 @@ extended + green; +90-day screenshots pin zero pre-day regressions.
 
 ---
 
-### INV.3 — The amazement layer · status: not started · P2
+### INV.3 — The amazement layer · status: SHIPPED 2026-07-08 (`4bbbe178`) · P2
+
+> **Executed:** /api/invite-card presses the guest's own themed 5×7 card image as the email hero (name resolved server-side from the passport token); add-to-calendar .ics accepts passport tokens; "One of N · Pressed for {first}" edition line; invite CTAs deep-link #rsvp.
 
 ```
 ## Active focus — INV.3 · Pressed for you (the card in the email)
@@ -549,7 +567,9 @@ modal with the guest resolved; vitest green.
 
 ---
 
-### DR.3 — Nav curation + the Director question · status: not started · P2
+### DR.3 — Nav curation + the Director question · status: SHIPPED 2026-07-08 (this commit) · P2
+
+> **Executed:** Director off the sidebar (Q3 decided — Home is the brief, the Director is the planning deep-dive on the quiet shelf); ⌘K indexes the sidebar (Budget/Circle findable); DEPROMOTED trimmed to the true quiet shelf (cadence/director/review/voice); Guests sub-nav gains Threads (bridge); Studio Tone rail gains the Pear's-voice door; sidebar Keepsakes label matches its tab.
 
 ```
 ## Active focus — DR.3 · The quiet shelf (director, analytics, bridge, voice)
@@ -583,8 +603,17 @@ its rationale; screenshots of the final sidebar.
 - **Q2 — /i/ token table.** After INV.2's redirect window (90 days
   of sent emails?), drop the `invite_tokens` table or keep as a
   permanent alias. Tentative: keep the 301 forever, it's ~free.
-- **Q3 — Director's fate** — deliberately deferred to DR.3 with
-  data.
+- **Q3 — Director's fate** — DECIDED 2026-07-08 (DR.3): **the route
+  stays; the sidebar slot goes.** After AFTERGLOW, Home IS the
+  phase-aware brief (cockpit-phase hero + NeedsYouNow + real-number
+  todos), so building the Director into a second brief would
+  duplicate it. What the Director uniquely has — the conversational
+  planning surface (`/api/director` chat + timeline) and the
+  vendor-book ledger read — has no Home equivalent and stays.
+  It lives on the quiet shelf (⌘K + More tools via
+  DEPROMOTED_DESTINATIONS), no longer in "The house" sidebar group
+  where it double-listed. Revisit a retirement only if the S8
+  funnel shows the route dead after the shelf move.
 - **Q4 — email deliverability.** Sender display-name changes (couple
   names) keep the same from-domain; SPF/DKIM/DMARC DNS remains the
   standing owner action (GRAND-PLAN follow-up).

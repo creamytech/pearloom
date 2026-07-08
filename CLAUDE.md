@@ -49,17 +49,26 @@ constant in cockpit-phase.ts; per-photo focal point still
 deferred). vitest 1278/1278; the PERSONA, GRAND-PLAN-2, and
 AFTERGLOW queues are all fully executed.
 
-**The next plan is written and ready: `docs/ATELIER-PLAN.md`**
-(2026-07-08) — what we press, what we send, what we never fulfill.
-Four audited workstreams: §1 retire Pearloom Print (a LIVE Lob +
-Stripe print-and-mail pipeline ships today — the owner wants no
-physical anything; press-ready PDF replaces it), §2 Studio v2
-pressed from the site's real --t-* theme bag (today it's a parallel
-design system with 11 documented gaps + an autosave bug), §3 the
-invitation as one woven object (the batch invite email is unthemed
-near-black → an unthemed /i/ page that never shows the site; no OG
-on /i/ or /g/), §4 dashboard route merges (keepsakes+memory-book,
-gallery+library, payments→registry, connections→weekend) + routes
-reading cockpit-phase. TEN ready-to-paste sprint blocks at §6;
-recommended order PR.1 → INV.1 → INV.2 → ST.1 → ST.2 → DR.1 → DR.2
-→ INV.3 → ST.3 → DR.3. Paste a block over this heading to arm one.
+**`docs/ATELIER-PLAN.md` is fully executed** (2026-07-08, ten
+commits `bde6c615`…the DR.3 curation commit) — all ten §6 blocks
+stamped SHIPPED. What landed: Pearloom Print retired end-to-end
+(engine + routes + surfaces + pricing promise; the
+no-physical-promises fence test guards the copy); the invitation is
+one woven object (themed email on the SuiteTheme contract → the
+guest's own per-guest card image as the hero via /api/invite-card →
+?g= passport links landing on Sealed Arrival with a dated postmark;
+/i/ is a legacy 301; .ics + #rsvp deep-links); Studio v2 presses
+from the site's real --t-* bag ('site' sentinel palette/font,
+KitFrame, shared seal/postmark envelope, real QR everywhere) and
+exports a true press sheet (StudioPressSheet — 3 pages at exact
+physical size, 5×7+bleed with crop marks, geometry pinned by
+press-sheet-geometry tests); routes merged (payments→registry,
+connections→weekend) and phase-aware (Studio/Cadence/Guests read
+cockpit-phase); nav curated (Director de-promoted per §8 Q3 — Home
+is the brief; ⌘K indexes the sidebar; DEPROMOTED = the true quiet
+shelf: cadence/director/review/voice; Guests sub-nav gained
+Threads). Open: §7 Q2 (/i/ 301 kept indefinitely), Q4 (email DNS —
+owner action). vitest 1269/1269 (the retired print/SVG-serializer
+suites left with their features; the press-geometry + stationery
+contracts replaced them); the next plan doc hasn't been written
+yet.

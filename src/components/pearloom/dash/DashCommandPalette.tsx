@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/use-focus-trap';
-import { DASH_SECTIONS } from './DashShell';
+import { DASH_SECTIONS, DASH_NAV_GROUPS } from './DashShell';
 import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, useUserSites, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
@@ -42,10 +42,20 @@ const TOP_LEVEL_DESTINATIONS: Array<{ id: string; label: string; icon: string; h
   { id: 'nav-settings', label: 'Settings', icon: 'settings',   href: '/dashboard/profile' },
 ];
 
-/** The routes de-promoted from the sidebar in the 22→10 nav trim.
- *  They were always meant to live here in ⌘K — this list is the
- *  discovery surface. `gate` keys into dashboard-applicability so
- *  occasion-shaped tools hide for events they don't fit. */
+/** THE QUIET SHELF — routes no sidebar item or sub-nav tab
+ *  carries. ⌘K and the More-tools grid read this one list; the
+ *  contextual doors (NeedsYouNow → Pear's review, the Studio Tone
+ *  rail → Pear's voice) are the in-flow paths. `gate` keys into
+ *  dashboard-applicability so occasion-shaped tools hide for
+ *  events they don't fit.
+ *
+ *  The rule (ATELIER DR.3): a route lives here ONLY if the nav
+ *  doesn't carry it — the palette indexes the sidebar + sub-nav
+ *  directly (DASH_NAV_GROUPS / DASH_SECTIONS below), so anything
+ *  double-listed shows twice in ⌘K. Analytics / Help / Music /
+ *  Passport cards / QR poster left this list when the sidebar
+ *  picked them up; Guest threads left when the Guests sub-nav
+ *  gained its Threads tab. */
 export const DEPROMOTED_DESTINATIONS: Array<{
   id: string;
   label: string;
@@ -54,24 +64,10 @@ export const DEPROMOTED_DESTINATIONS: Array<{
   href: string;
   gate?: string;
 }> = [
-  { id: 'tool-analytics',  label: 'Analytics',        hint: 'Visits & sections',         icon: 'eye',      href: '/dashboard/analytics' },
-  { id: 'tool-bridge',     label: 'Guest threads',    hint: 'Memory prompts, whispers, capsule', icon: 'users', href: '/dashboard/bridge', gate: 'bridge' },
   { id: 'tool-cadence',    label: 'Send timeline',    hint: 'Save-the-dates & reminders', icon: 'bell',    href: '/dashboard/cadence', gate: 'cadence' },
   { id: 'tool-director',   label: 'The Director',     hint: 'Pear plans with you',       icon: 'sparkles', href: '/dashboard/director', gate: 'director' },
-  /* The Reel is a first-class sidebar + Studio-tab destination —
-     it does NOT also belong in the de-promoted discovery list
-     (it was triple-listed; More tools claims to list routes the
-     sidebar doesn't carry). */
   { id: 'tool-review',     label: "Pear's review",    hint: 'Duplicates, VIPs, gaps',    icon: 'check',    href: '/dashboard/guest-review' },
-  { id: 'tool-help',       label: 'Help & docs',      hint: 'Shortcuts & answers',       icon: 'heart-icon', href: '/dashboard/help' },
-  { id: 'tool-music',      label: 'Music',            hint: 'Guest song requests',       icon: 'music',    href: '/dashboard/music', gate: 'music' },
-  { id: 'tool-passport',   label: 'Passport cards',   hint: 'Printable guest QR cards',  icon: 'gift',     href: '/dashboard/passport-cards', gate: 'passport' },
-  { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster', gate: 'qr' },
   { id: 'tool-voice',      label: "Pear's voice",     hint: 'Train Pear on your tone',   icon: 'mic',      href: '/dashboard/voice' },
-  /* Weekend builder is a first-class Site sub-nav tab (DASH_SECTIONS
-     site → Weekend) — same rule as the Reel above: routes the nav
-     already carries don't ALSO sit in the de-promoted list, or they
-     show up twice in ⌘K and once more in More tools. */
 ];
 
 export function DashCommandPalette() {
@@ -139,8 +135,27 @@ export function DashCommandPalette() {
         });
       }
     }
-    // The de-promoted tools — ⌘K is their only discovery surface,
-    // so the trimmed sidebar doesn't orphan them. Occasion-gated.
+    // Sidebar destinations the two lists above don't already
+    // carry (Budget, Circle, Music, the Keepsakes trio…) — the
+    // palette must find everything the sidebar can reach. Deduped
+    // by href so the section anchors don't triple-list.
+    const seenHrefs = new Set(items.map((it) => it.href).filter(Boolean));
+    for (const group of DASH_NAV_GROUPS) {
+      for (const item of group.items) {
+        if (seenHrefs.has(item.href)) continue;
+        seenHrefs.add(item.href);
+        items.push({
+          id: `side-${group.id}-${item.id}`,
+          kind: 'nav',
+          label: group.label ? `${group.label} · ${item.label}` : item.label,
+          hint: item.label,
+          icon: item.icon,
+          href: item.href,
+        });
+      }
+    }
+    // The quiet shelf — ⌘K + More tools are its only discovery
+    // surfaces, so the trimmed nav doesn't orphan it. Occasion-gated.
     for (const d of DEPROMOTED_DESTINATIONS) {
       if (d.gate && !isDashSurfaceApplicable(d.gate, selectedSite?.occasion)) continue;
       items.push({ id: d.id, kind: 'nav', label: d.label, hint: d.hint, icon: d.icon, href: d.href });

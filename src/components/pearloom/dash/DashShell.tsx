@@ -42,8 +42,10 @@ interface DashNavGroup {
 /* Grouped nav — ported 1:1 from the v2 dashboard ui_kit
    (handoff-v2/ui_kits/dashboard/DashShell.jsx NAV). Static mono
    group labels; every href is a real production route, so routing +
-   active-state wiring is untouched. */
-const DASH_NAV_GROUPS: DashNavGroup[] = [
+   active-state wiring is untouched. Exported so ⌘K indexes the
+   same list (DashCommandPalette) — the sidebar can never carry a
+   destination the palette can't find. */
+export const DASH_NAV_GROUPS: DashNavGroup[] = [
   {
     id: 'main',
     label: '',
@@ -84,7 +86,9 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     id: 'keepsakes',
     label: 'Keepsakes',
     items: [
-      { id: 'memory',   label: 'Memory book',    icon: 'heart-icon', href: '/dashboard/keepsakes' },
+      /* Matches DASH_SECTIONS.memory's first tab ("Keepsakes") so
+         the sidebar never lands on a differently-named tab. */
+      { id: 'memory',   label: 'Keepsakes',      icon: 'heart-icon', href: '/dashboard/keepsakes' },
       { id: 'passport', label: 'Passport cards', icon: 'grid',       href: '/dashboard/passport-cards' },
       { id: 'qr',       label: 'QR poster',      icon: 'image',      href: '/dashboard/qr-poster' },
     ],
@@ -94,7 +98,10 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     label: 'The house',
     items: [
       { id: 'circle',   label: 'Circle',       icon: 'grid',     href: '/dashboard/circle' },
-      { id: 'director', label: 'The Director', icon: 'compass',  href: '/dashboard/director' },
+      /* The Director left the sidebar 2026-07-08 (ATELIER DR.3):
+         Home is the phase-aware brief now; the Director stays as
+         the conversational planning deep-dive on the quiet shelf
+         (⌘K + More tools). Decision recorded in ATELIER-PLAN §8. */
       { id: 'analytics', label: 'Analytics',   icon: 'bars',     href: '/dashboard/analytics' },
       { id: 'settings', label: 'Settings',     icon: 'settings', href: '/dashboard/profile' },
       { id: 'help',     label: 'Help',         icon: 'inbox',    href: '/dashboard/help' },
@@ -107,16 +114,15 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
  *  redirects + no broken bookmarks; we just visually group them
  *  under one umbrella entry in the sidebar. */
 /** Simplified sub-nav — the 22-tab strip collapsed to the
- *  essential destinations per section (Weekend and Vendors later
- *  earned tabs back; see below). Everything de-promoted (AI
- *  planner/Director, Send cadence, Pear's review, Payments,
- *  Print orders, QR poster, Music, Voice DNA, Passport cards,
- *  The bridge, Analytics, Help) still WORKS at its existing URL —
- *  reached via the command palette (⌘K), the More-tools grid
- *  (DEPROMOTED_DESTINATIONS in DashCommandPalette is the single
- *  source for both), and inline cross-links from related surfaces
- *  (Registry → Payments, Day-of → Music / QR poster / Passport
- *  cards, editor Music panel → Music). */
+ *  essential destinations per section (Weekend, Vendors, and the
+ *  bridge later earned tabs back; see below). The quiet shelf
+ *  (the Director, Send cadence, Pear's review, Pear's voice)
+ *  still WORKS at its existing URLs — reached via the command
+ *  palette (⌘K), the More-tools grid (DEPROMOTED_DESTINATIONS in
+ *  DashCommandPalette is the single source for both), and
+ *  contextual doors (NeedsYouNow → Pear's review, the Studio's
+ *  Tone rail → Pear's voice). Payments and Print orders retired
+ *  outright (ATELIER PR.1/DR.1 — redirects live at the old URLs). */
 export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: string; label: string; href: string }> }> = {
   site: {
     label: 'Site',
@@ -132,6 +138,11 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
          never lands on a differently-named tab. */
       { id: 'roster',      label: 'Guests',      href: '/dashboard/rsvp' },
       { id: 'messages',    label: 'Messages',    href: '/dashboard/messages' },
+      /* The bridge's contextual door (ATELIER DR.3) — memory
+         prompts, whispers, capsule live one tab from the roster
+         instead of buried on the quiet shelf. The 'bridge' tab id
+         keys the same occasion gate the ⌘K entry used. */
+      { id: 'bridge',      label: 'Threads',     href: '/dashboard/bridge' },
       { id: 'submissions', label: 'Submissions', href: '/dashboard/submissions' },
       { id: 'registry',    label: 'Registry',    href: '/dashboard/registry' },
     ],

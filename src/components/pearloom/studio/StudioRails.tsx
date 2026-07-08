@@ -1111,6 +1111,20 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
             );
           })}
         </div>
+        {/* The quiet door to Pear's voice (ATELIER DR.3) — the tone
+            picker is where a host thinks about how Pear writes, so
+            the training surface lives one tap away instead of a
+            sidebar slot. */}
+        <a
+          href="/dashboard/voice"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            marginTop: 8, fontSize: 10.5, fontWeight: 600,
+            color: 'var(--ink-muted)', textDecoration: 'none',
+          }}
+        >
+          Train Pear on your own voice →
+        </a>
       </RailGroup>
 
       <RailGroup label="Fields">
