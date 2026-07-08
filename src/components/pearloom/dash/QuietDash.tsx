@@ -104,15 +104,20 @@ export function PageIntro({
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eyebrow}</span>
             </div>
           ) : null}
+          {/* The display tier (TASTE-PLAN T.2) — route headers are
+              letterpress-loud; the metadata around them stays tiny.
+              Scale contrast, not decoration, is the taste move. */}
           <h1
+            className="pl-letterpress"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(22px, 2.6vw, 31px)',
+              fontSize: 'clamp(28px, 3.6vw, 44px)',
+              fontOpticalSizing: 'auto',
               fontWeight: 600,
-              lineHeight: 1.12,
-              letterSpacing: '-0.01em',
+              lineHeight: 1.08,
+              letterSpacing: '-0.015em',
               color: 'var(--ink)',
-              margin: eyebrow ? '4px 0 0' : 0,
+              margin: eyebrow ? '6px 0 0' : 0,
             }}
           >
             {title}

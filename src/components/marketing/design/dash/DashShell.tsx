@@ -875,7 +875,9 @@ export function SectionTitle({
       <div
         className="display"
         style={{
-          fontSize: 22,
+          // The card-title tier (TASTE-PLAN T.2) — one step under
+          // the route display, still unmistakably Fraunces.
+          fontSize: 24,
           lineHeight: 1.1,
           fontWeight: 600,
           letterSpacing: '-0.015em',

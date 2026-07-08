@@ -420,24 +420,32 @@ export function PLHead({
         {pre && (
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: 'var(--peach-ink)',
-              marginBottom: 4,
+              color: 'var(--ink-muted)',
+              marginBottom: 6,
             }}
           >
+            <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
             {pre}
           </div>
         )}
         <h1
+          className="pl-letterpress"
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(28px, 7.5vw, 38px)',
+            fontSize: 'clamp(30px, 5vw, 46px)',
+            fontOpticalSizing: 'auto',
             fontWeight: 600,
             margin: 0,
-            letterSpacing: '-0.01em',
+            lineHeight: 1.08,
+            letterSpacing: '-0.015em',
             color: 'var(--ink)',
           }}
         >
@@ -493,24 +501,32 @@ export function PLHead({
         {pre && (
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: 'var(--peach-ink)',
-              marginBottom: 4,
+              color: 'var(--ink-muted)',
+              marginBottom: 6,
             }}
           >
+            <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
             {pre}
           </div>
         )}
         <h1
+          className="pl-letterpress"
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(28px, 7.5vw, 38px)',
+            fontSize: 'clamp(30px, 5vw, 46px)',
+            fontOpticalSizing: 'auto',
             fontWeight: 600,
             margin: 0,
-            letterSpacing: '-0.01em',
+            lineHeight: 1.08,
+            letterSpacing: '-0.015em',
             color: 'var(--ink)',
           }}
         >
