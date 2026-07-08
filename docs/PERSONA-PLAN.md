@@ -386,7 +386,28 @@ OAuth config. Pricing/upsell on the claim sheet — it stays pure.
 
 ---
 
-### S4 — Guests arrive without invitations · **status: planned** · P1
+### S4 — Guests arrive without invitations · **status: SHIPPED 2026-07-08** · P1
+
+> Shipped: (1) DIRECT OPEN — the root cause was the shared CTA atom
+> rendering the `rsvp-modal` sentinel as a bare `#rsvp` anchor; it
+> now rides `requestRsvp()` (lazy-load bus, editor-safe no-op) while
+> keeping the anchor as no-JS fallback. Verified on phone: hero tap
+> 1 → reply modal; tap 2 → form; tap 3 → attending picked; Send is
+> tap 4 — we deliberately do NOT pre-select attendance (an
+> accidental "yes" is worse than one honest tap). (2) LIST-SHAPE
+> COPY — open sites lead "Tell us who's coming — your name is all we
+> need" with find-as-you-type as the secondary clause; the button
+> reads "Continue →" (invitation-only keeps "Find my invite →" and
+> its hard gate); the miss path was already warm. (3) SOLEMN
+> HEADING — memorials ask "Let us know you'll be there." instead of
+> "Will you join us?" (modal already carried solemn field/note
+> variants). (4) THE INTERSTITIAL — "It takes about 90 seconds.
+> Pear will follow up if anyone forgets." → "Twenty seconds and
+> you're done — no account needed." (occasion-copy BASE + FullSite;
+> solemn pack already had its own). (5) CALENDAR — the success step
+> already ships themed add-to-calendar; confirmed, untouched.
+> Shots: `rsvp-tap1-modal.png`, `rsvp-tap3-form.png`. vitest
+> 1246/1246.
 
 ```
 ## Active focus — S4 · Guests arrive without invitations (RSVP in 3 taps)
@@ -698,6 +719,15 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S4 shipped (Guests arrive without invitations)
+F6 + F11 closed. The RSVP CTA atom's rsvp-modal sentinel now opens
+the reply directly via the rsvp-bus (was a bare #rsvp anchor — the
+single-worst guest tap in the walk); open-list modal copy stops
+implying an invitation; solemn heading variant; the 90-seconds
+interstitial replaced with guest-true copy. Phone walk: modal on tap
+1, completed form by tap 3, Send on tap 4 (attendance deliberately
+never pre-selected). vitest 1246/1246.
 
 ### 2026-07-08 — S3 shipped (The unbroken thread)
 F3 + F4 closed. The claim card on /signup (pl-wizard-claim stash +

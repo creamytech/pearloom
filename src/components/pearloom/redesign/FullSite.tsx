@@ -405,7 +405,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             Save your seat
           </h2>
           <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 18 }}>
-            It takes about 90 seconds. Pear will follow up if anyone forgets.
+            Twenty seconds and you’re done — no account needed.
           </div>
           <span style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 999, background: themeRsvpInk, color: themeRsvp, fontSize: 14, fontWeight: 700 }}>
             Reply now →

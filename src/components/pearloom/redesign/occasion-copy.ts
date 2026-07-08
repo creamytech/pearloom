@@ -87,7 +87,7 @@ const BASE: OccasionCopy = {
   navRegistry: 'Registry',
   cta: 'RSVP',
   rsvpTitle: 'Save your seat',
-  rsvpBody: 'It takes about 90 seconds. Pear will follow up if anyone forgets.',
+  rsvpBody: 'Twenty seconds and you’re done — no account needed.',
   detailsDressDemo: 'Cocktail attire',
   detailsGiftsCard: ['Gifts', 'Your presence is enough'],
   registryTitleHead: 'Your presence is',

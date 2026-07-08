@@ -5020,13 +5020,18 @@ function TButton({
     return <span style={combined}>{children}</span>;
   }
   /* In-site anchor — let the browser handle the hash scroll. The
-     rsvp-modal sentinel falls through to #rsvp in case the modal
-     isn't mounted on the current page variant. */
+     rsvp-modal sentinel keeps #rsvp as its no-JS fallback, but the
+     TAP must open the reply directly (PERSONA-PLAN S4: an RSVP CTA
+     that only scrolls to a banner reads as a dead button). The bus
+     lazy-loads the modal; on surfaces without one (editor canvas)
+     the call is a no-op. */
   const resolvedHref = href === 'rsvp-modal' ? '#rsvp' : href;
   const isExternal = /^https?:\/\//.test(resolvedHref);
+  const opensReply = href === 'rsvp-modal' || resolvedHref === '#rsvp';
   return (
     <a
       href={resolvedHref}
+      onClick={opensReply ? () => requestRsvp() : undefined}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       /* pl-hit44 — expands the tap area to ≥44px on coarse pointers

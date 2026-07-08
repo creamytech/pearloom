@@ -691,7 +691,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 letterSpacing: '-0.01em',
               }}
             >
-              Will you join us?
+              {solemnVoice ? 'Let us know you’ll be there.' : 'Will you join us?'}
             </h2>
             <p
               style={{
@@ -703,7 +703,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
             >
               {guestListOnly
                 ? 'Replying by invitation — start typing your name and pick it from the list.'
-                : 'Find your invitation to reply. Type the name on your invite.'}
+                : 'Tell us who’s coming — your name is all we need. If you’re on the list, we’ll find your invitation as you type.'}
             </p>
             <div style={fieldStyle()}>
               <label style={labelStyle()}>Your name or party</label>
@@ -802,7 +802,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 gap: 6,
               }}
             >
-              Find my invite →
+              {guestListOnly ? 'Find my invite →' : 'Continue →'}
             </button>
           </div>
         )}
