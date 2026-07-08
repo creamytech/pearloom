@@ -444,6 +444,26 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-08 — PERSONA-PLAN authored (the road to mass user testing)
+
+Six personas (engaged couple, 20-year-old birthday host, 60-year-old
+anniversary couple, bachelorette MOH, memorial planner, quinceañera
+dad) walked the real product via Playwright — landing, wizard (6
+occasions × thorough + speedrun modes, phone/iPad/desktop), editor,
+published site + RSVP, dashboard. `docs/PERSONA-PLAN.md` is the
+result: 11 evidence-anchored findings (3 P0 trust breakers — the
+couple-shaped live preview that shows "SAVE THE DATE / ‹deceased
+name› are celebrating" on memorials, the Review step presenting demo
+copy as "the exact site Pear will press", and the claim moment that
+never says the just-pressed site is saved), 4 cross-cutting design
+laws, NINE ready-to-paste `## Active focus` sprint blocks (S1–S9:
+occasion-true frames → honest proof → unbroken signed-out thread →
+guest RSVP → occasion reach → first five minutes → accessibility →
+instrumentation → seeded demo worlds), and a mass-testing readiness
+gate with the session protocol. Evidence shots in
+`docs/audit-shots/personas/`. No product code changed — the plan is
+the deliverable; sprints execute from the doc.
+
 ### 2026-07-08 — SOCIAL-PLAN executed (S1–S5) + the onboarding trilogy (O1–O3)
 
 The social layer shipped to plan (docs/SOCIAL-PLAN.md — statuses

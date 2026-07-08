@@ -26,3 +26,8 @@ landed 2026-05-31:**
 to the literal sprint-focus heading that the Stop hook greps
 for, and fill in goal / direction / open threads /
 counts-as-done / what-to-skip in the same shape as before.
+
+**The next sprints are already written:** `docs/PERSONA-PLAN.md`
+(2026-07-08) carries nine ready-to-paste sprint blocks (S1–S9,
+ranked) from the six-persona walkthrough — the road to mass user
+testing. Paste a block from §4 over this heading to arm one.
