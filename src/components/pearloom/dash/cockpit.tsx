@@ -412,7 +412,7 @@ export function RoadCard({ milestones, dateShort, href }: { milestones: RoadMile
                   ) : null}
                   {now ? <span style={{ marginLeft: 'auto', color: 'var(--lavender-ink)', display: 'inline-flex' }}><Icon name="arrow-right" size={15} color="var(--lavender-ink)" /></span> : null}
                 </div>
-                {r.sub ? <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 3 }}>{r.sub}</div> : null}
+                {r.sub ? <div style={{ fontSize: 12, color: now ? 'var(--ink-soft)' : 'var(--ink-muted)', marginTop: 3 }}>{r.sub}</div> : null}
               </div>
             </div>
           );
@@ -428,7 +428,9 @@ export function RoadCard({ milestones, dateShort, href }: { milestones: RoadMile
 // caller supplies the items; empty → the card renders nothing.
 
 export interface ChecklistItem { t: string; p: 'High' | 'Medium' | 'Low' }
-const PRI: Record<ChecklistItem['p'], string> = { High: 'var(--peach-ink)', Medium: 'var(--pl-gold)', Low: 'var(--ink-muted)' };
+// Medium wears --gold-ink, the READABLE text gold (raw --pl-gold is a
+// hairline token — 2.45:1 as text; PERSONA-PLAN S7).
+const PRI: Record<ChecklistItem['p'], string> = { High: 'var(--peach-ink)', Medium: 'var(--gold-ink, #836018)', Low: 'var(--ink-muted)' };
 
 export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: string }) {
   const [done, setDone] = useState<boolean[]>(() => items.map(() => false));
@@ -570,7 +572,7 @@ export function MemoryCard({ images, href, blurb }: { images: string[]; href: st
   return (
     <div style={{ ...cockpitCard, padding: 26, position: 'relative', overflow: 'hidden' }}>
       <Eyebrow>The memory book</Eyebrow>
-      <CardHeadline margin="8px 0 16px">A keepsake <span style={{ fontStyle: 'italic', color: 'var(--pl-gold)' }}>in the making.</span></CardHeadline>
+      <CardHeadline margin="8px 0 16px">A keepsake <span style={{ fontStyle: 'italic', color: 'var(--gold-ink, var(--pl-gold))' }}>in the making.</span></CardHeadline>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
         {[0, 1, 2].map((i) => {
           const src = images[i];
@@ -633,13 +635,13 @@ export function WeekendCard({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 18 }}>
         {events.map((w) => (
           <Link key={w.href + w.title} href={w.href} className="lift" style={{ borderRadius: 14, border: '1px solid var(--line-soft)', background: 'var(--cream-2)', padding: '16px 16px 14px', textDecoration: 'none', display: 'block' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: w.color, textTransform: 'uppercase' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: `color-mix(in oklab, ${w.color} 52%, var(--ink))`, textTransform: 'uppercase' }}>
               <span style={{ width: 6, height: 6, borderRadius: 999, background: w.color }} />{w.day}
             </div>
             <div style={{ fontFamily: DISPLAY, fontSize: 18, color: 'var(--ink)', margin: '10px 0 6px' }}>{w.title}</div>
             {w.meta ? <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{w.meta}</div> : null}
             {w.rsvp ? (
-              <div style={{ marginTop: 12, display: 'inline-flex', padding: '3px 10px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: w.color, textTransform: 'uppercase' }}>{w.rsvp}</div>
+              <div style={{ marginTop: 12, display: 'inline-flex', padding: '3px 10px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: `color-mix(in oklab, ${w.color} 52%, var(--ink))`, textTransform: 'uppercase' }}>{w.rsvp}</div>
             ) : null}
           </Link>
         ))}
@@ -913,7 +915,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         </div>
         <button type="button" onClick={addLine} style={{ marginTop: 10, width: '100%', padding: 9, borderRadius: 9, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add category</button>
         {saveError && (
-          <div role="alert" style={{ marginTop: 10, fontSize: 12, color: 'var(--plum, #C6563D)', lineHeight: 1.45 }}>
+          <div role="alert" style={{ marginTop: 10, fontSize: 12, color: 'var(--pl-warning, #A14A2C)', lineHeight: 1.45 }}>
             That didn&rsquo;t save — check your connection and try again. Your lines are still here.
           </div>
         )}
@@ -946,7 +948,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
             <div key={i}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{b.cat}</span>
-                <span style={{ fontFamily: MONO, fontSize: 11, color: over ? 'var(--plum, #C6563D)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>
+                <span style={{ fontFamily: MONO, fontSize: 11, color: over ? 'var(--pl-warning, #A14A2C)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>
               </div>
               <div style={{ height: 7, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
                 <div style={{ width: pct + '%', height: '100%', background: over ? 'var(--plum, #C6563D)' : 'var(--sage)', borderRadius: 99 }} />

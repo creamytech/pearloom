@@ -55,7 +55,11 @@
   /* Brand */
   --sage:        #8B9C5A;
   --sage-2:      #A8BA72;
-  --sage-deep:   #6d7d3f;
+  /* Deepened 2026-07-08 (PERSONA-PLAN S7): sage-deep and peach-ink
+     are TEXT tokens on cream chrome — #6d7d3f / #C6703D sat at
+     4.2:1 / 3.4:1, under AA for small text. The dark-theme values
+     below are untouched (light-on-midnight passes easily). */
+  --sage-deep:   #5C6B3F;
   --sage-bg:     #CBD29E;
   --sage-tint:   #E3E6C8;
 
@@ -69,7 +73,7 @@
   --peach-2:     #EAB286;
   --peach-3:     #F7DDC2;
   --peach-bg:    #FBE8D6;
-  --peach-ink:   #C6703D;
+  --peach-ink:   #9D5222;
 
   /* One gold across the product (BRAND: gold is the punctuation).
      Aliased to the canonical --pl-gold; --gold-line is its hairline
@@ -79,6 +83,9 @@
      cream use --gold-text (AA). Flows per-theme via --pl-gold-text. */
   --gold-text:   var(--pl-gold-text, #836829);
   --gold-line:   color-mix(in oklab, var(--pl-gold, #C19A4B) 76%, #FFF6E4);
+  /* Gold as TEXT (rare — BRAND says punctuation): a readable deep
+     gold that clears AA on cream. Hairlines keep --gold. */
+  --gold-ink:    #836018;
   --heart:       #E8A07A;
 
   /* Surfaces — aliased to --pl-* so theme swap flows through. */

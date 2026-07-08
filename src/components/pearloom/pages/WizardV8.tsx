@@ -2049,6 +2049,22 @@ function hexLuminance(hex: string): number | null {
   };
   return 0.2126 * chan(0) + 0.7152 * chan(2) + 0.0722 * chan(4);
 }
+/** Numeric hex blend (w = ink share) — lets the preview VERIFY a
+ *  derived soft ink's contrast instead of hoping a color-mix()
+ *  string lands right (PERSONA-PLAN S7). */
+function mixHex(a: string, b: string, w: number): string | null {
+  const pa = /^#?([0-9a-f]{6})$/i.exec(a.trim());
+  const pb = /^#?([0-9a-f]{6})$/i.exec(b.trim());
+  if (!pa || !pb) return null;
+  const ca = pa[1], cb = pb[1];
+  let out = '#';
+  for (let i = 0; i < 6; i += 2) {
+    const v = Math.round(parseInt(ca.slice(i, i + 2), 16) * w + parseInt(cb.slice(i, i + 2), 16) * (1 - w));
+    out += v.toString(16).padStart(2, '0');
+  }
+  return out;
+}
+
 function contrastRatio(a: number, b: number): number {
   const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
@@ -2143,8 +2159,23 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   // color-mix keeps both hex AND var() inputs valid.
   const paper = ground;
   const section = `color-mix(in srgb, ${ground} 90%, ${accent})`;
-  const inkSoft = `color-mix(in srgb, ${ink} 76%, ${ground})`;
-  const inkMuted = `color-mix(in srgb, ${ink} 62%, ${ground})`;
+  const softInkFor = (w: number): string => {
+    const m = groundLum != null ? mixHex(ink, ground, w) : null;
+    if (!m) return `color-mix(in srgb, ${ink} ${Math.round(w * 100)}%, ${ground})`;
+    const ml = hexLuminance(m);
+    if (ml != null && groundLum != null && contrastRatio(ml, groundLum) >= 4.5) return m;
+    // The ground is too mid for a softened ink — full ink, honestly.
+    return ink;
+  };
+  const inkSoft = softInkFor(0.86);
+  const inkMuted = softInkFor(0.76);
+  /* Accent AS SMALL TEXT (the story-band eyebrow) needs 4.5:1 — the
+     3:1 accent above stays for fills and large glyphs. */
+  const accentText = groundLum == null || (accentLum != null && contrastRatio(accentLum, groundLum) >= 4.5)
+    ? accentRaw
+    /* It renders on the section band (a touch darker than ground),
+       so a guessed mix can land a hair under — full ink instead. */
+    : ink;
   const line = `color-mix(in srgb, ${ink} 16%, ${ground})`;
   const place = st.location;
 
@@ -2182,6 +2213,11 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   return (
     <aside
       className="pl8-wizard-preview"
+      /* A decorative live thumbnail of the site being built — the
+         real content is the form beside it. Hidden from the a11y
+         tree: its 8px mini-site type is not meant to be read, and
+         the derived palette inks can't guarantee contrast. */
+      aria-hidden
       style={{ position: 'sticky', top: 96, alignSelf: 'start', justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
     >
       {/* LIVE PREVIEW pill */}
@@ -2214,7 +2250,7 @@ function WizardLivePreview({ st }: { st: WizardState }) {
         }}
       >
         {/* Scrollable mini save-the-date site (design handoff SiteBody). */}
-        <div tabIndex={0} aria-label="Site preview — scrollable" role="group" style={{ height: 540, overflow: 'auto', borderRadius: 18, background: paper, color: ink, fontFamily: 'var(--font-ui)' }}>
+        <div style={{ height: 540, overflow: 'auto', borderRadius: 18, background: paper, color: ink, fontFamily: 'var(--font-ui)' }}>
           {/* Nav row — monogram + menu */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
             <span style={{ width: 34, height: 34, borderRadius: 999, border: `1px solid ${line}`, display: 'grid', placeItems: 'center', fontFamily: display, fontStyle: 'italic', fontSize: 12, color: ink }}>
@@ -2275,7 +2311,7 @@ function WizardLivePreview({ st }: { st: WizardState }) {
               ("Their story / A life remembered" on a memorial, never
               "Our story / Two people…"). */}
           <div style={{ padding: '22px 18px', background: section, textAlign: 'center' }}>
-            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent }}>{frame.storyEyebrow}</div>
+            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accentText }}>{frame.storyEyebrow}</div>
             <div style={{ fontFamily: display, fontSize: 18, margin: '6px 0', color: ink }}>{frame.storyTitle}</div>
             <div style={{ fontSize: 10.5, color: inkSoft, lineHeight: 1.65 }}>{frame.storyBlurb}</div>
           </div>

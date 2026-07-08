@@ -71,7 +71,11 @@
 @media (hover: hover) and (pointer: fine) {
   .pl-redesign aside.pl-rd-rail-left,
   .pl-redesign aside.pl-rd-rail-right {
-    opacity: 0.82;
+    /* 0.95, not lower — the resting fade blends the rail's muted
+       ink toward the paper; 0.92 measured 4.44:1 on the secondary
+       labels (one hair under AA — PERSONA-PLAN S7, axe). The wake
+       on hover is a whisper now, deliberately. */
+    opacity: 0.95;
     transition: opacity 300ms var(--pl-ease-out, ease-out);
   }
   .pl-redesign aside.pl-rd-rail-left:hover,

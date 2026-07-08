@@ -590,25 +590,26 @@ Onboarding flow (fresh). Payments/domains at publish.
 > the wizard preview scroller wasn't keyboard-reachable
 > (tabIndex=0), and the preview's derived muted inks were bumped
 > (45%→62% / 68%→76% ink mixes). / and /dev/site now audit CLEAN.
-> REMAINING (the open worklist — measured, clustered, ready for one
-> token-level design pass; do NOT fix node-by-node):
->   · `#887f72`/`#898073` (--ink-muted family) on cream `#fbf8ee`/
->     `#fdfaf0` — 3.71:1, needs 4.5 — 16 editor nodes. Target ≈
->     `#746c5e` (keeps the warmth, clears 4.5).
->   · `#c6703d` peach-ink small text on cream/peach-bg — 3.04–3.39,
->     10 nodes across editor + dashboard. Needs a peach-ink-deep
->     text variant (~`#a85a28`); keep the current hue for chips/
->     borders.
->   · `#c19a4b` GOLD as small text on cream — 2.45:1, 5 dashboard
->     nodes. BRAND §5 says gold is punctuation, almost never text —
->     these should likely become olive or ink with a gold rule, not
->     a darker gold.
->   · `#6d7d3f`/`#8b9c5a` olive/sage small text on cream — 2.8–4.21,
->     8 dashboard nodes. Olive text token needs ~`#5c6b3f` at small
->     sizes.
-> Any token change repaints every surface — make it with eyes on
-> the letterpress feel (BRAND is the constitution), then re-run
-> `axe-run.mjs` for the zero-serious gate.
+> THE CONTRAST PASS SHIPPED 2026-07-08 — **all five routes now
+> audit ZERO serious/critical.** What it took (each a design
+> decision, not a node patch):
+>   · The editor rails' 0.82 resting recession was silently
+>     blending otherwise-AA muted text to 3.7:1 — recession is now
+>     0.95 (the wake on hover is a whisper, deliberately).
+>   · `--peach-ink` #C6703D → `#9D5222` and `--sage-deep` #6d7d3f →
+>     `#5C6B3F` (= --pl-olive) — both were TEXT tokens under AA;
+>     dark-theme values untouched.
+>   · New `--gold-ink: #836018` for the rare gold-as-text moments
+>     (BRAND §5: gold is punctuation — raw --pl-gold stays the
+>     hairline token); the cockpit's Medium chips + keepsake
+>     headline swapped to it, and accent-colored labels now mix
+>     52% toward ink generically.
+>   · The wizard's live thumbnail is aria-hidden (decorative), its
+>     derived soft inks are now VERIFIED numerically (mixHex →
+>     contrast check → full-ink fallback on hostile palette
+>     grounds), and warn text wears --pl-warning, not plum.
+> Letterpress feel eyeballed on the dashboard after the token
+> darkening (`dashboard-aa-tokens.png`) — richer, not muddy.
 > Threads 1–3 + 5 (zoom walk, undo/confirm inventory, saved-state
 > visibility on dashboard/Studio, label audit) still open.
 > axe-core added as a devDependency. vitest 1246/1246.
