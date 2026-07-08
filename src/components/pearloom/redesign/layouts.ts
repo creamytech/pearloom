@@ -20,6 +20,7 @@ export interface LayoutVariant {
 export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>> = {
   hero: [
     { id: 'centered',    label: 'Centered',     sub: 'Default scroll' },
+    { id: 'cover',       label: 'Cover',        sub: 'A sealed cover parts on arrival' },
     { id: 'split',       label: 'Split',        sub: 'Type left · photo right' },
     { id: 'spread',      label: 'Editorial',    sub: 'Names off-axis · photo to the edge' },
     { id: 'minimal',     label: 'Minimal',      sub: 'Left-aligned, no photos' },

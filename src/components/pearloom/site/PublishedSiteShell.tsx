@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
 import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
+import { readVariant } from '@/components/pearloom/redesign/layouts';
 /* Interaction-gated overlays — each Lazy* wrapper keeps a feather-
    weight trigger mounted and only downloads the real component
    (and its framer-motion / RSVP-form freight) when the guest
@@ -215,8 +216,10 @@ export function PublishedSiteShell(props: Props) {
           surfaces, not arrivals). Client overlay over the already-
           rendered site; crawlers and reduced-motion are unaffected
           (LazyArrivalReveal skips the download entirely for repeat
-          visitors / reduced motion / automation). */}
-      {(!props.pageFilter || props.pageFilter === 'home') && (
+          visitors / reduced motion / automation). Suppressed when the
+          hero is the Cover variant — that hero IS the envelope, and
+          guests should never meet two of them. */}
+      {(!props.pageFilter || props.pageFilter === 'home') && readVariant(hydrated, 'hero') !== 'cover' && (
         <ErrorBoundary fallback={<></>}>
           <LazyArrivalReveal
             manifest={hydrated}

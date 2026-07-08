@@ -21,7 +21,7 @@
 */
 
 import { useId, useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
-import { FadeInImage } from './graceful-image';
+import { FadeInImage, usePrefersReducedMotion } from './graceful-image';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -1503,6 +1503,7 @@ function blockProps(ctx: SectionCtx, section: Exclude<SectionId, null>) {
 
 function HeroBlock({ ctx }: { ctx: SectionCtx }) {
   switch (ctx.variants.hero) {
+    case 'cover':       return <HeroCover ctx={ctx} />;
     case 'split':       return <HeroSplit ctx={ctx} />;
     case 'spread':      return <HeroSpread ctx={ctx} />;
     case 'minimal':     return <HeroMinimal ctx={ctx} />;
@@ -1727,6 +1728,123 @@ function HeroCrest({ ctx }: { ctx: SectionCtx }) {
           </TButton>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* HeroCover — "the Cover" (RADICAL-DESIGN-DIRECTIONS §B, archetype
+   one). The hero's first state is a sealed, pressed paper cover —
+   the couple's names set like an invitation face, a wax seal
+   carrying their monogram — and breaking the seal parts two paper
+   curtains to reveal the hero beneath. The site ITSELF is the
+   envelope, not an overlay on top of it.
+
+   Honesty + safety contract:
+   - SSR/crawlers never see the cover (it mounts client-side after
+     first paint), so content is never gated for machines.
+   - Once per device (localStorage), mirroring ArrivalReveal.
+   - Reduced motion / the editor render permanently open; the editor
+     gets a quiet chip naming the behavior instead.
+   - PublishedSiteShell suppresses ArrivalReveal for this variant so
+     guests never meet two envelopes. */
+function HeroCover({ ctx }: { ctx: SectionCtx }) {
+  const { C, editable } = ctx;
+  const reduced = usePrefersReducedMotion();
+  const storageKey = `pl8-cover-${ctx.siteSlug ?? 'site'}`;
+  const [phase, setPhase] = useState<'unmounted' | 'closed' | 'parting'>('unmounted');
+
+  useEffect(() => {
+    if (editable || reduced) return;
+    try { if (localStorage.getItem(storageKey)) return; } catch { /* private mode — show it */ }
+    // rAF, not a synchronous set — render-time state stays SSR-clean.
+    const id = requestAnimationFrame(() => setPhase('closed'));
+    return () => cancelAnimationFrame(id);
+  }, [editable, reduced, storageKey]);
+
+  const breakSeal = () => {
+    setPhase((p) => {
+      if (p !== 'closed') return p;
+      try { localStorage.setItem(storageKey, '1'); } catch { /* ignore */ }
+      window.setTimeout(() => setPhase('unmounted'), 1050);
+      return 'parting';
+    });
+  };
+
+  const initialOf = (name: string) => ((name ?? '').trim().charAt(0) || '·').toUpperCase();
+  const solo = C.subject.type !== 'couple';
+  const parting = phase === 'parting';
+  const curtainBase: CSSProperties = {
+    position: 'absolute', top: 0, bottom: 0, width: '50.5%',
+    background: 'var(--t-paper)',
+    /* A whisper of laid-paper grain so the cover reads as stock,
+       not a flat fill. */
+    backgroundImage: 'repeating-linear-gradient(0deg, color-mix(in oklab, var(--t-ink) 3%, transparent) 0 1px, transparent 1px 3px)',
+    transition: 'transform 1s cubic-bezier(0.7, 0, 0.22, 1)',
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <HeroCentered ctx={ctx} />
+      {editable && (
+        <div aria-hidden style={{ position: 'absolute', top: 10, left: 10, zIndex: 3, pointerEvents: 'none', padding: '4px 11px', borderRadius: 999, background: 'color-mix(in oklab, var(--t-paper) 82%, transparent)', border: '1px solid var(--t-line)', fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>
+          Sealed cover — parts on arrival
+        </div>
+      )}
+      {phase !== 'unmounted' && (
+        <div
+          onClick={breakSeal}
+          style={{ position: 'absolute', inset: 0, zIndex: 6, overflow: 'hidden', cursor: parting ? 'default' : 'pointer' }}
+        >
+          {/* The two paper curtains — each carries a debossed seam edge. */}
+          <div aria-hidden style={{ ...curtainBase, left: 0, boxShadow: 'inset -14px 0 26px -18px rgba(0,0,0,0.28), inset -1px 0 0 var(--t-line)', transform: parting ? 'translateX(-102%)' : 'none' }} />
+          <div aria-hidden style={{ ...curtainBase, right: 0, boxShadow: 'inset 14px 0 26px -18px rgba(0,0,0,0.28), inset 1px 0 0 var(--t-line)', transform: parting ? 'translateX(102%)' : 'none' }} />
+          {/* The cover face — names as an invitation, the seal below. */}
+          <div
+            style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 16, padding: '32px 24px', textAlign: 'center',
+              opacity: parting ? 0 : 1,
+              transition: 'opacity 380ms ease',
+            }}
+          >
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)' }}>
+              {C.lead}
+            </div>
+            <div className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as unknown as number, fontSize: 'clamp(30px, 6.5vw, calc(52px * var(--t-hero-scale)))', lineHeight: 1.06, color: 'var(--t-ink)', textShadow: '0 1px 1px color-mix(in oklab, var(--t-paper) 82%, #fff)' }}>
+              {C.subject.a}
+              {!solo && <span style={{ fontStyle: 'italic', fontWeight: 400, fontSize: '0.72em', color: 'var(--t-ink-soft)', margin: '0 0.2em' }}>and</span>}
+              {!solo && C.subject.b}
+            </div>
+            <div style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>{C.meta.date}</div>
+            <button
+              type="button"
+              onClick={breakSeal}
+              aria-label="Break the seal and open the site"
+              style={{
+                marginTop: 10,
+                width: 92, height: 92, borderRadius: '50%',
+                border: 'none', cursor: 'pointer',
+                transform: parting ? 'scale(0.8) rotate(-6deg)' : 'rotate(-6deg)',
+                transition: 'transform 320ms var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))',
+                /* Wax — lit from the upper left, pressed at the rim. */
+                background: 'radial-gradient(circle at 32% 28%, color-mix(in oklab, var(--t-accent) 74%, #fff) 0%, var(--t-accent) 46%, color-mix(in oklab, var(--t-accent) 74%, #000) 100%)',
+                boxShadow: '0 6px 18px -6px rgba(0,0,0,0.35), inset 0 -2px 5px rgba(0,0,0,0.22), inset 0 2px 4px rgba(255,255,255,0.28)',
+                color: 'var(--t-paper)',
+                fontFamily: 'var(--t-display)',
+                fontStyle: 'italic',
+                fontSize: solo ? 38 : 27,
+                lineHeight: 1,
+              }}
+            >
+              {initialOf(C.subject.a)}{!solo && <span style={{ fontSize: '0.6em', verticalAlign: '0.25em', margin: '0 0.08em', opacity: 0.85 }}>·</span>}{!solo && initialOf(C.subject.b)}
+            </button>
+            <div style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 9, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+              Break the seal
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
