@@ -579,7 +579,24 @@ Onboarding flow (fresh). Payments/domains at publish.
 
 ---
 
-### S7 — Linda mode · **status: planned** · P1
+### S7 — Linda mode · **status: IN PROGRESS 2026-07-08** · P1
+
+> Thread 4 (semantics) LARGELY SHIPPED — first axe-core pass across
+> /, wizard, editor, site, dashboard found 10 serious/critical
+> classes; fixed: the FToggle switch had no accessible name (now
+> role="switch" + aria-checked + aria-label — every rail toggle),
+> star-rating + status-dot spans carried prohibited aria-labels
+> (role="img"), the toast container lacked a role (role="region"),
+> the wizard preview scroller wasn't keyboard-reachable
+> (tabIndex=0), and the preview's derived muted inks were bumped
+> (45%→62% / 68%→76% ink mixes). / and /dev/site now audit CLEAN.
+> REMAINING (the open worklist, from `axe.json` in the walk
+> scratchpad): color-contrast only — wizard preview 4 nodes, editor
+> chrome 20 nodes (e.g. the "3 to do" pill), dashboard 21 nodes —
+> all muted-ink-on-tinted-chrome token decisions, one design pass.
+> Threads 1–3 + 5 (zoom walk, undo/confirm inventory, saved-state
+> visibility on dashboard/Studio, label audit) still open.
+> axe-core added as a devDependency. vitest 1246/1246.
 
 ```
 ## Active focus — S7 · Linda mode (confidence and accessibility)

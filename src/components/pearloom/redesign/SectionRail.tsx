@@ -808,6 +808,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                   {needsAttention(s.id, manifest) && (
                     <span
                       title="Nothing here yet"
+                      role="img"
                       aria-label="Nothing here yet"
                       style={{
                         width: 5,

@@ -94,7 +94,7 @@ export function FToggle({ label, sub, on, set }: { label: string; sub?: string; 
       </div>
       {/* .pl-hit44 grows the 38×22 pill's TAP target to ≥44px on
           coarse pointers (pearloom.css) — visuals unchanged. */}
-      <button onClick={() => set(!on)} className="pl-hit44" style={{ width: 38, height: 22, borderRadius: 999, background: on ? 'var(--sage-deep)' : 'var(--cream-3)', position: 'relative', flexShrink: 0, transition: 'background 160ms ease', cursor: 'pointer', border: 'none' }}>
+      <button onClick={() => set(!on)} className="pl-hit44" role="switch" aria-checked={on} aria-label={label} style={{ width: 38, height: 22, borderRadius: 999, background: on ? 'var(--sage-deep)' : 'var(--cream-3)', position: 'relative', flexShrink: 0, transition: 'background 160ms ease', cursor: 'pointer', border: 'none' }}>
         <span style={{ position: 'absolute', top: 2.5, left: on ? 18.5 : 2.5, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: 'left 160ms cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
       </button>
     </div>

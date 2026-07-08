@@ -5450,7 +5450,7 @@ function Stars({ r, size = 12 }: { r: number; size?: number }) {
      rating data). */
   const rating = Math.max(0, Math.min(5, r ?? 0));
   return (
-    <span style={{ display: 'inline-flex', gap: 1.5 }} aria-label={`${rating.toFixed(1)} out of 5`}>
+    <span role="img" style={{ display: 'inline-flex', gap: 1.5 }} aria-label={`${rating.toFixed(1)} out of 5`}>
       {[0, 1, 2, 3, 4].map((i) => {
         /* Per-star fill fraction: 1.0 for stars fully under
            rating, 0.0 above, fractional for the boundary one. */

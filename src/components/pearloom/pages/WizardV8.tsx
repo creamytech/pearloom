@@ -2143,8 +2143,8 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   // color-mix keeps both hex AND var() inputs valid.
   const paper = ground;
   const section = `color-mix(in srgb, ${ground} 90%, ${accent})`;
-  const inkSoft = `color-mix(in srgb, ${ink} 68%, ${ground})`;
-  const inkMuted = `color-mix(in srgb, ${ink} 45%, ${ground})`;
+  const inkSoft = `color-mix(in srgb, ${ink} 76%, ${ground})`;
+  const inkMuted = `color-mix(in srgb, ${ink} 62%, ${ground})`;
   const line = `color-mix(in srgb, ${ink} 16%, ${ground})`;
   const place = st.location;
 
@@ -2214,7 +2214,7 @@ function WizardLivePreview({ st }: { st: WizardState }) {
         }}
       >
         {/* Scrollable mini save-the-date site (design handoff SiteBody). */}
-        <div style={{ height: 540, overflow: 'auto', borderRadius: 18, background: paper, color: ink, fontFamily: 'var(--font-ui)' }}>
+        <div tabIndex={0} aria-label="Site preview — scrollable" role="group" style={{ height: 540, overflow: 'auto', borderRadius: 18, background: paper, color: ink, fontFamily: 'var(--font-ui)' }}>
           {/* Nav row — monogram + menu */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
             <span style={{ width: 34, height: 34, borderRadius: 999, border: `1px solid ${line}`, display: 'grid', placeItems: 'center', fontFamily: display, fontStyle: 'italic', fontSize: 12, color: ink }}>
