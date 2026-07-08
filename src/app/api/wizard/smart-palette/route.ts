@@ -77,7 +77,7 @@ const PALETTE_SCHEMA = {
             items: { type: 'string' },
           },
           tone: { type: 'string' },
-          source: { type: 'string' },
+          source: { type: 'string', enum: ['venue', 'vibe', 'photos', 'occasion'] },
           motif: { type: 'string', enum: [...MOTIF_KINDS] },
           motifLayout: { type: 'string', enum: MOTIF_LAYOUT_IDS },
         },
@@ -163,10 +163,14 @@ export async function POST(req: NextRequest) {
     `"Kyoto in winter" → bone + plum-blossom + ink; ` +
     `"Napa vineyard" → deep burgundy + cream + olive; ` +
     `"Hamptons beach" → coastal blue + sand + coral). ` +
-    `If no venue, key the first palette off the city or a landmark you can infer. ` +
-    `The other two palettes must come from DIFFERENT angles: one from the vibes, one ` +
-    `unexpected but still coherent (e.g. a palette from a photo album you'd reach for, ` +
-    `or an editorial color study).\n\n` +
+    `If no venue, key the first palette off the city or a landmark you can infer; if ` +
+    `neither is given, build it from the occasion's own traditions and set source ` +
+    `"occasion".\n` +
+    `THE THREE ANGLES ARE A CONTRACT — exactly one palette per source:\n` +
+    `1. source "venue" — from the venue/city (or "occasion" when none given).\n` +
+    `2. source "vibe" — from the picked vibes (from the occasion's voice when none picked).\n` +
+    `3. source "photos" — led by the photo colors when given; otherwise a SECOND ` +
+    `occasion-tradition angle, clearly distinct from the first, with source "occasion".\n\n` +
     `STRICT RULES:\n` +
     `- Colors are 6-digit hex strings like "#F58426". Always include '#'.\n` +
     `- Each palette has EXACTLY four colors: [background (light/paper), primary (display), accent (highlight), contrast (ink)].\n` +
@@ -175,7 +179,7 @@ export async function POST(req: NextRequest) {
     `- Never produce neon unless the voice literally is "playful" or "disco".\n` +
     `- Memorial and funeral occasions must return quiet, muted palettes (no saturated brights). No exceptions.\n` +
     `- Respect the season when the venue or date hints at one.\n` +
-    `- "source" field must be one of: "venue", "vibe", "voice", "photos", "fallback".\n` +
+    `- "source" field must be one of: "venue", "vibe", "photos", "occasion" — and the three palettes carry three DIFFERENT sources per the contract above.\n` +
     `- Palette "id" must be kebab-case and unique within the response.\n` +
     `- Palette "name" is 2–3 poetic words. No clichés.\n` +
     `- Rationale is ONE sentence, under 20 words, specific to their actual context.\n` +
@@ -230,6 +234,7 @@ export async function POST(req: NextRequest) {
         // off-catalog rather than stamping junk onto a manifest.
         motif: typeof p.motif === 'string' && MOTIF_KIND_SET.has(p.motif) ? p.motif : undefined,
         motifLayout: typeof p.motifLayout === 'string' && MOTIF_LAYOUT_SET.has(p.motifLayout) ? p.motifLayout : undefined,
+        source: ['venue', 'vibe', 'photos', 'occasion'].includes(String(p.source)) ? p.source : 'occasion',
       }))
       .filter((p) => p.colors.length === 4)
       .slice(0, 3);

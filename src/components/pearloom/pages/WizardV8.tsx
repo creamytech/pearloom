@@ -4567,6 +4567,20 @@ export function WizardV8() {
                                 <Icon name="check" size={11} color="#fff" strokeWidth={3} />
                               </div>
                             )}
+                            <div
+                              style={{
+                                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                                fontSize: 9.5,
+                                letterSpacing: '0.18em',
+                                textTransform: 'uppercase',
+                                color: 'var(--pl-olive, #5C6B3F)',
+                              }}
+                            >
+                              {p.source === 'venue' ? 'From your venue'
+                                : p.source === 'vibe' ? 'From your vibe'
+                                : p.source === 'photos' ? 'From your photos'
+                                : 'From the occasion'}
+                            </div>
                             <div style={{ display: 'flex', gap: 4 }}>
                               {p.colors.map((c, i) => (
                                 <div
@@ -4607,17 +4621,6 @@ export function WizardV8() {
                                 </span>
                               </div>
                             )}
-                            <div
-                              style={{
-                                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                                fontSize: 9.5,
-                                letterSpacing: '0.16em',
-                                textTransform: 'uppercase',
-                                color: 'var(--ink-muted)',
-                              }}
-                            >
-                              {p.source === 'venue' ? 'Venue-aware' : p.source === 'vibe' ? 'Vibe-aware' : p.source === 'photos' ? 'From your photos' : p.source}
-                            </div>
                           </button>
                         );
                       })}
