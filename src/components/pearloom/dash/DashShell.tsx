@@ -23,6 +23,7 @@ import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
 import { useSelectedSite, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { AccountMark, useUserAvatar } from '../avatars';
+import { COVER_FOCUS } from '@/lib/cover-crop';
 
 interface DashNavItem {
   id: string;
@@ -661,6 +662,7 @@ function SiteCrest({ site, size = 38 }: { site: SiteSummary | null | undefined; 
           alt=""
           style={{
             width: '100%', height: '100%', objectFit: 'cover',
+            objectPosition: COVER_FOCUS,
             borderRadius: radius - 3, display: 'block',
           }}
         />

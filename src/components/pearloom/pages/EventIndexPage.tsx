@@ -14,6 +14,7 @@ import { getTheme } from '../site/themes';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import type { SiteStat } from '@/app/api/dashboard/sites-stats/route';
+import { COVER_FOCUS } from '@/lib/cover-crop';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 
@@ -134,7 +135,7 @@ function SiteCard({
           <img
             src={site.coverPhoto}
             alt=""
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, display: 'block' }}
           />
         ) : (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>

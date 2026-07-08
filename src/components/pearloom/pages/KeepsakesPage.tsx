@@ -28,6 +28,7 @@ import { Icon, PearloomGlyph } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { PLChrome, PLCard } from '../dash/PLChrome';
 import { PageIntro, RailCard } from '../dash/QuietDash';
+import { COVER_FOCUS } from '@/lib/cover-crop';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -99,7 +100,7 @@ function BookMock({
           <img
             src={coverPhoto}
             alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.05) sepia(0.05)' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, filter: 'saturate(1.05) sepia(0.05)' }}
           />
         ) : (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
@@ -351,7 +352,7 @@ export function KeepsakesPage() {
                       src={item.url}
                       alt=""
                       loading="lazy"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.04) sepia(0.05)' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, filter: 'saturate(1.04) sepia(0.05)' }}
                     />
                     <div
                       style={{

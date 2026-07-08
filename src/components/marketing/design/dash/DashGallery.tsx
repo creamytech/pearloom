@@ -30,6 +30,7 @@ import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { useSelectedSite, useUserSites, type SiteSummary } from './hooks';
 import { EmptyState } from '@/components/shell/EmptyState';
+import { COVER_FOCUS } from '@/lib/cover-crop';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -537,7 +538,7 @@ function PendingImage({ url }: { url: string }) {
           src={proxied(url, 480)}
           alt=""
           onError={() => setBroken(true)}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, display: 'block' }}
         />
       )}
     </div>
@@ -760,7 +761,7 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
           src={proxied(p.url, 600)}
           alt={p.alt ?? ''}
           onError={() => setBroken(true)}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, display: 'block' }}
         />
       )}
       {p.source === 'cover' ? (
@@ -827,7 +828,7 @@ function Slideshow({ photos }: { photos: ReelPhoto[] }) {
         <img
           src={proxied(p.url, 1400)}
           alt={p.alt ?? ''}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, display: 'block' }}
         />
         {p.alt ? (
           <div

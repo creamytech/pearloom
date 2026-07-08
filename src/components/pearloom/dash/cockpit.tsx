@@ -27,6 +27,7 @@ import { Icon, Sprig, PearloomGlyph } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
 import { daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
+import { COVER_FOCUS } from '@/lib/cover-crop';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -291,7 +292,7 @@ function HeroPhotoSlot({
     return (
       <div style={slotStyle}>
         { }
-        <img src={coverPhoto} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.05) sepia(0.05)' }} />
+        <img src={coverPhoto} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, filter: 'saturate(1.05) sepia(0.05)' }} />
         <div aria-hidden style={{ position: 'absolute', inset: 0, background: narrow ? 'linear-gradient(0deg, rgba(30,37,19,0.92) 0%, rgba(30,37,19,0.2) 60%, transparent 100%)' : 'linear-gradient(100deg, rgba(30,37,19,0.9) 0%, rgba(30,37,19,0.28) 34%, transparent 60%)' }} />
         <Link href={editorHref} className="lift" style={pill}>
           <Icon name="image" size={13} color={HERO_CREAM} /> Change photo
@@ -600,7 +601,7 @@ export function MemoryCard({ images, href, blurb }: { images: string[]; href: st
             <div key={i} style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', boxShadow: 'var(--shadow-sm, 0 2px 8px rgba(40,28,12,0.08))', transform: `rotate(${(i - 1) * 1.4}deg)`, background: src ? 'var(--cream-3)' : MEMORY_GRADIENTS[i] }}>
               {src ? (
                  
-                <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(1.05) sepia(0.05)' }} />
+                <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, filter: 'saturate(1.05) sepia(0.05)' }} />
               ) : null}
             </div>
           );
