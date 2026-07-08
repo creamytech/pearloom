@@ -48,13 +48,22 @@
 >   beneath the plates, kept prominent only atop the 31-event
 >   directory). Owner signed off on continuing the dedicated §D track
 >   (2026-07-08).
-> - Remaining on the §D track: the full INVERSION (site-as-stage,
->   controls-as-tray — apply the title-page treatment step by step,
->   then invert the stage), then editor chrome recession (riskiest;
->   last). Also §B kinetic scroll type (needs real-device perf testing
->   — scroll-linked font-variation is the jank class fixed 2026-07-08)
->   and the bible-bending stretches (workbench ground, leafed reading
->   mode, wizard/editor merge).
+> - §D REVIEW INVERTED — **SHIPPED** (2026-07-08): Review leads with
+>   THE PROOF — the real ThemedSite as a full-width pressed sheet
+>   (WizardStructureSection `stage` mode, measured zoom, native
+>   scroll) with the wax seal ("Press it", the couple's initials in
+>   the site's accent) floating over it as the finish. Vibes fold
+>   into the pressing exactly as at generation, so the proof IS the
+>   site. Phone aside hidden on Review. Also: vibe→look engine, live
+>   vibe re-pressing in the phone preview, personal Pear voice, woven
+>   phase connectors (same date).
+> - Remaining on the §D track: extend the inversion to the WORKING
+>   steps (site-as-stage behind a floating control tray, mobile-first
+>   — the remaining big rebuild), then editor chrome recession
+>   (riskiest; last). Also §B kinetic scroll type (needs real-device
+>   perf testing — scroll-linked font-variation is the jank class
+>   fixed 2026-07-08) and the bible-bending stretches (workbench
+>   ground, leafed reading mode, wizard/editor merge).
 
 ---
 
