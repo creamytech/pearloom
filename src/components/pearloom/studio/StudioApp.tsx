@@ -295,6 +295,19 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   /* Concrete swatch hexes for the rail's "Your site" row — read
      straight off the resolved bag (the rail chrome sits outside
      .pl8-guest, so var() references wouldn't paint there). */
+  /* The envelope postmark — the site's own event date. */
+  const postmarkDate = useMemo(() => {
+    const raw = String((manifest as { logistics?: { date?: string } }).logistics?.date ?? '').trim();
+    if (!raw) return null;
+    const d = new Date(`${raw}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return null;
+    return {
+      dayLine: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
+      year: String(d.getFullYear()),
+    };
+  }, [manifest]);
+  const kitId = (manifest as { kitId?: string }).kitId ?? null;
+
   const siteSwatch = useMemo(() => {
     if (!themeRoot) return undefined;
     const bag = themeRoot as Record<string, string>;
@@ -692,6 +705,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 motif={state.motif}
                 texture={state.texture}
               themeRoot={cardThemeRoot}
+              postmarkDate={postmarkDate}
+              kitId={kitId}
                 palette={palette}
                 font={font}
                 content={content}
@@ -713,6 +728,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 motif={state.motif}
                 texture={state.texture}
               themeRoot={cardThemeRoot}
+              postmarkDate={postmarkDate}
+              kitId={kitId}
                 palette={palette}
                 font={font}
                 content={content}
@@ -735,6 +752,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 motif={state.motif}
                 texture={state.texture}
               themeRoot={cardThemeRoot}
+              postmarkDate={postmarkDate}
+              kitId={kitId}
                 palette={palette}
                 font={font}
                 content={content}
@@ -962,6 +981,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
       {showPrintPair && (
         <StudioPrintPreview
           themeRoot={cardThemeRoot}
+          postmarkDate={postmarkDate}
+          kitId={kitId}
           type={state.type}
           layout={state.layout}
           motif={state.motif}
@@ -994,6 +1015,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               motif={state.motif}
               texture={state.texture}
               themeRoot={cardThemeRoot}
+              postmarkDate={postmarkDate}
+              kitId={kitId}
               palette={palette}
               font={font}
               content={content}

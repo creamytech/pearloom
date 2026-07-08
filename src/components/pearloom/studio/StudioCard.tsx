@@ -51,6 +51,14 @@ interface CardProps {
    *  resolve and the grain system matches the published site
    *  exactly (ATELIER-PLAN ST.1). */
   themeRoot?: React.CSSProperties;
+  /** The event date for the envelope postmark — the SAME stamp
+   *  the site's Sealed Arrival wears, so the envelope you print
+   *  and the envelope guests open are one designed object
+   *  (ATELIER-PLAN ST.2). No date → no postmark. */
+  postmarkDate?: { dayLine: string; year: string } | null;
+  /** The site's kit — informs the card frame when the card wears
+   *  the site (deco corners / arch / classic hairlines). */
+  kitId?: string | null;
   /** Save-the-date back details — derived from manifest.events +
    *  manifest.travelInfo. Each is optional; the card falls back to
    *  an em-dash placeholder when missing. */
@@ -58,6 +66,38 @@ interface CardProps {
   receptionAt?: string;
   dressCode?: string;
   hotelLine?: string;
+}
+
+/** The kit's structural personality, folded onto the card as a
+ *  quiet frame — only when the card wears the site (themeRoot).
+ *  Deco kits get corner brackets, arch kits an arched crown,
+ *  everything else the classic double hairline; minimal kits go
+ *  frameless. */
+function KitFrame({ kitId, accent }: { kitId?: string | null; accent: string }) {
+  const kit = kitId ?? 'classic';
+  if (kit === 'minimal') return null;
+  if (kit === 'deco' || kit === 'gilt' || kit === 'plate') {
+    const L = 26;
+    const corner = (r: number, x: string, y: string) => (
+      <svg key={`${x}${y}`} viewBox="0 0 30 30" width={L} height={L} style={{ position: 'absolute', [x]: 14, [y]: 14, transform: `rotate(${r}deg)`, opacity: 0.55 }}>
+        <path d="M 2 28 L 2 2 L 28 2" fill="none" stroke={accent} strokeWidth="1.6" />
+        <path d="M 7 28 L 7 7 L 28 7" fill="none" stroke={accent} strokeWidth="0.8" />
+      </svg>
+    );
+    return <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>{[corner(0, 'left', 'top'), corner(90, 'right', 'top'), corner(270, 'left', 'bottom'), corner(180, 'right', 'bottom')]}</div>;
+  }
+  if (kit === 'arch') {
+    return (
+      <svg aria-hidden viewBox="0 0 420 588" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', width: '100%', height: '100%', opacity: 0.5 }}>
+        <path d="M 24 564 L 24 190 Q 24 40 210 40 Q 396 40 396 190 L 396 564 Z" fill="none" stroke={accent} strokeWidth="1.2" />
+      </svg>
+    );
+  }
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 14, zIndex: 1, pointerEvents: 'none', border: `1px solid ${accent}`, opacity: 0.4 }}>
+      <div style={{ position: 'absolute', inset: 4, border: `0.5px solid ${accent}`, opacity: 0.7 }} />
+    </div>
+  );
 }
 
 /** Handwritten passages wear the site's own script face when the
@@ -87,6 +127,7 @@ export function CardFront(props: CardProps) {
       overflow: 'hidden',
     }}>
       {!isDark && <PaperTexture />}
+      {themeRoot && <KitFrame kitId={props.kitId} accent={palette.accent} />}
 
       {layout === 'classic' && <ClassicLayout {...props} />}
       {layout === 'asym' && <AsymLayout {...props} />}
@@ -161,8 +202,15 @@ export function CardBack(props: CardProps) {
             {solemn
               ? <Field label="A memory to share, if you wish" value="" font={font} palette={palette} />
               : <Field label="Song that’d get you on the floor" value="" font={font} palette={palette} />}
-            <div style={{ marginTop: 'auto', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
-              {siteUrl ? `Or RSVP at ${siteUrl}` : 'RSVP via the QR on your envelope'}
+            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <div style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
+                {siteUrl ? `Or RSVP at ${siteUrl}` : 'RSVP on the site'}
+              </div>
+              {siteUrl && (
+                <div style={{ width: 52, height: 52, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 3, flexShrink: 0 }}>
+                  <BrandedQR value={`https://${siteUrl}`} size={44} dark={palette.ink} light="#ffffff" />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -214,7 +262,9 @@ export function CardBack(props: CardProps) {
                 {siteUrl ? `Photos at ${siteUrl}` : 'Photos on the site'}
               </div>
               <div style={{ width: 56, height: 56, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 3 }}>
-                <QRGlyph color={palette.ink} />
+                {siteUrl
+                  ? <BrandedQR value={`https://${siteUrl}`} size={48} dark={palette.ink} light="#ffffff" />
+                  : <QRGlyph color={palette.ink} />}
               </div>
             </div>
           </div>
@@ -261,7 +311,7 @@ function QRGlyph({ color = '#3D4A1F' }: { color?: string }) {
 }
 
 export function CardEnvelope(props: CardProps) {
-  const { palette, font, motif, monogram, returnAddress, nameA, nameB, themeRoot } = props;
+  const { palette, font, motif, monogram, returnAddress, nameA, nameB, themeRoot, postmarkDate, siteUrl } = props;
   const w = 540, h = 380;
   const ret = returnAddress ?? { name: nameB ? `${nameA} & ${nameB}` : nameA, line1: '', line2: '' };
   const script = scriptFont(font);
@@ -303,24 +353,45 @@ export function CardEnvelope(props: CardProps) {
       </div>
 
       {motif !== 'none' && (
-        <div style={{ position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%) rotate(-6deg)' }}>
-          <svg viewBox="0 0 80 80" width={56} height={56}>
-            <circle cx="40" cy="40" r="32" fill={palette.accent} />
-            <circle cx="40" cy="40" r="32" fill="url(#waxE)" opacity="0.45" />
-            <text x="40" y="48" textAnchor="middle" fontSize="20" fontFamily={font.display} fill="rgba(255,255,255,0.8)" fontStyle="italic" fontWeight="700">{monogram}</text>
-            <defs><radialGradient id="waxE" cx="35%" cy="35%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#000" /></radialGradient></defs>
+        /* The seal medallion — the SAME object the site's Sealed
+           Arrival presses (paper face, hairline ring, display-italic
+           initials), so what you print is what they open. */
+        <div style={{ position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%) rotate(-4deg)' }}>
+          <svg viewBox="0 0 80 80" width={58} height={58}>
+            <circle cx="40" cy="40" r="34" fill={palette.paper} />
+            <circle cx="40" cy="40" r="34" fill="none" stroke={palette.accent} strokeWidth="1.4" />
+            <circle cx="40" cy="40" r="28" fill="none" stroke={palette.accent} strokeWidth="0.6" opacity="0.55" />
+            <text x="40" y="47" textAnchor="middle" fontSize="19" fontFamily={font.display} fill={palette.accent} fontStyle="italic" fontWeight="600">{monogram}</text>
           </svg>
         </div>
       )}
 
-      <svg viewBox="0 0 200 60" width={140} height={42} style={{ position: 'absolute', top: 30, right: 92, opacity: 0.35 }}>
-        <circle cx="30" cy="30" r="22" fill="none" stroke={palette.ink} strokeWidth="1.2" />
-        <text x="30" y="28" textAnchor="middle" fontSize="6" fontFamily="Inter" fontWeight="700" fill={palette.ink}>POSTMARK</text>
-        <text x="30" y="36" textAnchor="middle" fontSize="6" fontFamily="Inter" fontWeight="700" fill={palette.ink}>STAMPED</text>
-        <line x1="55" y1="22" x2="180" y2="22" stroke={palette.ink} strokeWidth="1.1" />
-        <line x1="55" y1="30" x2="180" y2="30" stroke={palette.ink} strokeWidth="1.1" />
-        <line x1="55" y1="38" x2="180" y2="38" stroke={palette.ink} strokeWidth="1.1" />
+      {/* The postmark — the event date, the same stamp the site's
+          Sealed Arrival envelope wears. No date → wavy cancel
+          lines only. */}
+      <svg viewBox="0 0 200 60" width={140} height={42} style={{ position: 'absolute', top: 30, right: 92, opacity: 0.45, transform: 'rotate(3deg)' }}>
+        <circle cx="30" cy="30" r="24" fill="none" stroke={palette.ink} strokeWidth="1.2" />
+        <circle cx="30" cy="30" r="20" fill="none" stroke={palette.ink} strokeWidth="0.5" opacity="0.6" />
+        {postmarkDate ? (
+          <>
+            <text x="30" y="22" textAnchor="middle" fontSize="4.6" fontFamily="Inter" fontWeight="700" letterSpacing="0.8" fill={palette.ink}>PEARLOOM POST</text>
+            <text x="30" y="32" textAnchor="middle" fontSize="7.5" fontFamily="Inter" fontWeight="700" letterSpacing="0.6" fill={palette.ink}>{postmarkDate.dayLine}</text>
+            <text x="30" y="41" textAnchor="middle" fontSize="5.5" fontFamily="Inter" fontWeight="600" letterSpacing="1.2" fill={palette.ink}>{postmarkDate.year}</text>
+          </>
+        ) : (
+          <text x="30" y="33" textAnchor="middle" fontSize="6" fontFamily="Inter" fontWeight="700" fill={palette.ink}>PEARLOOM</text>
+        )}
+        <path d="M 58 22 Q 90 18, 122 22 T 182 22" fill="none" stroke={palette.ink} strokeWidth="1" />
+        <path d="M 58 30 Q 90 26, 122 30 T 182 30" fill="none" stroke={palette.ink} strokeWidth="1" />
+        <path d="M 58 38 Q 90 34, 122 38 T 182 38" fill="none" stroke={palette.ink} strokeWidth="1" />
       </svg>
+
+      {/* The site, scannable from the envelope itself. */}
+      {siteUrl && (
+        <div style={{ position: 'absolute', bottom: 14, right: 14, width: 44, height: 44, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 3, padding: 2, opacity: 0.92 }}>
+          <BrandedQR value={`https://${siteUrl}`} size={38} dark={palette.ink} light="#ffffff" />
+        </div>
+      )}
     </div>
   );
 }

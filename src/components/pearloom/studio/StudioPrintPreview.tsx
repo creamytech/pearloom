@@ -41,6 +41,8 @@ interface Props {
   /** The site's resolved --t-* bag — threaded to the card mounts
    *  so the print pair matches the canvas exactly. */
   themeRoot?: React.CSSProperties;
+  postmarkDate?: { dayLine: string; year: string } | null;
+  kitId?: string | null;
   /** Optional manifest reference — kept for future reads (theme.fonts,
    *  theme.colors, etc.). Today the studio palette + font props win
    *  because the host edits them locally; this is a forward seam. */
@@ -69,6 +71,8 @@ export function StudioPrintPreview({
   rsvpDeadline,
   returnAddress,
   themeRoot,
+  postmarkDate,
+  kitId,
   onPrint,
   onClose,
 }: Props) {
@@ -199,6 +203,8 @@ export function StudioPrintPreview({
         <ScaledCardBox baseW={420} baseH={588} scale={cardScale} radius={6}>
           <CardFront
             themeRoot={themeRoot}
+            postmarkDate={postmarkDate}
+            kitId={kitId}
             type={type}
             view="front"
             layout={layout}
@@ -218,6 +224,8 @@ export function StudioPrintPreview({
         <ScaledCardBox baseW={540} baseH={380} scale={envScale} radius={6}>
           <CardEnvelope
             themeRoot={themeRoot}
+            postmarkDate={postmarkDate}
+            kitId={kitId}
             type={type}
             view="envelope"
             layout={layout}
