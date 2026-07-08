@@ -200,8 +200,8 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px">
           <tr>
             <td align="center" style="padding:0 0 22px;text-align:center">
-              <a href="${base}" style="text-decoration:none;display:inline-block">
-                <img src="${base}/email-logo.png" alt="Pearloom" width="150" height="37" style="display:block;width:150px;height:auto;border:0;outline:none" />
+              <a href="${base}" style="text-decoration:none;display:inline-block;color:${t.accent}">
+                <img src="${base}/email-logo.png" alt="Pearloom" width="150" height="37" style="display:block;width:150px;height:auto;border:0;outline:none;color:${t.accent};font-family:${headingStack};font-size:20px;font-style:italic;text-decoration:none" />
               </a>
             </td>
           </tr>
@@ -241,7 +241,9 @@ function ctaBg(t: EmailThemeColors): string {
 export function button(text: string, href: string, themeColors?: EmailThemeColors): string {
   const t = themeColors || DEFAULT_THEME;
   const bodyStack = `'${t.bodyFont}',Georgia,serif`;
-  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 36px;background-color:${ctaBg(t)};color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:${bodyStack};mso-padding-alt:14px 36px">${esc(text)}</a>`;
+  /* BRAND §7: buttons name the action verb-first, sentence case —
+     the tracked-caps register belongs to mono labels, not CTAs. */
+  return `<a href="${esc(href)}" style="display:inline-block;padding:13px 34px;background-color:${ctaBg(t)};color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:0.02em;font-family:${bodyStack};mso-padding-alt:13px 34px">${esc(text)}</a>`;
 }
 
 function divider(themeColors?: EmailThemeColors): string {
@@ -261,19 +263,19 @@ function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: s
   const bodyStack = `'${t.bodyFont}',Georgia,serif`;
 
   const subject = isAttending
-    ? `Thank you for your RSVP! We can't wait to celebrate with you`
+    ? `Your reply is in — we can’t wait to celebrate with you`
     : isDeclined
       ? `Thank you for letting us know — you'll be missed`
-      : `Thank you for your RSVP!`;
+      : `Your reply is in — thank you`;
 
   const heroMessage = isAttending
-    ? `We're thrilled you'll be joining us!`
+    ? `You’re woven in.`
     : isDeclined
       ? `We'll miss you, but we understand.`
       : `Thank you for responding.`;
 
   const bodyMessage = isAttending
-    ? `Dear ${esc(guestName)},<br><br>Your RSVP for <strong>${esc(coupleNames)}</strong>'s celebration has been received. We are so excited to share this special day with you.`
+    ? `Dear ${esc(guestName)},<br><br>Your reply reached <strong>${esc(coupleNames)}</strong> — your thread is woven into the day. Everything you need lives on the site, and we can’t wait to see you.`
     : isDeclined
       ? `Dear ${esc(guestName)},<br><br>Thank you for letting us know. While we'll miss having you there, we appreciate you taking the time to respond. You'll be in our hearts on the big day.`
       : `Dear ${esc(guestName)},<br><br>We've received your response for <strong>${esc(coupleNames)}</strong>'s celebration. Thank you for letting us know.`;
@@ -606,7 +608,7 @@ export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: stri
       : 'Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.') :
     solemn
       ? 'We’re gathering to honor a beautiful life. Open the card for the details, and let us know if you can be with us.'
-      : 'We have prepared something special just for you. Open your personal invitation to see all the details and let us know if you’ll be joining us.';
+      : 'Your invitation is pressed and sealed — one envelope, with your name on it. Break the seal for the details, and tell us you’ll be there.';
   const ctaLabel =
     cardType === 'std'    ? 'Open the save-the-date' :
     cardType === 'thanks' ? 'Open your thank-you' :

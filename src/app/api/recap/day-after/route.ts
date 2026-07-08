@@ -15,6 +15,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { emailLayout, button, emailThemeFromSuite, type EmailThemeColors } from '@/lib/email-sequences';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import type { StoryManifest } from '@/types';
 import { getApprovedGuestPhotos } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -59,69 +62,36 @@ function buildEmailHtml(opts: {
   recapUrl: string;
   photoCount: number;
   messageCount: number;
+  theme?: EmailThemeColors;
 }): string {
-  const { coupleDisplay, recapUrl, photoCount, messageCount } = opts;
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>${esc(`${coupleDisplay} · your memory book is ready`)}</title>
-</head>
-<body style="margin:0;padding:0;background:#FBF7EE;font-family:'Geist','Helvetica Neue',Arial,sans-serif;color:#18181B;">
-<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#FBF7EE;padding:40px 16px;">
-  <tr><td align="center">
-    <table width="580" cellpadding="0" cellspacing="0" role="presentation" style="max-width:580px;width:100%;">
-      <tr><td align="center" style="padding-bottom:20px;">
-        <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-          <td style="width:18px;height:1px;background:#C19A4B;"></td>
-          <td style="padding:0 10px;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;">Yesterday · a look back</td>
-          <td style="width:18px;height:1px;background:#C19A4B;"></td>
-        </tr></table>
-      </td></tr>
-
-      <tr><td style="background:#FDFAF0;border:1px solid rgba(193,154,75,0.35);padding:44px 36px;text-align:center;">
-        <h1 style="margin:0 0 8px;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;font-size:38px;line-height:1.1;color:#18181B;letter-spacing:-0.01em;">
-          ${esc(coupleDisplay)}
-        </h1>
-        <p style="margin:0 0 24px;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#6F6557;">
-          Your memory book is ready
-        </p>
-
-        <p style="margin:0 0 20px;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:17px;line-height:1.55;color:#4A5642;">
-          The day is in the rearview. Pearloom has pulled together everything
-          your guests shared — photos, messages, and their favourite moments —
-          into one scrapbook page.
-        </p>
-
-        <div style="display:inline-block;margin:14px 0 24px;padding:14px 20px;background:rgba(193,154,75,0.1);border:1px solid rgba(193,154,75,0.3);border-radius:2px;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#4A5642;">
-          ${photoCount} photo${photoCount === 1 ? '' : 's'} · ${messageCount} message${messageCount === 1 ? '' : 's'}
-        </div>
-
-        <div style="margin:20px 0 8px;">
-          <a href="${esc(recapUrl)}"
-             style="display:inline-block;padding:15px 32px;background:#18181B;color:#FDFAF0;text-decoration:none;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;border-radius:2px;">
-            Open your memory book →
-          </a>
-        </div>
-
-        <p style="margin:28px 0 0;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:14px;color:#6F6557;">
-          The page updates itself as more guests upload. Bookmark it —
-          you&rsquo;ll want to come back on every anniversary.
-        </p>
-      </td></tr>
-
-      <tr><td align="center" style="padding:20px 0 0;">
-        <div style="font-family:'Geist Mono',ui-monospace,monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#6F6557;">
-          Sent with love · Made with Pearloom
-        </div>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`.trim();
+  /* The day-after recap wears the couple's own theme through the
+     shared emailLayout shell — same contract as every other send
+     (it used to be a hand-rolled, unthemed one-off). */
+  const { coupleDisplay, recapUrl, photoCount, messageCount, theme } = opts;
+  const t = theme;
+  const counts = `${photoCount} photo${photoCount === 1 ? '' : 's'} · ${messageCount} message${messageCount === 1 ? '' : 's'}`;
+  return emailLayout(`
+    <tr><td style="padding:44px 36px 0;text-align:center">
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;opacity:0.75">Yesterday · a look back</p>
+      <h1 style="font-size:34px;font-weight:400;font-style:italic;margin:0 0 8px;line-height:1.15">${esc(coupleDisplay)}</h1>
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 20px;opacity:0.75">Your memory book is ready</p>
+      <p style="font-size:15px;line-height:1.7;margin:0 0 18px">
+        The day is in the rearview. Pear has gathered everything your
+        guests shared — photos, messages, and their favourite moments —
+        into one page.
+      </p>
+      <p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 24px;opacity:0.8">${esc(counts)}</p>
+    </td></tr>
+    <tr><td style="padding:0 36px 16px;text-align:center">
+      ${button('Open your memory book', recapUrl, t)}
+    </td></tr>
+    <tr><td style="padding:0 36px 40px;text-align:center">
+      <p style="font-size:13.5px;font-style:italic;margin:0;opacity:0.8">
+        The page keeps weaving as more guests upload — come back on
+        every anniversary.
+      </p>
+    </td></tr>
+  `, t);
 }
 
 async function runDayAfter(force?: string) {
@@ -194,11 +164,18 @@ async function runDayAfter(force?: string) {
     );
 
     const recapUrl = `${baseUrl}/sites/${site.subdomain}/recap`;
+    let recapTheme: EmailThemeColors | undefined;
+    try {
+      recapTheme = emailThemeFromSuite(
+        suiteThemeFromManifest((site.ai_manifest ?? {}) as StoryManifest, [coupleDisplay, '']),
+      );
+    } catch { /* brand default is a fine fallback */ }
     const html = buildEmailHtml({
       coupleDisplay,
       recapUrl,
       photoCount,
       messageCount: guestbookCount,
+      theme: recapTheme,
     });
 
     if (resend) {

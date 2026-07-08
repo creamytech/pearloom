@@ -37,7 +37,10 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
-  if (!apiKey || !resendKey) {
+  /* Only Resend is required — the guest ALWAYS gets a confirmation.
+     Without an AI key the warm static fallback body sends as-is
+     (the personalization is a garnish, never the gate). */
+  if (!resendKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
   }
 
@@ -137,18 +140,20 @@ ${solemn
 
 Just write the body paragraph(s).`;
 
-    const aiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.85, maxOutputTokens: 200 },
-        }),
-        signal: AbortSignal.timeout(8000),
-      }
-    );
+    const aiRes = apiKey
+      ? await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.85, maxOutputTokens: 200 },
+            }),
+            signal: AbortSignal.timeout(8000),
+          }
+        ).catch(() => null)
+      : null;
 
     let bodyText = solemn
       ? (status === 'attending'
@@ -158,7 +163,7 @@ Just write the body paragraph(s).`;
         ? `We're so excited you'll be there! It means the world to us.`
         : `We completely understand and will miss you so much.`;
 
-    if (aiRes.ok) {
+    if (aiRes?.ok) {
       const aiData = await aiRes.json();
       const generated = aiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (generated) bodyText = generated;
@@ -173,8 +178,8 @@ Just write the body paragraph(s).`;
           ? `Thank you — we look forward to gathering with you`
           : `Thank you for letting us know`)
       : status === 'attending'
-        ? `We can't wait to celebrate with you! - ${hostDisplay}`
-        : `Thanks for letting us know - ${hostDisplay}`;
+        ? `We can’t wait to celebrate with you — ${hostDisplay}`
+        : `Thank you for letting us know — ${hostDisplay}`;
 
     const suite = suiteThemeFromManifest(
       manifest as unknown as StoryManifest,
