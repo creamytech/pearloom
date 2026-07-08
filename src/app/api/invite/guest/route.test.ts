@@ -250,23 +250,28 @@ describe('POST /api/invite/guest', () => {
 
     // Each successful send was followed by an update on the
     // guests row keyed by id, with email_sent_at as an ISO date.
+    // (Guests predating token minting ALSO get a passport-token
+    // mint update — the invite link now points at the published
+    // site with ?g=, ATELIER-PLAN INV.2 — so filter by payload.)
     const updateCalls = h.calls.filter(
       (c) => c.table === 'guests' && c.method === 'update',
     );
-    expect(updateCalls).toHaveLength(2);
-    for (const u of updateCalls) {
+    const stampCalls = updateCalls.filter((c) => 'email_sent_at' in (c.args[0] as Record<string, unknown>));
+    const mintCalls = updateCalls.filter((c) => 'passport_token' in (c.args[0] as Record<string, unknown>));
+    expect(stampCalls).toHaveLength(2);
+    expect(mintCalls).toHaveLength(2);
+    for (const u of stampCalls) {
       const payload = u.args[0] as { email_sent_at: string };
-      expect(payload).toHaveProperty('email_sent_at');
       // ISO 8601 sanity-check.
       expect(() => new Date(payload.email_sent_at)).not.toThrow();
       expect(Number.isFinite(new Date(payload.email_sent_at).getTime())).toBe(true);
     }
-    // And the .eq narrowed each update to the right guest id.
+    // And the .eq narrowed each update to the right guest ids
+    // (one mint + one stamp per guest).
     const updateEqCalls = h.calls.filter(
       (c) => c.table === 'guests' && c.method === 'update.eq',
     );
-    expect(updateEqCalls).toHaveLength(2);
-    expect(updateEqCalls.map((c) => c.args[1]).sort()).toEqual(['guest-a', 'guest-b']);
+    expect(updateEqCalls.map((c) => c.args[1]).sort()).toEqual(['guest-a', 'guest-a', 'guest-b', 'guest-b']);
   });
 
   it('does NOT stamp email_sent_at when the Resend send fails', async () => {
@@ -285,11 +290,14 @@ describe('POST /api/invite/guest', () => {
     expect(json.sent).toBe(0);
     expect(json.failed).toBe(1);
 
-    // Critical: no update fired, since the email failed.
-    const updateCalls = h.calls.filter(
-      (c) => c.table === 'guests' && (c.method === 'update' || c.method === 'update.eq'),
+    // Critical: no email_sent_at stamp fired, since the email
+    // failed. (The passport-token mint update is allowed — links
+    // are minted before the send.)
+    const stampCalls = h.calls.filter(
+      (c) => c.table === 'guests' && c.method === 'update'
+        && 'email_sent_at' in (c.args[0] as Record<string, unknown>),
     );
-    expect(updateCalls).toHaveLength(0);
+    expect(stampCalls).toHaveLength(0);
   });
 
   it('skips guests with no email and counts them separately (not as failures)', async () => {

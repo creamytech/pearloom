@@ -5,8 +5,10 @@
 //
 // stationeryType picks the subject line + email copy. Defaults
 // to 'invite' for back-compat. 'std' = save-the-date, 'thanks' =
-// thank-you. The CTA always points at /i/<token> so the
-// recipient can hit their personalised invite page.
+// thank-you. The CTA points at the PUBLISHED SITE with the
+// guest's ?g= passport token — the site-themed Sealed Arrival
+// addresses them by name (ATELIER-PLAN INV.2; the /i/ world is
+// retired and 301s here).
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,6 +24,8 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, buildStationeryEmail } from '@/lib/email-sequences';
+import { buildSiteUrl } from '@/lib/site-urls';
+import { guestTokenColumns } from '@/lib/guest-tokens';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -204,27 +208,31 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const token = crypto.randomUUID();
       const guestName = (guest as Record<string, unknown>).name as string;
 
-      // Upsert the invite token
-      const { error: tokenError } = await supabase.from('invite_tokens').upsert(
-        {
-          token,
-          guest_id: (guest as Record<string, unknown>).id,
-          site_id: siteId,
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: 'guest_id,site_id' }
-      );
-
-      if (tokenError) {
-        console.error('[invite/guest] token upsert error:', tokenError);
-        failed++;
-        continue;
+      /* The invite link is the published site ITSELF, carrying the
+         guest's passport token — every guest lands in the site-
+         themed Sealed Arrival, addressed to them (ATELIER-PLAN
+         INV.2). The parallel /i/ invite world is retired; old /i/
+         links 301 here. Rows that predate token minting get one. */
+      let passportToken = String(
+        (guest as Record<string, unknown>).passport_token
+        ?? (guest as Record<string, unknown>).guest_token
+        ?? '',
+      ).trim() || null;
+      if (!passportToken) {
+        const cols = guestTokenColumns();
+        const { error: mintErr } = await supabase
+          .from('guests')
+          .update(cols)
+          .eq('id', (guest as Record<string, unknown>).id);
+        if (!mintErr) passportToken = cols.passport_token;
       }
-
-      const inviteUrl = `${baseUrl}/i/${token}`;
+      const publishedUrl = buildSiteUrl(subdomain, '', baseUrl, occasion);
+      const inviteUrl = passportToken
+        ? `${publishedUrl}?g=${encodeURIComponent(passportToken)}`
+        : publishedUrl;
+      const token = passportToken ?? '';
       /* One themed email system (emailLayout + SuiteTheme) — the
          copy per cardType/solemn/solo lives in buildStationeryEmail
          so every stationery send shares one voice + one look. */

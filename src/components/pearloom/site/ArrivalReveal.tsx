@@ -212,6 +212,30 @@ function QuietArrival({
   const kicker = occasion === 'memorial' || occasion === 'funeral' ? 'In loving memory' : 'Welcome';
   const displayName = names.filter(Boolean).join(' & ') || 'A gathering';
 
+  /* Addressed, gently — a passport guest is named in the memorial
+     register ("Held for Maria"). Resolves quietly; anonymous
+     visitors see the unchanged quiet arrival. */
+  const [guestFirst, setGuestFirst] = useState<string | null>(null);
+  useEffect(() => {
+    let token: string | null = null;
+    try {
+      const params = new URL(window.location.href).searchParams;
+      token = params.get('g') || params.get('guest');
+    } catch { /* ignore */ }
+    if (!token) return;
+    const ctrl = new AbortController();
+    fetch(`/api/sites/guest-passport?siteSlug=${encodeURIComponent(siteSlug)}&token=${encodeURIComponent(token)}`, {
+      cache: 'no-store', signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: null | { guest?: { name?: string } }) => {
+        const name = data?.guest?.name;
+        if (typeof name === 'string' && name.trim()) setGuestFirst(firstNameOf(name));
+      })
+      .catch(() => { /* anonymous arrival is fine */ });
+    return () => ctrl.abort();
+  }, [siteSlug]);
+
   const paper = theme['--t-paper'] ?? '#FDFAF0';
   const ink = theme['--t-ink'] ?? '#0E0D0B';
   const inkSoft = theme['--t-ink-soft'] ?? '#3A332C';
@@ -290,6 +314,19 @@ function QuietArrival({
           />
         ))}
       </div>
+      {guestFirst && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.85 }}
+          transition={{ duration: 0.8, delay: 1.3 }}
+          style={{
+            fontFamily: fontDisplay, fontStyle: 'italic',
+            fontSize: '0.95rem', color: inkSoft, margin: 0,
+          }}
+        >
+          Held for {guestFirst}
+        </motion.p>
+      )}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.65 }}
@@ -336,6 +373,18 @@ function EnvelopeArrival({
   const initials = loose.monogram?.initials || displayNames.join(' & ') || 'P';
   const { initA, initB } = deriveInitials(initials);
   const replyBy = useMemo(() => rsvpReplyBy(manifest), [manifest]);
+
+  /* The postmark's date — from the site's own logistics. */
+  const postmark = useMemo(() => {
+    const raw = (loose.logistics?.date ?? '').trim();
+    if (!raw) return null;
+    const d = new Date(`${raw}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return null;
+    return {
+      dayLine: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
+      year: String(d.getFullYear()),
+    };
+  }, [loose.logistics?.date]);
 
   /* The site's motif (deco-fan, palm, rose, …) tints the flap liner
      and scatters faintly behind the envelope, so the seal feels cut
@@ -647,6 +696,41 @@ function EnvelopeArrival({
                 {/* hairline liner just inside the flap edges */}
                 <path d="M 36 50 L 150 120 L 264 50" fill="none" stroke={accent} strokeOpacity="0.22" strokeWidth="1" />
               </motion.svg>
+
+              {/* The postmark — the event date, stamped over the top-
+                  right corner (the spec always promised it; now it's
+                  real). Ink ring + date, slightly rotated, pressed in
+                  a beat after the address. No date → no postmark. */}
+              {postmark && (
+                <motion.div
+                  aria-hidden
+                  initial={{ opacity: 0, scale: 1.25 }}
+                  animate={{ opacity: opening ? 0 : 0.78, scale: 1 }}
+                  transition={{ duration: 0.4, delay: 0.7, ease: EASE }}
+                  style={{
+                    position: 'absolute', right: -16, top: -18,
+                    width: 74, height: 74, borderRadius: '50%',
+                    border: `1.5px solid ${inkSoft}`,
+                    boxShadow: `inset 0 0 0 3.5px transparent, inset 0 0 0 4.5px ${inkSoft}40`,
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center', gap: 1,
+                    transform: 'rotate(9deg)',
+                    color: inkSoft,
+                    background: 'transparent',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <span style={{ fontFamily: mono, fontSize: '0.42rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                    Pearloom post
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: '0.62rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
+                    {postmark.dayLine}
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: '0.5rem', letterSpacing: '0.18em' }}>
+                    {postmark.year}
+                  </span>
+                </motion.div>
+              )}
 
               {/* The seal medallion. Presses (a small pulse) the
                   moment the page beneath is ready. */}

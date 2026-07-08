@@ -38,16 +38,11 @@ import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip'
 import { TextureFilters } from '@/components/pearloom/site/TextureFilters';
 import type { MonogramFrame } from '@/components/pearloom/site/Monogram';
 import { getTheme, themeRootStyle, type Density } from '@/components/pearloom/site/themes';
-import { familyFromStack, googleFontsHrefFor } from '@/lib/suite/theme';
+import { familyFromStack, googleFontsHrefFor, suiteThemeFromManifest } from '@/lib/suite/theme';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { deriveInitials } from '@/lib/monogram';
-
-export const metadata: Metadata = {
-  title: "You're Invited | Pearloom",
-  description: 'Your personalized celebration page.',
-};
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +51,75 @@ function sb() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('Supabase not configured');
   return createClient(url, key);
+}
+
+/* The passport link is the most personal link a guest receives —
+   yet it used to unfurl as bare text in iMessage while the public
+   site got the full editorial card (ATELIER-PLAN INV.2). Now it
+   carries the site's themed OG card with an "An invitation"
+   register. No guest PII rides the shared image. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const fallback: Metadata = {
+    title: "You're Invited | Pearloom",
+    description: 'Your personalized celebration page.',
+    robots: { index: false },
+  };
+  try {
+    const { token } = await params;
+    if (!token) return fallback;
+    const guest = await getGuestByToken(token);
+    if (!guest) return fallback;
+    const { data: site } = await sb()
+      .from('sites')
+      .select('subdomain, site_config')
+      .eq('id', guest.site_id)
+      .maybeSingle();
+    const cfg = site?.site_config as { manifest?: StoryManifest; names?: [string, string] } | null;
+    const manifest = cfg?.manifest;
+    if (!site?.subdomain || !manifest) return fallback;
+
+    const names: [string, string] = cfg?.names ?? ['', ''];
+    const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+    const solo = isSoloSubject(manifest);
+    const displayNames = (solo ? [names[0]] : names).map((n) => String(n ?? '').trim()).filter(Boolean);
+    const who = displayNames.join(' & ') || 'Your hosts';
+    const solemn = getEventType(occasion)?.voice === 'solemn';
+
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+    const og = new URL('/api/og', base);
+    og.searchParams.set('names', displayNames.join(','));
+    og.searchParams.set('occasion', occasion);
+    og.searchParams.set('tagline', solemn ? 'In loving memory' : 'An invitation, pressed for you');
+    const suite = suiteThemeFromManifest(manifest, names);
+    const hx = (h: string) => h.replace('#', '');
+    og.searchParams.set('paper', hx(suite.palette.paper));
+    og.searchParams.set('ink', hx(suite.palette.ink));
+    og.searchParams.set('accent', hx(suite.palette.accent));
+    og.searchParams.set('gold', hx(suite.palette.gold));
+    og.searchParams.set('font', suite.fonts.displayFamily.slice(0, 60));
+    if (suite.motif) og.searchParams.set('motif', suite.motif);
+    const photo = String((manifest as unknown as { coverPhoto?: string }).coverPhoto ?? '').trim();
+    if (photo.startsWith('https://')) og.searchParams.set('photo', photo);
+
+    const title = solemn ? `In loving memory — ${who}` : `You're invited — ${who}`;
+    return {
+      title: `${title} | Pearloom`,
+      description: 'Your personalized celebration page.',
+      robots: { index: false },
+      openGraph: {
+        title,
+        description: solemn ? 'A gathering to remember, held for you.' : 'An invitation, pressed for you.',
+        images: [{ url: og.toString(), width: 1200, height: 630 }],
+      },
+      twitter: { card: 'summary_large_image' },
+    };
+  } catch {
+    return fallback;
+  }
 }
 
 export default async function PersonalGuestPage({

@@ -1,18 +1,25 @@
 // ─────────────────────────────────────────────────────────────
-// Pearloom / app/i/[token]/page.tsx
-// Per-guest animated invitation page
+// Pearloom / app/i/[token]/page.tsx — LEGACY REDIRECT.
+//
+// Retired in ATELIER-PLAN INV.2: the /i/ invite world was a
+// SECOND, hardcoded-cream arrival that never wore the couple's
+// theme. New invite emails link straight to the published site
+// with the guest's ?g= passport token, where the site-themed
+// Sealed Arrival addresses them by name. This route survives
+// only so already-sent /i/ links land in that same arrival —
+// a 301 resolved from the legacy invite_tokens table.
 // ─────────────────────────────────────────────────────────────
 
 import type { Metadata } from 'next';
+import { permanentRedirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { buildSitePath } from '@/lib/site-urls';
+import { guestTokenColumns } from '@/lib/guest-tokens';
 
 export const metadata: Metadata = {
-  title: 'You\u2019re Invited · Pearloom',
-  description: 'A personal invitation from the couple.',
+  title: 'You’re Invited · Pearloom',
+  description: 'A personal invitation from your hosts.',
 };
-import { InviteReveal } from '@/components/invite/InviteReveal';
-import { InvitePage } from '@/components/invite/InvitePage';
-import type { StoryManifest } from '@/types';
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,136 +38,90 @@ export default async function InviteTokenPage({
   const { token } = await params;
   const supabase = getSupabase();
 
-  // Look up the token with guest data
   const { data: tokenRow } = await supabase
     .from('invite_tokens')
-    .select('*, guests(*)')
+    .select('site_id, guests(id, passport_token, guest_token)')
     .eq('token', token)
     .maybeSingle();
 
-  if (!tokenRow) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: '#FDFAF0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--pl-font-body, system-ui, -apple-system, sans-serif)',
-          color: '#4A5642',
-          textAlign: 'center',
-          padding: '2rem',
-        }}
-      >
-        <div style={{ maxWidth: 440 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              border: '1px solid rgba(193,154,75,0.35)',
-              borderRadius: 'var(--pl-radius-xs)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 24px',
-              fontSize: 22,
-              fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
-              fontStyle: 'italic',
-              color: '#C19A4B',
-              background: '#FBF7EE',
-            }}
-          >
-            ✦
-          </div>
-          <p
-            style={{
-              fontFamily: 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)',
-              fontSize: '0.62rem',
-              letterSpacing: '0.28em',
-              textTransform: 'uppercase',
-              color: '#6F6557',
-              margin: '0 0 14px',
-            }}
-          >
-            An Invitation
-          </p>
-          <h1
-            style={{
-              fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 'clamp(1.6rem, 4vw, 2.1rem)',
-              color: '#18181B',
-              margin: '0 0 14px',
-              lineHeight: 1.2,
-              letterSpacing: '-0.01em',
-            }}
-          >
-            This link isn&rsquo;t ready.
-          </h1>
-          <p
-            style={{
-              margin: 0,
-              fontSize: '0.95rem',
-              lineHeight: 1.7,
-              color: '#6F6557',
-            }}
-          >
-            The invitation link is invalid or has expired.
-            <br />
-            Reach out to the couple for a fresh one.
-          </p>
-        </div>
-      </div>
-    );
+  if (tokenRow) {
+    const { data: siteRow } = await supabase
+      .from('sites')
+      .select('subdomain, site_config, ai_manifest')
+      .eq('id', tokenRow.site_id as string)
+      .maybeSingle();
+
+    if (siteRow?.subdomain) {
+      const manifest = siteRow.ai_manifest as { occasion?: string } | null;
+      const config = siteRow.site_config as { occasion?: string } | null;
+      const occasion = manifest?.occasion ?? config?.occasion;
+
+      const guest = tokenRow.guests as
+        | { id?: string; passport_token?: string | null; guest_token?: string | null }
+        | null;
+      let guestToken = String(guest?.passport_token ?? guest?.guest_token ?? '').trim() || null;
+      if (!guestToken && guest?.id) {
+        // Pre-token guests get one minted so the arrival can
+        // still address them. Best-effort — an anonymous arrival
+        // is an acceptable fallback.
+        const cols = guestTokenColumns();
+        const { error } = await supabase.from('guests').update(cols).eq('id', guest.id);
+        if (!error) guestToken = cols.passport_token;
+      }
+
+      const path = buildSitePath(siteRow.subdomain as string, '', occasion);
+      permanentRedirect(guestToken ? `${path}?g=${encodeURIComponent(guestToken)}` : path);
+    }
   }
 
-  // Mark as opened (fire and forget — don't block render)
-  void supabase
-    .from('invite_tokens')
-    .update({ opened_at: new Date().toISOString() })
-    .eq('token', token);
-
-  // Fetch site config via the site_id on the token row
-  const siteId: string = tokenRow.site_id as string;
-
-  const { data: siteRow } = await supabase
-    .from('sites')
-    .select('subdomain, site_config, ai_manifest')
-    .eq('id', siteId)
-    .maybeSingle();
-
-  const guest = tokenRow.guests as Record<string, unknown> | null;
-  const guestName = (guest?.name as string) || 'Guest';
-  const guestId = (guest?.id as string) || undefined;
-  const hasReplied = !!(guest?.responded_at) && guest?.status !== 'pending';
-
-  const siteConfig = siteRow?.site_config as Record<string, unknown> | null;
-  const names: [string, string] = (siteConfig?.names as [string, string]) || ['', ''];
-  const manifest = siteRow?.ai_manifest as StoryManifest | null;
-
+  // Token (or its site) is gone — the one honest dead end.
   return (
-    <InvitePage
-      manifest={manifest}
-      guestName={guestName}
-      guestId={guestId}
-      token={token}
-      coupleNames={names}
-      hasReplied={hasReplied}
-      priorRsvp={hasReplied ? {
-        status: (guest?.status as 'attending' | 'declined' | 'pending') || 'pending',
-        email: (guest?.email as string) || undefined,
-        plusOne: !!guest?.plus_one,
-        plusOneName: (guest?.plus_one_name as string) || undefined,
-        mealPreference: (guest?.meal_preference as string) || undefined,
-        dietaryRestrictions: (guest?.dietary_restrictions as string) || undefined,
-        songRequest: (guest?.song_request as string) || undefined,
-        mailingAddress: (guest?.mailing_address as string) || undefined,
-        message: (guest?.message as string) || undefined,
-        selectedEvents: (guest?.event_ids as string[]) || [],
-        respondedAt: (guest?.responded_at as string) || undefined,
-      } : null}
-    />
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#FDFAF0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--pl-font-body, system-ui, -apple-system, sans-serif)',
+        color: '#4A5642',
+        textAlign: 'center',
+        padding: '2rem',
+      }}
+    >
+      <div style={{ maxWidth: 440 }}>
+        <p
+          style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)',
+            fontSize: '0.62rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: '#6F6557',
+            margin: '0 0 14px',
+          }}
+        >
+          An Invitation
+        </p>
+        <h1
+          style={{
+            fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 'clamp(1.6rem, 4vw, 2.1rem)',
+            color: '#18181B',
+            margin: '0 0 14px',
+            lineHeight: 1.2,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          This link isn&rsquo;t ready.
+        </h1>
+        <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.7, color: '#6F6557' }}>
+          The invitation link is invalid or has expired.
+          <br />
+          Reach out to your hosts for a fresh one.
+        </p>
+      </div>
+    </div>
   );
 }
