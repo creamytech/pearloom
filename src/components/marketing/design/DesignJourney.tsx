@@ -119,17 +119,18 @@ export function DesignJourney() {
                   textAlign: 'center',
                 }}
               >
-                {/* The knot — a pearl tied on the strand, ringed so it
-                    reads as sitting ON the threads, not floating. */}
+                {/* The knot — a flat tied-off dot on the strand, ringed
+                    so it reads as sitting ON the threads, not floating.
+                    Flat ink, no sphere gloss. */}
                 <span
                   aria-hidden
                   style={{
-                    width: 15,
-                    height: 15,
+                    width: 13,
+                    height: 13,
                     marginTop: 8,
                     borderRadius: 999,
-                    background: `radial-gradient(circle at 34% 30%, color-mix(in srgb, ${step.color} 60%, #fff), ${step.color} 62%)`,
-                    boxShadow: `0 0 0 4px ${PD.slab}, 0 0 0 5px rgba(245,239,226,0.28), 0 0 18px 0 color-mix(in srgb, ${step.color} 55%, transparent)`,
+                    background: step.color,
+                    boxShadow: `0 0 0 4px ${PD.slab}, 0 0 0 5px rgba(245,239,226,0.28)`,
                     flexShrink: 0,
                   }}
                 />

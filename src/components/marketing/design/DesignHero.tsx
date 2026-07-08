@@ -16,7 +16,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Thread } from '@/components/brand/Thread';
-import { Sprig } from '@/components/pearloom/motifs';
 import { Pearl, PLButton } from './DesignAtoms';
 import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, U, parseNames, type OccasionKey } from './landing-data';
 
@@ -96,10 +95,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
       </div>
       <div className="pd-hero-scrim" aria-hidden />
       <div className="pd-hero-grain" aria-hidden />
-
-      <span className="pd-float f0" aria-hidden>
-        <Sprig size={54} color="rgba(240,201,168,0.85)" />
-      </span>
 
       <div className="pd-hero-inner">
         <div className="pd-hero-copy">
@@ -297,25 +292,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           background-size: 180px;
           opacity: 0.12;
           pointer-events: none;
-        }
-        .pd-float {
-          position: absolute;
-          z-index: 3;
-          pointer-events: none;
-        }
-        .pd-float.f0 {
-          top: 21%;
-          left: 7%;
-          animation: pd-drift 9s ease-in-out infinite;
-        }
-        @keyframes pd-drift {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-14px);
-          }
         }
         .pd-hero-inner {
           position: relative;
@@ -801,7 +777,6 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         @media (prefers-reduced-motion: reduce) {
           .pd-hero-photos img.on,
-          .pd-float,
           .pd-pcard,
           .pd-hero-key,
           .pd-std-lift,

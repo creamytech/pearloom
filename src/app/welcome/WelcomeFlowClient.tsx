@@ -561,10 +561,10 @@ export function WelcomeFlowClient({
                               style={{
                                 width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
                                 display: 'grid', placeItems: 'center',
-                                background: `radial-gradient(circle at 34% 30%, #77875A, ${OLIVE} 62%, #48542F)`,
+                                /* Flat olive seal — no sphere gloss. */
+                                background: OLIVE,
                                 color: 'var(--pl-cream, #F5EFE2)',
                                 fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 16,
-                                boxShadow: 'inset 0 1.5px 3px rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.28)',
                               }}
                             >
                               {r.firstName[0]?.toUpperCase() ?? '·'}
@@ -735,9 +735,11 @@ export function WelcomeFlowClient({
                       ...(agreed
                         ? {
                             border: 'none',
-                            background: `radial-gradient(circle at 34% 30%, #77875A, ${OLIVE} 62%, #48542F)`,
+                            /* Flat olive seal with a stamped inner rim —
+                               a pressed mark, not a glossy sphere. */
+                            background: OLIVE,
                             color: 'var(--pl-cream, #F5EFE2)',
-                            boxShadow: 'inset 0 2px 5px rgba(255,255,255,0.25), inset 0 -3px 6px rgba(0,0,0,0.28), 0 6px 16px -6px rgba(40,28,12,0.45)',
+                            boxShadow: 'inset 0 0 0 3px rgba(245,239,226,0.25), 0 6px 16px -6px rgba(40,28,12,0.45)',
                             transform: 'scale(1)',
                           }
                         : {
