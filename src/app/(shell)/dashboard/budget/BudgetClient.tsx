@@ -29,6 +29,7 @@ import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { budgetCategoriesFor } from '@/lib/event-os/budget-categories';
 import { rollupBudget, type BudgetLine, type BudgetLineInput, type BudgetKind } from '@/lib/budget/lines';
+import { HeroPlate, PlateAction } from '@/components/shell';
 
 // ── Money ─────────────────────────────────────────────────────
 // Host-entered cents → plain "$1,200". Whole dollars unless the
@@ -278,22 +279,22 @@ export function BudgetClient() {
   return (
     <DashLayout active="budget" hideTopbar>
       <PLAtmosphere />
+      {/* The pressed plate (TASTE-PLAN T.3) — the rollup IS the
+          route's headline; the ledger below stays quiet paper. */}
       <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <PageIntro
+        <HeroPlate
           eyebrow="Budget"
           title="The budget."
-          actions={
-            !isEmpty ? (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                disabled={!site?.id}
-                onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}
-              >
-                Add a line
-              </button>
-            ) : undefined
-          }
+          figures={!isEmpty ? [
+            { label: 'Planned', value: fmtMoney(rollup.plannedCents), raw: rollup.plannedCents },
+            { label: 'Committed', value: fmtMoney(rollup.committedCents), raw: rollup.committedCents },
+            { label: 'Paid', value: fmtMoney(rollup.paidCents), raw: rollup.paidCents },
+          ] : undefined}
+          actions={!isEmpty && site?.id ? (
+            <PlateAction primary onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}>
+              Add a line
+            </PlateAction>
+          ) : undefined}
           style={{ marginBottom: 16 }}
         />
       </div>

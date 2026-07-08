@@ -9,8 +9,9 @@ import { RegistryClaimsFeed, useRegistryClaims, type ClaimRow } from '@/componen
 import { formatCents } from '@/lib/registry-funds';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere, PLCard } from '@/components/pearloom/dash/PLChrome';
-import { PageIntro, StatStrip, HintChip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
+import { HintChip, RailCard } from '@/components/pearloom/dash/QuietDash';
 import type { StoryManifest } from '@/types';
+import { HeroPlate } from '@/components/shell';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -221,17 +222,6 @@ export function RegistryDashboardClient() {
   const claimed = claimsCount + itemClaims.length;
   const open = Math.max(0, listed - claimed);
 
-  // Quiet StatStrip (plan rule 3) — Listed / Claimed / Still to
-  // thank / Given directly as 40px chips; zeros collapse. The
-  // dollar total (money, not a count) stays in the rail.
-  const statItems: StatStripItem[] = [
-    { label: 'Listed', value: listed },
-    { label: 'Claimed', value: claimed, tone: 'sage' },
-    { label: 'Open', value: open },
-    { label: 'Still to thank', value: stillToThank, tone: 'peach' },
-    { label: 'Given directly', value: pledges.length, tone: 'gold' },
-  ];
-
   /* The zip's rail "The registry" card — Listed / Claimed / Still
      open as big Fraunces numbers. Real, combined counts. */
   const registryRows: Array<[string, number]> = [
@@ -243,21 +233,24 @@ export function RegistryDashboardClient() {
   return (
     <DashLayout active="registry" hideTopbar>
       <PLAtmosphere />
-      {/* Quiet header (plan rule 1): mono eyebrow + one letterpress
-          line + the StatStrip. */}
+      {/* The pressed plate (TASTE-PLAN T.3) — the route's ONE focal
+          surface; the panels below stay quiet paper. Figures are
+          real counts; zeros never render. */}
       <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1180, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <PageIntro
+        <HeroPlate
           eyebrow="Registry"
           title={
             <span>
               A list of{' '}
-              <i style={{ color: 'var(--peach-ink, #C6703D)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-                wishes
-              </i>
-              .
+              <i style={{ fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>wishes</i>.
             </span>
           }
-          meta={!loading && site?.id ? <StatStrip items={statItems} /> : undefined}
+          figures={!loading && site?.id ? [
+            { label: 'Listed', value: String(listed), raw: listed },
+            { label: 'Claimed', value: String(claimed), raw: claimed },
+            { label: 'Still to thank', value: String(stillToThank), raw: stillToThank },
+            { label: 'Given directly', value: String(pledges.length), raw: pledges.length },
+          ] : undefined}
           style={{ marginBottom: 16 }}
         />
       </div>

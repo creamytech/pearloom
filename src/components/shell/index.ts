@@ -12,4 +12,6 @@ export { Button } from './Button';
 export { Badge } from './Badge';
 export { StateChip, rsvpStateKind, vendorStateKind } from './StateChip';
 export type { StateKind } from './StateChip';
+export { HeroPlate, PlateAction } from './HeroPlate';
+export type { HeroPlateFigure } from './HeroPlate';
 export { StatTile } from './StatTile';

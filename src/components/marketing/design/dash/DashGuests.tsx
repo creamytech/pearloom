@@ -10,7 +10,7 @@ import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, StatStrip, RailCard, type StatStripItem } from '@/components/pearloom/dash/QuietDash';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
-import { StateChip, rsvpStateKind } from '@/components/shell';
+import { StateChip, rsvpStateKind, HeroPlate, PlateAction } from '@/components/shell';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
@@ -1252,20 +1252,22 @@ export function DashGuests() {
   return (
     <DashLayout active="guests" hideTopbar>
       <PLAtmosphere />
-      {/* Quiet header (plan rules 1 + 6): one line + StatStrip; the
-          prose subtitle is gone (Pear's follow-up note lives in the
-          rail). Secondary actions fold into the ⋯ menu. */}
+      {/* The pressed plate (TASTE-PLAN T.3) — the route's ONE focal
+          surface. The interactive StatFilterPills below stay the
+          numbers (they filter; the plate never duplicates them). */}
       <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
-        <PageIntro
+        <HeroPlate
           eyebrow={siteName ? `Guests · ${siteName}` : 'Guests'}
           title="The guest list."
-          meta={hasGuests && perEventStatItems.length > 0 ? <StatStrip items={perEventStatItems} /> : undefined}
+          sub={hasGuests && perEventStatItems.length > 0 ? <StatStrip items={perEventStatItems} /> : undefined}
           actions={
             <>
               <button className="pl8-btnfx" style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
-              <button className="pl8-btnfx" style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
-                ✦ Add a guest
-              </button>
+              {site?.id && (
+                <PlateAction primary onClick={() => setAddOpen(true)}>
+                  ✦ Add a guest
+                </PlateAction>
+              )}
               <MoreMenu
                 items={[
                   { key: 'review', label: 'Pear’s review', href: '/dashboard/guest-review' },

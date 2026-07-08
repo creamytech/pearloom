@@ -29,6 +29,7 @@ import { Pearl } from '@/components/brand/Pearl';
 import { PLChrome, PLCard } from '../dash/PLChrome';
 import { PageIntro, RailCard } from '../dash/QuietDash';
 import { COVER_FOCUS } from '@/lib/cover-crop';
+import { HeroPlate, PlateAction } from '@/components/shell';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -248,23 +249,26 @@ export function KeepsakesPage() {
 
   return (
     <PLChrome active="memory">
-      <PageIntro
+      {/* The pressed plate (TASTE-PLAN T.3) — one focal surface;
+          the book preview below stays paper. */}
+      <HeroPlate
         eyebrow={headline.eyebrow}
         title={
           <>
-            {headline.title} <span style={{ fontStyle: 'italic', color: 'var(--pl-gold)' }}>{headline.italic}</span>
+            {headline.title} <span style={{ fontStyle: 'italic', color: '#DDB768' }}>{headline.italic}</span>
           </>
         }
         actions={
           <>
-            <Link href="/dashboard/memory-book" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
+            <PlateAction primary href="/dashboard/memory-book">
               Open the book <Pearl size={8} />
-            </Link>
-            <Link href="/dashboard/memory-book" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-              <Icon name="bookmark" size={13} /> Print at home
-            </Link>
+            </PlateAction>
+            <PlateAction href="/dashboard/memory-book">
+              <Icon name="bookmark" size={13} color="currentColor" /> Print at home
+            </PlateAction>
           </>
         }
+        style={{ marginBottom: 18 }}
       />
 
       {/* ── The memory-book hero — split card: story + counts on the

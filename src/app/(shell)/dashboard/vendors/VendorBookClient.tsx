@@ -25,7 +25,7 @@ import { EmptyShell } from '@/components/marketing/design/dash/DashShell';
 import { getEventType } from '@/lib/event-os/event-types';
 import { vendorToBudgetLine } from '@/lib/budget/lines';
 import { todayLocal, formatLocalDate } from '@/lib/date-utils';
-import { StateChip, vendorStateKind } from '@/components/shell';
+import { StateChip, vendorStateKind, HeroPlate, PlateAction } from '@/components/shell';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -482,23 +482,22 @@ export function VendorBookClient() {
   return (
     <DashLayout active="vendors" hideTopbar>
       <PLAtmosphere />
-      {/* Quiet header: one display line + the Add a vendor action.
-          The roster totals live in the right rail's "The team" card
-          (zip layout), so the header stays a single line. */}
+      {/* The pressed plate (TASTE-PLAN T.3) — the route's ONE focal
+          surface; the book below stays quiet paper. */}
       <div style={{ padding: '16px var(--pl-dash-pad) 0', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <PageIntro
+        <HeroPlate
           eyebrow="Vendors"
           title="The vendor book."
-          actions={
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              disabled={!site?.id}
-              onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}
-            >
+          figures={vendors.length > 0 ? [
+            { label: 'Booked', value: String(groups[1].rows.length), raw: groups[1].rows.length },
+            { label: 'Considering', value: String(groups[0].rows.length), raw: groups[0].rows.length },
+            { label: 'Paid', value: String(groups[2].rows.length), raw: groups[2].rows.length },
+          ] : undefined}
+          actions={site?.id ? (
+            <PlateAction primary onClick={() => { setForm({ mode: 'add' }); setFormError(null); }}>
               Add a vendor
-            </button>
-          }
+            </PlateAction>
+          ) : undefined}
           style={{ marginBottom: 16 }}
         />
       </div>
