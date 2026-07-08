@@ -33,6 +33,7 @@ import { OCC, type OccasionKey } from '@/components/marketing/design/landing-dat
 import { PD } from '@/components/marketing/design/DesignAtoms';
 import { Thread } from '@/components/brand/Thread';
 import { GrooveMotion } from '@/components/brand/groove';
+import { ThreadSpine } from '@/components/marketing/design/ThreadSpine';
 
 function ThreadDivider() {
   return (
@@ -91,6 +92,34 @@ export default function LandingPageWrapper() {
     router.push('/wizard/new');
   }, [router]);
 
+  // The re-press (RADICAL-DESIGN-DIRECTIONS §C): an EXPLICIT occasion
+  // pick doesn't just swap an accent — the whole page re-presses into
+  // the new occasion through the weave wipe, with the swap at the
+  // wipe's covered peak so the reader never sees a half-changed page.
+  // The hero's ambient auto-rotation passes an updater function — that
+  // stays a quiet instant swap (a full-screen wipe every few idle
+  // seconds would be unbearable). Reduced motion / no engine → instant.
+  const changeOcc = useCallback((next: OccasionKey | ((prev: OccasionKey) => OccasionKey)) => {
+    if (typeof next === 'function') {
+      setOcc(next); // ambient rotation — never theatrical
+      return;
+    }
+    setOcc((prev) => {
+      if (next === prev) return prev;
+      const motion = (window as Window & {
+        PearloomMotion?: {
+          weave?: (onPeak: () => void, opts?: { duration?: number }) => void;
+          reduced?: boolean;
+        };
+      }).PearloomMotion;
+      if (motion?.weave && !motion.reduced) {
+        motion.weave(() => setOcc(next), { duration: 420 });
+        return prev; // the weave's peak performs the swap
+      }
+      return next;
+    });
+  }, []);
+
   return (
     // Native scroll on the landing: the smooth-scroll (Lenis) layer
     // visibly stalls ("hangs up") whenever a frame drops on this
@@ -110,10 +139,11 @@ export default function LandingPageWrapper() {
           overflowX: 'hidden',
         }}
       >
+        <ThreadSpine />
         <DesignNav onGetStarted={onGetStarted} />
         <DesignHero
           occ={occ}
-          setOcc={setOcc}
+          setOcc={changeOcc}
           names={names}
           setNames={setNames}
           onType={setNames}
@@ -136,7 +166,7 @@ export default function LandingPageWrapper() {
         </div>
 
         <ThreadDivider />
-        <DesignGallery onPickOccasion={setOcc} />
+        <DesignGallery onPickOccasion={changeOcc} />
 
         <ThreadDivider />
         <div data-rv style={{ scrollMarginTop: 96 }}>
