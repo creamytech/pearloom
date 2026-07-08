@@ -16,7 +16,7 @@
 //                         leaves blank
 //   03 · The first thread — occasion chips + a live miniature
 //                         pressing that re-presses per pick
-//   04 · The colophon   — the agreement signed by PRESSING YOUR
+//   04 · The agreement  — signed by PRESSING YOUR
 //                         SEAL (the one required stop)
 //   then: "The loom is yours." → ThreadingDoor ("Warping your
 //   loom.") → dashboard / demo / wizard.
@@ -62,7 +62,7 @@ const STEP_LABELS: Record<StepId, string> = {
   mark: 'The mark',
   people: 'Your people',
   occasion: 'The first thread',
-  agreement: 'The colophon',
+  agreement: 'The agreement',
   done: 'Begin',
 };
 
@@ -683,7 +683,7 @@ export function WelcomeFlowClient({
 
             {step === 'agreement' && (
               <>
-                <h2 style={h2Style}>The colophon.</h2>
+                <h2 style={h2Style}>The agreement.</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 24px' }}>
                   The fine print lives in the{' '}
                   <a href="/terms" target="_blank" rel="noreferrer" style={{ color: OLIVE, fontWeight: 600 }}>Terms of Service</a>

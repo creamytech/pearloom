@@ -787,7 +787,7 @@ export function MemoryBookPage() {
                 marginBottom: 8,
               }}
             >
-              Colophon
+              About this book
             </div>
             <div
               style={{
