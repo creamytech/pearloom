@@ -153,9 +153,15 @@ export function DesignTestimonials() {
               key={q.n}
               style={{
                 background: q.bg,
+                /* Pressed paper note, not a quote card — laid grain +
+                   a debossed edge (the landing revamp dropped the big
+                   “ glyph: these are the product's promises set as
+                   artifacts, and the quote mark said "testimonial"). */
+                backgroundImage: 'repeating-linear-gradient(0deg, rgba(31,36,24,0.025) 0 1px, transparent 1px 3px)',
                 color: PD.ink,
                 borderRadius: 20,
-                padding: '32px 34px',
+                padding: '34px 34px 30px',
+                boxShadow: 'inset 0 1.5px 4px rgba(31,36,24,0.07), inset 0 -1px 0 rgba(255,255,255,0.55), 0 16px 34px -20px rgba(40,28,12,0.3)',
                 transform: `rotate(${q.rot}deg)`,
                 transition: 'transform var(--pl-dur-base) var(--pl-ease-out)',
               }}
@@ -166,24 +172,12 @@ export function DesignTestimonials() {
                 e.currentTarget.style.transform = `rotate(${q.rot}deg)`;
               }}
             >
-              <div
-                style={{
-                  ...DISPLAY_STYLE,
-                  fontSize: 44,
-                  lineHeight: 0.4,
-                  color: PD.gold,
-                  fontStyle: 'italic',
-                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                }}
-              >
-                &ldquo;
-              </div>
               <p
                 style={{
                   ...DISPLAY_STYLE,
                   fontSize: 22,
                   lineHeight: 1.4,
-                  margin: '8px 0 28px',
+                  margin: '0 0 26px',
                   fontStyle: 'italic',
                   fontWeight: 400,
                   color: PD.ink,

@@ -512,21 +512,24 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .pd-std {
           position: relative;
-          width: min(420px, 82vw);
+          z-index: 4; /* the invitation leads; the flank cards support */
+          width: min(500px, 86vw);
           border-radius: 8px;
-          background: linear-gradient(150deg, #fdfaf0, #f5ecda);
-          padding: 42px 40px 38px;
+          background-image: repeating-linear-gradient(0deg, rgba(38, 35, 28, 0.028) 0 1px, transparent 1px 3px),
+            linear-gradient(150deg, #fdfaf0, #f5ecda);
+          padding: 52px 48px 46px;
           text-align: center;
-          box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.72), 0 2px 0 rgba(255, 255, 255, 0.7) inset,
+          box-shadow: 0 46px 100px -30px rgba(0, 0, 0, 0.75), 0 2px 0 rgba(255, 255, 255, 0.7) inset,
             0 0 0 1px rgba(120, 90, 50, 0.14);
         }
         .pd-std::before {
           content: '';
           position: absolute;
-          inset: 12px;
-          border: 1px solid var(--occ, #c6703d);
-          opacity: 0.32;
-          border-radius: 3px;
+          inset: 13px;
+          /* Foil hairline frame — gold as metal, not flat. */
+          border: 1px solid transparent;
+          border-image: linear-gradient(100deg, #a87f35, #e3c77e 45%, #c19a4b 70%, #b8913f) 1;
+          opacity: 0.55;
           pointer-events: none;
         }
         .pd-std-lift {
@@ -556,17 +559,22 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         }
         .std-names {
           font-family: var(--pl-font-display);
-          font-weight: 400;
-          font-size: clamp(34px, 4.4vw, 52px);
-          line-height: 1.04;
+          font-weight: 420;
+          font-size: clamp(38px, 4.9vw, 64px);
+          line-height: 1.03;
           letter-spacing: -0.02em;
           color: #26231c;
           min-height: 1.1em;
+          font-variation-settings: 'opsz' 144, 'SOFT' 70, 'WONK' 0;
+          /* Letterpress — the typed names sit INTO the paper. */
+          text-shadow: 0 1px 1px rgba(255, 255, 255, 0.85), 0 -1px 1px rgba(38, 35, 28, 0.16);
         }
         .std-names .amp {
           font-style: italic;
           color: var(--occ, #c6703d);
-          padding: 0 0.04em;
+          padding: 0 0.05em;
+          font-size: 0.72em;
+          vertical-align: 0.08em;
         }
         .std-names .ghost {
           color: #c8bfa5;
@@ -602,14 +610,16 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           animation: pd-drift 11s ease-in-out infinite;
         }
         .pd-pcard.dash {
-          top: -30px;
-          left: -58px;
-          width: 196px;
+          top: -26px;
+          left: -46px;
+          width: 172px;
+          opacity: 0.94;
         }
         .pd-pcard.album {
-          bottom: -36px;
-          right: -48px;
-          width: 208px;
+          bottom: -30px;
+          right: -38px;
+          width: 182px;
+          opacity: 0.94;
           animation-direction: reverse;
         }
         .pc-h {

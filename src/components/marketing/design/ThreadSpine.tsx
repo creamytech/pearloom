@@ -32,6 +32,7 @@ export function ThreadSpine() {
   const aRef = useRef<SVGPathElement>(null);
   const bRef = useRef<SVGPathElement>(null);
   const tipRef = useRef<SVGCircleElement>(null);
+  const knotRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -50,7 +51,12 @@ export function ThreadSpine() {
       if (tipRef.current) {
         const y = -4 + 1008 * drawn;
         tipRef.current.setAttribute('cy', String(Math.min(1000, y)));
-        tipRef.current.style.opacity = p > 0.985 ? '0' : '1';
+        tipRef.current.style.opacity = p > 0.96 ? '0' : '1';
+      }
+      if (knotRef.current) {
+        // The tie-off: at the page's end the strand KNOTS — the tip
+        // pearl retires and a ringed knot takes its place.
+        knotRef.current.style.opacity = p > 0.96 ? '1' : '0';
       }
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
@@ -112,6 +118,13 @@ export function ThreadSpine() {
         />
         {/* The leading pearl — rides the tip of the weave. */}
         {!reduced && <circle ref={tipRef} cx="12" cy="116" r="2.4" fill="var(--pd-gold, #C19A4B)" />}
+        {/* The tie-off knot — appears when the strand reaches the
+            page's end (reduced motion shows it always: the thread is
+            fully woven). */}
+        <g ref={knotRef} style={{ opacity: reduced ? 1 : 0, transition: 'opacity 500ms ease' }}>
+          <circle cx="12" cy="988" r="5.5" fill="none" stroke="var(--pd-gold, #C19A4B)" strokeWidth="1" opacity="0.7" />
+          <circle cx="12" cy="988" r="2.8" fill="var(--pd-gold, #C19A4B)" />
+        </g>
       </svg>
       <style>{`
         @media (max-width: 1079px) { .pd-thread-spine { display: none; } }

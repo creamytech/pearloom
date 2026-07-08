@@ -25,6 +25,9 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
         <p style={{ fontSize: 'clamp(16px,1.3vw,18px)', lineHeight: 1.6, color: PD.inkSoft, maxWidth: 620, margin: '16px 0 0', fontFamily: 'var(--pl-font-body)' }}>
           Pear speaks all of them. Every occasion brings its own blocks, its own tone, its own beautiful
           default — an advice wall for the shower, a livestream for the memorial, a cost-splitter for the reunion.
+          <em style={{ display: 'block', marginTop: 10, fontStyle: 'italic', color: PD.olive, fontFamily: 'var(--pl-font-display)' }}>
+            Tap one — the whole page re-presses to match.
+          </em>
         </p>
       </div>
 

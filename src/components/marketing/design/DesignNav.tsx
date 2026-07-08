@@ -36,13 +36,26 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
   // dark glass with cream type; past it, light glass with ink type.
   // rAF-throttled so scroll only re-renders on the crossing.
   const [solid, setSolid] = useState(false);
+  // The dock (RADICAL landing revamp): past the hero the pill stops
+  // riding every section as a full-width band — scrolling DOWN tucks
+  // it away; any upward intent brings it back. The mobile drawer
+  // pins it open. rAF-throttled; only re-renders on state crossings.
+  const [docked, setDocked] = useState(false);
   useEffect(() => {
     let raf = 0;
+    let lastY = 0;
     const onScroll = () => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        setSolid(window.scrollY > window.innerHeight - 90);
+        const y = window.scrollY;
+        setSolid(y > window.innerHeight - 90);
+        const goingDown = y > lastY + 2;
+        const goingUp = y < lastY - 2;
+        if (y <= window.innerHeight - 90) setDocked(false);
+        else if (goingDown) setDocked(true);
+        else if (goingUp) setDocked(false);
+        lastY = y;
       });
     };
     onScroll();
@@ -56,6 +69,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
   }, []);
 
   const dark = !solid; // riding the hero
+  const hidden = docked && !open; // the drawer pins the pill open
   const navInk = dark ? HERO_INK : PD.ink;
 
   return (
@@ -66,6 +80,11 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
         left: 0,
         right: 0,
         zIndex: 200,
+        // The dock — tucks away on downward reading, returns on any
+        // scroll-up intent. Honors reduced motion via the media query
+        // in the style block below.
+        transform: hidden ? 'translateY(-130%)' : 'none',
+        transition: 'transform 380ms cubic-bezier(0.22, 1, 0.36, 1)',
         padding: '0 clamp(14px, 3vw, 28px)',
         pointerEvents: 'none', // let the hero receive clicks outside the pill
       }}

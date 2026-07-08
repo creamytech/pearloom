@@ -444,11 +444,14 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                 borderTop: '1px solid var(--dv-line)',
               }}
             >
-              {/* Our story */}
-              <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Our story — real words, not skeleton bars (the bars
+                  read as "unfinished" in the one place we're showing
+                  finished craft). */}
+              <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <MiniLabel>Our story</MiniLabel>
-                <span style={{ height: 6, width: '100%', borderRadius: 3, background: 'var(--dv-line)' }} />
-                <span style={{ height: 6, width: '72%', borderRadius: 3, background: 'var(--dv-line)' }} />
+                <span style={{ fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 11.5, lineHeight: 1.55, color: 'var(--dv-soft, #6f6557)' }}>
+                  Two people, a shared beginning, and all the small moments in between.
+                </span>
               </div>
 
               {/* Schedule */}

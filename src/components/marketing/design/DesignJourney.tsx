@@ -1,22 +1,22 @@
 'use client';
 
 import { PD, MONO_STYLE, DISPLAY_STYLE } from './DesignAtoms';
-import { PenLine, Mail, CalendarCheck, Sparkles, Bookmark } from 'lucide-react';
+import { FoilGradient } from '@/components/brand/pressed';
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / marketing/design/DesignJourney.tsx
 //
-// The dark "From first idea to forever memory" band — a 5-step
-// timeline that carries a celebration from save-the-date to
-// keepsake. A dark editorial slab (PD.slab / PD.slabInk) so the
-// warm nodes glow; a dotted thread runs behind the nodes across
-// the row on desktop and hides when the steps stack on mobile.
+// The dark "From first idea to forever memory" band — five KNOTS
+// tied on one woven strand (RADICAL landing revamp: the icon-
+// circle row read as template-SaaS; the thread is the identity).
+// Two strands — olive + foil gold — weave across the row; each
+// step is a knot on them, glowing in its own tint against the
+// midnight slab. Mobile stacks the steps and hides the strand.
 //
 // Hairlines + muted text are cream-based rgba here (not ink mixes)
 // because ink-based mixes would vanish on the midnight slab.
 // ─────────────────────────────────────────────────────────────
 
-const CREAM_LINE = 'rgba(245,239,226,0.18)';
 const CREAM_MUTED = 'rgba(245,239,226,0.72)';
 const GOLD_ON_DARK = '#E0AC7E';
 
@@ -24,32 +24,27 @@ const STEPS = [
   {
     title: 'Save the date',
     desc: 'Capture your vision and set the foundation with Pear.',
-    color: '#5C6B3F',
-    Icon: PenLine,
+    color: '#8B9C5A',
   },
   {
     title: 'Invite with heart',
     desc: 'Share your story and collect replies — a letter, not a form.',
-    color: '#8B7BA8',
-    Icon: Mail,
+    color: '#A896C9',
   },
   {
     title: 'Plan with ease',
     desc: 'Build timelines, manage vendors, track every detail.',
-    color: '#C6703D',
-    Icon: CalendarCheck,
+    color: '#D98B55',
   },
   {
     title: 'Live in the moment',
     desc: 'Coordinate the day-of so you can be present for it.',
     color: '#D9A89E',
-    Icon: Sparkles,
   },
   {
     title: 'Cherish forever',
     desc: 'Your memories, gathered and kept for a lifetime.',
-    color: '#C19A4B',
-    Icon: Bookmark,
+    color: '#D4A95D',
   },
 ];
 
@@ -81,21 +76,29 @@ export function DesignJourney() {
           </h2>
         </div>
 
-        {/* Steps */}
+        {/* Steps — knots on the strand */}
         <div style={{ position: 'relative', marginTop: 'clamp(40px,6vw,64px)' }}>
-          {/* Connecting thread behind the nodes — hidden when stacked */}
-          <div
+          {/* The strand — two threads weaving behind the knots.
+              Hidden when the steps stack. */}
+          <svg
             className="dj-thread"
             aria-hidden
-            style={{
-              position: 'absolute',
-              top: 24,
-              left: '10%',
-              right: '10%',
-              height: 2,
-              borderTop: `2px dotted ${CREAM_LINE}`,
-            }}
-          />
+            viewBox="0 0 1000 24"
+            preserveAspectRatio="none"
+            style={{ position: 'absolute', top: 4, left: '8%', right: '8%', width: '84%', height: 24 }}
+          >
+            <defs>
+              <FoilGradient id="dj-strand-foil" />
+            </defs>
+            <path
+              d="M 0 12 C 60 4, 130 4, 200 12 S 340 20, 400 12 S 540 4, 600 12 S 740 20, 800 12 S 940 4, 1000 12"
+              fill="none" stroke="rgba(164,181,122,0.55)" strokeWidth="1.6" strokeLinecap="round"
+            />
+            <path
+              d="M 0 12 C 60 20, 130 20, 200 12 S 340 4, 400 12 S 540 20, 600 12 S 740 4, 800 12 S 940 20, 1000 12"
+              fill="none" stroke="url(#dj-strand-foil)" strokeWidth="1.6" strokeLinecap="round" opacity="0.85"
+            />
+          </svg>
 
           <div
             className="dj-grid"
@@ -106,57 +109,54 @@ export function DesignJourney() {
               position: 'relative',
             }}
           >
-            {STEPS.map((step) => {
-              const Icon = step.Icon;
-              return (
-                <div
-                  key={step.title}
+            {STEPS.map((step) => (
+              <div
+                key={step.title}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                {/* The knot — a pearl tied on the strand, ringed so it
+                    reads as sitting ON the threads, not floating. */}
+                <span
+                  aria-hidden
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
+                    width: 15,
+                    height: 15,
+                    marginTop: 8,
+                    borderRadius: 999,
+                    background: `radial-gradient(circle at 34% 30%, color-mix(in srgb, ${step.color} 60%, #fff), ${step.color} 62%)`,
+                    boxShadow: `0 0 0 4px ${PD.slab}, 0 0 0 5px rgba(245,239,226,0.28), 0 0 18px 0 color-mix(in srgb, ${step.color} 55%, transparent)`,
+                    flexShrink: 0,
+                  }}
+                />
+                <h4
+                  style={{
+                    fontFamily: 'var(--pl-font-display)',
+                    fontSize: 17,
+                    fontWeight: 600,
+                    color: PD.slabInk,
+                    margin: '22px 0 0',
                   }}
                 >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 999,
-                      background: step.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon size={22} color="#FFFFFF" strokeWidth={1.8} />
-                  </div>
-                  <h4
-                    style={{
-                      fontFamily: 'var(--pl-font-display)',
-                      fontSize: 17,
-                      fontWeight: 600,
-                      color: PD.slabInk,
-                      margin: '14px 0 0',
-                    }}
-                  >
-                    {step.title}
-                  </h4>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: CREAM_MUTED,
-                      lineHeight: 1.5,
-                      maxWidth: 200,
-                      margin: '6px auto 0',
-                    }}
-                  >
-                    {step.desc}
-                  </p>
-                </div>
-              );
-            })}
+                  {step.title}
+                </h4>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: CREAM_MUTED,
+                    lineHeight: 1.5,
+                    maxWidth: 200,
+                    margin: '6px auto 0',
+                  }}
+                >
+                  {step.desc}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
