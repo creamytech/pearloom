@@ -316,9 +316,19 @@ const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, Readonly
     { id: 'map', occasions: ['reunion', 'welcome-party', 'bachelor-party', 'bachelorette-party'] },
   ],
   /* Hairline frames — BRAND §10 bans unframed symmetric
-     photography; the frames variant is the on-brand gallery for
-     the formal occasions. */
-  gallery: [{ id: 'frames', occasions: ['wedding', 'vow-renewal', 'anniversary', 'rehearsal-dinner'] }],
+     photography; the frames variant is the on-brand gallery
+     wherever photographs carry the story (RADICAL §B: the default,
+     not the exception). The uniform grid stays for the casual
+     trip/party occasions where snapshots read right. */
+  gallery: [{
+    id: 'frames',
+    occasions: [
+      'wedding', 'vow-renewal', 'anniversary', 'rehearsal-dinner',
+      'engagement', 'milestone-birthday', 'retirement', 'graduation',
+      'quinceanera', 'bar-mitzvah', 'bat-mitzvah', 'baby-shower',
+      'memorial', 'first-birthday', 'baptism',
+    ],
+  }],
   /* Prix-fixe sheet for the seated-dinner occasions. */
   menu: [{ id: 'bill-of-fare', occasions: ['rehearsal-dinner', 'wedding', 'retirement', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera'] }],
   /* Wardrobe plates where dress guidance is the point. */

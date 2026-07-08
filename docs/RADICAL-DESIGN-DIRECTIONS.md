@@ -26,9 +26,24 @@
 >   (.pl-type-press / .pl-thread-draw / .pl-fade-late, one global
 >   reduced-motion guard). EmptyShell + HeroPlate + HeroCover refactored
 >   onto it, pixel-parity verified. Build §C/§D from these.
-> - Remaining: §A workbench stretch, §B gallery-frames default +
->   kinetic scroll type, §C landing thread-spine + occasion re-press +
->   store swatch drawer, §D wizard Pressing + editor chrome recession.
+> - §C landing — **SHIPPED**: ThreadSpine (scroll-grown two-strand rail,
+>   pearl tip) + the occasion re-press (explicit picks weave-wipe the
+>   whole page; ambient rotation stays quiet).
+> - §B gallery frames — **SHIPPED** as the recommended variant across
+>   all photo-forward occasions (recommendation-only; grid remains for
+>   casual trips/parties; no published-site change).
+> - §D first pressing — **SHIPPED**: the GeneratingScreen's stage
+>   headline now presses in per stage (.pl-type-press) and a foil
+>   progress thread weaves beneath it as stages complete.
+>   (Verified by construction — primitives visually proven on two other
+>   surfaces; eyeball the full moment on the next real wizard run.)
+> - Remaining, each a real session of its own: §D wizard INVERSION
+>   (site-as-stage, controls-as-tray — an 8-step WizardV8 refactor),
+>   §D editor chrome recession (riskiest; last), §C store swatch drawer
+>   (fights the existing .pl-store-card system — rebuild, not restyle),
+>   §B kinetic scroll type, and the flagged bible-bending stretches
+>   (workbench ground, leafed reading mode, wizard/editor merge — need
+>   owner sign-off).
 
 ---
 

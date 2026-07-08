@@ -22,6 +22,8 @@ import { useMemo } from 'react';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
 import { AmbientSprig, AmbientThread } from '../ambient';
 import { Float, Reveal } from '../motion';
+import { FoilGradient } from '@/components/brand/pressed';
+import { usePrefersReducedMotion } from '@/components/pearloom/redesign/graceful-image';
 
 interface Stage {
   id: string;
@@ -105,6 +107,9 @@ function stageIndexFor(step: string, stages: Stage[]): number {
 export function GeneratingScreen({ genStep, photoCount }: Props) {
   const stages = photoCount > 0 ? PRESS_STAGES_WITH_PHOTOS : PRESS_STAGES;
   const stageIdx = useMemo(() => stageIndexFor(genStep, stages), [genStep, stages]);
+  const reduced = usePrefersReducedMotion();
+  // The progress thread weaves in as stages complete (0→1).
+  const pressProgress = (stageIdx + 1) / stages.length;
 
   return (
     <div
@@ -183,7 +188,12 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                     color: 'var(--ink)',
                   }}
                 >
-                  {stages[stageIdx].label}
+                  {/* Each stage PRESSES its headline into the paper —
+                      the shared type-press, re-keyed per stage so the
+                      settle plays on every advance. */}
+                  <span key={stages[stageIdx].id} className="pl-type-press" style={{ display: 'inline-block' }}>
+                    {stages[stageIdx].label}
+                  </span>
                   <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>…</span>
                 </div>
                 <div
@@ -200,6 +210,30 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
               </div>
             </div>
           </Reveal>
+
+          {/* The pressing thread — two strands (olive + foil) weave in
+              beneath the headline as the stages complete. Deterministic
+              from stageIdx, not a spinner; reduced motion advances in
+              steps with no transition. */}
+          <div aria-hidden style={{ margin: '2px 0 16px' }}>
+            <svg viewBox="0 0 300 14" style={{ width: 'min(300px, 100%)', height: 14, display: 'block', overflow: 'visible' }}>
+              <defs>
+                <FoilGradient id="pl8-gen-foil" />
+              </defs>
+              <path
+                d="M 2 7 C 30 1, 60 1, 88 7 S 146 13, 174 7 S 232 1, 260 7 L 298 7"
+                fill="none" stroke="var(--pl-olive, #5C6B3F)" strokeWidth="1.5" strokeLinecap="round"
+                pathLength={300}
+                style={{ strokeDasharray: 300, strokeDashoffset: 300 * (1 - pressProgress), transition: reduced ? 'none' : 'stroke-dashoffset 700ms cubic-bezier(0.3, 0, 0.2, 1)' }}
+              />
+              <path
+                d="M 2 7 C 30 13, 60 13, 88 7 S 146 1, 174 7 S 232 13, 260 7 L 298 7"
+                fill="none" stroke="url(#pl8-gen-foil)" strokeWidth="1.5" strokeLinecap="round"
+                pathLength={300}
+                style={{ strokeDasharray: 300, strokeDashoffset: 300 * (1 - pressProgress), transition: reduced ? 'none' : 'stroke-dashoffset 700ms cubic-bezier(0.3, 0, 0.2, 1) 90ms' }}
+              />
+            </svg>
+          </div>
 
           <Reveal delay={280}>
             <div
