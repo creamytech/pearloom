@@ -45,6 +45,12 @@ interface CardProps {
   /** Paper texture ([data-pl-texture]) — same grain system the
    *  published site wears, so the suite matches the site. */
   texture?: string | null;
+  /** The site's resolved --t-* bag (siteThemeRootStyle) — when
+   *  present the card renders inside .pl8-guest with the site's
+   *  own vars, so the 'site' palette/font (var() references)
+   *  resolve and the grain system matches the published site
+   *  exactly (ATELIER-PLAN ST.1). */
+  themeRoot?: React.CSSProperties;
   /** Save-the-date back details — derived from manifest.events +
    *  manifest.travelInfo. Each is optional; the card falls back to
    *  an em-dash placeholder when missing. */
@@ -54,15 +60,23 @@ interface CardProps {
   hotelLine?: string;
 }
 
+/** Handwritten passages wear the site's own script face when the
+ *  card wears the site ('site' font pair); preset pairs keep the
+ *  Studio's Caveat. */
+function scriptFont(font: StudioFontPair): string {
+  return font.id === 'site' ? 'var(--t-script, "Caveat", cursive)' : "'Caveat', cursive";
+}
+
 export function CardFront(props: CardProps) {
-  const { palette, font, content, layout, motif, type, nameA, nameB, photoUrl, monogram, customMotifUrl, texture } = props;
+  const { palette, font, content, layout, motif, type, nameA, nameB, photoUrl, monogram, customMotifUrl, texture, themeRoot } = props;
   const w = 420, h = 588;
   const isDark = palette.id === 'twilight';
   return (
     <div
-      className={texture ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+      className={texture || themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
       data-pl-texture={texture ?? undefined}
       style={{
+      ...(themeRoot ?? {}),
       ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
       width: w, height: h,
       background: palette.paper,
@@ -97,14 +111,16 @@ export function CardFront(props: CardProps) {
 export function CardBack(props: CardProps) {
   const {
     palette, font, type, monogram, siteUrl, rsvpDeadline, nameA, nameB,
-    ceremonyAt, receptionAt, dressCode, hotelLine, texture, solemn,
+    ceremonyAt, receptionAt, dressCode, hotelLine, texture, solemn, themeRoot,
   } = props;
   const w = 420, h = 588;
+  const script = scriptFont(font);
   return (
     <div
-      className={texture ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+      className={texture || themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
       data-pl-texture={texture ?? undefined}
       style={{
+      ...(themeRoot ?? {}),
       ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
       width: w, height: h,
       background: palette.paper,
@@ -117,7 +133,7 @@ export function CardBack(props: CardProps) {
       <PaperTexture />
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 22, color: palette.accent, fontWeight: 600 }}>{monogram}</div>
+          <div style={{ fontFamily: font.display, fontStyle: 'italic', fontSize: 22, color: palette.accent, fontWeight: 600 }}>{monogram}</div>
           <div style={{ fontSize: 9, letterSpacing: '0.26em', textTransform: 'uppercase', color: palette.ink, opacity: 0.6, fontWeight: 600 }}>
             {type === 'invite' ? 'Reply card' : type === 'std' ? 'The details' : 'A note'}
           </div>
@@ -165,7 +181,7 @@ export function CardBack(props: CardProps) {
             <DetailRow label="Stay nearby" value={hotelLine ?? 'Hotel block details to follow'} font={font} palette={palette} />
             <DetailRow label="Live updates" value={siteUrl ?? 'pearloom.com'} font={font} palette={palette} />
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.accent }}>
+              <div style={{ fontFamily: script, fontSize: 22, color: palette.accent }}>
                 {solemn ? 'with love' : 'we can’t wait'}
               </div>
               <div style={{ width: 60, height: 60, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 4 }}>
@@ -182,15 +198,15 @@ export function CardBack(props: CardProps) {
 
         {type === 'thanks' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.ink, lineHeight: 1.4 }}>
+            <div style={{ fontFamily: script, fontSize: 22, color: palette.ink, lineHeight: 1.4 }}>
               Dear [Guest first name],
             </div>
-            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.ink, opacity: 0.85, lineHeight: 1.45 }}>
+            <div style={{ fontFamily: script, fontSize: 22, color: palette.ink, opacity: 0.85, lineHeight: 1.45 }}>
               {solemn
                 ? 'Thank you for [being there / your kind words]. Your presence meant more than we can say, and we keep coming back to it. With heartfelt thanks —'
                 : 'Thank you for the [gift], and even more for being there. Every photo on the wall has you in it somewhere, and we keep coming back to that. With all our love —'}
             </div>
-            <div style={{ fontFamily: "'Caveat', cursive", fontSize: 28, color: palette.accent, marginTop: 4 }}>
+            <div style={{ fontFamily: script, fontSize: 28, color: palette.accent, marginTop: 4 }}>
               {solemn ? `the family of ${nameA}` : nameB ? `${nameA} & ${nameB}` : nameA}
             </div>
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -245,11 +261,15 @@ function QRGlyph({ color = '#3D4A1F' }: { color?: string }) {
 }
 
 export function CardEnvelope(props: CardProps) {
-  const { palette, font, motif, monogram, returnAddress, nameA, nameB } = props;
+  const { palette, font, motif, monogram, returnAddress, nameA, nameB, themeRoot } = props;
   const w = 540, h = 380;
   const ret = returnAddress ?? { name: nameB ? `${nameA} & ${nameB}` : nameA, line1: '', line2: '' };
+  const script = scriptFont(font);
   return (
-    <div style={{ width: w, height: h, position: 'relative' }} className="pl-studio-card-shadow">
+    <div
+      style={{ ...(themeRoot ?? {}), width: w, height: h, position: 'relative' }}
+      className={themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+    >
       <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ position: 'absolute', inset: 0 }}>
         <rect width={w} height={h} fill={palette.accent2} rx="6" />
         <path d={`M0 0 L ${w / 2} ${h * 0.42} L ${w} 0 Z`} fill={palette.accent} opacity="0.25" />
@@ -261,13 +281,13 @@ export function CardEnvelope(props: CardProps) {
         width: '60%', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4,
         zIndex: 2,
       }}>
-        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.ink, opacity: 0.85 }}>
+        <div style={{ fontFamily: script, fontSize: 22, color: palette.ink, opacity: 0.85 }}>
           [Guest first name] [Guest last name]
         </div>
-        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 18, color: palette.ink, opacity: 0.7 }}>
+        <div style={{ fontFamily: script, fontSize: 18, color: palette.ink, opacity: 0.7 }}>
           [Guest street]
         </div>
-        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 18, color: palette.ink, opacity: 0.7 }}>
+        <div style={{ fontFamily: script, fontSize: 18, color: palette.ink, opacity: 0.7 }}>
           [City, State ZIP]
         </div>
       </div>
@@ -285,9 +305,9 @@ export function CardEnvelope(props: CardProps) {
       {motif !== 'none' && (
         <div style={{ position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%) rotate(-6deg)' }}>
           <svg viewBox="0 0 80 80" width={56} height={56}>
-            <circle cx="40" cy="40" r="32" fill="#C97A6E" />
+            <circle cx="40" cy="40" r="32" fill={palette.accent} />
             <circle cx="40" cy="40" r="32" fill="url(#waxE)" opacity="0.45" />
-            <text x="40" y="48" textAnchor="middle" fontSize="20" fontFamily="Fraunces" fill="rgba(255,255,255,0.75)" fontStyle="italic" fontWeight="700">{monogram}</text>
+            <text x="40" y="48" textAnchor="middle" fontSize="20" fontFamily={font.display} fill="rgba(255,255,255,0.8)" fontStyle="italic" fontWeight="700">{monogram}</text>
             <defs><radialGradient id="waxE" cx="35%" cy="35%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#000" /></radialGradient></defs>
           </svg>
         </div>

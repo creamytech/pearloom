@@ -130,12 +130,20 @@ interface ManifestStudio {
 // renderer where it'd render as the empty / wrong card.
 const VALID_TYPES: ReadonlySet<StationeryType> = new Set(['std', 'invite', 'thanks']);
 const VALID_VIEWS: ReadonlySet<CardView> = new Set(['front', 'back', 'envelope']);
-const VALID_PALETTES = new Set(PALETTES.map(p => p.id));
-const VALID_FONTS = new Set(FONT_PAIRS.map(f => f.id));
+/* 'site' = wear the site's own --t-* theme bag (ATELIER-PLAN ST.1). */
+const VALID_PALETTES = new Set([...PALETTES.map(p => p.id), 'site']);
+const VALID_FONTS = new Set([...FONT_PAIRS.map(f => f.id), 'site']);
 const VALID_LAYOUTS = new Set(LAYOUTS.map(l => l.id));
 const VALID_MOTIFS = new Set(MOTIFS.map(m => m.id));
 const VALID_TONES = new Set(COPY_TONES.map(t => t.id));
-const VALID_TEXTURES = new Set(STUDIO_TEXTURES.map(t => t.id));
+/* Any short texture id is honored — the site's texture vocabulary
+   (14 ids) is wider than the Studio shelf (6), and inheriting a
+   velvet/vellum site must not silently drop to smooth. Unknown ids
+   simply match no CSS. */
+function sanitizeTexture(raw: unknown): string | null {
+  return typeof raw === 'string' && /^[a-z0-9-]{2,24}$/.test(raw) ? raw : null;
+}
+void STUDIO_TEXTURES;
 
 const HEX_RX = /^#[0-9a-fA-F]{6}$/;
 function sanitizeCustomColors(raw: unknown): StudioCustomColors | null {
@@ -169,6 +177,8 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
       layout: VALID_LAYOUTS.has(lookSeeded.layout) ? lookSeeded.layout : DEFAULT_STATE.layout,
       motif: VALID_MOTIFS.has(lookSeeded.motif) ? lookSeeded.motif : DEFAULT_STATE.motif,
       tone: VALID_TONES.has(lookSeeded.tone) ? lookSeeded.tone : DEFAULT_STATE.tone,
+      /* The site's own grain rides in on first open. */
+      texture: sanitizeTexture(lookSeeded.texture),
     };
   }
   return {
@@ -183,7 +193,7 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     tone: pick(studio.tone, VALID_TONES, DEFAULT_STATE.tone),
     customMotifUrl: studio.customMotifUrl ?? null,
     customColors: sanitizeCustomColors(studio.customColors),
-    texture: typeof studio.texture === 'string' && VALID_TEXTURES.has(studio.texture) ? studio.texture : null,
+    texture: sanitizeTexture(studio.texture),
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
@@ -310,6 +320,7 @@ export function useStudioState(args: {
   }, [
     state.type, state.view, state.draft, state.palette, state.fontPair,
     state.layout, state.motif, state.tone, state.customMotifUrl,
+    state.customColors, state.texture,
     state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);

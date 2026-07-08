@@ -19,17 +19,83 @@
 import type { StoryManifest } from '@/types';
 import { hexToRgb, rgbToHsl } from '@/lib/look-engine/palette-from-photo';
 import { lookDefaultsFor } from '@/lib/event-os/event-types';
+import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
+import type { StudioPalette, StudioFontPair } from './studio-constants';
 
 type EditionId = NonNullable<StoryManifest['edition']>;
 type KitId = NonNullable<StoryManifest['kitId']>;
 type VoiceOverride = NonNullable<StoryManifest['voiceOverride']>;
 
 export interface StudioLookDefaults {
-  palette: string;   // PALETTES.id — lavender|sage|peach|cream|twilight|rose
-  fontPair: string;  // FONT_PAIRS.id — editorial|garden|modern|script
+  palette: string;   // PALETTES.id (or 'site') — the card's colors
+  fontPair: string;  // FONT_PAIRS.id (or 'site')
   layout: string;    // LAYOUTS.id — classic|asym|photo|script|minimal
   motif: string;     // MOTIFS.id — none|stamp|leaves|tape|monogram|wax|doodle
   tone: string;      // COPY_TONES.id — formal|warm|playful|spare
+  /** The site's own paper grain, inherited on first open. */
+  texture?: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// "Wear the site's look" (ATELIER-PLAN ST.1) — the card renders
+// from the site's ACTUAL --t-* theme bag instead of a nearest-hue
+// preset. The palette/font below are var() references; they
+// resolve because the card root carries siteThemeRootStyle() and
+// the .pl8-guest scope. Custom color overrides still win on top.
+// ─────────────────────────────────────────────────────────────
+
+/** The sentinel id for the site-derived palette/fontPair. */
+export const SITE_LOOK_ID = 'site';
+
+export const SITE_PALETTE: StudioPalette = {
+  id: SITE_LOOK_ID,
+  name: 'Your site',
+  paper: 'var(--t-paper)',
+  ink: 'var(--t-ink)',
+  accent: 'var(--t-accent)',
+  accent2: 'var(--t-accent-bg, var(--t-section))',
+  sub: 'cut from the site',
+};
+
+export const SITE_FONT: StudioFontPair = {
+  id: SITE_LOOK_ID,
+  name: 'Your site',
+  display: 'var(--t-display)',
+  ui: 'var(--t-body)',
+  weight: 600,
+  italic: false,
+  sub: 'the site’s faces',
+};
+
+/** Does this site have a look worth wearing? (A theme, a pack,
+ *  or at least legacy colors.) */
+export function siteLookAvailable(manifest: StoryManifest | null | undefined): boolean {
+  if (!manifest) return false;
+  const loose = manifest as unknown as { themeId?: string; themeVars?: unknown; theme?: { colors?: unknown } };
+  return Boolean(loose.themeId || loose.themeVars || loose.theme?.colors);
+}
+
+/**
+ * The site's resolved --t-* bag as a style object for the card
+ * root — the EXACT chain ThemedSite uses (themeId → themeVars),
+ * with the legacy theme.colors overlaid for pre-redesign
+ * manifests that never got a themeId backfilled.
+ */
+export function siteThemeRootStyle(manifest: StoryManifest): React.CSSProperties {
+  const loose = manifest as unknown as {
+    themeId?: string;
+    themeVars?: Record<string, string>;
+    theme?: { colors?: { background?: string; foreground?: string; accent?: string; cardBg?: string } };
+  };
+  const vars: Record<string, string> = { ...(loose.themeVars ?? {}) };
+  const legacy = loose.theme?.colors;
+  if (legacy && !loose.themeVars && !loose.themeId) {
+    if (legacy.background) vars['--t-paper'] = legacy.background;
+    if (legacy.foreground) vars['--t-ink'] = legacy.foreground;
+    if (legacy.accent) vars['--t-accent'] = legacy.accent;
+    if (legacy.cardBg) vars['--t-card'] = legacy.cardBg;
+  }
+  return themeRootStyle(getTheme(loose.themeId), 'comfortable', Object.keys(vars).length > 0 ? vars : null);
 }
 
 /* ── Edition → Studio Layout ──
@@ -191,6 +257,23 @@ export function studioDefaultsFromLook(manifest: StoryManifest): StudioLookDefau
      uses, so Studio and the site agree on the active kit. */
   const kit: KitId = manifest.kitId ?? lookDefaultsFor(manifest.occasion).kitId;
   const voice: VoiceOverride = manifest.voiceOverride ?? 'classic';
+
+  /* A site with a real look opens the Studio WEARING it — the
+     --t-* bag itself (colors + faces) and the site's own paper
+     grain, not a nearest-hue preset (ATELIER-PLAN ST.1). Layout /
+     motif / tone still route through the edition/kit/voice maps —
+     those are stationery decisions, not theme fields. */
+  if (siteLookAvailable(manifest)) {
+    return {
+      palette: SITE_LOOK_ID,
+      fontPair: SITE_LOOK_ID,
+      layout: EDITION_TO_LAYOUT[edition],
+      motif: KIT_TO_MOTIF[kit],
+      tone: VOICE_TO_TONE[voice],
+      texture: (manifest as unknown as { texture?: string }).texture ?? null,
+    };
+  }
+
   const themeColors =
     (manifest as unknown as { theme?: { colors?: { accent?: string; background?: string } } }).theme
       ?.colors;
@@ -203,5 +286,6 @@ export function studioDefaultsFromLook(manifest: StoryManifest): StudioLookDefau
     layout: EDITION_TO_LAYOUT[edition],
     motif: KIT_TO_MOTIF[kit],
     tone: VOICE_TO_TONE[voice],
+    texture: null,
   };
 }

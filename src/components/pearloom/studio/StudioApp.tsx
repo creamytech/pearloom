@@ -30,6 +30,10 @@ import {
 } from './studio-constants';
 import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
+import { TextureFilters } from '../site/TextureFilters';
+import {
+  siteLookAvailable, siteThemeRootStyle, SITE_PALETTE, SITE_FONT, SITE_LOOK_ID,
+} from './studio-defaults-from-look';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioMobileBar, useViewportSize, type StudioSheetId } from './StudioMobileChrome';
 import { StudioLanding } from './StudioLanding';
@@ -278,7 +282,32 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     return out;
   }, [manifest]);
 
-  const basePalette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
+  /* "Wear the site's look" (ATELIER-PLAN ST.1) — the 'site'
+     sentinel resolves palette/font to var(--t-*) references and
+     stamps the resolved theme bag on every card root. Preset
+     palettes keep their hexes and need no bag. */
+  const siteLookOn = siteLookAvailable(manifest);
+  const themeRoot = useMemo(
+    () => (siteLookOn ? siteThemeRootStyle(manifest) : undefined),
+    [siteLookOn, manifest],
+  );
+  const cardThemeRoot = state.palette === SITE_LOOK_ID || state.fontPair === SITE_LOOK_ID ? themeRoot : undefined;
+  /* Concrete swatch hexes for the rail's "Your site" row — read
+     straight off the resolved bag (the rail chrome sits outside
+     .pl8-guest, so var() references wouldn't paint there). */
+  const siteSwatch = useMemo(() => {
+    if (!themeRoot) return undefined;
+    const bag = themeRoot as Record<string, string>;
+    return {
+      paper: bag['--t-paper'] ?? '#FDFAF0',
+      ink: bag['--t-ink'] ?? '#0E0D0B',
+      accent: bag['--t-accent'] ?? '#5C6B3F',
+      accent2: bag['--t-accent-bg'] ?? bag['--t-section'] ?? '#F3E9D4',
+    };
+  }, [themeRoot]);
+  const basePalette = state.palette === SITE_LOOK_ID && siteLookOn
+    ? SITE_PALETTE
+    : (PALETTES.find(p => p.id === state.palette) ?? PALETTES[0]);
   /* Custom color overrides ride on top of the preset — the same
      accent/paper/ink freedom the site editor's Tweak-colors panel
      gives, so the suite can match a custom-colored site exactly. */
@@ -291,7 +320,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
         ...(state.customColors.accent2 ? { accent2: state.customColors.accent2 } : {}),
       }
     : basePalette;
-  const font = FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0];
+  const font = state.fontPair === SITE_LOOK_ID && siteLookOn
+    ? SITE_FONT
+    : (FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0]);
 
   const baseContent = useMemo(() => buildTypeContent({
     type: state.type,
@@ -571,6 +602,10 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
       overflow: 'hidden',
       fontFamily: 'var(--font-ui, "Inter", system-ui, sans-serif)',
     }}>
+      {/* Displacement-texture filter defs — the same set ThemedSite
+          mounts, so live materials (watercolor bleed, marble wash)
+          resolve on the card exactly as on the published site. */}
+      <TextureFilters />
       <StudioTopbar
         state={state}
         setField={setField}
@@ -656,6 +691,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+              themeRoot={cardThemeRoot}
                 palette={palette}
                 font={font}
                 content={content}
@@ -676,6 +712,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+              themeRoot={cardThemeRoot}
                 palette={palette}
                 font={font}
                 content={content}
@@ -697,6 +734,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+              themeRoot={cardThemeRoot}
                 palette={palette}
                 font={font}
                 content={content}
@@ -763,6 +801,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
 
       {!viewportMobile && (
         <RemixRail
+          siteSwatch={siteSwatch}
           decorAssets={decorAssets}
           state={state}
           setField={setField}
@@ -822,6 +861,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
             )}
             {(displaySheet === 'design' || displaySheet === 'words') && (
               <RemixRail
+          siteSwatch={siteSwatch}
           decorAssets={decorAssets}
                 /* Keyed remount so Design / Words each land on
                    their tab; in-sheet tab strip still works. */
@@ -921,6 +961,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
 
       {showPrintPair && (
         <StudioPrintPreview
+          themeRoot={cardThemeRoot}
           type={state.type}
           layout={state.layout}
           motif={state.motif}
@@ -952,6 +993,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               layout={state.layout}
               motif={state.motif}
               texture={state.texture}
+              themeRoot={cardThemeRoot}
               palette={palette}
               font={font}
               content={content}

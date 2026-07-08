@@ -87,6 +87,9 @@ interface RailProps {
   onOpenProofSheet?: () => void;
   onRewriteField?: (fieldId: string, hint: string) => Promise<void>;
   onMatchSiteTheme?: () => Promise<void>;
+  /** Resolved --t-* swatch hexes for the "Your site" palette row
+   *  (undefined when the site has no look yet). */
+  siteSwatch?: { paper: string; ink: string; accent: string; accent2: string };
   /** Pear suggests a complementary motif + palette pair. Sync,
    *  no API — see suggestPair() in StudioApp. */
   onSuggestPair?: () => void;
@@ -717,7 +720,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
   );
 }
 
-export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab, decorAssets }: RailProps) {
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab, decorAssets, siteSwatch }: RailProps) {
   const [tab, setTab] = useState<'design' | 'copy' | 'pear'>(initialTab ?? 'design');
   return (
     <aside aria-label="Inspector" style={{
@@ -761,7 +764,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       </div>
 
       <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} />}
+        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} siteSwatch={siteSwatch} />}
         {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
         {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} onSuggestPair={onSuggestPair} />}
       </div>
@@ -781,7 +784,7 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
   );
 }
 
-function DesignTab({ state, setField, decorAssets }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }> }) {
+function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string } }) {
   return (
     <>
       <RailGroup label="Colors" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
@@ -789,6 +792,35 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
             strip (paper · ink · accent · wash) + name, the active row
             washed in cream-3 with a peach hairline + check. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* "Your site" — the card wears the site's own --t-* bag
+              (ATELIER-PLAN ST.1). Presets below are deliberate
+              departures. */}
+          {siteSwatch && (() => {
+            const on = state.palette === 'site';
+            return (
+              <button
+                type="button"
+                onClick={() => { setField('palette', 'site'); setField('fontPair', 'site'); }}
+                aria-pressed={on}
+                title="Cut from the site's theme"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '8px 10px', borderRadius: 10, textAlign: 'left',
+                  background: on ? 'var(--cream-3)' : 'transparent',
+                  border: `1px solid ${on ? 'var(--peach-ink)' : 'var(--gold-line, #D0B070)'}`,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <span style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--line)', flexShrink: 0 }}>
+                  {[siteSwatch.paper, siteSwatch.ink, siteSwatch.accent, siteSwatch.accent2].map((c, j) => (
+                    <span key={j} style={{ width: 15, height: 24, background: c }} />
+                  ))}
+                </span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Your site</span>
+                {on ? <Icon name="check" size={14} color="var(--peach-ink)" strokeWidth={2.4} /> : null}
+              </button>
+            );
+          })()}
           {PALETTES.map(p => {
             const on = state.palette === p.id;
             return (
@@ -950,7 +982,7 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
         </div>
       </RailGroup>
 
-      <RailGroup label="Typography" sub={FONT_PAIRS.find(f => f.id === state.fontPair)?.sub}>
+      <RailGroup label="Typography" sub={state.fontPair === 'site' ? 'the site’s faces' : FONT_PAIRS.find(f => f.id === state.fontPair)?.sub}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {FONT_PAIRS.map(f => {
             const on = state.fontPair === f.id;

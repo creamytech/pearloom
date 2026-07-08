@@ -38,6 +38,9 @@ interface Props {
   siteUrl: string;
   rsvpDeadline?: string;
   returnAddress: { name: string; line1?: string; line2?: string };
+  /** The site's resolved --t-* bag — threaded to the card mounts
+   *  so the print pair matches the canvas exactly. */
+  themeRoot?: React.CSSProperties;
   /** Optional manifest reference — kept for future reads (theme.fonts,
    *  theme.colors, etc.). Today the studio palette + font props win
    *  because the host edits them locally; this is a forward seam. */
@@ -65,6 +68,7 @@ export function StudioPrintPreview({
   siteUrl,
   rsvpDeadline,
   returnAddress,
+  themeRoot,
   onPrint,
   onClose,
 }: Props) {
@@ -194,6 +198,7 @@ export function StudioPrintPreview({
       >
         <ScaledCardBox baseW={420} baseH={588} scale={cardScale} radius={6}>
           <CardFront
+            themeRoot={themeRoot}
             type={type}
             view="front"
             layout={layout}
@@ -212,6 +217,7 @@ export function StudioPrintPreview({
         </ScaledCardBox>
         <ScaledCardBox baseW={540} baseH={380} scale={envScale} radius={6}>
           <CardEnvelope
+            themeRoot={themeRoot}
             type={type}
             view="envelope"
             layout={layout}

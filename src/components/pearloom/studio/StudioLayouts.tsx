@@ -134,16 +134,17 @@ export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, am
   );
 }
 
-export function ScriptLayout({ content, palette, nameA, nameB }: LayoutProps) {
+export function ScriptLayout({ content, palette, font, nameA, nameB }: LayoutProps) {
+  const script = font.id === 'site' ? 'var(--t-script, "Caveat", cursive)' : "'Caveat', cursive";
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, zIndex: 2 }}>
-      <div style={{ fontFamily: "'Caveat', cursive", fontSize: 32, color: palette.ink, lineHeight: 1.15 }}>
+      <div style={{ fontFamily: script, fontSize: 32, color: palette.ink, lineHeight: 1.15 }}>
         Dearest friend,
       </div>
-      <div style={{ fontFamily: "'Caveat', cursive", fontSize: 24, color: palette.ink, opacity: 0.85, lineHeight: 1.3 }}>
+      <div style={{ fontFamily: script, fontSize: 24, color: palette.ink, opacity: 0.85, lineHeight: 1.3 }}>
         {content.scriptBody}
       </div>
-      <div style={{ marginTop: 14, fontFamily: "'Caveat', cursive", fontSize: 28, color: palette.accent }}>
+      <div style={{ marginTop: 14, fontFamily: script, fontSize: 28, color: palette.accent }}>
         — {nameB ? `${nameA} & ${nameB}` : nameA}
       </div>
       <div style={{ marginTop: 'auto', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
@@ -235,7 +236,7 @@ export function MotifOverlay({
   }
   if (motif === 'monogram') {
     return (
-      <div style={{ position: 'absolute', top: 24, left: 24, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 28, color: palette.accent, fontWeight: 600, zIndex: 3 }}>
+      <div style={{ position: 'absolute', top: 24, left: 24, fontFamily: 'var(--t-display, "Fraunces", serif)', fontStyle: 'italic', fontSize: 28, color: palette.accent, fontWeight: 600, zIndex: 3 }}>
         {monogram}
       </div>
     );
@@ -244,9 +245,9 @@ export function MotifOverlay({
     return (
       <div style={{ position: 'absolute', bottom: 24, right: 24, zIndex: 3 }}>
         <svg viewBox="0 0 60 60" width={60} height={60}>
-          <circle cx="30" cy="30" r="22" fill="#C97A6E" />
+          <circle cx="30" cy="30" r="22" fill={palette.accent} />
           <circle cx="30" cy="30" r="22" fill="url(#wax2)" opacity="0.45" />
-          <text x="30" y="36" textAnchor="middle" fontSize="14" fontFamily="Fraunces" fill="rgba(255,255,255,0.7)" fontStyle="italic" fontWeight="700">{monogram}</text>
+          <text x="30" y="36" textAnchor="middle" fontSize="14" fontFamily="Georgia, serif" fill="rgba(255,255,255,0.75)" fontStyle="italic" fontWeight="700">{monogram}</text>
           <defs><radialGradient id="wax2" cx="35%" cy="35%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#000" /></radialGradient></defs>
         </svg>
       </div>
