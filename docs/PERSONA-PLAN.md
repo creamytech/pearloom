@@ -738,7 +738,27 @@ A/B testing infra. Dashboards beyond one honest view.
 
 ---
 
-### S9 — The demo orchard · **status: planned** · P2 (testing apparatus)
+### S9 — The demo orchard · **status: SHIPPED 2026-07-08** · P2 (testing apparatus)
+
+> Shipped: (1) FIVE SEEDED WORLDS at `/demo/{occasion}` (birthday,
+> anniversary, bachelorette, memorial, quinceañera — the wedding
+> stays at /demo; /demo/wedding redirects). Each is pressed through
+> the SAME look pipeline the wizard uses (`lib/demo-occasions.ts`
+> → applyWizardLook), with real content in the occasion's voice —
+> the memorial is written as the tone benchmark (no black
+> requested, donations in lieu, a life told gently) and walked at
+> 390px with ZERO law-1 violations (no save-the-date, no
+> "celebrating", no "Registry"). Shots: `demo-memorial.png`,
+> `demo-bachelorette.png`. (2) THE MODERATOR KIT —
+> `docs/testing/MODERATOR-KIT.md`: screener (with the memorial
+> care protocol), the five universal tasks with measures,
+> per-persona watch notes, observation sheet, exit bar.
+> (3) SEED/RESET — deliberate simplification: **the wizard IS the
+> seed script** (task 1 builds the tester's world in ~20s and is
+> itself the first measurement); reset = delete the tester site.
+> A standalone seeder would test a world no tester ever builds.
+> Leftover: add /demo/{occasion} to the axe route set. vitest
+> 1246/1246.
 
 ```
 ## Active focus — S9 · The demo orchard (seeded worlds for testers)
@@ -844,6 +864,16 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S9 shipped (The demo orchard) — ALL NINE SPRINTS COMPLETE
+Five seeded occasion worlds at /demo/{occasion} (pressed through the
+wizard's own look pipeline; memorial = tone benchmark, walked clean
+of law-1 violations at phone width), the moderator kit in
+docs/testing/, and the deliberate seed-script simplification (the
+wizard is the seeder; reset = delete the site). With S9, every
+sprint in §4 is SHIPPED — the remaining readiness-gate items are
+in §5 (apply the S8 views to prod, staging env, device-matrix
+sweep, recruiting). vitest 1246/1246.
 
 ### 2026-07-08 — S8 shipped (The glass box)
 The full first-session funnel is measurable: seven new client
