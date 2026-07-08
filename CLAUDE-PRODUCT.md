@@ -444,6 +444,37 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-08 — PERSONA-PLAN executed: all nine sprints S1–S9 SHIPPED
+
+The full persona-driven road to mass user testing, executed the
+same day it was authored (15 commits, every fix verified by
+re-running the persona walks): **S1** occasion-true wizard preview
+(previewFrameFor + registry grammar matrix; "In loving memory /
+a life, well loved" replaces "SAVE THE DATE / ‹deceased› are
+celebrating"); **S2** the honest proof (ThemedSite proof mode +
+drafting slats; the Review pressing carries the host's real
+date/location/Day-picks via the same seeding the press uses);
+**S3** the unbroken signed-out thread (claim card on /signup, the
+press resumes itself post-auth, palette gate degrades honestly);
+**S4** guest RSVP opens on tap 1 (the rsvp-modal sentinel was a
+bare anchor) with open-list copy; **S5** occasion reach (POPULAR =
+acquisition shelf incl. bachelorette + quinceañera; the landing
+hero's typed names finally arrive in the wizard); **S6** the first
+five minutes (phone preview peek sheet, "It's pressed." publish
+moment + invite-guests door, return reassurance pill); **S7**
+Linda mode (axe-core ZERO serious/critical on all routes — the
+0.82 rail recession was silently breaking AA, now 0.95; peach/sage
+text tokens deepened, --gold-ink added; zoom 125/150% clean; two
+unguarded one-tap deletes now arm-then-confirm); **S8** the glass
+box (full first-session funnel beacons, client-error capture,
+whisper pill, three SQL views — prod apply pending Supabase MCP
+re-auth); **S9** the demo orchard (/demo/{occasion} for five
+persona occasions pressed through the wizard's own look pipeline,
+memorial as tone benchmark, moderator kit in docs/testing/).
+Remaining before recruiting (PERSONA-PLAN §5): apply the S8 views,
+one-week error baseline, iPhone SE + Android sweeps, staging env.
+vitest 1246/1246 throughout.
+
 ### 2026-07-08 — PERSONA-PLAN authored (the road to mass user testing)
 
 Six personas (engaged couple, 20-year-old birthday host, 60-year-old

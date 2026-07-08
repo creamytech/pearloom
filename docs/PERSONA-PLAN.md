@@ -803,24 +803,28 @@ seeding. Video/tutorial content.
 Testing begins when every line is true. Check them off in place.
 
 **Trust (blocks recruiting):**
-- [ ] S1–S3 shipped — no persona sees another occasion's frame, a false
-      proof, or a dropped artifact
-- [ ] The six persona walks re-run clean at their viewports (transcripts
+- [x] S1–S3 shipped — no persona sees another occasion's frame, a false
+      proof, or a dropped artifact *(2026-07-08)*
+- [x] The six persona walks re-run clean at their viewports (transcripts
       + screenshots archived in docs/audit-shots/personas/)
 
 **Instrumentation (blocks learning anything):**
-- [ ] S8 funnel events live — wizard completion %, time-to-weave,
-      publish %, first-share % all measurable per occasion
-- [ ] Client error capture live; baseline error rate recorded for one
-      week before testers arrive
-- [ ] Whisper pill live on host surfaces
+- [x] S8 funnel events live — the beacons fire end-to-end; the
+      convenience views (`20260708_first_session_funnel.sql`) await
+      one prod apply (Supabase MCP re-auth), raw SQL works meanwhile
+- [ ] Client error capture live *(shipped)* — baseline error rate
+      still needs its one-week recording window before testers arrive
+- [x] Whisper pill live on host surfaces
 
 **Apparatus (blocks running sessions):**
-- [ ] S9 demo orchard + reset script + moderator kit
-- [ ] Device matrix passes: iPhone SE (375×667), iPhone 15 (390×844),
-      Android (412×915), iPad (820×1180), laptop (1280×800),
-      desktop (1440×900) — the six-walk suite at each
-- [ ] Staging environment testers can safely break (never prod)
+- [x] S9 demo orchard + moderator kit (reset = delete the tester
+      site; the wizard is the seeder) — all five /demo/{occasion}
+      routes ALSO audit axe-clean of serious/critical
+- [ ] Device matrix passes: 390/820/1280/1440 walked throughout the
+      sprints; iPhone SE (375×667) and Android (412×915) sweeps
+      still to run
+- [ ] Staging environment testers can safely break (never prod) —
+      owner action
 
 **The protocol (how a session runs):**
 Recruit 5–6 per persona archetype (30–36 total; Denise's archetype is
