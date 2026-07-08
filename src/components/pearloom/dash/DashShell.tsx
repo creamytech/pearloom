@@ -78,7 +78,6 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
     items: [
       { id: 'budget',   label: 'Budget',   icon: 'bars',   href: '/dashboard/budget' },
       { id: 'vendors',  label: 'Vendors',  icon: 'pin',    href: '/dashboard/vendors' },
-      { id: 'payments', label: 'Payments', icon: 'ticket', href: '/dashboard/payments' },
     ],
   },
   {
@@ -124,7 +123,6 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
     tabs: [
       { id: 'sites',       label: 'My sites',     href: '/dashboard/event' },
       { id: 'weekend',     label: 'Weekend',      href: '/dashboard/weekend' },
-      { id: 'connections', label: 'Linked events', href: '/dashboard/connections' },
     ],
   },
   guests: {

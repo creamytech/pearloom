@@ -42,7 +42,7 @@ const NAV: NavGroup[] = [
       { k: 'guests',      l: 'Guests',      i: '☞', href: '/dashboard/rsvp',        needsSite: true },
       { k: 'submissions', l: 'Submissions', i: '✢', href: '/dashboard/submissions', needsSite: true },
       { k: 'gallery',     l: 'The Reel',    i: '◎', href: '/dashboard/gallery' },
-      { k: 'connections', l: 'Connections', i: '∞', href: '/dashboard/connections' },
+      { k: 'connections', l: 'Connections', i: '∞', href: '/dashboard/weekend' },
     ],
   },
   {
@@ -677,7 +677,7 @@ function TopbarGlobal() {
               Profile
             </Link>
             <Link
-              href="/dashboard/connections"
+              href="/dashboard/weekend"
               onClick={() => setMenuOpen(false)}
               style={menuItemStyle}
             >

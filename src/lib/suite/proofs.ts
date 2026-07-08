@@ -24,7 +24,7 @@ import type { SuiteTheme } from '@/lib/suite/theme';
 import type { MotifKind } from '@/components/pearloom/site/MotifScatter';
 import type { MonogramFrame } from '@/components/pearloom/site/Monogram';
 import { LAYOUTS, PALETTES, MOTIFS, FONT_PAIRS, COPY_TONES } from '@/components/pearloom/studio/studio-constants';
-import { studioDefaultsFromLook } from '@/components/pearloom/studio/studio-defaults-from-look';
+import { presetDefaultsFromLook } from '@/components/pearloom/studio/studio-defaults-from-look';
 import { getEventType, type EventVoice } from '@/lib/event-os/event-types';
 import { cached } from '@/lib/claude/client';
 import { generateJson } from '@/lib/claude/structured';
@@ -423,7 +423,7 @@ export function buildCoerceContext(args: {
     suite,
     voice: resolveVoice(manifest, suite.occasion),
     type,
-    lookDefaults: studioDefaultsFromLook(manifest),
+    lookDefaults: presetDefaultsFromLook(manifest),
     darkPaper: hexLuminance(suite.palette.paper) < 0.45,
     seed,
   };

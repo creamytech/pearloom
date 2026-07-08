@@ -1,11 +1,9 @@
-import type { Metadata } from 'next';
-import { DashConnections } from '@/components/marketing/design/dash/DashConnections';
+// Retired route (ATELIER-PLAN DR.1): linked celebrations live on
+// the Weekend page now — one home for "the events around your
+// event" (the weekend builder creates the links; this panel
+// manages them).
+import { permanentRedirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Connections | Pearloom',
-  description: 'Every person is a knot. Every event is a thread.',
-};
-
-export default function ConnectionsPage() {
-  return <DashConnections />;
+export default function ConnectionsRedirect() {
+  permanentRedirect('/dashboard/weekend');
 }

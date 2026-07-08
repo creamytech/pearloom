@@ -66,7 +66,6 @@ export const DEPROMOTED_DESTINATIONS: Array<{
   { id: 'tool-help',       label: 'Help & docs',      hint: 'Shortcuts & answers',       icon: 'heart-icon', href: '/dashboard/help' },
   { id: 'tool-music',      label: 'Music',            hint: 'Guest song requests',       icon: 'music',    href: '/dashboard/music', gate: 'music' },
   { id: 'tool-passport',   label: 'Passport cards',   hint: 'Printable guest QR cards',  icon: 'gift',     href: '/dashboard/passport-cards', gate: 'passport' },
-  { id: 'tool-payments',   label: 'Gifts & payments', hint: 'Stripe feed',               icon: 'gift',     href: '/dashboard/payments', gate: 'payments' },
   { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster', gate: 'qr' },
   { id: 'tool-voice',      label: "Pear's voice",     hint: 'Train Pear on your tone',   icon: 'mic',      href: '/dashboard/voice' },
   /* Weekend builder is a first-class Site sub-nav tab (DASH_SECTIONS

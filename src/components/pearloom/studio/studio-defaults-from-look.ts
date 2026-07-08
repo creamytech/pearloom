@@ -274,6 +274,19 @@ export function studioDefaultsFromLook(manifest: StoryManifest): StudioLookDefau
     };
   }
 
+  return presetDefaultsFromLook(manifest);
+}
+
+/**
+ * The PRESET-ONLY seed — always resolves to one of the 6 Studio
+ * palettes via nearest-hue, never the 'site' sentinel. The proof
+ * sheet uses this (its tiles carry concrete preset palettes), and
+ * studioDefaultsFromLook falls back to it for lookless manifests.
+ */
+export function presetDefaultsFromLook(manifest: StoryManifest): StudioLookDefaults {
+  const edition: EditionId = manifest.edition ?? 'almanac';
+  const kit: KitId = manifest.kitId ?? lookDefaultsFor(manifest.occasion).kitId;
+  const voice: VoiceOverride = manifest.voiceOverride ?? 'classic';
   const themeColors =
     (manifest as unknown as { theme?: { colors?: { accent?: string; background?: string } } }).theme
       ?.colors;

@@ -24,6 +24,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
+import { DashConnections } from '@/components/marketing/design/dash/DashConnections';
 import { PageIntro } from '../dash/QuietDash';
 import { Icon, Pear, Sparkle, PearloomGlyph } from '../motifs';
 import { DatePicker } from '../editor/v8-forms';
@@ -601,6 +602,19 @@ export function WeekendBuilderPage() {
           }
         }
       `}</style>
+
+      {/* Linked celebrations — the old /dashboard/connections panel,
+          folded in (ATELIER-PLAN DR.1): the Weekend page is the one
+          home for the events around your event. */}
+      <section style={{ padding: '8px var(--pl-dash-pad) 48px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '18px 0 4px' }}>
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+            Linked celebrations
+          </span>
+        </div>
+        <DashConnections embedded />
+      </section>
     </DashLayout>
   );
 }

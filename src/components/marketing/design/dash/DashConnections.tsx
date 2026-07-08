@@ -82,7 +82,7 @@ function occasionColor(o?: string): string {
   }
 }
 
-export function DashConnections() {
+export function DashConnections({ embedded = false }: { embedded?: boolean } = {}) {
   const { sites, loading, refresh } = useUserSites();
   const [focusCelebId, setFocusCelebId] = useState<string | 'unlinked'>('unlinked');
   const [newCelebName, setNewCelebName] = useState('');
@@ -193,6 +193,9 @@ export function DashConnections() {
   }
 
   if (!loading && (!sites || sites.length === 0)) {
+    if (embedded) {
+      return <EmptyShell message="Create two sites first and you can weave them together here." cta={{ label: 'Create a site →', href: '/wizard/new' }} />;
+    }
     return (
       <DashLayout active="connections" hideTopbar>
         <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
@@ -213,8 +216,14 @@ export function DashConnections() {
     );
   }
 
+  /* Embedded mode (ATELIER-PLAN DR.1) — the Weekend page mounts
+     this panel inline; standalone keeps its own shell + header. */
+  const Wrap = ({ children }: { children: React.ReactNode }) =>
+    embedded ? <>{children}</> : <DashLayout active="connections" hideTopbar>{children}</DashLayout>;
+
   return (
-    <DashLayout active="connections" hideTopbar>
+    <Wrap>
+      {!embedded && (
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
         {/* Quiet header (plan rule 1): one line + one action; the
             explainer paragraph and the co-host pointer both fold
@@ -260,6 +269,7 @@ export function DashConnections() {
           style={{ marginBottom: 20 }}
         />
       </div>
+      )}
 
       <main
         className="pd-connections-main"
@@ -526,7 +536,7 @@ export function DashConnections() {
         <button className="pl8-btnfx" style={btnMini}>x</button>
         <button className="pl8-btnfx" style={btnGhost}>x</button>
       </div>
-    </DashLayout>
+    </Wrap>
   );
 }
 

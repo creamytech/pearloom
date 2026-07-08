@@ -1,11 +1,9 @@
-import type { Metadata } from 'next';
-import { PaymentsDashboardClient } from './PaymentsDashboardClient';
+// Retired route (ATELIER-PLAN DR.1): the Stripe-only payments
+// ledger duplicated the Registry's unified gift ledger — and in
+// launch mode (no Stripe keys) it was an empty dead end. The
+// registry page carries payments rows in its merged feed.
+import { permanentRedirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Gifts & payments · Pearloom',
-  description: 'Stripe payments received through your Pearloom site.',
-};
-
-export default function PaymentsPage() {
-  return <PaymentsDashboardClient />;
+export default function PaymentsRedirect() {
+  permanentRedirect('/dashboard/registry');
 }
