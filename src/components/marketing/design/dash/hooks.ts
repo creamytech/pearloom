@@ -212,17 +212,51 @@ export function useUserSites(): UserSitesState {
 
 const SITE_KEY = 'pl-dash-site';
 
+/* The sticky selection is a REACTIVE module store, not a bare
+   localStorage read. The old version read localStorage inside a
+   useMemo keyed on [sites, queryId] — inside the persistent shell
+   neither changes when you return to an already-visited tab, so
+   the memo served the PREVIOUS site, and the write-back effect
+   then stamped that stale id over the fresh pick: selecting an
+   event and switching tabs "reset" it to the one before. With
+   useSyncExternalStore every mounted consumer re-renders the
+   moment the selection changes, on every tab. */
+let stickySiteId: string | null | undefined; // undefined = not read yet
+const stickySiteSubscribers: Set<() => void> = new Set();
+
+function readStickySiteId(): string | null {
+  if (stickySiteId === undefined) {
+    // Safari Private Mode + some enterprise policies throw on any
+    // localStorage access — fall through to the first-site default.
+    try {
+      stickySiteId = typeof window === 'undefined' ? null : window.localStorage.getItem(SITE_KEY);
+    } catch {
+      stickySiteId = null;
+    }
+  }
+  return stickySiteId;
+}
+
+function writeStickySiteId(id: string): void {
+  if (stickySiteId === id) return;
+  stickySiteId = id;
+  try { window.localStorage.setItem(SITE_KEY, id); } catch { /* ignore */ }
+  stickySiteSubscribers.forEach((fn) => fn());
+}
+
+function subscribeStickySiteId(fn: () => void): () => void {
+  stickySiteSubscribers.add(fn);
+  return () => stickySiteSubscribers.delete(fn);
+}
+
 /** Resolve the dashboard's sticky site selection WITHOUT the
  *  ?site= query param — for surfaces (modals, global chrome)
  *  that shouldn't pull in useSearchParams. Same fallback order
- *  as useSelectedSite minus the URL: localStorage → first site. */
+ *  as useSelectedSite minus the URL: sticky store → first site. */
 export function resolveStickySite(sites: SiteSummary[] | null): SiteSummary | null {
   if (!sites || sites.length === 0) return null;
   if (typeof window !== 'undefined') {
-    let stored: string | null = null;
-    try {
-      stored = window.localStorage.getItem(SITE_KEY);
-    } catch { /* ignore */ }
+    const stored = readStickySiteId();
     if (stored) {
       const match = sites.find((s) => s.id === stored || s.domain === stored);
       if (match) return match;
@@ -237,6 +271,7 @@ export function useSelectedSite() {
   const { sites, loading } = useUserSites();
 
   const queryId = params?.get('site') ?? null;
+  const stickyId = useSyncExternalStore(subscribeStickySiteId, readStickySiteId, () => null);
 
   const selected = useMemo(() => {
     if (!sites || sites.length === 0) return null;
@@ -244,34 +279,23 @@ export function useSelectedSite() {
       const byId = sites.find((s) => s.id === queryId || s.domain === queryId);
       if (byId) return byId;
     }
-    if (typeof window !== 'undefined') {
-      // Safari Private Mode + some enterprise policies throw on
-      // any localStorage access — silently fall through to the
-      // first-site default.
-      let stored: string | null = null;
-      try {
-        stored = window.localStorage.getItem(SITE_KEY);
-      } catch { /* ignore */ }
-      if (stored) {
-        const match = sites.find((s) => s.id === stored || s.domain === stored);
-        if (match) return match;
-      }
+    if (stickyId) {
+      const match = sites.find((s) => s.id === stickyId || s.domain === stickyId);
+      if (match) return match;
     }
     return sites[0];
-  }, [sites, queryId]);
+  }, [sites, queryId, stickyId]);
 
+  /* Stamp deep-link (?site=) and first-site resolutions into the
+     sticky store so they hold across tabs. writeStickySiteId is a
+     no-op when unchanged, so this can't clobber a fresher pick. */
   useEffect(() => {
-    if (!selected) return;
-    if (typeof window !== 'undefined') {
-      try { window.localStorage.setItem(SITE_KEY, selected.id); } catch { /* ignore */ }
-    }
+    if (selected) writeStickySiteId(selected.id);
   }, [selected]);
 
   const selectSite = useCallback(
     (id: string) => {
-      if (typeof window !== 'undefined') {
-        try { window.localStorage.setItem(SITE_KEY, id); } catch { /* ignore */ }
-      }
+      writeStickySiteId(id);
       const sp = new URLSearchParams(params?.toString() ?? '');
       sp.set('site', id);
       router.push(`?${sp.toString()}`);

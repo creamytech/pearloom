@@ -696,8 +696,12 @@ export function PLChrome({
       className="pl8 pl8-pl-chrome"
       style={{
         display: 'flex',
-        minHeight: '100dvh',
-        background: 'var(--cream)',
+        minHeight: insideShell ? undefined : '100dvh',
+        /* Inside the (shell) layout the persistent shell already
+           paints the paper + grain underlay — an opaque sheet here
+           would cover the grain and read as a flat white page while
+           every other tab sits transparent on the paper. */
+        background: insideShell ? 'transparent' : 'var(--cream)',
         position: 'relative',
         fontFamily: 'var(--font-ui)',
         color: 'var(--ink)',
