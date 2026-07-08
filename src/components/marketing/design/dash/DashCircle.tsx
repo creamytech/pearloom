@@ -1,16 +1,23 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// DashCircle — the HOST-side friend circle (GRAND-PLAN Phase 4).
-// The account-holder home for the friend graph: see your circle,
-// respond to requests, discover mutual familiar faces, and — the
-// growth payoff — drop a friend straight into one of your events'
-// split as a participant.
+// DashCircle — the HOST-side friend circle (GRAND-PLAN Phase 4,
+// redesigned per GRAND-PLAN-2 C.1). The account-holder home for
+// the friend graph, laid out as a PLACE, not a settings panel:
+//
+//   1. Attention strip — incoming requests (accept/decline) and
+//      waiting-on chips, one slim panel, only when non-empty.
+//   2. THE CIRCLE — the hero: a grid of friend cards (paper disc
+//      mark, Fraunces name, last-note preview from /api/threads).
+//      Tapping a card opens the full-width detail panel below —
+//      shared celebrations, dietary, the pair thread, and the
+//      add-to-event chips.
+//   3. Secondary row — invite someone new + discovery, quieter.
 //
 // Backed by /api/friends (session-authed; resolves the caller to
-// their people-graph id) + /api/split/participants/from-person
-// (owner-gated add-to-event). Privacy: opt-in (default off), mutual
-// consent, first names only.
+// their people-graph id), /api/threads (previews + the pair
+// thread), and /api/guests/from-person (owner-gated weave-in).
+// Privacy: opt-in (default off), mutual consent, first names only.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from 'react';
@@ -18,6 +25,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
+import { EmptyState } from '@/components/shell/EmptyState';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
@@ -36,7 +44,17 @@ interface PersonCardData {
   dietary: string | null;
 }
 
+interface ThreadPreview {
+  lastBody: string;
+  theirs: boolean;
+}
+
 const monoLabel = { ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 10 } as const;
+
+/* The friend-disc grounds — PD's dark-mode-aware midtones, cycled
+   by index so a populated circle reads warm, never uniform. Flat
+   fills only (the de-glossing rule: no spheres, no gradients). */
+const DISC_TINTS = [PD.sand, PD.wash, PD.mint, PD.blush] as const;
 
 export function DashCircle() {
   const { sites } = useUserSites();
@@ -48,6 +66,9 @@ export function DashCircle() {
   const [invName, setInvName] = useState('');
   const [invEmail, setInvEmail] = useState('');
   const [invNote, setInvNote] = useState<string | null>(null);
+  /* Last-note previews for the friend grid — one GET /api/threads
+     on load; absent entries render the "no notes yet" line. */
+  const [previews, setPreviews] = useState<Map<string, ThreadPreview>>(new Map());
   /* The person card — one open at a time, fetched on demand. */
   const [cardFor, setCardFor] = useState<string | null>(null);
   const [card, setCard] = useState<PersonCardData | null>(null);
@@ -57,6 +78,20 @@ export function DashCircle() {
   const [msgs, setMsgs] = useState<Array<{ id: string; mine: boolean; body: string; createdAt: string }>>([]);
   const [draft, setDraft] = useState('');
   const [sendErr, setSendErr] = useState<string | null>(null);
+
+  const loadPreviews = useCallback(async () => {
+    try {
+      const r = await fetch('/api/threads', { cache: 'no-store' });
+      const d = (await r.json().catch(() => null)) as {
+        ok?: boolean;
+        threads?: Array<{ otherId: string; lastBody: string; theirs: boolean }>;
+      } | null;
+      if (r.ok && d?.ok && d.threads) {
+        setPreviews(new Map(d.threads.map((t) => [t.otherId, { lastBody: t.lastBody, theirs: t.theirs }])));
+      }
+    } catch { /* previews are a nicety */ }
+  }, []);
+
   const loadThread = useCallback(async (otherId: string) => {
     try {
       const r = await fetch(`/api/threads?with=${encodeURIComponent(otherId)}`, { cache: 'no-store' });
@@ -69,6 +104,7 @@ export function DashCircle() {
     const t = window.setInterval(() => void loadThread(cardFor), 25_000);
     return () => window.clearInterval(t);
   }, [cardFor, loadThread]);
+
   async function sendNote() {
     const body = draft.trim();
     if (!body || !cardFor || busy === 'note') return;
@@ -84,6 +120,8 @@ export function DashCircle() {
       if (r.ok && d?.ok) {
         setDraft('');
         await loadThread(cardFor);
+        // Keep the grid preview honest without a full refetch.
+        setPreviews((prev) => new Map(prev).set(cardFor, { lastBody: body.slice(0, 120), theirs: false }));
       } else {
         setSendErr(d?.error ?? 'Could not send.');
       }
@@ -113,8 +151,9 @@ export function DashCircle() {
   useEffect(() => {
     const ctrl = new AbortController();
     void load(ctrl.signal);
+    void loadPreviews();
     return () => ctrl.abort();
-  }, [load]);
+  }, [load, loadPreviews]);
 
   async function post(body: Record<string, unknown>, key: string) {
     if (busy) return;
@@ -166,6 +205,7 @@ export function DashCircle() {
     setCard(null);
     setMsgs([]);
     setSendErr(null);
+    setAddFor(null);
     void loadThread(personId);
     try {
       const r = await fetch(`/api/friends/person?personId=${encodeURIComponent(personId)}`, { cache: 'no-store' });
@@ -208,6 +248,8 @@ export function DashCircle() {
     fontSize: '0.86rem', fontWeight: 600, color: PD.ink,
   } as const;
 
+  const openFriend = cardFor ? (state?.friends ?? []).find((f) => f.personId === cardFor) : null;
+
   return (
     <DashLayout active="circle" hideTopbar>
       <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1100, margin: '0 auto' }}>
@@ -238,252 +280,328 @@ export function DashCircle() {
 
         {state && state.available && state.optedIn && (
           <div style={{ display: 'grid', gap: 16, marginTop: 18 }}>
-            {/* Incoming requests */}
-            {state.incoming.length > 0 && (
-              <Panel style={{ padding: 22 }}>
-                <div style={monoLabel}>REQUESTS</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {state.incoming.map((r) => (
-                    <div key={r.otherId} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                      <span style={chip}>{r.firstName}</span>
-                      <span style={{ fontSize: 12.5, color: PD.inkSoft, flex: 1 }}>wants to keep a connection</span>
-                      <button type="button" style={btnMini} disabled={!!busy} onClick={() => post({ action: 'accept', otherPersonId: r.otherId }, `acc:${r.otherId}`)}>Accept</button>
-                      <button type="button" style={btnMiniGhost} disabled={!!busy} onClick={() => post({ action: 'decline', otherPersonId: r.otherId }, `dec:${r.otherId}`)}>Not now</button>
-                    </div>
-                  ))}
-                </div>
+            {/* ── 1 · The attention strip — requests to answer +
+                   invitations in flight, one slim panel. ───────── */}
+            {(state.incoming.length > 0 || state.outgoing.length > 0) && (
+              <Panel style={{ padding: '16px 22px', borderLeft: `2px solid ${PD.gold}` }}>
+                {state.incoming.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ ...monoLabel, marginBottom: 2 }}>REQUESTS · {state.incoming.length}</div>
+                    {state.incoming.map((r) => (
+                      <div key={r.otherId} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                        <span style={chip}>{r.firstName}</span>
+                        <span style={{ fontSize: 12.5, color: PD.inkSoft, flex: 1 }}>wants to keep a connection</span>
+                        <button type="button" style={btnMini} disabled={!!busy} onClick={() => post({ action: 'accept', otherPersonId: r.otherId }, `acc:${r.otherId}`)}>Accept</button>
+                        <button type="button" style={btnMiniGhost} disabled={!!busy} onClick={() => post({ action: 'decline', otherPersonId: r.otherId }, `dec:${r.otherId}`)}>Not now</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {state.outgoing.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: state.incoming.length > 0 ? 12 : 0 }}>
+                    <span style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra }}>WAITING ON</span>
+                    {state.outgoing.map((o) => (
+                      <span key={o.otherId} style={{ ...chip, opacity: 0.7, fontWeight: 500 }}>
+                        {o.firstName}
+                        <span style={{ fontSize: 11, color: PD.inkSoft, fontWeight: 500 }}>· invited</span>
+                      </span>
+                    ))}
+                    <span style={{ fontSize: 11.5, color: PD.inkSoft }}>— they&rsquo;ll see it when they first sign in</span>
+                  </div>
+                )}
               </Panel>
             )}
 
-            {/* Friends + add-to-event */}
+            {/* ── 2 · THE CIRCLE — the friend grid, the hero. ──── */}
             <Panel style={{ padding: 22 }}>
-              <div style={monoLabel}>YOUR CIRCLE</div>
+              <div style={monoLabel}>YOUR CIRCLE{state.friends.length > 0 ? ` · ${state.friends.length}` : ''}</div>
               {state.friends.length === 0 ? (
-                <div style={{ fontSize: 13, color: PD.inkSoft }}>Nothing yet. Accept a request, or invite someone below.</div>
+                <EmptyState
+                  size="compact"
+                  title="Nothing yet. Begin a thread."
+                  description="Accept a request, or weave someone in below — your circle keeps the people, not just the events."
+                />
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                    gap: 12,
+                  }}
+                >
                   {state.friends.map((f, i) => {
                     const pid = f.personId ?? `f${i}`;
+                    const open = cardFor != null && cardFor === f.personId;
+                    const preview = f.personId ? previews.get(f.personId) : undefined;
                     return (
-                      <div key={pid}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                          {f.personId ? (
-                            <button
-                              type="button"
-                              title="Open their card"
-                              onClick={() => void openCard(f.personId!)}
-                              style={{ ...chip, cursor: 'pointer', borderColor: cardFor === f.personId ? PD.olive : 'rgba(31,36,24,0.14)' }}
-                            >
-                              {f.firstName}
-                            </button>
-                          ) : (
-                            <span style={chip}>{f.firstName}</span>
-                          )}
-                          {f.personId && (sites?.length ?? 0) > 0 && (
-                            addFor === f.personId ? (
+                      <button
+                        key={pid}
+                        type="button"
+                        disabled={!f.personId}
+                        onClick={() => f.personId && void openCard(f.personId)}
+                        aria-expanded={open}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: 10,
+                          padding: 16,
+                          textAlign: 'left',
+                          background: PD.paperCard,
+                          border: open ? `1.5px solid ${PD.gold}` : '1px solid rgba(31,36,24,0.12)',
+                          borderRadius: 'var(--r-md, 20px)',
+                          cursor: f.personId ? 'pointer' : 'default',
+                          fontFamily: 'inherit',
+                          transition: 'border-color 160ms ease, box-shadow 160ms ease',
+                          boxShadow: open ? `0 0 0 3px color-mix(in srgb, ${PD.gold} 22%, transparent)` : 'none',
+                        }}
+                      >
+                        {/* The disc — a flat paper mark, first initial
+                            in display italic. Never a sphere. */}
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: '50%',
+                            display: 'grid',
+                            placeItems: 'center',
+                            background: DISC_TINTS[i % DISC_TINTS.length],
+                            border: '1px solid rgba(31,36,24,0.10)',
+                            ...DISPLAY_STYLE,
+                            fontStyle: 'italic',
+                            fontSize: 19,
+                            color: PD.ink,
+                          }}
+                        >
+                          {(f.firstName[0] ?? '·').toUpperCase()}
+                        </span>
+                        <span style={{ ...DISPLAY_STYLE, fontSize: 18, lineHeight: 1.15, color: PD.ink }}>
+                          {f.firstName}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: PD.inkSoft,
+                            lineHeight: 1.45,
+                            fontStyle: preview ? 'normal' : 'italic',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            minHeight: 34,
+                          }}
+                        >
+                          {preview
+                            ? `${preview.theirs ? f.firstName.split(/\s+/)[0] : 'You'}: ${preview.lastBody}`
+                            : 'No notes yet — begin a thread.'}
+                        </span>
+                        <span style={{ ...MONO_STYLE, fontSize: 8.5, letterSpacing: '0.14em', color: open ? PD.gold : PD.terra }}>
+                          {open ? 'OPEN BELOW ↓' : 'OPEN THEIR CARD →'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {note && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 12 }}>{note}</div>}
+
+              {/* ── The detail panel — full width below the grid:
+                     shared history, dietary, the pair thread, and
+                     the add-to-event chips. ─────────────────────── */}
+              {cardFor && openFriend && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: '18px 20px',
+                    borderRadius: 'var(--r-md, 20px)',
+                    background: PD.paper2,
+                    border: '1px solid rgba(31,36,24,0.10)',
+                  }}
+                >
+                  {!card ? (
+                    <DashSkeleton kind="list" count={2} label="Threading…" />
+                  ) : (
+                    <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)' }} className="pl8-circle-detail">
+                      {/* LEFT — the thread */}
+                      <div>
+                        <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 6 }}>YOUR THREAD</div>
+                        {msgs.length === 0 ? (
+                          <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
+                            Nothing yet. Begin a thread.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto', marginBottom: 8 }}>
+                            {msgs.map((m) => (
+                              <div
+                                key={m.id}
+                                style={{
+                                  alignSelf: m.mine ? 'flex-end' : 'flex-start',
+                                  maxWidth: '85%',
+                                  padding: '7px 11px',
+                                  borderRadius: 12,
+                                  borderBottomRightRadius: m.mine ? 3 : 12,
+                                  borderBottomLeftRadius: m.mine ? 12 : 3,
+                                  background: m.mine ? PD.olive : PD.paper,
+                                  color: m.mine ? '#F5EFE2' : PD.ink,
+                                  border: m.mine ? 'none' : '1px solid rgba(31,36,24,0.10)',
+                                  fontSize: 12.5,
+                                  lineHeight: 1.5,
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                }}
+                              >
+                                {m.body}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input
+                            type="text"
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') void sendNote(); }}
+                            placeholder={`A note to ${card.firstName}…`}
+                            maxLength={4000}
+                            style={{
+                              flex: 1, padding: '8px 11px', borderRadius: 999, fontSize: 12.5,
+                              border: '1px solid rgba(31,36,24,0.16)', background: PD.paper,
+                              color: PD.ink, outline: 'none', fontFamily: 'inherit',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            style={{ ...btnMini, opacity: draft.trim() ? 1 : 0.5 }}
+                            disabled={busy === 'note' || !draft.trim()}
+                            onClick={() => void sendNote()}
+                          >
+                            {busy === 'note' ? 'Threading…' : 'Send'}
+                          </button>
+                        </div>
+                        {sendErr && <div style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 6 }}>{sendErr}</div>}
+                      </div>
+
+                      {/* RIGHT — who they are + the weave-in */}
+                      <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
+                        <div style={{ ...DISPLAY_STYLE, fontStyle: 'italic', fontSize: 20, color: PD.ink }}>
+                          {card.firstName}
+                        </div>
+                        {card.sharedCelebrations.length > 0 ? (
+                          <div>
+                            <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 5 }}>CELEBRATED TOGETHER</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {card.sharedCelebrations.map((c) => (
+                                <span key={c.label} style={{ fontSize: 12, color: PD.inkSoft, padding: '3px 9px', borderRadius: 999, border: '1px solid rgba(31,36,24,0.12)' }}>
+                                  {c.label}{c.occasion ? ` · ${c.occasion}` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic' }}>
+                            No shared celebrations yet — the next one starts the story.
+                          </div>
+                        )}
+                        {card.dietary && (
+                          <div style={{ fontSize: 12, color: PD.inkSoft }}>
+                            <span style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginRight: 6 }}>DIETARY</span>
+                            {card.dietary}
+                          </div>
+                        )}
+                        {(sites?.length ?? 0) > 0 && (
+                          <div style={{ borderTop: '1px solid rgba(31,36,24,0.10)', paddingTop: 10 }}>
+                            <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 6 }}>WEAVE INTO AN EVENT</div>
+                            {addFor === cardFor ? (
                               <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                                <span style={{ fontSize: 11.5, color: PD.inkSoft }}>add to</span>
                                 {(sites ?? []).map((s) => (
                                   <button key={s.id} type="button" style={btnMiniGhost} disabled={!!busy}
-                                    onClick={() => addToEvent(f.personId!, s)}>
+                                    onClick={() => addToEvent(cardFor, s)}>
                                     {siteDisplayName(s)}
                                   </button>
                                 ))}
                                 <button type="button" style={btnMiniGhost} onClick={() => setAddFor(null)}>cancel</button>
                               </span>
                             ) : (
-                              <button type="button" style={btnMini} disabled={!!busy} onClick={() => { setAddFor(f.personId!); setNote(null); }}>
+                              <button type="button" style={btnMini} disabled={!!busy} onClick={() => { setAddFor(cardFor); setNote(null); }}>
                                 Add to an event
                               </button>
-                            )
-                          )}
-                        </div>
-                        {/* The person card — first name, shared published
-                            celebrations, known dietary. Mutual-only; the
-                            API re-verifies consent server-side. */}
-                        {cardFor === f.personId && (
-                          <div
-                            style={{
-                              marginTop: 10, padding: '12px 14px', borderRadius: 12,
-                              background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)',
-                              maxWidth: 480,
-                            }}
-                          >
-                            {!card ? (
-                              <DashSkeleton kind="list" count={2} label="Threading…" />
-                            ) : (
-                              <div style={{ display: 'grid', gap: 8 }}>
-                                <div style={{ ...DISPLAY_STYLE, fontStyle: 'italic', fontSize: 18, color: PD.ink }}>
-                                  {card.firstName}
-                                </div>
-                                {card.sharedCelebrations.length > 0 ? (
-                                  <div>
-                                    <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 5 }}>CELEBRATED TOGETHER</div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                      {card.sharedCelebrations.map((c) => (
-                                        <span key={c.label} style={{ fontSize: 12, color: PD.inkSoft, padding: '3px 9px', borderRadius: 999, border: '1px solid rgba(31,36,24,0.12)' }}>
-                                          {c.label}{c.occasion ? ` · ${c.occasion}` : ''}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic' }}>
-                                    No shared celebrations yet — the next one starts the story.
-                                  </div>
-                                )}
-                                {card.dietary && (
-                                  <div style={{ fontSize: 12, color: PD.inkSoft }}>
-                                    <span style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginRight: 6 }}>DIETARY</span>
-                                    {card.dietary}
-                                  </div>
-                                )}
-
-                                {/* The thread — a bounded note line
-                                    between two mutual connections
-                                    (S2). No feed; just the pair. */}
-                                <div style={{ borderTop: '1px solid rgba(31,36,24,0.10)', paddingTop: 10 }}>
-                                  <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 6 }}>YOUR THREAD</div>
-                                  {msgs.length === 0 ? (
-                                    <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
-                                      Nothing yet. Begin a thread.
-                                    </div>
-                                  ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
-                                      {msgs.map((m) => (
-                                        <div
-                                          key={m.id}
-                                          style={{
-                                            alignSelf: m.mine ? 'flex-end' : 'flex-start',
-                                            maxWidth: '85%',
-                                            padding: '7px 11px',
-                                            borderRadius: 12,
-                                            borderBottomRightRadius: m.mine ? 3 : 12,
-                                            borderBottomLeftRadius: m.mine ? 12 : 3,
-                                            background: m.mine ? PD.olive : PD.paper,
-                                            color: m.mine ? '#F5EFE2' : PD.ink,
-                                            border: m.mine ? 'none' : '1px solid rgba(31,36,24,0.10)',
-                                            fontSize: 12.5,
-                                            lineHeight: 1.5,
-                                            whiteSpace: 'pre-wrap',
-                                            wordBreak: 'break-word',
-                                          }}
-                                        >
-                                          {m.body}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                  <div style={{ display: 'flex', gap: 6 }}>
-                                    <input
-                                      type="text"
-                                      value={draft}
-                                      onChange={(e) => setDraft(e.target.value)}
-                                      onKeyDown={(e) => { if (e.key === 'Enter') void sendNote(); }}
-                                      placeholder={`A note to ${card.firstName}…`}
-                                      maxLength={4000}
-                                      style={{
-                                        flex: 1, padding: '8px 11px', borderRadius: 999, fontSize: 12.5,
-                                        border: '1px solid rgba(31,36,24,0.16)', background: PD.paper,
-                                        color: PD.ink, outline: 'none', fontFamily: 'inherit',
-                                      }}
-                                    />
-                                    <button
-                                      type="button"
-                                      style={{ ...btnMini, opacity: draft.trim() ? 1 : 0.5 }}
-                                      disabled={busy === 'note' || !draft.trim()}
-                                      onClick={() => void sendNote()}
-                                    >
-                                      {busy === 'note' ? 'Threading…' : 'Send'}
-                                    </button>
-                                  </div>
-                                  {sendErr && <div style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 6 }}>{sendErr}</div>}
-                                </div>
-                              </div>
                             )}
                           </div>
                         )}
                       </div>
-                    );
-                  })}
+                    </div>
+                  )}
                 </div>
               )}
-              {note && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 12 }}>{note}</div>}
             </Panel>
 
-            {/* Waiting on — invitations + requests the host sent. */}
-            {state.outgoing.length > 0 && (
+            {/* ── 3 · Secondary row — invite + discovery, quieter. ─ */}
+            <div
+              className="pl8-circle-secondary"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: state.candidates.length > 0 ? 'minmax(0, 1.2fr) minmax(0, 1fr)' : '1fr',
+                gap: 16,
+                alignItems: 'start',
+              }}
+            >
+              {/* Invite someone new — pre-event, by email. The circle
+                  no longer waits for a shared celebration (S1). */}
               <Panel style={{ padding: 22 }}>
-                <div style={monoLabel}>WAITING ON</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {state.outgoing.map((o) => (
-                    <span key={o.otherId} style={{ ...chip, opacity: 0.75 }}>
-                      {o.firstName}
-                      <span style={{ fontSize: 11, color: PD.inkSoft, fontWeight: 500 }}>· invited</span>
-                    </span>
-                  ))}
+                <div style={monoLabel}>INVITE SOMEONE NEW</div>
+                <div style={{ fontSize: 12.5, color: PD.inkSoft, marginBottom: 12, maxWidth: 480, lineHeight: 1.55 }}>
+                  Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.
                 </div>
-                <div style={{ fontSize: 11.5, color: PD.inkSoft, marginTop: 10 }}>
-                  They&rsquo;ll see your invitation the first time they sign in to Pearloom.
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={invName}
+                    onChange={(e) => setInvName(e.target.value)}
+                    placeholder="First name (optional)"
+                    style={{
+                      padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 160,
+                      border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                      outline: 'none', fontFamily: 'inherit',
+                    }}
+                  />
+                  <input
+                    type="email"
+                    value={invEmail}
+                    onChange={(e) => setInvEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
+                    placeholder="their@email.com"
+                    style={{
+                      padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
+                      border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                      outline: 'none', fontFamily: 'inherit',
+                    }}
+                  />
+                  <button type="button" style={btnInk} disabled={busy === 'invite' || !invEmail.trim()} onClick={() => void invite()}>
+                    {busy === 'invite' ? 'Weaving…' : 'Weave them in'}
+                  </button>
                 </div>
+                {invNote && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 10 }}>{invNote}</div>}
               </Panel>
-            )}
 
-            {/* Invite someone new — pre-event, by email. The circle
-                no longer waits for a shared celebration (S1). */}
-            <Panel style={{ padding: 22 }}>
-              <div style={monoLabel}>INVITE SOMEONE NEW</div>
-              <div style={{ fontSize: 12.5, color: PD.inkSoft, marginBottom: 12, maxWidth: 480, lineHeight: 1.55 }}>
-                Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={invName}
-                  onChange={(e) => setInvName(e.target.value)}
-                  placeholder="First name (optional)"
-                  style={{
-                    padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 160,
-                    border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
-                    outline: 'none', fontFamily: 'inherit',
-                  }}
-                />
-                <input
-                  type="email"
-                  value={invEmail}
-                  onChange={(e) => setInvEmail(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
-                  placeholder="their@email.com"
-                  style={{
-                    padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
-                    border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
-                    outline: 'none', fontFamily: 'inherit',
-                  }}
-                />
-                <button type="button" style={btnInk} disabled={busy === 'invite' || !invEmail.trim()} onClick={() => void invite()}>
-                  {busy === 'invite' ? 'Weaving…' : 'Weave them in'}
-                </button>
-              </div>
-              {invNote && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 10 }}>{invNote}</div>}
-            </Panel>
-
-            {/* Discover */}
-            {state.candidates.length > 0 && (
-              <Panel style={{ padding: 22 }}>
-                <div style={monoLabel}>PEOPLE YOU&rsquo;VE CELEBRATED WITH</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {state.candidates.map((c) => (
-                    <span key={c.personId} style={{ ...chip, gap: 10 }}>
-                      {c.firstName}
-                      <button type="button" style={btnMiniGhost} disabled={!!busy}
-                        onClick={() => post({ action: 'request', otherPersonId: c.personId, siteId: c.siteId }, `req:${c.personId}`)}>
-                        Add as a friend
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </Panel>
-            )}
+              {/* Discover */}
+              {state.candidates.length > 0 && (
+                <Panel style={{ padding: 22 }}>
+                  <div style={monoLabel}>PEOPLE YOU&rsquo;VE CELEBRATED WITH</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {state.candidates.map((c) => (
+                      <span key={c.personId} style={{ ...chip, gap: 10 }}>
+                        {c.firstName}
+                        <button type="button" style={btnMiniGhost} disabled={!!busy}
+                          onClick={() => post({ action: 'request', otherPersonId: c.personId, siteId: c.siteId }, `req:${c.personId}`)}>
+                          Add as a friend
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </Panel>
+              )}
+            </div>
           </div>
         )}
 
@@ -493,6 +611,15 @@ export function DashCircle() {
           </div>
         )}
       </div>
+
+      {/* The detail + secondary grids collapse to one column on
+          phones — inline <style> keeps this file self-contained. */}
+      <style>{`
+        @media (max-width: 720px) {
+          .pl8-circle-detail { grid-template-columns: 1fr !important; }
+          .pl8-circle-secondary { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </DashLayout>
   );
 }

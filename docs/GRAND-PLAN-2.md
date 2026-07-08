@@ -672,7 +672,26 @@ sibling-links strip renders on both the parent and the satellite.
 
 ---
 
-### C.1 — Circle, redesigned · status: not started · P0
+### C.1 — Circle, redesigned · **status: SHIPPED 2026-07-08** · P0
+
+> Shipped: DashCircle.tsx rebuilt as a place. The friend GRID is the
+> hero — per-friend cards with a flat tinted paper disc (PD
+> sand/wash/mint/blush cycled by index — dark-mode-aware, no
+> spheres), Fraunces name, and a real last-note preview from one
+> `GET /api/threads` on load ("You: …" / "‹Name›: …", italic
+> "No notes yet — begin a thread." when empty; sending a note
+> updates the preview optimistically). Requests + waiting-on fold
+> into ONE slim gold-ruled attention strip that only renders when
+> non-empty. Opening a friend gives the card a gold hairline ring
+> and expands a full-width two-column detail panel below the grid
+> (thread + composer left; shared celebrations, dietary, and the
+> weave-into-an-event chips right) instead of the old nested inline
+> row. Invite + discovery drop to a secondary two-up row; the empty
+> circle uses the shared <EmptyState/>. Both detail + secondary
+> grids collapse at 720px. Zero API changes — listThreads already
+> carried the previews. Verified live with mocked populated state
+> at 1280 + 390 (screenshots: c1-circle-grid, c1-circle-detail,
+> c1-m-grid). tsc/eslint clean, vitest 1256/1256.
 
 ```
 ## Active focus — C.1 · Circle looks like a place, not a settings panel
