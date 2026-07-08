@@ -31,6 +31,8 @@ import { applySectionPicks, type SectionPicks } from '@/lib/event-os/wizard-sect
 import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Icon } from '../motifs';
 import type { StructurePicks } from './wizard-structure';
+import { KIT_CATALOG, TEXTURE_CATALOG } from '@/lib/site-look/look-catalog';
+import { LAYOUTS } from '../redesign/layouts';
 
 export interface FittingPicks extends StructurePicks {
   texture?: string;
@@ -56,27 +58,12 @@ export interface PaletteChoice {
   motifLayout?: string;
 }
 
-const TEXTURES: Array<{ id: string; label: string }> = [
-  { id: 'paper', label: 'Paper' },
-  { id: 'linen', label: 'Linen' },
-  { id: 'cotton', label: 'Cotton' },
-  { id: 'kraft', label: 'Kraft' },
-  { id: 'canvas', label: 'Canvas' },
-  { id: 'velvet', label: 'Velvet' },
-  { id: 'marble', label: 'Marble' },
-  { id: 'gilded', label: 'Gilded' },
-  { id: 'watercolor', label: 'Watercolor' },
-];
+/* The FULL wardrobe — shared with the editor's Design tab
+   (lib/site-look/look-catalog). The room used to carry a 7-kit /
+   9-paper subset; a host never saw most of the looks. */
+const TEXTURES = TEXTURE_CATALOG;
 
-const KITS = [
-  { id: 'classic', label: 'Classic' },
-  { id: 'ticket', label: 'Ticket' },
-  { id: 'plate', label: 'Plate' },
-  { id: 'scrapbook', label: 'Scrapbook' },
-  { id: 'index', label: 'Index' },
-  { id: 'minimal', label: 'Minimal' },
-  { id: 'glass', label: 'Glass' },
-];
+const KITS = KIT_CATALOG;
 
 const NAVS = [
   { id: 'centered', label: 'Centered' },
@@ -95,14 +82,7 @@ const NAVS_MOBILE = [
   { id: 'pill', label: 'Floating pill' },
 ];
 
-const HEROES = [
-  { id: 'centered', label: 'Centered' },
-  { id: 'split', label: 'Photo beside' },
-  { id: 'fullbleed', label: 'Full photo' },
-  { id: 'typographic', label: 'Big type' },
-  { id: 'postcard', label: 'Postcard' },
-  { id: 'minimal', label: 'Minimal' },
-];
+const HEROES = (LAYOUTS.hero ?? []).map((v) => ({ id: v.id, label: v.label }));
 
 /* Whole-page feel — the Editions (coordinated layout sets). */
 const FEELS = [
@@ -136,7 +116,7 @@ const MODES = [
 /* Rail labels are PLAIN words — "Colors", "Menu", "Spacing" — per
    the terminology rule (BRAND §7): a host shouldn't need to learn
    our nouns to dress their site. The metaphor lives in prose. */
-type Rail = 'palette' | 'feel' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density' | 'reads';
+type Rail = 'palette' | 'feel' | 'texture' | 'kit' | 'nav' | 'hero' | 'layouts' | 'motif' | 'density' | 'reads';
 const RAILS: Array<{ id: Rail; label: string }> = [
   { id: 'palette', label: 'Colors' },
   { id: 'feel', label: 'Feel' },
@@ -144,6 +124,7 @@ const RAILS: Array<{ id: Rail; label: string }> = [
   { id: 'kit', label: 'Cards' },
   { id: 'nav', label: 'Menu' },
   { id: 'hero', label: 'Opening' },
+  { id: 'layouts', label: 'Layouts' },
   { id: 'motif', label: 'Decor' },
   { id: 'density', label: 'Spacing' },
   { id: 'reads', label: 'Pages' },
@@ -156,6 +137,7 @@ const RAIL_TARGET: Record<Rail, string> = {
   palette: 'hero',
   feel: 'hero',
   texture: 'hero',
+  layouts: 'story',
   kit: 'schedule',
   nav: 'hero',
   hero: 'hero',
@@ -293,6 +275,7 @@ export function WizardFittingRoom({
   sectionPicks,
   onChange,
   onClose,
+  onSectionLayout,
 }: {
   occasion: string;
   names: [string, string];
@@ -310,6 +293,10 @@ export function WizardFittingRoom({
   sectionPicks?: SectionPicks;
   onChange: (next: Partial<FittingPicks>) => void;
   onClose: () => void;
+  /** Per-section layout pick (writes sectionPicks.layouts — the
+   *  same field the Sections step and the editor's Layout bar
+   *  use). undefined = back to Pear's default. */
+  onSectionLayout?: (section: string, variant: string | undefined) => void;
 }) {
   const [rail, setRail] = useState<Rail>('palette');
   const siteScrollRef = useRef<HTMLDivElement | null>(null);
@@ -591,6 +578,37 @@ export function WizardFittingRoom({
                 <RailChip key={t.id} on={picks.heroVariant === t.id} label={t.label} onClick={() => pickAndShow('hero', { heroVariant: t.id })} />
               ))}
             </>
+          )}
+          {rail === 'layouts' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
+              {(['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'] as const)
+                .filter((sec) => (LAYOUTS[sec] ?? []).length > 0)
+                .map((sec) => {
+                  const active = sectionPicks?.layouts?.[sec];
+                  return (
+                    <div key={sec}>
+                      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 7 }}>
+                        {sec === 'faq' ? 'FAQ' : sec === 'rsvp' ? 'RSVP' : sec[0].toUpperCase() + sec.slice(1)}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        <RailChip
+                          on={active === undefined}
+                          label="Pear decides"
+                          onClick={() => { onSectionLayout?.(sec, undefined); flashTarget(sec); }}
+                        />
+                        {(LAYOUTS[sec] ?? []).map((v) => (
+                          <RailChip
+                            key={v.id}
+                            on={active === v.id}
+                            label={v.label}
+                            onClick={() => { onSectionLayout?.(sec, v.id); flashTarget(sec); }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           )}
           {rail === 'motif' && (
             <>

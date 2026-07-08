@@ -5180,6 +5180,18 @@ export function WizardV8() {
                               ...('density' in next ? { densityPick: next.density } : {}),
                               ...('edition' in next ? { editionPick: next.edition } : {}),
                             }))}
+                            onSectionLayout={(section, variant) => {
+                              setSt((prev) => {
+                                const base = prev.sectionPicks ?? {
+                                  on: essentialSectionsFor(prev.occasion),
+                                  layouts: {},
+                                };
+                                const layouts = { ...base.layouts };
+                                if (variant === undefined) delete layouts[section];
+                                else layouts[section] = variant;
+                                return { ...prev, sectionPicks: { ...base, layouts } };
+                              });
+                            }}
                             onClose={() => setFittingOpen(false)}
                           />
                         );
