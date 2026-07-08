@@ -2713,12 +2713,18 @@ function AddGuestDialog({
   const [circle, setCircle] = useState<Array<{ firstName: string; personId: string }>>([]);
   const [circleBusy, setCircleBusy] = useState<string | null>(null);
   const [woven, setWoven] = useState<Set<string>>(new Set());
+  /* The reverse direction (GRAND-PLAN-2 C.4): a NEW guest can also
+     be invited into the host's circle in the same submit. Only
+     offered once the host has opted into their circle. */
+  const [circleOn, setCircleOn] = useState(false);
+  const [alsoCircle, setAlsoCircle] = useState(false);
   useEffect(() => {
     const ctrl = new AbortController();
     fetch('/api/friends', { cache: 'no-store', signal: ctrl.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { optedIn?: boolean; friends?: Array<{ firstName: string; personId?: string }> } | null) => {
         if (!d?.optedIn) return;
+        setCircleOn(true);
         setCircle((d.friends ?? []).flatMap((f) => (f.personId ? [{ firstName: f.firstName, personId: f.personId }] : [])));
       })
       .catch(() => { /* the circle is a nicety */ });
@@ -2817,6 +2823,25 @@ function AddGuestDialog({
           throw new Error(
             `${name.trim()} was added, but ${name2.trim()} wasn't (${err instanceof Error ? err.message : 'error'}). Add them again on their own.`,
           );
+        }
+      }
+      /* C.4 — the same submit can also invite them into the host's
+         circle. Fire-and-forget + idempotent server-side (an
+         already-pending/accepted pair is a no-op), and it sends NO
+         second email — the pending request greets them at first
+         sign-in, so the guest still gets exactly ONE message. A
+         circle failure never fails the guest add. */
+      if (alsoCircle && circleOn) {
+        const pairs = [
+          { n: name.trim(), e: email.trim() },
+          ...(mode === 'couple' ? [{ n: name2.trim(), e: email2.trim() }] : []),
+        ].filter((p) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.e));
+        for (const p of pairs) {
+          void fetch('/api/friends', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'invite', email: p.e, name: p.n || undefined }),
+          }).catch(() => { /* the guest add already succeeded */ });
         }
       }
       onAdded();
@@ -3078,6 +3103,44 @@ function AddGuestDialog({
                 Email them their invite now
                 <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
                   {anyEmail ? 'Sends each personal RSVP link right away.' : 'Add an email to enable.'}
+                </span>
+              </span>
+            </label>
+          );
+        })()}
+
+        {/* C.4 — friend + guest in one action. Off by default (a
+            friendship is a bigger ask than a guest-list row); only
+            offered once the host's circle is on. No second email —
+            the pending request greets them at first sign-in. */}
+        {circleOn && (() => {
+          const anyEmail = !!email.trim() || (mode === 'couple' && !!email2.trim());
+          return (
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                background: anyEmail && alsoCircle ? 'rgba(92,107,63,0.08)' : 'rgba(31,36,24,0.04)',
+                borderRadius: 10,
+                cursor: anyEmail ? 'pointer' : 'default',
+                opacity: anyEmail ? 1 : 0.55,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={alsoCircle && anyEmail}
+                disabled={!anyEmail}
+                onChange={(e) => setAlsoCircle(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: PD.olive }}
+              />
+              <span style={{ fontSize: 13, color: PD.ink }}>
+                Also add to my Circle
+                <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
+                  {anyEmail
+                    ? 'They stay in your circle after the event — they accept when they first sign in.'
+                    : 'Add an email to enable.'}
                 </span>
               </span>
             </label>

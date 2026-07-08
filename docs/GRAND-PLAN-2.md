@@ -864,7 +864,25 @@ about the ACCEPT side regardless of which channel sent the invite.
 
 ---
 
-### C.4 — Friend and guest in one step · status: not started · P2
+### C.4 — Friend and guest in one step · **status: SHIPPED 2026-07-08** · P2
+
+> Shipped: AddGuestDialog gains "Also add to my Circle" — off by
+> default, enabled only when an email is present AND the host's
+> circle is opted in. One submit fires the existing guest-add path
+> plus a fire-and-forget /api/friends invite per entered email
+> (couple mode invites both); the server side is idempotent (an
+> already-pending/accepted pair no-ops via decideRequest), and no
+> second email exists to dedupe — the circle invite sends nothing;
+> its pending request greets the guest at first sign-in, so the
+> recipient still gets exactly ONE message (their guest invite).
+> A circle failure never fails the guest add. Design note vs. the
+> original block: client-side "not yet a friend" detection is
+> impossible by design (friends carry personId + first name only —
+> emails never cross the wire), so the checkbox shows for any
+> email and idempotency does the dedupe server-side. The weave-in
+> direction (existing friend → event) is untouched. Verified live:
+> checkbox shown, one submit produced both the guest POST and
+> {action:'invite', email, name}. vitest 1256/1256.
 
 ```
 ## Active focus — C.4 · Adding a guest can also add a friend, in one action
