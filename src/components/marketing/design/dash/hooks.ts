@@ -237,6 +237,13 @@ function readStickySiteId(): string | null {
   return stickySiteId;
 }
 
+/** Write the sticky selection from OUTSIDE the dashboard hooks —
+ *  the login threshold (/threshold) picks a celebration before the
+ *  dashboard shell ever mounts. Same store, same subscribers. */
+export function setStickySiteSelection(id: string): void {
+  writeStickySiteId(id);
+}
+
 function writeStickySiteId(id: string): void {
   if (stickySiteId === id) return;
   stickySiteId = id;

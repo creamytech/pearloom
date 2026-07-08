@@ -53,7 +53,7 @@ export default async function WelcomePage({
         .select('onboarded_at')
         .eq('email', session.user.email)
         .maybeSingle();
-      if (data?.onboarded_at) redirect(explicitNext ?? '/dashboard');
+      if (data?.onboarded_at) redirect(explicitNext ?? '/threshold');
 
       // Grandfather clause — accounts that predate the Welcome flow
       // have no onboarded_at but already own sites. Without this,
@@ -63,7 +63,7 @@ export default async function WelcomePage({
         .from('sites')
         .select('id', { count: 'exact', head: true })
         .ilike('site_config->>creator_email', session.user.email);
-      if (count && count > 0) redirect(explicitNext ?? '/dashboard');
+      if (count && count > 0) redirect(explicitNext ?? '/threshold');
     } catch (err) {
       // Next's redirect() throws by design — let it through.
       if (err && typeof err === 'object' && 'digest' in err) throw err;
