@@ -20,7 +20,8 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { FadeInImage } from './graceful-image';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -5160,86 +5161,10 @@ function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: {
   );
 }
 
-/* ─── FadeInImage — blur-up loading for host photos. ──────────
-   The wrapper paints the section's tonal paper (var(--t-section))
-   immediately; the real <img> sits on top at opacity 0 and fades
-   to 1 over 400ms once decoded. Cheapest credible blur-up: no
-   dominant-color extraction, no LQIP — the paper IS the
-   placeholder. Lazy + async-decode by default; pass `eager` for
-   above-the-fold heroes. Reduced-motion guests get an instant
-   swap (no fade). */
-
-function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (!window.matchMedia) return () => {};
-      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-      mq.addEventListener('change', onChange);
-      return () => mq.removeEventListener('change', onChange);
-    },
-    () => (window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false),
-    () => false, // SSR — assume motion; CSS media queries still guard
-  );
-}
-
-function FadeInImage({
-  src,
-  alt = '',
-  eager = false,
-  style = {},
-  imgStyle = {},
-}: {
-  src: string;
-  alt?: string;
-  /** Above-the-fold heroes skip lazy loading. */
-  eager?: boolean;
-  /** Layout styles for the wrapper (aspectRatio, borderRadius, margins…). */
-  style?: CSSProperties;
-  /** Extra styles on the <img> itself (rarely needed). */
-  imgStyle?: CSSProperties;
-}) {
-  const [loaded, setLoaded] = useState(false);
-  const reduced = usePrefersReducedMotion();
-  /* SSR / cache guard — if the browser finished the image before
-     React attached (server-rendered markup, cached asset), onLoad
-     never fires; the ref callback checks .complete at attach time. */
-  const attachImg = (node: HTMLImageElement | null) => {
-    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
-  };
-  return (
-    <div
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        /* Tonal paper base — the wait shows paper, not white. */
-        backgroundColor: 'var(--t-section)',
-        ...style,
-      }}
-    >
-      <img
-        ref={attachImg}
-        src={src}
-        alt={alt}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        /* Eager = the hero/cover = the LCP candidate — tell the
-           browser to fetch it ahead of the below-fold queue. */
-        fetchPriority={eager ? 'high' : undefined}
-        onLoad={() => setLoaded(true)}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          opacity: loaded ? 1 : 0,
-          transition: reduced ? 'none' : 'opacity 400ms var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
-          ...imgStyle,
-        }}
-      />
-    </div>
-  );
-}
+/* ─── FadeInImage — moved to graceful-image.tsx. ──────────────
+   Blur-up + the pressed-mat failure state now live in one shared
+   module (redesign/graceful-image.tsx) so section variants can use
+   the same primitive. Imported at the top of this file. */
 
 /* ─── Date formatter. ───────────────────────────────────────── */
 

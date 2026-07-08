@@ -9,6 +9,7 @@ import { useState, type CSSProperties } from 'react';
 import type { GalleryVariantCtx, PhotoTone } from './types';
 import { VariantSectionHead } from './_section-head';
 import { InlineEdit } from '../InlineEdit';
+import { PressedMat } from '../graceful-image';
 
 /* Edit-context extension — captions per photo (aligned with
    C.photos by index, sourced from manifest.galleryCaptions) plus
@@ -71,6 +72,11 @@ const TONE_BG: Record<string, string> = {
  *  before a pick uploads) can't go through the optimizer, so they
  *  fall back to a plain <img>. */
 function LazyPhoto({ url, sizes }: { url: string; sizes?: string }) {
+  /* A tile whose photo 404s must never read as a gray gap — it
+     becomes the shared pressed mat (graceful-image.tsx): tonal
+     paper, hairline inner frame, blind-embossed sprig. */
+  const [failed, setFailed] = useState(false);
+  if (failed) return <PressedMat />;
   if (url.startsWith('data:') || url.startsWith('blob:')) {
     return (
       <img
@@ -78,6 +84,7 @@ function LazyPhoto({ url, sizes }: { url: string; sizes?: string }) {
         alt=""
         loading="lazy"
         decoding="async"
+        onError={() => setFailed(true)}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
       />
     );
@@ -88,6 +95,7 @@ function LazyPhoto({ url, sizes }: { url: string; sizes?: string }) {
       alt=""
       fill
       sizes={sizes ?? '(max-width: 520px) 100vw, (max-width: 860px) 50vw, 25vw'}
+      onError={() => setFailed(true)}
       style={{ objectFit: 'cover' }}
     />
   );
