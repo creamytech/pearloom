@@ -101,8 +101,26 @@ broken, it doesn't ship — it gets redesigned.
 
 Ordered by leverage. Each is scoped to ~1–2 Fable-5 sessions.
 
-### Phase S1 — The Circle becomes people-first
+### Phase S1 — The Circle becomes people-first — **SHIPPED 2026-07-08**
 *Goal: you can build a circle before, and independent of, any event.*
+
+> **Status:** all three deliverables live. Invite-by-email needed ZERO
+> new tables — the email-keyed `people` upsert IS the claim mechanism
+> (`inviteToCircle` in `src/lib/friends.ts`: resolvePersonId + a normal
+> pending friendship; the request greets the invitee on first sign-in).
+> `/api/friends` grew `action:'invite'` (10/hr per-person cap — invite
+> upserts people rows, so it must not become an enumeration vector) and
+> `outgoing` in GET. The person card: `personCard()` re-verifies the
+> ACCEPTED friendship server-side, then first name + shared PUBLISHED
+> celebrations (drafts stay private — the passport rule) + dietary;
+> served by `/api/friends/person` (404 === not-yours, deliberately
+> indistinguishable). `/dashboard/circle` now holds: requests, your
+> people (chips open the person card), WAITING ON (pending outgoing),
+> INVITE SOMEONE NEW, and discovery. Tests pin normalizeInviteEmail +
+> sharedSiteIds + the decideRequest handshake (invite reuses it, so
+> consent semantics are inherited).
+> **Onboarding tie-in:** `docs/ONBOARDING-PLAN.md` (drafted same day)
+> — M4 renders pendingIncoming as sealed envelopes on first sign-in.
 
 - **Add-by-invite, pre-event.** Today you can only add friends found as
   event candidates. Add: invite to your circle directly by email / phone

@@ -25,10 +25,13 @@ import { resolvePersonId, getConnectionsOptIn, setConnectionsOptIn } from '@/lib
 import {
   listFriends,
   pendingIncoming,
+  pendingOutgoing,
   friendCandidates,
   requestFriend,
   respondFriend,
   isRequestable,
+  inviteToCircle,
+  normalizeInviteEmail,
 } from '@/lib/friends';
 
 export const dynamic = 'force-dynamic';
@@ -99,22 +102,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [optedIn, friends, incoming] = await Promise.all([
+  const [optedIn, friends, incoming, outgoing] = await Promise.all([
     getConnectionsOptIn(sb, personId),
     listFriends(sb, personId),
     pendingIncoming(sb, personId),
+    pendingOutgoing(sb, personId),
   ]);
   // Discovery only when opted in — mutual, like the guest API.
   const candidates = optedIn ? await hostCandidates(sb, personId) : [];
 
-  return NextResponse.json({ ok: true, available: true, optedIn, friends, incoming, candidates });
+  return NextResponse.json({ ok: true, available: true, optedIn, friends, incoming, outgoing, candidates });
 }
 
 interface PostBody {
-  action?: 'opt-in' | 'request' | 'accept' | 'decline';
+  action?: 'opt-in' | 'request' | 'accept' | 'decline' | 'invite';
   otherPersonId?: string;
   siteId?: string;
   optIn?: boolean;
+  /** invite action — the address the caller already knows. */
+  email?: string;
+  name?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -140,6 +147,30 @@ export async function POST(req: NextRequest) {
   if (body.action === 'opt-in') {
     await setConnectionsOptIn(sb, personId, body.optIn === true);
     return NextResponse.json({ ok: true, optedIn: body.optIn === true });
+  }
+
+  if (body.action === 'invite') {
+    /* SOCIAL-PLAN S1 — invite to your circle by email, no shared
+       event required. Tighter cap than other writes: each invite
+       upserts a people row, so it must not become an enumeration /
+       spam vector. Consent is untouched — the invited person still
+       has to accept (the pending request greets them on their first
+       sign-in via the email-keyed people row). */
+    if (!checkRateLimit(`friends:i:${personId}`, { max: 10, windowMs: 60 * 60_000 }).allowed) {
+      return NextResponse.json({ ok: false, error: 'Too many invites — try again in an hour' }, { status: 429 });
+    }
+    const email = normalizeInviteEmail(body.email);
+    if (!email) return NextResponse.json({ ok: false, error: 'A valid email is required' }, { status: 400 });
+    if (email === session?.user?.email?.toLowerCase().trim()) {
+      return NextResponse.json({ ok: false, error: 'That’s your own address' }, { status: 400 });
+    }
+    const name = typeof body.name === 'string' ? body.name.slice(0, 80) : undefined;
+    const result = await inviteToCircle(sb, { fromPersonId: personId, email, name });
+    if (!result.ok) {
+      const msg = result.error === 'self' ? 'That’s your own address' : 'Could not send the invitation';
+      return NextResponse.json({ ok: false, error: msg }, { status: result.error === 'self' ? 400 : 500 });
+    }
+    return NextResponse.json({ ok: true, status: result.status });
   }
 
   const other = typeof body.otherPersonId === 'string' ? body.otherPersonId : '';

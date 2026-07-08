@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { decideRequest } from './friends';
+import { decideRequest, normalizeInviteEmail, sharedSiteIds } from './friends';
 
 const A = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const B = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -78,5 +78,38 @@ describe('decideRequest', () => {
       fromPersonId: A, toPersonId: B,
       reverse: { id: 'r1', status: 'declined' }, forward: { id: 'f1', status: 'declined' },
     })).toEqual({ kind: 'reopen', rowId: 'f1' });
+  });
+});
+
+// ── S1 — invite-by-email + person-card helpers ────────────────
+
+describe('normalizeInviteEmail', () => {
+  it('lowercases and trims a valid address', () => {
+    expect(normalizeInviteEmail('  Maya@Example.COM ')).toBe('maya@example.com');
+  });
+  it('rejects junk, empties, and non-strings', () => {
+    expect(normalizeInviteEmail('not-an-email')).toBeNull();
+    expect(normalizeInviteEmail('a@b')).toBeNull();
+    expect(normalizeInviteEmail('')).toBeNull();
+    expect(normalizeInviteEmail(null)).toBeNull();
+    expect(normalizeInviteEmail(42)).toBeNull();
+    expect(normalizeInviteEmail('two words@example.com')).toBeNull();
+  });
+  it('rejects absurd lengths', () => {
+    expect(normalizeInviteEmail(`${'a'.repeat(250)}@example.com`)).toBeNull();
+  });
+});
+
+describe('sharedSiteIds', () => {
+  it('intersects, preserving the viewer order and deduping', () => {
+    expect(sharedSiteIds(['s1', 's2', 's2', 's3'], ['s3', 's2', 's9']))
+      .toEqual(['s2', 's3']);
+  });
+  it('returns empty with no overlap', () => {
+    expect(sharedSiteIds(['s1'], ['s2'])).toEqual([]);
+  });
+  it('caps the result', () => {
+    const many = Array.from({ length: 30 }, (_, i) => `s${i}`);
+    expect(sharedSiteIds(many, many, 12)).toHaveLength(12);
   });
 });

@@ -25,7 +25,14 @@ interface CircleState {
   optedIn: boolean;
   friends: Array<{ firstName: string; personId?: string }>;
   incoming: Array<{ firstName: string; otherId: string }>;
+  outgoing: Array<{ firstName: string; otherId: string }>;
   candidates: Array<{ firstName: string; personId: string; siteId: string }>;
+}
+
+interface PersonCardData {
+  firstName: string;
+  sharedCelebrations: Array<{ label: string; occasion: string | null }>;
+  dietary: string | null;
 }
 
 const monoLabel = { ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 10 } as const;
@@ -36,17 +43,25 @@ export function DashCircle() {
   const [busy, setBusy] = useState<string | null>(null);
   const [addFor, setAddFor] = useState<string | null>(null); // personId being added to an event
   const [note, setNote] = useState<string | null>(null);
+  /* Invite someone new — pre-event, by email (SOCIAL-PLAN S1). */
+  const [invName, setInvName] = useState('');
+  const [invEmail, setInvEmail] = useState('');
+  const [invNote, setInvNote] = useState<string | null>(null);
+  /* The person card — one open at a time, fetched on demand. */
+  const [cardFor, setCardFor] = useState<string | null>(null);
+  const [card, setCard] = useState<PersonCardData | null>(null);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     try {
       const r = await fetch('/api/friends', { cache: 'no-store', signal });
-      if (!r.ok) { setState({ available: false, optedIn: false, friends: [], incoming: [], candidates: [] }); return; }
+      if (!r.ok) { setState({ available: false, optedIn: false, friends: [], incoming: [], outgoing: [], candidates: [] }); return; }
       const d = (await r.json()) as Partial<CircleState>;
       setState({
         available: Boolean(d.available),
         optedIn: Boolean(d.optedIn),
         friends: d.friends ?? [],
         incoming: d.incoming ?? [],
+        outgoing: d.outgoing ?? [],
         candidates: d.candidates ?? [],
       });
     } catch { /* leave prior state */ }
@@ -71,6 +86,48 @@ export function DashCircle() {
       if (r.ok) await load();
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function invite() {
+    if (busy || !invEmail.trim()) return;
+    setBusy('invite');
+    setInvNote(null);
+    try {
+      const r = await fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'invite', email: invEmail.trim(), name: invName.trim() || undefined }),
+      });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; status?: { status?: string } } | null;
+      if (r.ok && d?.ok) {
+        setInvNote(invName.trim()
+          ? `Woven in — ${invName.trim().split(/\s+/)[0]} will see your invitation when they first sign in.`
+          : 'Woven in — they’ll see your invitation when they first sign in.');
+        setInvName('');
+        setInvEmail('');
+        await load();
+      } else {
+        setInvNote(d?.error ?? 'Could not send the invitation.');
+      }
+    } catch {
+      setInvNote('Could not send — check your connection.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function openCard(personId: string) {
+    if (cardFor === personId) { setCardFor(null); setCard(null); return; }
+    setCardFor(personId);
+    setCard(null);
+    try {
+      const r = await fetch(`/api/friends/person?personId=${encodeURIComponent(personId)}`, { cache: 'no-store' });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; card?: PersonCardData } | null;
+      if (r.ok && d?.ok && d.card) setCard(d.card);
+      else setCardFor(null);
+    } catch {
+      setCardFor(null);
     }
   }
 
@@ -153,31 +210,88 @@ export function DashCircle() {
             <Panel style={{ padding: 22 }}>
               <div style={monoLabel}>YOUR CIRCLE</div>
               {state.friends.length === 0 ? (
-                <div style={{ fontSize: 13, color: PD.inkSoft }}>Nothing yet. Accept a request, or add someone below.</div>
+                <div style={{ fontSize: 13, color: PD.inkSoft }}>Nothing yet. Accept a request, or invite someone below.</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {state.friends.map((f, i) => {
                     const pid = f.personId ?? `f${i}`;
                     return (
-                      <div key={pid} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                        <span style={chip}>{f.firstName}</span>
-                        {f.personId && (sites?.length ?? 0) > 0 && (
-                          addFor === f.personId ? (
-                            <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                              <span style={{ fontSize: 11.5, color: PD.inkSoft }}>add to</span>
-                              {(sites ?? []).map((s) => (
-                                <button key={s.id} type="button" style={btnMiniGhost} disabled={!!busy}
-                                  onClick={() => addToEvent(f.personId!, s)}>
-                                  {siteDisplayName(s)}
-                                </button>
-                              ))}
-                              <button type="button" style={btnMiniGhost} onClick={() => setAddFor(null)}>cancel</button>
-                            </span>
-                          ) : (
-                            <button type="button" style={btnMini} disabled={!!busy} onClick={() => { setAddFor(f.personId!); setNote(null); }}>
-                              Add to an event
+                      <div key={pid}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                          {f.personId ? (
+                            <button
+                              type="button"
+                              title="Open their card"
+                              onClick={() => void openCard(f.personId!)}
+                              style={{ ...chip, cursor: 'pointer', borderColor: cardFor === f.personId ? PD.olive : 'rgba(31,36,24,0.14)' }}
+                            >
+                              {f.firstName}
                             </button>
-                          )
+                          ) : (
+                            <span style={chip}>{f.firstName}</span>
+                          )}
+                          {f.personId && (sites?.length ?? 0) > 0 && (
+                            addFor === f.personId ? (
+                              <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                                <span style={{ fontSize: 11.5, color: PD.inkSoft }}>add to</span>
+                                {(sites ?? []).map((s) => (
+                                  <button key={s.id} type="button" style={btnMiniGhost} disabled={!!busy}
+                                    onClick={() => addToEvent(f.personId!, s)}>
+                                    {siteDisplayName(s)}
+                                  </button>
+                                ))}
+                                <button type="button" style={btnMiniGhost} onClick={() => setAddFor(null)}>cancel</button>
+                              </span>
+                            ) : (
+                              <button type="button" style={btnMini} disabled={!!busy} onClick={() => { setAddFor(f.personId!); setNote(null); }}>
+                                Add to an event
+                              </button>
+                            )
+                          )}
+                        </div>
+                        {/* The person card — first name, shared published
+                            celebrations, known dietary. Mutual-only; the
+                            API re-verifies consent server-side. */}
+                        {cardFor === f.personId && (
+                          <div
+                            style={{
+                              marginTop: 10, padding: '12px 14px', borderRadius: 12,
+                              background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)',
+                              maxWidth: 480,
+                            }}
+                          >
+                            {!card ? (
+                              <div style={{ fontSize: 12.5, color: PD.inkSoft }}>Threading…</div>
+                            ) : (
+                              <div style={{ display: 'grid', gap: 8 }}>
+                                <div style={{ ...DISPLAY_STYLE, fontStyle: 'italic', fontSize: 18, color: PD.ink }}>
+                                  {card.firstName}
+                                </div>
+                                {card.sharedCelebrations.length > 0 ? (
+                                  <div>
+                                    <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 5 }}>CELEBRATED TOGETHER</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                      {card.sharedCelebrations.map((c) => (
+                                        <span key={c.label} style={{ fontSize: 12, color: PD.inkSoft, padding: '3px 9px', borderRadius: 999, border: '1px solid rgba(31,36,24,0.12)' }}>
+                                          {c.label}{c.occasion ? ` · ${c.occasion}` : ''}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic' }}>
+                                    No shared celebrations yet — the next one starts the story.
+                                  </div>
+                                )}
+                                {card.dietary && (
+                                  <div style={{ fontSize: 12, color: PD.inkSoft }}>
+                                    <span style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginRight: 6 }}>DIETARY</span>
+                                    {card.dietary}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -185,6 +299,62 @@ export function DashCircle() {
                 </div>
               )}
               {note && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 12 }}>{note}</div>}
+            </Panel>
+
+            {/* Waiting on — invitations + requests the host sent. */}
+            {state.outgoing.length > 0 && (
+              <Panel style={{ padding: 22 }}>
+                <div style={monoLabel}>WAITING ON</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {state.outgoing.map((o) => (
+                    <span key={o.otherId} style={{ ...chip, opacity: 0.75 }}>
+                      {o.firstName}
+                      <span style={{ fontSize: 11, color: PD.inkSoft, fontWeight: 500 }}>· invited</span>
+                    </span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11.5, color: PD.inkSoft, marginTop: 10 }}>
+                  They&rsquo;ll see your invitation the first time they sign in to Pearloom.
+                </div>
+              </Panel>
+            )}
+
+            {/* Invite someone new — pre-event, by email. The circle
+                no longer waits for a shared celebration (S1). */}
+            <Panel style={{ padding: 22 }}>
+              <div style={monoLabel}>INVITE SOMEONE NEW</div>
+              <div style={{ fontSize: 12.5, color: PD.inkSoft, marginBottom: 12, maxWidth: 480, lineHeight: 1.55 }}>
+                Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={invName}
+                  onChange={(e) => setInvName(e.target.value)}
+                  placeholder="First name (optional)"
+                  style={{
+                    padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 160,
+                    border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                    outline: 'none', fontFamily: 'inherit',
+                  }}
+                />
+                <input
+                  type="email"
+                  value={invEmail}
+                  onChange={(e) => setInvEmail(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
+                  placeholder="their@email.com"
+                  style={{
+                    padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
+                    border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                    outline: 'none', fontFamily: 'inherit',
+                  }}
+                />
+                <button type="button" style={btnInk} disabled={busy === 'invite' || !invEmail.trim()} onClick={() => void invite()}>
+                  {busy === 'invite' ? 'Weaving…' : 'Weave them in'}
+                </button>
+              </div>
+              {invNote && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 10 }}>{invNote}</div>}
             </Panel>
 
             {/* Discover */}
