@@ -562,6 +562,14 @@ export interface StationeryEmailOpts {
   venueName?: string;
   /** Absolute https URL only — email clients need a real host. */
   photoUrl?: string;
+  /** The per-guest invitation-card image (/api/invite-card) — when
+   *  present it IS the hero: the guest's own card, their name
+   *  pressed onto the couple's artwork (ATELIER-PLAN INV.3). */
+  cardImageUrl?: string;
+  /** "Add to calendar" (.ics) link — invitations + save-the-dates. */
+  calendarUrl?: string;
+  /** The numbered-edition register, e.g. "One of 96". */
+  editionLine?: string;
   monogram?: { initA: string; initB: string };
   themeColors?: EmailThemeColors;
 }
@@ -618,15 +626,29 @@ export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: stri
       </td></tr>`
     : '';
   /* The exclusivity register — this envelope has one name on it. */
-  const pressedFor = opts.guestName
-    ? `<p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">Pressed for ${esc(opts.guestName)}</p>`
+  const pressedBits = [
+    opts.editionLine ? esc(opts.editionLine) : null,
+    opts.guestName ? `Pressed for ${esc(opts.guestName)}` : null,
+  ].filter(Boolean).join(' · ');
+  const pressedFor = pressedBits
+    ? `<p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">${pressedBits}</p>`
+    : '';
+  const calendarLink = opts.calendarUrl
+    ? `<p style="margin:14px 0 0"><a href="${esc(opts.calendarUrl)}" style="font-size:12px;color:${t.accent};text-decoration:underline;font-family:${bodyStack}">Add it to your calendar</a></p>`
     : '';
 
+  /* The hero: the guest's own card image beats the raw photo —
+     it already carries photo-adjacent warmth plus their name. */
+  const hero = opts.cardImageUrl
+    ? `<tr><td style="padding:36px 36px 0;text-align:center"><img src="${esc(opts.cardImageUrl)}" alt="Your invitation card" width="300" style="display:inline-block;width:300px;max-width:80%;height:auto;border-radius:8px;box-shadow:0 18px 40px -18px rgba(30,26,18,0.35)" /></td></tr>`
+    : opts.photoUrl
+      ? `<tr><td style="padding:0"><img src="${esc(opts.photoUrl)}" alt="" width="560" style="display:block;width:100%;height:auto" /></td></tr>`
+      : '';
   const html = emailLayout(`
-    ${opts.photoUrl ? `<tr><td style="padding:0"><img src="${esc(opts.photoUrl)}" alt="" width="560" style="display:block;width:100%;height:auto" /></td></tr>` : ''}
-    <tr><td style="padding:44px 36px 0;text-align:center">
-      ${opts.monogram ? monogramCrest(opts.monogram.initA, opts.monogram.initB, t) : ''}
-      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:${opts.monogram ? '20px' : '0'} 0 16px;font-family:${bodyStack}">${esc(eyebrow)}</p>
+    ${hero}
+    <tr><td style="padding:${opts.cardImageUrl ? '32px' : '44px'} 36px 0;text-align:center">
+      ${opts.monogram && !opts.cardImageUrl ? monogramCrest(opts.monogram.initA, opts.monogram.initB, t) : ''}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:${opts.monogram && !opts.cardImageUrl ? '20px' : '0'} 0 16px;font-family:${bodyStack}">${esc(eyebrow)}</p>
       <h1 style="font-family:${headingStack};font-size:32px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.2">${esc(coupleDisplay)}</h1>
       <p style="font-size:13.5px;color:${t.muted};margin:0;font-family:${bodyStack};letter-spacing:0.04em">${esc(subLine)}</p>
       <div style="width:48px;height:1px;background-color:${t.accent};opacity:0.6;margin:20px auto"></div>
@@ -638,6 +660,7 @@ export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: stri
     ${dateVenueBlock}
     <tr><td style="padding:16px 36px 40px;text-align:center">
       ${button(ctaLabel, opts.ctaUrl, t)}
+      ${calendarLink}
       ${pressedFor}
     </td></tr>
   `, t);

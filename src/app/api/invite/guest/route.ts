@@ -229,10 +229,22 @@ export async function POST(req: NextRequest) {
         if (!mintErr) passportToken = cols.passport_token;
       }
       const publishedUrl = buildSiteUrl(subdomain, '', baseUrl, occasion);
-      const inviteUrl = passportToken
+      const inviteUrl = (passportToken
         ? `${publishedUrl}?g=${encodeURIComponent(passportToken)}`
-        : publishedUrl;
+        : publishedUrl)
+        /* Invitations deep-link the RSVP anchor — one gold path. */
+        + (cardType === 'invite' ? '#rsvp' : '');
       const token = passportToken ?? '';
+      /* INV.3 — the amazement layer: the guest's OWN card image as
+         the email hero (name resolved server-side from the token),
+         an .ics door on date-carrying cards, and the numbered-
+         edition register when the batch is a real edition. */
+      const cardImageUrl = `${baseUrl}/api/invite-card?site=${encodeURIComponent(subdomain)}&type=${cardType}`
+        + (passportToken ? `&g=${encodeURIComponent(passportToken)}` : '');
+      const calendarUrl = passportToken && cardType !== 'thanks' && dateDisplay
+        ? `${baseUrl}/api/invite/ics?token=${encodeURIComponent(passportToken)}`
+        : undefined;
+      const editionLine = guests.length > 1 ? `One of ${guests.length}` : undefined;
       /* One themed email system (emailLayout + SuiteTheme) — the
          copy per cardType/solemn/solo lives in buildStationeryEmail
          so every stationery send shares one voice + one look. */
@@ -248,6 +260,9 @@ export async function POST(req: NextRequest) {
         dateDisplay,
         venueName,
         photoUrl,
+        cardImageUrl,
+        calendarUrl,
+        editionLine,
         monogram,
         themeColors,
       });

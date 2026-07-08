@@ -96,6 +96,33 @@ describe('buildStationeryEmail — the invite wears the couple’s theme', () =>
   });
 });
 
+describe('buildStationeryEmail — the card image, the calendar, the edition (INV.3)', () => {
+  it('the guest’s own card image is the hero and beats the raw photo', () => {
+    const { html } = themedInvite({
+      cardImageUrl: 'https://pearloom.com/api/invite-card?site=maya-jordan&type=invite&g=tok-abc12345',
+    });
+    expect(html).toContain('/api/invite-card?site=maya-jordan');
+    expect(html).not.toContain('cdn.example.com'); // photoUrl loses to the card
+    // the crest is redundant when the card itself carries the monogram
+    expect(html).not.toContain('M&amp;J');
+  });
+
+  it('renders the add-to-calendar link only when a calendarUrl is given', () => {
+    const withCal = themedInvite({ calendarUrl: 'https://pearloom.com/api/invite/ics?token=tok-abc12345' });
+    expect(withCal.html).toContain('Add it to your calendar');
+    expect(withCal.html).toContain('/api/invite/ics?token=tok-abc12345');
+    expect(themedInvite().html).not.toContain('Add it to your calendar');
+  });
+
+  it('joins the edition line into the pressed register', () => {
+    const { html } = themedInvite({ editionLine: 'One of 96' });
+    expect(html).toContain('One of 96 · Pressed for Amara');
+    // without an edition the plain pressed line survives
+    expect(themedInvite().html).toContain('Pressed for Amara');
+    expect(themedInvite().html).not.toContain('One of');
+  });
+});
+
 describe('emailLayout — one default, no placeholders', () => {
   it('ships no CAN-SPAM placeholder (address renders only from config)', () => {
     const html = emailLayout('<tr><td>hello</td></tr>');
