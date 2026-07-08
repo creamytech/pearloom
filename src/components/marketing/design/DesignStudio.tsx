@@ -683,6 +683,22 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         /* ── Paper surface + component cards inside the device ── */
         :global(.sk-paper) {
           background-color: var(--dv-bg, #fff);
+          position: relative;
+        }
+        /* The grain rides ABOVE the content — exactly like a real
+           pressed site (TextureLayer's overlay + multiply), so the
+           paper reads THROUGH photos and cards, not underneath
+           them. The swatch chips keep their element backgrounds. */
+        :global(.sk-paper::after) {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: 6;
+          pointer-events: none;
+          mix-blend-mode: multiply;
+        }
+        :global(.sk-paper[class*='sk-mat-']) {
+          background-image: none;
         }
         :global(.sk-block) {
           position: relative;
@@ -896,6 +912,53 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
           background-size: 4px 4px;
         }
         :global(.sk-mat-marble) {
+          background-image: linear-gradient(115deg, transparent 42%, rgba(120, 120, 120, 0.14) 43%, transparent 45%),
+            linear-gradient(158deg, transparent 60%, rgba(120, 120, 120, 0.1) 61%, transparent 63%);
+        }
+
+        /* Surface overlays — the same recipes, over the content. */
+        :global(.sk-paper.sk-mat-linen::after) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.09) 0 1px, transparent 1px 5px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.09) 0 1px, transparent 1px 5px);
+          background-size: 5px 5px;
+        }
+        :global(.sk-paper.sk-mat-paper::after) {
+          background-image: radial-gradient(rgba(92, 80, 55, 0.11) 0.5px, transparent 0.7px);
+          background-size: 6px 6px;
+        }
+        :global(.sk-paper.sk-mat-cotton::after) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.06) 0 1px, transparent 1px 7px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.06) 0 1px, transparent 1px 7px);
+          background-size: 7px 7px;
+        }
+        :global(.sk-paper.sk-mat-watercolor::after) {
+          background-image: radial-gradient(circle at 25% 20%, rgba(150, 120, 90, 0.11), transparent 45%),
+            radial-gradient(circle at 75% 65%, rgba(110, 140, 110, 0.11), transparent 42%);
+        }
+        :global(.sk-paper.sk-mat-velvet::after) {
+          background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 42%),
+            radial-gradient(circle at 70% 25%, rgba(0, 0, 0, 0.1), transparent 55%);
+        }
+        :global(.sk-paper.sk-mat-canvas::after) {
+          background-image: repeating-linear-gradient(0deg, rgba(92, 80, 55, 0.1) 0 1px, transparent 1px 3px),
+            repeating-linear-gradient(90deg, rgba(92, 80, 55, 0.1) 0 1px, transparent 1px 3px);
+          background-size: 3px 3px;
+        }
+        :global(.sk-paper.sk-mat-kraft::after) {
+          background-image: radial-gradient(rgba(92, 60, 30, 0.1) 0.5px, transparent 0.7px);
+          background-size: 5px 5px;
+        }
+        :global(.sk-paper.sk-mat-vellum::after) {
+          background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 60%);
+        }
+        :global(.sk-paper.sk-mat-letterpress::after) {
+          box-shadow: inset 0 0 26px rgba(92, 70, 40, 0.1);
+        }
+        :global(.sk-paper.sk-mat-newsprint::after) {
+          background-image: radial-gradient(rgba(40, 40, 40, 0.15) 0.6px, transparent 0.8px);
+          background-size: 4px 4px;
+        }
+        :global(.sk-paper.sk-mat-marble::after) {
           background-image: linear-gradient(115deg, transparent 42%, rgba(120, 120, 120, 0.14) 43%, transparent 45%),
             linear-gradient(158deg, transparent 60%, rgba(120, 120, 120, 0.1) 61%, transparent 63%);
         }
