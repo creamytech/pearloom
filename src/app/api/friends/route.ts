@@ -32,7 +32,10 @@ import {
   isRequestable,
   inviteToCircle,
   normalizeInviteEmail,
+  createCircleInvite,
 } from '@/lib/friends';
+import { isSmsConfigured, normalizePhone, sendSms } from '@/lib/sms';
+import { getAppOrigin } from '@/lib/site-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,8 +122,10 @@ interface PostBody {
   otherPersonId?: string;
   siteId?: string;
   optIn?: boolean;
-  /** invite action — the address the caller already knows. */
+  /** invite action — the address the caller already knows.
+   *  Exactly one of email/phone (GRAND-PLAN-2 C.2: text parity). */
   email?: string;
+  phone?: string;
   name?: string;
 }
 
@@ -150,27 +155,54 @@ export async function POST(req: NextRequest) {
   }
 
   if (body.action === 'invite') {
-    /* SOCIAL-PLAN S1 — invite to your circle by email, no shared
-       event required. Tighter cap than other writes: each invite
-       upserts a people row, so it must not become an enumeration /
-       spam vector. Consent is untouched — the invited person still
-       has to accept (the pending request greets them on their first
-       sign-in via the email-keyed people row). */
+    /* SOCIAL-PLAN S1 — invite to your circle by email; GRAND-PLAN-2
+       C.2 — or by TEXT. No shared event required. Tighter cap than
+       other writes: each invite touches the people graph or sends
+       an SMS, so it must not become an enumeration / spam vector.
+       Consent is untouched — the invited person still has to accept
+       (email: the pending request greets them on first sign-in via
+       the email-keyed people row; text: the SMS carries a personal
+       claim link that files the pending request when they sign up). */
     if (!checkRateLimit(`friends:i:${personId}`, { max: 10, windowMs: 60 * 60_000 }).allowed) {
       return NextResponse.json({ ok: false, error: 'Too many invites — try again in an hour' }, { status: 429 });
     }
+    const name = typeof body.name === 'string' ? body.name.slice(0, 80) : undefined;
+
+    // ── By text ─────────────────────────────────────────────
+    if (typeof body.phone === 'string' && body.phone.trim()) {
+      if (!isSmsConfigured()) {
+        return NextResponse.json({ ok: false, error: 'Text invites aren’t set up yet — invite by email for now' }, { status: 503 });
+      }
+      const phone = normalizePhone(body.phone);
+      if (!phone) return NextResponse.json({ ok: false, error: 'That number doesn’t look dialable' }, { status: 400 });
+      const minted = await createCircleInvite(sb, { fromPersonId: personId, phone, name });
+      if (!minted.ok || !minted.token) {
+        return NextResponse.json({ ok: false, error: 'Could not create the invitation' }, { status: 500 });
+      }
+      const inviterFirst = (session?.user?.name ?? '').trim().split(/\s+/)[0] || 'A friend';
+      const link = `${getAppOrigin()}/signup?circle=${encodeURIComponent(minted.token)}`;
+      const first = name?.trim().split(/\s+/)[0];
+      const text = `${first ? `${first}, ` : ''}${inviterFirst} wants to keep you in their circle on Pearloom — the people they celebrate with. Join them: ${link}`;
+      const res = await sendSms({ to: phone, body: text });
+      if (!res.ok) {
+        console.warn('[friends] circle SMS send failed:', res.error);
+        return NextResponse.json({ ok: false, error: 'The text didn’t go through — try email instead' }, { status: 502 });
+      }
+      return NextResponse.json({ ok: true, channel: 'sms' });
+    }
+
+    // ── By email (the original S1 path) ─────────────────────
     const email = normalizeInviteEmail(body.email);
     if (!email) return NextResponse.json({ ok: false, error: 'A valid email is required' }, { status: 400 });
     if (email === session?.user?.email?.toLowerCase().trim()) {
       return NextResponse.json({ ok: false, error: 'That’s your own address' }, { status: 400 });
     }
-    const name = typeof body.name === 'string' ? body.name.slice(0, 80) : undefined;
     const result = await inviteToCircle(sb, { fromPersonId: personId, email, name });
     if (!result.ok) {
       const msg = result.error === 'self' ? 'That’s your own address' : 'Could not send the invitation';
       return NextResponse.json({ ok: false, error: msg }, { status: result.error === 'self' ? 400 : 500 });
     }
-    return NextResponse.json({ ok: true, status: result.status });
+    return NextResponse.json({ ok: true, status: result.status, channel: 'email' });
   }
 
   const other = typeof body.otherPersonId === 'string' ? body.otherPersonId : '';

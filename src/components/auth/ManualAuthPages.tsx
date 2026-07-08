@@ -251,6 +251,23 @@ export function SignupClient() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'google' | 'email' | null>(null);
 
+  /* Circle-invite links (GRAND-PLAN-2 C.2/C.3) land here as
+     /signup?circle=<token>. Stash the token so the first authed
+     session can claim it — the shell's CircleInviteClaim turns it
+     into the one-tap "Add ‹name› back?" moment. Same survive-the-
+     auth-gate pattern as pl-wizard-claim. */
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      try {
+        const token = new URLSearchParams(window.location.search).get('circle');
+        if (token && /^[\w-]{16,64}$/.test(token)) {
+          window.localStorage.setItem('pl-circle-invite', JSON.stringify({ token, ts: Date.now() }));
+        }
+      } catch { /* the link still works as a plain signup */ }
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;

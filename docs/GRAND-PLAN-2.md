@@ -738,7 +738,23 @@ thread UI. Group/crew threads (C.6).
 
 ---
 
-### C.2 — Invite by text · status: not started · P1
+### C.2 — Invite by text · **status: SHIPPED 2026-07-08** · P1
+
+> Shipped: the invite composer gets a By-email/By-text channel
+> toggle; text mode sends `{ phone }` to the same /api/friends
+> invite action, which normalizes via lib/sms.ts's normalizePhone,
+> mints a circle-invite TOKEN (new `circle_invites` table —
+> migration 20260708_circle_invites.sql, **apply to prod pending
+> Supabase MCP re-auth**; code degrades gracefully while absent),
+> and sends the SMS through the proven sendSms path with a
+> personal link to /signup?circle=<token>. Design decision vs. the
+> original block: people.email is NOT NULL, so there is no
+> phone-first resolvePersonId — a phone-only invitee CANNOT be
+> pre-created as a person row; the token IS the identity bridge
+> (claiming stamps their phone onto the person row they create at
+> signup). Keyless deploys answer "Text invites aren't set up yet"
+> honestly. Verified live: toggle + tel input render; stash/claim
+> loop verified end-to-end under C.3.
 
 ```
 ## Active focus — C.2 · Invite a friend by text, not just email
@@ -781,7 +797,25 @@ send channel only, the accept flow is unchanged.
 
 ---
 
-### C.3 — Tighten the accept moment · status: not started · P1
+### C.3 — Tighten the accept moment · **status: SHIPPED 2026-07-08** · P1
+
+> Shipped: /signup?circle=<token> stashes `pl-circle-invite`
+> (same survive-the-auth-gate pattern as pl-wizard-claim);
+> `POST /api/circle-invites/claim` (session-authed, rate-limited)
+> redeems it via `claimCircleInvite` — files the PENDING request
+> FROM the inviter (their invite = their request, via the existing
+> requestFriend state machine, so consent is unchanged), stamps
+> claimed_at/claimed_person_id, back-fills the claimer's phone.
+> The new `<CircleInviteClaim/>` (mounted once in
+> ShellPersistentLayout) then shows the one-tap gold-hairline pill:
+> "‹Name› saved you a place in their circle — add them back?" →
+> accept via the normal /api/friends accept; "Not now" leaves the
+> pending request answerable later in Circle (never auto-declines).
+> A forwarded link can't create a second request (claimed-by-other
+> is terminal). The sealed-envelope /welcome flow remains the
+> fallback for requests NOT tied to an arrival link. Verified live
+> end-to-end with the e2e session: stash SET → pill SHOWN → accept
+> → "in each other's circle now" confirmation. vitest 1256/1256.
 
 ```
 ## Active focus — C.3 · One tap to add them back, not a buried onboarding step

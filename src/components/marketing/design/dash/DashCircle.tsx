@@ -62,9 +62,12 @@ export function DashCircle() {
   const [busy, setBusy] = useState<string | null>(null);
   const [addFor, setAddFor] = useState<string | null>(null); // personId being added to an event
   const [note, setNote] = useState<string | null>(null);
-  /* Invite someone new — pre-event, by email (SOCIAL-PLAN S1). */
+  /* Invite someone new — pre-event, by email (SOCIAL-PLAN S1) or
+     by text (GRAND-PLAN-2 C.2). */
   const [invName, setInvName] = useState('');
   const [invEmail, setInvEmail] = useState('');
+  const [invPhone, setInvPhone] = useState('');
+  const [invChannel, setInvChannel] = useState<'email' | 'text'>('email');
   const [invNote, setInvNote] = useState<string | null>(null);
   /* Last-note previews for the friend grid — one GET /api/threads
      on load; absent entries render the "no notes yet" line. */
@@ -172,22 +175,31 @@ export function DashCircle() {
   }
 
   async function invite() {
-    if (busy || !invEmail.trim()) return;
+    const byText = invChannel === 'text';
+    if (busy || (byText ? !invPhone.trim() : !invEmail.trim())) return;
     setBusy('invite');
     setInvNote(null);
     try {
       const r = await fetch('/api/friends', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'invite', email: invEmail.trim(), name: invName.trim() || undefined }),
+        body: JSON.stringify({
+          action: 'invite',
+          ...(byText ? { phone: invPhone.trim() } : { email: invEmail.trim() }),
+          name: invName.trim() || undefined,
+        }),
       });
       const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; status?: { status?: string } } | null;
       if (r.ok && d?.ok) {
-        setInvNote(invName.trim()
-          ? `Woven in — ${invName.trim().split(/\s+/)[0]} will see your invitation when they first sign in.`
-          : 'Woven in — they’ll see your invitation when they first sign in.');
+        const first = invName.trim().split(/\s+/)[0];
+        setInvNote(byText
+          ? `The text is on its way${first ? ` to ${first}` : ''} — they join your circle when they accept.`
+          : first
+            ? `Woven in — ${first} will see your invitation when they first sign in.`
+            : 'Woven in — they’ll see your invitation when they first sign in.');
         setInvName('');
         setInvEmail('');
+        setInvPhone('');
         await load();
       } else {
         setInvNote(d?.error ?? 'Could not send the invitation.');
@@ -549,9 +561,33 @@ export function DashCircle() {
               {/* Invite someone new — pre-event, by email. The circle
                   no longer waits for a shared celebration (S1). */}
               <Panel style={{ padding: 22 }}>
-                <div style={monoLabel}>INVITE SOMEONE NEW</div>
-                <div style={{ fontSize: 12.5, color: PD.inkSoft, marginBottom: 12, maxWidth: 480, lineHeight: 1.55 }}>
-                  Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ ...monoLabel, marginBottom: 0 }}>INVITE SOMEONE NEW</div>
+                  {/* Channel toggle — email or text (C.2). */}
+                  <div role="tablist" aria-label="Invite channel" style={{ display: 'inline-flex', gap: 4, padding: 3, borderRadius: 999, background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)' }}>
+                    {(['email', 'text'] as const).map((ch) => (
+                      <button
+                        key={ch}
+                        type="button"
+                        role="tab"
+                        aria-selected={invChannel === ch}
+                        onClick={() => { setInvChannel(ch); setInvNote(null); }}
+                        style={{
+                          padding: '4px 12px', borderRadius: 999, fontSize: 11.5, fontWeight: 600,
+                          fontFamily: 'inherit', cursor: 'pointer', border: 'none',
+                          background: invChannel === ch ? PD.olive : 'transparent',
+                          color: invChannel === ch ? '#F5EFE2' : PD.inkSoft,
+                        }}
+                      >
+                        {ch === 'email' ? 'By email' : 'By text'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '10px 0 12px', maxWidth: 480, lineHeight: 1.55 }}>
+                  {invChannel === 'email'
+                    ? <>Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.</>
+                    : <>They get a text with your personal link — signing up through it offers them a one-tap &ldquo;add you back.&rdquo;</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input
@@ -565,20 +601,40 @@ export function DashCircle() {
                       outline: 'none', fontFamily: 'inherit',
                     }}
                   />
-                  <input
-                    type="email"
-                    value={invEmail}
-                    onChange={(e) => setInvEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
-                    placeholder="their@email.com"
-                    style={{
-                      padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
-                      border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
-                      outline: 'none', fontFamily: 'inherit',
-                    }}
-                  />
-                  <button type="button" style={btnInk} disabled={busy === 'invite' || !invEmail.trim()} onClick={() => void invite()}>
-                    {busy === 'invite' ? 'Weaving…' : 'Weave them in'}
+                  {invChannel === 'email' ? (
+                    <input
+                      type="email"
+                      value={invEmail}
+                      onChange={(e) => setInvEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
+                      placeholder="their@email.com"
+                      style={{
+                        padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
+                        border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                        outline: 'none', fontFamily: 'inherit',
+                      }}
+                    />
+                  ) : (
+                    <input
+                      type="tel"
+                      value={invPhone}
+                      onChange={(e) => setInvPhone(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void invite(); }}
+                      placeholder="(555) 123-4567"
+                      style={{
+                        padding: '9px 12px', borderRadius: 10, fontSize: 13, width: 220,
+                        border: '1px solid rgba(31,36,24,0.16)', background: PD.paper2, color: PD.ink,
+                        outline: 'none', fontFamily: 'inherit',
+                      }}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    style={btnInk}
+                    disabled={busy === 'invite' || (invChannel === 'email' ? !invEmail.trim() : !invPhone.trim())}
+                    onClick={() => void invite()}
+                  >
+                    {busy === 'invite' ? 'Weaving…' : invChannel === 'email' ? 'Weave them in' : 'Send the text'}
                   </button>
                 </div>
                 {invNote && <div style={{ fontSize: 12.5, color: PD.olive, marginTop: 10 }}>{invNote}</div>}

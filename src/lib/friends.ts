@@ -358,6 +358,125 @@ export async function inviteToCircle(
   }
 }
 
+// ── Circle invite tokens (GRAND-PLAN-2 C.2/C.3) ───────────────
+// The personal invite LINK. SMS invites REQUIRE this (people.email
+// is NOT NULL, so a phone-only invitee can't be pre-created the way
+// email invites are); email invites may mint one too so the invitee
+// gets the one-tap add-back moment (C.3) instead of the buried
+// sealed-envelope step. Consent unchanged — claiming only files the
+// PENDING request from the inviter; the invitee still accepts.
+
+export interface CircleInviteResult {
+  ok: boolean;
+  token?: string;
+  error?: string;
+}
+
+/** Mint a circle-invite token. At least one of phone/email must be
+ *  present (already normalized by the caller). Fails soft when the
+ *  circle_invites table hasn't been migrated yet. */
+export async function createCircleInvite(
+  sb: SupabaseClient,
+  opts: { fromPersonId: string; phone?: string | null; email?: string | null; name?: string | null },
+): Promise<CircleInviteResult> {
+  if (!opts.fromPersonId?.trim()) return { ok: false, error: 'missing' };
+  if (!opts.phone && !opts.email) return { ok: false, error: 'missing' };
+  try {
+    // 24 bytes of web-crypto randomness, URL-safe — same entropy
+    // class as the guest passport tokens.
+    const bytes = new Uint8Array(24);
+    globalThis.crypto.getRandomValues(bytes);
+    const token = Buffer.from(bytes).toString('base64url');
+    const { error } = await sb.from('circle_invites').insert({
+      token,
+      inviter_person_id: opts.fromPersonId,
+      invitee_phone: opts.phone ?? null,
+      invitee_email: opts.email ?? null,
+      invitee_name: opts.name?.trim().slice(0, 80) || null,
+    });
+    if (error) {
+      console.warn('[friends] createCircleInvite insert failed:', error.message);
+      return { ok: false, error: 'unavailable' };
+    }
+    return { ok: true, token };
+  } catch (err) {
+    console.warn('[friends] createCircleInvite failed:', err);
+    return { ok: false, error: 'internal' };
+  }
+}
+
+export interface ClaimResult {
+  ok: boolean;
+  /** The inviter, so the UI can offer the one-tap "Add ‹name› back". */
+  inviterFirstName?: string;
+  inviterPersonId?: string;
+  status?: FriendStatus;
+  error?: string;
+}
+
+/** Claim a circle-invite token as the signed-in person: files the
+ *  pending friendship FROM the inviter (their invite = their
+ *  request), stamps the claim, and back-fills the claimer's phone
+ *  from the invite when their person row has none. Idempotent-safe:
+ *  a re-claim by the same person just re-reports the state. */
+export async function claimCircleInvite(
+  sb: SupabaseClient,
+  opts: { token: string; personId: string },
+): Promise<ClaimResult> {
+  const token = String(opts.token ?? '').trim();
+  if (!token || !opts.personId?.trim()) return { ok: false, error: 'missing' };
+  try {
+    const { data: inv, error } = await sb
+      .from('circle_invites')
+      .select('id, inviter_person_id, invitee_phone, claimed_person_id')
+      .eq('token', token)
+      .maybeSingle();
+    if (error || !inv) return { ok: false, error: 'not-found' };
+    const inviterId = String(inv.inviter_person_id);
+    if (inviterId === opts.personId) return { ok: false, error: 'self' };
+    if (inv.claimed_person_id && String(inv.claimed_person_id) !== opts.personId) {
+      // Someone else already claimed this link — don't let a
+      // forwarded SMS create a second pending request.
+      return { ok: false, error: 'claimed' };
+    }
+
+    // The invite IS the inviter's request — file it (idempotent).
+    const result = await requestFriend(sb, { fromPersonId: inviterId, toPersonId: opts.personId });
+    if (!result.ok) return { ok: false, error: result.error ?? 'internal' };
+
+    await sb
+      .from('circle_invites')
+      .update({ claimed_at: new Date().toISOString(), claimed_person_id: opts.personId })
+      .eq('id', inv.id);
+
+    // Identity enrichment: the phone the inviter reached them on.
+    if (inv.invitee_phone) {
+      try {
+        const { data: me } = await sb.from('people').select('phone').eq('id', opts.personId).maybeSingle();
+        if (me && !me.phone) {
+          await sb.from('people').update({ phone: inv.invitee_phone }).eq('id', opts.personId);
+        }
+      } catch { /* enrichment is a nicety */ }
+    }
+
+    const { data: inviter } = await sb
+      .from('people')
+      .select('display_name')
+      .eq('id', inviterId)
+      .maybeSingle();
+
+    return {
+      ok: true,
+      inviterFirstName: firstNameOf(inviter?.display_name),
+      inviterPersonId: inviterId,
+      status: result.status,
+    };
+  } catch (err) {
+    console.warn('[friends] claimCircleInvite failed:', err);
+    return { ok: false, error: 'internal' };
+  }
+}
+
 // ── S1 — the person card (mutual-connections-only profile) ────
 
 export interface SharedCelebration {

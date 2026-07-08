@@ -17,6 +17,7 @@ import { DashTabBar } from './DashTabBar';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
 import { DashOrientation } from './DashOrientation';
+import { CircleInviteClaim } from './CircleInviteClaim';
 import { UserSettingsProvider } from './UserSettingsModal';
 import { DialogProvider } from '@/components/ui/confirm-dialog';
 
@@ -35,6 +36,9 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
       <div className="pl8 pl8-dashshell">
         <DashCommandPalette />
         <DashOrientation />
+        {/* The one-tap add-back for personal circle-invite links
+            (GRAND-PLAN-2 C.3) — renders nothing without a stash. */}
+        <CircleInviteClaim />
         <DashSidebar />
         <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           {/* Mobile-only nav strip (hamburger / wordmark / account).
