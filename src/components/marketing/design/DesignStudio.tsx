@@ -88,12 +88,17 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
   } as CSSProperties;
 
   return (
+    /* ACT TWO (landing revamp): the playground is the page's most
+       differentiated moment — visitors PLAY with the product here —
+       so it gets its own full-bleed tinted room and the largest
+       heading below the hero, breaking the equal-amplitude stack. */
+    <div style={{ background: PD.paper2, borderTop: `1px solid ${PD.line}`, borderBottom: `1px solid ${PD.line}` }}>
     <section
       id="themes"
-      style={{ padding: 'clamp(64px,9vw,110px) 24px', maxWidth: 1180, margin: '0 auto' }}
+      style={{ padding: 'clamp(76px,10vw,132px) 24px', maxWidth: 1180, margin: '0 auto' }}
     >
       {/* ── Header ──────────────────────────────────────────── */}
-      <div style={{ maxWidth: 720, marginBottom: 48 }}>
+      <div style={{ maxWidth: 760, marginBottom: 48 }}>
         <div style={{ ...MONO_STYLE, color: PD.terra, marginBottom: 16 }}>
           Draft once · dress it any way
         </div>
@@ -101,7 +106,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
           className="pl-letterpress"
           style={{
             ...DISPLAY_STYLE,
-            fontSize: 'clamp(34px,4.6vw,56px)',
+            fontSize: 'clamp(38px,5.4vw,70px)',
             color: PD.ink,
             margin: 0,
           }}
@@ -449,7 +454,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                   finished craft). */}
               <div className="sk-block" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <MiniLabel>Our story</MiniLabel>
-                <span style={{ fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 11.5, lineHeight: 1.55, color: 'var(--dv-soft, #6f6557)' }}>
+                <span style={{ fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 11.5, lineHeight: 1.55, color: 'var(--dv-muted, #6f6557)' }}>
                   Two people, a shared beginning, and all the small moments in between.
                 </span>
               </div>
@@ -896,6 +901,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         }
       `}</style>
     </section>
+    </div>
   );
 }
 

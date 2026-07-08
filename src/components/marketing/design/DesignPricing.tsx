@@ -166,42 +166,11 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                 // only crowds the ribbon, so the card stays flush there.
               }}
             >
-              {t.featured && (
-                <div
-                  style={{
-                    ...MONO_STYLE,
-                    position: 'absolute',
-                    top: -12,
-                    left: 32,
-                    zIndex: 3,
-                    background: t.accent,
-                    // Constant dark ink — the butter badge keeps its
-                    // color in dark mode, so its text must not flip
-                    // to cream with PD.ink.
-                    color: '#2C1E12',
-                    borderRadius: 999,
-                    padding: '4px 12px',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
-                    whiteSpace: 'nowrap',
-                    // A soft drop-shadow so the ribbon reads as floating
-                    // ABOVE the card edge — without it the butter pill can
-                    // blend into a light card behind it and look clipped.
-                    boxShadow: '0 6px 16px -6px rgba(20, 16, 10, 0.5)',
-                  }}
-                >
-                  MOST CHOSEN
-                </div>
-              )}
-
-              {/* The card body. The ribbon lives on the wrapper ABOVE,
-                  never inside this rounded box: WebKit/iOS clips a child
-                  that overflows a border-radius element which also forms
-                  a stacking context / is transformed — that sheared the
-                  ribbon's top on Safari (Chromium doesn't, so it looked
-                  fine in preview). Keeping the ribbon out of the rounded
-                  card sidesteps the clip on every engine. */}
+              {/* The card body. ZERO-OVERHANG badge (third and final
+                  fix): after two rounds of Safari shearing an
+                  overhanging ribbon (border-radius + stacking-context
+                  clip), the badge now lives fully INSIDE the rounded
+                  card — in-flow, nothing to clip, on any engine. */}
               <div
                 className="pl-lift"
                 style={{
@@ -209,7 +178,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                   color: t.fg ?? PD.ink,
                   border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
                   borderRadius: 20,
-                  padding: '36px 32px 32px',
+                  padding: t.featured ? '26px 32px 32px' : '36px 32px 32px',
                   boxShadow: t.featured
                     ? `0 30px 60px -20px ${pdShadowMix(35)}`
                     : `0 1px 3px ${pdShadowMix(6)}`,
@@ -218,6 +187,28 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                   flexDirection: 'column',
                 }}
               >
+              {t.featured && (
+                <div
+                  style={{
+                    ...MONO_STYLE,
+                    alignSelf: 'flex-start',
+                    background: t.accent,
+                    // Constant dark ink — the butter badge keeps its
+                    // color in dark mode, so its text must not flip
+                    // to cream with PD.ink.
+                    color: '#2C1E12',
+                    borderRadius: 999,
+                    padding: '4px 12px',
+                    marginBottom: 16,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ★ MOST CHOSEN
+                </div>
+              )}
               <div
                 style={{
                   ...DISPLAY_STYLE,
