@@ -10,6 +10,22 @@
 > midnight) but treat that soul as a starting gun, not a ceiling. Each
 > surface gets ONE signature idea plus concrete moves; each ends with a
 > "stretch" swing that bends the bible, flagged as such.
+>
+> **Execution status (2026-07-08):**
+> - §A pressed empty states — **SHIPPED** (EmptyShell full + inline; all
+>   12 dashboard tabs).
+> - §B graceful imagery — **SHIPPED** (`redesign/graceful-image.tsx`
+>   pressed mat; every published-site photo path).
+> - §B hero archetypes — **ALL THREE SHIPPED**: `cover` (sealed cover,
+>   wax-seal monogram, parts on tap, once/device, ArrivalReveal
+>   suppressed), `spread` (off-axis editorial, photo bleeds to edge),
+>   `plate` (poster type, opsz press-in, foil thread).
+> - Foil/deboss/press-in vocabulary now lives in three places; NEXT
+>   session should extract the shared primitives layer (§E) before
+>   building §C/§D on top.
+> - Remaining: §A workbench stretch, §B gallery-frames default +
+>   kinetic scroll type, §C landing thread-spine + occasion re-press +
+>   store swatch drawer, §D wizard Pressing + editor chrome recession.
 
 ---
 
