@@ -531,7 +531,24 @@ for Circle specifically) — this sprint is chrome unification only.
 
 ---
 
-### A.2 — The date-math sweep · status: partially done 2026-07-08 · P1
+### A.2 — The date-math sweep · **status: COMPLETE 2026-07-08** · P1
+
+> Swept: the full-repo grep for the clamp pattern near date math
+> returned six hits; every one is accounted for. FIXED EARLIER
+> (the §1 commit): cockpit.tsx useCockpitCountdown (the remaining
+> :105 clamp is the deliberate h/m/s display floor with `past`
+> branching beside it), WelcomeHome.tsx (rawDaysUntil unclamped
+> alongside the deliberate clamped stage-math copy), DashDirector.
+> INERT BY CONSTRUCTION (logged, untouched): AnniversaryPreview:81
+> (nextAnniversary() never returns a past date);
+> GuestPhaseStrip:103,106 (computePassportPhase branches pre/post
+> phases separately — daysUntil only renders in guaranteed-
+> upcoming phases, yearsPassed carries the post-event copy);
+> DayOfV8:546 (a guest COUNT, not a date). Display-string sweep
+> ("days out/to go/until/away") found only: EditorTopbar (hides
+> itself >1 day after — correct), AnniversaryPreview (guarded),
+> DesignHero:170 + DevDashboardClient (static mock copy). Nothing
+> further to fix; the class of bug is closed.
 
 ```
 ## Active focus — A.2 · The date-math sweep (spread the fix, don't just patch it)
@@ -653,7 +670,7 @@ that's B.2 and explicitly keeps today's real-site behavior.
 
 ---
 
-### B.2 — Weekend events (Tier 2: cheaper real sites) · status: not started · P2
+### B.2 — Weekend events (Tier 2: cheaper real sites) · status: not started (armed) · P2
 
 ```
 ## Active focus — B.2 · Weekend events — real sites, cheaper to make, properly linked
@@ -959,7 +976,12 @@ path (adding an EXISTING friend to an event) is untouched.
 
 ---
 
-### C.5 — Realtime chat · status: not started · P2
+### C.5 — Realtime chat · status: not started (armed) · P2
+<!-- Note for the executing session: the local dev DB is a dummy
+     (NEXT_PUBLIC_SUPABASE_URL=dummy.supabase.co), so Realtime
+     cannot be verified locally — plan on prod-adjacent
+     verification, and remember 20260708_circle_invites.sql is
+     ALSO still waiting for a prod apply (Supabase MCP re-auth). -->
 
 ```
 ## Active focus — C.5 · Threads stop polling, start feeling like chat
