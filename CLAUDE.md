@@ -70,5 +70,12 @@ shelf: cadence/director/review/voice; Guests sub-nav gained
 Threads). Open: §7 Q2 (/i/ 301 kept indefinitely), Q4 (email DNS —
 owner action). vitest 1269/1269 (the retired print/SVG-serializer
 suites left with their features; the press-geometry + stationery
-contracts replaced them); the next plan doc hasn't been written
-yet.
+contracts replaced them).
+
+**The next plan is written and ready: `docs/TASTE-PLAN.md`**
+(2026-07-08) — the owner flagged product-wide design taste with a
+reference image. Five moves stolen from it (type-scale drama, hero
+plate per route, decisive state chips, hatch pattern-as-state,
+space/radius calm) translated through BRAND.md — steal the moves,
+refuse the pastel-gradient skin. Five armable blocks T.1–T.5 at §4;
+not yet armed. Paste a block over the heading on line 6 to arm one.
