@@ -17,6 +17,7 @@ import { buildSitePath } from '@/lib/site-urls';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'You’re Invited · Pearloom',
   description: 'A personal invitation from your hosts.',
 };

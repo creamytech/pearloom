@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Partner Portal | Pearloom',
+  title: 'Partner Portal · Pearloom',
   description: 'Register and manage your Pearloom partner account.',
 };
 

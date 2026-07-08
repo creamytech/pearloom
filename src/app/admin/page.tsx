@@ -6,7 +6,13 @@
 // the 404 page — the desk doesn't advertise itself.
 // ─────────────────────────────────────────────────────────────
 
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: 'Pearloom',
+};
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { isAdmin } from '@/lib/admin';

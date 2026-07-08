@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Photo Gallery | Pearloom',
+  title: 'Photo Gallery · Pearloom',
   description: 'Browse and manage all your celebration photos.',
 };
 

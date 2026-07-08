@@ -18,7 +18,8 @@ import type { StoryManifest } from '@/types';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Memory book | Pearloom',
+  robots: { index: false, follow: false },
+  title: 'Memory book · Pearloom',
   description: 'A look back at the day.',
 };
 

@@ -26,6 +26,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { ThresholdClient, type ThresholdCard } from './ThresholdClient';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Welcome back · Pearloom',
   description: 'Choose the day you’re tending.',
 };

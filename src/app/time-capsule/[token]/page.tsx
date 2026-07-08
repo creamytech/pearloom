@@ -9,7 +9,8 @@ import type { Metadata } from 'next';
 import { CapsuleReveal } from './CapsuleReveal';
 
 export const metadata: Metadata = {
-  title: 'Time Capsule | Pearloom',
+  robots: { index: false, follow: false },
+  title: 'Time Capsule · Pearloom',
   description: 'Unlock your love letter time capsule.',
 };
 import { parseLocalDate } from '@/lib/date';

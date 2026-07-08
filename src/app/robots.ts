@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/dashboard/', '/editor/', '/api/', '/preview/'],
+      disallow: ['/dashboard/', '/editor', '/api/', '/preview/', '/threshold', '/admin'],
     },
     sitemap: 'https://pearloom.com/sitemap.xml',
   };

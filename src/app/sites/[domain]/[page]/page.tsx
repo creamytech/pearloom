@@ -72,7 +72,7 @@ export async function generateMetadata(
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(eventDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
   const pageTitle = `${coupleTitle} · ${meta.title}`;
-  const fullTitle = `${pageTitle} | Pearloom`;
+  const fullTitle = `${pageTitle} · Pearloom`;
   const siteUrl = buildSiteUrl(domain, `/${page}`, undefined, manifest?.occasion);
 
   return {

@@ -3,7 +3,7 @@ import { LoginClient } from './LoginClient';
 
 export const metadata: Metadata = {
   title: 'Sign in · Pearloom',
-  description: 'Sign in to your Pearloom dashboard.',
+  description: 'Step back into the loom — your celebrations are where you left them.',
 };
 
 export default function LoginPage({

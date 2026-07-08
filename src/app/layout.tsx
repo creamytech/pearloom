@@ -41,9 +41,19 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com'),
   title: "Pearloom — The operating system for the days that matter",
   description:
-    "Sites, guests, vendors, day-of, and the post-event film — woven into one calm command center for weddings, anniversaries, and every celebration in between.",
+    "One calm home for the whole celebration — the site, the guests, the day itself, and everything worth keeping after. Woven, not templated.",
+  openGraph: {
+    siteName: 'Pearloom',
+    type: 'website',
+    locale: 'en_US',
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Pearloom — a craft house for memory' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 import { AuthProvider } from '@/components/auth-provider';

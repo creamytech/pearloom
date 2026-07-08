@@ -14,7 +14,8 @@ import { CoHostAccept } from '@/components/co-host/CoHostAccept';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Co-host invite | Pearloom',
+  robots: { index: false, follow: false },
+  title: 'Co-host invite · Pearloom',
   description: 'You\'ve been invited to help plan a Pearloom site.',
 };
 

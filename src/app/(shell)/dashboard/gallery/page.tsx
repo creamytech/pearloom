@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { DashGallery } from '@/components/marketing/design/dash/DashGallery';
 
 export const metadata: Metadata = {
-  title: 'The Reel | Pearloom',
+  title: 'The Reel · Pearloom',
   description: 'Every photograph across every site you’ve made.',
 };
 

@@ -17,6 +17,7 @@ import { authOptions } from '@/lib/auth';
 import { WelcomeFlowClient } from './WelcomeFlowClient';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Welcome · Pearloom',
   description: 'A few threads before we begin.',
 };

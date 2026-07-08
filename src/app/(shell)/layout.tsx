@@ -13,6 +13,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
+
+/* The dashboard is private — robots.ts already disallows the crawl;
+   this meta noindex is the belt-and-braces for any externally
+   linked URL a crawler reaches anyway. */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { listSitesForEmail } from '@/lib/sites-list';

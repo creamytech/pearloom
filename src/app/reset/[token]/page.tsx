@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ResetClient } from '@/components/auth/ManualAuthPages';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Set a new password · Pearloom',
   description: 'Choose a new password for your Pearloom account.',
 };

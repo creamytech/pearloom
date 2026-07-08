@@ -24,6 +24,7 @@ import type { StoryManifest } from '@/types';
 import { GuestUploadClient } from './GuestUploadClient';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Add a photo · Pearloom',
   description: 'Share a photo with the couple.',
 };

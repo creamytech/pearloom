@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { LivePhotoWall } from '@/components/live/LivePhotoWall';
 
 export const metadata: Metadata = {
-  title: 'Live Photo Wall | Pearloom',
+  robots: { index: false, follow: false },
+  title: 'Live Photo Wall · Pearloom',
   description: 'Watch photos appear in real time.',
 };
 

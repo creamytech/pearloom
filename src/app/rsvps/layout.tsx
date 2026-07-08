@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Guest RSVPs | Pearloom',
+  title: 'Guest RSVPs · Pearloom',
   description: 'View and manage all guest RSVPs for your event.',
 };
 

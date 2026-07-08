@@ -12,6 +12,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'crypto';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Confirm your email · Pearloom',
 };
 export const dynamic = 'force-dynamic';

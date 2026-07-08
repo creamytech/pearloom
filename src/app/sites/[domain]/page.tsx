@@ -35,7 +35,7 @@ export async function generateMetadata(
     birthday: 'Birthday', engagement: 'Engagement', story: 'Story',
   };
   const shortTitle = `${displayNames} — ${occasionLabel[occasion] || 'Celebration'}`;
-  const fullTitle = `${shortTitle} | Pearloom`;
+  const fullTitle = `${shortTitle} · Pearloom`;
 
   // Build description — prefer heroTagline, then first chapter description, then vibeString
   const vibeString = manifest?.vibeString || '';
@@ -298,8 +298,54 @@ export default async function SubdomainSite({
       if (firstChapter && /^https?:\/\//i.test(firstChapter)) return firstChapter;
       return null;
     })();
+    /* Event structured data (SEO pass 2026-07-08) — names, date,
+       and venue are already at hand; the schema makes published
+       sites eligible for event rich results. Only emitted when a
+       real date exists; solemn occasions (memorial/funeral) stay
+       plain out of respect for what a "rich result" implies. */
+    const eventJsonLd = (() => {
+      const loose = manifest as unknown as {
+        occasion?: string;
+        coverPhoto?: string;
+        logistics?: { date?: string; venue?: string; venueAddress?: string };
+      };
+      const occ = loose.occasion ?? 'wedding';
+      if (occ === 'memorial' || occ === 'funeral') return null;
+      const date = loose.logistics?.date;
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+      const displayNames = names.filter(Boolean).join(' & ');
+      if (!displayNames) return null;
+      const occLabel = occ.replace(/-/g, ' ');
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: `${displayNames} — ${occLabel}`,
+        startDate: date,
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        eventStatus: 'https://schema.org/EventScheduled',
+        ...(loose.logistics?.venue
+          ? {
+              location: {
+                '@type': 'Place',
+                name: loose.logistics.venue,
+                ...(loose.logistics.venueAddress ? { address: loose.logistics.venueAddress } : {}),
+              },
+            }
+          : {}),
+        ...(loose.coverPhoto && /^https?:/i.test(loose.coverPhoto) ? { image: [loose.coverPhoto] } : {}),
+        organizer: { '@type': 'Person', name: displayNames },
+        url: prettyUrl.startsWith('http') ? prettyUrl : `https://${prettyUrl}`,
+      };
+    })();
+
     return (
       <>
+        {eventJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+          />
+        )}
         {heroPreloadUrl && (
           <link
             rel="preload"

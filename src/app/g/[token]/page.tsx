@@ -64,7 +64,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }): Promise<Metadata> {
   const fallback: Metadata = {
-    title: "You're Invited | Pearloom",
+    title: "You're Invited · Pearloom",
     description: 'Your personalized celebration page.',
     robots: { index: false },
   };
@@ -107,7 +107,7 @@ export async function generateMetadata({
 
     const title = solemn ? `In loving memory — ${who}` : `You're invited — ${who}`;
     return {
-      title: `${title} | Pearloom`,
+      title: `${title} · Pearloom`,
       description: 'Your personalized celebration page.',
       robots: { index: false },
       openGraph: {

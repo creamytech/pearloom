@@ -33,6 +33,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    // The seeded demo worlds — real long-tail landing surfaces
+    // ("wedding website example" and kin).
+    ...['birthday', 'anniversary', 'bachelorette-party', 'quinceanera'].map((o) => ({
+      url: `https://pearloom.com/demo/${o}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+    { url: 'https://pearloom.com/terms', lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.2 },
+    { url: 'https://pearloom.com/privacy', lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.2 },
   ];
 
   // Add all published (non-coming-soon) sites
