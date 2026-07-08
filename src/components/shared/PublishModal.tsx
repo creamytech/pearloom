@@ -341,8 +341,8 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
         {step === 'live' && (
           <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--sage-tint)', display: 'grid', placeItems: 'center', marginInline: 'auto' } as CSSProperties}><Pear size={32} tone="sage" sparkle shadow={false}/></div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>You{'’'}re live.</h2>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is published. Share this link — it unfurls into the card below.</p>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>It{'’'}s pressed.</h2>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is live — guests can leaf through it now. Share this link; it unfurls into the card below.</p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line)', marginBottom: 14 }}>
               <Icon name="globe" size={15} color="var(--ink-soft)"/>
@@ -363,7 +363,17 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
               <a href={`sms:?&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Messages</a>
               <a href={fullUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Open site</a>
             </div>
-            <button onClick={onClose} style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>Back to editing</button>
+            {/* The next thread (PERSONA-PLAN S6) — a live site with no
+                guests is a stage with no audience; the door is right
+                here at the peak moment. */}
+            <a
+              href="/dashboard/guests"
+              className="btn btn-primary"
+              style={{ marginTop: 12, width: '100%', justifyContent: 'center', textDecoration: 'none' }}
+            >
+              Invite your guests →
+            </a>
+            <button onClick={onClose} style={{ marginTop: 12, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>Back to editing</button>
           </div>
         )}
       </div>

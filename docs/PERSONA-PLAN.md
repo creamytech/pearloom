@@ -520,8 +520,18 @@ redesign (it's fresh); copy + wiring only.
 > hidden on Review (the proof is the preview there) and while
 > pressing. Verified on phone: pill → sheet shows the occasion-true
 > frame live ("Tyler / is celebrating") → closes clean. Shot:
-> `wizard-preview-peek.png`. Threads 2 (the publish moment) and 3
-> (return-visit reassurance) are next — see the block below.
+> `wizard-preview-peek.png`.
+>
+> Thread 2 SHIPPED — THE PUBLISH MOMENT: audited PublishModal's
+> live step — already strong (copy-link, real OG unfurl preview,
+> Email / Messages / Open-site intents). Elevated: headline now
+> "It's pressed." with "guests can leaf through it now" (BRAND §2
+> verbs), and the peak moment gains its next door — a primary
+> "Invite your guests →" into /dashboard/guests (a live site with
+> no guests is a stage with no audience).
+>
+> Thread 3 OPEN — return-visit reassurance (Linda closes the tab
+> mid-edit; the return must say "everything you set is here").
 
 ```
 ## Active focus — S6 · The first five minutes (from pressed to proud)
