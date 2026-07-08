@@ -15,6 +15,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Blob, Heart, Icon, Pear, PearloomLogo } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
+import { WhisperPill } from './WhisperPill';
 import { useDashDrawer } from './useDashDrawer';
 import { DashTabBar } from './DashTabBar';
 import { AskPearTrigger, DashAskPear } from './DashAskPear';
@@ -1576,6 +1577,8 @@ export function DashLayout({
         {/* Phone-only bottom tab bar (Home · Guests · Day · Studio
             · More). Matches the persistent-shell mount. */}
         <DashTabBar />
+        {/* The whisper pill (S8) — host surfaces only, never guests. */}
+        <WhisperPill />
       </main>
     </div>
   );

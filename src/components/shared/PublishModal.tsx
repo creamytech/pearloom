@@ -13,6 +13,7 @@ import { getPackById } from '@/lib/theme-store/packs';
 import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { publishNeedsReview, acknowledgeReview } from '@/lib/first-pressing/clear-on-edit';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 export interface PublishModalProps {
   open: boolean;
@@ -187,6 +188,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
     await doPublish(ack);
   };
   const copy = () => {
+    trackEvent('publish_link_copied');
     try { navigator.clipboard.writeText(fullUrl); } catch { /* noop */ }
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
@@ -359,8 +361,8 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             <div style={{ display: 'flex', gap: 8 }}>
               {/* Real share intents — the prototype's four dead buttons
                   (Instagram / Download had no implementation) are gone. */}
-              <a href={`mailto:?subject=${encodeURIComponent("You're invited")}&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Email</a>
-              <a href={`sms:?&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Messages</a>
+              <a onClick={() => trackEvent('publish_share', { via: 'email' })} href={`mailto:?subject=${encodeURIComponent("You're invited")}&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Email</a>
+              <a onClick={() => trackEvent('publish_share', { via: 'sms' })} href={`sms:?&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Messages</a>
               <a href={fullUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Open site</a>
             </div>
             {/* The next thread (PERSONA-PLAN S6) — a live site with no
@@ -368,6 +370,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                 here at the peak moment. */}
             <a
               href="/dashboard/guests"
+              onClick={() => trackEvent('publish_invite_guests')}
               className="btn btn-primary"
               style={{ marginTop: 12, width: '100%', justifyContent: 'center', textDecoration: 'none' }}
             >

@@ -674,7 +674,29 @@ tokens (themes are host-chosen). Rewriting brand vocabulary in prose
 
 ---
 
-### S8 — The glass box · **status: planned** · P2 (pre-testing infrastructure)
+### S8 — The glass box · **status: SHIPPED 2026-07-08** · P2 (pre-testing infrastructure)
+
+> Shipped on the existing product_events spine (deliberately no new
+> tables): (1) FUNNEL — the missing first-session beacons:
+> `wizard_weave_clicked`, `wizard_claim_handoff` (the signed-out
+> 401), `wizard_press_resumed`, `editor_first_edit` (saveState's
+> first flip), `publish_link_copied`, `publish_share` (email/sms),
+> `publish_invite_guests` — joining the already-live wizard_started/
+> wizard_step/site_created/site_published/first_rsvp_received.
+> (2) ERROR CAPTURE — `shell/ErrorTelemetry` (window error +
+> unhandledrejection → 'client_error' rows, max 5/pageview, deduped,
+> mounted in the root layout) + ErrorBoundary catches report the
+> same way. (3) THE WHISPER PILL — `dash/WhisperPill` on DashShell
+> (host surfaces only): "Tell Pear what felt off" → one textarea →
+> a 'whisper' event with route; "Woven in — thank you." (4) THE
+> VIEWS — `20260708_first_session_funnel.sql`: first_session_funnel
+> (daily step counts + distinct actors), whispers_feed,
+> client_errors_feed (grouped). **APPLY PENDING: the Supabase MCP
+> connection needs re-auth — apply to prod + record in
+> _pearloom_migrations next session.** (5) Session-replay decision
+> logged in §6 (no vendor; reasons there). Leftover: the bell digest
+> line for whispers (read whispers_feed directly during testing).
+> vitest 1246/1246.
 
 ```
 ## Active focus — S8 · The glass box (see what testers actually do)
@@ -798,8 +820,16 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 
 ## 6 · Decisions log
 
-- **Q1: Session replay for testing?** Deferred to S8's decision thread.
-  Leaning no for guests ever; maybe staging-only for hosts with consent.
+- **Q1: Session replay for testing?** DECIDED 2026-07-08 (S8): **no
+  replay vendor.** Guests never (their content is intimate — grief,
+  addresses, family names — and replay would capture all of it).
+  Hosts: moderated testing sessions are already screen-shared with
+  consent, which is replay with a human in the loop; unmoderated
+  gaps are covered by the funnel events + client-error capture +
+  the whisper pill, all first-party and content-free (the whisper's
+  text is the one deliberate exception — the tester wrote it TO us).
+  Revisit only if unmoderated testing at scale leaves questions the
+  funnel can't answer.
 - **Q2: Does Tyler's archetype need a lighter "party mode" wizard skin?**
   Not yet — his speedrun already reaches Review in ~20s. Revisit if
   testing shows drop-off at the Story phase.
@@ -814,6 +844,15 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S8 shipped (The glass box)
+The full first-session funnel is measurable: seven new client
+beacons (weave/claim/resume/first-edit/copy/share/invite-guests),
+client-error capture (global listeners + ErrorBoundary → the
+product_events spine, bounded + deduped), the whisper pill on host
+surfaces, and three SQL views (funnel/whispers/errors — authored;
+prod apply pending Supabase MCP re-auth). Replay decision: no
+vendor, reasons in §6. vitest 1246/1246.
 
 ### 2026-07-08 — S7 shipped (Linda mode)
 The full sprint: axe-core gate ZERO serious/critical on all five

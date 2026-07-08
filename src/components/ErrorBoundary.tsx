@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -25,6 +26,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[ErrorBoundary]', error, errorInfo);
+    // The glass box (PERSONA-PLAN S8): boundary catches reach the
+    // product_events spine — fire-and-forget, never throws.
+    trackEvent('client_error', {
+      kind: 'boundary',
+      message: String(error?.message ?? error).slice(0, 300),
+      source: String(errorInfo?.componentStack ?? '').slice(0, 140),
+      route: typeof window !== 'undefined' ? window.location.pathname : '',
+    });
     this.props.onError?.(error, errorInfo);
   }
 

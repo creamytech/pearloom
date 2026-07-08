@@ -51,6 +51,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { OfflineIndicator } from '@/components/shared/OfflineIndicator';
 import { SharedScrollProvider } from '@/lib/shared-scroll';
 import { ThemeProvider } from '@/components/shell/ThemeProvider';
+import { ErrorTelemetry } from '@/components/shell/ErrorTelemetry';
 
 export default function RootLayout({
   children,
@@ -110,6 +111,7 @@ export default function RootLayout({
             <ToastProvider>
               <SharedScrollProvider>
                 <OfflineIndicator />
+                <ErrorTelemetry />
                 {children}
               </SharedScrollProvider>
             </ToastProvider>

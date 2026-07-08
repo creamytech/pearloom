@@ -30,6 +30,7 @@ import { setEditorVoiceProfile } from '@/lib/pear/editor-voice';
 import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { fireUndoable } from './UndoToast';
+import { trackEvent } from '@/lib/analytics/beacon';
 import { DesignChangeBeacon } from './DesignChangeBeacon';
 import { DESIGN_COMPARE_EVENT, type DesignCompareDetail } from './design-feedback';
 import { EditorRailLeft, sectionOrderFor, sectionDisplayLabel } from './SectionRail';
@@ -423,6 +424,17 @@ export default function EditorRedesign({
        SSR. (The rule no longer flags this pattern.) */
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
+
+  /* First-edit funnel beacon (PERSONA-PLAN S8) — the moment the
+     host actually touches their site. saveState flips to 'unsaved'
+     on the first real change; fires once per mount. */
+  const firstEditRef = useRef(false);
+  useEffect(() => {
+    if (firstEditRef.current) return;
+    if (bridge.saveState !== 'unsaved') return;
+    firstEditRef.current = true;
+    trackEvent('editor_first_edit', undefined, siteSlug);
+  }, [bridge.saveState, siteSlug]);
 
   /* Return-visit reassurance (PERSONA-PLAN S6, thread 3) — Linda
      closed the tab mid-edit and came back afraid her work is gone.

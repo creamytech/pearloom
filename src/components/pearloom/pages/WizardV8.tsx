@@ -2677,6 +2677,7 @@ export function WizardV8() {
     if (authStatus !== 'authenticated') return;
     if (busy) return;
     resumedPressRef.current = true;
+    trackEvent('wizard_press_resumed', { occasion: st.occasion });
     setSt((s) => ({ ...s, pendingPress: false }));
     // A beat so the restored state settles (and the host sees the
     // wizard resume) before the press choreography takes over.
@@ -2824,6 +2825,7 @@ export function WizardV8() {
   }
 
   async function handleFinish() {
+    trackEvent('wizard_weave_clicked', { occasion: stRef.current.occasion });
     setBusy(true);
     setErr(null);
     setGenStep('starting…');
@@ -3179,6 +3181,7 @@ export function WizardV8() {
             }));
           } catch {}
         }
+        trackEvent('wizard_claim_handoff', { occasion: stRef.current.occasion });
         router.push('/signup?next=/wizard/new');
         return;
       }
