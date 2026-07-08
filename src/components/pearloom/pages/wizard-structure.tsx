@@ -13,13 +13,15 @@
    instead", 2026-06-12).
    ───────────────────────────────────────────────────────────── */
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { applyVibeLook } from '@/lib/site-look/vibe-look';
 import { applySectionPicks, type SectionPicks } from '@/lib/event-os/wizard-sections';
 import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Sparkle } from '../motifs';
+import { DEBOSS_SHEET } from '@/components/brand/pressed';
 
 export interface StructurePicks {
   siteMode?: 'scroll' | 'multi-page';
@@ -44,6 +46,10 @@ export function WizardStructureSection({
   suggestedMotifLayout,
   picks,
   sectionPicks,
+  vibes,
+  stage = false,
+  onPressSeal,
+  pressing = false,
   onChange: _onChange,
   onExpand,
   title = 'The structure',
@@ -68,6 +74,18 @@ export function WizardStructureSection({
    *  drops a section the host set aside and shows one they added.
    *  undefined = host skipped the step (renderer core defaults). */
   sectionPicks?: SectionPicks;
+  /** The Vibe-step picks — generation folds these into the look
+   *  (applyVibeLook), so the pressing must wear them too. */
+  vibes?: string[];
+  /** STAGE mode (RADICAL §D, the inversion): the pressing renders as
+   *  a full-width desktop-scale sheet — the proof — instead of the
+   *  phone. Review mounts it so. */
+  stage?: boolean;
+  /** Stage-only: mounts the floating wax seal ("Press it") over the
+   *  sheet; fires the wizard's finish. */
+  onPressSeal?: () => void;
+  /** Disables the seal while the press runs. */
+  pressing?: boolean;
   /** Retained for call-site compat — the chip rows moved into the
    *  fitting room, so this section no longer writes picks itself. */
   onChange?: (next: Partial<StructurePicks>) => void;
@@ -94,6 +112,7 @@ export function WizardStructureSection({
   const sectionPicksKey = sectionPicks
     ? `${[...sectionPicks.on].sort().join(',')}~${Object.entries(sectionPicks.layouts).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}:${v}`).join(',')}`
     : '';
+  const vibesKey = (vibes ?? []).join('|');
   const manifest = useMemo<StoryManifest>(() => {
     const base = {
       occasion,
@@ -128,6 +147,10 @@ export function WizardStructureSection({
     // (same precedence as handleFinish).
     let out = dressed as unknown as StoryManifest;
     if (sectionPicks) out = applySectionPicks(out, occasion, sectionPicks);
+    // Vibes fold in exactly where handleFinish folds them — after
+    // section picks, before the explicit nav/hero stamps — so the
+    // pressing IS the site the press will produce.
+    if (vibes?.length) out = applyVibeLook(out, vibes);
     const outLoose = out as unknown as Record<string, unknown>;
     const navHero: Record<string, string> = {};
     if (picks.navVariant) navHero.nav = picks.navVariant;
@@ -137,9 +160,9 @@ export function WizardStructureSection({
     }
     return out;
     // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey/
-    // sectionPicksKey), not the per-render literal identities.
+    // sectionPicksKey/vibesKey), not the per-render literal identities.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, sectionPicksKey, suggestedMotif, suggestedMotifLayout]);
+  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, sectionPicksKey, vibesKey, suggestedMotif, suggestedMotifLayout]);
 
   /* Same treatment for names — the wizard passes a fresh tuple every
      render, which would defeat the compiler's memo of the ThemedSite
@@ -160,7 +183,28 @@ export function WizardStructureSection({
      when the change is below the fold — the frame re-keys on the
      picks themselves (no state, no effect; the CSS animation
      replays whenever the key changes). */
-  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}|${picks.motifLayout ?? ''}|${picks.density ?? ''}`;
+  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}|${picks.motifLayout ?? ''}|${picks.density ?? ''}|${vibesKey}`;
+
+  /* STAGE mode measures its own width so the desktop-scale site
+     (rendered at STAGE_W) zooms to fit exactly — no horizontal
+     crop, real scroll. */
+  const STAGE_W = 1180;
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stageWidth, setStageWidth] = useState(0);
+  useEffect(() => {
+    if (!stage) return;
+    const node = stageRef.current;
+    if (!node) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? 0;
+      setStageWidth((prev) => (Math.abs(prev - w) > 1 ? w : prev));
+    });
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [stage]);
+
+  const sealAccent = paletteColors?.[1] || 'var(--pl-olive, #5C6B3F)';
+  const sealInitials = `${(names[0] ?? '').trim().charAt(0) || 'A'}${(names[1] ?? '').trim() ? '·' + names[1].trim().charAt(0) : ''}`.toUpperCase();
 
   const frame: CSSProperties = {
     width: '100%',
@@ -189,20 +233,45 @@ export function WizardStructureSection({
         {blurb}
       </p>
 
-      <div className="pl8-structure-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px)', justifyContent: 'center', gap: 14 }}>
-        {/* THE LIVE PRESSING — a phone in your hands. Scrollable,
-            real renderer, zoomed so layout (and therefore scroll)
-            stays native. */}
-        <div style={frame} key={pressKey} className="pl8-structure-press">
+      <div className="pl8-structure-layout" style={{ display: 'grid', gridTemplateColumns: stage ? 'minmax(0, 1fr)' : 'minmax(0, 340px)', justifyContent: 'center', gap: 14 }}>
+        {/* THE LIVE PRESSING. Phone mode: a phone in your hands.
+            STAGE mode (Review): the proof — a full-width pressed
+            sheet holding the desktop-scale site, seal floating over
+            it. Both scrollable, real renderer, zoomed so layout
+            (and therefore scroll) stays native. */}
+        <div
+          ref={stage ? stageRef : undefined}
+          style={stage ? {
+            width: '100%',
+            height: 'clamp(520px, 64vh, 720px)',
+            borderRadius: 18,
+            border: '1px solid var(--line-soft, var(--line))',
+            boxShadow: DEBOSS_SHEET,
+            overflow: 'hidden',
+            position: 'relative',
+            background: 'var(--card, #FBF7EE)',
+            transform: 'translateZ(0)',
+          } : frame}
+          key={pressKey}
+          className="pl8-structure-press"
+        >
           {ready ? (
-            <div style={{ position: 'absolute', inset: 5, borderRadius: 17, overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: stage ? 0 : 5, borderRadius: stage ? 18 : 17, overflow: 'hidden' }}>
               <div style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
                 {/* `zoom` (not transform) so the scaled site keeps
                     real layout height — the window scrolls like a
                     phone. Supported in all evergreen browsers. */}
-                <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                  <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy />
-                </div>
+                {stage ? (
+                  stageWidth > 0 && (
+                    <div style={{ width: STAGE_W, zoom: stageWidth / STAGE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
+                      <ThemedSite manifest={manifest} names={stableNames} demoCopy />
+                    </div>
+                  )
+                ) : (
+                  <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
+                    <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy />
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -246,6 +315,48 @@ export function WizardStructureSection({
             >
               The fitting room ⤢
             </button>
+          )}
+          {/* THE SEAL — stage-only. Finishing isn't a form submit;
+              it's pressing the seal onto the proof. Floats bottom-
+              center over the sheet in the site's own accent wax. */}
+          {stage && onPressSeal && (
+            <div style={{ position: 'absolute', left: '50%', bottom: 18, transform: 'translateX(-50%)', zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
+              <button
+                type="button"
+                onClick={onPressSeal}
+                disabled={pressing}
+                aria-label="Press the seal — build my site"
+                className="pl-tap"
+                style={{
+                  width: 88, height: 88, borderRadius: '50%',
+                  border: 'none', cursor: pressing ? 'wait' : 'pointer',
+                  transform: 'rotate(-6deg)',
+                  background: `radial-gradient(circle at 32% 28%, color-mix(in srgb, ${sealAccent} 72%, #fff) 0%, ${sealAccent} 46%, color-mix(in srgb, ${sealAccent} 72%, #000) 100%)`,
+                  boxShadow: '0 10px 26px -8px rgba(0,0,0,0.45), inset 0 -2px 5px rgba(0,0,0,0.24), inset 0 2px 4px rgba(255,255,255,0.3)',
+                  color: 'var(--cream, #F5EFE2)',
+                  fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                  fontStyle: 'italic',
+                  fontSize: 26,
+                  lineHeight: 1,
+                  opacity: pressing ? 0.7 : 1,
+                }}
+              >
+                {sealInitials}
+              </button>
+              <span
+                style={{
+                  padding: '4px 12px', borderRadius: 999,
+                  background: 'color-mix(in srgb, var(--cream, #F5EFE2) 82%, transparent)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                  fontSize: 9, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase',
+                  color: 'var(--ink-soft)',
+                }}
+              >
+                {pressing ? 'Pressing…' : 'Press it'}
+              </span>
+            </div>
           )}
         </div>
 

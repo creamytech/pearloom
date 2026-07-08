@@ -2472,7 +2472,9 @@ export function WizardV8() {
   // reads names/palette/occasion with sensible defaults, so it renders
   // safely before a palette is chosen. The one exception is the
   // full-bleed fitting room, which owns the screen while it's open.
-  const showPreview = !fittingOpen;
+  // Review inverts the stage — the full-width proof replaces the
+  // phone aside there (two pressings would fight for authority).
+  const showPreview = !fittingOpen && step !== 'Review';
 
   // ── "From your photos" palette ──────────────────────────────
   // Client-side extraction from the host's first uploaded photo
@@ -3330,7 +3332,8 @@ export function WizardV8() {
           // Single-column letterpress feel; on the Look + Review steps
           // it becomes a two-column layout with the live save-the-date
           // preview beside the controls (collapses to one column on mobile).
-          maxWidth: showPreview ? 1200 : 760,
+          // Review is the inverted stage — the proof wants real width.
+          maxWidth: showPreview ? 1200 : step === 'Review' ? 1100 : 760,
           margin: '0 auto',
           padding: '40px 32px 80px',
           position: 'relative',
@@ -4462,8 +4465,55 @@ export function WizardV8() {
                     Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    When you save, we&apos;ll build your first draft and open the studio.
+                    This is the proof — the exact site Pear will press. Scroll it, then press the seal.
                   </p>
+
+                  {/* THE PROOF (RADICAL §D, the inversion) — the real
+                      site leads Review as a full-width stage, desktop
+                      scale, with the wax seal floating over it as the
+                      finish. The plan rows and Pear's questions follow
+                      beneath as supporting matter. */}
+                  {(() => {
+                    const lookNameSpec = nameModeFor(st.occasion);
+                    const lookCouple = lookNameSpec.mode === 'couple';
+                    const lookNames = st.names.filter(Boolean);
+                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
+                      ? st.paletteColors
+                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
+                    return (
+                      <WizardStructureSection
+                        occasion={st.occasion}
+                        paletteColors={lookPalette}
+                        names={[
+                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                          lookCouple ? (lookNames[1] || 'Jamie') : '',
+                        ]}
+                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null}
+                        suggestedMotif={st.suggestedMotif}
+                        suggestedMotifLayout={st.suggestedMotifLayout}
+                        picks={{
+                          siteMode: st.siteMode,
+                          kitId: st.kitId,
+                          texture: st.texture,
+                          navVariant: st.navVariant,
+                          heroVariant: st.heroVariant,
+                          motifLayout: st.motifLayoutPick,
+                          density: st.densityPick,
+                        }}
+                        sectionPicks={st.sectionPicks}
+                        vibes={st.vibes}
+                        stage
+                        onPressSeal={() => { if (canContinue && !busy) void handleFinish(); }}
+                        pressing={busy}
+                        onExpand={() => setFittingOpen(true)}
+                        title="Your site, pressed"
+                        blurb="Scroll the proof. The fitting room changes any of it; the seal makes it real."
+                      />
+                    );
+                  })()}
+
                   <div
                     style={{
                       fontFamily: 'var(--font-mono, ui-monospace, monospace)',
@@ -4471,7 +4521,7 @@ export function WizardV8() {
                       letterSpacing: '0.14em',
                       textTransform: 'uppercase',
                       color: 'var(--ink-muted)',
-                      marginBottom: 10,
+                      margin: '26px 0 10px',
                     }}
                   >
                     Your plan
@@ -4621,52 +4671,6 @@ export function WizardV8() {
                           ))}
                         </div>
                       </div>
-                    );
-                  })()}
-
-                  {/* YOUR PRESSING — one live, legible, phone-width
-                      render of the exact site about to press, with
-                      the fitting room as the door to change ANY of
-                      it (palette, paper, kit, nav, hero, motif,
-                      density, reads). Replaced the three desktop-
-                      scaled pressings, which were unreadable at
-                      tile size ("the previews of the 3 still are
-                      shit — maybe we can just use fitting room
-                      instead", 2026-06-12). */}
-                  {(() => {
-                    const lookNameSpec = nameModeFor(st.occasion);
-                    const lookCouple = lookNameSpec.mode === 'couple';
-                    const lookNames = st.names.filter(Boolean);
-                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
-                      ? st.paletteColors
-                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
-                    return (
-                      <WizardStructureSection
-                        occasion={st.occasion}
-                        paletteColors={lookPalette}
-                        names={[
-                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
-                          lookCouple ? (lookNames[1] || 'Jamie') : '',
-                        ]}
-                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
-                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
-                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === 'match') ?? null}
-                        suggestedMotif={st.suggestedMotif}
-                        suggestedMotifLayout={st.suggestedMotifLayout}
-                        picks={{
-                          siteMode: st.siteMode,
-                          kitId: st.kitId,
-                          texture: st.texture,
-                          navVariant: st.navVariant,
-                          heroVariant: st.heroVariant,
-                          motifLayout: st.motifLayoutPick,
-                          density: st.densityPick,
-                        }}
-                        sectionPicks={st.sectionPicks}
-                        onExpand={() => setFittingOpen(true)}
-                        title="Your site"
-                        blurb="Exactly what Pear will build — scroll it. Step into the fitting room to change any of it."
-                      />
                     );
                   })()}
 
