@@ -450,7 +450,26 @@ tapestry. Host-side guest tools.
 
 ---
 
-### S5 — Every door is the front door · **status: planned** · P1
+### S5 — Every door is the front door · **status: SHIPPED 2026-07-08** · P1
+
+> Shipped: (1) THE ACQUISITION SHELF — POPULAR is now wedding,
+> birthday, bachelorette, anniversary, baby shower, memorial,
+> quinceañera (+ Other = a clean 4×2); reunion moved to the
+> directory. Revisit with S8 traffic data. (2) TYPE-AHEAD — already
+> existed (the walk under-reported it; "quince" and "bach" both
+> resolve); upgraded to also match registry taglines + ids.
+> (3) THE HERO HANDOFF — the landing's typed names used to
+> evaporate (`submit = () => onGetStarted?.()`); they now arrive in
+> the wizard (`?names=` → Basics prefilled, verified live:
+> "Maya & Jordan" splits into both fields), and an EXPLICITLY
+> picked occasion tab rides along as `?occasion=` (never the
+> auto-rotation — the tabs cycle every 5.2s, so only a real pick
+> counts; demo placeholder names never ride). (4) INTENT — verified
+> already live (INTENT_TO_OCCASION + the "★ For you" badge + "You
+> mentioned this one when you joined"). (5) TAB FRAME AUDIT — the
+> landing's occasion tabs already re-frame everything per occasion
+> (memorial: "In loving memory… Always free"); F5's hero claim was
+> overstated, corrected here. vitest 1246/1246.
 
 ```
 ## Active focus — S5 · Every door is the front door (occasion reach)
@@ -719,6 +738,14 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S5 shipped (Every door is the front door)
+F5 closed. The POPULAR shelf is the acquisition list (bachelorette +
+quinceañera in, reunion to the directory); occasion search matches
+taglines; the landing hero's typed names + explicitly picked tab now
+arrive in the wizard prefilled (they used to evaporate). Intent
+prefill + landing tab framing verified already-live. vitest
+1246/1246.
 
 ### 2026-07-08 — S4 shipped (Guests arrive without invitations)
 F6 + F11 closed. The RSVP CTA atom's rsvp-modal sentinel now opens

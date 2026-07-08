@@ -939,16 +939,21 @@ function slugify(s: string) {
     .slice(0, 40);
 }
 
-// The 6 most-picked occasions. Showing these first turns a 31-tile
-// directory into a one-glance question for the 80% of users who
-// want one of them. Everything else lives behind "Show all".
+// The acquisition shelf (PERSONA-PLAN S5). Seven plates + the
+// Other-event tile fill a clean 4×2. Bachelorette is the roadmap's
+// biggest funnel lever (CLAUDE-PRODUCT §7 B.1 — hosted by someone
+// who isn't the couple, shared into group chats) and quinceañera is
+// the fastest-growing cultural market (E.2); reunion moved to the
+// directory (one keystroke away in search). Revisit with real
+// traffic data once S8's funnel instrumentation lands.
 const POPULAR_OCCASIONS: string[] = [
   'wedding',
   'birthday',
+  'bachelorette-party',
   'anniversary',
-  'memorial',
-  'reunion',
   'baby-shower',
+  'memorial',
+  'quinceanera',
 ];
 
 function OccasionPicker({
@@ -979,7 +984,10 @@ function OccasionPicker({
   }
 
   const filtered = q
-    ? OCCASIONS.filter((o) => o.label.toLowerCase().includes(q))
+    ? OCCASIONS.filter((o) =>
+        o.label.toLowerCase().includes(q)
+        || o.id.includes(q)
+        || (getEventType(o.id)?.tagline ?? '').toLowerCase().includes(q))
     : null;
 
   const showCategorised = showAll || filtered !== null;
@@ -2313,6 +2321,18 @@ export function WizardV8() {
      occasion (validated against the registry); explicit picks in
      the wizard always win. */
   const occasionParam = searchParams.get('occasion');
+  /* ?names=Maya+%26+Jordan — the landing hero's typed names arrive
+     here instead of evaporating (PERSONA-PLAN S5). Split on the
+     same separators the hero's live preview parses (& / and / +);
+     never overrides a resumed draft (drafts carry real progress). */
+  const namesParam = searchParams.get('names');
+  const prefillNames = ((): [string, string] | null => {
+    const raw = (namesParam ?? '').trim().slice(0, 120);
+    if (!raw) return null;
+    const parts = raw.split(/\s*(?:&|\band\b|\+)\s*/i).map((x) => x.trim()).filter(Boolean);
+    if (parts.length === 0) return null;
+    return [parts[0], parts.slice(1).join(' & ')];
+  })();
   const linkFromParam = searchParams.get('from');
   const linkCidParam = searchParams.get('cid');
   const linkCnameParam = searchParams.get('cname');
@@ -2331,10 +2351,17 @@ export function WizardV8() {
       return {
         ...defaultState,
         occasion: occasionParam,
+        names: prefillNames ?? defaultState.names,
         linkFromSlug: linkFromParam ?? undefined,
         linkCelebId: linkCidParam ?? undefined,
         linkCelebName: linkCnameParam ?? undefined,
       } as WizardState;
+    }
+    /* Names typed into the landing hero (no occasion picked): a
+       fresh visitor starts with them in place. A stored draft
+       still wins below — it carries real progress. */
+    if (prefillNames && typeof window !== 'undefined' && !window.localStorage.getItem(STORAGE_KEY)) {
+      return { ...defaultState, names: prefillNames } as WizardState;
     }
     if (typeof window !== 'undefined') {
       try {

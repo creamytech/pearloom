@@ -31,7 +31,7 @@ interface HeroProps {
   names: string;
   setNames: (v: string) => void;
   onType: (v: string) => void;
-  onGetStarted?: () => void;
+  onGetStarted?: (prefill?: { names?: string; occ?: OccasionKey }) => void;
 }
 
 export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted }: HeroProps) {
@@ -58,15 +58,26 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
     if (!typedRef.current) setNames(O.ph);
   }, [occ, O.ph, setNames]);
 
+  /* Explicit tab picks only — the tabs auto-rotate every 5.2s, so
+     the CURRENT occ is meaningless unless the visitor chose it. */
+  const pickedRef = useRef(false);
   const pick = useCallback(
     (k: OccasionKey) => {
+      pickedRef.current = true;
       setOcc(k);
       setPaused(true);
     },
     [setOcc],
   );
 
-  const submit = () => onGetStarted?.();
+  /* The hero's promise is "type a name, start your loom" — so the
+     typed name (and an explicitly picked occasion) must actually
+     arrive in the wizard (PERSONA-PLAN S5). Demo placeholders never
+     ride along: names only when typedRef, occ only when pickedRef. */
+  const submit = () => onGetStarted?.({
+    names: typedRef.current && names.trim() ? names.trim() : undefined,
+    occ: pickedRef.current ? occ : undefined,
+  });
 
   return (
     <header className="pd-hero" onMouseEnter={() => setPaused(true)}>

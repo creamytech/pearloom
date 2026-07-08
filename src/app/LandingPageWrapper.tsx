@@ -78,7 +78,22 @@ export default function LandingPageWrapper() {
     return () => io.disconnect();
   }, []);
 
-  const onGetStarted = useCallback(() => {
+  const onGetStarted = useCallback((prefill?: { names?: string; occ?: OccasionKey }) => {
+    /* The hero passes { names, occ }; every other CTA calls this
+       bare (or with a click event) — only honor a real prefill.
+       Landing tab keys map to registry occasion ids; the wizard's
+       ?occasion= deep link means "start a new site of this kind",
+       so it only rides an EXPLICIT tab pick (never the rotation). */
+    const OCC_TO_WIZARD: Record<OccasionKey, string> = {
+      wedding: 'wedding', milestone: 'milestone-birthday', memorial: 'memorial',
+      baby: 'baby-shower', reunion: 'reunion',
+    };
+    const p = prefill && typeof prefill === 'object' && ('names' in prefill || 'occ' in prefill) ? prefill : undefined;
+    const params = new URLSearchParams();
+    if (p?.names) params.set('names', p.names);
+    if (p?.occ && OCC_TO_WIZARD[p.occ]) params.set('occasion', OCC_TO_WIZARD[p.occ]);
+    const qs = params.toString();
+    const href = qs ? `/wizard/new?${qs}` : '/wizard/new';
     const motion = (window as Window & {
       PearloomMotion?: {
         weave?: (onPeak: () => void, opts?: { duration?: number }) => void;
@@ -86,10 +101,10 @@ export default function LandingPageWrapper() {
       };
     }).PearloomMotion;
     if (motion?.weave && !motion.reduced) {
-      motion.weave(() => router.push('/wizard/new'), { duration: 520 });
+      motion.weave(() => router.push(href), { duration: 520 });
       return;
     }
-    router.push('/wizard/new');
+    router.push(href);
   }, [router]);
 
   // The re-press (RADICAL-DESIGN-DIRECTIONS §C): an EXPLICIT occasion
