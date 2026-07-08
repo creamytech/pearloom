@@ -50,6 +50,48 @@ export function DashCircle() {
   /* The person card — one open at a time, fetched on demand. */
   const [cardFor, setCardFor] = useState<string | null>(null);
   const [card, setCard] = useState<PersonCardData | null>(null);
+  /* The thread (S2) — the pair's bounded conversation, loaded with
+     the card and polled quietly while it's open (the BroadcastBar
+     cadence; Realtime is the named upgrade). */
+  const [msgs, setMsgs] = useState<Array<{ id: string; mine: boolean; body: string; createdAt: string }>>([]);
+  const [draft, setDraft] = useState('');
+  const [sendErr, setSendErr] = useState<string | null>(null);
+  const loadThread = useCallback(async (otherId: string) => {
+    try {
+      const r = await fetch(`/api/threads?with=${encodeURIComponent(otherId)}`, { cache: 'no-store' });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; messages?: typeof msgs } | null;
+      if (r.ok && d?.ok) setMsgs(d.messages ?? []);
+    } catch { /* keep prior */ }
+  }, []);
+  useEffect(() => {
+    if (!cardFor) return;
+    const t = window.setInterval(() => void loadThread(cardFor), 25_000);
+    return () => window.clearInterval(t);
+  }, [cardFor, loadThread]);
+  async function sendNote() {
+    const body = draft.trim();
+    if (!body || !cardFor || busy === 'note') return;
+    setBusy('note');
+    setSendErr(null);
+    try {
+      const r = await fetch('/api/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otherPersonId: cardFor, body }),
+      });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (r.ok && d?.ok) {
+        setDraft('');
+        await loadThread(cardFor);
+      } else {
+        setSendErr(d?.error ?? 'Could not send.');
+      }
+    } catch {
+      setSendErr('Could not send — check your connection.');
+    } finally {
+      setBusy(null);
+    }
+  }
 
   const load = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -118,9 +160,12 @@ export function DashCircle() {
   }
 
   async function openCard(personId: string) {
-    if (cardFor === personId) { setCardFor(null); setCard(null); return; }
+    if (cardFor === personId) { setCardFor(null); setCard(null); setMsgs([]); return; }
     setCardFor(personId);
     setCard(null);
+    setMsgs([]);
+    setSendErr(null);
+    void loadThread(personId);
     try {
       const r = await fetch(`/api/friends/person?personId=${encodeURIComponent(personId)}`, { cache: 'no-store' });
       const d = (await r.json().catch(() => null)) as { ok?: boolean; card?: PersonCardData } | null;
@@ -135,15 +180,18 @@ export function DashCircle() {
     setBusy(`add:${personId}:${site.id}`);
     setNote(null);
     try {
-      const r = await fetch('/api/split/participants/from-person', {
+      /* S3 — weave in from your circle: the GUEST LIST is the
+         universal add (was the split-only participant endpoint).
+         The email never crosses the wire; the id is the anchor. */
+      const r = await fetch('/api/guests/from-person', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId: site.id, personId }),
       });
       const d = (await r.json().catch(() => null)) as { ok?: boolean; added?: boolean } | null;
       setNote(r.ok && d?.ok
-        ? (d.added === false ? 'Already in that event.' : `Added to ${siteDisplayName(site)}.`)
-        : 'Could not add — is that a group-split event?');
+        ? (d.added === false ? 'Already on that guest list.' : `Woven into ${siteDisplayName(site)} — they're on the guest list.`)
+        : 'Could not add — check the event.');
     } catch {
       setNote('Could not add — check your connection.');
     } finally {
@@ -289,6 +337,67 @@ export function DashCircle() {
                                     {card.dietary}
                                   </div>
                                 )}
+
+                                {/* The thread — a bounded note line
+                                    between two mutual connections
+                                    (S2). No feed; just the pair. */}
+                                <div style={{ borderTop: '1px solid rgba(31,36,24,0.10)', paddingTop: 10 }}>
+                                  <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 6 }}>YOUR THREAD</div>
+                                  {msgs.length === 0 ? (
+                                    <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
+                                      Nothing yet. Begin a thread.
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
+                                      {msgs.map((m) => (
+                                        <div
+                                          key={m.id}
+                                          style={{
+                                            alignSelf: m.mine ? 'flex-end' : 'flex-start',
+                                            maxWidth: '85%',
+                                            padding: '7px 11px',
+                                            borderRadius: 12,
+                                            borderBottomRightRadius: m.mine ? 3 : 12,
+                                            borderBottomLeftRadius: m.mine ? 12 : 3,
+                                            background: m.mine ? PD.olive : PD.paper,
+                                            color: m.mine ? '#F5EFE2' : PD.ink,
+                                            border: m.mine ? 'none' : '1px solid rgba(31,36,24,0.10)',
+                                            fontSize: 12.5,
+                                            lineHeight: 1.5,
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                          }}
+                                        >
+                                          {m.body}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <div style={{ display: 'flex', gap: 6 }}>
+                                    <input
+                                      type="text"
+                                      value={draft}
+                                      onChange={(e) => setDraft(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === 'Enter') void sendNote(); }}
+                                      placeholder={`A note to ${card.firstName}…`}
+                                      maxLength={4000}
+                                      style={{
+                                        flex: 1, padding: '8px 11px', borderRadius: 999, fontSize: 12.5,
+                                        border: '1px solid rgba(31,36,24,0.16)', background: PD.paper,
+                                        color: PD.ink, outline: 'none', fontFamily: 'inherit',
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      style={{ ...btnMini, opacity: draft.trim() ? 1 : 0.5 }}
+                                      disabled={busy === 'note' || !draft.trim()}
+                                      onClick={() => void sendNote()}
+                                    >
+                                      {busy === 'note' ? 'Threading…' : 'Send'}
+                                    </button>
+                                  </div>
+                                  {sendErr && <div style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 6 }}>{sendErr}</div>}
+                                </div>
                               </div>
                             )}
                           </div>

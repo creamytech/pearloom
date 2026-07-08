@@ -444,6 +444,33 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-07-08 — SOCIAL-PLAN executed (S1–S5) + the onboarding trilogy (O1–O3)
+
+The social layer shipped to plan (docs/SOCIAL-PLAN.md — statuses
+stamped per phase): **S1** circle-goes-people-first (invite by email,
+zero new tables — the email-keyed people upsert is the claim; person
+card gated on re-verified mutual consent; circle home = requests /
+people / waiting-on / invite / discovery). **S2** person-pair THREADS
+(`20260708_person_threads.sql` applied to prod, lo<hi pair key,
+'crew' reserved; lib re-verifies the accepted friendship before every
+read/write; /api/threads; the thread lives in the circle's person
+card, 25s poll). **S3** weave-in (`/api/guests/from-person` — the
+from-person primitive generalized to the guest list; "FROM YOUR
+CIRCLE" chips in the Add-Guest dialog; the circle's add-to-event now
+writes the guest list). **S4** the bell speaks circle
+(`fetchCircleFeed`: requests + notes, person-scoped, deterministic
+ids, sage 'circle' kind). **S5** the post-event keepsake framing on
+the passport circle card + the invite funnel live end-to-end via
+S1 + onboarding O3. Deferred honestly in the plan doc: crew threads
+(schema-ready), Pear-in-thread, the is-hosting nudge, contact import
+(deliberate), Apple track ①②③ (Wallet needs the Pass Type ID cert —
+owner action). Same day: ONBOARDING-PLAN O1–O3 ("The First Pressing
+of You") — the mark system (photo/orchard/monogram-seal chain,
+`20260708_avatar_url.sql` applied), the re-pressed welcome flow
+(letterpress name, colophon signed by pressing your seal,
+ThreadingDoor exits), and the awaited arrival (addressed sheet +
+sealed-envelope requests). vitest 1230/1230; advisors clean.
+
 ### 2026-07-06 — GRAND-PLAN executed end-to-end (docs/GRAND-PLAN.md, 20 pillars → shipped)
 
 The 20-pillar GRAND-PLAN driven to completion across all tracks — ~34

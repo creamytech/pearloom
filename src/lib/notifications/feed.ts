@@ -20,7 +20,7 @@ import type { NotificationCategory } from './prefs';
 
 export interface FeedItem {
   id: string;
-  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor' | 'split';
+  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor' | 'split' | 'circle';
   category: NotificationCategory;
   label: string;
   preview?: string;
@@ -397,5 +397,102 @@ export async function fetchNotificationFeed(
 
   // Sort all sources together so the timeline reads naturally.
   items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return items;
+}
+
+/* ── The circle feed (SOCIAL-PLAN S4) ─────────────────────────
+   PERSON-scoped (not site-scoped): connection requests waiting on
+   the host, and notes written to them in their person threads.
+   Deterministic ids + row timestamps so the bell's read-state
+   sticks (its established contract). First names only. A gentle
+   trickle, never an activity feed — two bounded sources, capped. */
+
+export async function fetchCircleFeed(
+  supabase: SupabaseClient,
+  hostEmail: string,
+  since: string,
+): Promise<FeedItem[]> {
+  const items: FeedItem[] = [];
+  const email = hostEmail.trim().toLowerCase();
+  if (!email) return items;
+  try {
+    const { data: me } = await supabase
+      .from('people')
+      .select('id')
+      .ilike('email', email)
+      .maybeSingle();
+    if (!me) return items;
+    const pid = String(me.id);
+
+    // Connection requests addressed to the host.
+    const { data: reqs } = await supabase
+      .from('friendships')
+      .select('id, requester_person_id, created_at')
+      .eq('addressee_person_id', pid)
+      .eq('status', 'pending')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    const reqRows = (reqs ?? []) as Array<{ id: string; requester_person_id: string; created_at: string }>;
+
+    // Notes written to the host in their person threads.
+    const [asLo, asHi] = await Promise.all([
+      supabase.from('person_threads').select('id').eq('person_lo', pid).limit(50),
+      supabase.from('person_threads').select('id').eq('person_hi', pid).limit(50),
+    ]);
+    const threadIds = [
+      ...((asLo.data ?? []) as Array<{ id: string }>).map((t) => String(t.id)),
+      ...((asHi.data ?? []) as Array<{ id: string }>).map((t) => String(t.id)),
+    ];
+    let noteRows: Array<{ id: string; sender_person_id: string; body: string; created_at: string }> = [];
+    if (threadIds.length > 0) {
+      const { data: notes } = await supabase
+        .from('person_messages')
+        .select('id, sender_person_id, body, created_at')
+        .in('thread_id', threadIds)
+        .neq('sender_person_id', pid)
+        .is('hidden_at', null)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      noteRows = (notes ?? []) as typeof noteRows;
+    }
+
+    // First names for everyone referenced.
+    const otherIds = Array.from(new Set([
+      ...reqRows.map((r) => r.requester_person_id),
+      ...noteRows.map((n) => n.sender_person_id),
+    ]));
+    const nameById = new Map<string, string>();
+    if (otherIds.length > 0) {
+      const { data: ppl } = await supabase.from('people').select('id, display_name').in('id', otherIds);
+      for (const p of (ppl ?? []) as Array<{ id: string; display_name: string | null }>) {
+        const first = String(p.display_name ?? '').trim().split(/\s+/)[0];
+        nameById.set(String(p.id), first || 'Someone');
+      }
+    }
+
+    for (const r of reqRows) {
+      items.push({
+        id: `circle-req-${r.id}`,
+        kind: 'circle',
+        category: 'cohost',
+        label: `${nameById.get(r.requester_person_id) ?? 'Someone'} would keep you in their circle`,
+        href: '/dashboard/circle',
+        createdAt: r.created_at,
+      });
+    }
+    for (const n of noteRows) {
+      items.push({
+        id: `circle-note-${n.id}`,
+        kind: 'circle',
+        category: 'replies',
+        label: `A note from ${nameById.get(n.sender_person_id) ?? 'your circle'}`,
+        preview: String(n.body ?? '').slice(0, 80),
+        href: '/dashboard/circle',
+        createdAt: n.created_at,
+      });
+    }
+  } catch { /* tables missing on this deployment — silent skip */ }
   return items;
 }

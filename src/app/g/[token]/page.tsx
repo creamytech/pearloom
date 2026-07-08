@@ -630,7 +630,15 @@ export default async function PersonalGuestPage({
       {/* Your circle — the light friend layer. Self-hides until the
           guest opts in above AND there's someone to connect with. */}
       <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
-        <YourCircleCard token={token} accent={accent} headingFont={headingFont} />
+        {/* S5 — after the day, the circle card becomes the keepsake
+            moment ("keep the people from this day"); the card itself
+            samples the clock (React Compiler: no Date.now in render). */}
+        <YourCircleCard
+          token={token}
+          accent={accent}
+          headingFont={headingFont}
+          eventDateIso={manifest.logistics?.date ?? null}
+        />
       </section>
 
       {celebrations.length > 0 && (

@@ -2706,6 +2706,47 @@ function AddGuestDialog({
     history: Array<{ domain: string; names: string[]; occasion: string | null; status: string | null }>;
     dietary: string | null;
   } | null>(null);
+  /* Weave in from your circle (SOCIAL-PLAN S3) — one tap adds a
+     mutual connection to THIS guest list; no retyped address, and
+     the email never crosses the wire (the person id is the anchor,
+     resolved server-side by /api/guests/from-person). */
+  const [circle, setCircle] = useState<Array<{ firstName: string; personId: string }>>([]);
+  const [circleBusy, setCircleBusy] = useState<string | null>(null);
+  const [woven, setWoven] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('/api/friends', { cache: 'no-store', signal: ctrl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { optedIn?: boolean; friends?: Array<{ firstName: string; personId?: string }> } | null) => {
+        if (!d?.optedIn) return;
+        setCircle((d.friends ?? []).flatMap((f) => (f.personId ? [{ firstName: f.firstName, personId: f.personId }] : [])));
+      })
+      .catch(() => { /* the circle is a nicety */ });
+    return () => ctrl.abort();
+  }, []);
+  async function weaveIn(personId: string) {
+    if (circleBusy) return;
+    setCircleBusy(personId);
+    setError(null);
+    try {
+      const r = await fetch('/api/guests/from-person', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, personId }),
+      });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean } | null;
+      if (r.ok && d?.ok) {
+        setWoven((prev) => new Set(prev).add(personId));
+        onAdded();
+      } else {
+        setError('Could not weave them in — try again.');
+      }
+    } catch {
+      setError('Could not weave them in — check your connection.');
+    } finally {
+      setCircleBusy(null);
+    }
+  }
 
   useEffect(() => {
     const e = email.trim().toLowerCase();
@@ -2855,6 +2896,36 @@ function AddGuestDialog({
               : 'We’ll mark them as pending — Pear can email when you’re ready, or they can RSVP through the link.'}
           </p>
         </div>
+
+        {circle.length > 0 && (
+          <div>
+            <div style={{ ...MONO_STYLE, fontSize: 9, letterSpacing: '0.2em', color: PD.olive, textTransform: 'uppercase', marginBottom: 7 }}>
+              From your circle
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {circle.map((f) => {
+                const done = woven.has(f.personId);
+                return (
+                  <button
+                    key={f.personId}
+                    type="button"
+                    disabled={done || circleBusy === f.personId}
+                    onClick={() => void weaveIn(f.personId)}
+                    style={{
+                      padding: '6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                      border: `1px solid ${done ? PD.olive : 'rgba(31,36,24,0.16)'}`,
+                      background: done ? 'var(--pl-olive-mist, #E0DDC9)' : PD.paper2,
+                      color: done ? PD.olive : PD.ink,
+                      cursor: done ? 'default' : 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {done ? `✓ ${f.firstName}` : circleBusy === f.personId ? 'Weaving…' : `+ ${f.firstName}`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* One guest / a couple — two rows added together. */}
         <div role="radiogroup" aria-label="Guest or couple" style={{ display: 'flex', gap: 6 }}>

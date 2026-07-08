@@ -447,12 +447,27 @@ interface CircleState {
 }
 
 export function YourCircleCard({
-  token, accent, headingFont,
+  token, accent, headingFont, eventDateIso = null,
 }: {
   token: string;
   accent: string;
   headingFont: string;
+  /** SOCIAL-PLAN S5 — the post-event add-to-circle moment. After
+   *  the day, the same consent-first card reframes as the keepsake:
+   *  "keep the people from this day." Every guest is a latent
+   *  circle member, seeded by a real shared day. */
+  eventDateIso?: string | null;
 }) {
+  /* Clock sampled once per mount (lazy init) — the React Compiler
+     contract; a stale midnight boundary is fine for a day-passed
+     framing. */
+  const [nowMs] = useState(() => Date.now());
+  const eventPassed = (() => {
+    const d = eventDateIso?.trim();
+    if (!d) return false;
+    const ms = Date.parse(d);
+    return Number.isFinite(ms) && ms < nowMs - 86_400_000;
+  })();
   const [state, setState] = useState<CircleState | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -525,10 +540,12 @@ export function YourCircleCard({
     <div style={cardShell}>
       <Eyebrow accent={accent}>Your circle</Eyebrow>
       <div style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--ink, #0E0D0B)', marginBottom: 4 }}>
-        People you&apos;ve woven in.
+        {eventPassed ? 'Keep the people from this day.' : 'People you\u2019ve woven in.'}
       </div>
       <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 16px' }}>
-        First names only, both sides always choose, off whenever you like.
+        {eventPassed
+          ? 'The day is woven; the people don\u2019t have to unravel. First names only, both sides always choose.'
+          : 'First names only, both sides always choose, off whenever you like.'}
       </p>
 
       {/* Requests addressed to you — accept or set aside. */}

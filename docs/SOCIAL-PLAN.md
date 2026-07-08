@@ -138,8 +138,23 @@ Ordered by leverage. Each is scoped to ~1–2 Fable-5 sessions.
   accepts on first sign-in, and both see each other in their circle
   with first-name-only visibility. Tests pin the consent gate.
 
-### Phase S2 — Threads: conversation beyond the event
+### Phase S2 — Threads: conversation beyond the event — **SHIPPED 2026-07-08**
 *Goal: message anyone in your circle, not just within one site.*
+
+> **Status:** person-pair threads live end-to-end. Design pick: a NEW
+> pair (`person_threads`, lo<hi-keyed so a pair can never fork, with
+> `kind` reserving 'crew') + `person_messages` (4000-char bound,
+> `hidden_at` retraction) — `site_messages` untouched (migration
+> `20260708_person_threads.sql`, APPLIED to prod + recorded, advisors
+> clean). `src/lib/threads.ts` re-verifies the ACCEPTED friendship
+> before every read AND write (never trusts a client); orderPair is
+> unit-pinned. `/api/threads` (session-authed via resolvePersonId):
+> list / ?with= messages / send / hide-own. UI: the thread lives in
+> the Circle's person card — "YOUR THREAD", bubbles + composer,
+> 25s poll while open (the BroadcastBar cadence; Realtime pings stay
+> the named upgrade). *Deferred, honestly:* CREW threads (schema is
+> ready; needs a members table + celebration-roster seeding) and
+> Pear-in-thread (@Pear drafting — /api/pear-chat mount, additive).
 
 - **Generalize the DM.** Today `site_messages` requires a `site_id`.
   Introduce a person-pair thread (either `site_id` nullable + a
@@ -161,8 +176,21 @@ Ordered by leverage. Each is scoped to ~1–2 Fable-5 sessions.
   delivery, a crew thread spans two sibling events, and Pear can draft
   into a thread. Moderation/hide parity with the host thread.
 
-### Phase S3 — Weave-in: the circle pays you back *(the retention loop)*
+### Phase S3 — Weave-in: the circle pays you back *(the retention loop)* — **SHIPPED 2026-07-08**
 *Goal: the more you use Pearloom, the faster the next event is to fill.*
+
+> **Status:** the from-person primitive generalized to the GUEST LIST
+> — `/api/guests/from-person` (owner-gated, dedup by person then
+> case-insensitive email, mints the passport token, links person_id;
+> the address never crosses the wire — the id is the anchor). Two
+> doors: the Add-Guest dialog's "FROM YOUR CIRCLE" chip row (one tap
+> per person, ✓ feedback) and the Circle page's "Add to an event"
+> (now writes the guest list — the universal concept — instead of the
+> split-only participant; the split picker keeps its own endpoint).
+> Reciprocal recognition already existed ("familiar face" chip +
+> post-event mutual add, see S5). *Not done:* the wizard has no guest
+> step in its current 9-step shape (nothing to wire); Studio send
+> pulls from the guest list already, which weave-in now feeds.
 
 This is the single highest-leverage phase — it's the network effect
 *and* it's pure convenience (on-brand).
@@ -179,8 +207,20 @@ This is the single highest-leverage phase — it's the network effect
   list from their circle without typing an address, and measured
   time-to-first-invite on event #2 drops materially vs. event #1.
 
-### Phase S4 — The connective tissue
+### Phase S4 — The connective tissue — **SHIPPED (core) 2026-07-08**
 *Goal: it feels like one calm product, not four bolted-on surfaces.*
+
+> **Status:** the bell speaks circle. `fetchCircleFeed` (feed.ts) —
+> PERSON-scoped next to the site feed: connection requests waiting +
+> notes written to the host in their threads, deterministic ids +
+> row timestamps so read-state sticks, first names only, two bounded
+> sources capped at 10 each (a trickle, never a feed). Merged into
+> `/api/dashboard/notifications` alongside site items; new 'circle'
+> kind (sage tint) in the bell. *Deferred:* the "someone you've
+> celebrated with is hosting" nudge (needs a per-circle published-
+> site signal — expensive, design it with S5 metrics), in-thread
+> presence (opt-in polish), and the cross-celebration roster (partly
+> served by Phase-5 shared roster).
 
 - **Unified circle notifications** in the existing bell: connection
   requests, new thread messages, "someone you've celebrated with is
@@ -195,8 +235,20 @@ This is the single highest-leverage phase — it's the network effect
 - **Done when:** every social event routes through one notification
   model with sticky read-state, and there is still no global feed.
 
-### Phase S5 — Growth loops that don't sell the brand out
+### Phase S5 — Growth loops that don't sell the brand out — **SHIPPED (core) 2026-07-08**
 *Goal: organic growth from real celebration, zero dark patterns.*
+
+> **Status:** the post-event moment ships — after the day (+1 grace
+> day), the passport's YourCircleCard reframes as the keepsake:
+> "Keep the people from this day. / The day is woven; the people
+> don't have to unravel." (same consent-first mechanics, clock
+> sampled lazily per the Compiler contract). **Invite = the funnel is
+> live end-to-end** via S1 + ONBOARDING O3: email invite → person
+> row → first sign-in → the ADDRESSED arrival + sealed-envelope
+> requests in the welcome flow. *Deliberately not built:* contact
+> import (revisit consent-first only if the graph needs it — it may
+> never). *To measure:* post-event add-to-circle opt-in rate + the
+> S3 time-to-first-invite delta (product_events has the rails).
 
 - **Post-event add-to-circle.** After a celebration, "add the people you
   just celebrated with" (opt-in, mutual, first-names). This is the

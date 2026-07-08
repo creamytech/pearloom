@@ -17,7 +17,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
-type NotificationKind = 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor' | 'split';
+type NotificationKind = 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry' | 'vendor' | 'split' | 'circle';
 
 interface Notification {
   id: string;
@@ -64,6 +64,7 @@ const KIND_ICON: Record<NotificationKind, string> = {
   registry: 'gift',
   vendor: 'calendar',
   split: 'users',
+  circle: 'users',
 };
 const KIND_TINT: Record<NotificationKind, string> = {
   rsvp: 'var(--sage-tint)',
@@ -74,6 +75,7 @@ const KIND_TINT: Record<NotificationKind, string> = {
   registry: 'var(--peach-bg)',
   vendor: 'var(--peach-bg)',
   split: 'var(--peach-bg)',
+  circle: 'var(--sage-tint)',
 };
 const KIND_INK: Record<NotificationKind, string> = {
   rsvp: 'var(--sage-deep)',
@@ -84,6 +86,7 @@ const KIND_INK: Record<NotificationKind, string> = {
   registry: 'var(--peach-ink)',
   vendor: 'var(--peach-ink)',
   split: 'var(--peach-ink)',
+  circle: 'var(--sage-deep)',
 };
 
 export function NotificationBell() {

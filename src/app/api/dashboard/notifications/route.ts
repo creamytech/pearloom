@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { fetchNotificationFeed } from '@/lib/notifications/feed';
+import { fetchNotificationFeed, fetchCircleFeed } from '@/lib/notifications/feed';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +51,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ items: [], unread: 0, latestAt: null, seenAt: null });
     }
 
-    const items = await fetchNotificationFeed(supabase, siteId, since);
+    /* Site activity + the host's PERSON-scoped circle items
+       (connection requests, notes) — merged into one calm feed
+       (SOCIAL-PLAN S4: one notification model, sticky read-state). */
+    const [siteItems, circleItems] = await Promise.all([
+      fetchNotificationFeed(supabase, siteId, since),
+      fetchCircleFeed(supabase, session.user.email, since),
+    ]);
+    const items = [...siteItems, ...circleItems]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     // Server-side read state — cross-device. Missing row = never
     // opened the bell for this site.
