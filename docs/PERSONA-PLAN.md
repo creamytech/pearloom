@@ -691,9 +691,13 @@ tokens (themes are host-chosen). Rewriting brand vocabulary in prose
 > a 'whisper' event with route; "Woven in — thank you." (4) THE
 > VIEWS — `20260708_first_session_funnel.sql`: first_session_funnel
 > (daily step counts + distinct actors), whispers_feed,
-> client_errors_feed (grouped). **APPLY PENDING: the Supabase MCP
-> connection needs re-auth — apply to prod + record in
-> _pearloom_migrations next session.** (5) Session-replay decision
+> client_errors_feed (grouped). APPLIED to prod 2026-07-08 once the
+> MCP connection returned — plus `20260708_funnel_views_invoker.sql`
+> (the advisor flagged all three views as SECURITY DEFINER, which
+> would have bypassed product_events' deny-anon RLS through
+> PostgREST; security_invoker + anon/authenticated revokes fix it —
+> advisors back to the single known INFO, and the funnel view
+> already returns live rows). (5) Session-replay decision
 > logged in §6 (no vendor; reasons there). Leftover: the bell digest
 > line for whispers (read whispers_feed directly during testing).
 > vitest 1246/1246.
@@ -809,9 +813,10 @@ Testing begins when every line is true. Check them off in place.
       + screenshots archived in docs/audit-shots/personas/)
 
 **Instrumentation (blocks learning anything):**
-- [x] S8 funnel events live — the beacons fire end-to-end; the
-      convenience views (`20260708_first_session_funnel.sql`) await
-      one prod apply (Supabase MCP re-auth), raw SQL works meanwhile
+- [x] S8 funnel events live — beacons fire end-to-end AND the views
+      are applied to prod (2026-07-08, with security_invoker
+      hardening after the advisor flagged them; advisors clean, the
+      funnel view already returns live rows)
 - [ ] Client error capture live *(shipped)* — baseline error rate
       still needs its one-week recording window before testers arrive
 - [x] Whisper pill live on host surfaces
