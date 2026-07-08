@@ -542,6 +542,23 @@ export default function EditorRedesign({
       setActive(null);
       if (viewportMobileRef.current) setMobileSheet('theme');
     };
+    /* Photo focus — the canvas Reframe drag commits a focal point
+       per release. URL-keyed on manifest.photoFocus; data: URLs are
+       refused (base64 keys would bloat the manifest and orphan on
+       stripArtForStorage). Values clamp to 0–100. */
+    const onSetPhotoFocus = (e: Event) => {
+      const d = (e as CustomEvent).detail as { url?: string; x?: number; y?: number } | undefined;
+      if (!d?.url || d.url.startsWith('data:')) return;
+      if (typeof d.x !== 'number' || typeof d.y !== 'number' || !Number.isFinite(d.x) || !Number.isFinite(d.y)) return;
+      const x = Math.max(0, Math.min(100, d.x));
+      const y = Math.max(0, Math.min(100, d.y));
+      const prior = manifestRef.current;
+      const priorFocus = (prior as unknown as { photoFocus?: Record<string, { x: number; y: number }> }).photoFocus ?? {};
+      setManifestRef.current({
+        ...(prior as unknown as Record<string, unknown>),
+        photoFocus: { ...priorFocus, [d.url]: { x, y } },
+      } as unknown as StoryManifest);
+    };
     /* Pear Picks — a section's Content tab asks Pear to populate it
        with rich, ready-to-place suggestion cards (FAQ / Travel /
        Details). Opens the modal. */
@@ -558,11 +575,13 @@ export default function EditorRedesign({
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
     window.addEventListener('pearloom:open-picks', onOpenPicks);
     window.addEventListener('pearloom:toggle-preview', onTogglePreview);
+    window.addEventListener('pearloom:set-photo-focus', onSetPhotoFocus);
     return () => {
       window.removeEventListener('pearloom:design-jump', onJump);
       window.removeEventListener('pearloom:open-theme-rail', onOpenTheme);
       window.removeEventListener('pearloom:open-picks', onOpenPicks);
       window.removeEventListener('pearloom:toggle-preview', onTogglePreview);
+      window.removeEventListener('pearloom:set-photo-focus', onSetPhotoFocus);
       (window as any).__plPearApply = undefined;
     };
     // setActive/setMode/setMobileSheet/setPicksKind are stable state

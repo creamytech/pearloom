@@ -328,6 +328,12 @@ export interface StoryManifest {
    *  GalleryPanel reindexes this map when a photo is removed so captions
    *  stay attached to the right photo. */
   galleryCaptions?: Record<string, string>;
+  /** Per-photo focal points for cover-cropped slots, keyed by photo
+   *  URL — object-position percentages (0–100), written by the
+   *  editor's Reframe drag and read by FadeInImage via
+   *  PhotoFocusProvider (redesign/photo-focus.tsx). data: URLs are
+   *  never stored here. */
+  photoFocus?: Record<string, { x: number; y: number }>;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
   // Legacy renderer version flag — preserved for older DB rows + any

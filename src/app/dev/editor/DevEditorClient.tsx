@@ -47,13 +47,18 @@ function DevEditorInner() {
   // variants so empty/full layouts are verifiable in the editor
   // canvas (mirrors /dev/site's knob).
   const layoutsParam = params.get('layouts');
+  // QA hook: `?cover=/assets/….png` seeds a cover photo (local
+  // public asset — the sandbox blocks external images) so photo
+  // slots + the Reframe drag are verifiable without an upload.
+  const cover = params.get('cover');
   const manifest = useMemo<StoryManifest>(() => {
     const base = REFERENCE_MANIFEST as StoryManifest;
-    if (!occasion && !blank && !theme && !blocks && !layoutsParam) return base;
+    if (!occasion && !blank && !theme && !blocks && !layoutsParam && !cover) return base;
     const next: Record<string, unknown> = {
       ...(base as unknown as Record<string, unknown>),
       ...(occasion ? { occasion } : {}),
       ...(theme ? { themeId: theme } : {}),
+      ...(cover ? { coverPhoto: cover } : {}),
     };
     if (theme) delete next.themeVars;
     if (blocks) {
@@ -71,7 +76,7 @@ function DevEditorInner() {
     }
     if (blank) for (const f of BLANK_STRIPPED_FIELDS) delete next[f];
     return next as unknown as StoryManifest;
-  }, [occasion, blank, theme, blocks, layoutsParam]);
+  }, [occasion, blank, theme, blocks, layoutsParam, cover]);
 
   return (
     <EditorRedesign

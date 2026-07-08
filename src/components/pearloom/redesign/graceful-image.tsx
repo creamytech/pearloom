@@ -19,6 +19,7 @@
    ────────────────────────────────────────────────────────────── */
 
 import { useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { usePhotoFocus } from './photo-focus';
 
 export function usePrefersReducedMotion(): boolean {
   return useSyncExternalStore(
@@ -99,6 +100,10 @@ export function FadeInImage({
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const reduced = usePrefersReducedMotion();
+  /* Host-set focal point (manifest.photoFocus via ThemedSite's
+     provider) — cover-cropping keeps the subject instead of the
+     blind center. Undefined = browser default (50% 50%). */
+  const focus = usePhotoFocus(src);
   /* SSR / cache guard — if the browser finished the image before
      React attached (server-rendered markup, cached asset), onLoad
      never fires; the ref callback checks .complete at attach time. */
@@ -134,6 +139,7 @@ export function FadeInImage({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            ...(focus ? { objectPosition: focus } : {}),
             opacity: loaded ? 1 : 0,
             transition: reduced ? 'none' : 'opacity 400ms var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
             ...imgStyle,

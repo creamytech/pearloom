@@ -21,7 +21,9 @@
 */
 
 import { useId, useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { FadeInImage, usePrefersReducedMotion } from './graceful-image';
+import { PhotoFocusProvider, commitPhotoFocus } from './photo-focus';
 import { FoilGradient, letterpressShadow } from '@/components/brand/pressed';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
@@ -225,7 +227,19 @@ const noop = () => {};
 const INLINE_GHOST_CSS =
   '[contenteditable].pl8-inline-ghost:empty::before{content:attr(aria-label);opacity:0.38;font-style:italic;pointer-events:none;}';
 
-export function ThemedSite({
+export function ThemedSite(props: Props) {
+  /* Photo focal points ride a context so FadeInImage (the shared
+     photo atom) can honor manifest.photoFocus everywhere — editor
+     canvas and published site — without threading a prop through
+     every section variant. */
+  return (
+    <PhotoFocusProvider manifest={props.manifest}>
+      <ThemedSiteInner {...props} />
+    </PhotoFocusProvider>
+  );
+}
+
+function ThemedSiteInner({
   active = null,
   setActive = noop,
   editable = false,
@@ -5449,32 +5463,204 @@ function EditPhotoTarget({
   children: ReactNode;
   style?: CSSProperties;
 }) {
+  /* Reframe mode — drag the photo inside its frame to set its
+     focal point (manifest.photoFocus). Hooks before the editable
+     early-return (rules of hooks). */
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [reframing, setReframing] = useState(false);
+  const canReframe = !!slot.current && !slot.current.startsWith('data:');
   if (!editable) return <>{children}</>;
   return (
     <div
+      ref={wrapRef}
       className="pl-photo-edit"
+      data-reframing={reframing ? '' : undefined}
       role="button"
       tabIndex={0}
-      title="Change photo"
+      title={reframing ? undefined : 'Change photo'}
       onClick={(e) => {
         e.stopPropagation();
+        if (reframing) return;
         try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
       }}
       onKeyDown={(e) => {
+        if (reframing) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
         }
       }}
-      style={{ position: 'relative', cursor: 'pointer', ...style }}
+      style={{ position: 'relative', cursor: reframing ? 'default' : 'pointer', ...style }}
     >
       {children}
       <span aria-hidden className="pl-photo-edit-hint">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
         Change photo
       </span>
+      {canReframe && !reframing && (
+        <button
+          type="button"
+          className="pl-photo-reframe-btn"
+          title="Reframe — drag the photo inside its frame"
+          onClick={(e) => { e.stopPropagation(); setReframing(true); }}
+        >
+          <ReframeGlyph />
+          Reframe
+        </button>
+      )}
+      {reframing && slot.current && (
+        <ReframeOverlay
+          url={slot.current}
+          getContainer={() => wrapRef.current}
+          onExit={() => setReframing(false)}
+        />
+      )}
     </div>
   );
+}
+
+/* ─── ReframeOverlay — the drag-to-reframe surface ────────────────
+   Covers the photo while reframing: dragging moves the image inside
+   its frame (live via img.style.objectPosition, rAF-coalesced) and
+   commits ONCE per release through pearloom:set-photo-focus (one
+   undo entry, one save — the grain-slider rule). The overlay only
+   moves an axis the image actually overflows. Exits on ✓ Done or
+   any pointer-down outside the photo. ──────────────────────────── */
+
+function ReframeGlyph() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3v18M3 12h18" />
+      <path d="m9.5 5.5 2.5-2.5 2.5 2.5M9.5 18.5l2.5 2.5 2.5-2.5M5.5 9.5 3 12l2.5 2.5M18.5 9.5 21 12l-2.5 2.5" />
+    </svg>
+  );
+}
+
+function ReframeOverlay({ url, getContainer, onExit }: {
+  url: string;
+  getContainer: () => HTMLElement | null;
+  onExit: () => void;
+}) {
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setHost(getContainer());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* Exit on pointer-down outside the photo (containment check, same
+     pattern as the layout popover). */
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      const el = getContainer();
+      if (el && e.target instanceof Node && el.contains(e.target)) return;
+      onExit();
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const drag = useRef<{
+    startX: number; startY: number;
+    posX: number; posY: number;
+    overX: number; overY: number;
+    curX: number; curY: number;
+    img: HTMLImageElement;
+    raf: number;
+  } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const container = getContainer();
+    const img = container?.querySelector('img');
+    if (!container || !img || !img.naturalWidth) return;
+    const rect = img.getBoundingClientRect();
+    const scale = Math.max(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+    const overX = img.naturalWidth * scale - rect.width;
+    const overY = img.naturalHeight * scale - rect.height;
+    /* Current object-position percentages (computed resolves the
+       browser default 50% 50% when nothing is set). */
+    const m = /([\d.]+)%\s+([\d.]+)%/.exec(getComputedStyle(img).objectPosition);
+    const posX = m ? parseFloat(m[1]) : 50;
+    const posY = m ? parseFloat(m[2]) : 50;
+    drag.current = { startX: e.clientX, startY: e.clientY, posX, posY, overX, overY, curX: posX, curY: posY, img, raf: 0 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    /* Dragging the image right shows more of its LEFT — the
+       object-position percentage moves opposite the pointer. */
+    d.curX = d.overX > 1 ? clampPct(d.posX - ((e.clientX - d.startX) / d.overX) * 100) : d.posX;
+    d.curY = d.overY > 1 ? clampPct(d.posY - ((e.clientY - d.startY) / d.overY) * 100) : d.posY;
+    if (!d.raf) {
+      d.raf = requestAnimationFrame(() => {
+        d.raf = 0;
+        d.img.style.objectPosition = `${d.curX}% ${d.curY}%`;
+      });
+    }
+  };
+  const onPointerUp = () => {
+    const d = drag.current;
+    if (!d) return;
+    if (d.raf) cancelAnimationFrame(d.raf);
+    d.img.style.objectPosition = `${d.curX}% ${d.curY}%`;
+    drag.current = null;
+    if (d.curX !== d.posX || d.curY !== d.posY) {
+      commitPhotoFocus({ url, x: Math.round(d.curX * 10) / 10, y: Math.round(d.curY * 10) / 10 });
+    }
+  };
+
+  if (!host) return null;
+  return createPortal(
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: 'absolute', inset: 0, zIndex: 108,
+        cursor: 'grab', touchAction: 'none',
+        /* The mode's frame — a dashed gold basting line, inset. */
+        outline: '1.5px dashed var(--pl-gold, #C19A4B)',
+        outlineOffset: -6,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+          padding: '4px 11px', borderRadius: 999, whiteSpace: 'nowrap',
+          background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',
+          fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11, fontWeight: 600,
+          WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',
+          pointerEvents: 'none',
+        }}
+      >
+        Drag the photo to reframe it
+      </span>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onExit(); }}
+        onPointerDown={(e) => e.stopPropagation()}
+        style={{
+          position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '7px 14px', borderRadius: 999, border: 'none',
+          background: 'var(--pl-olive, #5C6B3F)', color: 'var(--pl-cream, #FBF7EE)',
+          fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11.5, fontWeight: 700,
+          cursor: 'pointer', boxShadow: '0 8px 20px -8px rgba(40,28,12,0.5)',
+        }}
+      >
+        ✓ Done
+      </button>
+    </div>,
+    host,
+  );
+}
+
+function clampPct(v: number): number {
+  return Math.max(0, Math.min(100, v));
 }
 
 /* ─── EditPhotoCorner — for full-bleed photo surfaces where a scrim +
@@ -5483,28 +5669,65 @@ function EditPhotoTarget({
    "Change photo" chip in the corner instead. Editable-only; same
    `pearloom:open-photo` dispatch + slot contract. ──────────────── */
 function EditPhotoCorner({ editable, slot }: { editable: boolean; slot: CanvasPhotoSlotDetail }) {
+  const anchorRef = useRef<HTMLSpanElement | null>(null);
+  const [reframing, setReframing] = useState(false);
   if (!editable) return null;
   const open = () => {
     try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
   };
+  const canReframe = !!slot.current && !slot.current.startsWith('data:');
+  const chip: CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '7px 12px', borderRadius: 999, border: 'none',
+    background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',
+    fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11.5, fontWeight: 700,
+    cursor: 'pointer', WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',
+  };
   return (
-    <button
-      type="button"
-      title="Change photo"
-      onClick={(e) => { e.stopPropagation(); open(); }}
+    <span
+      ref={anchorRef}
       style={{
         // 106: editor chrome rides above the z-100 paper grain.
         position: 'absolute', top: 14, right: 14, zIndex: 106,
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '7px 12px', borderRadius: 999, border: 'none',
-        background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',
-        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11.5, fontWeight: 700,
-        cursor: 'pointer', WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',
+        display: 'inline-flex', gap: 6,
       }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
-      Change photo
-    </button>
+      {!reframing && (
+        <>
+          {canReframe && (
+            <button
+              type="button"
+              title="Reframe — drag the photo inside its frame"
+              onClick={(e) => { e.stopPropagation(); setReframing(true); }}
+              style={chip}
+            >
+              <ReframeGlyph />
+              Reframe
+            </button>
+          )}
+          <button
+            type="button"
+            title="Change photo"
+            onClick={(e) => { e.stopPropagation(); open(); }}
+            style={chip}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
+            Change photo
+          </button>
+        </>
+      )}
+      {reframing && slot.current && (
+        <ReframeOverlay
+          url={slot.current}
+          /* The corner chip anchors inside the photo surface — the
+             overlay portals into that surface so inset-0 covers the
+             whole image (a scrim/content stack rides on top; z 108
+             clears it). */
+          getContainer={() => anchorRef.current?.parentElement ?? null}
+          onExit={() => setReframing(false)}
+        />
+      )}
+    </span>
   );
 }
 
