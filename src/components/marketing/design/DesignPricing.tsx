@@ -285,7 +285,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                 onClick={onGetStarted}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                {t.price === 0 ? 'Begin a thread' : `Choose ${t.name}`} <Pearl size={8} />
+                {t.price === 0 ? 'Create your site' : `Choose ${t.name}`} <Pearl size={8} />
               </PLButton>
               </div>
             </div>

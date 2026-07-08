@@ -157,7 +157,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
               Sign in
             </Link>
             <PLButton variant="pearl" size="sm" className="pd-nav-cta" onClick={onGetStarted}>
-              Begin a thread <Pearl size={8} />
+              Create your site <Pearl size={8} />
             </PLButton>
             <button
               className="pd-nav-burger"
@@ -266,7 +266,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
               onGetStarted();
             }}
           >
-            Begin a thread <Pearl size={8} />
+            Create your site <Pearl size={8} />
           </PLButton>
         </div>
       </div>

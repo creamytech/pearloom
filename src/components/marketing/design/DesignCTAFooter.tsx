@@ -188,7 +188,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               color: PD.ink,
             }}
           >
-            Begin a{' '}
+            Start your{' '}
             <span
               style={{
                 fontStyle: 'italic',
@@ -196,7 +196,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              thread.
+              celebration.
             </span>
           </h2>
           <p
@@ -214,7 +214,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
-              Begin a thread <Pearl size={9} />
+              Create your site <Pearl size={9} />
             </PLButton>
             <PLButton
               variant="ghost"

@@ -20,11 +20,11 @@ const QS = [
   },
   {
     q: 'Can I use my own domain?',
-    a: 'Not yet. Every site lives at a clean pearloom.com address — pearloom.com/wedding/your-names — on every tier, with HTTPS automatic. Custom domains are on the loom; when they ship, Atelier and Legacy hosts get them included.',
+    a: 'Not yet. Every site lives at a clean pearloom.com address — pearloom.com/wedding/your-names — on every tier, with HTTPS automatic. Custom domains are in the works; when they ship, Atelier and Legacy hosts get them included.',
   },
   {
     q: 'What happens on the day of the event?',
-    a: 'Pearloom becomes a room. Announcements push to guests. Voice toasts collect in a moderated stream. The run-of-show sits beside the seating plan and the live photo wall. If something drifts off schedule, Pear re-threads it quietly.',
+    a: 'Pearloom becomes a room. Announcements push to guests. Voice toasts collect in a moderated stream. The run-of-show sits beside the seating plan and the live photo wall. If something drifts off schedule, Pear quietly sets it right.',
   },
   {
     q: 'What happens after?',

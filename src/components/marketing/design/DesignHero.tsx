@@ -138,7 +138,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
               aria-label="Your names"
             />
             <PLButton variant="pearl" size="md" onClick={submit}>
-              Start your loom <Pearl size={9} />
+              Create your site <Pearl size={9} />
             </PLButton>
           </div>
 

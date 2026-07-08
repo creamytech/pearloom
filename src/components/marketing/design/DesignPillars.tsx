@@ -60,7 +60,7 @@ const PILLARS: Pillar[] = [
     id: 'keepsake',
     name: 'Keepsake',
     sub: 'Relive it all, beautifully.',
-    body: 'Photos, video and notes woven into a private, Pear-curated album that lasts.',
+    body: 'Photos, video and notes gathered into a private, Pear-curated album that lasts.',
     accent: '#C19A4B',
     Icon: Images,
   },
