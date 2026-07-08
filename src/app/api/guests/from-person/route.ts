@@ -18,6 +18,7 @@ import { authOptions } from '@/lib/auth';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { guestTokenColumns } from '@/lib/guest-tokens';
+import { sendGuestInviteEmail } from '@/lib/email/guest-invite';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,9 @@ function getSupabase(): SupabaseClient | null {
 interface PostBody {
   siteId?: string;
   personId?: string;
+  /** Email them their personal invite on add (same sender as the
+   *  Add Guest dialog — lib/email/guest-invite). */
+  sendInvite?: boolean;
 }
 
 export async function POST(req: NextRequest) {
@@ -108,11 +112,23 @@ export async function POST(req: NextRequest) {
       ...guestTokenColumns(),
       created_at: new Date().toISOString(),
     })
-    .select('id, name')
+    .select('id, name, guest_token')
     .single();
   if (error || !data) {
     console.error('[guests/from-person] insert failed:', error?.message);
     return NextResponse.json({ ok: false, error: 'Could not add the guest.' }, { status: 500 });
+  }
+  // The weave-in sends the SAME personal invite the Add Guest dialog
+  // does (the walk found circle adds silently skipped it). Opt-out
+  // via sendInvite:false; fire-and-forget, never blocks the add.
+  if (body.sendInvite !== false) {
+    void sendGuestInviteEmail(sb, {
+      siteId,
+      guestId: String(data.id),
+      guestName: name,
+      guestEmail: email,
+      guestToken: (data as { guest_token?: string }).guest_token ?? null,
+    });
   }
   return NextResponse.json({ ok: true, added: true, guest: { id: String(data.id), name: String(data.name ?? name) } }, { status: 201 });
 }

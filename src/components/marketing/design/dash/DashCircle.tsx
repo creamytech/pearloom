@@ -190,7 +190,7 @@ export function DashCircle() {
       });
       const d = (await r.json().catch(() => null)) as { ok?: boolean; added?: boolean } | null;
       setNote(r.ok && d?.ok
-        ? (d.added === false ? 'Already on that guest list.' : `Woven into ${siteDisplayName(site)} — they're on the guest list.`)
+        ? (d.added === false ? 'Already on that guest list.' : `Woven into ${siteDisplayName(site)} — their invite is on its way.`)
         : 'Could not add — check the event.');
     } catch {
       setNote('Could not add — check your connection.');

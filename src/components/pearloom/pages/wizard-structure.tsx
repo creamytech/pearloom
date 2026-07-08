@@ -226,7 +226,12 @@ export function WizardStructureSection({
     });
     ro.observe(node);
     return () => ro.disconnect();
-  }, [stage]);
+    /* pressKey in the deps ON PURPOSE: the stage div re-keys on
+       every look pick (the re-press animation), which REMOUNTS the
+       node — an observer bound only on [stage] keeps watching the
+       orphaned old node and the new one never reports a width
+       (the blank-pressing bug after a fitting-room visit). */
+  }, [stage, pressKey]);
 
   const sealAccent = paletteColors?.[1] || 'var(--pl-olive, #5C6B3F)';
   const sealInitials = `${(names[0] ?? '').trim().charAt(0) || 'A'}${(names[1] ?? '').trim() ? '·' + names[1].trim().charAt(0) : ''}`.toUpperCase();
@@ -287,11 +292,14 @@ export function WizardStructureSection({
                     real layout height — the window scrolls like a
                     phone. Supported in all evergreen browsers. */}
                 {stage ? (
-                  stageWidth > 0 && (
-                    <div style={{ width: STAGE_W, zoom: stageWidth / STAGE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                      <ThemedSite manifest={manifest} names={stableNames} demoCopy={!proof} proof={proof} />
-                    </div>
-                  )
+                  /* Never render NOTHING while the width settles —
+                     an unmeasured beat renders at natural scale and
+                     corrects the moment the observer reports (the
+                     stage previously blanked whenever the width
+                     read 0). */
+                  <div style={{ width: STAGE_W, zoom: (stageWidth > 0 ? stageWidth : STAGE_W) / STAGE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
+                    <ThemedSite manifest={manifest} names={stableNames} demoCopy={!proof} proof={proof} />
+                  </div>
                 ) : (
                   <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
                     <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy={!proof} proof={proof} />

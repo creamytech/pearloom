@@ -7,6 +7,7 @@ import { linkGuestRowToPerson } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { isSuppressed } from '@/lib/email/suppression';
+import { sendGuestInviteEmail } from '@/lib/email/guest-invite';
 
 export const dynamic = 'force-dynamic';
 
@@ -234,48 +235,16 @@ export async function POST(req: NextRequest) {
 
     // Email them their personal invite — only when the host opted in
     // (the Add Guest dialog's "Email them their invite" toggle) and
-    // an email is present. Fire-and-forget, key-gated; never blocks
-    // the add. Stamps email_sent_at so the roster shows it went out.
-    if (sendInvite && data?.email && process.env.RESEND_API_KEY) {
-      void (async () => {
-        try {
-          // Honor opt-outs / bounces even on the add-a-guest send.
-          if (await isSuppressed(supabase, String(data.email), siteId)) return;
-          const { data: site } = await supabase
-            .from('sites')
-            .select('subdomain, site_config, ai_manifest')
-            .eq('id', siteId)
-            .maybeSingle();
-          if (!site) return;
-          const cfg = (site.site_config as { names?: [string, string]; occasion?: string } | null) ?? {};
-          const occasion = (site.ai_manifest as { occasion?: string } | null)?.occasion ?? cfg.occasion;
-          const names = (cfg.names ?? []).filter(Boolean);
-          const coupleDisplay = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'Our celebration');
-          const { buildSiteUrl } = await import('@/lib/site-urls');
-          const base = buildSiteUrl(String(site.subdomain), '', undefined, occasion);
-          const token = (data as { guest_token?: string }).guest_token;
-          const personalUrl = token ? `${base}?g=${encodeURIComponent(token)}` : base;
-          const { buildGuestInviteEmail } = await import('@/lib/email/brand-emails');
-          const { subject, html } = buildGuestInviteEmail({
-            guestName: String(data.name ?? name),
-            coupleDisplay,
-            personalUrl,
-          });
-          const { Resend } = await import('resend');
-          await new Resend(process.env.RESEND_API_KEY).emails.send({
-            from: `${coupleDisplay} <invites@pearloom.com>`,
-            to: String(data.email),
-            subject,
-            html,
-            text: htmlToText(html),
-            headers: listUnsubHeaders({ email: String(data.email), siteId, channel: 'guest-invite' }),
-            tags: [{ name: 'channel', value: 'guest-invite' }, { name: 'site_id', value: String(siteId) }],
-          });
-          await supabase.from('guests').update({ email_sent_at: new Date().toISOString() }).eq('id', data.id);
-        } catch (e) {
-          console.warn('[api/guests] invite email failed (non-fatal):', e);
-        }
-      })();
+    // an email is present. Shared sender (lib/email/guest-invite) so
+    // the circle weave-in door sends the identical invite.
+    if (sendInvite && data?.email) {
+      void sendGuestInviteEmail(supabase, {
+        siteId,
+        guestId: String(data.id),
+        guestName: String(data.name ?? name),
+        guestEmail: String(data.email),
+        guestToken: (data as { guest_token?: string }).guest_token ?? null,
+      });
     }
 
     return NextResponse.json({

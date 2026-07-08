@@ -2732,7 +2732,7 @@ function AddGuestDialog({
       const r = await fetch('/api/guests/from-person', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, personId }),
+        body: JSON.stringify({ siteId, personId, sendInvite }),
       });
       const d = (await r.json().catch(() => null)) as { ok?: boolean } | null;
       if (r.ok && d?.ok) {
