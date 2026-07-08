@@ -982,6 +982,10 @@ export function DashGuests() {
      yet, surfaced as a plain sentence. */
   const [smsState, setSmsState] = useState<'idle' | 'armed' | 'sending'>('idle');
   const [smsNote, setSmsNote] = useState<string | null>(null);
+  /* "Request addresses" — emails the /a/ collection link to every
+     guest with an inbox but no mailing address (the link existed
+     for months with no send path — email audit 2026-07-08). */
+  const [addrState, setAddrState] = useState<'idle' | 'armed' | 'sending'>('idle');
   const [addOpen, setAddOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   // Per-guest invite-link sharing (copy / email / text / QR).
@@ -1191,6 +1195,29 @@ export function DashGuests() {
       setSmsState('idle');
     }
   };
+  const sendAddressRequests = async () => {
+    if (!site?.id || addrState === 'sending') return;
+    setAddrState('sending');
+    setSmsNote(null);
+    try {
+      const r = await fetch('/api/guests/request-addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: site.id }),
+      });
+      const data = await r.json().catch(() => ({})) as { sent?: number; skipped?: number; noneMissing?: boolean; error?: string };
+      if (!r.ok) throw new Error(data.error ?? `Failed (${r.status})`);
+      setSmsNote(
+        data.noneMissing
+          ? 'Every guest with an email already shared an address.'
+          : `✓ Asked ${data.sent ?? 0} ${data.sent === 1 ? 'guest' : 'guests'} for their address${data.skipped ? ` · ${data.skipped} opted out` : ''}`,
+      );
+    } catch (err) {
+      setSmsNote(err instanceof Error ? err.message : 'The send failed.');
+    } finally {
+      setAddrState('idle');
+    }
+  };
   /* A guest's personal invite link — site URL + their ?g= token.
      Opening it shows the addressed envelope, auto-recognizes them
      in the RSVP modal, and passes the invitation-only gate. */
@@ -1289,6 +1316,20 @@ export function DashGuests() {
                     ? [{ key: 'copy-guests', label: 'Copy from another event', disabled: !site?.id, onSelect: () => setCopyOpen(true) }]
                     : []),
                   ...(hasGuests ? [{ key: 'copy-links', label: 'Copy links', onSelect: () => { void copyAllLinks(); } }] : []),
+                  ...(hasGuests
+                    ? [{
+                        key: 'addresses',
+                        label: addrState === 'sending' ? 'Asking…'
+                          : addrState === 'armed' ? 'Email everyone missing one?'
+                          : 'Request addresses',
+                        disabled: addrState === 'sending',
+                        keepOpen: true,
+                        onSelect: () => {
+                          if (addrState === 'armed') { setAddrState('idle'); void sendAddressRequests(); }
+                          else { setAddrState('armed'); setSmsNote(null); window.setTimeout(() => setAddrState((cur) => (cur === 'armed' ? 'idle' : cur)), 4000); }
+                        },
+                      }]
+                    : []),
                 ]}
               />
             </>

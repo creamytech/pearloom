@@ -81,9 +81,17 @@ export async function GET(req: NextRequest) {
 
       // Per-category prefs — digest carries only digest-mode
       // categories. Instant ones already landed as alerts; 'off'
-      // means off.
+      // means off. EXCEPT the derived kinds (vendor dues, split
+      // expenses): they have no write-moment, so no instant alert
+      // ever fires for them — the digest is their only road to
+      // email. They ride along unless the category is off
+      // (email audit 2026-07-08).
       const prefs = await getNotificationPrefs(sb, ownerEmail);
-      const digestItems = items.filter((i) => prefs[i.category]?.emailMode === 'digest');
+      const digestItems = items.filter((i) => {
+        const mode = prefs[i.category]?.emailMode;
+        if (i.kind === 'vendor' || i.kind === 'split') return mode !== 'off';
+        return mode === 'digest';
+      });
       if (digestItems.length === 0) { skipped++; continue; }
 
       // One per site per day.

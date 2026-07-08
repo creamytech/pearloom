@@ -68,6 +68,7 @@ function buildEmailHtml(opts: {
      shared emailLayout shell — same contract as every other send
      (it used to be a hand-rolled, unthemed one-off). */
   const { coupleDisplay, recapUrl, photoCount, messageCount, theme } = opts;
+  const cadenceUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com')}/dashboard/cadence`;
   const t = theme;
   const counts = `${photoCount} photo${photoCount === 1 ? '' : 's'} · ${messageCount} message${messageCount === 1 ? '' : 's'}`;
   return emailLayout(`
@@ -86,9 +87,13 @@ function buildEmailHtml(opts: {
       ${button('Open your memory book', recapUrl, t)}
     </td></tr>
     <tr><td style="padding:0 36px 40px;text-align:center">
-      <p style="font-size:13.5px;font-style:italic;margin:0;opacity:0.8">
+      <p style="font-size:13.5px;font-style:italic;margin:0 0 14px;opacity:0.8">
         The page keeps weaving as more guests upload — come back on
         every anniversary.
+      </p>
+      <p style="font-size:13px;margin:0;opacity:0.85">
+        And your guests deserve a word of thanks — the note is
+        already drafted: <a href="${esc(cadenceUrl)}" style="text-decoration:underline;color:inherit">review &amp; send it</a>.
       </p>
     </td></tr>
   `, t);

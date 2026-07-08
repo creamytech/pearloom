@@ -205,6 +205,60 @@ export async function POST(req: NextRequest) {
       const msg = result.error === 'self' ? 'That’s your own address' : 'Could not send the invitation';
       return NextResponse.json({ ok: false, error: msg }, { status: result.error === 'self' ? 400 : 500 });
     }
+
+    /* The invitation actually reaches their inbox (email audit
+       2026-07-08) — before this, an email invite was silently
+       filed and the person only discovered it on their next
+       sign-in. Same one-tap claim link the SMS path carries;
+       consent unchanged (they still accept). Fire-and-forget. */
+    void (async () => {
+      try {
+        const resendKey = process.env.RESEND_API_KEY;
+        if (!resendKey) return;
+        const { isSuppressed } = await import('@/lib/email/suppression');
+        if (await isSuppressed(sb, email)) return;
+        const minted = await createCircleInvite(sb, { fromPersonId: personId, email, name });
+        const inviterFirst = (session?.user?.name ?? '').trim().split(/\s+/)[0] || 'A friend';
+        const link = minted.ok && minted.token
+          ? `${getAppOrigin()}/signup?circle=${encodeURIComponent(minted.token)}`
+          : `${getAppOrigin()}/signup`;
+        const first = name?.trim().split(/\s+/)[0];
+        const { emailLayout, button } = await import('@/lib/email-sequences');
+        const escT = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const html = emailLayout(`
+          <tr><td style="padding:44px 36px 0;text-align:center">
+            <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;opacity:0.75">Your circle awaits</p>
+            <h1 style="font-size:30px;font-weight:400;font-style:italic;margin:0 0 14px;line-height:1.2">${escT(inviterFirst)} keeps you in their circle.</h1>
+            ${first ? `<p style="font-size:14.5px;margin:0 0 10px">Dear <em>${escT(first)}</em>,</p>` : ''}
+            <p style="font-size:15px;line-height:1.7;margin:0">
+              On Pearloom, a circle is the people you celebrate with —
+              the ones who show up. ${escT(inviterFirst)} added you to
+              theirs. One tap and you're woven in.
+            </p>
+          </td></tr>
+          <tr><td style="padding:24px 36px 44px;text-align:center">
+            ${button('Join their circle', link)}
+          </td></tr>
+        `);
+        const { listUnsubHeaders, htmlToText } = await import('@/lib/email/deliverability');
+        const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [email],
+            subject: `${inviterFirst} wants you in their circle`,
+            html,
+            text: htmlToText(html),
+            headers: listUnsubHeaders({ email, channel: 'circle' }),
+          }),
+        }).catch((e) => console.warn('[friends] circle invite email failed (non-fatal):', e));
+      } catch (err) {
+        console.warn('[friends] circle invite email failed (non-fatal):', err);
+      }
+    })();
+
     return NextResponse.json({ ok: true, status: result.status, channel: 'email' });
   }
 

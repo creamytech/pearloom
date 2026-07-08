@@ -5,10 +5,6 @@
       "schedule": "*/10 * * * *"
     },
     {
-      "path": "/api/cron/email",
-      "schedule": "*/5 * * * *"
-    },
-    {
       "path": "/api/cron/film",
       "schedule": "*/10 * * * *"
     },
