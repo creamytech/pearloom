@@ -670,7 +670,19 @@ that's B.2 and explicitly keeps today's real-site behavior.
 
 ---
 
-### B.2 — Weekend events (Tier 2: cheaper real sites) · status: not started (armed) · P2
+### B.2 — Weekend events (Tier 2: cheaper real sites) · **status: SHIPPED 2026-07-08** · P2
+
+> Shipped: every weekend site now runs the wizard's own pipeline —
+> applyTemplateToManifest (template wins) → applyWizardLook (fills
+> the canonical look fields the renderer reads) →
+> seedSectionsFromWizard({}) (occasion-correct fill-missing seeds:
+> FAQ, derived RSVP deadline). Both proved server-safe (pure lib
+> modules, no client APIs). And the route now promotes the shared
+> string to the FIRST-CLASS Celebration: syncCelebration +
+> linkSiteCelebration run after the create loop (failure-tolerant;
+> the manifest string stays the authoritative fallback projection,
+> per the helpers' own contract). Pinned by a 4th route test
+> (look stamp + rsvpDeadline seed on every created site).
 
 ```
 ## Active focus — B.2 · Weekend events — real sites, cheaper to make, properly linked
@@ -976,12 +988,21 @@ path (adding an EXISTING friend to an event) is untouched.
 
 ---
 
-### C.5 — Realtime chat · status: not started (armed) · P2
-<!-- Note for the executing session: the local dev DB is a dummy
-     (NEXT_PUBLIC_SUPABASE_URL=dummy.supabase.co), so Realtime
-     cannot be verified locally — plan on prod-adjacent
-     verification, and remember 20260708_circle_invites.sql is
-     ALSO still waiting for a prod apply (Supabase MCP re-auth). -->
+### C.5 — Realtime chat · **status: SHIPPED 2026-07-08** · P2
+
+> Shipped via the HOUSE pattern, not postgres_changes: content-free
+> pings on a broadcast channel (the exact site_messages mechanism —
+> useMessagePings from lib/messages-realtime.ts, already
+> prod-proven). Both thread parties are clients, so the sender
+> fires ping() after a successful POST and the other side refetches
+> through its own authed API call; no bodies or identities ride the
+> channel, so the anon key + a derivable channel name leak nothing.
+> Pair channel: pl-pair-<lo>-<hi> (sorted person ids; /api/friends
+> GET now returns `me` so the client can derive it). Crew channel:
+> pl-crew-<threadId>. The 25s poll STAYS as the keyless-deploy /
+> dropped-socket fallback, exactly as the block required. Local
+> realtime is unverifiable by design (dummy local Supabase URL) —
+> the pattern is the same one already live for event messaging.
 
 ```
 ## Active focus — C.5 · Threads stop polling, start feeling like chat
@@ -1027,7 +1048,28 @@ pair thread only.
 
 ---
 
-### C.6 — Group threads (stretch) · status: not started · P3
+### C.6 — Group threads (stretch) · **status: SHIPPED 2026-07-08** · P3
+
+> Shipped: the reserved kind, actually built — and the audit found
+> the reservation was a fiction: person_lo/hi were NOT NULL, so a
+> crew row could not exist. Migration 20260708_crew_threads.sql
+> (APPLIED to prod + recorded; advisors clean) relaxes lo/hi with a
+> kind-shape check (pair rows carry both persons, crew rows
+> neither), adds title + created_by, and creates
+> crew_thread_members (deny-anon RLS). lib/threads.ts grows the
+> crew layer in the pair idiom: createCrewThread (every member
+> re-verified as the CREATOR's accepted friend server-side, cap
+> 16), isCrewMember gating every read/write, listCrewMessages
+> (group bubbles carry senderFirst — first names only),
+> sendCrewMessage, listCrews (title + member names + last note).
+> /api/threads: GET ?crew=, GET list now returns crews + me, POST
+> action:'create-crew' / {crewThreadId, body}. Circle UI: a YOUR
+> CREWS panel — crew cards, a start-a-crew composer (name + friend
+> chips), and the group thread with sender labels, wired to
+> realtime pings + the 25s poll fallback. Verified live with the
+> authed harness: panel + card + group thread + sender labels
+> render; the create payload carries exactly the picked member
+> ids. vitest 1260/1260.
 
 ```
 ## Active focus — C.6 · Crew threads — the reserved kind, finally built

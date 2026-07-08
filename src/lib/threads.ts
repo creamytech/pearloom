@@ -234,3 +234,210 @@ export async function listThreads(sb: SupabaseClient, personId: string): Promise
     return [];
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Crew threads (GRAND-PLAN-2 C.6) — the reserved kind, built.
+//
+// A CREW is a small named group thread ("Bach weekend crew")
+// assembled ONLY from the creator's accepted friends — no feed,
+// no discovery, no strangers, same as the pair contract. Members
+// live in crew_thread_members; every read/write re-verifies
+// membership (never trusted from a client). First names only
+// leave this module.
+// ─────────────────────────────────────────────────────────────
+
+const CREW_MAX_MEMBERS = 16;
+
+/** True when the person belongs to the crew — the gate in front
+ *  of every crew read/write. */
+export async function isCrewMember(sb: SupabaseClient, threadId: string, personId: string): Promise<boolean> {
+  if (!UUID_RX.test(threadId) || !UUID_RX.test(personId)) return false;
+  try {
+    const { data } = await sb
+      .from('crew_thread_members')
+      .select('thread_id')
+      .eq('thread_id', threadId)
+      .eq('person_id', personId.toLowerCase())
+      .maybeSingle();
+    return Boolean(data);
+  } catch (err) {
+    console.warn('[threads] isCrewMember failed:', err);
+    return false;
+  }
+}
+
+/** Create a named crew from the creator's ACCEPTED friends only —
+ *  each member is re-verified against the friend graph here, not
+ *  trusted from the client. The creator is always a member. */
+export async function createCrewThread(
+  sb: SupabaseClient,
+  opts: { creatorId: string; title: string; memberIds: string[] },
+): Promise<{ ok: boolean; crewId?: string; error?: string }> {
+  const title = opts.title?.trim().slice(0, 80);
+  if (!title) return { ok: false, error: 'title' };
+  const members = Array.from(new Set(
+    (opts.memberIds ?? [])
+      .map((m) => String(m).toLowerCase())
+      .filter((m) => UUID_RX.test(m) && m !== opts.creatorId.toLowerCase()),
+  ));
+  if (members.length < 1) return { ok: false, error: 'members' };
+  if (members.length > CREW_MAX_MEMBERS - 1) return { ok: false, error: 'too_many' };
+
+  // Every member must be an accepted friend of the CREATOR.
+  const checks = await Promise.all(members.map((m) => isAcceptedPair(sb, opts.creatorId, m)));
+  if (checks.some((okPair) => !okPair)) return { ok: false, error: 'not_connected' };
+
+  try {
+    const { data: thread, error } = await sb
+      .from('person_threads')
+      .insert({ kind: 'crew', title, created_by: opts.creatorId.toLowerCase() })
+      .select('id')
+      .single();
+    if (error || !thread) {
+      console.warn('[threads] createCrewThread insert failed:', error?.message);
+      return { ok: false, error: 'unavailable' };
+    }
+    const crewId = String(thread.id);
+    const rows = [opts.creatorId.toLowerCase(), ...members].map((person_id) => ({
+      thread_id: crewId,
+      person_id,
+    }));
+    const { error: memberErr } = await sb.from('crew_thread_members').insert(rows);
+    if (memberErr) {
+      console.warn('[threads] crew member insert failed:', memberErr.message);
+      return { ok: false, error: 'members_insert' };
+    }
+    return { ok: true, crewId };
+  } catch (err) {
+    console.warn('[threads] createCrewThread failed:', err);
+    return { ok: false, error: 'internal' };
+  }
+}
+
+export interface CrewMessage extends ThreadMessage {
+  /** Who said it — needed in a group, first name only. */
+  senderFirst: string;
+}
+
+/** A crew's conversation, oldest → newest — membership-gated. */
+export async function listCrewMessages(
+  sb: SupabaseClient,
+  opts: { threadId: string; personId: string; limit?: number },
+): Promise<CrewMessage[]> {
+  if (!(await isCrewMember(sb, opts.threadId, opts.personId))) return [];
+  try {
+    const { data: rows } = await sb
+      .from('person_messages')
+      .select('id, sender_person_id, body, created_at')
+      .eq('thread_id', opts.threadId)
+      .is('hidden_at', null)
+      .order('created_at', { ascending: false })
+      .limit(Math.min(opts.limit ?? 80, 160));
+    const msgs = ((rows ?? []) as Array<{ id: string; sender_person_id: string; body: string; created_at: string }>).reverse();
+    const senderIds = Array.from(new Set(msgs.map((m) => String(m.sender_person_id))));
+    const { data: ppl } = senderIds.length > 0
+      ? await sb.from('people').select('id, display_name').in('id', senderIds)
+      : { data: [] };
+    const nameById = new Map((ppl ?? []).map((p) => [String(p.id), firstNameOf(p.display_name)]));
+    return msgs.map((m) => ({
+      id: String(m.id),
+      mine: String(m.sender_person_id).toLowerCase() === opts.personId.toLowerCase(),
+      senderFirst: nameById.get(String(m.sender_person_id)) ?? 'A friend',
+      body: String(m.body),
+      createdAt: String(m.created_at),
+    }));
+  } catch (err) {
+    console.warn('[threads] listCrewMessages failed:', err);
+    return [];
+  }
+}
+
+/** Send into a crew — membership-gated. */
+export async function sendCrewMessage(
+  sb: SupabaseClient,
+  opts: { threadId: string; personId: string; body: string },
+): Promise<{ ok: boolean; error?: string }> {
+  const body = opts.body?.trim().slice(0, 4000);
+  if (!body) return { ok: false, error: 'empty' };
+  if (!(await isCrewMember(sb, opts.threadId, opts.personId))) {
+    return { ok: false, error: 'not_member' };
+  }
+  try {
+    const { error } = await sb.from('person_messages').insert({
+      thread_id: opts.threadId,
+      sender_person_id: opts.personId.toLowerCase(),
+      body,
+    });
+    return error ? { ok: false, error: 'insert' } : { ok: true };
+  } catch (err) {
+    console.warn('[threads] sendCrewMessage failed:', err);
+    return { ok: false, error: 'internal' };
+  }
+}
+
+export interface CrewSummary {
+  crewId: string;
+  title: string;
+  /** Member first names (including the caller), capped. */
+  members: string[];
+  lastBody: string | null;
+  lastAt: string | null;
+}
+
+/** The caller's crews, most recently active first. */
+export async function listCrews(sb: SupabaseClient, personId: string): Promise<CrewSummary[]> {
+  if (!UUID_RX.test(personId)) return [];
+  try {
+    const pid = personId.toLowerCase();
+    const { data: mine } = await sb
+      .from('crew_thread_members')
+      .select('thread_id')
+      .eq('person_id', pid)
+      .limit(30);
+    const ids = Array.from(new Set((mine ?? []).map((r) => String(r.thread_id))));
+    if (ids.length === 0) return [];
+
+    const [{ data: threads }, { data: memberRows }, lasts] = await Promise.all([
+      sb.from('person_threads').select('id, title').in('id', ids).eq('kind', 'crew'),
+      sb.from('crew_thread_members').select('thread_id, person_id').in('thread_id', ids).limit(400),
+      Promise.all(ids.map((id) =>
+        sb.from('person_messages')
+          .select('body, created_at')
+          .eq('thread_id', id)
+          .is('hidden_at', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      )),
+    ]);
+    const memberIds = Array.from(new Set((memberRows ?? []).map((r) => String(r.person_id))));
+    const { data: ppl } = memberIds.length > 0
+      ? await sb.from('people').select('id, display_name').in('id', memberIds)
+      : { data: [] };
+    const nameById = new Map((ppl ?? []).map((p) => [String(p.id), firstNameOf(p.display_name)]));
+    const membersByThread = new Map<string, string[]>();
+    for (const r of memberRows ?? []) {
+      const t = String(r.thread_id);
+      const arr = membersByThread.get(t) ?? [];
+      if (arr.length < 12) arr.push(nameById.get(String(r.person_id)) ?? 'A friend');
+      membersByThread.set(t, arr);
+    }
+
+    const out: CrewSummary[] = [];
+    (threads ?? []).forEach((t) => {
+      const idx = ids.indexOf(String(t.id));
+      const last = idx >= 0 ? (lasts[idx]?.data as { body?: string; created_at?: string } | null) : null;
+      out.push({
+        crewId: String(t.id),
+        title: String(t.title ?? 'A crew'),
+        members: membersByThread.get(String(t.id)) ?? [],
+        lastBody: last?.body ? String(last.body).slice(0, 120) : null,
+        lastAt: last?.created_at ? String(last.created_at) : null,
+      });
+    });
+    return out.sort((a, b) => (b.lastAt ?? '').localeCompare(a.lastAt ?? ''));
+  } catch (err) {
+    console.warn('[threads] listCrews failed:', err);
+    return [];
+  }
+}

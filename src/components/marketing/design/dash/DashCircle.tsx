@@ -28,10 +28,14 @@ import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { EmptyState } from '@/components/shell/EmptyState';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
+import { useMessagePings } from '@/lib/messages-realtime';
 
 interface CircleState {
   available: boolean;
   optedIn: boolean;
+  /** The caller's own people-graph id — derives the symmetric
+   *  pair-thread ping channel (GRAND-PLAN-2 C.5). */
+  me?: string;
   friends: Array<{ firstName: string; personId?: string }>;
   incoming: Array<{ firstName: string; otherId: string }>;
   outgoing: Array<{ firstName: string; otherId: string }>;
@@ -72,6 +76,15 @@ export function DashCircle() {
   /* Last-note previews for the friend grid — one GET /api/threads
      on load; absent entries render the "no notes yet" line. */
   const [previews, setPreviews] = useState<Map<string, ThreadPreview>>(new Map());
+  /* Crews (C.6) — named group threads with circle friends. */
+  const [crews, setCrews] = useState<Array<{ crewId: string; title: string; members: string[]; lastBody: string | null }>>([]);
+  const [crewOpen, setCrewOpen] = useState<string | null>(null);
+  const [crewMsgs, setCrewMsgs] = useState<Array<{ id: string; mine: boolean; senderFirst: string; body: string; createdAt: string }>>([]);
+  const [crewDraft, setCrewDraft] = useState('');
+  const [crewErr, setCrewErr] = useState<string | null>(null);
+  const [crewComposer, setCrewComposer] = useState(false);
+  const [crewTitle, setCrewTitle] = useState('');
+  const [crewPicks, setCrewPicks] = useState<Set<string>>(new Set());
   /* The person card — one open at a time, fetched on demand. */
   const [cardFor, setCardFor] = useState<string | null>(null);
   const [card, setCard] = useState<PersonCardData | null>(null);
@@ -92,8 +105,81 @@ export function DashCircle() {
       if (r.ok && d?.ok && d.threads) {
         setPreviews(new Map(d.threads.map((t) => [t.otherId, { lastBody: t.lastBody, theirs: t.theirs }])));
       }
+      const withCrews = d as (typeof d & { crews?: Array<{ crewId: string; title: string; members: string[]; lastBody: string | null }> }) | null;
+      if (r.ok && withCrews?.ok && Array.isArray(withCrews.crews)) setCrews(withCrews.crews);
     } catch { /* previews are a nicety */ }
   }, []);
+
+  const loadCrew = useCallback(async (crewId: string) => {
+    try {
+      const r = await fetch(`/api/threads?crew=${encodeURIComponent(crewId)}`, { cache: 'no-store' });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; messages?: typeof crewMsgs } | null;
+      if (r.ok && d?.ok) setCrewMsgs(d.messages ?? []);
+    } catch { /* keep prior */ }
+  }, []);
+  useEffect(() => {
+    if (!crewOpen) return;
+    const t = window.setInterval(() => void loadCrew(crewOpen), 25_000);
+    return () => window.clearInterval(t);
+  }, [crewOpen, loadCrew]);
+  const pingCrew = useMessagePings(crewOpen ? `pl-crew-${crewOpen}` : null, () => {
+    if (crewOpen) void loadCrew(crewOpen);
+  });
+
+  async function sendCrewNote() {
+    const body = crewDraft.trim();
+    if (!body || !crewOpen || busy === 'crew-note') return;
+    setBusy('crew-note');
+    setCrewErr(null);
+    try {
+      const r = await fetch('/api/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crewThreadId: crewOpen, body }),
+      });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (r.ok && d?.ok) {
+        setCrewDraft('');
+        await loadCrew(crewOpen);
+        pingCrew();
+      } else {
+        setCrewErr(d?.error ?? 'Could not send.');
+      }
+    } catch {
+      setCrewErr('Could not send — check your connection.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function startCrew() {
+    if (busy === 'crew-create' || !crewTitle.trim() || crewPicks.size === 0) return;
+    setBusy('crew-create');
+    setCrewErr(null);
+    try {
+      const r = await fetch('/api/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create-crew', title: crewTitle.trim(), memberPersonIds: [...crewPicks] }),
+      });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; crewId?: string } | null;
+      if (r.ok && d?.ok && d.crewId) {
+        setCrewComposer(false);
+        setCrewTitle('');
+        setCrewPicks(new Set());
+        await loadPreviews();
+        setCrewOpen(d.crewId);
+        setCrewMsgs([]);
+        void loadCrew(d.crewId);
+      } else {
+        setCrewErr(d?.error ?? 'Could not start the crew.');
+      }
+    } catch {
+      setCrewErr('Could not start the crew — check your connection.');
+    } finally {
+      setBusy(null);
+    }
+  }
 
   const loadThread = useCallback(async (otherId: string) => {
     try {
@@ -107,6 +193,19 @@ export function DashCircle() {
     const t = window.setInterval(() => void loadThread(cardFor), 25_000);
     return () => window.clearInterval(t);
   }, [cardFor, loadThread]);
+  /* C.5 — instant delivery. Content-free pings on a symmetric
+     pair channel (the site_messages house pattern): a ping means
+     "refetch through your own authed API call"; no bodies, no
+     identities ride the channel, so the anon key + a derivable
+     channel name leak nothing. The 25s poll above stays as the
+     keyless-deploy / dropped-socket fallback. */
+  const me = state?.me;
+  const pairChannel = cardFor && me
+    ? `pl-pair-${[me.toLowerCase(), cardFor.toLowerCase()].sort().join('-')}`
+    : null;
+  const pingThread = useMessagePings(pairChannel, () => {
+    if (cardFor) void loadThread(cardFor);
+  });
 
   async function sendNote() {
     const body = draft.trim();
@@ -123,6 +222,7 @@ export function DashCircle() {
       if (r.ok && d?.ok) {
         setDraft('');
         await loadThread(cardFor);
+        pingThread(); // the other side refetches instantly (C.5)
         // Keep the grid preview honest without a full refetch.
         setPreviews((prev) => new Map(prev).set(cardFor, { lastBody: body.slice(0, 120), theirs: false }));
       } else {
@@ -143,6 +243,7 @@ export function DashCircle() {
       setState({
         available: Boolean(d.available),
         optedIn: Boolean(d.optedIn),
+        me: typeof d.me === 'string' ? d.me : undefined,
         friends: d.friends ?? [],
         incoming: d.incoming ?? [],
         outgoing: d.outgoing ?? [],
@@ -547,6 +648,176 @@ export function DashCircle() {
                 </div>
               )}
             </Panel>
+
+            {/* ── Crews (C.6) — named group threads with circle
+                   friends. Shown once the host HAS friends to crew
+                   with, or already belongs to one. ─────────────── */}
+            {(crews.length > 0 || state.friends.filter((f) => f.personId).length >= 1) && (
+              <Panel style={{ padding: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ ...monoLabel, marginBottom: 0 }}>YOUR CREWS{crews.length > 0 ? ` · ${crews.length}` : ''}</div>
+                  <button
+                    type="button"
+                    style={btnMini}
+                    onClick={() => { setCrewComposer((v) => !v); setCrewErr(null); }}
+                  >
+                    {crewComposer ? 'Cancel' : 'Start a crew'}
+                  </button>
+                </div>
+                <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 0', maxWidth: 520, lineHeight: 1.55 }}>
+                  A small named thread — the bach weekend, the planning committee — with people already in your circle.
+                </div>
+
+                {crewComposer && (
+                  <div style={{ marginTop: 14, padding: '14px 16px', borderRadius: 'var(--r-md, 20px)', background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)' }}>
+                    <input
+                      type="text"
+                      value={crewTitle}
+                      onChange={(e) => setCrewTitle(e.target.value)}
+                      placeholder="Name the crew — “Bach weekend crew”"
+                      maxLength={80}
+                      style={{
+                        width: '100%', padding: '9px 12px', borderRadius: 10, fontSize: 13,
+                        border: '1px solid rgba(31,36,24,0.16)', background: PD.paper, color: PD.ink,
+                        outline: 'none', fontFamily: 'inherit', marginBottom: 10,
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                      {state.friends.filter((f) => f.personId).map((f) => {
+                        const picked = crewPicks.has(f.personId!);
+                        return (
+                          <button
+                            key={f.personId}
+                            type="button"
+                            aria-pressed={picked}
+                            onClick={() => setCrewPicks((prev) => {
+                              const n = new Set(prev);
+                              if (n.has(f.personId!)) n.delete(f.personId!); else n.add(f.personId!);
+                              return n;
+                            })}
+                            style={{
+                              ...chip,
+                              cursor: 'pointer',
+                              background: picked ? PD.olive : PD.paper,
+                              color: picked ? '#F5EFE2' : PD.ink,
+                              borderColor: picked ? PD.olive : 'rgba(31,36,24,0.14)',
+                            }}
+                          >
+                            {f.firstName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      style={btnInk}
+                      disabled={busy === 'crew-create' || !crewTitle.trim() || crewPicks.size === 0}
+                      onClick={() => void startCrew()}
+                    >
+                      {busy === 'crew-create' ? 'Weaving…' : `Start with ${crewPicks.size || 'your'} ${crewPicks.size === 1 ? 'friend' : 'friends'}`}
+                    </button>
+                  </div>
+                )}
+
+                {crews.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginTop: 14 }}>
+                    {crews.map((cr) => {
+                      const open = crewOpen === cr.crewId;
+                      return (
+                        <button
+                          key={cr.crewId}
+                          type="button"
+                          aria-expanded={open}
+                          onClick={() => {
+                            if (open) { setCrewOpen(null); setCrewMsgs([]); return; }
+                            setCrewOpen(cr.crewId);
+                            setCrewMsgs([]);
+                            setCrewErr(null);
+                            void loadCrew(cr.crewId);
+                          }}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8,
+                            padding: 16, textAlign: 'left',
+                            background: PD.paperCard,
+                            border: open ? `1.5px solid ${PD.gold}` : '1px solid rgba(31,36,24,0.12)',
+                            borderRadius: 'var(--r-md, 20px)',
+                            cursor: 'pointer', fontFamily: 'inherit',
+                            transition: 'border-color 160ms ease',
+                          }}
+                        >
+                          <span style={{ ...DISPLAY_STYLE, fontSize: 17, lineHeight: 1.2, color: PD.ink }}>{cr.title}</span>
+                          <span style={{ fontSize: 11.5, color: PD.inkSoft }}>{cr.members.join(' · ')}</span>
+                          <span style={{ fontSize: 12, color: PD.inkSoft, fontStyle: cr.lastBody ? 'normal' : 'italic' }}>
+                            {cr.lastBody ?? 'Nothing yet. Begin a thread.'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* The open crew's thread — group bubbles carry the
+                    sender's first name. */}
+                {crewOpen && (
+                  <div style={{ marginTop: 14, padding: '16px 18px', borderRadius: 'var(--r-md, 20px)', background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)' }}>
+                    {crewMsgs.length === 0 ? (
+                      <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
+                        Nothing yet. Begin a thread.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 280, overflowY: 'auto', marginBottom: 8 }}>
+                        {crewMsgs.map((m) => (
+                          <div key={m.id} style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+                            {!m.mine && (
+                              <div style={{ ...MONO_STYLE, fontSize: 8, letterSpacing: '0.12em', color: PD.terra, margin: '0 0 2px 4px' }}>
+                                {m.senderFirst.toUpperCase()}
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                padding: '7px 11px', borderRadius: 12,
+                                borderBottomRightRadius: m.mine ? 3 : 12,
+                                borderBottomLeftRadius: m.mine ? 12 : 3,
+                                background: m.mine ? PD.olive : PD.paper,
+                                color: m.mine ? '#F5EFE2' : PD.ink,
+                                border: m.mine ? 'none' : '1px solid rgba(31,36,24,0.10)',
+                                fontSize: 12.5, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                              }}
+                            >
+                              {m.body}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input
+                        type="text"
+                        value={crewDraft}
+                        onChange={(e) => setCrewDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') void sendCrewNote(); }}
+                        placeholder="A note to the crew…"
+                        maxLength={4000}
+                        style={{
+                          flex: 1, padding: '8px 11px', borderRadius: 999, fontSize: 12.5,
+                          border: '1px solid rgba(31,36,24,0.16)', background: PD.paper,
+                          color: PD.ink, outline: 'none', fontFamily: 'inherit',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        style={{ ...btnMini, opacity: crewDraft.trim() ? 1 : 0.5 }}
+                        disabled={busy === 'crew-note' || !crewDraft.trim()}
+                        onClick={() => void sendCrewNote()}
+                      >
+                        {busy === 'crew-note' ? 'Threading…' : 'Send'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {crewErr && <div style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 8 }}>{crewErr}</div>}
+              </Panel>
+            )}
 
             {/* ── 3 · Secondary row — invite + discovery, quieter. ─ */}
             <div

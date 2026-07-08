@@ -32,11 +32,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 import { saveSiteDraft } from '@/lib/db';
 import { applyTemplateToManifest } from '@/lib/templates/apply-template';
 import { getTemplatesForOccasion } from '@/lib/templates/wedding-templates';
 import { weekendArcFor } from '@/lib/event-os/weekend-arcs';
 import { mergeBlockOrder, CORE_BLOCK_ORDER } from '@/lib/event-os/wizard-sections';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { seedSectionsFromWizard } from '@/lib/wizard-seed';
+import { syncCelebration, linkSiteCelebration } from '@/lib/celebrations';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -200,7 +204,16 @@ export async function POST(req: NextRequest) {
       chapters: [],
     } as unknown as StoryManifest;
 
+    /* B.2 — the SAME instant-manifest pipeline the wizard's own
+       handleFinish runs: template theme first (template wins), then
+       the occasion's canonical look defaults (applyWizardLook fills
+       only what's missing — themeId/kit/texture/density/motifs),
+       then the occasion-correct section seeds (FAQ, RSVP deadline —
+       fill-missing, never fabricated). Weekend satellites stop
+       being a half-styled parallel path. */
     let themed = template ? applyTemplateToManifest(baseManifest, template) : baseManifest;
+    themed = applyWizardLook(themed, { occasion: ev.kind });
+    themed = seedSectionsFromWizard(themed, {});
 
     /* The anchor site carries the weekend's moments as itinerary
        days — the exact shape ItineraryPanel edits and the renderer
@@ -238,6 +251,30 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.warn('[celebrations/weekend] failed for', slug, err);
     }
+  }
+
+  /* B.2 — first-class Celebration linking (GRAND-PLAN Pillar 7):
+     promote the shared string to a celebrations row + sites FK via
+     the general-purpose helpers, instead of leaving this route on
+     manifest-string-only linking. Failure-tolerant by design — the
+     manifest.celebration string remains the authoritative fallback
+     projection, exactly as the helpers document. */
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (url && key && created.length > 0) {
+      const sb = createClient(url, key, { auth: { persistSession: false } });
+      const celebRowId = await syncCelebration(sb, {
+        legacyId: celebrationId,
+        name: celebrationName,
+        ownerEmail: session.user.email,
+      });
+      if (celebRowId) {
+        await Promise.all(created.map((s) => linkSiteCelebration(sb, s.slug, celebRowId)));
+      }
+    }
+  } catch (err) {
+    console.warn('[celebrations/weekend] celebration sync failed (non-fatal):', err);
   }
 
   return NextResponse.json({

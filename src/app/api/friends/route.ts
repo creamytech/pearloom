@@ -114,7 +114,10 @@ export async function GET(req: NextRequest) {
   // Discovery only when opted in — mutual, like the guest API.
   const candidates = optedIn ? await hostCandidates(sb, personId) : [];
 
-  return NextResponse.json({ ok: true, available: true, optedIn, friends, incoming, outgoing, candidates });
+  // `me` = the caller's own opaque people-graph id — needed client-
+  // side to derive the symmetric pair-thread ping channel (C.5).
+  // It's the caller's own handle, never someone else's.
+  return NextResponse.json({ ok: true, available: true, optedIn, me: personId, friends, incoming, outgoing, candidates });
 }
 
 interface PostBody {

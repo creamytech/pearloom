@@ -90,6 +90,29 @@ describe('POST /api/celebrations/weekend — two tiers (B.1)', () => {
     expect(rehearsal.manifest.itinerary).toBeUndefined();
   });
 
+  it('runs the wizard pipeline on every created site (B.2 — look + seeds)', async () => {
+    const res = await POST(post({
+      anchor: 'wedding',
+      names: ['Maya', 'Jordan'],
+      anchorDate: '2026-09-06',
+      baseSlug: 'maya-and-jordan',
+      events: [
+        { kind: 'wedding', daysFromAnchor: 0, mode: 'site' },
+        { kind: 'bachelorette-party', daysFromAnchor: -30, mode: 'site' },
+      ],
+    }));
+    expect(res.status).toBe(200);
+    for (const s of h.saved) {
+      // applyWizardLook stamped the canonical look fields the
+      // renderer reads (occasion defaults; template themes win).
+      expect(s.manifest.themeId ?? s.manifest.kitId ?? s.manifest.texture).toBeTruthy();
+      // seedSectionsFromWizard filled occasion-correct seeds —
+      // an RSVP deadline derives from the event date when unset.
+      const logistics = s.manifest.logistics as { rsvpDeadline?: string };
+      expect(logistics.rsvpDeadline).toBeTruthy();
+    }
+  });
+
   it('rejects moments when the anchor site is absent', async () => {
     const res = await POST(post({
       anchor: 'wedding',

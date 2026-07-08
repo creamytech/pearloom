@@ -24,7 +24,7 @@ import { authOptions } from '@/lib/auth';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { resolvePersonId } from '@/lib/people';
-import { listThreads, listMessages, sendMessage, hideOwnMessage } from '@/lib/threads';
+import { listThreads, listMessages, sendMessage, hideOwnMessage, listCrews, listCrewMessages, sendCrewMessage, createCrewThread } from '@/lib/threads';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,15 +57,28 @@ export async function GET(req: NextRequest) {
     const messages = await listMessages(sb, { personId, otherId: withId });
     return NextResponse.json({ ok: true, available: true, messages });
   }
-  const threads = await listThreads(sb, personId);
-  return NextResponse.json({ ok: true, available: true, threads });
+  /* Crew threads (C.6) — membership-gated in the lib. */
+  const crewId = req.nextUrl.searchParams.get('crew');
+  if (crewId) {
+    const messages = await listCrewMessages(sb, { threadId: crewId, personId });
+    return NextResponse.json({ ok: true, available: true, messages });
+  }
+  const [threads, crews] = await Promise.all([
+    listThreads(sb, personId),
+    listCrews(sb, personId),
+  ]);
+  return NextResponse.json({ ok: true, available: true, me: personId, threads, crews });
 }
 
 interface PostBody {
-  action?: 'send' | 'hide';
+  action?: 'send' | 'hide' | 'create-crew';
   otherPersonId?: string;
   body?: string;
   messageId?: string;
+  /** Crew threads (C.6). */
+  crewThreadId?: string;
+  title?: string;
+  memberPersonIds?: string[];
 }
 
 export async function POST(req: NextRequest) {
@@ -89,6 +102,43 @@ export async function POST(req: NextRequest) {
     return ok
       ? NextResponse.json({ ok: true })
       : NextResponse.json({ ok: false, error: 'Could not retract' }, { status: 400 });
+  }
+
+  /* Start a crew (C.6) — members must be the creator's accepted
+     friends; the lib re-verifies every one server-side. */
+  if (body.action === 'create-crew') {
+    const result = await createCrewThread(sb, {
+      creatorId: personId,
+      title: String(body.title ?? ''),
+      memberIds: Array.isArray(body.memberPersonIds) ? body.memberPersonIds.map(String) : [],
+    });
+    if (!result.ok) {
+      const msg = result.error === 'title' ? 'Give the crew a name.'
+        : result.error === 'members' ? 'Pick at least one friend.'
+        : result.error === 'too_many' ? 'Crews cap at 16 people.'
+        : result.error === 'not_connected' ? 'Everyone in a crew has to be in your circle first.'
+        : 'Could not start the crew — try again.';
+      const status = result.error === 'not_connected' ? 403
+        : result.error === 'title' || result.error === 'members' || result.error === 'too_many' ? 400 : 500;
+      return NextResponse.json({ ok: false, error: msg }, { status });
+    }
+    return NextResponse.json({ ok: true, crewId: result.crewId }, { status: 201 });
+  }
+
+  /* Send into a crew (C.6). */
+  if (typeof body.crewThreadId === 'string' && body.crewThreadId) {
+    const result = await sendCrewMessage(sb, {
+      threadId: body.crewThreadId,
+      personId,
+      body: typeof body.body === 'string' ? body.body : '',
+    });
+    if (!result.ok) {
+      const status = result.error === 'not_member' ? 403 : result.error === 'empty' ? 400 : 500;
+      const msg = result.error === 'not_member' ? 'You’re not in that crew.'
+        : result.error === 'empty' ? 'Write something first.' : 'Could not send — try again.';
+      return NextResponse.json({ ok: false, error: msg }, { status });
+    }
+    return NextResponse.json({ ok: true }, { status: 201 });
   }
 
   const otherId = typeof body.otherPersonId === 'string' ? body.otherPersonId : '';
