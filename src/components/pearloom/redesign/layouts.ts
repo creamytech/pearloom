@@ -21,6 +21,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   hero: [
     { id: 'centered',    label: 'Centered',     sub: 'Default scroll' },
     { id: 'split',       label: 'Split',        sub: 'Type left · photo right' },
+    { id: 'spread',      label: 'Editorial',    sub: 'Names off-axis · photo to the edge' },
     { id: 'minimal',     label: 'Minimal',      sub: 'Left-aligned, no photos' },
     { id: 'fullbleed',   label: 'Full photo',   sub: 'Your photo, edge to edge' },
     { id: 'typographic', label: 'Big type',     sub: 'Names stacked, huge type' },

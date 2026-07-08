@@ -7460,6 +7460,21 @@ html { scroll-behavior: smooth; }
     grid-template-columns: 1fr !important;
     gap: clamp(20px, 4vw, 32px) !important;
   }
+  /* Hero spread — single-column stack; the desktop cross-gutter
+     overlap (negative margin-right on the names) is undone, but the
+     off-axis indent on the second name and the edge-bled photo are
+     KEPT — they're the composition, and they read on phones. */
+  .pl8-guest .pl8-hero-spread {
+    grid-template-columns: 1fr !important;
+    row-gap: 26px !important;
+  }
+  .pl8-guest .pl8-hero-spread .pl8-hero-spread-names {
+    margin-right: 0 !important;
+  }
+  .pl8-guest .pl8-hero-spread .pl8-hero-spread-photo {
+    margin-top: 0 !important;
+    width: min(100%, 420px) !important;
+  }
   /* Trim the hero scale CSS var so callsites using
      calc(Npx * var(--t-hero-scale)) shrink on phones. Hero h1s
      also use clamp() — this gives an extra squeeze for the

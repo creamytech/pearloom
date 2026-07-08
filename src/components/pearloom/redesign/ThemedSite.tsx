@@ -1504,6 +1504,7 @@ function blockProps(ctx: SectionCtx, section: Exclude<SectionId, null>) {
 function HeroBlock({ ctx }: { ctx: SectionCtx }) {
   switch (ctx.variants.hero) {
     case 'split':       return <HeroSplit ctx={ctx} />;
+    case 'spread':      return <HeroSpread ctx={ctx} />;
     case 'minimal':     return <HeroMinimal ctx={ctx} />;
     case 'fullbleed':   return <HeroFullbleed ctx={ctx} />;
     case 'typographic': return <HeroTypographic ctx={ctx} />;
@@ -1772,6 +1773,102 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
           ) : (
             <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
           )}
+        </EditPhotoTarget>
+      </div>
+    </div>
+  );
+}
+
+/* HeroSpread — "the Spread" (RADICAL-DESIGN-DIRECTIONS §B, archetype
+   two). Editorial magazine asymmetry: the names set enormous and
+   off-axis (the second name indents and crosses INTO the photo), a
+   single matted, hairline-framed photo that breaks the right margin
+   and bleeds to the page edge, generous void beneath the type. No
+   centered stack anywhere. Mobile collapses via .pl8-hero-spread
+   rules in pearloom.css. */
+function HeroSpread({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, edit } = ctx;
+  const couple = C.subject.type === 'couple';
+  return (
+    <div
+      className="pl8-hero-spread"
+      style={{
+        position: 'relative',
+        /* Right padding 0 — the photo owns that edge. */
+        padding: `clamp(52px, 7vw, ${88 * pad}px) 0 clamp(44px, 5vw, ${64 * pad}px) clamp(22px, 6vw, 76px)`,
+        background: 'var(--t-paper)',
+        overflow: 'hidden',
+        display: 'grid',
+        gridTemplateColumns: '1.05fr 0.95fr',
+        alignItems: 'start',
+        columnGap: 0,
+      }}
+    >
+      <div style={{ position: 'relative', zIndex: 2, textAlign: 'left', paddingTop: 'clamp(8px, 2vw, 28px)' }}>
+        <InlineEdit
+          as="div"
+          value={C.lead}
+          onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="A small forever"
+          style={{ fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10 }}
+        />
+        <h1
+          className="pl8-hero-spread-names"
+          style={{
+            fontFamily: 'var(--t-display)',
+            fontSize: 'clamp(46px, 9.5vw, calc(112px * var(--t-hero-scale)))',
+            lineHeight: 0.94,
+            margin: 0,
+            letterSpacing: '-0.03em',
+            color: 'var(--t-ink)',
+            overflowWrap: 'break-word',
+            /* The italic line reaches across the gutter into the
+               photo — the overlap IS the composition. Undone on
+               mobile by the .pl8-hero-spread-names rule. */
+            marginRight: 'clamp(-140px, -9vw, -36px)',
+          }}
+        >
+          <span style={{ display: 'block', fontWeight: 'var(--t-display-wght)' as unknown as number }}>
+            <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+          </span>
+          {couple && (
+            <span className="pl8-hero-spread-b" style={{ display: 'block', fontStyle: 'italic', fontWeight: 400, marginLeft: 'clamp(28px, 9%, 110px)' }}>
+              <span aria-hidden style={{ fontSize: '0.44em', verticalAlign: '0.3em', marginRight: '0.14em', color: 'var(--t-gold)' }}>&amp;</span>
+              <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+            </span>
+          )}
+        </h1>
+        {/* Folio-style meta — a gold rule leading a mono line. */}
+        <div style={{ marginTop: 'clamp(26px, 4vw, 44px)', display: 'flex', alignItems: 'center', gap: 12, fontSize: 11.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t-ink-soft)', flexWrap: 'wrap' }}>
+          <span aria-hidden style={{ width: 34, height: 1, background: 'var(--t-gold)', flexShrink: 0 }} />
+          <span>{C.meta.date}</span>
+          <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--t-gold)', flexShrink: 0 }} />
+          <span>{C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 14 }}><KDivider look={ctx.dividerLook} width={150} style={{ marginLeft: 0 }} /></div>
+        <div style={{ marginTop: 22, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <TButton variant="primary" href={C.ctaHref}>
+            <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
+            <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+          </TButton>
+        </div>
+      </div>
+      {/* The photo — matted in a hairline frame, offset DOWN from the
+          names and bled to the page's right edge (the broken margin).
+          Squared corners: this is an editorial plate, not a card. */}
+      <div className="pl8-hero-spread-photo" style={{ position: 'relative', zIndex: 1, marginTop: 'clamp(30px, 7vw, 90px)', justifySelf: 'end', width: 'min(100%, 560px)' }}>
+        <EditPhotoTarget editable={ctx.editable} slot={{ kind: 'cover', label: 'the cover', current: ctx.coverPhoto }}>
+          <div style={{ background: 'var(--t-card)', border: '1px solid var(--t-line)', borderRight: 'none', padding: 'clamp(8px, 1.2vw, 14px)', paddingRight: 0 }}>
+            {ctx.coverPhoto ? (
+              <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '4/5' }} />
+            ) : (
+              <PhotoPlaceholder tone="warm" aspect="4/5" />
+            )}
+          </div>
         </EditPhotoTarget>
       </div>
     </div>
