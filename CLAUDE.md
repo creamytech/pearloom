@@ -34,17 +34,18 @@ either. All four 2026-07-08 migrations (person_threads, avatar_url,
 circle_invites, crew_threads) are applied to prod and recorded;
 advisors clean.
 
-**The next plan is written and ready:** `docs/AFTERGLOW-PLAN.md`
-(2026-07-08) — the post-event dashboard revamp. Five phone
-screenshots of a wedding 11 days past showed every cockpit card
-still in planning mode ("FINAL STRETCH", "The big day · 0 days
-out", prep checklists, "SAVE THE DATE"); the root cause is that no
-shared phase model exists — each card does ad-hoc clamped date
-math. The plan carries the evidence table (§1), the
-`cockpit-phase.ts` phase spine design (§3: planning / final /
-the-day / afterglow / kept), the per-card behavior matrix (§3.1),
-the afterglow richness upgrades (§4), guardrails (§5), and FOUR
-ready-to-paste sprint blocks at §6 (AG.1 phase spine → AG.2
-afterglow home → AG.3 hero + memory → AG.4 long view; recommended
-order at §7). Paste a block from §6 over this heading to arm one.
-Open decisions live in §8 (afterglow→kept window, memorial tone).
+**`docs/AFTERGLOW-PLAN.md` is fully executed** (2026-07-08, commit
+`70713cd6`) — the post-event dashboard revamp. All four sprint
+blocks (AG.1 phase spine → AG.2 afterglow home → AG.3 hero +
+memory → AG.4 long view) are stamped SHIPPED. The cockpit now runs
+on `src/lib/event-os/cockpit-phase.ts` (planning / final / the-day
+/ afterglow / kept from the unclamped day count); WelcomeHome's
+derived copy lives pure in `welcome-home-copy.ts` behind the
+forbidden-strings test; `/dev/dashboard` has the four-world phase
+switcher. Every dashboard-card change must keep the §5 guardrails
+green (the forbidden-strings test IS the fence). Open decisions
+remain in AFTERGLOW-PLAN §8 (the 45-day afterglow→kept window is a
+constant in cockpit-phase.ts; per-photo focal point still
+deferred). vitest 1278/1278; all three plan queues (PERSONA,
+GRAND-PLAN-2, AFTERGLOW) are now empty — the next plan doc hasn't
+been written yet.

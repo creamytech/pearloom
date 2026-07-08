@@ -193,6 +193,16 @@ no new copy — just states that move.
 
 ## 6 · The prompt system — ready-to-paste sprint blocks
 
+> **Executed in full, 2026-07-08** — all four blocks landed in one
+> arc (commit `70713cd6`): `cockpit-phase.ts` + boundary tests, the
+> extracted `welcome-home-copy.ts` pipeline + forbidden-strings
+> test, every §3.1 card gate, the afterglow todos/checklist/recap/
+> quick-actions with real numbers, the hero numeral strip, the
+> promoted MemoryCard, the StoryCard rail with real stamps, the
+> live TheLongView, the weekend tense filters, and the
+> /dev/dashboard four-world phase switcher. Screenshots in
+> `docs/audit-shots/afterglow/`. vitest 1278/1278.
+
 Shared validation loop: `npx tsc --noEmit` → eslint on touched →
 `npx vitest run` → authed harness screenshots at 1280 + 390 with a
 **past-dated site** (the e2e provider + mocked /api/sites, the
@@ -200,7 +210,7 @@ established rig) → commit → stamp this file → push both branches.
 
 ---
 
-### AG.1 — The phase spine · status: not started · P0
+### AG.1 — The phase spine · status: SHIPPED 2026-07-08 · P0
 
 ```
 ## Active focus — AG.1 · The phase spine (no card decides its own tense)
@@ -239,7 +249,7 @@ guest passport — already phase-correct.
 
 ---
 
-### AG.2 — The afterglow home · status: not started · P0
+### AG.2 — The afterglow home · status: SHIPPED 2026-07-08 · P0
 
 ```
 ## Active focus — AG.2 · The afterglow home (remembering has a face)
@@ -271,7 +281,7 @@ vitest green.
 
 ---
 
-### AG.3 — The afterglow hero + memory promotion · status: not started · P1
+### AG.3 — The afterglow hero + memory promotion · status: SHIPPED 2026-07-08 · P1
 
 ```
 ## Active focus — AG.3 · Rich, real, photographic (the beauty pass)
@@ -300,7 +310,7 @@ read-only consumption of existing sources.
 
 ---
 
-### AG.4 — The long view goes live + weekend tense · status: not started · P2
+### AG.4 — The long view goes live + weekend tense · status: SHIPPED 2026-07-08 · P2
 
 ```
 ## Active focus — AG.4 · Time moves through the long view
