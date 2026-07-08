@@ -161,9 +161,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         zIndex: 5,
       }}
     >
-      {/* Left zone — back to dashboard. Prototype L70-76. Compact
-          drops the word + the 232px reservation. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: compact ? 0 : 232 }}>
+      {/* Left zone — back to dashboard. Prototype L70-76. The old
+          232px reservation (a symmetry spacer) starved the center
+          zone at laptop widths until the mode pill clipped under
+          its neighbours — the bar earns its centering from flex
+          instead now. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <Link
           href="/dashboard"
           aria-label="Back to dashboard"
@@ -207,6 +210,9 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             display: 'flex', gap: 2, padding: 3,
             background: 'var(--card)', borderRadius: 999,
             border: '1px solid var(--line-soft)',
+            /* Never clips — the golden-thread chip and the button
+               labels are the compressible parts of this bar. */
+            flexShrink: 0,
           }}
         >
           {([
@@ -261,6 +267,9 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             fontSize: 11.5, fontWeight: 600,
             whiteSpace: 'nowrap',
             cursor: 'pointer',
+            /* This chip is the bar's designated shock absorber:
+               it truncates before anything else clips. */
+            minWidth: 0, flexShrink: 1, overflow: 'hidden',
             transition: 'background var(--pl-dur-quick), border-color var(--pl-dur-quick), color var(--pl-dur-quick)',
           }}
           onMouseEnter={(e) => {
@@ -280,7 +289,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
               flexShrink: 0,
             }}
           />
-          {nextStep.label}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextStep.label}</span>
         </button>
       )}
 
@@ -303,7 +312,9 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           }}
         >
           <Icon name="users" size={13} />
-          {!compact && (peers.length > 0 ? 'Invite' : 'Invite a co-host')}
+          {!compact && (
+            <span className="pl-rd-top-label">{peers.length > 0 ? 'Invite' : 'Invite a co-host'}</span>
+          )}
         </button>
         {peers.length > 0 && (
           <div
@@ -471,7 +482,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           aria-label="Open the Share panel — link, QR, share kit, co-hosts"
           title="Share — link, QR, share kit, co-host invites"
         >
-          <Icon name="share" size={12} /> Share
+          <Icon name="share" size={12} /> <span className="pl-rd-top-label">Share</span>
         </button>
         {/* Theme + Decor quick-access shortcuts — surfacing
             the two most-touched look surfaces near the top so
@@ -485,7 +496,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           onClick={openThemeRail}
           title="Open theme panel"
         >
-          <Icon name="palette" size={12} /> Theme
+          <Icon name="palette" size={12} /> <span className="pl-rd-top-label">Theme</span>
         </button>
         <button
           type="button"
@@ -493,7 +504,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           onClick={openDecorLibrary}
           title="Open decor library — motifs, dividers, patterns, monogram"
         >
-          <Icon name="sparkles" size={12} /> Decor
+          <Icon name="sparkles" size={12} /> <span className="pl-rd-top-label">Decor</span>
         </button>
         {/* Command-palette discoverability — the palette has shipped
             for months behind an unmarked Cmd+K. A visible chip is

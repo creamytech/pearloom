@@ -41,7 +41,14 @@ export function BastedIn({
      Pear found it, not a live-updating todo list. */
   const [initial] = useState(() => manifest);
   const derived = useMemo(() => deriveBastings(initial, siteSlug), [initial, siteSlug]);
-  const [open, setOpen] = useState(true);
+  /* DOCKED by default (2026-07-08): the open card floated over the
+     section rail's lower rows. Pear now arrives as a quiet pill in
+     the corner; the host expands it when they're ready. × collapses
+     back to the pill (recoverable) — only "No thanks"-ing every
+     stitch makes it leave. The receipts moment (first open after
+     generation) still auto-expands: Pear explaining what she wove
+     in is the one message worth interrupting for. */
+  const [expanded, setExpanded] = useState(false);
   const [items, setItems] = useState<Basting[]>(derived);
   /* The story basting awaits a model call — track which stitch is
      in flight so its button can read "Threading…" instead of
@@ -72,16 +79,74 @@ export function BastedIn({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
 
-  const visible = open && (items.length > 0 || receipts.length > 0);
-  /* Tell the shell when we appear/disappear so the floating Pear
-     pill yields — two pulsing Pear popups at once read as noise. */
+  /* Auto-expand for the receipts moment, once the entrance settles.
+     Timeout-deferred (not a synchronous set-in-effect). */
   useEffect(() => {
-    onOpenChange?.(visible && entered);
+    if (!entered || receipts.length === 0) return;
+    const t = window.setTimeout(() => setExpanded(true), 50);
+    return () => window.clearTimeout(t);
+  }, [entered, receipts]);
+
+  const visible = items.length > 0 || receipts.length > 0;
+  /* Tell the shell when the CARD is up so the floating Pear pill
+     yields — the docked pill is small enough to coexist. */
+  useEffect(() => {
+    onOpenChange?.(visible && entered && expanded);
     return () => onOpenChange?.(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, entered]);
+  }, [visible, entered, expanded]);
 
   if (!visible) return null;
+
+  /* Docked pill — Pear waits in the corner instead of covering the
+     section rail. Count names how many stitches she's holding. */
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label={`From Pear, while you were away — ${items.length || receipts.length} waiting`}
+        aria-expanded={false}
+        style={{
+          position: 'fixed',
+          left: 18,
+          bottom: 18,
+          zIndex: 120,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 13px 8px 10px',
+          borderRadius: 999,
+          background: 'var(--card, #FBF7EE)',
+          border: '1px solid var(--line, #D8CFB8)',
+          boxShadow: '0 10px 28px -14px rgba(14,13,11,0.35)',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(10px)',
+          transition: 'opacity 480ms var(--pl-ease-out, ease-out), transform 480ms var(--pl-ease-out, ease-out)',
+        }}
+      >
+        <Pear size={16} tone="sage" shadow={false} />
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-soft)' }}>
+          While you were away
+        </span>
+        {items.length > 0 && (
+          <span
+            aria-hidden
+            style={{
+              minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+              display: 'inline-grid', placeItems: 'center',
+              background: 'var(--sage-deep, #5C6B3F)', color: 'var(--cream, #F5EFE2)',
+              fontSize: 10, fontWeight: 700, lineHeight: 1,
+            }}
+          >
+            {items.length}
+          </span>
+        )}
+      </button>
+    );
+  }
 
   const set = async (b: Basting) => {
     const before = manifest;
@@ -127,26 +192,30 @@ export function BastedIn({
         borderRadius: 16,
         boxShadow: '0 18px 44px -18px rgba(14,13,11,0.3)',
         padding: '14px 14px 10px',
+        maxHeight: 'min(60vh, 480px)',
+        display: 'flex',
+        flexDirection: 'column',
         opacity: entered ? 1 : 0,
         transform: entered ? 'translateY(0)' : 'translateY(10px)',
         transition: 'opacity 480ms var(--pl-ease-out, ease-out), transform 480ms var(--pl-ease-out, ease-out)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexShrink: 0 }}>
         <Pear size={18} tone="sage" shadow={false} />
         <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-soft)' }}>
           While you were away
         </span>
         <button
           type="button"
-          aria-label="Dismiss"
-          onClick={() => setOpen(false)}
+          aria-label="Tuck away — the pill keeps these for later"
+          title="Tuck away"
+          onClick={() => setExpanded(false)}
           style={{ marginLeft: 'auto', border: 'none', background: 'transparent', color: 'var(--ink-muted)', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}
         >
           ×
         </button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', overscrollBehavior: 'contain' }}>
         {receipts.length > 0 && (
           <div
             style={{

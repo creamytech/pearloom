@@ -50,6 +50,16 @@
   transform: scale(1.02);
 }
 
+/* Topbar button labels — at laptop widths the Share / Theme /
+   Decor / Invite words drop to their icons (title attrs keep the
+   names) so the bar degrades by shedding words, never by clipping
+   the mode pill or Publish. */
+@media (max-width: 1280px) {
+  .pl-rd-top-label {
+    display: none;
+  }
+}
+
 /* Aside content — slide-in entrance when the rail mounts. */
 @keyframes pl-rd-rail-in {
   from {

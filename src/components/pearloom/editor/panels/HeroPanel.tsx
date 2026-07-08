@@ -206,10 +206,32 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* ── Zip HeroEditor layout (section-fields.jsx L164-187):
-              Tagline · Names · Date & venue · Cover photo. The
-              production-only extras (eyebrow, milestone, CTAs) live
-              tucked under "More" below so the default view is 1:1. */}
+        {/* ── Names · Tagline · Date & venue · Cover photo. Names
+              lead — they're the section's identity and the first
+              thing a host looks for; the tagline supports them.
+              (The zip's HeroEditor put Tagline first; deliberately
+              diverged 2026-07-08.) The production-only extras
+              (eyebrow, milestone, CTAs) live tucked under "More"
+              below. */}
+        <FGroup label={v.hero.subjectGroupLabel} hint={v.hero.subjectHint}>
+          {isSolo ? (
+            <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', gap: 6, alignItems: 'center' }}>
+              <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
+              <div style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--ink-soft)' }}>&amp;</div>
+              <FInput value={n2} onChange={setB} placeholder={v.hero.nameBPlaceholder} />
+            </div>
+          )}
+          <div style={{ marginTop: 8 }}>
+            <FToggleStandalone
+              label="Single honoree"
+              sub={isSolo ? 'One name shown above the date' : 'Two names with a “&” between them'}
+              def={isSolo}
+              onChange={setSolo}
+            />
+          </div>
+        </FGroup>
         <FGroup label="Tagline" hint={tagline.trim().length >= 2 ? undefined : 'Type a line, then Pear can rewrite it in different tones.'}>
           <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />
           <div style={{ marginTop: 7 }}>
@@ -229,25 +251,6 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               />
             </div>
           )}
-        </FGroup>
-        <FGroup label={v.hero.subjectGroupLabel} hint={v.hero.subjectHint}>
-          {isSolo ? (
-            <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', gap: 6, alignItems: 'center' }}>
-              <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
-              <div style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--ink-soft)' }}>&amp;</div>
-              <FInput value={n2} onChange={setB} placeholder={v.hero.nameBPlaceholder} />
-            </div>
-          )}
-          <div style={{ marginTop: 8 }}>
-            <FToggleStandalone
-              label="Single honoree"
-              sub={isSolo ? 'One name shown above the date' : 'Two names with a “&” between them'}
-              def={isSolo}
-              onChange={setSolo}
-            />
-          </div>
         </FGroup>
         <FGroup label="Date & venue">
           <FDate value={date} onChange={setDate} placeholder="Pick the day" />
