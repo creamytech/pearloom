@@ -1,29 +1,40 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// WelcomeFlowClient — the first-run experience.
+// WelcomeFlowClient — "The First Pressing of You"
+// (ONBOARDING-PLAN O2 — the flow re-pressed, 2026-07-08).
 //
-// Five movements on one sheet of paper:
-//   00 · Arrival       — the craft-house welcome, threads draw
-//   01 · The name      — what Pear should call you
-//   02 · The mark      — pick an orchard avatar
-//   03 · The occasion  — what brings you to the loom
-//   04 · The agreement — Terms + Privacy, plainly stated
-//   then: "The loom is yours." → begin a thread / open the dash
+// Onboarding is the first thing Pearloom presses, and the thing
+// it presses is you. Six movements on one sheet of paper:
+//   00 · Arrival        — the craft-house welcome, threads draw
+//   01 · The name       — typed AS letterpress; the input is the
+//                         artifact, pressing into the sheet live
+//   02 · The mark       — three ways to fill one frame: a
+//                         photograph (circular drag-to-seat), an
+//                         orchard mark, or the monogram seal
+//                         already pressed from your name — nobody
+//                         leaves blank
+//   03 · The first thread — occasion chips + a live miniature
+//                         pressing that re-presses per pick
+//   04 · The colophon   — the agreement signed by PRESSING YOUR
+//                         SEAL (the one required stop)
+//   then: "The loom is yours." → ThreadingDoor ("Warping your
+//   loom.") → dashboard / demo / wizard.
 //
-// Choreography: a two-strand progress thread grows across the
-// top as steps complete; each movement slides in on the brand
-// ease; Enter advances; reduced motion swaps all of it for
-// simple fades. Name/mark/occasion are skippable — the
-// agreement is the only required stop. One PATCH to
-// /api/user/preferences saves everything (display_name, avatar,
-// intent, terms_accepted, onboarded) at the agreement step.
+// Choreography: two-strand progress thread, Enter advances,
+// weave-eased movements, reduced motion swaps to fades. One
+// PATCH to /api/user/preferences saves name/mark/intent/
+// agreement at the colophon; a photograph saves immediately via
+// /api/user/avatar (it is already the user's own deliberate act).
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { PL_AVATARS, PlAvatar } from '@/components/pearloom/avatars';
+import { PL_AVATARS, PlAvatar, AccountMark, MonogramSeal, monogramFrom, useUserAvatar } from '@/components/pearloom/avatars';
+import { AvatarCropModal } from '@/components/pearloom/dash/AvatarCropModal';
+import { ThreadingDoor } from '@/components/brand/ThreadingDoor';
+import { Icon } from '@/components/pearloom/motifs';
 import { trackEvent } from '@/lib/analytics/beacon';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -38,6 +49,8 @@ const LINE = 'var(--pl-divider, #D8CFB8)';
 const DISPLAY = 'var(--pl-font-display, "Fraunces", Georgia, serif)';
 const BODY = 'var(--pl-font-body, system-ui, sans-serif)';
 const MONO = 'var(--pl-font-mono, ui-monospace, "Geist Mono", monospace)';
+/* Letterpress — type sits INTO the paper (the landing recipe). */
+const PRESSED = '0 1px 1px rgba(255,255,255,0.85), 0 -1px 1px rgba(38,35,28,0.16)';
 
 type StepId = 'arrival' | 'name' | 'mark' | 'occasion' | 'agreement' | 'done';
 const STEPS: StepId[] = ['arrival', 'name', 'mark', 'occasion', 'agreement', 'done'];
@@ -46,8 +59,8 @@ const STEP_LABELS: Record<StepId, string> = {
   arrival: 'Welcome',
   name: '01 · The name',
   mark: '02 · The mark',
-  occasion: '03 · The occasion',
-  agreement: '04 · The agreement',
+  occasion: '03 · The first thread',
+  agreement: '04 · The colophon',
   done: 'Begin',
 };
 
@@ -61,10 +74,20 @@ const INTENTS: Array<{ id: string; label: string; sub: string }> = [
   { id: 'exploring',  label: 'Just looking',     sub: 'Wander the loom first' },
 ];
 
-/* The promises — each one is product-verifiable, not marketing.
-   (Sites stay online on every plan per the published FAQ; account
-   deletion sweeps every table; everything Pear writes is editable
-   in the editor.) */
+/* The miniature pressing per intent — eyebrow / italic pre-line /
+   ghost name-line / accent wax. Picking a chip re-presses the card
+   so "Pear sets the table differently" is SHOWN, not claimed. */
+const PRESSINGS: Record<string, { eyebrow: string; pre: string; ghost: string; acc: string }> = {
+  wedding:    { eyebrow: 'Save the date',     pre: 'together, at last',        ghost: 'Your two names',  acc: '#B8754A' },
+  engagement: { eyebrow: 'We’re engaged',     pre: 'the beginning of always',  ghost: 'Your two names',  acc: '#C0543B' },
+  baby:       { eyebrow: 'Someone small',     pre: 'is on the way',            ghost: 'The little one',  acc: '#8B7FA8' },
+  birthday:   { eyebrow: 'A milestone',       pre: 'another year, well worn',  ghost: 'The guest of honor', acc: '#9A7838' },
+  reunion:    { eyebrow: 'The reunion',       pre: 'long time, no toast',      ghost: 'The whole crew',  acc: '#586A3C' },
+  memorial:   { eyebrow: 'In loving memory',  pre: 'a life, gathered',         ghost: 'A beloved name',  acc: '#5A5044' },
+  exploring:  { eyebrow: 'The demo',          pre: 'wander first, decide later', ghost: 'Any day at all', acc: '#6F6557' },
+};
+
+/* The promises — each one is product-verifiable, not marketing. */
 const PROMISES = [
   'Everything Pear drafts, you can edit. Your words win.',
   'Your site stays online on every plan — guests are never cut off.',
@@ -89,6 +112,16 @@ export function WelcomeFlowClient({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const savedRef = useRef(false);
+  /* M7 — the threshold out. */
+  const [leaving, setLeaving] = useState(false);
+  /* M3 — the photograph path (immediate save; the mark/name ride
+     the single PATCH at the colophon). setAvatarUrl syncs the
+     shared chrome cache so the dashboard face is right on arrival. */
+  const { setAvatarUrl } = useUserAvatar();
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoErr, setPhotoErr] = useState<string | null>(null);
 
   const goldThread = useMemo(
     () => (STEPS.indexOf(step) / (STEPS.length - 1)) * 100,
@@ -115,6 +148,39 @@ export function WelcomeFlowClient({
     const t = setTimeout(advance, reduced ? 900 : 2600);
     return () => clearTimeout(t);
   }, [step, reduced]);
+
+  async function uploadCropped(blob: Blob) {
+    setUploading(true);
+    setPhotoErr(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+      const r = await fetch('/api/user/avatar', { method: 'POST', credentials: 'include', body: fd });
+      const d = (await r.json().catch(() => null)) as { ok?: boolean; url?: string; error?: string } | null;
+      if (r.ok && d?.ok && d.url) {
+        setPhotoUrl(d.url);
+        setAvatarUrl(d.url);
+        setMark(null); // the photograph leads the chain
+        setCropFile(null);
+      } else {
+        setPhotoErr(d?.error ?? 'Could not save your photo.');
+      }
+    } catch {
+      setPhotoErr('Could not save — check your connection.');
+    } finally {
+      setUploading(false);
+    }
+  }
+  function pickMark(id: string | null) {
+    setMark(id);
+    if (id && photoUrl) {
+      /* An explicit mark pick retires the photograph — same rule as
+         Settings; the chain would otherwise hide the pick. */
+      setPhotoUrl(null);
+      setAvatarUrl(null);
+      void fetch('/api/user/avatar', { method: 'DELETE', credentials: 'include' }).catch(() => {});
+    }
+  }
 
   async function confirmAgreement() {
     if (!agreed || saving) return;
@@ -145,12 +211,16 @@ export function WelcomeFlowClient({
 
   const firstName = name.trim().split(/\s+/)[0] || 'friend';
   /* Sign-in lands on the DASHBOARD — home base with the kickoff
-     cards, never a forced march into the wizard. Starting a site is
-     the explicit secondary choice below. Explorers ("just looking")
-     are sent to the fully-rendered /demo so "wander the loom first"
-     is a real door, not a drop onto an empty dashboard. An explicit
-     ?next= deep link still wins over both. */
+     cards, never a forced march into the wizard. Explorers get the
+     fully-rendered /demo. An explicit ?next= deep link wins. */
   const beginHref = nextHref ?? (intent === 'exploring' ? '/demo' : '/dashboard');
+
+  /* M7 — leave through the threshold, not a route flash. */
+  function depart(href: string) {
+    if (leaving) return;
+    setLeaving(true);
+    window.setTimeout(() => router.replace(href), reduced ? 300 : 1000);
+  }
 
   // Enter advances wherever a primary action is live.
   useEffect(() => {
@@ -173,6 +243,17 @@ export function WelcomeFlowClient({
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: -14 },
       };
+
+  const h2Style: React.CSSProperties = {
+    fontFamily: DISPLAY,
+    fontWeight: 460,
+    fontSize: 'clamp(1.9rem, 5vw, 2.7rem)',
+    letterSpacing: '-0.02em',
+    lineHeight: 1.06,
+    margin: '0 0 10px',
+    textShadow: PRESSED,
+    fontVariationSettings: "'opsz' 96, 'SOFT' 50, 'WONK' 0",
+  };
 
   return (
     <div
@@ -233,14 +314,14 @@ export function WelcomeFlowClient({
             key={step}
             {...enter}
             transition={{ duration: reduced ? 0.2 : 0.5, ease: EASE }}
-            style={{ width: 'min(620px, 100%)', textAlign: 'center' }}
+            style={{ width: 'min(640px, 100%)', textAlign: 'center' }}
           >
             {step === 'arrival' && (
               <>
                 <p style={{ fontFamily: MONO, fontSize: '0.62rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: OLIVE, margin: '0 0 18px' }}>
                   A craft house for memory
                 </p>
-                <h1 className="pl-letterpress" style={{ fontFamily: DISPLAY, fontWeight: 500, fontStyle: 'italic', fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', lineHeight: 1.04, letterSpacing: '-0.02em', margin: 0 }}>
+                <h1 className="pl-type-press" style={{ fontFamily: DISPLAY, fontWeight: 460, fontStyle: 'italic', fontSize: 'clamp(2.2rem, 6vw, 3.6rem)', lineHeight: 1.04, margin: 0, textShadow: PRESSED }}>
                   Welcome to the loom{sessionFirstName ? `, ${sessionFirstName}` : ''}.
                 </h1>
                 <ThreadRule reduced={reduced} />
@@ -253,61 +334,108 @@ export function WelcomeFlowClient({
 
             {step === 'name' && (
               <>
-                <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.7rem, 4.5vw, 2.5rem)', letterSpacing: '-0.015em', margin: '0 0 10px' }}>
-                  What should Pear call you?
-                </h2>
-                <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
+                <h2 style={h2Style}>What should Pear call you?</h2>
+                <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 30px' }}>
                   Pear is the studio hand who drafts alongside you. First names are friendlier.
                 </p>
+                {/* The input IS the artifact — the name letterpresses
+                    into the sheet as it's typed, display scale, a gold
+                    hairline underneath. No box; the paper is the field. */}
                 <input
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={sessionFirstName || 'Your name'}
                   maxLength={60}
+                  aria-label="Your name"
                   style={{
-                    width: 'min(340px, 100%)',
-                    padding: '14px 18px',
-                    fontSize: '1.15rem',
+                    width: 'min(440px, 100%)',
+                    padding: '4px 10px 12px',
+                    fontSize: 'clamp(2rem, 6vw, 2.9rem)',
                     fontFamily: DISPLAY,
+                    fontStyle: 'italic',
+                    fontWeight: 460,
+                    letterSpacing: '-0.02em',
                     textAlign: 'center',
                     color: INK,
-                    background: CARD,
-                    border: `1px solid ${LINE}`,
-                    borderBottom: `2px solid ${OLIVE}`,
-                    borderRadius: 'var(--pl-radius-md, 0.5rem)',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: `1px solid ${GOLD}`,
+                    borderRadius: 0,
                     outline: 'none',
+                    caretColor: OLIVE,
+                    textShadow: PRESSED,
+                    fontVariationSettings: "'opsz' 144, 'SOFT' 70, 'WONK' 1",
                   }}
                 />
-                <Nav onBack={back} onNext={advance} nextLabel="That's me" skippable />
+                <div style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: MUTED, marginTop: 10 }}>
+                  Set in letterpress, like everything here
+                </div>
+                <Nav onBack={back} onNext={advance} nextLabel="That's me" />
               </>
             )}
 
             {step === 'mark' && (
               <>
-                <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.7rem, 4.5vw, 2.5rem)', letterSpacing: '-0.015em', margin: '0 0 10px' }}>
-                  Pick your mark.
-                </h2>
-                <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
-                  Hand-drawn in the house style — it stands in for you across the loom.
-                  You can change it anytime, or stay with your photo.
+                <h2 style={h2Style}>Your mark.</h2>
+                <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 22px', maxWidth: 460, marginInline: 'auto' }}>
+                  Three ways to fill one frame — a photograph, a hand-drawn
+                  mark, or the seal already pressed from your name. Nobody
+                  goes blank.
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 420, margin: '0 auto' }}>
+
+                {/* The frame — whatever currently leads the chain,
+                    large. Skipping keeps the monogram seal. */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                  <AccountMark photoUrl={photoUrl} markId={mark} name={name || sessionFirstName} size={84} />
+                  <div style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: MUTED }}>
+                    {photoUrl ? 'Your photograph' : mark ? 'Your mark' : `Your seal — pressed from “${monogramFrom(name || sessionFirstName)}”`}
+                  </div>
+                </div>
+
+                {/* Way one — a photograph, circularly seated. */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
+                  <label
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      padding: '10px 18px', borderRadius: 999, cursor: 'pointer',
+                      border: `1px solid ${LINE}`, background: CARD,
+                      fontSize: '0.85rem', fontWeight: 600, color: INK,
+                    }}
+                  >
+                    <Icon name="camera" size={14} color={INK_SOFT} />
+                    {photoUrl ? 'Change the photograph' : 'Use a photograph'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) { setPhotoErr(null); setCropFile(f); }
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
+                {photoErr && <div style={{ fontSize: '0.78rem', color: 'var(--pl-plum, #7A2D2D)', marginBottom: 12 }}>{photoErr}</div>}
+
+                {/* Way two — the orchard marks. */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 460, margin: '0 auto' }}>
                   {PL_AVATARS.map((a, i) => {
                     const on = mark === a.id;
                     return (
                       <motion.button
                         key={a.id}
                         type="button"
-                        onClick={() => setMark(on ? null : a.id)}
+                        onClick={() => pickMark(on ? null : a.id)}
                         aria-pressed={on}
                         title={a.label}
                         initial={reduced ? false : { opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: reduced ? 0 : 0.04 * i, ease: EASE }}
+                        transition={{ duration: 0.35, delay: reduced ? 0 : 0.03 * i, ease: EASE }}
                         whileTap={{ scale: 0.94 }}
                         style={{
-                          width: 58, height: 58, padding: 0,
+                          width: 54, height: 54, padding: 0,
                           borderRadius: 16,
                           border: on ? `2px solid ${OLIVE}` : '2px solid transparent',
                           background: 'transparent',
@@ -317,52 +445,59 @@ export function WelcomeFlowClient({
                           transition: 'transform var(--pl-dur-fast, 180ms) var(--pl-ease-spring, ease)',
                         }}
                       >
-                        <PlAvatar id={a.id} size={54} round={false} />
+                        <PlAvatar id={a.id} size={50} round={false} />
                       </motion.button>
                     );
                   })}
                 </div>
-                <Nav onBack={back} onNext={advance} nextLabel={mark ? 'Wear it' : 'Maybe later'} />
+                <Nav
+                  onBack={back}
+                  onNext={advance}
+                  nextLabel={photoUrl || mark ? 'Wear it' : 'Keep my seal'}
+                />
               </>
             )}
 
             {step === 'occasion' && (
               <>
-                <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.7rem, 4.5vw, 2.5rem)', letterSpacing: '-0.015em', margin: '0 0 10px' }}>
-                  What brings you to the loom?
-                </h2>
+                <h2 style={h2Style}>What brings you to the loom?</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
-                  Pear sets the table differently for each — voice, paper, the lot.
+                  Pear sets the table differently for each — watch the pressing.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, maxWidth: 560, margin: '0 auto', textAlign: 'left' }}>
-                  {INTENTS.map((o, i) => {
-                    const on = intent === o.id;
-                    return (
-                      <motion.button
-                        key={o.id}
-                        type="button"
-                        onClick={() => setIntent(on ? null : o.id)}
-                        aria-pressed={on}
-                        initial={reduced ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: reduced ? 0 : 0.05 * i, ease: EASE }}
-                        whileTap={{ scale: 0.97 }}
-                        style={{
-                          padding: '13px 15px',
-                          borderRadius: 'var(--pl-radius-lg, 0.75rem)',
-                          border: on ? `1.5px solid ${OLIVE}` : `1px solid ${LINE}`,
-                          background: on ? 'var(--pl-olive-mist, #E0DDC9)' : CARD,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          fontFamily: 'inherit',
-                          color: INK,
-                        }}
-                      >
-                        <span style={{ display: 'block', fontFamily: DISPLAY, fontSize: '1rem', fontWeight: 600 }}>{o.label}</span>
-                        <span style={{ display: 'block', fontSize: '0.72rem', color: MUTED, marginTop: 2 }}>{o.sub}</span>
-                      </motion.button>
-                    );
-                  })}
+                <div className="pl-wf-occasion" style={{ display: 'flex', gap: 22, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, maxWidth: 360, flex: '1 1 300px', textAlign: 'left' }}>
+                    {INTENTS.map((o, i) => {
+                      const on = intent === o.id;
+                      return (
+                        <motion.button
+                          key={o.id}
+                          type="button"
+                          onClick={() => setIntent(on ? null : o.id)}
+                          aria-pressed={on}
+                          initial={reduced ? false : { opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: reduced ? 0 : 0.05 * i, ease: EASE }}
+                          whileTap={{ scale: 0.97 }}
+                          style={{
+                            padding: '11px 13px',
+                            borderRadius: 'var(--pl-radius-lg, 0.75rem)',
+                            border: on ? `1.5px solid ${OLIVE}` : `1px solid ${LINE}`,
+                            background: on ? 'var(--pl-olive-mist, #E0DDC9)' : CARD,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: 'inherit',
+                            color: INK,
+                          }}
+                        >
+                          <span style={{ display: 'block', fontFamily: DISPLAY, fontSize: '0.95rem', fontWeight: 600 }}>{o.label}</span>
+                          <span style={{ display: 'block', fontSize: '0.7rem', color: MUTED, marginTop: 2 }}>{o.sub}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  {/* The live miniature — a pressed card in the picked
+                      key. Re-presses (fade) when the intent changes. */}
+                  <MiniPressing intent={intent} reduced={reduced} />
                 </div>
                 <Nav onBack={back} onNext={advance} nextLabel={intent ? 'Continue' : 'Skip for now'} />
               </>
@@ -370,27 +505,30 @@ export function WelcomeFlowClient({
 
             {step === 'agreement' && (
               <>
-                <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.7rem, 4.5vw, 2.5rem)', letterSpacing: '-0.015em', margin: '0 0 10px' }}>
-                  The agreement, plainly.
-                </h2>
+                <h2 style={h2Style}>The colophon.</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 24px' }}>
                   The fine print lives in the{' '}
                   <a href="/terms" target="_blank" rel="noreferrer" style={{ color: OLIVE, fontWeight: 600 }}>Terms of Service</a>
                   {' '}and{' '}
                   <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: OLIVE, fontWeight: 600 }}>Privacy Policy</a>.
-                  The spirit of it fits on a card:
+                  The spirit of it is set below, printer&rsquo;s style:
                 </p>
+                {/* The colophon card — gold-ruled top and bottom, the
+                    promises set as the edition notes. */}
                 <div
                   style={{
                     background: CARD,
-                    border: `1px solid ${LINE}`,
-                    borderRadius: 'var(--pl-radius-lg, 0.75rem)',
-                    padding: 'clamp(18px, 4vw, 28px)',
+                    borderTop: `1px solid ${GOLD}`,
+                    borderBottom: `1px solid ${GOLD}`,
+                    padding: 'clamp(18px, 4vw, 26px) clamp(14px, 3vw, 24px)',
                     maxWidth: 460,
-                    margin: '0 auto 18px',
+                    margin: '0 auto 22px',
                     textAlign: 'left',
                   }}
                 >
+                  <div style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: MUTED, textAlign: 'center', marginBottom: 12 }}>
+                    Set &amp; pressed by Pearloom · Edition of one
+                  </div>
                   {PROMISES.map((p, i) => (
                     <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '8px 0', borderBottom: i < PROMISES.length - 1 ? `1px solid var(--pl-divider-soft, #E5DCC4)` : 'none' }}>
                       <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: GOLD, marginTop: 7, flexShrink: 0 }} />
@@ -398,21 +536,45 @@ export function WelcomeFlowClient({
                     </div>
                   ))}
                 </div>
-                <label
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                    fontSize: '0.86rem', color: INK, cursor: 'pointer', userSelect: 'none',
-                    padding: '8px 4px',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    style={{ width: 17, height: 17, accentColor: OLIVE }}
-                  />
-                  I agree to the Terms of Service and Privacy Policy.
-                </label>
+
+                {/* The seal — agreement is PRESSED, not checkbox'd. A
+                    real toggle underneath (role=checkbox, Space/Enter,
+                    aria-checked) — the ceremony is visual only. */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={agreed}
+                    aria-label="Press your seal to agree to the Terms of Service and Privacy Policy"
+                    onClick={() => setAgreed((v) => !v)}
+                    style={{
+                      width: 66, height: 66, borderRadius: '50%',
+                      cursor: 'pointer', padding: 0,
+                      fontFamily: DISPLAY, fontStyle: 'italic', fontWeight: 500,
+                      fontSize: 22, lineHeight: 1,
+                      display: 'grid', placeItems: 'center',
+                      transition: 'transform 160ms var(--pl-ease-spring, ease), box-shadow 200ms ease',
+                      ...(agreed
+                        ? {
+                            border: 'none',
+                            background: `radial-gradient(circle at 34% 30%, #77875A, ${OLIVE} 62%, #48542F)`,
+                            color: 'var(--pl-cream, #F5EFE2)',
+                            boxShadow: 'inset 0 2px 5px rgba(255,255,255,0.25), inset 0 -3px 6px rgba(0,0,0,0.28), 0 6px 16px -6px rgba(40,28,12,0.45)',
+                            transform: 'scale(1)',
+                          }
+                        : {
+                            border: `1.5px dashed ${GOLD}`,
+                            background: 'transparent',
+                            color: MUTED,
+                          }),
+                    }}
+                  >
+                    {agreed ? monogramFrom(name || sessionFirstName) : ''}
+                  </button>
+                  <div style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: agreed ? OLIVE : MUTED }}>
+                    {agreed ? 'Sealed' : 'Press your seal to agree'}
+                  </div>
+                </div>
                 {saveError && (
                   <div role="alert" style={{ fontSize: '0.78rem', color: 'var(--pl-plum, #7A2D2D)', marginTop: 8 }}>{saveError}</div>
                 )}
@@ -428,13 +590,9 @@ export function WelcomeFlowClient({
             {step === 'done' && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-                  {mark ? <PlAvatar id={mark} size={64} /> : (
-                    <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--pl-olive-mist, #E0DDC9)', display: 'grid', placeItems: 'center', fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 26, fontWeight: 600, color: OLIVE }}>
-                      {firstName[0]?.toUpperCase() ?? 'P'}
-                    </div>
-                  )}
+                  <AccountMark photoUrl={photoUrl} markId={mark} name={name || sessionFirstName} size={68} />
                 </div>
-                <h1 className="pl-letterpress" style={{ fontFamily: DISPLAY, fontWeight: 500, fontStyle: 'italic', fontSize: 'clamp(2rem, 5.5vw, 3.2rem)', lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
+                <h1 className="pl-type-press" style={{ fontFamily: DISPLAY, fontWeight: 460, fontStyle: 'italic', fontSize: 'clamp(2rem, 5.5vw, 3.2rem)', lineHeight: 1.05, margin: 0, textShadow: PRESSED }}>
                   The loom is yours, {firstName}.
                 </h1>
                 <ThreadRule reduced={reduced} />
@@ -446,26 +604,28 @@ export function WelcomeFlowClient({
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    onClick={() => router.replace(beginHref)}
+                    onClick={() => depart(beginHref)}
+                    disabled={leaving}
                     className="pl-pearl-accent"
                     style={{
                       padding: '13px 26px',
                       borderRadius: 'var(--pl-radius-full, 100px)',
                       fontWeight: 600, fontSize: '0.92rem',
-                      border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                      border: 'none', cursor: leaving ? 'wait' : 'pointer', fontFamily: 'inherit',
                     }}
                   >
                     {intent === 'exploring' ? 'Wander a finished site' : 'Step into your loom'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => router.replace('/wizard/new')}
+                    onClick={() => depart('/wizard/new')}
+                    disabled={leaving}
                     style={{
                       padding: '13px 22px',
                       borderRadius: 'var(--pl-radius-full, 100px)',
                       fontWeight: 600, fontSize: '0.88rem',
                       background: 'transparent', color: INK_SOFT,
-                      border: `1px solid ${LINE}`, cursor: 'pointer', fontFamily: 'inherit',
+                      border: `1px solid ${LINE}`, cursor: leaving ? 'wait' : 'pointer', fontFamily: 'inherit',
                     }}
                   >
                     Begin a site right away
@@ -483,6 +643,19 @@ export function WelcomeFlowClient({
           Woven, not built
         </span>
       </footer>
+
+      {/* M3 — seat the photograph. */}
+      {cropFile && (
+        <AvatarCropModal
+          file={cropFile}
+          busy={uploading}
+          onCancel={() => { if (!uploading) setCropFile(null); }}
+          onSave={(blob) => void uploadCropped(blob)}
+        />
+      )}
+
+      {/* M7 — the threshold out. */}
+      {leaving && <ThreadingDoor label="Warping your loom." />}
     </div>
   );
 }
@@ -505,16 +678,76 @@ function ThreadRule({ reduced }: { reduced: boolean }) {
   );
 }
 
+/* The live miniature pressing — a small save-the-date in the picked
+   intent's key. Not a claim ("Pear adapts") but a demonstration:
+   pick a chip, the card re-presses. Static schematic, real type. */
+function MiniPressing({ intent, reduced }: { intent: string | null; reduced: boolean }) {
+  const p = PRESSINGS[intent ?? 'wedding'] ?? PRESSINGS.wedding;
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={intent ?? 'default'}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: reduced ? 0.15 : 0.4, ease: EASE }}
+        aria-hidden
+        style={{
+          width: 210,
+          flexShrink: 0,
+          aspectRatio: '4 / 5',
+          borderRadius: 8,
+          backgroundImage: 'repeating-linear-gradient(0deg, rgba(38,35,28,0.028) 0 1px, transparent 1px 3px), linear-gradient(150deg, #fdfaf0, #f5ecda)',
+          boxShadow: '0 18px 44px -18px rgba(40,28,12,0.4), 0 1px 0 rgba(255,255,255,0.7) inset, 0 0 0 1px rgba(120,90,50,0.14)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 7,
+          padding: '20px 16px',
+          position: 'relative',
+          textAlign: 'center',
+        }}
+      >
+        {/* Foil hairline, inset. */}
+        <span style={{ position: 'absolute', inset: 9, border: '1px solid rgba(193,154,75,0.45)', pointerEvents: 'none' }} />
+        <span style={{ fontFamily: MONO, fontSize: 7.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: p.acc }}>
+          {p.eyebrow}
+        </span>
+        <span style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 11, color: '#6F6557' }}>
+          {p.pre}
+        </span>
+        <span
+          style={{
+            fontFamily: DISPLAY, fontWeight: 460, fontSize: 17, lineHeight: 1.1,
+            letterSpacing: '-0.02em', color: '#C8BFA5',
+            textShadow: '0 1px 1px rgba(255,255,255,0.85)',
+            fontVariationSettings: "'opsz' 144, 'SOFT' 70, 'WONK' 0",
+          }}
+        >
+          {p.ghost}
+        </span>
+        {/* The sprig divider. */}
+        <svg width="84" height="12" viewBox="0 0 84 12" aria-hidden>
+          <line x1="2" y1="6" x2="82" y2="6" stroke={p.acc} strokeWidth="0.8" opacity="0.7" />
+          <circle cx="42" cy="6" r="2.2" fill="#C19A4B" />
+        </svg>
+        <span style={{ fontFamily: MONO, fontSize: 7, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#6F6557' }}>
+          A day worth keeping
+        </span>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function Nav({
-  onBack, onNext, nextLabel, nextDisabled = false, skippable = false,
+  onBack, onNext, nextLabel, nextDisabled = false,
 }: {
   onBack: () => void;
   onNext: () => void;
   nextLabel: string;
   nextDisabled?: boolean;
-  skippable?: boolean;
 }) {
-  void skippable;
   return (
     <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
       <button
