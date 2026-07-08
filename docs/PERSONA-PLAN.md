@@ -825,9 +825,11 @@ Testing begins when every line is true. Check them off in place.
 - [x] S9 demo orchard + moderator kit (reset = delete the tester
       site; the wizard is the seeder) — all five /demo/{occasion}
       routes ALSO audit axe-clean of serious/critical
-- [ ] Device matrix passes: 390/820/1280/1440 walked throughout the
-      sprints; iPhone SE (375×667) and Android (412×915) sweeps
-      still to run
+- [x] Device matrix passes — 390/820/1280/1440 walked throughout
+      the sprints; the SE (375×667) + Android (412×915) sweeps ran
+      2026-07-08: zero horizontal overflow on every surface, wizard
+      reaches Review, RSVP modal opens on tap 1 on both (shots:
+      `sweep-se-rsvp.png`, `sweep-android-review.png`)
 - [ ] Staging environment testers can safely break (never prod) —
       owner action
 
