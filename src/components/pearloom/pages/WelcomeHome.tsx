@@ -45,6 +45,14 @@ import { FirstThreadCard } from '../dash/FirstThreadCard';
 import { WEEKEND_ANCHORS } from '@/lib/event-os/weekend-arcs';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
+import {
+  cockpitPhaseFor, isPostEventPhase, phaseCopyFor, postEventEyebrowFor,
+  type CockpitPhase,
+} from '@/lib/event-os/cockpit-phase';
+import {
+  stageFromDaysUntil, buildMilestones, buildChecklist,
+  type Stage, type CadencePhaseLite,
+} from './welcome-home-copy';
 import type { StoryManifest } from '@/types';
 import {
   CockpitGreeting, HeroBanner, ProgressCard, QuickActions, RoadCard, ChecklistCard,
@@ -65,21 +73,16 @@ interface Guest {
   plusOneName?: string | null;
 }
 
-/** The slice of /api/cadence's MergedPhase the milestones read. */
-interface CadencePhaseLite {
-  label: string;
-  scheduledAt: string;
-  status: 'preset' | 'draft' | 'scheduled' | 'sent' | 'cancelled' | 'failed';
-  sentCount?: number;
-}
-
-type Stage = 'early' | 'mid' | 'late';
-
-function stageFromDaysUntil(daysUntil: number | null): Stage {
-  if (daysUntil == null) return 'early';
-  if (daysUntil <= 30) return 'late';
-  if (daysUntil >= 180) return 'early';
-  return 'mid';
+/** The one afterglow round trip — every number on the post-event
+ *  Home comes from here (or /api/guests, already fetched). null =
+ *  endpoint unavailable → the row simply doesn't render. */
+interface AfterglowData {
+  pendingPhotos: number | null;
+  giftsTotal: number | null;
+  giftsThanked: number | null;
+  bookNotes: number | null;
+  bookPhotos: string[] | null;
+  vendorOpenBalances: number | null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -141,13 +144,61 @@ export function WelcomeHome() {
     ? daysBetweenCalendarDates(eventDate, new Date(now))
     : null;
   const daysUntil = rawDaysUntil != null ? Math.max(0, rawDaysUntil) : null;
+  /* THE phase — the one clock every card reads (cockpit-phase.ts).
+     `stage` survives below but is only consulted pre-day. */
+  const phase: CockpitPhase = cockpitPhaseFor(rawDaysUntil);
+  const postEvent = isPostEventPhase(phase);
   const eventDateLabel = eventDate
     ? eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     : null;
   const eventDateShort = eventDate
     ? eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
-  const stage = stageFromDaysUntil(daysUntil);
+  const stage: Stage = stageFromDaysUntil(daysUntil);
+
+  // ── The afterglow numbers — one parallel round trip, fired only
+  //    once the day has passed. Every figure on the post-event Home
+  //    is real; a failed endpoint resolves to null and its row
+  //    simply doesn't render (honesty over symmetry). ────────────
+  const [afterglow, setAfterglow] = useState<AfterglowData | null>(null);
+  useEffect(() => {
+    if (!postEvent || !site?.domain) return;
+    let cancelled = false;
+    const domain = site.domain;
+    const j = (r: Response) => (r.ok ? r.json() : null);
+    Promise.all([
+      fetch(`/api/guest-photos/moderate?siteId=${encodeURIComponent(domain)}&status=pending`).then(j).catch(() => null),
+      fetch(`/api/registry-link-claims?siteId=${encodeURIComponent(domain)}&host=1`, { cache: 'no-store' }).then(j).catch(() => null),
+      fetch(`/api/registry-items/claims?siteId=${encodeURIComponent(domain)}`).then(j).catch(() => null),
+      fetch(`/api/memory-book?siteId=${encodeURIComponent(domain)}`).then(j).catch(() => null),
+      fetch(`/api/vendors/book?siteId=${encodeURIComponent(domain)}`, { cache: 'no-store' }).then(j).catch(() => null),
+    ]).then(([photos, linkClaims, itemClaims, book, vendors]) => {
+      if (cancelled) return;
+      const pendingPhotos = Array.isArray(photos?.photos) ? (photos.photos as unknown[]).length : null;
+      const claimRows = [
+        ...(Array.isArray(linkClaims?.claims) ? (linkClaims.claims as Array<{ thanked_at?: string | null; thankedAt?: string | null }>) : []),
+        ...(Array.isArray(itemClaims?.claims) ? (itemClaims.claims as Array<{ thanked_at?: string | null; thankedAt?: string | null }>) : []),
+      ];
+      const giftsTotal = linkClaims || itemClaims ? claimRows.length : null;
+      const giftsThanked = giftsTotal == null ? null : claimRows.filter((c) => c.thankedAt ?? c.thanked_at).length;
+      let bookNotes: number | null = null;
+      let bookPhotos: string[] | null = null;
+      if (book) {
+        const b = book as { memories?: unknown[]; guestbook?: unknown[]; tributes?: unknown[]; chapterPhotos?: Array<{ url?: string }> };
+        bookNotes = (b.memories?.length ?? 0) + (b.guestbook?.length ?? 0) + (b.tributes?.length ?? 0);
+        bookPhotos = Array.isArray(b.chapterPhotos)
+          ? b.chapterPhotos.map((p) => p?.url).filter((u): u is string => typeof u === 'string' && u.length > 0)
+          : [];
+      }
+      const vendorOpenBalances = Array.isArray(vendors?.vendors)
+        ? (vendors.vendors as Array<{ status?: string; balancePaid?: boolean; costCents?: number | null }>)
+            .filter((v) => v.status !== 'considering' && !v.balancePaid && (v.costCents ?? 0) > 0).length
+        : null;
+      setAfterglow({ pendingPhotos, giftsTotal, giftsThanked, bookNotes, bookPhotos, vendorOpenBalances });
+    });
+    return () => { cancelled = true; };
+  }, [postEvent, site?.domain]);
+
   const namesArr = (site?.names ?? []).filter(Boolean) as string[];
   // Greet by the celebration's honoree name; before a site exists,
   // fall back to the signed-in user's first name, then 'friend'.
@@ -258,7 +309,11 @@ export function WelcomeHome() {
 
   // ── Pear recommendations — after the golden thread so the same
   //    urgent task never renders twice (suppressNudge dedupe). ──
-  const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil, suppressNudge: nextStep?.id === 'nudge' });
+  const pearTodos = usePearTodos({
+    phase, stage, insights, guestCounts, daysUntil,
+    suppressNudge: nextStep?.id === 'nudge',
+    afterglow, siteDomain: site?.domain ?? null,
+  });
 
   // ── RSVP momentum — pending replies + reply-by inside 7 days ─
   const rsvpMomentum = useMemo(
@@ -298,12 +353,18 @@ export function WelcomeHome() {
   // read above can't hydration-mismatch.
   const showFirstThread = !firstThreadDismissed && sites != null && sites.length <= 1;
 
-  // ── Next milestone (drives the hero callout) ────────────────
+  // ── Next milestone (drives the hero callout). Post-event the
+  //    same ladder becomes the story rail — what happened, past
+  //    tense, real stamps (site created_at / manifest publishedAt).
   const milestones = useMemo(
     () => buildMilestones({
-      stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion,
+      phase, stage, eventDate, eventDateShort, daysUntil, rawDaysUntil,
+      guestCounts, cadence, occasion,
+      createdAt: site?.created_at ?? null,
+      publishedAt: (manifest as { publishedAt?: string } | null)?.publishedAt ?? null,
+      published: Boolean(site?.published),
     }),
-    [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion],
+    [phase, stage, eventDate, eventDateShort, daysUntil, rawDaysUntil, guestCounts, cadence, occasion, site?.created_at, site?.published, manifest],
   );
 
   // ── Cockpit-derived values (editorial cockpit home) ─────────
@@ -332,12 +393,20 @@ export function WelcomeHome() {
       else if (m.status === 'distant') state = 'end';
       else if (!nowUsed && (m.status === 'urgent' || m.status === 'next')) { state = 'now'; nowUsed = true; }
       else state = 'next';
-      const concrete = state === 'now' && !!m.date && !['Now', 'Soon', 'Later', 'This week', 'Done'].includes(m.date);
+      /* Concrete dates surface as the mono tag pill: pre-day on the
+         "now" rung, post-event on every stamped rung (the story
+         rail's "Pressed Mar 2 · Published Mar 9" moments). */
+      const concrete = (state === 'now' || (postEvent && (state === 'done' || state === 'end')))
+        && !!m.date && !['Now', 'Soon', 'Later', 'This week', 'Done'].includes(m.date);
       return { date: m.date, label: m.label, sub: m.sub, state, tag: concrete ? m.date : undefined };
     });
-  }, [milestones]);
+  }, [milestones, postEvent]);
 
-  const phaseLabel = stage === 'late' ? 'Final stretch' : stage === 'early' ? 'Planning' : 'Mid-planning';
+  /* The phase-level voice — chip label, header pair, blessing —
+     all from ONE place (phaseCopyFor) so tense can't drift. */
+  const voice = getEventType(occasion)?.voice ?? 'celebratory';
+  const phaseCopy = phaseCopyFor(phase, voice, stage);
+  const phaseLabel = phaseCopy.label;
   // Unclamped: a past event reports "3 weeks ago", not a permanent
   // "today" (the old code read the clamped, always-≥0 `daysUntil`).
   const phaseNote = rawDaysUntil == null
@@ -353,41 +422,80 @@ export function WelcomeHome() {
     return { name: g.name, action, when: relativeTime(g.respondedAt), tone };
   });
 
-  // Quick actions — four real routes.
-  const quickActions: QuickActionItem[] = [
-    { icon: 'check', label: 'Add a task', color: 'var(--sage-deep)', href: '/dashboard/day-of' },
-    { icon: 'users', label: 'Invite guests', color: 'var(--peach-ink)', href: '/dashboard/rsvp' },
-    { icon: 'layout', label: 'Edit site', color: 'var(--lavender-ink)', href: editorHref },
-    { icon: 'sparkles', label: 'Studio', color: 'var(--pl-gold)', href: '/dashboard/invite' },
-  ];
-
-  // Day-of checklist — a light, occasion-aware prep aid (local check
-  // state only; the same "suggested" register as the milestone ladder).
-  const checklistItems = useMemo<ChecklistItem[]>(() => (solemn
+  // Quick actions — four real routes, phase-correct (§3.1): plan
+  // the day → run the day → remember the day.
+  const recapHref = site?.domain ? `/sites/${site.domain}/recap` : '/dashboard/memory-book';
+  const quickActions: QuickActionItem[] = phase === 'the-day'
     ? [
-        { t: 'Confirm the order of service', p: 'High' },
-        { t: 'Share arrival details with family', p: 'High' },
-        { t: 'Gather readings & tributes', p: 'Medium' },
-        { t: 'Coordinate with the venue', p: 'Medium' },
+        { icon: 'clock', label: 'Day-of HQ', color: 'var(--peach-ink)', href: '/dashboard/day-of' },
+        { icon: 'layout', label: 'Open the site', color: 'var(--lavender-ink)', href: liveHref },
+        { icon: 'users', label: 'Guests', color: 'var(--sage-deep)', href: '/dashboard/rsvp' },
+        { icon: 'sparkles', label: 'Studio', color: 'var(--pl-gold)', href: '/dashboard/invite' },
       ]
-    : [
-        { t: 'Confirm vendor arrival times', p: 'High' },
-        { t: 'Share the final timeline', p: 'High' },
-        { t: 'Check seating & place cards', p: 'Medium' },
-        { t: 'Pack welcome gifts', p: 'Medium' },
-        { t: 'Print menus & signage', p: 'Low' },
-      ]), [solemn]);
+    : phase === 'afterglow'
+      ? [
+          { icon: 'bookmark', label: 'Memory book', color: 'var(--sage-deep)', href: '/dashboard/memory-book' },
+          ...(solemn ? [] : [{ icon: 'gift', label: 'Thank-yous', color: 'var(--peach-ink)', href: '/dashboard/registry' }]),
+          { icon: 'image', label: 'The Reel', color: 'var(--lavender-ink)', href: '/dashboard/gallery' },
+          { icon: 'sparkles', label: 'Share the keepsake', color: 'var(--pl-gold)', href: recapHref },
+        ]
+      : phase === 'kept'
+        ? [
+            { icon: 'bookmark', label: 'Memory book', color: 'var(--sage-deep)', href: '/dashboard/memory-book' },
+            { icon: 'layout', label: 'Open the site', color: 'var(--lavender-ink)', href: liveHref },
+            { icon: 'image', label: 'The Reel', color: 'var(--pl-gold)', href: '/dashboard/gallery' },
+          ]
+        : [
+            { icon: 'check', label: 'Add a task', color: 'var(--sage-deep)', href: '/dashboard/day-of' },
+            { icon: 'users', label: 'Invite guests', color: 'var(--peach-ink)', href: '/dashboard/rsvp' },
+            { icon: 'layout', label: 'Edit site', color: 'var(--lavender-ink)', href: editorHref },
+            { icon: 'sparkles', label: 'Studio', color: 'var(--pl-gold)', href: '/dashboard/invite' },
+          ];
+
+  // The checklist — phase-correct (welcome-home-copy.ts): day-of
+  // prep before the day, what actually remains after it. The
+  // vendor-balance row rides real Vendor Book data only.
+  const checklistItems = useMemo<ChecklistItem[]>(
+    () => buildChecklist(phase, solemn, { vendorBalancesOpen: (afterglow?.vendorOpenBalances ?? 0) > 0 }),
+    [phase, solemn, afterglow?.vendorOpenBalances],
+  );
 
   // Memory tiles — the manifest's real gallery (cover as fallback);
-  // missing slots become warm gradient tiles inside the card.
-  const memoryImages = useMemo<string[]>(() => {
+  // missing slots become warm gradient tiles inside the card. In
+  // the afterglow the book's APPROVED guest photos join in and the
+  // card grows to six tiles + a "+N more" veil (§4.2).
+  const memoryPool = useMemo<string[]>(() => {
     const m = manifest as { galleryImages?: unknown; coverPhoto?: unknown } | null;
-    const gallery = Array.isArray(m?.galleryImages)
-      ? (m!.galleryImages as unknown[]).filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
-      : [];
-    const cover = typeof m?.coverPhoto === 'string' && m.coverPhoto.trim() ? [m.coverPhoto] : [];
-    return [...gallery, ...cover].slice(0, 3);
-  }, [manifest]);
+    const urls = new Set<string>();
+    if (Array.isArray(m?.galleryImages)) {
+      for (const x of m.galleryImages as unknown[]) {
+        if (typeof x === 'string' && x.trim().length > 0) urls.add(x);
+      }
+    }
+    if (typeof m?.coverPhoto === 'string' && m.coverPhoto.trim()) urls.add(m.coverPhoto);
+    if (postEvent) for (const u of afterglow?.bookPhotos ?? []) urls.add(u);
+    return [...urls];
+  }, [manifest, postEvent, afterglow?.bookPhotos]);
+  const memoryImages = useMemo<string[]>(
+    () => memoryPool.slice(0, postEvent ? 6 : 3),
+    [memoryPool, postEvent],
+  );
+  const memoryMoreCount = Math.max(0, memoryPool.length - 6);
+  const memoryBlurb = postEvent && (memoryPool.length > 0 || (afterglow?.bookNotes ?? 0) > 0)
+    ? [
+        memoryPool.length > 0 ? `${memoryPool.length} photograph${memoryPool.length === 1 ? '' : 's'}` : null,
+        (afterglow?.bookNotes ?? 0) > 0 ? `${afterglow!.bookNotes} note${afterglow!.bookNotes === 1 ? '' : 's'}` : null,
+      ].filter(Boolean).join(' and ') + ' from your people, woven in. It grows as more arrives.'
+    : undefined;
+
+  // The afterglow hero strip — real figures only (§4.1).
+  const afterglowStats = postEvent
+    ? {
+        celebrated: guestCounts?.yes ?? 0,
+        photos: memoryPool.length,
+        notes: afterglow?.bookNotes ?? 0,
+      }
+    : null;
 
   // Themed mini-preview of the live site — resolve the site's own
   // --t-* bag (the same chain ThemedSite uses) so the card paints in
@@ -398,14 +506,30 @@ export function WelcomeHome() {
     return { name: theme.name, rootStyle: themeRootStyle(theme, 'comfortable', m?.themeVars ?? null) };
   }, [site?.manifest]);
   const venueLabel = ((site?.manifest as { logistics?: { venue?: string } } | null)?.logistics?.venue) ?? null;
-  const previewEyebrow = solemn ? 'In loving memory' : 'Save the date';
+  /* "Save the date" after the date would make the couple wince —
+     the eyebrow follows the phase (postEventEyebrowFor: "Just
+     married" / "In loving memory" / "The day, kept"). */
+  const previewEyebrow = phase === 'the-day'
+    ? 'Today'
+    : postEvent
+      ? postEventEyebrowFor(occasion)
+      : solemn ? 'In loving memory' : 'Save the date';
 
   // ── The weekend — the host's real sibling sites as event cards,
   //    plus occasion suggestions to weave (deep-linked into the
   //    wizard, celebration-linked). Keeps the old SiblingEvents
   //    multi-site funnel intact inside the new WeekendCard. ──────
   const weekendEvents = useMemo<WeekendEventItem[]>(() => {
-    const others = (sites ?? []).filter((s) => s.domain && s.domain !== site?.domain);
+    const all = (sites ?? []).filter((s) => s.domain && s.domain !== site?.domain);
+    /* Once the day has passed, only siblings still AHEAD belong in
+       "more to look forward to" — a bachelorette three weeks gone
+       is a memory, not a plan. Pre-day keeps every sibling. */
+    const others = postEvent
+      ? all.filter((s) => {
+          const d = parseLocalDate(s.eventDate);
+          return d != null && daysBetweenCalendarDates(d, new Date(now)) >= 0;
+        })
+      : all;
     return others.slice(0, 3).map((s) => {
       const label = getEventType(s.occasion ?? '')?.label ?? (s.occasion ?? 'Event').replace(/-/g, ' ');
       const d = parseLocalDate(s.eventDate);
@@ -417,7 +541,7 @@ export function WelcomeHome() {
         .filter(Boolean).join(' · ') || undefined;
       return { day, title: who || label, meta, color: weekendAccent(s.occasion), href: `/editor/${s.domain}` };
     });
-  }, [sites, site?.domain]);
+  }, [sites, site?.domain, postEvent, now]);
 
   const weekendAdds = useMemo<WeekendAdd[]>(() => {
     const have = new Set((sites ?? []).map((s) => s.occasion).filter(Boolean));
@@ -429,33 +553,61 @@ export function WelcomeHome() {
         + (originCeleb?.id ? `&cid=${encodeURIComponent(originCeleb.id)}` : '')
         + (celebName ? `&cname=${encodeURIComponent(celebName)}` : '')
       : '';
+    /* Kept phase — the arc is over; the only honest doors forward
+       are the anniversary edition (couple arcs) or the next
+       reunion. Skipped inside the AnniversaryCard's ~1-year window
+       so the same door never prompts twice (AFTERGLOW-PLAN AG.4). */
+    if (phase === 'kept') {
+      if (occasion === 'reunion' && !have.has('anniversary')) {
+        return [{ label: 'The next reunion', blurb: 'Same people, next year — begin the thread.', href: `/wizard/new?occasion=reunion${linkParams}` }];
+      }
+      const coupleArc = occasion === 'wedding' || occasion === 'vow-renewal' || occasion === 'anniversary';
+      const inAnniversaryWindow = rawDaysUntil != null && rawDaysUntil <= -320 && rawDaysUntil >= -430;
+      const hasAnniversarySibling = (sites ?? []).some((s) => s.occasion === 'anniversary' && s.domain !== site?.domain);
+      if (coupleArc && !inAnniversaryWindow && !hasAnniversarySibling) {
+        return [{ label: 'The anniversary edition', blurb: 'One year on — the story, one chapter longer.', href: `/wizard/new?occasion=anniversary${linkParams}` }];
+      }
+      return [];
+    }
     const raw = arc
       ? arc.events
           .filter((e) => e.sluffix !== '' && !have.has(e.kind))
+          /* Post-event, a satellite only makes sense if its date is
+             still ahead (anchor date + offset ≥ today) — no more
+             "weave in an engagement party" eleven days after the
+             wedding. Pre-day keeps the full arc shelf. */
+          .filter((e) => !postEvent || (rawDaysUntil != null && rawDaysUntil + e.offsetDays >= 0))
           .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
           .map((e) => ({ occasion: e.kind, label: e.label, blurb: e.description }))
           .slice(0, 3)
-      : (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
+      : postEvent
+        ? []
+        : (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
     return raw.map((e) => ({ label: e.label, blurb: e.blurb, href: `/wizard/new?occasion=${encodeURIComponent(e.occasion)}${linkParams}` }));
-  }, [sites, occasion, manifest, namesArr, site?.domain]);
+  }, [sites, occasion, manifest, namesArr, site?.domain, phase, postEvent, rawDaysUntil]);
 
   const weekendApplicable = isDashSurfaceApplicable('weekend', occasion);
   const weekendAddHref = weekendApplicable ? '/dashboard/weekend' : '/wizard/new';
   const weekendManageHref = weekendApplicable && weekendEvents.length > 0 ? '/dashboard/weekend' : undefined;
 
-  // ── Header + footer copy (occasion-aware) ───────────────────
+  // ── Header + footer copy (phase- + occasion-aware) ──────────
   const factLine = [eventDateShort, (site?.venue ?? '').trim() || null].filter(Boolean).join(' · ');
   const headerSubtitle = (factLine ? `${factLine}. ` : '')
-    + 'Everything Pear is holding for you, and the few things that want a moment this week.';
-  const headerTitle = solemn ? "You're gathering" : "You're building";
-  const headerItalic = solemn ? 'something to remember.' : 'something beautiful.';
-  const blessingText = solemn ? 'Held with love and care.' : "You're doing something wonderful.";
+    + (phase === 'kept'
+      ? 'The day, kept. Everything your people left is here whenever you want it.'
+      : phase === 'afterglow'
+        ? 'Everything from the day, gathered — and the few threads left to tie.'
+        : 'Everything Pear is holding for you, and the few things that want a moment this week.');
+  const headerTitle = phaseCopy.headerTitle;
+  const headerItalic = phaseCopy.headerItalic;
+  const blessingText = phaseCopy.blessing;
 
   // ── Which conditional cards show (the work-zone rail) ────────
-  const postEvent = rawDaysUntil != null && rawDaysUntil < 0;
   const budgetVisible = !solemn && !postEvent && Boolean(site?.id);
-  const showMomentum = Boolean(rsvpMomentum) && nextStep?.id !== 'nudge';
-  const showRemembering = postEvent && Boolean(site?.domain);
+  const showMomentum = Boolean(rsvpMomentum) && nextStep?.id !== 'nudge' && !postEvent;
+  /* Afterglow only — in the kept phase the RememberingCard folds
+     into the promoted MemoryCard (AFTERGLOW-PLAN §3.1). */
+  const showRemembering = phase === 'afterglow' && Boolean(site?.domain);
   const showAnniversary = rawDaysUntil != null
     && rawDaysUntil <= -320
     && rawDaysUntil >= -430
@@ -519,23 +671,44 @@ export function WelcomeHome() {
           liveHref={liveHref}
           editorHref={editorHref}
           narrow={heroNarrow}
+          afterglowStats={afterglowStats}
         />
 
         {/* Resume a half-finished wizard run (self-hides). */}
         <ResumeDraftCard />
 
-        {/* 3 · Planning progress + quick actions. */}
-        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1.1fr 1fr', gap: 18, alignItems: 'start' }}>
-          <ProgressCard pct={progress.pct} done={progress.done} prog={progress.prog} todo={progress.todo} />
+        {/* 3 · Planning progress + quick actions. A finished day
+            isn't 73% done — the % bar retires post-event and the
+            story rail below says it better with dates. */}
+        <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || postEvent) ? '1fr' : '1.1fr 1fr', gap: 18, alignItems: 'start' }}>
+          {!postEvent && <ProgressCard pct={progress.pct} done={progress.done} prog={progress.prog} todo={progress.todo} />}
           <QuickActions actions={quickActions} />
         </div>
 
         {/* 4 · The road (milestone timeline) + a right stack of the
-            day-of checklist and the themed site preview. */}
-        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
-          <RoadCard milestones={roadMilestones} dateShort={eventDateShort} href="/dashboard/cadence" />
+            checklist and the themed site preview. In the afterglow
+            the same rail turns past-tense (the StoryCard — real
+            stamps, every dot filled); in the kept phase it rests. */}
+        <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || phase === 'kept') ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+          {phase !== 'kept' && (
+            <RoadCard
+              milestones={roadMilestones}
+              dateShort={eventDateShort}
+              href={postEvent ? undefined : '/dashboard/cadence'}
+              eyebrow={postEvent ? 'The road you took' : undefined}
+              headline={postEvent ? <>How it <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>came together.</span></> : undefined}
+            />
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <ChecklistCard items={checklistItems} href="/dashboard/day-of" />
+            <ChecklistCard
+              items={checklistItems}
+              href={phase === 'afterglow'
+                ? (solemn ? '/dashboard/memory-book' : '/dashboard/registry')
+                : '/dashboard/day-of'}
+              eyebrow={phase === 'afterglow' ? (solemn ? 'The remembering' : 'After the day') : undefined}
+              headline={phase === 'afterglow' ? <>Gently, <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>in your own time.</span></> : undefined}
+              linkLabel={phase === 'afterglow' ? (solemn ? 'Open the memory book' : 'Open the gift ledger') : undefined}
+            />
             {site?.domain && (
               <HomeSitePreview
                 names={namesArr}
@@ -590,17 +763,39 @@ export function WelcomeHome() {
           </div>
         )}
 
-        {/* 5 · Guest summary (donut) + the memory book. */}
-        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
-          <GuestSummaryCard counts={guestCounts} href="/dashboard/rsvp" />
-          <MemoryCard images={memoryImages} href="/dashboard/keepsakes" />
+        {/* 5 · Guest summary + the memory book. Post-event the
+            memory book takes the lead (six tiles, guest photos
+            woven in) and the donut retires for the honest recap:
+            who celebrated with you. */}
+        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : postEvent ? '1.25fr 1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+          {postEvent ? (
+            <>
+              <MemoryCard images={memoryImages} href="/dashboard/keepsakes" expanded moreCount={memoryMoreCount} blurb={memoryBlurb} />
+              <GuestSummaryCard counts={guestCounts} href="/dashboard/rsvp" mode="recap" solemn={solemn} />
+            </>
+          ) : (
+            <>
+              <GuestSummaryCard counts={guestCounts} href="/dashboard/rsvp" />
+              <MemoryCard images={memoryImages} href="/dashboard/keepsakes" />
+            </>
+          )}
         </div>
 
-        {/* 6 · The weekend — real sibling events + occasions to weave. */}
-        <WeekendCard events={weekendEvents} adds={weekendAdds} addHref={weekendAddHref} manageHref={weekendManageHref} />
+        {/* 6 · The weekend — real sibling events + occasions to
+            weave. Post-event only future-dated siblings + still-
+            ahead suggestions qualify; with neither, the card goes
+            (nothing left to look forward to isn't a card). */}
+        {(!postEvent || weekendEvents.length > 0 || weekendAdds.length > 0) && (
+          <WeekendCard events={weekendEvents} adds={weekendAdds} addHref={weekendAddHref} manageHref={weekendManageHref} />
+        )}
 
-        {/* 7 · The long view. */}
-        <TheLongView dateShort={eventDateShort} solemn={solemn} />
+        {/* 7 · The long view — time moves through it (§4.4). */}
+        <TheLongView
+          dateShort={eventDateShort}
+          solemn={solemn}
+          phase={phase}
+          daysSince={postEvent && rawDaysUntil != null ? -rawDaysUntil : null}
+        />
 
         {/* 8 · The footer blessing. */}
         <CockpitBlessing text={blessingText} />
@@ -681,8 +876,10 @@ interface PearTodo {
 }
 
 function usePearTodos({
-  stage, insights, guestCounts, daysUntil, suppressNudge = false,
+  phase, stage, insights, guestCounts, daysUntil, suppressNudge = false,
+  afterglow = null, siteDomain = null,
 }: {
+  phase: CockpitPhase;
   stage: Stage;
   insights: GuestInsight[] | null;
   guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
@@ -690,8 +887,61 @@ function usePearTodos({
   /** The hero's golden-thread card already names the pending-RSVP
    *  nudge — skip the todo that would repeat it. */
   suppressNudge?: boolean;
+  /** Post-event counts (photos awaiting a nod, the thank-you
+   *  ledger, the memory book) — every afterglow row is real. */
+  afterglow?: AfterglowData | null;
+  siteDomain?: string | null;
 }): PearTodo[] {
   return useMemo(() => {
+    // The kept phase asks nothing of the host — the bell carries
+    // stragglers; Home is a keepsake, not a queue.
+    if (phase === 'kept') return [];
+
+    // The afterglow queue — what actually remains, with real
+    // numbers or no row at all (AFTERGLOW-PLAN AG.2).
+    if (phase === 'afterglow') {
+      const out: PearTodo[] = [];
+      if (afterglow?.pendingPhotos != null && afterglow.pendingPhotos > 0) {
+        out.push({
+          title: `${afterglow.pendingPhotos} photo${afterglow.pendingPhotos === 1 ? '' : 's'} await your nod`,
+          sub: 'Guests added to the reel — approve the keepers.',
+          cta: 'Review',
+          href: '/dashboard/gallery',
+          urgency: 'now',
+        });
+      }
+      if (afterglow?.giftsTotal != null && afterglow.giftsTotal > (afterglow.giftsThanked ?? 0)) {
+        out.push({
+          title: `Thank-yous — ${afterglow.giftsThanked ?? 0} of ${afterglow.giftsTotal} sent`,
+          sub: 'The gift ledger keeps score. Pear drafts each note.',
+          cta: 'Open the ledger',
+          href: '/dashboard/registry',
+          urgency: 'soon',
+        });
+      }
+      if ((afterglow?.bookNotes ?? 0) > 0 && siteDomain) {
+        out.push({
+          title: 'The memory book is ready to share',
+          sub: `${afterglow!.bookNotes} note${afterglow!.bookNotes === 1 ? '' : 's'} from your people, already woven in.`,
+          cta: 'Open it',
+          href: `/sites/${siteDomain}/recap`,
+          urgency: 'later',
+        });
+      }
+      return out.slice(0, 3);
+    }
+
+    // Day-of: one queue item — the day runs from Day-of HQ.
+    if (phase === 'the-day') {
+      return [{
+        title: 'Run the day from one page',
+        sub: 'Vendors, run-of-show, broadcasts — Day-of HQ has it all.',
+        cta: 'Open Day-of',
+        href: '/dashboard/day-of',
+        urgency: 'now',
+      }];
+    }
+
     const out: PearTodo[] = [];
 
     // 1) Insight-driven todos take precedence — Pear flagged these.
@@ -756,245 +1006,11 @@ function usePearTodos({
       });
     }
     return out.slice(0, 3);
-  }, [stage, insights, guestCounts, daysUntil, suppressNudge]);
+  }, [phase, stage, insights, guestCounts, daysUntil, suppressNudge, afterglow, siteDomain]);
 }
 
 function severityRank(s: GuestInsight['severity']): number {
   return s === 'urgent' ? 0 : s === 'attention' ? 1 : 2;
-}
-
-// ─────────────────────────────────────────────────────────────
-// buildMilestones — the vertical roadmap ladder (feeds RoadCard +
-// the planning-progress counts on the cockpit home)
-// ─────────────────────────────────────────────────────────────
-type MilestoneStatus = 'done' | 'urgent' | 'next' | 'upcoming' | 'distant';
-interface Milestone {
-  date: string;
-  label: string;
-  sub: string;
-  status: MilestoneStatus;
-  urgency: 'urgent' | 'soon' | 'on-track';
-}
-
-/* Which planning ladder an occasion walks. The wedding pacing
-   ("save-the-dates ~10 mo", caterer counts, seating) only fits
-   couple-arc events — trips plan a group weekend, parties send
-   invitations weeks (not months) ahead, cultural ceremonies add a
-   service to confirm, and solemn occasions keep the quiet ladder. */
-type MilestoneFamily = 'couple' | 'trip' | 'party' | 'cultural' | 'solemn';
-
-/** Group-trip occasions — no vendors/caterer/seating; the work is
- *  the group itself (cost shares, sizes, travel). */
-const TRIP_OCCASIONS: ReadonlySet<string> = new Set([
-  'bachelor-party',
-  'bachelorette-party',
-  'reunion',
-]);
-
-function milestoneFamilyFor(occasion: string): MilestoneFamily {
-  if (occasion === 'memorial' || occasion === 'funeral') return 'solemn';
-  if (TRIP_OCCASIONS.has(occasion)) return 'trip';
-  if (occasion === 'wedding' || occasion === 'vow-renewal') return 'couple';
-  if (getEventType(occasion)?.category === 'cultural') return 'cultural';
-  return 'party';
-}
-
-function buildMilestones({
-  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence, occasion,
-}: {
-  stage: Stage;
-  eventDate: Date | null;
-  eventDateShort: string | null;
-  daysUntil: number | null;
-  guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
-  cadence?: CadencePhaseLite[] | null;
-  /** Drives the milestone family — see milestoneFamilyFor. */
-  occasion: string;
-}): Milestone[] {
-  const family = milestoneFamilyFor(occasion);
-  const dayLabel =
-    family === 'couple' ? 'The big day'
-    : family === 'trip' ? 'The weekend itself'
-    : 'The day itself';
-  const out: Milestone[] = [];
-  out.push({ date: 'Done', label: 'Site claimed', sub: '', status: 'done', urgency: 'on-track' });
-  if (eventDate) {
-    out.push({ date: 'Done', label: 'Date locked', sub: eventDateShort ?? '', status: 'done', urgency: 'on-track' });
-  } else {
-    out.push({ date: 'Now', label: 'Lock the date', sub: 'Anchors every milestone', status: 'next', urgency: 'soon' });
-  }
-
-  // ── Real roadmap — the host's Smart Send Cadence. Sent phases are
-  //    genuinely done; scheduled phases carry real dates; presets are
-  //    Pear's date-derived suggestions. This replaces the previous
-  //    stage-hardcoded ladder ("Book vendors · ~4 mo") whose progress
-  //    bar measured fiction. The synthetic ladder below survives only
-  //    as the fallback when there's no event date / cadence data. */
-  const phases = (cadence ?? [])
-    .filter((ph) => ph.status !== 'cancelled' && ph.status !== 'failed' && ph.scheduledAt)
-    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
-  if (eventDate && phases.length > 0) {
-    let nextAssigned = false;
-    for (const ph of phases.slice(0, 5)) {
-      const due = new Date(ph.scheduledAt);
-      const dateLabel = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      if (ph.status === 'sent') {
-        out.push({ date: 'Done', label: ph.label, sub: ph.sentCount ? `${ph.sentCount} sent` : 'sent', status: 'done', urgency: 'on-track' });
-        continue;
-      }
-      const daysToDue = Math.round((due.getTime() - Date.now()) / 86_400_000);
-      const isFirstOpen = !nextAssigned;
-      nextAssigned = true;
-      const urgent = ph.status === 'scheduled' && daysToDue <= 7;
-      out.push({
-        date: daysToDue <= 0 ? 'Now' : dateLabel,
-        label: ph.label,
-        sub: ph.status === 'scheduled'
-          ? (daysToDue <= 0 ? 'sending today' : `sends in ${daysToDue} day${daysToDue === 1 ? '' : 's'}`)
-          : ph.status === 'draft' ? 'drafted — approve to schedule' : 'suggested by Pear',
-        status: urgent ? 'urgent' : isFirstOpen ? 'next' : 'upcoming',
-        urgency: urgent ? 'urgent' : isFirstOpen ? 'soon' : 'on-track',
-      });
-    }
-    if (eventDateShort) {
-      out.push({
-        date: eventDateShort,
-        label: dayLabel,
-        sub: daysUntil != null ? `${daysUntil} days out` : '',
-        status: 'distant',
-        urgency: 'on-track',
-      });
-    }
-    return out;
-  }
-
-  if (family === 'solemn') {
-    // Quiet ladder — no vendors / seating / menu-count rows on a
-    // memorial or funeral site.
-    out.push({ date: 'This week', label: 'Share the site', sub: 'family & close friends first', status: 'next', urgency: 'soon' });
-    out.push({ date: 'Soon', label: 'Gather photos & words', sub: 'for the tribute wall', status: 'upcoming', urgency: 'on-track' });
-    if (guestCounts && guestCounts.pending > 0) {
-      out.push({ date: 'Soon', label: 'Replies', sub: `${guestCounts.pending} still to reply`, status: 'upcoming', urgency: 'on-track' });
-    }
-  } else if (family === 'trip') {
-    // Trip ladder — bachelor/ette weekends and reunions have no
-    // vendors, caterer, or seating chart; the work is the group.
-    if (stage === 'early') {
-      out.push({ date: 'This week', label: 'Share the site', sub: 'get it in the group chat', status: 'next', urgency: 'soon' });
-      out.push({ date: 'Soon',  label: 'Lock the guest list', sub: 'who’s in for the weekend', status: 'upcoming', urgency: 'on-track' });
-      out.push({ date: 'Later', label: 'Collect cost shares & sizes', sub: 'splits, shirts, beds', status: 'upcoming', urgency: 'on-track' });
-      out.push({ date: 'Later', label: 'Book the travel window', sub: 'rooms & rides together', status: 'upcoming', urgency: 'on-track' });
-    } else {
-      if (guestCounts && guestCounts.invited > 0) {
-        out.push({ date: 'Done', label: 'Site shared', sub: `${guestCounts.invited} in the loop`, status: 'done', urgency: 'on-track' });
-      } else {
-        out.push({ date: 'Now', label: 'Share the site', sub: 'get it in the group chat', status: 'next', urgency: 'soon' });
-      }
-      if (guestCounts && guestCounts.pending > 0) {
-        out.push({
-          date: stage === 'late' ? 'Now' : 'Soon',
-          label: 'Lock the guest list',
-          sub: `${guestCounts.pending} still to confirm`,
-          status: stage === 'late' ? 'urgent' : 'next',
-          urgency: stage === 'late' ? 'urgent' : 'soon',
-        });
-      } else {
-        out.push({ date: 'Done', label: 'Guest list locked', sub: 'everyone has answered', status: 'done', urgency: 'on-track' });
-      }
-      out.push({ date: 'Soon', label: 'Collect cost shares & sizes', sub: 'splits, shirts, beds', status: stage === 'late' ? 'next' : 'upcoming', urgency: stage === 'late' ? 'soon' : 'on-track' });
-      out.push({ date: 'Soon', label: 'Book the travel window', sub: 'rooms & rides together', status: 'upcoming', urgency: 'on-track' });
-    }
-  } else if (family === 'party' || family === 'cultural') {
-    // Party ladder — showers, birthdays, graduations, dinners.
-    // Shorter lead times than a wedding: invitations go out weeks
-    // ahead, not months, and there's no vendor/caterer/seating run.
-    if (stage === 'early') {
-      out.push({ date: 'This week', label: 'Share the site', sub: 'let people save the day', status: 'next', urgency: 'soon' });
-      out.push({ date: '~6 wk', label: 'Send invitations', sub: 'a few weeks ahead is plenty', status: 'upcoming', urgency: 'on-track' });
-      out.push({ date: '~2 wk', label: 'Replies in', sub: 'close the list', status: 'upcoming', urgency: 'on-track' });
-    } else if (stage === 'mid') {
-      const invited = !!guestCounts && guestCounts.invited > 0;
-      if (invited) {
-        out.push({ date: 'Done', label: 'Invitations sent', sub: `${guestCounts!.invited} invited`, status: 'done', urgency: 'on-track' });
-      } else {
-        out.push({ date: 'Now', label: 'Send invitations', sub: 'a few weeks ahead is plenty', status: 'next', urgency: 'soon' });
-      }
-      out.push({
-        date: 'Soon',
-        label: 'Replies in',
-        sub: guestCounts && guestCounts.pending > 0 ? `${guestCounts.pending} still to reply` : 'close the list',
-        status: invited ? 'next' : 'upcoming',
-        urgency: invited ? 'soon' : 'on-track',
-      });
-      out.push({ date: 'Later', label: 'Final headcount', sub: 'lock the numbers', status: 'upcoming', urgency: 'on-track' });
-    } else if (stage === 'late') {
-      if (guestCounts && guestCounts.invited > 0) {
-        out.push({ date: 'Done', label: 'Invitations sent', sub: `${guestCounts.invited} invited`, status: 'done', urgency: 'on-track' });
-      }
-      if (guestCounts && guestCounts.pending > 0) {
-        out.push({
-          date: 'Now',
-          label: 'Replies in',
-          sub: `${guestCounts.pending} pending · ${daysUntil ?? 0} days out`,
-          status: 'urgent',
-          urgency: 'urgent',
-        });
-      } else {
-        out.push({ date: 'Done', label: 'Replies in', sub: 'all replies in', status: 'done', urgency: 'on-track' });
-      }
-      out.push({ date: 'Soon', label: 'Final headcount', sub: 'lock the numbers', status: 'next', urgency: 'soon' });
-    }
-    if (family === 'cultural') {
-      // Ceremony rung — quinceañeras, mitzvahs, baptisms and their
-      // kin have a service to confirm alongside the party.
-      out.push({
-        date: stage === 'late' ? 'Soon' : 'Later',
-        label: 'Confirm the service details',
-        sub: 'ceremony order & who takes part',
-        status: 'upcoming',
-        urgency: 'on-track',
-      });
-    }
-  } else if (stage === 'early') {
-    out.push({ date: 'This week', label: 'Send save-the-dates', sub: 'recommended now', status: 'next', urgency: 'soon' });
-    out.push({ date: '~4 mo',     label: 'Book vendors',         sub: 'in roughly four months', status: 'upcoming', urgency: 'on-track' });
-    out.push({ date: '~10 mo',    label: 'Send invitations',     sub: 'with the guest list', status: 'upcoming', urgency: 'on-track' });
-  } else if (stage === 'mid') {
-    if (guestCounts && guestCounts.invited > 0) {
-      out.push({ date: 'Done', label: 'Save-the-dates sent', sub: `${guestCounts.invited} invited`, status: 'done', urgency: 'on-track' });
-    }
-    out.push({ date: 'Soon',  label: 'RSVP cutoff',        sub: daysUntil ? `~${Math.max(30, Math.round(daysUntil / 4))} days out` : '~30 days', status: 'next', urgency: 'soon' });
-    out.push({ date: 'Later', label: 'Final menu count',   sub: 'caterer needs the headcount', status: 'upcoming', urgency: 'on-track' });
-    out.push({ date: 'Later', label: 'Seating chart',      sub: 'after RSVPs close', status: 'upcoming', urgency: 'on-track' });
-  } else if (stage === 'late') {
-    if (guestCounts && guestCounts.invited > 0) {
-      out.push({ date: 'Done', label: 'Invitations sent',  sub: `${guestCounts.invited} invited`, status: 'done', urgency: 'on-track' });
-    }
-    if (guestCounts && guestCounts.pending > 0) {
-      out.push({
-        date: 'Now',
-        label: 'RSVP cutoff',
-        sub: `${guestCounts.pending} pending · ${daysUntil ?? 0} days out`,
-        status: 'urgent',
-        urgency: 'urgent',
-      });
-    } else {
-      out.push({ date: 'Done', label: 'RSVP cutoff', sub: 'all replies in', status: 'done', urgency: 'on-track' });
-    }
-    out.push({ date: 'Soon', label: 'Final count to caterer', sub: 'lock the headcount', status: 'next', urgency: 'soon' });
-    out.push({ date: 'Soon', label: 'Seating finalized',     sub: 'place every name',    status: 'upcoming', urgency: 'on-track' });
-  }
-
-  if (eventDateShort) {
-    out.push({
-      date: eventDateShort,
-      label: dayLabel,
-      sub: daysUntil != null ? `${daysUntil} days out` : '',
-      status: 'distant',
-      urgency: 'on-track',
-    });
-  }
-  return out;
 }
 
 // ─────────────────────────────────────────────────────────────

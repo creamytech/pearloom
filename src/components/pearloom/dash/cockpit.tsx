@@ -28,6 +28,7 @@ import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
 import { daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
 import { COVER_FOCUS } from '@/lib/cover-crop';
+import type { CockpitPhase } from '@/lib/event-os/cockpit-phase';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -182,6 +183,10 @@ export interface HeroBannerProps {
   changePhotoHref?: string;
   /** Collapse to a single column (parent-measured, no CSS edit). */
   narrow?: boolean;
+  /** The afterglow strip — REAL post-event numerals (attending
+   *  count, book photos, guest notes). Zero-count figures don't
+   *  render; only shown once the day has passed. */
+  afterglowStats?: { celebrated: number; photos: number; notes: number } | null;
 }
 
 export function HeroBanner({
@@ -195,8 +200,16 @@ export function HeroBanner({
   editorHref,
   changePhotoHref,
   narrow = false,
+  afterglowStats = null,
 }: HeroBannerProps) {
   const c = useCockpitCountdown(eventDate);
+  const afterglowFigures: [string, number][] = afterglowStats
+    ? ([
+        ['CELEBRATED', afterglowStats.celebrated],
+        ['PHOTOGRAPHS', afterglowStats.photos],
+        ['NOTES', afterglowStats.notes],
+      ] as [string, number][]).filter(([, n]) => n > 0)
+    : [];
   const a = names[0];
   const b = names[1];
   const occLabel = occasion.replace(/-/g, ' ').toUpperCase();
@@ -241,12 +254,29 @@ export function HeroBanner({
             /* A frozen 00:00:00:00 flip-clock reads as broken for an
                event that's over — the eyebrow above already carries
                "3 weeks ago"; this line just marks the day as closed. */
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '22px 0 4px', padding: '9px 14px', borderRadius: 999, background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)' }}>
-              <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: HERO_GOLD, flexShrink: 0 }} />
-              <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: HERO_SOFT }}>
-                The day has come and gone
-              </span>
-            </div>
+            <>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '22px 0 4px', padding: '9px 14px', borderRadius: 999, background: 'rgba(247,242,230,0.08)', border: '1px solid rgba(247,242,230,0.14)' }}>
+                <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: HERO_GOLD, flexShrink: 0 }} />
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: HERO_SOFT }}>
+                  The day has come and gone
+                </span>
+              </div>
+              {/* The afterglow strip — what actually happened, in
+                  letterpress figures (AFTERGLOW-PLAN §4.1). Every
+                  number is real; zeros never render. */}
+              {afterglowFigures.length > 0 && (
+                <div style={{ display: 'flex', gap: 30, margin: '18px 0 2px', flexWrap: 'wrap' }}>
+                  {afterglowFigures.map(([label, n]) => (
+                    <div key={label}>
+                      <div style={{ fontFamily: DISPLAY, fontSize: 32, lineHeight: 1, color: HERO_CREAM }}>
+                        <CountUpNum value={n} />
+                      </div>
+                      <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.2em', color: HERO_GOLD, marginTop: 6 }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           ) : null}
           <div style={{ display: 'flex', gap: 10, marginTop: 22, flexWrap: 'wrap' }}>
             <a href={liveHref} target="_blank" rel="noreferrer" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
@@ -396,18 +426,33 @@ export interface RoadMilestone {
   tag?: string;
 }
 
-export function RoadCard({ milestones, dateShort, href }: { milestones: RoadMilestone[]; dateShort: string | null; href?: string }) {
+export function RoadCard({
+  milestones,
+  dateShort,
+  href,
+  eyebrow,
+  headline,
+}: {
+  milestones: RoadMilestone[];
+  dateShort: string | null;
+  href?: string;
+  /** Post-event the same rail becomes the StoryCard — the caller
+   *  reskins the header ("The road you took · How it came
+   *  together.") without forking the component. */
+  eyebrow?: string;
+  headline?: React.ReactNode;
+}) {
   return (
     <div style={{ ...cockpitCard, padding: 26 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <Eyebrow>{dateShort ? `The road to ${dateShort}` : 'Your timeline'}</Eyebrow>
+        <Eyebrow>{eyebrow ?? (dateShort ? `The road to ${dateShort}` : 'Your timeline')}</Eyebrow>
         {href ? (
           <Link href={href} style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             View full timeline <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
           </Link>
         ) : null}
       </div>
-      <CardHeadline margin="8px 0 18px">What&rsquo;s next on <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>your timeline.</span></CardHeadline>
+      <CardHeadline margin="8px 0 18px">{headline ?? <>What&rsquo;s next on <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>your timeline.</span></>}</CardHeadline>
       <div>
         {milestones.map((r, i) => {
           const done = r.state === 'done';
@@ -453,7 +498,21 @@ export interface ChecklistItem { t: string; p: 'High' | 'Medium' | 'Low' }
 // hairline token — 2.45:1 as text; PERSONA-PLAN S7).
 const PRI: Record<ChecklistItem['p'], string> = { High: 'var(--peach-ink)', Medium: 'var(--gold-ink, #836018)', Low: 'var(--ink-muted)' };
 
-export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: string }) {
+export function ChecklistCard({
+  items,
+  href,
+  eyebrow = 'Day-of checklist',
+  headline,
+  linkLabel = 'Open the full day-of timeline',
+}: {
+  items: ChecklistItem[];
+  href?: string;
+  /** Post-event the same card carries the afterglow list — the
+   *  caller reskins the header ("After the day") + footer link. */
+  eyebrow?: string;
+  headline?: React.ReactNode;
+  linkLabel?: string;
+}) {
   const [done, setDone] = useState<boolean[]>(() => items.map(() => false));
   // Resync the local state when the item set changes (site switch).
   // Render-time adjustment, not a setState-in-effect.
@@ -465,8 +524,8 @@ export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: 
   if (items.length === 0) return null;
   return (
     <div style={{ ...cockpitCard, padding: 26 }}>
-      <Eyebrow>Day-of checklist</Eyebrow>
-      <CardHeadline size={21} margin="8px 0 14px">You can <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>do this.</span></CardHeadline>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <CardHeadline size={21} margin="8px 0 14px">{headline ?? <>You can <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>do this.</span></>}</CardHeadline>
       <div>
         {items.map((c, i) => (
           <button
@@ -485,7 +544,7 @@ export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: 
       </div>
       {href ? (
         <Link href={href} style={{ marginTop: 14, fontSize: 12.5, color: 'var(--peach-ink)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-          Open the full day-of timeline <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          {linkLabel} <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
         </Link>
       ) : null}
     </div>
@@ -499,7 +558,53 @@ export function ChecklistCard({ items, href }: { items: ChecklistItem[]; href?: 
 
 export interface GuestCounts { invited: number; yes: number; no: number; maybe: number; pending: number }
 
-export function GuestSummaryCard({ counts, href }: { counts: GuestCounts | null; href: string }) {
+export function GuestSummaryCard({
+  counts,
+  href,
+  mode = 'plan',
+  solemn = false,
+}: {
+  counts: GuestCounts | null;
+  href: string;
+  /** 'recap' is the post-event skin (AFTERGLOW-PLAN §3.1): the
+   *  honest headline is who celebrated with you — the donut and
+   *  "pending" pressure retire; declines fall to a footnote. */
+  mode?: 'plan' | 'recap';
+  /** Memorial register for the recap clause. */
+  solemn?: boolean;
+}) {
+  if (mode === 'recap') {
+    // Nothing real to recap (no list, or nobody said yes) — the
+    // card stands down rather than celebrating a zero.
+    if (!counts || counts.invited === 0 || counts.yes === 0) return null;
+    const quiet = [
+      counts.no > 0 ? `${counts.no} couldn’t make it` : null,
+      counts.pending + counts.maybe > 0 ? `${counts.pending + counts.maybe} never replied` : null,
+    ].filter(Boolean).join(' · ');
+    return (
+      <div style={{ ...cockpitCard, padding: 26 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <Eyebrow>Who was there</Eyebrow>
+          <Link href={href} style={{ fontSize: 12, color: 'var(--peach-ink)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            View all guests <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
+          </Link>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, margin: '14px 0 4px', flexWrap: 'wrap' }}>
+          <span className="pl-letterpress" style={{ fontFamily: DISPLAY, fontSize: 56, lineHeight: 0.95, color: 'var(--ink)' }}>
+            <CountUpNum value={counts.yes} />
+          </span>
+          <span style={{ fontFamily: DISPLAY, fontSize: 21, fontStyle: 'italic', color: 'var(--sage-deep)' }}>
+            {solemn ? 'gathered to remember.' : 'celebrated with you.'}
+          </span>
+        </div>
+        {quiet ? (
+          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)', fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: 'var(--ink-muted)' }}>
+            {quiet}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
   if (!counts || counts.invited === 0) {
     return (
       <div style={{ ...cockpitCard, padding: 26 }}>
@@ -587,21 +692,48 @@ const MEMORY_GRADIENTS = [
   'linear-gradient(150deg,#E9DFC8,#D8C6A0)',
   'linear-gradient(150deg,#E3D6E8,#CBB8D6)',
   'linear-gradient(150deg,#DDE6CE,#C2CFA6)',
+  'linear-gradient(150deg,#E8DCC6,#D2BFA2)',
+  'linear-gradient(150deg,#E0D8E6,#C6B4D2)',
+  'linear-gradient(150deg,#DAE3CC,#BECBA4)',
 ];
 
-export function MemoryCard({ images, href, blurb }: { images: string[]; href: string; blurb?: string }) {
+export function MemoryCard({
+  images,
+  href,
+  blurb,
+  expanded = false,
+  moreCount = 0,
+  headline,
+}: {
+  images: string[];
+  href: string;
+  blurb?: string;
+  /** Afterglow promotion (AFTERGLOW-PLAN §4.2): six tiles instead
+   *  of three, with a "+N more" veil on the last when the book
+   *  holds more than fits. */
+  expanded?: boolean;
+  moreCount?: number;
+  headline?: React.ReactNode;
+}) {
+  const slots = expanded ? 6 : 3;
   return (
     <div style={{ ...cockpitCard, padding: 26, position: 'relative', overflow: 'hidden' }}>
       <Eyebrow>The memory book</Eyebrow>
-      <CardHeadline margin="8px 0 16px">A keepsake <span style={{ fontStyle: 'italic', color: 'var(--gold-ink, var(--pl-gold))' }}>in the making.</span></CardHeadline>
+      <CardHeadline margin="8px 0 16px">{headline ?? <>A keepsake <span style={{ fontStyle: 'italic', color: 'var(--gold-ink, var(--pl-gold))' }}>in the making.</span></>}</CardHeadline>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-        {[0, 1, 2].map((i) => {
+        {Array.from({ length: slots }, (_, i) => {
           const src = images[i];
+          const veil = expanded && i === slots - 1 && moreCount > 0;
           return (
-            <div key={i} style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', boxShadow: 'var(--shadow-sm, 0 2px 8px rgba(40,28,12,0.08))', transform: `rotate(${(i - 1) * 1.4}deg)`, background: src ? 'var(--cream-3)' : MEMORY_GRADIENTS[i] }}>
+            <div key={i} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', boxShadow: 'var(--shadow-sm, 0 2px 8px rgba(40,28,12,0.08))', transform: `rotate(${((i % 3) - 1) * 1.4}deg)`, background: src ? 'var(--cream-3)' : MEMORY_GRADIENTS[i] }}>
               {src ? (
-                 
+
                 <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: COVER_FOCUS, filter: 'saturate(1.05) sepia(0.05)' }} />
+              ) : null}
+              {veil ? (
+                <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(30,26,18,0.48)' }}>
+                  <span style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 19, color: 'var(--cream, #F5EFE2)' }}>+{moreCount} more</span>
+                </div>
               ) : null}
             </div>
           );
@@ -1000,24 +1132,56 @@ const budgetDoorLink: React.CSSProperties = {
 };
 
 // ── TheLongView (LongViewCard) ───────────────────────────────
-// The forward-looking keepsake timeline. Occasion-aware (a solemn
-// variant for memorials); dates derive from the event date, copy is
-// branded.
+// The keepsake timeline — and time actually moves through it
+// (AFTERGLOW-PLAN §4.4). Each step carries done / now / next via
+// the RoadCard's state grammar: post-event "The day" wears its
+// check, "That week" is the ringed now while inside it, then
+// "One year on" becomes next. Occasion-aware (a solemn variant
+// for memorials); copy is branded.
 
-export function TheLongView({ dateShort, solemn = false }: { dateShort: string | null; solemn?: boolean }) {
-  const steps: { icon: string; when: string; what: string; color: string; now?: boolean }[] = solemn
+type LongViewState = 'done' | 'now' | 'next' | 'plain';
+
+export function TheLongView({
+  dateShort,
+  solemn = false,
+  phase = 'planning',
+  daysSince = null,
+}: {
+  dateShort: string | null;
+  solemn?: boolean;
+  /** The cockpit phase — drives which step is done/now/next. */
+  phase?: CockpitPhase;
+  /** Whole days since the event (post-event only). */
+  daysSince?: number | null;
+}) {
+  const post = phase === 'afterglow' || phase === 'kept';
+  const inFirstWeek = post && daysSince != null && daysSince <= 7;
+  const states: LongViewState[] = [
+    post ? 'done' : 'now',
+    post ? (inFirstWeek ? 'now' : 'done') : 'plain',
+    post && !inFirstWeek ? 'next' : 'plain',
+    'plain',
+  ];
+  const steps: { icon: string; when: string; what: string; color: string }[] = solemn
     ? [
-        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)', now: true },
+        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)' },
         { icon: 'image', when: 'That week', what: 'Tributes gather on the wall', color: 'var(--sage-deep)' },
         { icon: 'gift', when: 'One year on', what: 'Pear sends a remembrance note', color: 'var(--gold)' },
         { icon: 'sparkles', when: 'Always', what: 'The page stays — a place to return', color: 'var(--peach-ink)' },
       ]
     : [
-        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)', now: true },
-        { icon: 'image', when: 'That week', what: 'The Reel fills with guest photos', color: 'var(--sage-deep)' },
+        { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)' },
+        { icon: 'image', when: 'That week', what: post && !inFirstWeek ? 'The Reel filled with guest photos' : 'The Reel fills with guest photos', color: 'var(--sage-deep)' },
         { icon: 'gift', when: 'One year on', what: 'Pear sends a first-anniversary note', color: 'var(--gold)' },
         { icon: 'sparkles', when: 'Forever', what: 'The site becomes a keepsake page', color: 'var(--lavender-ink)' },
       ];
+  const body = solemn
+    ? 'Pear keeps the weave going — the page becomes a place to return to, long after the day.'
+    : phase === 'kept'
+      ? 'The day is woven in for good. One year on, Pear sends the anniversary note — and the site stays, a keepsake page.'
+      : post
+        ? 'The day is woven in. Pear keeps the weave going — the Reel, the book, and a first-anniversary note.'
+        : 'A day today is a keepsake in forty years. Pear keeps the weave going long after the last dance.';
   return (
     <div style={{ ...cockpitCard, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '20px 26px 0' }}>
@@ -1025,27 +1189,35 @@ export function TheLongView({ dateShort, solemn = false }: { dateShort: string |
         <CardHeadline size={20} margin="6px 0 2px">
           {solemn
             ? <>A thread that <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>stays woven.</span></>
-            : <>This day is the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>first knot.</span></>}
+            : post
+              ? <>That day was the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>first knot.</span></>
+              : <>This day is the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>first knot.</span></>}
         </CardHeadline>
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '6px 0 0' }}>
-          {solemn
-            ? 'Pear keeps the weave going — the page becomes a place to return to, long after the day.'
-            : 'A day today is a keepsake in forty years. Pear keeps the weave going long after the last dance.'}
+          {body}
         </p>
       </div>
       <div className="pl8-cockpit-timeline" style={{ padding: '20px 26px 24px' }}>
-        {steps.map((s, i) => (
-          <div key={s.when} style={{ position: 'relative', paddingRight: 16 }}>
-            {i < steps.length - 1 ? (
-              <div aria-hidden style={{ position: 'absolute', left: 16, right: 0, top: 16, height: 2, backgroundImage: 'linear-gradient(90deg, var(--line) 50%, transparent 50%)', backgroundSize: '8px 2px' }} />
-            ) : null}
-            <span style={{ position: 'relative', zIndex: 1, width: 34, height: 34, borderRadius: 999, display: 'grid', placeItems: 'center', background: s.now ? s.color : 'var(--card)', color: s.now ? 'var(--cream)' : s.color, border: `2px solid ${s.color}` }}>
-              <Icon name={s.icon} size={15} color={s.now ? 'var(--cream)' : s.color} />
-            </span>
-            <div className="eyebrow" style={{ margin: '12px 0 0', color: 'var(--ink-muted)' }}>{s.when}</div>
-            <div style={{ fontSize: 13, color: 'var(--ink)', marginTop: 3, lineHeight: 1.4 }}>{s.what}</div>
-          </div>
-        ))}
+        {steps.map((s, i) => {
+          const st = states[i];
+          const fillColor = st === 'done' ? 'var(--sage)' : st === 'now' ? s.color : 'var(--card)';
+          const ringColor = st === 'done' ? 'var(--sage)' : st === 'next' ? 'var(--gold, #C19A4B)' : s.color;
+          const iconColor = st === 'done' || st === 'now' ? 'var(--cream)' : s.color;
+          return (
+            <div key={s.when} style={{ position: 'relative', paddingRight: 16 }}>
+              {i < steps.length - 1 ? (
+                <div aria-hidden style={{ position: 'absolute', left: 16, right: 0, top: 16, height: 2, backgroundImage: st === 'done' && states[i + 1] !== 'plain' ? 'linear-gradient(90deg, var(--sage) 50%, transparent 50%)' : 'linear-gradient(90deg, var(--line) 50%, transparent 50%)', backgroundSize: '8px 2px' }} />
+              ) : null}
+              <span className={st === 'now' ? 'pulse-dot' : ''} style={{ position: 'relative', zIndex: 1, width: 34, height: 34, borderRadius: 999, display: 'grid', placeItems: 'center', background: fillColor, color: iconColor, border: `2px solid ${ringColor}` }}>
+                <Icon name={st === 'done' ? 'check' : s.icon} size={15} color={iconColor} strokeWidth={st === 'done' ? 3 : undefined} />
+              </span>
+              <div className="eyebrow" style={{ margin: '12px 0 0', color: st === 'now' ? 'var(--ink-soft)' : 'var(--ink-muted)' }}>
+                {s.when}{st === 'next' ? ' · next' : ''}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink)', marginTop: 3, lineHeight: 1.4 }}>{s.what}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
