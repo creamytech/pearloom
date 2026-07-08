@@ -22,6 +22,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory, type EventVoice } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
+import { previewFrameFor, orderPalettesForOccasion, defaultPaletteIdFor } from '@/lib/event-os/preview-frame';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
 import { NumberInput } from '../editor/v8-forms';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
@@ -2099,10 +2100,11 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   const initials = couple
     ? `${a[0] || 'A'}&${b[0] || 'J'}`.toUpperCase()
     : (a[0] || 'S').toUpperCase();
-  // Occasion-appropriate verb line under the names.
-  const verb = st.occasion === 'wedding' || st.occasion === 'vow-renewal'
-    ? 'are getting married'
-    : 'are celebrating';
+  // Occasion frame — eyebrow, verb line, story band, reply block all
+  // route by occasion + name mode (PERSONA-PLAN S1: no more
+  // "‹single name› are celebrating", no party frame on memorials).
+  const frame = previewFrameFor(st.occasion);
+  const verb = frame.verbLine;
 
   const paletteColors =
     st.paletteColors && st.paletteColors.length > 0
@@ -2211,7 +2213,7 @@ function WizardLivePreview({ st }: { st: WizardState }) {
               typographic/plate heroes stack the names bigger; left =
               minimal/spread heroes rag left). */}
           <div style={{ textAlign: vibeAxes.left ? 'left' : 'center', padding: `${Math.round(10 * vibeAxes.pad)}px 18px ${Math.round(22 * vibeAxes.pad)}px` }}>
-            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkMuted }}>Save the date</div>
+            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkMuted }}>{frame.eyebrow}</div>
             <div style={{ fontFamily: display, fontWeight: vibeAxes.weight, fontSize: Math.round((vibeAxes.poster ? 34 : 28) * vibeAxes.scale), lineHeight: 1.02, color: ink, margin: '8px 0 2px' }}>
               {couple ? (
                 vibeAxes.poster ? (
@@ -2256,11 +2258,13 @@ function WizardLivePreview({ st }: { st: WizardState }) {
               </span>
             </div>
           )}
-          {/* Our story band */}
+          {/* Story band — eyebrow/heading/blurb follow the occasion
+              ("Their story / A life remembered" on a memorial, never
+              "Our story / Two people…"). */}
           <div style={{ padding: '22px 18px', background: section, textAlign: 'center' }}>
-            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent }}>Our story</div>
-            <div style={{ fontFamily: display, fontSize: 18, margin: '6px 0', color: ink }}>The story so far</div>
-            <div style={{ fontSize: 10.5, color: inkSoft, lineHeight: 1.65 }}>Two people, a shared beginning, and all the small moments in between.</div>
+            <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent }}>{frame.storyEyebrow}</div>
+            <div style={{ fontFamily: display, fontSize: 18, margin: '6px 0', color: ink }}>{frame.storyTitle}</div>
+            <div style={{ fontSize: 10.5, color: inkSoft, lineHeight: 1.65 }}>{frame.storyBlurb}</div>
           </div>
           {/* Detail cards */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: 16 }}>
@@ -2271,10 +2275,12 @@ function WizardLivePreview({ st }: { st: WizardState }) {
               </div>
             ))}
           </div>
-          {/* RSVP block */}
+          {/* Reply block — heading + button wear the occasion's own
+              vocabulary ("Reply" on a memorial, "I'm in" on a
+              bachelorette, "RSVP" for the rest). */}
           <div style={{ padding: '24px 18px', textAlign: 'center', background: ink, color: paper }}>
-            <div style={{ fontFamily: display, fontSize: 20 }}>Kindly reply</div>
-            <span style={{ display: 'inline-block', marginTop: 12, padding: '9px 22px', borderRadius: 6, background: paper, color: ink, fontSize: 11.5, fontWeight: 600 }}>RSVP</span>
+            <div style={{ fontFamily: display, fontSize: 20 }}>{frame.rsvpTitle}</div>
+            <span style={{ display: 'inline-block', marginTop: 12, padding: '9px 22px', borderRadius: 6, background: paper, color: ink, fontSize: 11.5, fontWeight: 600 }}>{frame.rsvpCta}</span>
           </div>
         </div>
       </div>
@@ -2698,7 +2704,8 @@ export function WizardV8() {
         return true;
       case 'Palette':
         // Never a forced stop (GRAND-PLAN Phase 2). A palette is
-        // always resolved — the occasion default (PALETTES[0]), the
+        // always resolved — the occasion default (defaultPaletteIdFor,
+        // stamped on occasion pick), the
         // "from your photos" extraction, or a smart/classic pick — so
         // Continue is always enabled and the host is never made to
         // click a tile they are happy to leave. Picking one still
@@ -3481,6 +3488,10 @@ export function WizardV8() {
                       // occasion invalidates any picks made under the
                       // old one, so the chooser re-seeds from scratch.
                       sectionPicks: undefined,
+                      // Untouched palette follows the occasion's own
+                      // default (paletteColors set = an explicit pick
+                      // — smart, photo, or classic — never moved).
+                      palette: s.paletteColors ? s.palette : defaultPaletteIdFor(PALETTES, id),
                     }));
                     autoAdvance();
                   }}
@@ -4413,7 +4424,7 @@ export function WizardV8() {
                     className="pl8-palette-grid pl-cascade-row"
                     style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
                   >
-                    {PALETTES.map((p) => {
+                    {orderPalettesForOccasion(PALETTES, st.occasion).map((p) => {
                       const on = st.palette === p.id;
                       return (
                         <button

@@ -31,6 +31,10 @@ export interface OccasionCopy {
   storyBodyDemo: string;
   /** Nav link label for the story section. */
   navStory: string;
+  /** Nav link + section-eyebrow label for the registry section —
+   *  "Registry" everywhere except the solemn occasions, whose
+   *  registry is a donations surface ("In lieu of flowers"). */
+  navRegistry: string;
   /** Hero primary CTA label. */
   cta: string;
   rsvpTitle: string;
@@ -80,6 +84,7 @@ const BASE: OccasionCopy = {
   storyBodyDemo:
     'Every celebration has a story behind it. Write yours here — how this day came to be, and why the people you love should be part of it.',
   navStory: 'The story',
+  navRegistry: 'Registry',
   cta: 'RSVP',
   rsvpTitle: 'Save your seat',
   rsvpBody: 'It takes about 90 seconds. Pear will follow up if anyone forgets.',
@@ -187,6 +192,7 @@ const SOLEMN: OccasionCopy = {
   storyBodyDemo:
     'A place for their story — the years, the people they loved, the moments that keep coming up in every phone call. Written in your words, at your pace.',
   navStory: 'Their story',
+  navRegistry: 'In lieu of flowers',
   cta: 'Reply',
   rsvpTitle: "Let us know you'll be there",
   rsvpBody: 'A quick reply helps the family plan the day.',

@@ -693,9 +693,13 @@ function ThemedSiteInner({
      on a multi-page home the nav still lists Travel even though
      Travel lives on its own page (the click navigates there). */
   /* The story label routes by occasion — "Our story" belongs to
-     couples; solo honorees get "The story", memorials "Their story". */
+     couples; solo honorees get "The story", memorials "Their story".
+     Registry routes too: a memorial's registry is a donations
+     surface, so its nav says "In lieu of flowers" (S1, F9). */
   const sectionLabel = (s: SectionKind): string =>
-    s === 'story' ? occasionCopyFor(occasionId).navStory : SECTION_LABEL[s];
+    s === 'story' ? occasionCopyFor(occasionId).navStory
+    : s === 'registry' ? occasionCopyFor(occasionId).navRegistry
+    : SECTION_LABEL[s];
   const navItems = allSections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: sectionLabel(s) }));
   const headline = C.subject.type === 'solo' ? C.subject.a : `${C.subject.a} & ${C.subject.b}`;
 
@@ -6545,7 +6549,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
          RegistryFundCard. The fields stay on old manifests (harmless)
          but nothing renders them. */
       return {
-      eyebrow: co('registryEyebrow', 'Registry'),
+      eyebrow: co('registryEyebrow', V.navRegistry),
       title: t.head,
       italic: t.italic,
       body: registryIntro || V.registryBody,

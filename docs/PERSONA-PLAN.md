@@ -130,8 +130,10 @@ The occasion step shows 6 POPULAR cards + "Other event". Bachelorette
 (Priya — the roadmap's biggest funnel lever, CLAUDE-PRODUCT §7 B.1) and
 quinceañera (Marcus) both live behind the extra tap, and there is no
 type-ahead. The landing hero is couple-shaped too: "Type two names."
-Four of six personas type one name. And `user_preferences.intent` from
-onboarding still prefills nothing (named follow-up since 2026-06-12).
+Four of six personas type one name.
+*(Correction 2026-07-08, found during S1: `user_preferences.intent`
+DOES already prefill the wizard occasion — `INTENT_TO_OCCASION` in
+WizardV8 — so S5's intent thread is verify-and-badge, not build.)*
 
 **F6 · P1 · Guests must "find an invitation" that may not exist.**
 The phone RSVP path: hero RSVP → scrolls to a banner ("Save your seat —
@@ -205,7 +207,23 @@ commit → stamp this file.
 
 ---
 
-### S1 — One of one · **status: planned** · P0
+### S1 — One of one · **status: SHIPPED 2026-07-08** · P0
+
+> Shipped: `previewFrameFor` + `orderPalettesForOccasion` /
+> `defaultPaletteIdFor` in `src/lib/event-os/preview-frame.ts` (matrix
+> unit-tested across the full registry: non-couple modes never "are…",
+> group modes never conjugate, solemn carries no party vocabulary);
+> the wizard preview rail fully routed (eyebrow, verb line, story
+> band, reply block); classic presets voice-ordered + the untouched
+> default palette follows the occasion pick; bachelorette split from
+> bachelor in name-mode (placeholder "Sophia"); `navRegistry` on the
+> occasion packs → memorial/funeral nav + registry eyebrow read
+> "In lieu of flowers". Verified live: Denise's preview reads
+> "IN LOVING MEMORY / a life, well loved / THEIR STORY / A life
+> remembered"; her review nav carries no "Registry"; Priya reads
+> "is getting married soon / The last hurrah / I'm in". After-shots:
+> `memorial-preview-fixed.png`, `bachelorette-preview-fixed.png`.
+> vitest 1239/1239.
 
 ```
 ## Active focus — S1 · One of one (every occasion speaks its own language)
@@ -643,6 +661,14 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S1 shipped (One of one)
+F1, F7, F8, F9 closed — see the S1 status block in §4 for the full
+ledger. New module `src/lib/event-os/preview-frame.ts` (+ matrix
+tests); wizard preview rail, classic-preset order, occasion-default
+palette, bachelorette placeholder, and the solemn registry label all
+occasion-routed. Denise + Priya walks re-run green; F5 corrected
+(intent prefill already exists). vitest 1239/1239, tsc + eslint clean.
 
 ### 2026-07-08 — Authored from the six-persona walk
 Playwright walks of landing / wizard (6 occasions × 3 viewports × 2

@@ -98,7 +98,15 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
         hint: 'Pear centers the day on her — the wedding gets its own site.',
       };
     }
-    if (occ === 'bachelor-party' || occ === 'bachelorette-party') {
+    if (occ === 'bachelorette-party') {
+      return {
+        mode: 'solo',
+        primaryLabel: 'Guest of honor',
+        primaryPlaceholder: 'Sophia',
+        hint: 'Pear centers the weekend on the bride-to-be.',
+      };
+    }
+    if (occ === 'bachelor-party') {
       return {
         mode: 'solo',
         primaryLabel: 'Guest of honor',
