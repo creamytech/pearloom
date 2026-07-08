@@ -285,7 +285,7 @@ export function SaveTheDatePanel({
           }}
         >
           {busy
-            ? 'Threading…'
+            ? 'Sending…'
             : recipientCount === null
               ? 'Send the save-the-date'
               : recipientCount === 0

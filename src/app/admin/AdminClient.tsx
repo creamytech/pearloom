@@ -163,7 +163,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
           }}
         />
         <button type="submit" className="pl8-btnfx" style={btnInk} disabled={busy === 'lookup'}>
-          {busy === 'lookup' ? 'Threading…' : 'Look up'}
+          {busy === 'lookup' ? 'Searching…' : 'Look up'}
         </button>
       </form>
 
@@ -237,14 +237,14 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                 disabled={busy !== null}
                 onClick={() => void grant({ action: 'grant-pack', packId: packPick })}
               >
-                {busy === 'grant-pack' ? 'Threading…' : 'Grant this pack'}
+                {busy === 'grant-pack' ? 'Working…' : 'Grant this pack'}
               </button>
               <button
                 style={btn}
                 disabled={busy !== null}
                 onClick={() => void grant({ action: 'grant-all-packs' })}
               >
-                {busy === 'grant-all-packs' ? 'Threading…' : 'Grant the whole catalog'}
+                {busy === 'grant-all-packs' ? 'Working…' : 'Grant the whole catalog'}
               </button>
             </div>
             <div style={mono}>OWNED ({result.ownedPackIds.length})</div>

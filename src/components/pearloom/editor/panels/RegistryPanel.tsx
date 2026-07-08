@@ -626,7 +626,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
               opacity: reading || !pasteUrl.trim() ? 0.55 : 1,
             }}
           >
-            {reading ? 'Threading…' : 'Read it'}
+            {reading ? 'Reading…' : 'Read it'}
           </button>
         </div>
         {pasteError && (
@@ -668,7 +668,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
                     </div>
                     {item.claimedByName && item.quantityClaimed > 0 && (
                       <div style={{ fontSize: 10.5, color: 'var(--peach-ink, #C6703D)', marginTop: 2 }}>
-                        Last basted in by {item.claimedByName}
+                        Last claimed by {item.claimedByName}
                       </div>
                     )}
                   </div>
@@ -751,7 +751,7 @@ function ItemFields({
           disabled={saving}
           style={{ padding: '7px 14px', borderRadius: 999, background: 'var(--ink)', color: 'var(--cream)', border: 'none', fontSize: 11.5, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}
         >
-          {saving ? 'Threading…' : 'Set it'}
+          {saving ? 'Saving…' : 'Set it'}
         </button>
         <button
           type="button"

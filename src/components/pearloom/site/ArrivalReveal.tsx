@@ -778,7 +778,7 @@ function EnvelopeArrival({
                 minHeight: '1.4em',
               }}
             >
-              {ready ? 'Tap to break the seal' : 'Threading…'}
+              {ready ? 'Tap to break the seal' : 'One moment…'}
             </motion.p>
           </motion.div>
 

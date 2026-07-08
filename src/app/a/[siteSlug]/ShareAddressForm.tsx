@@ -502,7 +502,7 @@ export function ShareAddressForm({
                   transition: `opacity 180ms ${EASE}`,
                 }}
               >
-                {busy ? 'Threading…' : 'Send my address'}
+                {busy ? 'Sending…' : 'Send my address'}
               </button>
 
               <p

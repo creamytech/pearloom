@@ -611,7 +611,7 @@ export function GuestSummaryCard({
         <Eyebrow>Guest summary</Eyebrow>
         <CardHeadline margin="8px 0 14px">Your people, <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>in one place.</span></CardHeadline>
         <div style={{ padding: '22px 16px', background: 'var(--cream-2)', borderRadius: 12, textAlign: 'center' }}>
-          <div style={{ fontFamily: DISPLAY, fontSize: 18, marginBottom: 6, color: 'var(--ink)' }}>Nothing yet. Begin a thread.</div>
+          <div style={{ fontFamily: DISPLAY, fontSize: 18, marginBottom: 6, color: 'var(--ink)' }}>Nothing here yet.</div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 14, maxWidth: 260, marginInline: 'auto', lineHeight: 1.5 }}>
             Pear can draft a guest list from your story, or import from your contacts.
           </div>

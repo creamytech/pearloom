@@ -616,7 +616,7 @@ export function SharePanel({
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}
                 >
-                  {coHostBusy ? 'Threading…' : coHostChannel === 'sms' ? 'Mint the key' : 'Send invite'}
+                  {coHostBusy ? 'Sending…' : coHostChannel === 'sms' ? 'Get a link' : 'Send invite'}
                 </button>
               );
             })()}
@@ -1233,7 +1233,7 @@ function LanguagesSection({
             ) : working ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
                 <WeaveLoader size="xs" inline color="var(--ink-soft)" color2="var(--peach-ink)" ariaLabel="Threading" />
-                Threading…
+                One moment…
               </span>
             ) : (
               <button

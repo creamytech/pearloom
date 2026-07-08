@@ -680,7 +680,7 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
             opacity: notes.trim() && !busy ? 1 : 0.55,
           }}
         >
-          {busy ? 'Threading…' : 'Draft moments'}
+          {busy ? 'Drafting…' : 'Draft moments'}
         </button>
         <button
           type="button"

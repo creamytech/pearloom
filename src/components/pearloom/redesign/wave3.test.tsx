@@ -125,13 +125,13 @@ describe('GroupChatSection', () => {
     expect(html).toContain('https://chat.whatsapp.com/AbC');
   });
 
-  it('published + empty renders NOTHING; editable shows the BRAND key', () => {
+  it('published + empty renders NOTHING; editable shows the plain empty-state', () => {
     expect(renderToString(
       <GroupChatSection {...base} editable={false} variant="card" manifest={m({})} />,
     )).toBe('');
     expect(renderToString(
       <GroupChatSection {...base} editable variant="card" manifest={m({})} />,
-    )).toContain('Nothing yet. Begin a thread.');
+    )).toContain('Nothing here yet.');
   });
 });
 

@@ -290,7 +290,7 @@ export function DashAnalytics() {
     {
       label: 'Site visits · all time',
       value: visit ? visit.visits.toLocaleString() : dash,
-      delta: visit ? `${visit.today.toLocaleString()} today` : loading ? 'Threading…' : 'no visits yet',
+      delta: visit ? `${visit.today.toLocaleString()} today` : loading ? 'Loading…' : 'no visits yet',
       color: 'var(--sage-deep)',
     },
     {
@@ -308,7 +308,7 @@ export function DashAnalytics() {
     {
       label: 'RSVP conversion',
       value: hasFunnel ? `${conversionPct}%` : dash,
-      delta: hasFunnel ? `${funnel!.replied} of ${funnel!.invited} invited` : loading ? 'Threading…' : 'no guests yet',
+      delta: hasFunnel ? `${funnel!.replied} of ${funnel!.invited} invited` : loading ? 'Loading…' : 'no guests yet',
       color: 'var(--peach-ink)',
     },
   ];
@@ -385,7 +385,7 @@ export function DashAnalytics() {
             ) : (
               <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 520 }}>
                 {loading
-                  ? 'Threading…'
+                  ? 'Loading…'
                   : funnel
                     ? 'Nothing yet. The funnel fills in as you add guests and replies land.'
                     : 'The guest list couldn’t be read just now — refresh to retry.'}
@@ -436,7 +436,7 @@ export function DashAnalytics() {
               ) : (
                 <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
                   {loading
-                    ? 'Threading…'
+                    ? 'Loading…'
                     : sources
                       ? 'Nothing yet. Sources appear once visits arrive with a known referrer.'
                       : 'Sources couldn’t be read just now — refresh to retry.'}

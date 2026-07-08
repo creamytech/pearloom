@@ -144,7 +144,7 @@ export function AvatarCropModal({
               opacity: busy ? 0.7 : 1,
             }}
           >
-            {busy ? 'Threading…' : 'Keep this framing'}
+            {busy ? 'Saving…' : 'Keep this framing'}
           </button>
         </div>
       </div>

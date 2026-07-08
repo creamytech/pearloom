@@ -537,7 +537,7 @@ function ContributeSurface({
           }}
         >
           <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 17, color: 'var(--t-ink-soft)', marginBottom: 4 }}>
-            Nothing yet. Begin a thread.
+            Nothing here yet.
           </div>
           <div>Add the first person and the ledger starts weaving.</div>
         </div>

@@ -96,7 +96,7 @@ export function PLSidebar({ active }: { active?: string }) {
   const eventDate = parseLocalDate(site?.eventDate);
   const dateLabel = eventDate
     ? eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'Begin a thread';
+    : 'No date yet';
 
   return (
     <aside

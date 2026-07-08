@@ -124,7 +124,7 @@ export function BridgePage() {
 function PanelThreading() {
   return (
     <div style={{ padding: '26px 8px', textAlign: 'center', fontSize: 13, color: 'var(--ink-muted)' }}>
-      Threading…
+      Loading…
     </div>
   );
 }

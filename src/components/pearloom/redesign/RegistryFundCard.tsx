@@ -362,7 +362,7 @@ function PledgeComposer({ siteSlug, donation, onWoven }: {
             fontFamily: 'inherit',
           }}
         >
-          {stage === 'sending' ? 'Threading…' : 'Add it to the thread'}
+          {stage === 'sending' ? 'Adding…' : 'Add it to the thread'}
         </button>
         {stage !== 'sending' && (
           <button

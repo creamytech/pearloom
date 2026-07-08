@@ -459,7 +459,7 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
       ) : tasks.length === 0 ? (
         <EmptyState
           size="compact"
-          title="Nothing yet. Begin a thread."
+          title="No tasks yet."
           description={
             canWrite
               ? 'Add the first task above and assign it to someone on the team.'

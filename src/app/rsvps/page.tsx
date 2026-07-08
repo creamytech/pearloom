@@ -1392,7 +1392,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          Threading…
+          Loading…
         </div>
       ) : list.length === 0 ? (
         <div

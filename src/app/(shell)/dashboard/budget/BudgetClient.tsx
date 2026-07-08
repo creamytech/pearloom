@@ -591,7 +591,7 @@ function EmptyLedger({
       </div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="btn btn-primary btn-sm" disabled={seeding} onClick={onSeedTemplate}>
-          {seeding ? 'Threading…' : 'Start from a template'}
+          {seeding ? 'One moment…' : 'Start from a template'}
         </button>
         {hasQuickBudget && (
           <button type="button" className="btn btn-outline btn-sm" disabled={seeding} onClick={onImportQuick}>

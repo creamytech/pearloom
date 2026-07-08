@@ -220,7 +220,7 @@ export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn, compo
       setArtist('');
       setPicked(null);
       setSendState('sent');
-      setSentCopy(d.state === 'accepted' ? 'On the list — basted in.' : 'Suggested — the host will weave it in.');
+      setSentCopy(d.state === 'accepted' ? 'On the list — added.' : 'Suggested — the host will add it.');
       if (d.state === 'accepted') await refresh();
       setTimeout(() => { setSendState('idle'); setSentCopy(null); }, 4200);
     } catch (e) {
@@ -290,7 +290,7 @@ export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn, compo
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--t-ink-muted, var(--t-ink-soft))', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t.artist ? <>{t.artist} <span aria-hidden>·</span> </> : null}
-                        <span style={{ fontStyle: 'italic' }}>basted in by {firstName(t.guest_name)}</span>
+                        <span style={{ fontStyle: 'italic' }}>added by {firstName(t.guest_name)}</span>
                       </div>
                     </div>
                     <a
@@ -427,7 +427,7 @@ export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn, compo
                     fontFamily: 'inherit',
                   }}
                 >
-                  {editable ? 'Live on your site' : sendState === 'sending' ? 'Threading…' : 'Suggest a song'}
+                  {editable ? 'Live on your site' : sendState === 'sending' ? 'Sending…' : 'Suggest a song'}
                 </button>
               </div>
             )}

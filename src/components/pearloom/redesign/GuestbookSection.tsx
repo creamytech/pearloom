@@ -156,7 +156,7 @@ export function GuestbookSection({ siteSlug, preview = false, eyebrow = 'Guestbo
               fontFamily: 'inherit',
             }}
           >
-            {preview ? 'Live on your site' : state === 'sending' ? 'Threading…' : state === 'sent' ? 'Added ✓' : 'Sign the guestbook'}
+            {preview ? 'Live on your site' : state === 'sending' ? 'Signing…' : state === 'sent' ? 'Added ✓' : 'Sign the guestbook'}
           </button>
         </div>
 

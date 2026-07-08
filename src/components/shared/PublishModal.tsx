@@ -237,7 +237,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                   } as CSSProperties}
                 >
-                  {unlockBusy ? 'Threading…' : `Unlock ${wornPack.name} · $${wornPack.priceCents / 100}`}
+                  {unlockBusy ? 'Unlocking…' : `Unlock ${wornPack.name} · $${wornPack.priceCents / 100}`}
                 </button>
               </div>
             )}
@@ -284,7 +284,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                 Pear drafted these words
               </h2>
               <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 16 }}>
-                Pear basted in a first draft from what you shared. Before this goes live,
+                Pear drafted a first version from what you shared. Before this goes live,
                 please read it as the family — change anything that isn’t right.
               </p>
               {(headline || body) && (

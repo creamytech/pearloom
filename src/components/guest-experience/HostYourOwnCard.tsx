@@ -75,7 +75,7 @@ export function HostYourOwnCard({
           fontWeight: 600,
         }}
       >
-        Begin a thread
+        Create your own site
         <span aria-hidden style={{ fontSize: '0.9rem' }}>→</span>
       </a>
     </div>

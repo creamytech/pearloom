@@ -261,7 +261,7 @@ export function MusicBoard({
       />
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)', fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 18 }}>Threading…</div>
+        <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)', fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 18 }}>Loading…</div>
       ) : !siteReady ? (
         <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--ink-soft)', border: '1px dashed var(--line-soft)', borderRadius: 16, background: 'var(--cream-2)' }}>
           Pick a site from the sidebar first to weave its playlist.
@@ -297,7 +297,7 @@ export function MusicBoard({
                 </div>
 
                 {loading || songs === null ? (
-                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)' }}>Threading…</div>
+                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)' }}>Loading…</div>
                 ) : grouped.accepted.length === 0 ? (
                   <div style={{ padding: '18px 14px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)', fontStyle: 'italic', background: 'var(--cream-2)', borderRadius: 10, border: '1px dashed var(--line-soft)' }}>
                     Nothing on the floor yet — accept a request and it lands here.
@@ -377,7 +377,7 @@ export function MusicBoard({
 
                 <div style={{ marginTop: 14 }}>
                   {loading || songs === null ? (
-                    <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)' }}>Threading…</div>
+                    <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)' }}>Loading…</div>
                   ) : grouped.queued.length === 0 ? (
                     <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 18, color: 'var(--sage-deep)', textAlign: 'center', padding: '22px 0' }}>
                       All cleared.

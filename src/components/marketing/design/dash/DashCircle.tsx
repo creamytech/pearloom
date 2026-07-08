@@ -431,7 +431,7 @@ export function DashCircle() {
               {state.friends.length === 0 ? (
                 <EmptyState
                   size="compact"
-                  title="Nothing yet. Begin a thread."
+                  title="No one here yet."
                   description="Accept a request, or weave someone in below — your circle keeps the people, not just the events."
                 />
               ) : (
@@ -507,7 +507,7 @@ export function DashCircle() {
                         >
                           {preview
                             ? `${preview.theirs ? f.firstName.split(/\s+/)[0] : 'You'}: ${preview.lastBody}`
-                            : 'No notes yet — begin a thread.'}
+                            : 'No notes yet.'}
                         </span>
                         <span style={{ ...MONO_STYLE, fontSize: 8.5, letterSpacing: '0.14em', color: open ? PD.gold : PD.terra }}>
                           {open ? 'OPEN BELOW ↓' : 'OPEN THEIR CARD →'}
@@ -541,7 +541,7 @@ export function DashCircle() {
                         <div style={{ ...MONO_STYLE, fontSize: 8.5, color: PD.terra, marginBottom: 6 }}>YOUR THREAD</div>
                         {msgs.length === 0 ? (
                           <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
-                            Nothing yet. Begin a thread.
+                            Nothing here yet.
                           </div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto', marginBottom: 8 }}>
@@ -589,7 +589,7 @@ export function DashCircle() {
                             disabled={busy === 'note' || !draft.trim()}
                             onClick={() => void sendNote()}
                           >
-                            {busy === 'note' ? 'Threading…' : 'Send'}
+                            {busy === 'note' ? 'Sending…' : 'Send'}
                           </button>
                         </div>
                         {sendErr && <div style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 6 }}>{sendErr}</div>}
@@ -810,7 +810,7 @@ export function DashCircle() {
                         disabled={busy === 'crew-note' || !crewDraft.trim()}
                         onClick={() => void sendCrewNote()}
                       >
-                        {busy === 'crew-note' ? 'Threading…' : 'Send'}
+                        {busy === 'crew-note' ? 'Sending…' : 'Send'}
                       </button>
                     </div>
                   </div>

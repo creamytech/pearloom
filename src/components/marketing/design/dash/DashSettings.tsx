@@ -870,7 +870,7 @@ export function DashSettings() {
                     opacity: exportState === 'working' ? 0.7 : 1,
                   }}
                 >
-                  {exportState === 'working' ? 'Threading…' : '✦ Download my data'}
+                  {exportState === 'working' ? 'Preparing…' : '✦ Download my data'}
                 </button>
                 {exportState === 'error' && exportError && (
                   <span role="alert" style={{ fontSize: 12, color: PD.terra }}>
@@ -1261,7 +1261,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
             disabled={busy != null}
             className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
           >
-            {busy === 'atelier' ? 'Threading…' : 'Upgrade to Atelier — $19'}
+            {busy === 'atelier' ? 'One moment…' : 'Upgrade to Atelier — $19'}
           </button>
         )}
         <button
@@ -1270,7 +1270,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
           disabled={busy != null}
           className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
         >
-          {busy === 'legacy' ? 'Threading…' : 'Go Legacy — $129 for life'}
+          {busy === 'legacy' ? 'One moment…' : 'Go Legacy — $129 for life'}
         </button>
       </div>
       {err && <p style={{ fontSize: 12.5, color: 'var(--pl-plum, #7A2D2D)', margin: 0 }}>{err}</p>}

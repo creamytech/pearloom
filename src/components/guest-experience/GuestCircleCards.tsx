@@ -210,12 +210,12 @@ export function GuestThreadCard({
         }}
       >
         {messages === null ? (
-          <div style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-muted, #6F6557)' }}>Threading…</div>
+          <div style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-muted, #6F6557)' }}>One moment…</div>
         ) : messages.length === 0 ? (
           <div style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', padding: '14px 0' }}>
             {tab === 'dm'
               ? 'A private line to your hosts — ask anything, only they see it.'
-              : 'Nothing yet. Begin a thread.'}
+              : 'No one here yet.'}
           </div>
         ) : (
           messages.map((m) => {
@@ -306,7 +306,7 @@ export function GuestThreadCard({
             opacity: draft.trim() && !sending ? 1 : 0.55,
           }}
         >
-          {sending ? 'Threading…' : 'Send'}
+          {sending ? 'Sending…' : 'Send'}
         </button>
       </form>
       {error && (
@@ -388,7 +388,7 @@ export function CelebratedTogetherCard({
               cursor: busy ? 'wait' : 'pointer',
             }}
           >
-            {busy ? 'Threading…' : 'Count me in'}
+            {busy ? 'One moment…' : 'Count me in'}
           </button>
         </>
       ) : (
@@ -560,7 +560,7 @@ export function YourCircleCard({
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{i.firstName}</span>
                 <span style={{ display: 'inline-flex', gap: 6 }}>
                   <button type="button" onClick={() => void act('accept', i.otherId)} disabled={busyId === i.otherId} style={smallBtn(true, busyId === i.otherId)}>
-                    {busyId === i.otherId ? 'Threading…' : 'Accept'}
+                    {busyId === i.otherId ? 'One moment…' : 'Accept'}
                   </button>
                   <button type="button" onClick={() => void act('decline', i.otherId)} disabled={busyId === i.otherId} style={smallBtn(false, busyId === i.otherId)}>
                     Not now
@@ -597,7 +597,7 @@ export function YourCircleCard({
               <li key={c.personId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{c.firstName}</span>
                 <button type="button" onClick={() => void act('request', c.personId)} disabled={busyId === c.personId} style={smallBtn(true, busyId === c.personId)}>
-                  {busyId === c.personId ? 'Threading…' : 'Add as a friend'}
+                  {busyId === c.personId ? 'Adding…' : 'Add as a friend'}
                 </button>
               </li>
             ))}
@@ -677,7 +677,7 @@ function GifPicker({ token, onPick, onClose }: { token: string; onPick: (url: st
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
         {state === 'loading' && gifs.length === 0 && (
           <div style={{ gridColumn: '1 / -1', fontSize: '0.72rem', color: 'var(--ink-muted, #6F6557)', textAlign: 'center', padding: 14 }}>
-            Threading…
+            One moment…
           </div>
         )}
         {gifs.map((g) => (

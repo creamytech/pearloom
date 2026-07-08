@@ -277,7 +277,7 @@ export function RegistryDashboardClient() {
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              Threading…
+              Loading…
             </div>
           </PLCard>
         ) : !site?.id ? (

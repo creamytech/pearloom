@@ -166,7 +166,7 @@ export function DashMessages() {
                 <DashSkeleton kind="list" count={3} label="Threading…" />
               ) : party.length === 0 ? (
                 <div style={{ fontSize: 13.5, color: PD.inkSoft, padding: '18px 0' }}>
-                  Nothing yet. Begin a thread — guests see your post the next time they open their link.
+                  No messages yet — write the first one. Guests see it the next time they open their link.
                 </div>
               ) : (
                 party.map((m) => (

@@ -509,7 +509,7 @@ export function AdviceWallSection({ manifest, pad, editable, variant, onEditCopy
           />
           {entries.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--t-ink-muted)', fontStyle: 'italic', fontSize: 13.5 }}>
-              Nothing yet. Begin a thread.
+              No notes yet — be the first to add one.
             </p>
           ) : v === 'wall' ? (
             <WallVariant entries={entries} />

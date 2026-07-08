@@ -180,7 +180,7 @@ export default function GatePage() {
               transition: 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease)',
             }}
           >
-            {state === 'checking' ? 'Threading…' : 'Come in'}
+            {state === 'checking' ? 'Checking…' : 'Come in'}
           </button>
         </form>
       </div>

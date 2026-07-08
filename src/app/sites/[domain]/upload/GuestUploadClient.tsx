@@ -382,7 +382,7 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
                     fontWeight: 600,
                   }}
                 >
-                  Threading…
+                  Loading…
                 </div>
               </div>
             </>

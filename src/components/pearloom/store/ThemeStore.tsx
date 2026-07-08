@@ -757,7 +757,7 @@ function StoreInner() {
           >
             <Pear size={44} tone="sage" shadow={false} />
             <div style={{ marginTop: 12, fontSize: 14 }}>
-              Nothing yet. Begin a thread — try another search.
+              Nothing matches — try another search.
             </div>
           </div>
         ) : (() => {

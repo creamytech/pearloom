@@ -521,7 +521,7 @@ export function VendorBookClient() {
                 fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
               }}
             >
-              Threading…
+              Loading…
             </div>
           </PLCard>
         ) : !site?.id ? (
@@ -996,7 +996,7 @@ function VendorCard({
                   : sheetState === 'error'
                     ? 'Couldn’t copy — try again'
                     : sheetState === 'busy'
-                      ? 'Threading…'
+                      ? 'Saving…'
                       : 'Call sheet →'}
               </button>
             </>

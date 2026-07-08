@@ -865,7 +865,7 @@ function WizardPhotoUpload({
                   {/* WeaveLoader + the house verb — "uploading…" was
                       the one un-branded busy state in the flow. */}
                   <WeaveLoader size="xs" inline />
-                  Threading…
+                  Loading…
                 </div>
               )}
               {p.error && !p.uploading && (

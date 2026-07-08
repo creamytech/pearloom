@@ -3365,7 +3365,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     return (
       <SectionEmpty
         eyebrow="Gallery"
-        title="Nothing yet. Begin a thread."
+        title="No photos yet."
         hint="Add your first photos — they'll fill this gallery."
         icon="camera"
         pad={pad}

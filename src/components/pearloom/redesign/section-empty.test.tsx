@@ -39,8 +39,8 @@ describe('empty core sections in the editor canvas', () => {
   it('gallery shows a clear "add photos" empty-state (not anonymous tiles)', () => {
     const html = renderEditable();
     expect(html).toContain('Add your first photos');
-    // BRAND §7 empty-state key.
-    expect(html).toContain('Nothing yet. Begin a thread.');
+    // plain empty-state (BRAND §7 clarity-first).
+    expect(html).toContain('No photos yet.');
   });
 
   it('countdown / map / music paint a guided empty-state, not bare texture', () => {

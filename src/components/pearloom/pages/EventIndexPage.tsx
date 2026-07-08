@@ -561,11 +561,11 @@ export function EventIndexPage() {
             size="page"
             tone="pear"
             eyebrow="No sites yet"
-            title="Begin a thread."
+            title="No sites yet."
             body="Pear will draft a complete site in about twenty seconds — you pick the occasion, the names, and the feeling. Edit anything afterwards."
             examples={['Wedding · Scott & Shauna', 'Birthday · 30 in Lisbon', 'Memorial · In loving memory', 'Reunion · Class of 2010']}
             actions={[
-              { label: 'Begin a thread', href: '/wizard/new', icon: 'sparkles', primary: true },
+              { label: 'Create your site', href: '/wizard/new', icon: 'sparkles', primary: true },
               { label: 'Browse templates', href: '/templates' },
             ]}
           />

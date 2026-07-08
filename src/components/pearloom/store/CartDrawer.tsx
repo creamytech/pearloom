@@ -271,7 +271,7 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
             >
               <Pear size={40} tone="sage" shadow={false} />
               <div style={{ fontSize: 13.5, lineHeight: 1.4 }}>
-                Nothing yet. Begin a thread —<br />
+                Your cart is empty.<br />
                 browse the shelves and add a pack.
               </div>
             </div>
@@ -419,7 +419,7 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
                 opacity: checkoutState === 'pending' ? 0.7 : 1,
               }}
             >
-              {checkoutState === 'pending' ? 'Threading…' : `Checkout · ${priceLabel(subtotalCents)}`}
+              {checkoutState === 'pending' ? 'One moment…' : `Checkout · ${priceLabel(subtotalCents)}`}
             </button>
             {checkoutError && (
               <div

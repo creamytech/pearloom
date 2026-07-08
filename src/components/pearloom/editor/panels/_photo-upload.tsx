@@ -238,7 +238,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
             background: 'color-mix(in oklab, var(--pl-cream-card, #FBF7EE) 88%, transparent)', borderRadius: isSmall ? 8 : 10,
             fontSize: 11.5, fontWeight: 600, color: 'var(--peach-ink)',
           }}>
-            Threading…
+            Uploading…
           </div>
         )}
         {url && !busy && (

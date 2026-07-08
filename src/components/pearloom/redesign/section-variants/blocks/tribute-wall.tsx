@@ -263,7 +263,7 @@ function TributeComposer({
               whiteSpace: 'nowrap',
             }}
           >
-            {sending ? 'Threading…' : 'Add your words'}
+            {sending ? 'Sending…' : 'Add your words'}
           </button>
         )}
       </div>
@@ -398,11 +398,11 @@ export function TributeWallSection({ manifest, pad, editable, variant, onEditCop
       )}
       {threading ? (
         <p style={{ textAlign: 'center', color: 'var(--t-ink-muted)', fontStyle: 'italic', fontSize: 13.5 }}>
-          Threading…
+          One moment…
         </p>
       ) : entries.length === 0 ? (
         <p style={{ textAlign: 'center', color: 'var(--t-ink-muted)', fontStyle: 'italic', fontSize: 13.5 }}>
-          {solemn ? 'Nothing yet. The first memory begins the wall.' : 'Nothing yet. Begin a thread.'}
+          {solemn ? 'No memories yet — the first one begins the wall.' : 'No memories yet — be the first to share one.'}
         </p>
       ) : v === 'columns' ? (
         <ColumnsVariant entries={entries} />

@@ -116,7 +116,7 @@ export function DashShell({ children }: DashShellProps) {
               fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
             }}
           >
-            Threading…
+            Loading…
           </div>
         </div>
       </div>

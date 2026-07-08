@@ -1197,7 +1197,7 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                           opacity: otherBusy ? 0.4 : 1,
                           fontFamily: 'inherit',
                         }}>
-                        {busy ? 'Threading…' : hint}
+                        {busy ? 'Working…' : hint}
                       </button>
                     );
                   })}

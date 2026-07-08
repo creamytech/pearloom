@@ -308,7 +308,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
         )}
 
         {/* List */}
-        <FGroup label="Guests" hint={busy ? 'Threading…' : err ? undefined : (filtered.length ? undefined : 'Nothing yet. Add the first guest below.')}>
+        <FGroup label="Guests" hint={busy ? 'Loading…' : err ? undefined : (filtered.length ? undefined : 'No guests yet — add the first one below.')}>
           {err && (
             <div style={{ padding: '6px 10px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', fontSize: 11.5, marginBottom: 6 }}>
               {err}
@@ -373,7 +373,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
                 border: 'none',
               }}
             >
-              {busy ? 'Threading…' : '+ Add to the list'}
+              {busy ? 'Adding…' : '+ Add to the list'}
             </button>
           </div>
         </FGroup>
@@ -426,7 +426,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
                   border: 'none',
                 }}
               >
-                {busy ? 'Threading…' : `Add ${importPreview.length || ''} ${importPreview.length === 1 ? 'guest' : 'guests'}`}
+                {busy ? 'Adding…' : `Add ${importPreview.length || ''} ${importPreview.length === 1 ? 'guest' : 'guests'}`}
               </button>
               <button
                 type="button"

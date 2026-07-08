@@ -158,7 +158,7 @@ export function BastedIn({
                   opacity: busyId === b.id ? 0.7 : 1,
                 }}
               >
-                {busyId === b.id ? 'Threading…' : 'Add it'}
+                {busyId === b.id ? 'Adding…' : 'Add it'}
               </button>
               <button
                 type="button"

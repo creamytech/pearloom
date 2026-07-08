@@ -376,7 +376,7 @@ export function PhotoPicker({
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 18 }}>
           {loading ? (
-            <div style={{ color: 'var(--pl-chrome-text-soft)', textAlign: 'center', padding: 40 }}>Threading…</div>
+            <div style={{ color: 'var(--pl-chrome-text-soft)', textAlign: 'center', padding: 40 }}>Loading…</div>
           ) : filtered.length === 0 ? (
             <div style={{ color: 'var(--pl-chrome-text-soft)', textAlign: 'center', padding: 40 }}>
               {query ? 'No matches.' : 'Your library is empty — upload or pick from Google Photos above.'}

@@ -449,7 +449,7 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
         }
       />
       {loading ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>Threading…</div>
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>Loading…</div>
       ) : items.length === 0 ? (
         <div
           style={{
@@ -582,7 +582,7 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
         }
       />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Loading…</div>
       ) : rows.length === 0 ? (
         <div
           style={{
@@ -728,7 +728,7 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
         }
       />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Loading…</div>
       ) : items.length === 0 ? (
         <div
           style={{
@@ -867,7 +867,7 @@ function SongQueue({ siteId }: { siteId?: string | null }) {
         }
       />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Loading…</div>
       ) : shown.length === 0 ? (
         <div
           style={{
@@ -1094,7 +1094,7 @@ function ToastJukebox({ siteId, occasion }: { siteId?: string | null; occasion?:
         }
       />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Loading…</div>
       ) : items.length === 0 ? (
         <div
           style={{
@@ -1281,7 +1281,7 @@ function WhoToCall({ siteId }: { siteId?: string | null }) {
         }
       />
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 8 }}>Threading…</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 8 }}>Loading…</div>
       ) : items.length === 0 ? (
         <div
           style={{

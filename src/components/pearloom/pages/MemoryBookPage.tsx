@@ -340,7 +340,7 @@ export function MemoryBookPage() {
 
       {loading ? (
         <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>
-          Threading…
+          Loading…
         </div>
       ) : !data ? (
         <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>

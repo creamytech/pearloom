@@ -326,7 +326,7 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
         ) : spokenFor || stage === 'done' ? (
           <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
-              Spoken for{claimedName ? <> — basted in by {claimedName}</> : null}
+              Spoken for{claimedName ? <> — claimed by {claimedName}</> : null}
             </div>
             {stage === 'done' && effectiveBuyUrl && (
               <a
@@ -397,7 +397,7 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
                   fontFamily: 'inherit',
                 }}
               >
-                {stage === 'sending' ? 'Threading…' : 'Reserve it'}
+                {stage === 'sending' ? 'Reserving…' : 'Reserve it'}
               </button>
               {stage !== 'sending' && (
                 <button
@@ -599,7 +599,7 @@ function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
                 fontFamily: 'inherit',
               }}
             >
-              {stage === 'sending' ? 'Threading…' : fullyWoven ? 'Add the note' : 'Weave it in'}
+              {stage === 'sending' ? 'Adding…' : fullyWoven ? 'Add the note' : 'Add it'}
             </button>
             {stage !== 'sending' && (
               <button

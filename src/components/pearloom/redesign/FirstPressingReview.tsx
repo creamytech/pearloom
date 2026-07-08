@@ -114,7 +114,7 @@ export function FirstPressingReview({
     >
       <Pear size={16} tone="sage" shadow={false} />
       <span style={{ flex: 1, minWidth: 0 }}>
-        Pear basted in a first draft from what you told me. Read it through and make it yours.
+        Pear drafted a first version from what you told me. Read it through and make it yours.
       </span>
       <button
         type="button"

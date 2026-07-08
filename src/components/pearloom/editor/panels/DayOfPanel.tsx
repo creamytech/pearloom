@@ -164,7 +164,7 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          {busy ? 'Threading…' : 'Post the broadcast'}
+          {busy ? 'Posting…' : 'Post the broadcast'}
           {!busy && <Icon name="arrow-right" size={13} color="var(--peach-ink)" />}
         </button>
 

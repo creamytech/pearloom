@@ -6,7 +6,7 @@
 //      (including the whosWho → honorList alias).
 //   2. Rendering — real manifest data renders; empty published
 //      sections render NOTHING (the honesty contract); empty
-//      editable sections show the BRAND §7 key.
+//      editable sections show the plain empty-state.
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
@@ -70,11 +70,11 @@ describe('NameVoteSection', () => {
     expect(empty).toBe('');
   });
 
-  it('empty + editable shows the BRAND empty-state key', () => {
+  it('empty + editable shows the plain empty-state', () => {
     const html = renderToString(
       <NameVoteSection {...base} editable variant="ballot" manifest={m({})} />,
     );
-    expect(html).toContain('Nothing yet. Begin a thread.');
+    expect(html).toContain('Nothing here yet.');
   });
 });
 

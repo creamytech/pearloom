@@ -20,7 +20,7 @@ import { Icon } from '../../motifs';
 
 export function SectionEmpty({
   eyebrow,
-  title = 'Nothing yet. Begin a thread.',
+  title = 'Nothing here yet.',
   hint,
   icon,
   onAdd,
@@ -147,7 +147,7 @@ export function SectionChunkLoading(): ReactNode {
           <path d="M1 9 C 9 17, 17 1, 25 9 S 33 17, 33 9" stroke="var(--t-gold)" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="6 6" style={{ animation: 'pl-thread-dash 1.1s linear infinite reverse' }} />
         </svg>
         <span style={{ fontFamily: 'var(--t-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
-          Threading…
+          One moment…
         </span>
       </div>
     </div>

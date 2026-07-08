@@ -921,7 +921,7 @@ function NoSitesCard() {
         description="Create a site and upload a photo — your Reel fills up as you go."
         actions={
           <Link href="/wizard/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
-            Begin a thread <Icon name="sparkles" size={12} color="var(--cream)" />
+            Create your site <Icon name="sparkles" size={12} color="var(--cream)" />
           </Link>
         }
       />
