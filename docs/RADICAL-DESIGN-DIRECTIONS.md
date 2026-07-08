@@ -20,9 +20,12 @@
 >   wax-seal monogram, parts on tap, once/device, ArrivalReveal
 >   suppressed), `spread` (off-axis editorial, photo bleeds to edge),
 >   `plate` (poster type, opsz press-in, foil thread).
-> - Foil/deboss/press-in vocabulary now lives in three places; NEXT
->   session should extract the shared primitives layer (§E) before
->   building §C/§D on top.
+> - §E shared primitives — **SHIPPED**: `src/components/brand/pressed.tsx`
+>   (FOIL_STOPS/FoilGradient, DEBOSS_SHEET/DEBOSS_SEAL,
+>   letterpressShadow) + the motion trio in animation.css
+>   (.pl-type-press / .pl-thread-draw / .pl-fade-late, one global
+>   reduced-motion guard). EmptyShell + HeroPlate + HeroCover refactored
+>   onto it, pixel-parity verified. Build §C/§D from these.
 > - Remaining: §A workbench stretch, §B gallery-frames default +
 >   kinetic scroll type, §C landing thread-spine + occasion re-press +
 >   store swatch drawer, §D wizard Pressing + editor chrome recession.

@@ -18,6 +18,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bloom } from '@/components/brand/groove';
+import { FoilGradient, DEBOSS_SHEET, DEBOSS_SEAL } from '@/components/brand/pressed';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 
@@ -919,16 +920,6 @@ export function EmptyShell({
   const Wrapper = inline ? 'div' : 'main';
   return (
     <Wrapper style={inline ? undefined : { padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 1160, margin: '0 auto' }}>
-      <style>{`
-        @keyframes pl8-esh-draw { from { stroke-dashoffset: 600; } to { stroke-dashoffset: 0; } }
-        @keyframes pl8-esh-dot { from { opacity: 0; } to { opacity: 1; } }
-        .pl8-esh-strand { stroke-dasharray: 600; animation: pl8-esh-draw 1.6s cubic-bezier(0.3, 0, 0.2, 1) 0.15s both; }
-        .pl8-esh-strand--gold { animation-delay: 0.3s; }
-        .pl8-esh-end { animation: pl8-esh-dot 0.5s ease 1.7s both; }
-        @media (prefers-reduced-motion: reduce) {
-          .pl8-esh-strand, .pl8-esh-end { animation: none; stroke-dashoffset: 0; opacity: 1; }
-        }
-      `}</style>
       <div
         style={{
           position: 'relative',
@@ -945,11 +936,9 @@ export function EmptyShell({
           justifyContent: 'flex-end',
           alignItems: 'flex-start',
           gap: 18,
-          // Debossed, not outlined: the sheet sits INTO the desk. A
-          // soft inner top shade + a light inner bottom edge is the
-          // letterpress illusion; the outer hairline stays whisper.
-          boxShadow:
-            'inset 0 2px 6px rgba(31, 36, 24, 0.055), inset 0 -1px 0 rgba(255, 255, 255, 0.75), 0 1px 0 rgba(255, 255, 255, 0.55)',
+          // Debossed, not outlined: the sheet sits INTO the desk
+          // (shared recipe — brand/pressed.tsx).
+          boxShadow: DEBOSS_SHEET,
         }}
       >
         {/* The unwoven thread — enters at the left edge, weaves three
@@ -969,15 +958,11 @@ export function EmptyShell({
           }}
         >
           <defs>
-            <linearGradient id="pl8-esh-foil" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="#A87F35" />
-              <stop offset="0.45" stopColor="#E3C77E" />
-              <stop offset="0.7" stopColor="#C19A4B" />
-              <stop offset="1" stopColor="#B8913F" />
-            </linearGradient>
+            <FoilGradient id="pl8-esh-foil" />
           </defs>
           <path
-            className="pl8-esh-strand"
+            className="pl-thread-draw"
+            style={{ '--pl-draw-dur': '1.6s', '--pl-draw-delay': '0.15s' } as CSSProperties}
             d="M -2 60 C 20 44, 50 44, 72 60 S 124 76, 146 60 S 198 44, 220 60 S 272 76, 294 60 C 320 44, 356 52, 378 66 C 396 78, 406 86, 402 96"
             fill="none"
             stroke={PD.olive}
@@ -986,7 +971,8 @@ export function EmptyShell({
             pathLength={600}
           />
           <path
-            className="pl8-esh-strand pl8-esh-strand--gold"
+            className="pl-thread-draw"
+            style={{ '--pl-draw-dur': '1.6s', '--pl-draw-delay': '0.3s' } as CSSProperties}
             d="M -2 60 C 20 76, 50 76, 72 60 S 124 44, 146 60 S 198 76, 220 60 S 272 44, 294 60 C 318 74, 348 60, 366 46 C 380 36, 392 31, 404 30"
             fill="none"
             stroke="url(#pl8-esh-foil)"
@@ -995,8 +981,8 @@ export function EmptyShell({
             pathLength={600}
           />
           {/* Loose ends — a pearl dot where each strand stops mid-air. */}
-          <circle className="pl8-esh-end" cx="402" cy="96" r="2.6" fill={PD.olive} />
-          <circle className="pl8-esh-end" cx="404" cy="30" r="2.6" fill="#C19A4B" />
+          <circle className="pl-fade-late" style={{ '--pl-fade-dur': '0.5s', '--pl-fade-delay': '1.7s' } as CSSProperties} cx="402" cy="96" r="2.6" fill={PD.olive} />
+          <circle className="pl-fade-late" style={{ '--pl-fade-dur': '0.5s', '--pl-fade-delay': '1.7s' } as CSSProperties} cx="404" cy="30" r="2.6" fill="#C19A4B" />
         </svg>
 
         {/* Blind-embossed maker's mark, bottom-right — pressed into the
@@ -1014,8 +1000,7 @@ export function EmptyShell({
             alignItems: 'center',
             justifyContent: 'center',
             transform: 'rotate(-8deg)',
-            boxShadow:
-              'inset 0 1.5px 3px rgba(31, 36, 24, 0.09), inset 0 -1px 1px rgba(255, 255, 255, 0.8)',
+            boxShadow: DEBOSS_SEAL,
             opacity: 0.75,
           }}
         >
