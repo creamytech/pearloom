@@ -40,7 +40,7 @@ import { StudioLanding } from './StudioLanding';
 import { MobileSheet } from '../redesign/MobileSheet';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { StudioSendOverlay } from './StudioSendOverlay';
-import { StudioPrintPreview } from './StudioPrintPreview';
+import { StudioPressSheet } from './StudioPressSheet';
 import { StudioProofSheet } from './StudioProofSheet';
 import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -182,11 +182,10 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     try { localStorage.setItem(`pl-studio-entered-${siteSlug}`, '1'); } catch { /* private mode — just proceed */ }
     setShowLanding(false);
   };
-  // Print-pair overlay — card front + matching envelope, side by
-  // side, drawn from the same palette + motif as the canvas. The
-  // prototype's stationery.jsx surfaces this as the entire page;
-  // production keeps the full editor as the home base and opens
-  // this overlay on demand.
+  // The press sheet — front, back, and envelope at exact physical
+  // size with trim + bleed + crop marks (ATELIER-PLAN ST.3). The
+  // Save-as-PDF path any printer accepts; production keeps the
+  // full editor as the home base and opens this overlay on demand.
   const [showPrintPair, setShowPrintPair] = useState(false);
   // Suite Phase 3 — "Pear pressed six proofs" overlay. Opened
   // from the left rail; fetches /api/suite/proofs on mount.
@@ -813,7 +812,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               letterSpacing: '0.02em',
             }}
           >
-            See pair
+            Press sheet
           </button>
         </div>
       </CanvasStage>
@@ -979,13 +978,15 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
       )}
 
       {showPrintPair && (
-        <StudioPrintPreview
+        <StudioPressSheet
           themeRoot={cardThemeRoot}
           postmarkDate={postmarkDate}
           kitId={kitId}
           type={state.type}
           layout={state.layout}
           motif={state.motif}
+          texture={state.texture}
+          solemn={solemn}
           palette={palette}
           font={font}
           content={content}
@@ -997,8 +998,10 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           siteUrl={siteUrl}
           rsvpDeadline={rsvpDeadline}
           returnAddress={returnAddress}
-          manifest={manifest}
-          onPrint={() => window.print()}
+          ceremonyAt={ceremonyAt}
+          receptionAt={receptionAt}
+          dressCode={dressCode}
+          hotelLine={hotelLine}
           onClose={() => setShowPrintPair(false)}
         />
       )}
@@ -1058,11 +1061,14 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
              that scope, so mirror the kill-switch here. */
           .pl-studio-mobile-chrome, .pl-studio-mobile-chrome * { animation: none !important; transition: none !important; }
         }
-        @media print {
-          /* Strip the dashboard chrome so Export → window.print()
-             prints just the active card surface. The Studio root
-             pins to the page; everything outside the canvas is
-             hidden. */
+        /* Legacy quick-print (Cmd+P on the open canvas) — prints
+           the active card surface at screen scale. Suppressed
+           entirely while the press sheet is open: its exact-size
+           6×8in @page rule must be the only one in the document
+           (the last @page declaration wins, and this block renders
+           later in the tree). The press sheet is the real print
+           path — trim, bleed, crop marks, three pages. */
+        ${showPrintPair ? '' : `@media print {
           @page { size: 5in 7in; margin: 0; }
           body * { visibility: hidden !important; }
           .pl-studio-root, .pl-studio-root * { visibility: visible !important; }
@@ -1095,7 +1101,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           .pl-studio-root [role="status"] {
             display: none !important;
           }
-        }
+        }`}
       `}</style>
 
     </div>

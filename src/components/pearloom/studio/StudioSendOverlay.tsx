@@ -12,10 +12,10 @@
 // the channel field on the email tags lets the bell + dashboard
 // distinguish them.
 //
-// Printing is PRINT-AT-HOME ONLY: the Print channel opens the
-// press-ready preview (window.print() / save-as-PDF). Pearloom
-// never prints, stamps, or mails anything — the artwork is ours,
-// the paper is the host's.
+// Printing is press-ready PDF ONLY: the PDF channel opens the
+// press sheet (exact size, trim + bleed + crop marks →
+// save-as-PDF). Pearloom never prints or mails anything — the
+// artwork is ours, the paper is the host's.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -42,8 +42,8 @@ interface Props {
   /** Optional caller-side callback when a real send completes —
    *  used to push a toast / refresh notification bell. */
   onSent?: (sentCount: number) => void;
-  /** Opens the press-ready print preview (print-at-home / PDF) —
-   *  the parent closes this overlay and shows the print pair. */
+  /** Opens the press sheet (exact-size front/back/envelope →
+   *  save-as-PDF) — the parent closes this overlay first. */
   onPressReadyPdf?: () => void;
 }
 
@@ -276,12 +276,12 @@ export function StudioSendOverlay({
               {[
                 { l: 'Digital', sub: `${withEmail} with email`, icon: 'mail',  primary: true,  count: withEmail },
                 {
-                  l: 'Print at home',
-                  sub: 'Press-ready · take it to any printer',
+                  l: 'Press-ready PDF',
+                  sub: 'Trim + bleed marks · any printer',
                   icon: 'copy',
                   primary: false,
                   count: total,
-                  badge: onPressReadyPdf ? 'Open the print view' : undefined,
+                  badge: onPressReadyPdf ? 'Open the press sheet' : undefined,
                   onPick: onPressReadyPdf,
                 },
               ].map(c => {
