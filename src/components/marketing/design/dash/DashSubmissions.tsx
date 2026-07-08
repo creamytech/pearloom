@@ -662,8 +662,18 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
 
   useEffect(() => { void load(); }, [load]);
 
+  /* Arm-then-confirm (the house pattern — DashGuests, the claims
+     feed): a guest's words are irreplaceable, so the first tap
+     arms, the second deletes, and 4s of inaction disarms. */
+  const [removeArmed, setRemoveArmed] = useState<string | null>(null);
   const remove = async (id: string) => {
     if (busy) return;
+    if (removeArmed !== id) {
+      setRemoveArmed(id);
+      window.setTimeout(() => setRemoveArmed((a) => (a === id ? null : a)), 4000);
+      return;
+    }
+    setRemoveArmed(null);
     setBusy(id);
     setWishes((prev) => (prev ?? []).filter((w) => w.id !== id)); // optimistic
     try {
@@ -706,9 +716,10 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
                 type="button"
                 disabled={busy === w.id}
                 onClick={() => void remove(w.id)}
-                className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: busy === w.id ? 0.5 : 1 }}
+                className="pl8-btnfx"
+                style={{ ...btnMiniGhost, opacity: busy === w.id ? 0.5 : 1, ...(removeArmed === w.id ? { color: 'var(--plum, #C6563D)', borderColor: 'var(--plum, #C6563D)' } : {}) }}
               >
-                Remove
+                {removeArmed === w.id ? 'Really remove?' : 'Remove'}
               </button>
             </div>
           </Panel>

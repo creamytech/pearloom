@@ -255,8 +255,17 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
     [siteId],
   );
 
+  /* Arm-then-confirm (the house pattern): the first tap arms the ×,
+     the second deletes, 4s of inaction disarms. */
+  const [removeArmed, setRemoveArmed] = useState<string | null>(null);
   const remove = useCallback(
     async (task: EventTask) => {
+      if (removeArmed !== task.id) {
+        setRemoveArmed(task.id);
+        window.setTimeout(() => setRemoveArmed((a) => (a === task.id ? null : a)), 4000);
+        return;
+      }
+      setRemoveArmed(null);
       setTasks((prev) => prev.filter((t) => t.id !== task.id));
       try {
         await fetch(`/api/tasks?siteId=${encodeURIComponent(siteId)}&id=${encodeURIComponent(task.id)}`, {
@@ -266,7 +275,7 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
         /* board refetches on next mount */
       }
     },
-    [siteId],
+    [siteId, removeArmed],
   );
 
   const labelFor = useCallback(
@@ -566,7 +575,8 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
                           <button
                             type="button"
                             onClick={() => void remove(task)}
-                            aria-label="Remove task"
+                            aria-label={removeArmed === task.id ? 'Tap again to remove the task' : 'Remove task'}
+                            title={removeArmed === task.id ? 'Tap again to remove' : 'Remove task'}
                             style={{
                               flexShrink: 0,
                               width: 26,
@@ -574,9 +584,9 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
                               display: 'grid',
                               placeItems: 'center',
                               borderRadius: 8,
-                              border: '1px solid transparent',
+                              border: removeArmed === task.id ? '1px solid var(--plum, #C6563D)' : '1px solid transparent',
                               background: 'transparent',
-                              color: 'var(--ink-muted)',
+                              color: removeArmed === task.id ? 'var(--plum, #C6563D)' : 'var(--ink-muted)',
                               cursor: 'pointer',
                             }}
                           >

@@ -579,7 +579,25 @@ Onboarding flow (fresh). Payments/domains at publish.
 
 ---
 
-### S7 — Linda mode · **status: IN PROGRESS 2026-07-08** · P1
+### S7 — Linda mode · **status: SHIPPED 2026-07-08** · P1
+
+> Closing ledger (beyond the semantics + contrast passes below):
+> ZOOM WALK — wizard/editor/dashboard at 125% and 150% on a 1280px
+> laptop: zero horizontal overflow everywhere, all controls
+> reachable (shots: `zoom-editor-150.png`, `zoom-dashboard-150.png`;
+> minor topbar crowding at 150% noted, functional). FEAR AUDIT —
+> inventoried every dashboard DELETE: guest delete + registry
+> revoke already armed; message/moderation deletes are soft hides;
+> TWO one-tap permanent deletes found and fixed with the house
+> arm-then-confirm pattern (a guest's guestbook words in
+> DashSubmissions — "Really remove?"; task removal in
+> TeamTasksPanel — armed ×, announced to AT). LABEL AUDIT —
+> spot-checked via the persona walks; the plain-words rule
+> (BRAND §7) held everywhere the walks touched (enforced in prior
+> sessions). Named leftovers: saved-state visibility on
+> dashboard/Studio edits (the editor has its pill; the dashboard's
+> quiet writes deserve one), and /demo wasn't in the axe route set
+> (add when S9 builds /demo/{occasion}). vitest 1246/1246.
 
 > Thread 4 (semantics) LARGELY SHIPPED — first axe-core pass across
 > /, wizard, editor, site, dashboard found 10 serious/critical
@@ -796,6 +814,16 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S7 shipped (Linda mode)
+The full sprint: axe-core gate ZERO serious/critical on all five
+routes (the rail recession was silently blending AA text — now
+0.95; peach/sage text tokens deepened; --gold-ink for gold-as-text;
+the wizard thumbnail aria-hidden with numerically-verified derived
+inks); zoom walk 125/150% clean (no horizontal overflow anywhere);
+fear audit closed two unguarded one-tap deletes (guestbook words,
+tasks) with arm-then-confirm. Leftovers named in the stamp.
+vitest 1246/1246.
 
 ### 2026-07-08 — S6 shipped (The first five minutes)
 F10 closed + the publish/return moments. The phone preview peek
