@@ -895,40 +895,152 @@ export function SectionTitle({
 }
 
 // ── Common empty / loading placeholders ──────────────────────
+// The pressed blank page (RADICAL-DESIGN-DIRECTIONS §A). An empty
+// state is not an error card — it's a sheet on the press, waiting.
+// One debossed paper panel, an unwoven two-strand thread that draws
+// in from the left edge and stops mid-air, a title-page-scale
+// Fraunces prompt, and a blind-embossed maker's mark. Shared by all
+// "no site / no celebration yet" dashboard tabs so they read as one
+// intentional family. Honors prefers-reduced-motion (thread renders
+// fully drawn, no animation).
 export function EmptyShell({ message, cta }: { message: string; cta?: { label: string; href: string } }) {
   const link = cta ?? { label: '← Back to Sites', href: '/dashboard' };
   return (
-    <main style={{ padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 760, margin: '0 auto' }}>
-      {/* Matches the DashEmpty visual language (cream dashed card, faint
-          pear, pearl CTA) so empty states read as one family. */}
+    <main style={{ padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 1160, margin: '0 auto' }}>
+      <style>{`
+        @keyframes pl8-esh-draw { from { stroke-dashoffset: 600; } to { stroke-dashoffset: 0; } }
+        @keyframes pl8-esh-dot { from { opacity: 0; } to { opacity: 1; } }
+        .pl8-esh-strand { stroke-dasharray: 600; animation: pl8-esh-draw 1.6s cubic-bezier(0.3, 0, 0.2, 1) 0.15s both; }
+        .pl8-esh-strand--gold { animation-delay: 0.3s; }
+        .pl8-esh-end { animation: pl8-esh-dot 0.5s ease 1.7s both; }
+        @media (prefers-reduced-motion: reduce) {
+          .pl8-esh-strand, .pl8-esh-end { animation: none; stroke-dashoffset: 0; opacity: 1; }
+        }
+      `}</style>
       <div
         style={{
           position: 'relative',
-          background: 'var(--cream-2)',
-          border: '1px dashed var(--line)',
-          borderRadius: 14,
-          padding: 'clamp(48px, 6vw, 72px) 32px',
-          textAlign: 'center',
+          overflow: 'hidden',
+          background: 'var(--card)',
+          border: '1px solid var(--line-soft, var(--line))',
+          borderRadius: 18,
+          minHeight: 'clamp(400px, 52vh, 540px)',
+          padding:
+            'clamp(120px, 16vw, 170px) clamp(28px, 7vw, 96px) clamp(48px, 6vw, 72px)',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: 16,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-start',
+          gap: 18,
+          // Debossed, not outlined: the sheet sits INTO the desk. A
+          // soft inner top shade + a light inner bottom edge is the
+          // letterpress illusion; the outer hairline stays whisper.
+          boxShadow:
+            'inset 0 2px 6px rgba(31, 36, 24, 0.055), inset 0 -1px 0 rgba(255, 255, 255, 0.75), 0 1px 0 rgba(255, 255, 255, 0.55)',
         }}
       >
-        <Pear size={44} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
+        {/* The unwoven thread — enters at the left edge, weaves three
+            times, then the strands part and trail off mid-sheet. The
+            gold strand carries a foil gradient (first use of the foil
+            vocabulary). Pure decoration; hidden from AT. */}
+        <svg
+          aria-hidden
+          viewBox="0 0 560 120"
+          style={{
+            position: 'absolute',
+            top: 'clamp(30px, 5vw, 52px)',
+            left: 0,
+            width: 'min(560px, 86%)',
+            height: 'auto',
+            display: 'block',
+          }}
+        >
+          <defs>
+            <linearGradient id="pl8-esh-foil" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#A87F35" />
+              <stop offset="0.45" stopColor="#E3C77E" />
+              <stop offset="0.7" stopColor="#C19A4B" />
+              <stop offset="1" stopColor="#B8913F" />
+            </linearGradient>
+          </defs>
+          <path
+            className="pl8-esh-strand"
+            d="M -2 60 C 20 44, 50 44, 72 60 S 124 76, 146 60 S 198 44, 220 60 S 272 76, 294 60 C 320 44, 356 52, 378 66 C 396 78, 406 86, 402 96"
+            fill="none"
+            stroke={PD.olive}
+            strokeWidth="2"
+            strokeLinecap="round"
+            pathLength={600}
+          />
+          <path
+            className="pl8-esh-strand pl8-esh-strand--gold"
+            d="M -2 60 C 20 76, 50 76, 72 60 S 124 44, 146 60 S 198 76, 220 60 S 272 44, 294 60 C 318 74, 348 60, 366 46 C 380 36, 392 31, 404 30"
+            fill="none"
+            stroke="url(#pl8-esh-foil)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            pathLength={600}
+          />
+          {/* Loose ends — a pearl dot where each strand stops mid-air. */}
+          <circle className="pl8-esh-end" cx="402" cy="96" r="2.6" fill={PD.olive} />
+          <circle className="pl8-esh-end" cx="404" cy="30" r="2.6" fill="#C19A4B" />
+        </svg>
+
+        {/* Blind-embossed maker's mark, bottom-right — pressed into the
+            paper rather than printed on it. */}
         <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            right: 'clamp(20px, 4vw, 44px)',
+            bottom: 'clamp(20px, 4vw, 40px)',
+            width: 74,
+            height: 74,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transform: 'rotate(-8deg)',
+            boxShadow:
+              'inset 0 1.5px 3px rgba(31, 36, 24, 0.09), inset 0 -1px 1px rgba(255, 255, 255, 0.8)',
+            opacity: 0.75,
+          }}
+        >
+          <Pear size={34} color="transparent" stem={PD.stone} leaf={PD.stone} />
+        </div>
+
+        <div
+          className="eyebrow"
+          style={{
+            ...MONO_STYLE,
+            fontSize: 10,
+            color: PD.gold,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <span style={{ width: 22, height: 1, background: PD.gold, display: 'inline-block' }} />
+          Nothing yet
+        </div>
+        <h2
+          className="pl-letterpress"
           style={{
             ...DISPLAY_STYLE,
+            margin: 0,
             fontStyle: 'italic',
-            fontSize: 'clamp(22px, 3vw, 30px)',
-            lineHeight: 1.15,
-            color: PD.olive,
-            maxWidth: 480,
+            fontWeight: 480,
+            fontSize: 'clamp(30px, 4.6vw, 54px)',
+            lineHeight: 1.08,
+            letterSpacing: '-0.02em',
+            color: 'var(--ink)',
+            maxWidth: '19ch',
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            textWrap: 'balance',
           }}
         >
           {message}
-        </div>
+        </h2>
         <Link
           href={link.href}
           className="pl-pearl-accent"
@@ -936,10 +1048,10 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            marginTop: 4,
-            padding: '11px 20px',
+            marginTop: 6,
+            padding: '12px 22px',
             borderRadius: 999,
-            fontSize: 13,
+            fontSize: 13.5,
             fontWeight: 700,
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-body)',
