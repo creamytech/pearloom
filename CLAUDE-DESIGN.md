@@ -123,7 +123,7 @@ A site's look = **theme** (§3.3 palette/type bag) + **kit** + **texture** (+ in
 
 ## 5 · Brand primitives (actual)
 
-Under `src/components/brand/`: **`<Thread />`** (dividers), **`<WeaveLoader />`** (every spinner — `Loader2`/`animate-spin` are banned), **`<Folio />`** (edition marks), **`<GooeyText />`** (rotating words), **`<PearloomMark />`** (logo), plus a `groove/` accent set. Shared chrome atoms live in `src/components/shell/` (EmptyState, PageCard, ThemeToggle…). Effects under `src/components/effects/` (GradientMesh, GrainOverlay, TextureOverlay, VignetteOverlay, ScrollReveal, ColorTemperature, CustomCursor).
+Under `src/components/brand/`: **`<Thread />`** (dividers), **`<WeaveLoader />`** (every spinner — `Loader2`/`animate-spin` are banned), **`<Folio />`** (edition marks), **`<GooeyText />`** (rotating words), **`<PearloomMark />`** (logo), **`<ThreadingDoor />`** (the full-screen sign-in → loom threshold scene; sign-in holds it over the route swap — never a route-level loading.tsx, (shell)/loading.tsx is null on purpose), `pressed.tsx` (foil/deboss/letterpress tokens), plus a `groove/` accent set. Shared chrome atoms live in `src/components/shell/` (EmptyState, PageCard, ThemeToggle…). Effects under `src/components/effects/` (GradientMesh, GrainOverlay, TextureOverlay, VignetteOverlay, ScrollReveal, ColorTemperature, CustomCursor).
 
 The motifs/glyph language for product surfaces lives in `src/components/pearloom/motifs.tsx` (Pear, Sparkle, AmbientSprig, PearlDot, PearloomLogo…) and `pearloom/avatars.tsx` (the 12 orchard account marks).
 
