@@ -159,11 +159,22 @@ BRAND.md §7 microcopy rules apply everywhere: "Threading…" not "Loading…", 
 ```
 EditorRedesign
 ├── EditorTopbar          (save state, publish, device, undo/redo)
-├── SectionRail           (left; tabs: Sections | Pages | Theme)
+├── SectionRail           (left; tabs: Sections | Pages — the Theme
+│                          signpost tab was cut 2026-07-08; the look
+│                          lives in PropertyRail's Design tab, and
+│                          Pear's bastings render inline via pearSlot)
 │     Pages tab lists real pages in magazine mode → canvasPage filter
 ├── canvas: ThemedSite    (editable; InlineEdit text, jump/scroll sync)
-├── PropertyRail          (right; per-section panel dispatch via SECTIONS map,
-│                          live section descriptions — no fake counts)
+├── PropertyRail          (right; tabs: Content | Design. Content =
+│                          per-section panel dispatch via SECTIONS map,
+│                          live section descriptions — no fake counts.
+│                          Design = ThemePickerBody, the whole site
+│                          look, reordered 2026-07-08: sticky jump
+│                          chips → Pear picks → Themes → Colors →
+│                          Fonts → Paper (texture + grain) → Layout &
+│                          card styles (6 + Show-all) → background →
+│                          ✦ Motion (folded in; its top-level tab is
+│                          gone) → Menu/Footer → Fine-tune → CTAs)
 ├── EditorDrawers / MobileSheet (mobile: props sheet)
 ├── CommandPalette (⌘K)   + EditorThemeShop (bottom sheet)
 └── PearAssist / FloatingPearBubble / DesignAdvisor (Pear copilot;

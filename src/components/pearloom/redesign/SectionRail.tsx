@@ -232,7 +232,7 @@ interface Props {
 }
 
 export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage, peers = [], pearSlot }: Props) {
-  const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
+  const [tab, setTab] = useState<'sections' | 'pages'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   /* Add Section picker open state — toggled by the dashed "+ Add
@@ -547,17 +547,19 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           border: '1px solid var(--line-soft)',
         }}
       >
-        {(['sections', 'pages', 'theme'] as const).map((t) => {
+        {/* Two tabs (2026-07-08): the Theme tab was a signpost — its
+            whole body was a note saying the controls live in the
+            right rail's Design tab. One room, one door. */}
+        {(['sections', 'pages'] as const).map((t) => {
           const on = tab === t;
-          const label = t === 'sections' ? 'Sections' : t === 'pages' ? 'Pages' : 'Theme';
+          const label = t === 'sections' ? 'Sections' : 'Pages';
           return (
             <button
               key={t}
               type="button"
               onClick={() => {
                 setTab(t);
-                if (t === 'theme') setActive(null);
-                else if (t === 'sections' && !active) setActive('hero');
+                if (t === 'sections' && !active) setActive('hero');
               }}
               style={{
                 flex: 1,
@@ -652,34 +654,6 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               </div>
             );
           })()}
-        </div>
-      )}
-
-      {/* Theme tab body — selecting the tab already swaps the right
-          rail to the Theme panel (setActive(null) above); this note
-          says so instead of leaving the left rail blank, which read
-          as a broken tab. */}
-      {tab === 'theme' && (
-        <div
-          className="pl8-tab-enter"
-          style={{
-            padding: '12px 13px',
-            borderRadius: 10,
-            background: 'var(--card)',
-            border: '1px solid var(--line-soft)',
-            fontSize: 11.5,
-            color: 'var(--ink-soft)',
-            lineHeight: 1.55,
-            display: 'flex',
-            gap: 8,
-          }}
-        >
-          <Icon name="sparkles" size={14} color="var(--peach-ink, #C6703D)" />
-          <span>
-            Theme controls are open in the <strong>panel on the right</strong> —
-            palette, type, layout, texture, and the Theme Shop all live there.
-            Pick a section under <strong>Sections</strong> to edit content instead.
-          </span>
         </div>
       )}
 

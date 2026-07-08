@@ -53,7 +53,7 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: '4px 0 2px', fontWeight: 600, color: 'var(--lavender-ink)' }}>
-            Site look
+            Design
           </h3>
           {/* Hold to see the site before the last change — read-only
               undo-stack peek via EditorRedesign. */}

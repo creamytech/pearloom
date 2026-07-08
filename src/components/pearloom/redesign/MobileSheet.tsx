@@ -949,7 +949,7 @@ export function MobileBottomBar({
         </span>
       </div>
       <BottomBarButton label="Sections" icon="list" on={activeSheet === 'sections' || activeSheet === 'props'} onClick={onSections} />
-      <BottomBarButton label="Theme" icon="palette" on={activeSheet === 'theme'} onClick={onTheme} />
+      <BottomBarButton label="Design" icon="palette" on={activeSheet === 'theme'} onClick={onTheme} />
       <BottomBarButton label="Preview" icon="eye" on={false} onClick={onPreview} />
       {onPublish && <BottomBarButton label="Publish" icon="arrow-up" on={false} onClick={onPublish} />}
     </nav>

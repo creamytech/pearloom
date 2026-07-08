@@ -241,12 +241,15 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
   const isMobileViewport = useMobileViewport();
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const section = active ? sectionInfoFor(active, occasion) : null;
-  const [tab, setTab] = useState<'content' | 'design' | 'motion'>('content');
+  /* Two tabs (2026-07-08): ✦ Motion folded into the Design scroll
+     as a section — a paid finish picker doesn't outrank Colors
+     with a top-level tab. */
+  const [tab, setTab] = useState<'content' | 'design'>('content');
   /* Tool panels (Guests / Share / Day-of / etc.) are host-only
      workspaces — they don't render a canvas section, so the global
-     Design + Motion tabs would be confusing there. Force content-
-     mode on tools (the tab strip still shows, but tool panels stay
-     on their own workspace). */
+     Design tab would be confusing there. Force content-mode on
+     tools (the tab strip still shows, but tool panels stay on
+     their own workspace). */
   const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'cohost', 'dayof', 'memorial', 'bachelor', 'toasts', 'privacy'] as const;
   const isToolPanel = active != null && (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
@@ -466,19 +469,18 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     }
   }
 
-  /* Contextual header — the v2 inspector keeps Content · Design ·
-     Motion tabs always present; only Content is per-section, so the
-     eyebrow / title / blurb adapt to the active tab. */
+  /* Contextual header — Content · Design tabs are always present;
+     only Content is per-section, so the eyebrow / title / blurb
+     adapt to the active tab. */
   const headEyebrow = effectiveTab === 'content'
     ? (section ? 'Editing section' : 'Your site')
-    : effectiveTab === 'design' ? 'Site look' : '✦ Atelier';
+    : 'Site look';
   const headTitle = effectiveTab === 'content'
     ? (section ? section.label : 'Pick a section')
-    : effectiveTab === 'design' ? 'Design' : 'Motion';
+    : 'Design';
   const headDesc = effectiveTab === 'content'
     ? (section ? (liveSectionDesc(section.id, manifest) ?? section.desc) : 'Click any section on the canvas — or in the list on the left — to edit it.')
-    : effectiveTab === 'design' ? 'Theme, type, texture & navigation — for the whole site.'
-    : 'Living finishes that bring your site to life.';
+    : 'Theme, type, texture & navigation — for the whole site.';
 
   return (
     <aside
@@ -627,7 +629,6 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           {([
             { id: 'content', label: 'Content', icon: 'text' },
             { id: 'design', label: 'Design', icon: 'palette' },
-            { id: 'motion', label: '✦ Motion', icon: 'sparkles' },
           ] as const).map((t) => {
             const on = tab === t.id;
             return (
@@ -763,18 +764,9 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
             onChange={onChange}
             onOpenShop={onOpenShop ?? (() => {})}
             onOpenDecor={onOpenDecor ?? (() => {})}
-            motion="hidden"
-          />
-        )}
-
-        {/* MOTION TAB — Atelier living finishes (the 8 animated kits). */}
-        {effectiveTab === 'motion' && (
-          <ThemePickerBody
-            manifest={manifest}
-            onChange={onChange}
-            onOpenShop={onOpenShop ?? (() => {})}
-            onOpenDecor={onOpenDecor ?? (() => {})}
-            motion="only"
+            /* inline: the ✦ Motion (Atelier) kits ride the Design
+               scroll now — the standalone Motion tab is gone. */
+            motion="inline"
           />
         )}
 

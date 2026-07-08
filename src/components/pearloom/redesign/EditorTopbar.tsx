@@ -442,7 +442,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                   }}
                 >
                   <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); shareSite(); }} />
-                  <MenuRow icon="palette" label="Theme" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
+                  <MenuRow icon="palette" label="Design" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
                   <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
                   {/* Day-of go-live — appears only inside the ±7-day
                       window, same rule as the desktop badge. */}
@@ -494,9 +494,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           type="button"
           className="btn btn-outline btn-sm"
           onClick={openThemeRail}
-          title="Open theme panel"
+          /* "Design" — the same word as the rail tab it opens, so
+             the destination has ONE name (was "Theme" here,
+             "Design" there, "Site look" in the eyebrow). */
+          title="Open the Design panel — theme, colors, fonts, layout"
         >
-          <Icon name="palette" size={12} /> <span className="pl-rd-top-label">Theme</span>
+          <Icon name="palette" size={12} /> <span className="pl-rd-top-label">Design</span>
         </button>
         <button
           type="button"

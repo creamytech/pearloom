@@ -25,7 +25,7 @@ import { pearWorking } from './PearLoomFx';
    EditionPicker, Advanced disclosure) the prototype doesn't show.
 */
 
-import { useState, useRef, type ReactNode } from 'react';
+import { useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
@@ -96,25 +96,58 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
     fireUndoable('Pack applied — your old look is one tap away', () => onChange(prior));
   };
 
+  /* ── The altitude ladder (reordered 2026-07-08) ─────────────────
+     One 6.4-screen scroll used to bury Colors + Fonts (the two
+     most-wanted tweaks) under 26 layout/card-style diagrams. Order
+     now falls from "one pick changes everything" to polish:
+       Pear picks → Themes → Colors → Fonts → Paper → Layout &
+       cards → atmosphere (background + motion) → Menu & footer →
+       Fine-tune → cross-links.
+     The sticky chip row up top jumps to each rung — a table of
+     contents for the scroll. Anchor ids pl-dz-*; scrollMarginTop
+     clears the sticky chips. */
+  const anchor: CSSProperties = {
+    /* scrollMarginTop clears the sticky chip row at its two-row
+       wrap (the 360px rail wraps the six chips onto two lines). */
+    display: 'flex', flexDirection: 'column', gap: 16, scrollMarginTop: 92,
+  };
   return (
-    <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ flex: 1, overflow: 'auto', padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <JumpChips />
       <EventTypeChip manifest={manifest} onChange={onChange} />
+      {/* "Let Pear pick" — both hands-off entries side by side:
+          describe the look in words, or hand her a photo. */}
       <GenerateCard manifest={manifest} onChange={onChange} />
+      <MatchMyPhotos manifest={manifest} onChange={onChange} />
       {/* Recommended themes — already lives at the right shape after
           earlier ThemePackPicker rewrite (Aa/and tiles + ★ Pick badge
           + ✓ active checkmark + corner motif + footer). */}
-      <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
+      <div id="pl-dz-theme" style={anchor}>
+        <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
+      </div>
 
-      <SiteLayoutPick manifest={manifest} onChange={onChange} />
-      <KitPick theme={theme} manifest={manifest} onChange={onChange} />
+      <div id="pl-dz-colors" style={anchor}>
+        <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
+      </div>
+      <div id="pl-dz-fonts" style={anchor}>
+        <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
+      </div>
+      <div id="pl-dz-paper" style={anchor}>
+        <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+      </div>
+
+      <div id="pl-dz-layout" style={anchor}>
+        <SiteLayoutPick manifest={manifest} onChange={onChange} />
+        <KitPick theme={theme} manifest={manifest} onChange={onChange} />
+      </div>
+
+      <LivingBackgroundPick manifest={manifest} onChange={onChange} />
       {motion === 'inline' && <MotionKitPick manifest={manifest} onChange={onChange} />}
 
-      <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
-      <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
-      <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
-      <LivingBackgroundPick manifest={manifest} onChange={onChange} />
-      <NavPick manifest={manifest} onChange={onChange} />
-      <FooterPick manifest={manifest} onChange={onChange} />
+      <div id="pl-dz-menu" style={anchor}>
+        <NavPick manifest={manifest} onChange={onChange} />
+        <FooterPick manifest={manifest} onChange={onChange} />
+      </div>
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
 
@@ -164,8 +197,6 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
         <Icon name="arrow-right" size={15} color="var(--ink-soft)" />
       </button>
 
-      <MatchMyPhotos manifest={manifest} onChange={onChange} />
-
       {/* Matching Save-the-Date — dark pill linking to Studio. */}
       <a
         href="/dashboard/invite"
@@ -183,6 +214,54 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
         </div>
         <Icon name="arrow-right" size={14} color="var(--cream)" />
       </a>
+    </div>
+  );
+}
+
+/* ─── JumpChips — the Design tab's table of contents ──────────────
+   The scroll is ~6 screens; these sticky chips name its rungs and
+   jump to them. Anchors are the pl-dz-* wrappers in the body. */
+
+const JUMP_CHIPS: Array<[string, string]> = [
+  ['pl-dz-theme', 'Themes'],
+  ['pl-dz-colors', 'Colors'],
+  ['pl-dz-fonts', 'Fonts'],
+  ['pl-dz-paper', 'Paper'],
+  ['pl-dz-layout', 'Layout'],
+  ['pl-dz-menu', 'Menu'],
+];
+
+function JumpChips() {
+  const jump = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  };
+  return (
+    <div
+      style={{
+        position: 'sticky', top: 0, zIndex: 5,
+        margin: '0 -18px', padding: '11px 18px 9px',
+        background: 'var(--card)',
+        borderBottom: '1px solid var(--line-soft)',
+        display: 'flex', flexWrap: 'wrap', gap: 5,
+      }}
+    >
+      {JUMP_CHIPS.map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => jump(id)}
+          style={{
+            padding: '4px 11px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+            border: '1px solid var(--line)', background: 'transparent',
+            color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -790,6 +869,14 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
   const value = manifest.kitId ?? 'classic';
   const tryOn = useCanvasTryOn();
   const palette = kitPaletteFor(theme, manifest);
+  /* 24 kits was the single biggest wall in the Design scroll. Show
+     the first six; the rest fold behind "Show all". Opens expanded
+     when the site's current kit lives in the folded tail so the
+     active card is never hidden. */
+  const [showAllKits, setShowAllKits] = useState(
+    () => KITS.findIndex((k) => k.id === value) >= 6,
+  );
+  const visibleKits = showAllKits ? KITS : KITS.slice(0, 6);
   const set = (id: string, label: string) => {
     tryOn.commit();
     onChange({ ...manifest, kitId: id } as StoryManifest);
@@ -807,7 +894,7 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}
         onMouseLeave={() => tryOn.cancel()}
       >
-        {KITS.map((k) => {
+        {visibleKits.map((k) => {
           const on = value === k.id || (!value && k.id === 'classic');
           return (
             <button
@@ -836,6 +923,19 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
           );
         })}
       </div>
+      <button
+        type="button"
+        onClick={() => setShowAllKits((v) => !v)}
+        aria-expanded={showAllKits}
+        style={{
+          marginTop: 8, width: '100%', padding: '7px 10px', borderRadius: 8,
+          border: '1px dashed var(--line)', background: 'transparent',
+          color: 'var(--ink-muted)', fontSize: 11.5, fontWeight: 600,
+          cursor: 'pointer', fontFamily: 'inherit',
+        }}
+      >
+        {showAllKits ? 'Show fewer styles' : `Show all ${KITS.length} styles`}
+      </button>
     </div>
   );
 }
@@ -849,7 +949,10 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
    in motion. ────────────────────────────────────────────────── */
 
 const MOTION_KITS = [
-  { id: 'neon',          name: 'Neon',          desc: 'Tube flicker + buzz glow',                for: 'Bachelor/ette · NYE · galas',         sw: ['#15131C', '#B9A6E0'] },
+  /* id 'neon' kept for data compat; the LABEL follows BRAND §10
+     (neon is out of the Pearloom vocabulary — the finish itself is
+     an occasion-scoped host opt-in). */
+  { id: 'neon',          name: 'After Dark',    desc: 'Tube-light flicker + glow',               for: 'Bachelor/ette · NYE · galas',         sw: ['#15131C', '#B9A6E0'] },
   { id: 'marquee-live',  name: 'Marquee Live',  desc: 'Bulb lights, pulsing',                    for: 'Birthdays · theatre',                 sw: ['#FFFEF7', '#C19A4B'] },
   { id: 'aurora-glass',  name: 'Aurora Glass',  desc: 'Light drifting behind frosted glass',     for: 'Evening weddings',                    sw: ['#1A1B2E', '#B9A6E0'] },
   { id: 'gold-foil',     name: 'Gold Foil',     desc: 'A sheen sweeping the edges',              for: 'Deco · anniversaries',                sw: ['#14110C', '#C9A24B'] },
@@ -1104,12 +1207,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
   const occ = (manifest as unknown as { occasion?: string }).occasion;
   const solemnSite = occ === 'memorial' || occ === 'funeral';
   const density = manifest.density ?? 'comfortable';
-  const intensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
   const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
-  /* Manual texture override (TexturePick) wins over the theme's
-     own material — gate + label follow what's actually painted. */
-  const textureOverride = (manifest as unknown as { texture?: string }).texture;
-  const effectiveTexture = textureOverride && textureOverride !== '' ? textureOverride : theme.texture;
 
   const setVoice = (v: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), voiceOverride: v } as unknown as StoryManifest);
   const setDensity = (v: string) => {
@@ -1121,54 +1219,9 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
     announceDesignChange('motifs', v ? 'On' : 'Off');
   };
 
-  /* Grain slider — dragging used to write the manifest per pixel:
-     a full (deferred) canvas re-render, a history entry, and an
-     autosave arm on EVERY move; one drag wiped the 50-entry undo
-     stack. Now the drag previews imperatively (the texture layers'
-     wrapper opacity scales toward the dragged value) and the
-     manifest commits ONCE on release — one undo entry, one save. */
-  const [draftIntensity, setDraftIntensity] = useState<number | null>(null);
-  const shownIntensity = draftIntensity ?? intensity;
-  const previewIntensity = (v: number) => {
-    setDraftIntensity(v);
-    const root = findCanvasRoot();
-    if (!root) return;
-    /* Wrapper opacity can only scale DOWN from the committed
-       strength (opacity clamps at 1) — increases read at commit.
-       The label above the slider tracks the drag either way. */
-    const ratio = intensity > 0 ? Math.min(1, v / intensity) : 0;
-    root.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
-      el.style.opacity = String(ratio);
-    });
-  };
-  const commitIntensity = (v: number) => {
-    setDraftIntensity(null);
-    const root = findCanvasRoot();
-    root?.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
-      el.style.removeProperty('opacity');
-    });
-    if (v === intensity) return;
-    onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: v } as unknown as StoryManifest);
-    announceDesignChange('grain', intensityLabelFor(v));
-  };
-
-  const textureLabel = ({
-    linen: 'Linen weave',
-    watercolor: 'Watercolor washes',
-    cotton: 'Cotton tooth',
-    velvet: 'Velvet sheen',
-    paper: 'Paper grain',
-    none: 'Texture',
-    canvas: 'Canvas weave',
-    kraft: 'Kraft paper',
-    vellum: 'Vellum sheet',
-    letterpress: 'Letterpress',
-    newsprint: 'Newsprint',
-    marble: 'Marble vein',
-    gilded: 'Gilded leaf',
-  } as Record<string, string>)[effectiveTexture] ?? 'Paper grain';
-
-  const intensityLabel = intensityLabelFor(shownIntensity);
+  /* (The grain slider moved to TexturePick 2026-07-08 — texture
+     material + strength are one "Paper" concept, and the two used
+     to sit two scroll-screens apart.) */
 
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1194,21 +1247,76 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
         ]} />
       </PickRow>
 
-      {effectiveTexture !== 'none' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 500 }}>{textureLabel}</span>
-            <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontWeight: 600 }}>{intensityLabel}</span>
-          </div>
-          <Slider value={shownIntensity} setValue={previewIntensity} onCommit={commitIntensity} min={0} max={1.5} step={0.05} />
-        </div>
-      )}
-
       {theme.motif !== 'none' && (
         <PickRow label="Decorations">
           <Toggle on={motifsOn} set={setMotifs} />
         </PickRow>
       )}
+    </div>
+  );
+}
+
+/* ─── GrainRow — texture strength, inside the Paper group ─────────
+   Lifted out of FineTune (2026-07-08): material + strength are one
+   concept. Dragging previews imperatively (the texture layers'
+   wrapper opacity scales toward the dragged value) and the manifest
+   commits ONCE on release — one undo entry, one save; per-pixel
+   manifest writes used to wipe the 50-entry undo stack. */
+function GrainRow({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const intensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
+  const textureOverride = (manifest as unknown as { texture?: string }).texture;
+  const effectiveTexture = textureOverride && textureOverride !== '' ? textureOverride : theme.texture;
+
+  const [draftIntensity, setDraftIntensity] = useState<number | null>(null);
+  const shownIntensity = draftIntensity ?? intensity;
+  const previewIntensity = (v: number) => {
+    setDraftIntensity(v);
+    const root = findCanvasRoot();
+    if (!root) return;
+    /* Wrapper opacity can only scale DOWN from the committed
+       strength (opacity clamps at 1) — increases read at commit.
+       The label above the slider tracks the drag either way. */
+    const ratio = intensity > 0 ? Math.min(1, v / intensity) : 0;
+    root.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
+      el.style.opacity = String(ratio);
+    });
+  };
+  const commitIntensity = (v: number) => {
+    setDraftIntensity(null);
+    const root = findCanvasRoot();
+    root?.querySelectorAll<HTMLElement>('.pl8-texture-layer').forEach((el) => {
+      el.style.removeProperty('opacity');
+    });
+    if (v === intensity) return;
+    onChange({ ...(manifest as unknown as Record<string, unknown>), textureIntensity: v } as unknown as StoryManifest);
+    announceDesignChange('grain', intensityLabelFor(v));
+  };
+
+  if (effectiveTexture === 'none') return null;
+
+  const textureLabel = ({
+    linen: 'Linen weave',
+    watercolor: 'Watercolor washes',
+    cotton: 'Cotton tooth',
+    velvet: 'Velvet sheen',
+    paper: 'Paper grain',
+    none: 'Texture',
+    canvas: 'Canvas weave',
+    kraft: 'Kraft paper',
+    vellum: 'Vellum sheet',
+    letterpress: 'Letterpress',
+    newsprint: 'Newsprint',
+    marble: 'Marble vein',
+    gilded: 'Gilded leaf',
+  } as Record<string, string>)[effectiveTexture] ?? 'Paper grain';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 500 }}>{textureLabel}</span>
+        <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontWeight: 600 }}>{intensityLabelFor(shownIntensity)}</span>
+      </div>
+      <Slider value={shownIntensity} setValue={previewIntensity} onCommit={commitIntensity} min={0} max={1.5} step={0.05} />
     </div>
   );
 }
@@ -1729,9 +1837,10 @@ function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: St
           );
         })}
       </div>
-      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-        Strength lives under Fine-tune — slide Grain to 0 to turn any material off.
-      </div>
+      {/* Strength — one Paper group: material chips + the grain
+          slider together (was two scroll-screens apart). Slide to
+          0 to turn any material off. */}
+      <GrainRow theme={theme} manifest={manifest} onChange={onChange} />
     </div>
   );
 }
