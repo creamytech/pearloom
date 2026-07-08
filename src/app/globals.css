@@ -2129,6 +2129,35 @@ body > * { position: relative; z-index: 1; }
     0 1px 1px rgba(255, 248, 230, 0.04);
 }
 
+/* ── Line-screen hatch — pattern-as-state (TASTE-PLAN T.4) ─────
+   A 45° letterpress line-screen in the brand ink: marks a span as
+   STATEFUL (sent, spoken for, done, occupied) the way a press
+   marks a proof — texture, not a flood of color. Composes over
+   the element's own background-color. Two intensities + a gold
+   variant; static (reduced-motion safe) and print-safe. Keep text
+   on .pl-hatch AA — the lines are ≤14% ink. */
+.pl-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--pl-olive) 14%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+}
+.pl-hatch-strong {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--pl-olive) 26%, transparent) 0 1.5px,
+    transparent 1.5px 6px
+  );
+}
+.pl-hatch-gold {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--pl-gold) 30%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+}
+
 /* ── Selection ring — gold thread ───────────────────────────── */
 ::selection {
   background: color-mix(in oklab, var(--pl-gold) 32%, transparent);

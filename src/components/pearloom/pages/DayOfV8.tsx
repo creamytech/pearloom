@@ -349,7 +349,11 @@ function MomentTimeline({
               </div>
               {/* The moment — title + who/where; the live hour lifts
                   into a soft peach panel. */}
-              <div style={{ flex: 1, minWidth: 0, padding: '10px 0 12px', ...(isNow ? { background: 'var(--peach-bg)', borderRadius: 12, padding: '10px 14px', margin: '4px 0' } : {}) }}>
+              <div
+                /* Done moments wear the line-screen (TASTE-PLAN
+                   T.4) — the day prints itself as it happens. */
+                className={isDone ? 'pl-hatch' : undefined}
+                style={{ flex: 1, minWidth: 0, padding: isDone ? '10px 14px 12px' : '10px 0 12px', borderRadius: isDone ? 12 : 0, ...(isNow ? { background: 'var(--peach-bg)', borderRadius: 12, padding: '10px 14px', margin: '4px 0' } : {}) }}>
                 <div style={{ fontSize: 14.5, fontWeight: 600, color: isDone ? 'var(--ink-soft)' : 'var(--ink)' }}>
                   {m.title}
                   {isNow && <span style={{ marginLeft: 8, fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)' }}>NOW</span>}

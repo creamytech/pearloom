@@ -152,6 +152,9 @@ function ItemCard({ item, onEdit, onDelete }: { item: Item; onEdit: () => void; 
   const remaining = Math.max(0, item.quantity - item.quantityClaimed);
   return (
     <div
+      /* Spoken-for tiles wear the line-screen (TASTE-PLAN T.4) —
+         pattern marks the state; color stays calm. */
+      className={remaining === 0 && item.quantityClaimed > 0 ? 'pl-hatch' : undefined}
       style={{
         background: 'var(--card, #FBF7EE)',
         border: '1px solid var(--card-ring, rgba(61,74,31,0.14))',

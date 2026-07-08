@@ -189,7 +189,9 @@ function PhaseRow({
 
   return (
     <div
-      className="pl8-card-lift"
+      /* Sent phases wear the line-screen (TASTE-PLAN T.4) — the
+         press already ran on these. */
+      className={phase.status === 'sent' ? 'pl8-card-lift pl-hatch' : 'pl8-card-lift'}
       style={{
         position: 'relative',
         marginLeft: 12,

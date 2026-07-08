@@ -308,6 +308,10 @@ export function ClaimCard({
 
   return (
     <div
+      /* Thanked rows wear the line-screen (TASTE-PLAN T.4) and
+         sink — settled items read quieter than the still-to-thank
+         ones above them. */
+      className={thankedAt ? 'pl-hatch' : undefined}
       style={{
         padding: '10px 12px',
         borderRadius: 10,
@@ -317,8 +321,6 @@ export function ClaimCard({
         flexDirection: 'column',
         gap: 4,
         fontFamily: 'var(--font-ui)',
-        /* Thanked rows sink — done items read quieter than the
-           still-to-thank ones above them. */
         opacity: thankedAt ? 0.62 : 1,
         transition: 'opacity 200ms ease',
       }}
