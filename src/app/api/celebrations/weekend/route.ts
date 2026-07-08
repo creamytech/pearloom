@@ -11,15 +11,22 @@
 //                      date?: string;     // explicit ISO date (wins)
 //                      daysFromAnchor?: number;    // else offset from the anchor date
 //                      daysFromWedding?: number;   // legacy alias
+//                      mode?: 'site' | 'moment';   // GRAND-PLAN-2 B.1 (default 'site')
 //                    }>,
 //     paletteHex?: string[],
 //     theme?: { background, foreground, accent, accentLight, muted, cardBg },
 //   }
 //
-// Creates one celebration id + a site per requested event, linked
-// via manifest.celebration so they show up as siblings on each other's
-// LinkedEventsStrip. Each site inherits the shared palette + theme but
-// keeps its own occasion-appropriate template.
+// Two tiers (GRAND-PLAN-2 B.1):
+//   - mode 'site' (and always the anchor): a full draft site, linked
+//     via manifest.celebration so siblings show on each other's
+//     LinkedEventsStrip — today's behavior, for events that need
+//     their own guest list and tone.
+//   - mode 'moment': NO site row. The event becomes a day on the
+//     ANCHOR site's own itinerary section (manifest.itinerary.days —
+//     the exact shape ItineraryPanel edits and the renderer reads),
+//     with 'itinerary' merged into the anchor's blockOrder. A welcome
+//     drink no longer costs a domain, a guest list, and a publish.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -29,6 +36,7 @@ import { saveSiteDraft } from '@/lib/db';
 import { applyTemplateToManifest } from '@/lib/templates/apply-template';
 import { getTemplatesForOccasion } from '@/lib/templates/wedding-templates';
 import { weekendArcFor } from '@/lib/event-os/weekend-arcs';
+import { mergeBlockOrder, CORE_BLOCK_ORDER } from '@/lib/event-os/wizard-sections';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -60,7 +68,7 @@ interface WeekendBody {
   /** Legacy alias for anchorDate (pre-generalization clients). */
   weddingDate?: string;
   baseSlug?: string;
-  events?: Array<{ kind: string; date?: string; daysFromAnchor?: number; daysFromWedding?: number; host?: string }>;
+  events?: Array<{ kind: string; date?: string; daysFromAnchor?: number; daysFromWedding?: number; host?: string; mode?: 'site' | 'moment' }>;
   paletteHex?: string[];
   theme?: {
     background?: string;
@@ -117,16 +125,49 @@ export async function POST(req: NextRequest) {
 
   const created: Array<{ slug: string; kind: string; date: string; url: string }> = [];
 
+  /* ── Tier 1 — moments (GRAND-PLAN-2 B.1). No site row: each
+     becomes a day on the ANCHOR site's itinerary. Resolved before
+     the site loop so the anchor's manifest can carry them. The
+     anchor itself (sluffix '') can never be a moment. */
+  const resolveDate = (ev: NonNullable<WeekendBody['events']>[number], def: { offsetDays: number }): string => {
+    const offset = ev.daysFromAnchor ?? ev.daysFromWedding;
+    return ev.date && ISO_DATE.test(ev.date)
+      ? ev.date
+      : addDaysIso(anchorDate, typeof offset === 'number' ? offset : def.offsetDays);
+  };
+  const momentDays: Array<{ id: string; label: string; date: string; slots: Array<{ id: string; title: string; detail?: string }> }> = [];
+  for (const ev of body.events) {
+    if (ev.mode !== 'moment') continue;
+    const def = arc.events.find((e) => e.kind === ev.kind);
+    if (!def || def.sluffix === '') continue; // unknown kind, or the anchor itself
+    momentDays.push({
+      id: def.kind,
+      label: def.label,
+      date: resolveDate(ev, def),
+      slots: [{ id: def.kind, title: def.label, detail: def.description }],
+    });
+  }
+  momentDays.sort((a, b) => a.date.localeCompare(b.date));
+  const hasAnchorSite = body.events.some((ev) => {
+    const def = arc.events.find((e) => e.kind === ev.kind);
+    return def?.sluffix === '' && ev.mode !== 'moment';
+  });
+  if (momentDays.length > 0 && !hasAnchorSite) {
+    return NextResponse.json(
+      { error: 'Moments live on the main event’s schedule — include the main event to add them.' },
+      { status: 400 },
+    );
+  }
+
   for (const ev of body.events) {
     /* Only events that belong to this anchor's arc — the arc defines
-       the slug suffix and keeps kinds honest. */
+       the slug suffix and keeps kinds honest. Moments were consumed
+       above; they never become site rows. */
+    if (ev.mode === 'moment') continue;
     const def = arc.events.find((e) => e.kind === ev.kind);
     if (!def) continue;
     const template = templateIdFor(ev.kind);
-    const offset = ev.daysFromAnchor ?? ev.daysFromWedding;
-    const date = ev.date && ISO_DATE.test(ev.date)
-      ? ev.date
-      : addDaysIso(anchorDate, typeof offset === 'number' ? offset : def.offsetDays);
+    const date = resolveDate(ev, def);
     const slug = def.sluffix ? `${baseSlugRaw}-${def.sluffix}` : baseSlugRaw;
 
     // Seed manifest with shared theme + per-occasion template + the
@@ -159,7 +200,25 @@ export async function POST(req: NextRequest) {
       chapters: [],
     } as unknown as StoryManifest;
 
-    const themed = template ? applyTemplateToManifest(baseManifest, template) : baseManifest;
+    let themed = template ? applyTemplateToManifest(baseManifest, template) : baseManifest;
+
+    /* The anchor site carries the weekend's moments as itinerary
+       days — the exact shape ItineraryPanel edits and the renderer
+       reads (manifest.itinerary.days). 'itinerary' is merged into
+       blockOrder in canonical section order so the section actually
+       renders. Applied AFTER the template so a template blockOrder
+       can't drop it. */
+    if (def.sluffix === '' && momentDays.length > 0) {
+      const loose = themed as StoryManifest & { itinerary?: { days?: unknown[] }; blockOrder?: string[] };
+      themed = {
+        ...loose,
+        itinerary: { days: momentDays },
+        // Union with the core order too — a template without a
+        // blockOrder must not produce ['itinerary'] alone and leave
+        // the core sections' order to the renderer's re-append.
+        blockOrder: mergeBlockOrder(loose.blockOrder, ['itinerary', ...CORE_BLOCK_ORDER]),
+      } as StoryManifest;
+    }
 
     try {
       // Create as a DRAFT (comingSoon) — the host reviews + publishes
@@ -185,5 +244,8 @@ export async function POST(req: NextRequest) {
     celebrationId,
     celebrationName,
     sites: created,
+    /* Tier-1 moments folded into the anchor's schedule — the UI
+       reports them without pretending they're sites. */
+    moments: momentDays.map((m) => ({ kind: m.id, label: m.label, date: m.date })),
   });
 }

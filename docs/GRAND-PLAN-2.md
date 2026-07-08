@@ -576,7 +576,35 @@ policy.
 
 ---
 
-### B.1 — Weekend moments (Tier 1: no new site) · status: not started · P1
+### B.1 — Weekend moments (Tier 1: no new site) · **status: SHIPPED 2026-07-08** · P1
+
+> Shipped: the two-tier weekend. Body events to
+> /api/celebrations/weekend gain `mode: 'site' | 'moment'`
+> (legacy clients without mode keep today's all-sites behavior —
+> pinned by test). Moments NEVER call saveSiteDraft; they become
+> days on the ANCHOR site's `manifest.itinerary.days` (the exact
+> ItineraryPanel shape the renderer reads), chronologically
+> sorted, with 'itinerary' merged into blockOrder via the shared
+> mergeBlockOrder + CORE_BLOCK_ORDER so section order stays
+> canonical even for templates without a blockOrder. Moments
+> without the anchor present → 400 (nowhere to live). The builder
+> UI: per-event "On the main site / Its own site" radio pills
+> (anchor always a site; defaults — engagement, bridal-shower,
+> bachelor/ette, rehearsal-dinner = own site; welcome-party,
+> brunch = moment), the plan board badges rows ON THE MAIN SITE /
+> ITS OWN SITE, the weave button counts "N sites + M moments,"
+> the address explainer stops promising a domain per event, and
+> the success screen names the moments and points to the editor's
+> Itinerary section. 3 new route tests (moments create no rows;
+> anchor carries sorted days + blockOrder; legacy behavior
+> unchanged). Verified live with the authed harness: defaults
+> land exactly as designed (payload: rehearsal-dinner:site,
+> welcome-party:moment, wedding:site, brunch:moment). vitest
+> 1259/1259. Deferred within scope: WelcomeHome's WeekendCard
+> reading moments from the itinerary (the moments live on the
+> SAME selected site, so "Around your day" already shows the day
+> via the site itself; a dedicated moments read is B.2-adjacent
+> polish).
 
 ```
 ## Active focus — B.1 · Weekend moments — a schedule entry, not a site

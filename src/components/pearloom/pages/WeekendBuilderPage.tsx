@@ -33,6 +33,13 @@ import { nameModeFor } from '@/lib/event-os/name-mode';
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
 
+/* Tier 2 — the satellites that genuinely need their OWN guest list
+   and tone (a different crowd than the main day). Everything else
+   defaults to a moment on the main site's schedule. */
+const OWN_SITE_KINDS = new Set([
+  'engagement', 'bridal-shower', 'bachelor-party', 'bachelorette-party', 'rehearsal-dinner',
+]);
+
 /* Deterministic date math — safe in render (argument-built Dates
    only; no Date.now()). */
 function addDaysIso(iso: string, days: number): string {
@@ -72,11 +79,21 @@ export function WeekendBuilderPage() {
   const [chosen, setChosen] = useState<Set<string>>(
     () => new Set(weekendArcFor('wedding').events.filter((e) => e.recommended).map((e) => e.kind)),
   );
+  /* Two tiers (GRAND-PLAN-2 B.1): events with their own guest list
+     default to a full site; small moments (welcome drinks, brunch)
+     default to a slot on the MAIN site's schedule — no new domain,
+     no second guest list. The host can flip either way per event. */
+  const [modes, setModes] = useState<Record<string, 'site' | 'moment'>>({});
+  const defaultModeFor = (kind: string): 'site' | 'moment' =>
+    OWN_SITE_KINDS.has(kind) ? 'site' : 'moment';
+  const modeFor = (e: WeekendEventDef): 'site' | 'moment' =>
+    e.sluffix === '' ? 'site' : (modes[e.kind] ?? defaultModeFor(e.kind));
   /* Per-event date overrides — kind → ISO. Cleared on anchor swap. */
   const [dateOverrides, setDateOverrides] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Array<{ slug: string; kind: string; date: string; url: string }> | null>(null);
+  const [createdMoments, setCreatedMoments] = useState<Array<{ kind: string; label: string; date: string }>>([]);
 
   /* The web address weaves itself from the names until the host
      takes the pen. */
@@ -92,6 +109,7 @@ export function WeekendBuilderPage() {
     setAnchorId(id);
     setChosen(new Set(weekendArcFor(id).events.filter((e) => e.recommended).map((e) => e.kind)));
     setDateOverrides({});
+    setModes({});
     setError(null);
   };
 
@@ -140,11 +158,15 @@ export function WeekendBuilderPage() {
     return groups;
   }, [plan]);
 
+  const anchorChosen = arc.events.some((e) => e.sluffix === '' && chosen.has(e.kind));
+  const momentCount = arc.events.filter((e) => chosen.has(e.kind) && modeFor(e) === 'moment').length;
+  const siteCount = chosen.size - momentCount;
   const missing: string | null =
     !name1.trim() ? (nameSpec.mode === 'couple' ? 'Add your names' : `Add the ${nameSpec.primaryLabel.toLowerCase()}`)
     : !date ? `Pick the ${arc.dateLabel.toLowerCase()}`
     : baseSlug.length < 3 ? 'Give the sites a web address'
     : chosen.size === 0 ? 'Choose at least one event'
+    : momentCount > 0 && !anchorChosen ? 'Include the main event — moments live on its schedule'
     : null;
 
   async function build() {
@@ -155,7 +177,7 @@ export function WeekendBuilderPage() {
     try {
       const events = arc.events
         .filter((e) => chosen.has(e.kind))
-        .map((e) => ({ kind: e.kind, date: eventDate(e) ?? undefined, daysFromAnchor: e.offsetDays }));
+        .map((e) => ({ kind: e.kind, date: eventDate(e) ?? undefined, daysFromAnchor: e.offsetDays, mode: modeFor(e) }));
       const res = await fetch('/api/celebrations/weekend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,8 +193,12 @@ export function WeekendBuilderPage() {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? `Build failed (${res.status})`);
       }
-      const data = (await res.json()) as { sites?: Array<{ slug: string; kind: string; date: string; url: string }> };
+      const data = (await res.json()) as {
+        sites?: Array<{ slug: string; kind: string; date: string; url: string }>;
+        moments?: Array<{ kind: string; label: string; date: string }>;
+      };
       setCreated(data.sites ?? []);
+      setCreatedMoments(data.moments ?? []);
       // Invalidate dashboard cache so My Sites shows the new sites.
       try {
         const { invalidateSitesCache } = await import('@/components/marketing/design/dash/hooks');
@@ -258,6 +284,12 @@ export function WeekendBuilderPage() {
               Each one is a private draft, already linked to the others. Open one to make it yours and publish when it&rsquo;s ready —
               once published, guests on any site see a strip pointing to the rest of the weekend.
             </p>
+            {createdMoments.length > 0 && (
+              <p style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 480, margin: '-6px auto 18px', lineHeight: 1.55 }}>
+                {createdMoments.map((m) => m.label).join(' · ')} {createdMoments.length === 1 ? 'lives' : 'live'} on the main
+                site&rsquo;s schedule — no extra site to manage. Edit them any time from the editor&rsquo;s Itinerary section.
+              </p>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, maxWidth: 720, margin: '0 auto' }}>
               {created.map((s) => (
                 <Link
@@ -365,14 +397,14 @@ export function WeekendBuilderPage() {
                     </button>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>
-                    Every event gets its own address on top of this one — {baseSlug || 'your-names'}-welcome, {baseSlug || 'your-names'}-brunch…
+                    Events with their own site get their own address on top of this one — {baseSlug || 'your-names'}-bach, {baseSlug || 'your-names'}-rehearsal… Moments share the main address.
                   </div>
                 </div>
               </Card>
 
               {/* ── Step 3 · the events ──────────────────────── */}
               <Card>
-                <StepEyebrow n={3} label="Choose the events" hint="Tap to include one. Each becomes its own site with its own guest list." />
+                <StepEyebrow n={3} label="Choose the events" hint="Tap to include one. Small moments join the main site’s schedule; trips and dinners can carry their own site and guest list." />
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 10 }}>
                   {arc.events.map((e) => {
                     const on = chosen.has(e.kind);
@@ -431,6 +463,45 @@ export function WeekendBuilderPage() {
                             )}
                           </div>
                         )}
+                        {/* Two tiers (B.1): a moment lives on the main
+                            site's schedule; a site gets its own guest
+                            list + address. Anchor is always a site. */}
+                        {on && !main && (
+                          <div
+                            role="radiogroup"
+                            aria-label={`Where ${e.label} lives`}
+                            style={{ display: 'flex', gap: 4, padding: '0 14px 12px' }}
+                          >
+                            {([
+                              ['moment', 'On the main site'],
+                              ['site', 'Its own site'],
+                            ] as const).map(([m, label]) => {
+                              const active = modeFor(e) === m;
+                              return (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={active}
+                                  onClick={() => setModes((prev) => ({ ...prev, [e.kind]: m }))}
+                                  style={{
+                                    padding: '4px 10px',
+                                    borderRadius: 999,
+                                    fontSize: 10.5,
+                                    fontWeight: 600,
+                                    fontFamily: 'inherit',
+                                    cursor: 'pointer',
+                                    border: active ? '1px solid var(--sage-deep)' : '1px solid var(--line)',
+                                    background: active ? 'var(--sage-deep)' : 'var(--card)',
+                                    color: active ? '#F5EFE2' : 'var(--ink-soft)',
+                                  }}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -457,6 +528,7 @@ export function WeekendBuilderPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {g.items.map(({ def, iso }) => {
                             const main = def.sluffix === '';
+                            const moment = modeFor(def) === 'moment';
                             return (
                               <div
                                 key={def.kind}
@@ -464,12 +536,14 @@ export function WeekendBuilderPage() {
                                   padding: '11px 12px',
                                   borderRadius: 12,
                                   background: 'var(--cream-2)',
-                                  border: main ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid var(--line-soft)',
+                                  border: main ? '1px solid var(--pl-gold, #C19A4B)' : moment ? '1px dashed var(--line)' : '1px solid var(--line-soft)',
                                 }}
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-                                  <span style={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, background: main ? 'var(--pl-gold, #C19A4B)' : 'var(--sage-deep)' }} />
-                                  <span style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>DRAFT</span>
+                                  <span style={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, background: main ? 'var(--pl-gold, #C19A4B)' : moment ? 'var(--lavender-ink, #6B5A8C)' : 'var(--sage-deep)' }} />
+                                  <span style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>
+                                    {main ? 'DRAFT' : moment ? 'ON THE MAIN SITE' : 'ITS OWN SITE'}
+                                  </span>
                                   {main && <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.06em', color: 'var(--pl-gold, #C19A4B)' }}>★ THE DAY</span>}
                                 </div>
                                 <div style={{ fontFamily: DISPLAY, fontSize: 14.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>{def.label}</div>
@@ -489,7 +563,11 @@ export function WeekendBuilderPage() {
                   onClick={build}
                   style={{ width: '100%', justifyContent: 'center', fontFamily: 'inherit' }}
                 >
-                  {busy ? 'Weaving…' : `Weave ${chosen.size} linked ${chosen.size === 1 ? 'site' : 'sites'}`} <Sparkle size={11} />
+                  {busy
+                    ? 'Weaving…'
+                    : momentCount > 0
+                      ? `Weave ${siteCount} ${siteCount === 1 ? 'site' : 'sites'} + ${momentCount} ${momentCount === 1 ? 'moment' : 'moments'}`
+                      : `Weave ${chosen.size} linked ${chosen.size === 1 ? 'site' : 'sites'}`} <Sparkle size={11} />
                 </button>
                 <div style={{ fontSize: 11, color: error ? 'var(--pl-plum, #7A2D2D)' : 'var(--ink-muted)', marginTop: 8, lineHeight: 1.5 }}>
                   {error ?? missing ?? 'All drafts stay private until you publish each one.'}
