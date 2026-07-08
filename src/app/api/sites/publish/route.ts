@@ -147,6 +147,75 @@ export async function POST(req: NextRequest) {
     );
     const finalUrl = buildSiteUrl(cleanSubdomain, '', origin, resolvedOccasion);
 
+    /* "It's pressed." — the FIRST publish earns a confirmation
+       email (email audit 2026-07-08: the moment previously passed
+       in silence). First-ness is judged by published_at being
+       unset before this request; re-publishes stay quiet. Themed
+       through the site's own suite; fire-and-forget. */
+    void (async () => {
+      try {
+        const resendKey = process.env.RESEND_API_KEY;
+        if (!resendKey) return;
+        const supabaseUrl2 = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey2 = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl2 || !serviceKey2) return;
+        const sb2 = createClient(supabaseUrl2, serviceKey2);
+        const { data: row } = await sb2
+          .from('sites')
+          .select('published_at, created_at')
+          .eq('subdomain', cleanSubdomain)
+          .maybeSingle();
+        const publishedAt = (row as { published_at?: string | null } | null)?.published_at;
+        const createdAt = (row as { created_at?: string | null } | null)?.created_at;
+        // First publish: the stamp was just written (within this
+        // minute) or never diverged from creation. A prior stamp
+        // older than 2 minutes = a re-publish; stay quiet.
+        if (publishedAt && Date.now() - new Date(publishedAt).getTime() > 2 * 60 * 1000) return;
+        void createdAt;
+        const displayNames = (names ?? []).filter(Boolean).join(' & ') || cleanSubdomain;
+        const { emailLayout, button, emailThemeFromSuite } = await import('@/lib/email-sequences');
+        const { suiteThemeFromManifest } = await import('@/lib/suite/theme');
+        let theme;
+        try {
+          theme = emailThemeFromSuite(suiteThemeFromManifest(persistManifest, [names?.[0] ?? '', names?.[1] ?? '']));
+        } catch { /* brand default */ }
+        const escT = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const html = emailLayout(`
+          <tr><td style="padding:44px 36px 0;text-align:center">
+            <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;opacity:0.75">Hot off the press</p>
+            <h1 style="font-size:32px;font-weight:400;font-style:italic;margin:0 0 10px;line-height:1.2">It&rsquo;s pressed.</h1>
+            <p style="font-size:15px;line-height:1.7;margin:0 0 6px">
+              ${escT(displayNames)} is live. Every guest link now opens the
+              real thing — sealed envelope, your look, your words.
+            </p>
+            <p style="font-size:13px;margin:0;opacity:0.8">${escT(finalUrl)}</p>
+          </td></tr>
+          <tr><td style="padding:22px 36px 12px;text-align:center">
+            ${button('Open the site', finalUrl, theme)}
+          </td></tr>
+          <tr><td style="padding:0 36px 40px;text-align:center">
+            <p style="font-size:13.5px;margin:0;opacity:0.8">
+              Next thread: <a href="${origin}/dashboard/rsvp" style="text-decoration:underline;color:inherit">invite your guests</a> —
+              each one gets an envelope with their name on it.
+            </p>
+          </td></tr>
+        `, theme);
+        const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [session?.user?.email ?? ''].filter(Boolean),
+            subject: `It’s pressed — ${displayNames} is live`,
+            html,
+          }),
+        }).catch((e) => console.warn('[publish] confirmation email failed (non-fatal):', e));
+      } catch (err) {
+        console.warn('[publish] confirmation email failed (non-fatal):', err);
+      }
+    })();
+
     // Generate a preview token and store it alongside the published site
     let previewToken: string | null = null;
     try {

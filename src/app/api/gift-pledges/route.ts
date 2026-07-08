@@ -258,7 +258,7 @@ export async function POST(req: NextRequest) {
 
   const { data: siteRow } = await supabase
     .from('sites')
-    .select('id')
+    .select('id, creator_email, site_config')
     .eq('subdomain', subdomain)
     .maybeSingle();
   const siteUuid = (siteRow as { id?: string } | null)?.id;
@@ -275,6 +275,32 @@ export async function POST(req: NextRequest) {
     console.error('[gift-pledges] insert failed:', error);
     return NextResponse.json({ ok: false, error: 'Could not save — try again.' }, { status: 500 });
   }
+
+  /* The gift thread reaches the host (email audit 2026-07-08) —
+     the honor ledger was silent before. Fire-and-forget. */
+  void (async () => {
+    try {
+      const cfg = (siteRow as { site_config?: { creator_email?: string; names?: string[] } } | null)?.site_config;
+      const ownerEmail = String((siteRow as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+      if (!ownerEmail) return;
+      const names = (cfg?.names ?? []).filter(Boolean);
+      const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : subdomain;
+      const first = guestName.split(/\s+/)[0] || 'A guest';
+      const { notifyHost } = await import('@/lib/notifications/notify');
+      await notifyHost(supabase, {
+        siteId: siteUuid,
+        siteLabel,
+        ownerEmail,
+        category: 'gifts',
+        title: `${first} added to the gift thread`,
+        body: note ?? (amountCents ? 'They shared what they gave.' : undefined),
+        href: '/dashboard/registry',
+        dedupeKey: `pledge:${siteUuid}:${guestName}:${Date.now()}`,
+      });
+    } catch (err) {
+      console.warn('[gift-pledges] notify failed (non-fatal):', err);
+    }
+  })();
 
   return NextResponse.json({ ok: true, stored: true });
 }

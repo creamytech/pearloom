@@ -286,6 +286,63 @@ async function handleCheckoutCompleted(supabase: Sb, session: Stripe.Checkout.Se
         updated_at: new Date().toISOString(),
       })
       .eq('id', meta.registryItemId);
+
+    /* The paid gift reaches people too (email audit 2026-07-08) —
+       previously only link-out claims notified anyone. Fire-and-
+       forget; webhook success never waits on mail. */
+    void (async () => {
+      try {
+        const { data: siteRow } = await supabase
+          .from('sites')
+          .select('id, subdomain, occasion, creator_email, site_config')
+          .eq('id', siteId)
+          .maybeSingle();
+        if (!siteRow) return;
+        const cfg = (siteRow as { site_config?: { creator_email?: string; names?: string[] } }).site_config;
+        const ownerEmail = String((siteRow as { creator_email?: string }).creator_email ?? cfg?.creator_email ?? '');
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((siteRow as { subdomain?: string }).subdomain ?? 'your site');
+        const who = (payerName || '').split(/\s+/)[0] || 'A guest';
+        if (ownerEmail) {
+          const { notifyHost } = await import('@/lib/notifications/notify');
+          await notifyHost(supabase, {
+            siteId: (siteRow as { id: string }).id,
+            siteLabel,
+            ownerEmail,
+            category: 'gifts',
+            title: `${who} gave a registry gift`,
+            body: meta.message ? String(meta.message).slice(0, 200) : undefined,
+            href: '/dashboard/registry',
+            dedupeKey: `paid:${session.id}`,
+          });
+        }
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey && payerEmail) {
+          const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+          const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+          const { buildSiteUrl } = await import('@/lib/site-urls');
+          const siteUrl = buildSiteUrl(
+            (siteRow as { subdomain?: string }).subdomain ?? '',
+            '', baseUrl,
+            (siteRow as { occasion?: string }).occasion,
+          );
+          const { buildRegistryClaimThankYouEmail } = await import('@/lib/email/brand-emails');
+          const { subject, html } = buildRegistryClaimThankYouEmail({
+            guestName: payerName || null,
+            coupleDisplay: siteLabel,
+            itemName: null,
+            siteUrl,
+          });
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: fromEmail, to: [payerEmail], subject, html }),
+          }).catch((e) => console.warn('[stripe/webhook] thank-you email failed (non-fatal):', e));
+        }
+      } catch (err) {
+        console.warn('[stripe/webhook] gift notify failed (non-fatal):', err);
+      }
+    })();
   }
 }
 

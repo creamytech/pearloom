@@ -186,6 +186,69 @@ export async function POST(req: NextRequest) {
       console.error('[messages/host] insert failed:', error);
       return NextResponse.json({ error: 'Could not send — try again?' }, { status: 500 });
     }
+
+    /* A direct note reaches the guest's inbox (email audit
+       2026-07-08) — before this, a host reply sat unseen until the
+       guest happened to reopen their passport. Fire-and-forget;
+       capped per guest so a rapid back-and-forth doesn't stack
+       emails; suppression honored. Party-thread posts stay on-site
+       (broadcast email is its own opt-in path). */
+    if (thread === 'dm' && parsed.guestId) {
+      const guestId = parsed.guestId;
+      void (async () => {
+        try {
+          const resendKey = process.env.RESEND_API_KEY;
+          if (!resendKey) return;
+          const cap = checkRateLimit(`dm-email:${guestId}`, { max: 1, windowMs: 10 * 60 * 1000 });
+          if (!cap.allowed) return;
+          const { data: guest } = await supabase
+            .from('guests')
+            .select('email, name, passport_token, guest_token')
+            .eq('id', guestId)
+            .maybeSingle();
+          const to = String((guest as { email?: string } | null)?.email ?? '').trim();
+          if (!to) return;
+          const { isSuppressed } = await import('@/lib/email/suppression');
+          if (await isSuppressed(supabase, to, site.id)) return;
+          const token = (guest as { passport_token?: string; guest_token?: string } | null)?.passport_token
+            ?? (guest as { guest_token?: string } | null)?.guest_token;
+          if (!token) return; // nowhere useful to land them
+          const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+          const readUrl = `${baseUrl}/g/${token}`;
+          const guestFirst = String((guest as { name?: string } | null)?.name ?? '').trim().split(/\s+/)[0];
+          const { emailLayout, button } = await import('@/lib/email-sequences');
+          const excerpt = body.length > 240 ? `${body.slice(0, 240)}…` : body;
+          const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          const html = emailLayout(`
+            <tr><td style="padding:40px 36px 0;text-align:center">
+              <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 14px;opacity:0.75">A note for you</p>
+              <h1 style="font-size:28px;font-weight:400;font-style:italic;margin:0 0 18px;line-height:1.2">${esc(hostName)}</h1>
+              ${guestFirst ? `<p style="font-size:14.5px;margin:0 0 10px">Dear <em>${esc(guestFirst)}</em>,</p>` : ''}
+              <p style="font-size:15px;line-height:1.7;margin:0 0 8px;font-style:italic">&ldquo;${esc(excerpt)}&rdquo;</p>
+            </td></tr>
+            <tr><td style="padding:16px 36px 40px;text-align:center">
+              ${button('Read & reply', readUrl)}
+            </td></tr>
+          `);
+          const { listUnsubHeaders, htmlToText } = await import('@/lib/email/deliverability');
+          const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [to],
+              subject: `A note from ${hostName}`,
+              html,
+              text: htmlToText(html),
+              headers: listUnsubHeaders({ email: to, siteId: site.id, channel: 'dm' }),
+            }),
+          }).catch((e) => console.warn('[messages/host] guest email failed (non-fatal):', e));
+        } catch (err) {
+          console.warn('[messages/host] guest notify failed (non-fatal):', err);
+        }
+      })();
+    }
     return NextResponse.json({ ok: true, message: shape(data as MessageRow) });
   } catch (err) {
     console.error('[messages/host] POST failed:', err);

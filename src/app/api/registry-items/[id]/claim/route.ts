@@ -199,6 +199,63 @@ export async function POST(
         console.warn('[api/registry-items/claim] reserve ledger insert failed:', claimError.message);
       }
 
+      /* The gift moment reaches people (email audit 2026-07-08):
+         the host hears a gift was spoken for; the giver gets a
+         thank-you when they left an email. Fire-and-forget — the
+         reservation never waits on mail. */
+      void (async () => {
+        try {
+          const { data: siteRow } = await supabase
+            .from('sites')
+            .select('id, subdomain, occasion, creator_email, site_config')
+            .eq('id', item.site_id as string)
+            .maybeSingle();
+          const cfg = (siteRow as { site_config?: { creator_email?: string; names?: string[] } } | null)?.site_config;
+          const ownerEmail = String((siteRow as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+          const names = (cfg?.names ?? []).filter(Boolean);
+          const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((siteRow as { subdomain?: string } | null)?.subdomain ?? 'your site');
+          const who = trimmedName.split(/\s+/)[0] || 'A guest';
+          if (ownerEmail && siteRow) {
+            const { notifyHost } = await import('@/lib/notifications/notify');
+            await notifyHost(supabase, {
+              siteId: (siteRow as { id: string }).id,
+              siteLabel,
+              ownerEmail,
+              category: 'gifts',
+              title: `${who} reserved ${String(item.name ?? 'a registry gift')}`,
+              body: trimmedNote ?? undefined,
+              href: '/dashboard/registry',
+              dedupeKey: `reserve:${item.id}:${nowIso}`,
+            });
+          }
+          const resendKey = process.env.RESEND_API_KEY;
+          if (resendKey && trimmedEmail && siteRow) {
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+            const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+            const { buildSiteUrl } = await import('@/lib/site-urls');
+            const siteUrl = buildSiteUrl(
+              (siteRow as { subdomain?: string }).subdomain ?? '',
+              '', baseUrl,
+              (siteRow as { occasion?: string }).occasion,
+            );
+            const { buildRegistryClaimThankYouEmail } = await import('@/lib/email/brand-emails');
+            const { subject, html } = buildRegistryClaimThankYouEmail({
+              guestName: trimmedName,
+              coupleDisplay: siteLabel,
+              itemName: String(item.name ?? '') || null,
+              siteUrl,
+            });
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ from: fromEmail, to: [trimmedEmail], subject, html }),
+            }).catch((e) => console.warn('[registry-items/claim] thank-you email failed (non-fatal):', e));
+          }
+        } catch (err) {
+          console.warn('[registry-items/claim] notify failed (non-fatal):', err);
+        }
+      })();
+
       return NextResponse.json({
         reserved: true,
         buyUrl: (item.item_url as string) || null,
