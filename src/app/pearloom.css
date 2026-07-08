@@ -7377,6 +7377,23 @@ html { scroll-behavior: smooth; }
   outline-offset: 2px;
 }
 
+/* The swatch "inks in" (RADICAL §C): at rest each pack's live
+   preview sits slightly un-inked — a sample book of untouched
+   stock — and handling the card (hover/focus) pulls it to full
+   saturation. Filter only exists during the interaction window;
+   reduced motion gets the swap with no transition. */
+.pl-store-swatch {
+  filter: saturate(0.62) contrast(0.985);
+  transition: filter 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl-store-card:hover .pl-store-swatch,
+.pl-store-card:focus-visible .pl-store-swatch {
+  filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-store-swatch { transition: none; }
+}
+
 .pl-store-card-hover-veil {
   position: absolute;
   inset: 0;

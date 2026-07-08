@@ -58,3 +58,25 @@ export const DEBOSS_SEAL =
 export function letterpressShadow(paper: string, ink: string): string {
   return `0 1px 1px color-mix(in oklab, ${paper} 82%, #fff), 0 -1px 1px color-mix(in oklab, ${ink} 22%, transparent)`;
 }
+
+/** Foil-stamped TEXT — the FOIL_STOPS as gradient-clipped type.
+ *  Spread onto a display-type element's style. */
+export function foilTextStyle(): {
+  background: string;
+  WebkitBackgroundClip: 'text';
+  backgroundClip: 'text';
+  color: 'transparent';
+} {
+  const stops = FOIL_STOPS.map((s) => `${s.color} ${Number(s.offset) * 100}%`).join(', ');
+  return {
+    background: `linear-gradient(100deg, ${stops})`,
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    color: 'transparent',
+  };
+}
+
+/** A whisper of laid-paper grain (horizontal ink lines at ~3%).
+ *  Use as a backgroundImage over any paper fill. */
+export const PAPER_GRAIN =
+  'repeating-linear-gradient(0deg, rgba(31, 36, 24, 0.03) 0 1px, transparent 1px 3px)';

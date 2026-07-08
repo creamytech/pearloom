@@ -37,13 +37,16 @@
 >   progress thread weaves beneath it as stages complete.
 >   (Verified by construction — primitives visually proven on two other
 >   surfaces; eyeball the full moment on the next real wizard run.)
+> - §C store swatch treatment — **SHIPPED**: packs are mounted samples
+>   (foil-stamped names via foilTextStyle, a deckled tear between
+>   swatch and mount, laid-paper grain, previews rest un-inked and ink
+>   in on hover/focus). The full drawer IA (leafing, drawer filtering)
+>   remains a named rebuild if ever wanted.
 > - Remaining, each a real session of its own: §D wizard INVERSION
 >   (site-as-stage, controls-as-tray — an 8-step WizardV8 refactor),
->   §D editor chrome recession (riskiest; last), §C store swatch drawer
->   (fights the existing .pl-store-card system — rebuild, not restyle),
->   §B kinetic scroll type, and the flagged bible-bending stretches
->   (workbench ground, leafed reading mode, wizard/editor merge — need
->   owner sign-off).
+>   §D editor chrome recession (riskiest; last), §B kinetic scroll
+>   type, and the flagged bible-bending stretches (workbench ground,
+>   leafed reading mode, wizard/editor merge — need owner sign-off).
 
 ---
 

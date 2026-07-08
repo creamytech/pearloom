@@ -36,6 +36,7 @@ import type { Pack } from '@/lib/theme-store/packs';
 import { Icon } from '../motifs';
 import { PackPreview } from './PackPreview';
 import { collectionName, priceLabel, tierLabel } from './utils';
+import { foilTextStyle, PAPER_GRAIN } from '@/components/brand/pressed';
 
 interface PackCardProps {
   pack: Pack;
@@ -142,8 +143,10 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
         transition: 'transform 220ms cubic-bezier(0.22,1,0.36,1), box-shadow 220ms ease',
       }}
     >
-      {/* Live themed preview */}
-      <div style={{ position: 'relative' }}>
+      {/* Live themed preview — a SWATCH: rests slightly un-inked and
+          "inks in" to full saturation when the card is handled
+          (.pl-store-swatch rules in pearloom.css). */}
+      <div className="pl-store-swatch" style={{ position: 'relative' }}>
         <PackPreview pack={pack} nameIdx={idx} />
 
         {/* Badge cluster top-left */}
@@ -189,14 +192,30 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
         </div>
       </div>
 
-      {/* Card body */}
+      {/* The deckle — the mount's paper TEARS over the swatch's
+          bottom edge, so the card reads as a mounted sample, not a
+          web thumbnail. Irregular by hand; stretches to any width. */}
+      <svg
+        aria-hidden
+        viewBox="0 0 320 7"
+        preserveAspectRatio="none"
+        style={{ display: 'block', width: '100%', height: 7, marginTop: -7, position: 'relative', zIndex: 1 }}
+      >
+        <path
+          d="M0 7 L0 3.4 L14 4.8 L27 1.9 L43 4.2 L58 2.6 L74 5.1 L91 2.2 L108 4.6 L125 1.7 L142 4 L160 2.8 L177 5 L194 2 L211 4.4 L228 1.8 L246 4.7 L263 2.4 L281 4.9 L299 2.1 L312 4.3 L320 3 L320 7 Z"
+          fill="var(--card, #FBF7EE)"
+        />
+      </svg>
+
+      {/* Card body — the mount, on laid paper. */}
       <div
         style={{
-          padding: '13px 15px 15px',
+          padding: '9px 15px 15px',
           display: 'flex',
           flexDirection: 'column',
           gap: 9,
           flex: 1,
+          backgroundImage: PAPER_GRAIN,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -206,8 +225,9 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
                 fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
                 fontSize: 17,
                 fontWeight: 600,
-                color: 'var(--ink, #0E0D0B)',
                 lineHeight: 1.1,
+                /* Foil-stamped name — the swatch card's one flourish. */
+                ...foilTextStyle(),
               }}
             >
               {pack.name}
