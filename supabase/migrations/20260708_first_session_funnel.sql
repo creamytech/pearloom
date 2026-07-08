@@ -8,9 +8,10 @@
 -- already deny-anon / service-role-only; views inherit access
 -- through the querying role).
 --
--- APPLY NOTE: authored while the Supabase MCP connection was
--- unauthenticated — apply to prod (vpwnpxowqflajvqpgvyb) via MCP
--- and record in _pearloom_migrations when the connection is back.
+-- APPLIED to prod (vpwnpxowqflajvqpgvyb) via MCP 2026-07-08 and
+-- recorded in _pearloom_migrations. See the companion
+-- 20260708_funnel_views_invoker.sql — the advisor flagged these
+-- as SECURITY DEFINER; security_invoker + revokes fix that.
 -- ─────────────────────────────────────────────────────────────
 
 -- Daily funnel: how many distinct actors hit each step. Client
