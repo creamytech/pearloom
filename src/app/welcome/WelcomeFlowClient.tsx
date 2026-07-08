@@ -73,7 +73,7 @@ const INTENTS: Array<{ id: string; label: string; sub: string }> = [
   { id: 'birthday',   label: 'A birthday',       sub: 'Milestones, sweet sixteens' },
   { id: 'reunion',    label: 'A reunion',        sub: 'Family, class, old friends' },
   { id: 'memorial',   label: 'A life to honor',  sub: 'Memorials, celebrations of life' },
-  { id: 'exploring',  label: 'Just looking',     sub: 'Wander the loom first' },
+  { id: 'exploring',  label: 'Just looking',     sub: 'Just browse for now' },
 ];
 
 /* The miniature pressing per intent — eyebrow / italic pre-line /
@@ -638,7 +638,7 @@ export function WelcomeFlowClient({
 
             {step === 'occasion' && (
               <>
-                <h2 style={h2Style}>What brings you to the loom?</h2>
+                <h2 style={h2Style}>What are you planning?</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
                   Pear sets the table differently for each — watch it update.
                 </p>

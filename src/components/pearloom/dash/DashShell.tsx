@@ -55,7 +55,7 @@ export const DASH_NAV_GROUPS: DashNavGroup[] = [
   },
   {
     id: 'loom',
-    label: 'Your loom',
+    label: 'Your events',
     items: [
       { id: 'site',    label: 'My sites', icon: 'layout',   href: '/dashboard/event' },
       { id: 'weekend', label: 'Weekend',  icon: 'calendar', href: '/dashboard/weekend' },

@@ -547,7 +547,7 @@ export function EventIndexPage() {
   return (
     <DashLayout
       active="sites"
-      eyebrow={pickMode ? 'Pick a site' : 'Your loom'}
+      eyebrow={pickMode ? 'Pick a site' : 'Your sites'}
       title={pickMode ? 'Pick a site' : 'My sites'}
       subtitle={pickMode
         ? 'Choose which celebration this connects to.'

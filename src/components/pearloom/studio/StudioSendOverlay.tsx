@@ -323,7 +323,7 @@ export function StudioSendOverlay({
               "Tomorrow at 9 AM" / "Custom" buttons and the
               "staggers by timezone" promise are gone until they
               are. One honest option. */}
-          <SendBlock title="Schedule" sub="Ships in the next few minutes — scheduled sends are on the loom">
+          <SendBlock title="Schedule" sub="Ships in the next few minutes — scheduled sends are coming soon">
             <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
               {[
                 { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },

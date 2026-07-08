@@ -20,7 +20,7 @@ import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
 
 const SECTIONS: Array<{ k: Section; l: string }> = [
-  { k: 'profile', l: 'You, in the loom' },
+  { k: 'profile', l: 'Your account' },
   { k: 'pear', l: "Pear's voice" },
   { k: 'domain', l: 'Your web address' },
   { k: 'privacy', l: 'Who can see what' },
@@ -136,7 +136,7 @@ export function DashSettings() {
     {
       g: 'Account',
       items: [
-        { k: 'profile', label: 'You, in the loom', icon: 'user', sub: session?.user?.email ?? fullName },
+        { k: 'profile', label: 'Your account', icon: 'user', sub: session?.user?.email ?? fullName },
         { k: 'pear', label: "Pear's voice", icon: 'sparkles', sub: `${voiceLabel}${prefs.quiet_hours ? ' · quiet hours on' : ''}` },
       ],
     },

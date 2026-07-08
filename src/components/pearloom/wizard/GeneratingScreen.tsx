@@ -271,7 +271,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
             >
               {photoCount > 0
                 ? `${photoCount} photo${photoCount === 1 ? '' : 's'} placed · about 10s`
-                : 'Preparing the loom · about 10s'}
+                : 'Setting things up · about 10s'}
             </div>
           </Reveal>
         </div>

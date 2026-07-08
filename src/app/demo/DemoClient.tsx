@@ -132,7 +132,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open the loom — try motifs, patterns and textures on this site"
+        aria-label="Try the editor — restyle this site with your own colors and fonts"
         style={{
           position: 'fixed',
           left: 'clamp(16px, 3vw, 28px)',
@@ -152,7 +152,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
       >
         <span aria-hidden style={{ color: 'var(--pl-gold, #B8935A)', fontSize: 13 }}>✦</span>
         <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--pl-ink, #0E0D0B)' }}>
-          Try the loom
+          Try the editor
         </span>
         <span
           style={{
@@ -171,7 +171,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
 
   return (
     <aside
-      aria-label="Try the loom — restyle this demo site live"
+      aria-label="Try the editor — restyle this demo site live"
       style={{
         position: 'fixed',
         left: 'clamp(12px, 3vw, 28px)',
@@ -201,11 +201,11 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
             color: 'var(--pl-ink-soft, #3A332C)',
           }}
         >
-          Try the loom
+          Try the editor
         </span>
         <button
           type="button"
-          aria-label="Close the loom panel"
+          aria-label="Close the panel"
           onClick={() => setOpen(false)}
           style={{
             marginLeft: 'auto',
