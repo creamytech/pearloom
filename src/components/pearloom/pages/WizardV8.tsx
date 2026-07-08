@@ -4306,20 +4306,16 @@ export function WizardV8() {
                           }}
                         >
                           {on && (
+                            /* Flat check — a printed mark, not a bauble.
+                               The olive plate is the selected state; this
+                               just confirms it. */
                             <span
                               aria-hidden
                               className="pl8-chip-pop"
-                              style={{
-                                position: 'absolute',
-                                top: 10,
-                                right: 10,
-                                width: 14,
-                                height: 14,
-                                borderRadius: '50%',
-                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
-                                boxShadow: '0 1px 3px rgba(120,90,20,0.35)',
-                              }}
-                            />
+                              style={{ position: 'absolute', top: 9, right: 10, display: 'grid', placeItems: 'center' }}
+                            >
+                              <Icon name="check" size={13} color="var(--pl-cream, #FBF7EE)" strokeWidth={2.5} />
+                            </span>
                           )}
                           <span style={{ ...face, fontSize: specimenSize, lineHeight: 1.08 }}>{v.label}</span>
                           <span
@@ -4593,21 +4589,23 @@ export function WizardV8() {
                           }}
                         >
                           {on && (
+                            /* Flat pressed seal — the palette's own ink,
+                               its own paper for the check. No gloss. */
                             <div
                               className="pl8-chip-pop"
                               style={{
                                 position: 'absolute',
                                 top: 10,
                                 right: 10,
-                                width: 22,
-                                height: 22,
+                                width: 20,
+                                height: 20,
                                 borderRadius: '50%',
-                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
+                                background: roles.ink,
                                 display: 'grid',
                                 placeItems: 'center',
                               }}
                             >
-                              <Icon name="check" size={11} color="#3A2E14" strokeWidth={3} />
+                              <Icon name="check" size={11} color={roles.paper} strokeWidth={3} />
                             </div>
                           )}
                           <div
@@ -4690,21 +4688,22 @@ export function WizardV8() {
                             }}
                           >
                             {on && (
+                              /* Flat pressed seal in the palette's own ink. */
                               <div
                                 className="pl8-chip-pop"
                                 style={{
                                   position: 'absolute',
                                   top: 10,
                                   right: 10,
-                                  width: 22,
-                                  height: 22,
+                                  width: 20,
+                                  height: 20,
                                   borderRadius: '50%',
-                                  background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
+                                  background: roles.ink,
                                   display: 'grid',
                                   placeItems: 'center',
                                 }}
                               >
-                                <Icon name="check" size={11} color="#3A2E14" strokeWidth={3} />
+                                <Icon name="check" size={11} color={roles.paper} strokeWidth={3} />
                               </div>
                             )}
                             <div
@@ -4853,19 +4852,23 @@ export function WizardV8() {
                             </span>
                           </span>
                           {on && (
+                            /* Flat pressed seal in the palette's own ink. */
                             <span
                               aria-hidden
                               className="pl8-chip-pop"
                               style={{
                                 marginLeft: 'auto',
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 borderRadius: '50%',
-                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
-                                boxShadow: '0 1px 3px rgba(120,90,20,0.35)',
+                                background: roles.ink,
+                                display: 'grid',
+                                placeItems: 'center',
                                 flexShrink: 0,
                               }}
-                            />
+                            >
+                              <Icon name="check" size={10} color={roles.paper} strokeWidth={3} />
+                            </span>
                           )}
                         </button>
                       );

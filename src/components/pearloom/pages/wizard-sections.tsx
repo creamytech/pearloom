@@ -216,26 +216,37 @@ function SectionCard({
             {pinned ? 'Always on' : active ? 'On your site' : 'Set aside'}
           </div>
         </div>
-        {/* The pearl is the on/off atom (BRAND §3). */}
+        {/* The on/off atom — a flat pressed seal, not a bauble:
+            olive disc + cream check when on, hollow hairline when
+            set aside; pinned wears a quiet cream dot instead. */}
         <span
           aria-hidden
           style={{
-            width: 26,
-            height: 26,
+            width: 24,
+            height: 24,
             borderRadius: '50%',
             display: 'grid',
             placeItems: 'center',
             flexShrink: 0,
             border: active ? 'none' : '1.5px solid var(--line)',
-            background: active
-              ? 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)'
-              : 'transparent',
-            boxShadow: active ? '0 1px 3px rgba(120,90,20,0.3)' : 'none',
+            background: active ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
+            transition: 'background 160ms ease, border-color 160ms ease',
           }}
         >
-          {pinned && (
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--pl-cream, #FDFAF0)' }} />
-          )}
+          {pinned ? (
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pl-cream, #FDFAF0)' }} />
+          ) : active ? (
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+              <path
+                d="M2.6 6.4l2.3 2.3 4.5-4.9"
+                fill="none"
+                stroke="var(--pl-cream, #FDFAF0)"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : null}
         </span>
       </button>
 
