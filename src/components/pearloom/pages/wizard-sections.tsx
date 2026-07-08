@@ -582,7 +582,7 @@ export function WizardSectionChooser({
         <Sparkle size={11} color="var(--gold)" /> The table of contents
       </div>
 
-      <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+      <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03 }}>
         What should your site{' '}
         <span className="display-italic pl-letterpress" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>
           hold?

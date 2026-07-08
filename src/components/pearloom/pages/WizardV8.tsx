@@ -14,6 +14,8 @@ import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Pearl } from '@/components/brand/Pearl';
 import { letterpressShadow } from '@/components/brand/pressed';
+import { useSession } from 'next-auth/react';
+import { applyVibeLook, vibeLookSummary } from '@/lib/site-look/vibe-look';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -2016,19 +2018,44 @@ function contrastRatio(a: number, b: number): number {
 }
 
 // Inline tips per step — replaces the floating PearHelper sidebar.
-// Each step can opt in by reading STEP_TIPS[step] and rendering it
-// as a single low-key line under the question heading.
-const STEP_TIPS: Record<StepKey, string> = {
-  Occasion: 'Not sure? Pick the closest — we can change it any time.',
-  Basics: 'Guests only see what you choose. First names work fine.',
-  Details: 'Skip any field — write it yourself later in the editor.',
-  Day: 'Everything here is optional — it pre-fills your sections.',
-  Photos: '6 to 20 photos is the sweet spot. More = more chapters.',
-  Sections: 'Everything is pre-picked — glance, tweak, continue.',
-  Vibe: 'Pick 2 to 4 vibes that capture the heart of the day.',
-  Palette: 'Pick what you love — Pear builds matching gradients + accents.',
-  Review: 'Nothing is public until you publish. Keep editing as long as you like.',
-};
+// PERSONAL + REACTIVE (2026-07-08): Pear's line under each question
+// speaks to the host by name and reflects what they've already
+// entered, so the wizard reads as a conversation, not a form.
+function stepTipFor(step: StepKey, st: WizardState, firstName?: string): string {
+  const names = st.names.filter((n) => n.trim());
+  const nameLine =
+    names.length >= 2 ? `${names[0]} & ${names[1]}` : names[0] ?? '';
+  switch (step) {
+    case 'Occasion':
+      return firstName
+        ? `Alright, ${firstName} — pick the closest. We can change it any time.`
+        : 'Not sure? Pick the closest — we can change it any time.';
+    case 'Basics':
+      return 'Guests only see what you choose. First names work fine.';
+    case 'Details':
+      return nameLine
+        ? `Anything you give Pear here becomes ${nameLine}'s story — skip freely, edit later.`
+        : 'Skip any field — write it yourself later in the editor.';
+    case 'Day':
+      return nameLine
+        ? `Everything here is optional — it pre-fills ${nameLine}'s sections.`
+        : 'Everything here is optional — it pre-fills your sections.';
+    case 'Photos':
+      return '6 to 20 photos is the sweet spot. More = more chapters.';
+    case 'Sections':
+      return firstName
+        ? `Pear pre-picked these for you, ${firstName} — glance, tweak, continue.`
+        : 'Everything is pre-picked — glance, tweak, continue.';
+    case 'Vibe':
+      return 'These shape the real site — layouts, type, spacing. Pick 2 to 4.';
+    case 'Palette':
+      return 'Pick what you love — Pear builds matching gradients + accents.';
+    case 'Review':
+      return firstName
+        ? `Nothing is public until you publish, ${firstName}. Keep editing as long as you like.`
+        : 'Nothing is public until you publish. Keep editing as long as you like.';
+  }
+}
 
 // Live save-the-date preview shown beside every step — a phone frame
 // (dark bezel, drop shadow) holding a scrollable mini save-the-date
@@ -2175,6 +2202,10 @@ function WizardLivePreview({ st }: { st: WizardState }) {
 export function WizardV8() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Pear addresses the host by first name (the /welcome flow already
+  // asked "what should Pear call you?"; the session carries it).
+  const { data: session } = useSession();
+  const firstName = session?.user?.name?.trim().split(/\s+/)[0] || undefined;
   const templateId = searchParams.get('template');
   /* ?occasion=rehearsal-dinner — deep link from the dashboard's
      "around your wedding" sibling-event card. Prefills the
@@ -2829,6 +2860,18 @@ export function WizardV8() {
         st.editionPick,
       ) as unknown as Record<string, unknown>;
 
+      // ── Vibe → look (2026-07-08) — the Vibe step finally DOES
+      //    something: the picked vibes fill edition / kit / density /
+      //    per-section layouts / display type axes wherever nothing
+      //    has set them yet. Fill-missing, first vibe loudest. Runs
+      //    after section picks (their layouts stay) and before the
+      //    explicit stamps below (which overwrite freely) — so host
+      //    picks beat vibes, and vibes beat occasion defaults.
+      manifest = applyVibeLook(
+        manifest as unknown as StoryManifest,
+        st.vibes,
+      ) as unknown as Record<string, unknown>;
+
       // ── Explicit STRUCTURE picks — siteMode + kit + per-section
       //    layout variants, exactly the fields the editor's Layout
       //    tab, Theme panel, and SiteModeSection write. Unset =
@@ -3319,7 +3362,7 @@ export function WizardV8() {
                   className="display-italic"
                   style={{ fontSize: 14.5, color: 'var(--pl-olive, #5C6B3F)', lineHeight: 1.4 }}
                 >
-                  {STEP_TIPS[step]}
+                  {stepTipFor(step, st, firstName)}
                 </span>
               </div>
 
@@ -3362,7 +3405,7 @@ export function WizardV8() {
                 return (
                 <>
                   <StepEyebrow step="Basics" hiddenSteps={hiddenSteps} />
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                  <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                     {nameSpec.mode === 'solo' ? (
                       remembering ? (
                         <>Who are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>remembering?</span></>
@@ -3535,7 +3578,7 @@ export function WizardV8() {
                 return (
                   <>
                     <StepEyebrow step="Details" hiddenSteps={hiddenSteps} />
-                    <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                    <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                       Tell me <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
@@ -3674,7 +3717,7 @@ export function WizardV8() {
                 return (
                   <>
                     <StepEyebrow step="Day" hiddenSteps={hiddenSteps} />
-                    <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                    <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                       Sketch <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>the day.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
@@ -3773,7 +3816,7 @@ export function WizardV8() {
               {step === 'Photos' && (
                 <>
                   <StepEyebrow step="Photos" hiddenSteps={hiddenSteps} />
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                  <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                     Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
@@ -3812,7 +3855,7 @@ export function WizardV8() {
               {step === 'Vibe' && (
                 <>
                   <StepEyebrow step="Vibe" hiddenSteps={hiddenSteps} />
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                  <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                     Set the <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>vibe.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
@@ -3872,6 +3915,30 @@ export function WizardV8() {
                       );
                     })}
                   </div>
+                  {/* Live consequence line (2026-07-08): the vibes now
+                      genuinely shape the pressed site, so say WHAT the
+                      current picks will do — first vibe loudest. */}
+                  {st.vibes.length > 0 && vibeLookSummary(st.vibes) && (
+                    <div
+                      style={{
+                        marginTop: 16,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '9px 14px',
+                        borderRadius: 999,
+                        background: 'var(--pl-gold-mist, #F4ECD6)',
+                        fontSize: 12.5,
+                        color: 'var(--ink-soft)',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      <Sparkle size={13} color="var(--gold)" />
+                      <span>
+                        Pear will press this as: <em style={{ fontStyle: 'italic', color: 'var(--pl-olive, #5C6B3F)' }}>{vibeLookSummary(st.vibes)}</em>
+                      </span>
+                    </div>
+                  )}
                   {/* Skip affordance (GRAND-PLAN Phase 2). Vibe is
                       optional — a host with no mood in mind can hand it
                       to Pear (empty vibes resolve to the occasion's own
@@ -3894,7 +3961,7 @@ export function WizardV8() {
               {step === 'Palette' && (
                 <>
                   <StepEyebrow step="Palette" hiddenSteps={hiddenSteps} />
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                  <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                     Choose your <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>colors.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
@@ -4306,7 +4373,7 @@ export function WizardV8() {
               {step === 'Review' && (
                 <>
                   <StepEyebrow step="Review" hiddenSteps={hiddenSteps} />
-                  <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                  <h2 className="display pl-type-press" style={{ fontSize: 'clamp(38px, 5.5vw, 64px)', margin: '0 0 10px', lineHeight: 1.03, textShadow: letterpressShadow('var(--paper, #FDFAF0)', 'var(--ink, #0E0D0B)') }}>
                     Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
