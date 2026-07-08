@@ -372,7 +372,7 @@ export function DashSettings() {
                surfaces previously disagreed — the modal showed your
                mark while this page showed the old photo/initial and
                never offered the picker. */
-            <Panel bg={PD.paperCard} style={{ padding: '20px 22px', borderRadius: 16 }}>
+            <Panel bg={PD.paperCard} style={{ padding: '20px 22px' }}>
               {/* Header — face + name + email + chips. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 0 18px', flexWrap: 'wrap' }}>
                 {avatarId ? (

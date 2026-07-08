@@ -828,7 +828,10 @@ export function Panel({
       className={className}
       style={{
         background: bg ?? 'var(--card)',
-        borderRadius: 20,
+        // The ONE dashboard card radius (GRAND-PLAN-2 A.1) — never
+        // override this per call site; --r-md is the token every
+        // card surface reads.
+        borderRadius: 'var(--r-md, 20px)',
         border: border ? '1px solid var(--card-ring)' : 'none',
         boxShadow: 'var(--shadow-sm)',
         padding,

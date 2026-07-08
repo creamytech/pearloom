@@ -17,6 +17,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { getSubmissionKinds } from '@/lib/event-os/dashboard-presets';
 import { nameVotePollWithId, optionIdsFor, votePollsWithIds } from '@/lib/event-os/activity-votes';
 import type { StoryManifest } from '@/types';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
 function submissionsBodyFor(occasion?: string | null): string {
   const preset = getEventType(occasion as never)?.rsvpPreset ?? 'wedding';
@@ -329,9 +330,7 @@ export function DashSubmissions() {
         </div>
 
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center', color: PD.inkSoft, fontSize: 13 }}>
-            Threading submissions…
-          </div>
+          <DashSkeleton kind="list" count={4} label="Threading submissions…" style={{ padding: '24px 0' }} />
         ) : filtered.length === 0 ? (
           <Panel bg={PD.paperCard} style={{ padding: 60, textAlign: 'center' }}>
             <div

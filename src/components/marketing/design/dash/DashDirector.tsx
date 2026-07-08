@@ -23,6 +23,7 @@ import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite, useUserSites } from './hooks';
 import { TeamTasksPanel } from './TeamTasksPanel';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { parseLocalDate, todayLocal, daysBetweenCalendarDates, formatDaysAgo } from '@/lib/date-utils';
 import {
   summarizeVendorBook,
@@ -158,7 +159,7 @@ function deriveTimeline(
 const card: CSSProperties = {
   background: 'var(--card)',
   border: '1px solid var(--card-ring, var(--line))',
-  borderRadius: 16,
+  borderRadius: 'var(--r-md, 20px)',
 };
 
 function SecHead({
@@ -480,7 +481,7 @@ export function DashDirector() {
             {/* Messages */}
             <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {loading && (
-                <div style={{ color: 'var(--ink-soft)', fontSize: 13, padding: 24, textAlign: 'center' }}>Threading your plan…</div>
+                <DashSkeleton kind="list" count={3} label="Threading your plan…" style={{ padding: 24 }} />
               )}
               {!loading && conversation.length === 0 && (
                 <div style={{ padding: '20px 4px', color: 'var(--ink-soft)', fontSize: 13.5, lineHeight: 1.55, textAlign: 'center' }}>

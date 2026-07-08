@@ -29,6 +29,7 @@ import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { useSelectedSite, useUserSites, type SiteSummary } from './hooks';
+import { EmptyState } from '@/components/shell/EmptyState';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -433,10 +434,15 @@ function QueueSkeleton() {
 }
 
 function CaughtUpCard() {
+  // The shared EmptyState inside the route's card chrome — one
+  // empty-state pattern product-wide (GRAND-PLAN-2 A.1).
   return (
-    <div style={{ ...cardStyle(40), textAlign: 'center' }}>
-      <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 22, color: 'var(--sage-deep)' }}>All caught up.</div>
-      <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 6 }}>Nothing waiting. New guest photos land here.</div>
+    <div style={cardStyle(16)}>
+      <EmptyState
+        size="compact"
+        title="All caught up."
+        description="Nothing waiting. New guest photos land here."
+      />
     </div>
   );
 }
@@ -907,17 +913,17 @@ function EmptyReel({ sitesCount }: { sitesCount: number }) {
 
 function NoSitesCard() {
   return (
-    <div style={{ ...cardStyle(48), textAlign: 'center' }}>
-      <div style={{ width: 72, height: 72, margin: '0 auto 16px', borderRadius: 16, background: 'var(--cream-3)', border: '1px solid var(--line)', display: 'grid', placeItems: 'center' }}>
-        <PearloomGlyph size={34} />
-      </div>
-      <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 24, color: 'var(--ink)' }}>Nothing on the reel yet.</div>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 420, margin: '10px auto 20px', lineHeight: 1.55 }}>
-        Create a site and upload a photo — your Reel fills up as you go.
-      </p>
-      <Link href="/wizard/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
-        Begin a thread <Icon name="sparkles" size={12} color="var(--cream)" />
-      </Link>
+    <div style={cardStyle(16)}>
+      <EmptyState
+        icon={<PearloomGlyph size={28} />}
+        title="Nothing on the reel yet."
+        description="Create a site and upload a photo — your Reel fills up as you go."
+        actions={
+          <Link href="/wizard/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            Begin a thread <Icon name="sparkles" size={12} color="var(--cream)" />
+          </Link>
+        }
+      />
     </div>
   );
 }

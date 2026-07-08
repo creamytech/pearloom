@@ -19,6 +19,7 @@ import { Panel, EmptyShell, btnInk, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
 interface CircleState {
   available: boolean;
@@ -309,7 +310,7 @@ export function DashCircle() {
                             }}
                           >
                             {!card ? (
-                              <div style={{ fontSize: 12.5, color: PD.inkSoft }}>Threading…</div>
+                              <DashSkeleton kind="list" count={2} label="Threading…" />
                             ) : (
                               <div style={{ display: 'grid', gap: 8 }}>
                                 <div style={{ ...DISPLAY_STYLE, fontStyle: 'italic', fontSize: 18, color: PD.ink }}>

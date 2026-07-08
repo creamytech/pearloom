@@ -11,6 +11,7 @@ import { useAICall } from '../editor/ai';
 import { HintChip, StatStrip } from './QuietDash';
 import { Icon } from '../motifs';
 import { PearThinking } from '../pear-thinking';
+import { DashSkeleton } from './DashSkeleton';
 
 interface GuestContribution {
   guestId: string;
@@ -249,7 +250,7 @@ export function TwoTapThanks() {
       )}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Threading…</div>
+        <DashSkeleton kind="list" count={2} label="Threading…" />
       ) : guests.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
           No guests yet. Import your list or add guests on the Guests page.

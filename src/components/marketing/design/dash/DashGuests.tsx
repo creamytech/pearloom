@@ -1894,7 +1894,7 @@ export function DashGuests() {
 
           <Panel
             bg="var(--peach-bg)"
-            style={{ padding: 20, border: '1px solid var(--peach-ink)', borderRadius: 16 }}
+            style={{ padding: 20, border: '1px solid var(--peach-ink)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <PearloomGlyph size={18} color="var(--peach-ink)" />
@@ -2052,7 +2052,7 @@ export function DashGuests() {
             >
               <Panel
                 bg="var(--lavender-bg)"
-                style={{ padding: 22, border: 'none', borderRadius: 16, textAlign: 'center' }}
+                style={{ padding: 22, border: 'none', textAlign: 'center' }}
               >
                 <span
                   aria-hidden
@@ -3345,7 +3345,7 @@ function WhoCanReplyPanel({
   return (
     <Panel
       bg={recommend ? 'var(--peach-bg)' : PD.paperCard}
-      style={{ padding: 18, border: 'none', borderRadius: 16 }}
+      style={{ padding: 18, border: 'none' }}
     >
       <div
         style={{

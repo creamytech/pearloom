@@ -15,6 +15,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/use-focus-trap';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { Icon } from '@/components/pearloom/motifs';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
 interface Item {
   id: string;
@@ -96,7 +97,7 @@ export function RegistryItemsManager({ siteId }: Props) {
       </header>
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)' }}>Threading…</div>
+        <DashSkeleton kind="card-grid" count={3} label="Threading…" style={{ padding: '24px 0' }} />
       ) : items.length === 0 ? (
         <EmptyState onAdd={() => setShowAdd(true)} />
       ) : (

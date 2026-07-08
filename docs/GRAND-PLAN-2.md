@@ -466,7 +466,29 @@ branch and `main`.
 
 ---
 
-### A.1 — One card, everywhere · status: not started · P0 (foundation)
+### A.1 — One card, everywhere · **status: SHIPPED 2026-07-08** · P0 (foundation)
+
+> Shipped: PageCard.tsx deleted (zero consumers confirmed) + barrel
+> export removed; Panel's radius token-ized to `var(--r-md, 20px)`
+> with a "never override per call site" contract comment; the four
+> inline Panel radius overrides removed (DashGuests ×3, DashSettings);
+> cockpit's `cockpitCard` (16) + HeroBanner (18) + DashDirector's
+> `card` (16) all unified onto `var(--r-md, 20px)`. Loading: the
+> existing `DashSkeleton` primitive adopted at all seven bare
+> "Threading…" sites (DashMessages, DashSubmissions, DashCircle,
+> DashDirector, TwoTapThanks, RegistryItemsManager,
+> NotificationPrefsTab) — DashShell:119's full-page display-type
+> splash kept as the deliberate branded splash it is. Empty states:
+> DashGallery's NoSitesCard + CaughtUpCard folded onto the shared
+> `<EmptyState/>` inside their card chrome (verified live — Fraunces
+> italic + woven thread + pearl CTA render correctly on the Reel).
+> DECISION RECORDED: `--pl-radius-lg` is NOT deleted — it has
+> legitimate non-dashboard consumers (SeatingCanvas, Live overlays,
+> gate, admin, route loading skeletons); the dashboard simply
+> standardizes on `--r-md`. Similarly EmptyShell (full-page no-site
+> sheet) and EmptyState (card-level) serve different jobs — both
+> stay; the audit's "3 systems" collapses to these two, each with a
+> clear role. tsc/eslint clean, vitest 1256/1256.
 
 ```
 ## Active focus — A.1 · One card system (foundation for everything after)

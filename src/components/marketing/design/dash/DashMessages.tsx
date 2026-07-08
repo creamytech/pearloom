@@ -17,6 +17,7 @@ import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, HintChip, RailCard } from '@/components/pearloom/dash/QuietDash';
 import { useSelectedSite } from './hooks';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { useMessagePings } from '@/lib/messages-realtime';
 
 const POLL_MS = 30_000;
@@ -162,7 +163,7 @@ export function DashMessages() {
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, maxHeight: 460, overflowY: 'auto', marginBottom: 14 }}>
               {party === null ? (
-                <div style={{ fontSize: 13, fontStyle: 'italic', color: PD.inkSoft }}>Threading…</div>
+                <DashSkeleton kind="list" count={3} label="Threading…" />
               ) : party.length === 0 ? (
                 <div style={{ fontSize: 13.5, color: PD.inkSoft, padding: '18px 0' }}>
                   Nothing yet. Begin a thread — guests see your post the next time they open their link.

@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 import { Icon } from '../motifs';
+import { DashSkeleton } from './DashSkeleton';
 
 type EmailMode = 'instant' | 'digest' | 'off';
 interface CategoryMeta { id: string; label: string; desc: string }
@@ -141,7 +142,7 @@ export function NotificationPrefsTab() {
       </div>
 
       {!loaded ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-muted)', fontSize: 13 }}>Threading…</div>
+        <DashSkeleton kind="list" count={3} label="Threading…" style={{ padding: 12 }} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {categories.map((c) => {
