@@ -206,6 +206,30 @@ const VIBE_TILT: Record<string, number> = {
   playful: -1.6, whimsical: 1.6, groovy: -1.1, joyful: 1.1, retro: -0.8,
 };
 
+/* One quiet line under each specimen — what the word FEELS like on
+   the pressed page, in plain host words (mono caption on the card). */
+const VIBE_NOTE: Record<string, string> = {
+  romantic:    'soft serif · candlelit',
+  elegant:     'airy italic · unhurried',
+  classic:     'bookish serif · timeless',
+  traditional: 'time-honored · steady',
+  formal:      'letterspaced caps · black tie',
+  editorial:   'magazine caps · crisp',
+  modern:      'clean lines · confident',
+  quiet:       'hushed · room to breathe',
+  gentle:      'soft-spoken · kind',
+  reflective:  'measured · remembering',
+  intimate:    'close serif · few guests',
+  bold:        'heavy caps · loud',
+  groovy:      'tilted · a little funk',
+  retro:       'throwback · letterspaced',
+  playful:     'bouncy · grinning',
+  whimsical:   'storybook · tilted',
+  joyful:      'bright · beaming',
+  warm:        'golden hour · easy',
+  outdoorsy:   'sturdy · open air',
+};
+
 // Per-voice chip sets (EVENT_TYPES[occasion].voice drives which
 // chips the Vibe step offers). 'Romantic' and 'Playful' have no
 // business on a memorial site; each voice keeps ~8 coherent
@@ -2068,6 +2092,59 @@ function mixHex(a: string, b: string, w: number): string | null {
 function contrastRatio(a: number, b: number): number {
   const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Derive honest display roles from a raw 4-swatch palette —
+ *  lightest = paper, darkest = ink, most chromatic middle = accent —
+ *  with the same contrast guards the live preview uses, so a palette
+ *  card can be printed ON its own paper instead of shown as a flat
+ *  strip. Unparseable palettes fall back to chrome tokens. */
+function paletteRoles(colors: string[] | undefined) {
+  const fallback = {
+    paper: 'var(--card, #FBF7EE)',
+    ink: 'var(--ink, #2A2A2A)',
+    inkSoft: 'var(--ink-soft, #55503F)',
+    accent: 'var(--pl-olive, #5C6B3F)',
+    line: 'var(--line, #E4DCCB)',
+  };
+  if (!colors || colors.length < 2) return fallback;
+  const parsed = colors
+    .map((hex) => ({ hex, lum: hexLuminance(hex) }))
+    .filter((c): c is { hex: string; lum: number } => c.lum != null);
+  if (parsed.length < 2) return fallback;
+  const sorted = [...parsed].sort((a, b) => b.lum - a.lum);
+  const paper = sorted[0];
+  const darkest = sorted[sorted.length - 1];
+  const ink = contrastRatio(darkest.lum, paper.lum) >= 4.5
+    ? darkest.hex
+    : paper.lum > 0.45 ? '#2A2418' : '#F5EFE2';
+  const chromaOf = (hex: string) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return 0;
+    const h = m[1];
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return Math.max(r, g, b) - Math.min(r, g, b);
+  };
+  const middles = sorted.slice(1, -1);
+  const rawAccent = [...middles].sort((a, b) => chromaOf(b.hex) - chromaOf(a.hex))[0] ?? darkest;
+  // Accent as small text needs 4.5:1 on the paper; darken toward ink
+  // until honest — and VERIFY the mix (never hope), else full ink.
+  const accent = (() => {
+    if (contrastRatio(rawAccent.lum, paper.lum) >= 4.5) return rawAccent.hex;
+    const m = mixHex(rawAccent.hex, ink, 0.4);
+    const ml = m ? hexLuminance(m) : null;
+    return m && ml != null && contrastRatio(ml, paper.lum) >= 4.5 ? m : ink;
+  })();
+  const inkSoft = (() => {
+    const m = mixHex(ink, paper.hex, 0.82);
+    if (!m) return ink;
+    const ml = hexLuminance(m);
+    return ml != null && contrastRatio(ml, paper.lum) >= 4.5 ? m : ink;
+  })();
+  const line = mixHex(ink, paper.hex, 0.2) ?? 'var(--line, #E4DCCB)';
+  return { paper: paper.hex, ink, inkSoft, accent, line };
 }
 
 // Inline tips per step — replaces the floating PearHelper sidebar.
@@ -4181,34 +4258,83 @@ export function WizardV8() {
                       ? 'Optional — 2–4 feels right, or let Pear choose'
                       : `${st.vibes.length} of 4 selected`}
                   </p>
-                  {/* Each chip wears its own vibe — the typography IS the
-                      preview (design system v2). Picked = olive fill,
-                      cream ink; unpicked = paper card. */}
-                  <div className="pl-cascade-row" style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
+                  {/* Type-specimen cards — each vibe pressed at display
+                      size in its own face (the typography IS the
+                      preview), with a quiet mono caption of what it
+                      feels like. Picked = olive plate, cream ink, gold
+                      pearl; unpicked = paper proof. */}
+                  <div
+                    className="pl-cascade-row"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(158px, 1fr))',
+                      gap: 10,
+                    }}
+                  >
                     {vibesForOccasion(st.occasion).map((v) => {
                       const on = st.vibes.includes(v.id);
+                      const face = VIBE_FACE[v.id] ?? {};
+                      const chipSize = typeof face.fontSize === 'number' ? face.fontSize : 14;
+                      // Scale the chip face up to specimen size — the
+                      // letterspaced-caps faces read bigger than their
+                      // point size, so they scale less.
+                      const specimenSize = Math.round(chipSize * (face.textTransform === 'uppercase' ? 1.55 : 1.75));
                       return (
                         <button
                           key={v.id}
                           type="button"
                           onClick={() => toggleVibe(v.id)}
-                          /* .wz-chip (pearloom.css) carries the fill/press
-                             transitions — the tilt stays inline on the
-                             button, the press-scale lives on the inner
-                             span so the two transforms never fight. */
                           className="wz-chip"
                           style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: 12,
+                            minHeight: 96,
+                            padding: '14px 14px 12px',
+                            borderRadius: 14,
+                            textAlign: 'left',
+                            position: 'relative',
                             background: on ? 'var(--pl-olive, #5C6B3F)' : 'var(--pl-cream-card, #FBF7EE)',
                             color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink, #2A2A2A)',
                             border: `1px solid ${on ? 'var(--pl-olive, #5C6B3F)' : 'var(--line)'}`,
-                            padding: '9px 16px',
-                            borderRadius: 999,
+                            boxShadow: on ? '0 4px 14px rgba(61,74,31,0.22)' : '0 1px 2px rgba(40,28,12,0.05)',
                             cursor: 'pointer',
                             transform: `rotate(${VIBE_TILT[v.id] ?? 0}deg)`,
-                            ...VIBE_FACE[v.id],
+                            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                           }}
                         >
-                          <span>{v.label}</span>
+                          {on && (
+                            <span
+                              aria-hidden
+                              className="pl8-chip-pop"
+                              style={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 10,
+                                width: 14,
+                                height: 14,
+                                borderRadius: '50%',
+                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
+                                boxShadow: '0 1px 3px rgba(120,90,20,0.35)',
+                              }}
+                            />
+                          )}
+                          <span style={{ ...face, fontSize: specimenSize, lineHeight: 1.08 }}>{v.label}</span>
+                          <span
+                            style={{
+                              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                              fontSize: 9.5,
+                              fontWeight: 500,
+                              fontStyle: 'normal',
+                              letterSpacing: '0.13em',
+                              textTransform: 'uppercase',
+                              color: on ? 'color-mix(in srgb, var(--pl-cream, #FBF7EE) 78%, var(--pl-olive, #5C6B3F))' : 'var(--ink-muted)',
+                            }}
+                          >
+                            {VIBE_NOTE[v.id] ?? ''}
+                          </span>
                         </button>
                       );
                     })}
@@ -4263,7 +4389,9 @@ export function WizardV8() {
                     Choose your <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>colors.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
-                    Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.
+                    {pearPaletteLocked
+                      ? 'Each card below is a small pressing — tap one to dress your preview in it.'
+                      : 'Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.'}
                   </p>
                   {/* Ready signal (GRAND-PLAN Phase 2). A palette is
                       always resolved (occasion default or your photos),
@@ -4426,7 +4554,10 @@ export function WizardV8() {
                           the first uploaded photo. Renders only when the
                           extraction succeeded; selecting it flows through
                           the same palette/paletteColors path as siblings. */}
-                      {photoPaletteColors && (
+                      {photoPaletteColors && (() => {
+                        const roles = paletteRoles(photoPaletteColors);
+                        const on = st.palette === PHOTO_PALETTE_ID;
+                        return (
                         <button
                           type="button"
                           onClick={() => {
@@ -4443,13 +4574,16 @@ export function WizardV8() {
                           style={{
                             padding: 16,
                             borderRadius: 16,
-                            background: 'var(--card)',
+                            /* The card IS the palette — printed on its own
+                               paper, set in its own ink (roles derived with
+                               the preview's contrast guards). */
+                            background: roles.paper,
                             /* Constant 2px border (color-only change) —
                                the old 1.5→2px flip shifted the whole
                                card's layout by half a pixel on select. */
-                            border: `2px solid ${st.palette === PHOTO_PALETTE_ID ? 'var(--ink)' : 'var(--line)'}`,
+                            border: `2px solid ${on ? 'var(--pl-gold, #C19A4B)' : roles.line}`,
                             transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
-                            boxShadow: st.palette === PHOTO_PALETTE_ID ? '0 4px 14px rgba(40,28,12,0.10)' : 'none',
+                            boxShadow: on ? '0 0 0 3px var(--pl-gold-soft, #EAD9B0), 0 4px 14px rgba(40,28,12,0.10)' : '0 1px 2px rgba(40,28,12,0.05)',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 10,
@@ -4458,7 +4592,7 @@ export function WizardV8() {
                             textAlign: 'left',
                           }}
                         >
-                          {st.palette === PHOTO_PALETTE_ID && (
+                          {on && (
                             <div
                               className="pl8-chip-pop"
                               style={{
@@ -4468,24 +4602,35 @@ export function WizardV8() {
                                 width: 22,
                                 height: 22,
                                 borderRadius: '50%',
-                                background: 'var(--ink)',
+                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
                                 display: 'grid',
                                 placeItems: 'center',
                               }}
                             >
-                              <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+                              <Icon name="check" size={11} color="#3A2E14" strokeWidth={3} />
                             </div>
                           )}
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                              fontSize: 9.5,
+                              letterSpacing: '0.18em',
+                              textTransform: 'uppercase',
+                              color: roles.accent,
+                            }}
+                          >
+                            From your photos
+                          </div>
                           <div style={{ display: 'flex', gap: 4 }}>
                             {photoPaletteColors.map((c, i) => (
                               <div
                                 key={i}
                                 style={{
-                                  width: 32,
-                                  height: 32,
+                                  width: 26,
+                                  height: 26,
                                   borderRadius: '50%',
                                   background: c,
-                                  border: '1.5px solid rgba(255,255,255,0.45)',
+                                  border: `1px solid ${roles.line}`,
                                 }}
                               />
                             ))}
@@ -4493,32 +4638,24 @@ export function WizardV8() {
                           <div
                             className="display"
                             style={{
-                              fontSize: 18,
+                              fontSize: 19,
                               fontStyle: 'italic',
                               margin: 0,
                               lineHeight: 1.2,
+                              color: roles.ink,
                             }}
                           >
-                            From your photos
+                            Your photographs
                           </div>
-                          <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                          <div style={{ fontSize: 12, color: roles.inkSoft, lineHeight: 1.45 }}>
                             Accents drawn straight from the photographs you shared.
                           </div>
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                              fontSize: 9.5,
-                              letterSpacing: '0.16em',
-                              textTransform: 'uppercase',
-                              color: 'var(--ink-muted)',
-                            }}
-                          >
-                            Photo-matched
-                          </div>
                         </button>
-                      )}
+                        );
+                      })()}
                       {(st.smartPalettes ?? []).map((p) => {
                         const on = st.palette === p.id;
+                        const roles = paletteRoles(p.colors);
                         return (
                           <button
                             key={p.id}
@@ -4537,10 +4674,13 @@ export function WizardV8() {
                             style={{
                               padding: 16,
                               borderRadius: 16,
-                              background: 'var(--card)',
-                              border: `2px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                              /* Printed on the palette's own paper — the
+                                 card is a proof of the site, not a form
+                                 row about it. */
+                              background: roles.paper,
+                              border: `2px solid ${on ? 'var(--pl-gold, #C19A4B)' : roles.line}`,
                               transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
-                              boxShadow: on ? '0 4px 14px rgba(40,28,12,0.10)' : 'none',
+                              boxShadow: on ? '0 0 0 3px var(--pl-gold-soft, #EAD9B0), 0 4px 14px rgba(40,28,12,0.10)' : '0 1px 2px rgba(40,28,12,0.05)',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: 10,
@@ -4559,12 +4699,12 @@ export function WizardV8() {
                                   width: 22,
                                   height: 22,
                                   borderRadius: '50%',
-                                  background: 'var(--ink)',
+                                  background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
                                   display: 'grid',
                                   placeItems: 'center',
                                 }}
                               >
-                                <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+                                <Icon name="check" size={11} color="#3A2E14" strokeWidth={3} />
                               </div>
                             )}
                             <div
@@ -4573,7 +4713,7 @@ export function WizardV8() {
                                 fontSize: 9.5,
                                 letterSpacing: '0.18em',
                                 textTransform: 'uppercase',
-                                color: 'var(--pl-olive, #5C6B3F)',
+                                color: roles.accent,
                               }}
                             >
                               {p.source === 'venue' ? 'From your venue'
@@ -4586,11 +4726,11 @@ export function WizardV8() {
                                 <div
                                   key={i}
                                   style={{
-                                    width: 32,
-                                    height: 32,
+                                    width: 26,
+                                    height: 26,
                                     borderRadius: '50%',
                                     background: c,
-                                    border: '1.5px solid rgba(255,255,255,0.45)',
+                                    border: `1px solid ${roles.line}`,
                                   }}
                                 />
                               ))}
@@ -4598,25 +4738,26 @@ export function WizardV8() {
                             <div
                               className="display"
                               style={{
-                                fontSize: 18,
+                                fontSize: 19,
                                 fontStyle: 'italic',
                                 margin: 0,
                                 lineHeight: 1.2,
+                                color: roles.ink,
                               }}
                             >
                               {p.name}
                             </div>
-                            <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                            <div style={{ fontSize: 12, color: roles.inkSoft, lineHeight: 1.45 }}>
                               {p.rationale}
                             </div>
                             {p.motif && (
                               /* The ornament that rides with this palette —
                                  drawn for real so the host sees the pairing,
-                                 not a label. Accent color comes from the
-                                 palette's own accent swatch. */
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, '--t-motif': p.colors[2] } as CSSProperties}>
+                                 not a label. Accent from the derived roles
+                                 so it reads on the palette's own paper. */
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, '--t-motif': roles.accent } as CSSProperties}>
                                 <Motif kind={p.motif as MotifKind} size={30} />
-                                <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                                <span style={{ fontSize: 11, color: roles.inkSoft }}>
                                   paired mark · {p.motif.replace(/-/g, ' ')}
                                 </span>
                               </div>
@@ -4649,6 +4790,10 @@ export function WizardV8() {
                   >
                     {orderPalettesForOccasion(PALETTES, st.occasion).map((p) => {
                       const on = st.palette === p.id;
+                      /* Each preset is a mini-pressing — its own paper,
+                         its own ink, an "Aa" specimen — so the host
+                         previews the FEELING, not a paint-chip strip. */
+                      const roles = paletteRoles(p.colors);
                       return (
                         <button
                           key={p.id}
@@ -4667,24 +4812,61 @@ export function WizardV8() {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 10,
-                            padding: '10px 12px',
-                            borderRadius: 12,
-                            background: 'var(--card)',
-                            border: on ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid var(--line)',
-                            boxShadow: on ? '0 0 0 2px var(--pl-gold-soft, #EAD9B0)' : 'none',
+                            gap: 14,
+                            padding: '14px 16px',
+                            borderRadius: 14,
+                            background: roles.paper,
+                            border: `2px solid ${on ? 'var(--pl-gold, #C19A4B)' : roles.line}`,
+                            boxShadow: on ? '0 0 0 3px var(--pl-gold-soft, #EAD9B0), 0 4px 14px rgba(40,28,12,0.10)' : '0 1px 2px rgba(40,28,12,0.05)',
                             cursor: 'pointer',
                             textAlign: 'left',
                             transition: 'box-shadow 160ms ease, border-color 160ms ease',
                           }}
                         >
-                          {/* Continuous swatch strip (design system v2). */}
-                          <span style={{ display: 'flex', height: 30, borderRadius: 7, overflow: 'hidden', flex: 1 }}>
-                            {p.colors.map((c, i) => (
-                              <span key={i} style={{ flex: 1, background: c }} />
-                            ))}
+                          <span
+                            className="display"
+                            aria-hidden
+                            style={{ fontSize: 30, fontStyle: 'italic', lineHeight: 1, color: roles.ink, flexShrink: 0 }}
+                          >
+                            Aa
                           </span>
-                          <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>{p.name}</span>
+                          <span style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                            <span
+                              className="display"
+                              style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.15, color: roles.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            >
+                              {p.name}
+                            </span>
+                            <span style={{ display: 'flex', gap: 4 }}>
+                              {p.colors.map((c, i) => (
+                                <span
+                                  key={i}
+                                  style={{
+                                    width: 15,
+                                    height: 15,
+                                    borderRadius: '50%',
+                                    background: c,
+                                    border: `1px solid ${roles.line}`,
+                                  }}
+                                />
+                              ))}
+                            </span>
+                          </span>
+                          {on && (
+                            <span
+                              aria-hidden
+                              className="pl8-chip-pop"
+                              style={{
+                                marginLeft: 'auto',
+                                width: 16,
+                                height: 16,
+                                borderRadius: '50%',
+                                background: 'radial-gradient(circle at 34% 30%, #F4E4B8, var(--pl-gold, #C19A4B) 72%)',
+                                boxShadow: '0 1px 3px rgba(120,90,20,0.35)',
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
                         </button>
                       );
                     })}

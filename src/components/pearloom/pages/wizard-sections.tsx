@@ -159,15 +159,19 @@ function SectionCard({
   onPickVariant: (variant: string) => void;
 }) {
   const active = on || pinned;
+  /* Cards stay PAPER in both states (BRAND §9 — glass and washes are
+     chrome, surfaces are paper). "On" reads as a bound page: solid
+     hairline, full ink, gold pearl. "Set aside" reads as exactly
+     that — a dashed keyline and faded ink, still on the table. */
   const cardStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     padding: 12,
-    borderRadius: 16,
-    border: active ? '2px solid var(--pl-olive, #5C6B3F)' : '1px solid var(--line)',
-    background: active ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card, #FBF7EE)',
-    boxShadow: active ? '0 0 0 4px var(--pl-olive-12, rgba(92,107,63,0.12))' : 'none',
-    transition: 'border-color 160ms ease, background 160ms ease, box-shadow 160ms ease',
+    borderRadius: 14,
+    border: active ? '1px solid var(--line)' : '1px dashed var(--line)',
+    background: 'var(--card, #FBF7EE)',
+    boxShadow: active ? '0 1px 3px rgba(40,28,12,0.07)' : 'none',
+    transition: 'border-color 160ms ease, box-shadow 160ms ease',
   };
 
   return (
@@ -191,15 +195,24 @@ function SectionCard({
           minHeight: 48,
         }}
       >
-        <VariantThumb section={offer.section} variant={variant} />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ opacity: active ? 1 : 0.45, transition: 'opacity 160ms ease', display: 'flex', flexShrink: 0 }}>
+          <VariantThumb section={offer.section} variant={variant} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0, opacity: active ? 1 : 0.6, transition: 'opacity 160ms ease' }}>
           <div
             className="display"
             style={{ fontSize: 18, lineHeight: 1.15, color: 'var(--ink)', fontWeight: 600 }}
           >
             {offer.label}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2 }}>
+          <div
+            style={{
+              fontSize: 12,
+              color: active ? 'var(--sage-deep, #5C6B3F)' : 'var(--ink-muted)',
+              fontStyle: active ? 'normal' : 'italic',
+              marginTop: 2,
+            }}
+          >
             {pinned ? 'Always on' : active ? 'On your site' : 'Set aside'}
           </div>
         </div>
@@ -290,7 +303,19 @@ function SectionGroup({
         <Thread variant="straight" height={6} weight={1} style={{ marginTop: 6 }} />
       </div>
 
-      <div className="pl-cascade-row" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+      {/* Two-up on desktop halves the table-of-contents scroll; the
+          cards fall back to one column on phones. align-start keeps
+          an open layout chooser from stretching its row-mate. */}
+      <div
+        className="pl-cascade-row"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+          alignItems: 'start',
+          gap: 10,
+          marginTop: 12,
+        }}
+      >
         {shown.map(render)}
       </div>
 
