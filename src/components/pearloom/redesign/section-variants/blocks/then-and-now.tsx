@@ -20,6 +20,7 @@
 import type { CSSProperties } from 'react';
 import { VariantSectionHead } from '../_section-head';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { FadeInImage } from '../../graceful-image';
 
 export interface ThenAndNowPair { id?: string; then?: string; now?: string; caption?: string }
 
@@ -52,11 +53,7 @@ function PairPhoto({ url, label, alt }: { url?: string; label: string; alt: stri
   if (!url?.trim()) return null;
   return (
     <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-      <img
-        src={url}
-        alt={alt}
-        style={{ width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', display: 'block' }}
-      />
+      <FadeInImage src={url} alt={alt} style={{ width: '100%', aspectRatio: '4 / 5' }} />
       <SideLabel>{label}</SideLabel>
     </div>
   );
@@ -117,11 +114,7 @@ function StackPhoto({ url, label, alt }: { url?: string; label: string; alt: str
   }
   return (
     <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--t-radius, 10px)' }}>
-      <img
-        src={url}
-        alt={alt}
-        style={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', display: 'block' }}
-      />
+      <FadeInImage src={url} alt={alt} style={{ width: '100%', aspectRatio: '16 / 10' }} />
       <span
         style={{
           position: 'absolute', top: 10, left: 10,

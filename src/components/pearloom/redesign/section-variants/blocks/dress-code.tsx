@@ -23,6 +23,7 @@
 import type { CSSProperties } from 'react';
 import { VariantSectionHead } from '../_section-head';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { FadeInImage } from '../../graceful-image';
 
 export interface DressCodeExampleData { label?: string; hint?: string; photo?: string }
 export interface DressCodeSectionData {
@@ -103,12 +104,10 @@ export function DressCodeSection({ manifest, pad, editable, variant, onEditCopy 
                     }}
                   >
                     <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', background: 'var(--t-section)', boxShadow: 'inset 0 0 0 1px var(--t-line-soft)' }}>
-                      <img
-                        src={ex.photo}
+                      <FadeInImage
+                        src={ex.photo!}
                         alt={ex.label ?? 'Dress-code example'}
-                        loading="lazy"
-                        decoding="async"
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        style={{ position: 'absolute', inset: 0 }}
                       />
                     </div>
                   </div>

@@ -32,6 +32,7 @@ import type { CSSProperties } from 'react';
 import type { WeddingPartyMember } from '@/types';
 import { VariantSectionHead } from '../_section-head';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { FadeInImage } from '../../graceful-image';
 
 const ROLE_LABEL: Record<string, string> = {
   'bride': 'Bride',
@@ -183,11 +184,7 @@ function HonorCards({ members }: { members: WeddingPartyMember[] }) {
             }}
           >
             {m.photo?.trim() ? (
-              <img
-                src={m.photo}
-                alt={m.name}
-                style={{ width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', display: 'block' }}
-              />
+              <FadeInImage src={m.photo} alt={m.name} style={{ width: '100%', aspectRatio: '4 / 5' }} />
             ) : (
               <InitialTile name={m.name} size="100%" fontSize={34} />
             )}
@@ -215,12 +212,12 @@ function HonorCircle({ members }: { members: WeddingPartyMember[] }) {
       {members.map((m, i) => (
         <div key={m.id ?? i} style={{ width: 118, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           {m.photo?.trim() ? (
-            <img
+            <FadeInImage
               src={m.photo}
               alt={m.name}
               title={m.relationship?.trim() || undefined}
               style={{
-                width: 92, height: 92, borderRadius: '50%', objectFit: 'cover',
+                width: 92, height: 92, borderRadius: '50%',
                 /* StoryLetter's "stamp" framing — paper ring + soft lift. */
                 border: '3px solid var(--t-paper)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -259,11 +256,7 @@ function HonorRows({ members }: { members: WeddingPartyMember[] }) {
             }}
           >
             {m.photo?.trim() ? (
-              <img
-                src={m.photo}
-                alt={m.name}
-                style={{ width: 64, height: 64, borderRadius: 'var(--t-radius, 10px)', objectFit: 'cover' }}
-              />
+              <FadeInImage src={m.photo} alt={m.name} style={{ width: 64, height: 64, borderRadius: 'var(--t-radius, 10px)' }} />
             ) : (
               <InitialTile name={m.name} size={64} fontSize={20} />
             )}

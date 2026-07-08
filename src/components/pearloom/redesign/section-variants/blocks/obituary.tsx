@@ -33,6 +33,7 @@ import type { CSSProperties } from 'react';
 import { VariantSectionHead } from '../_section-head';
 import { OliveSprig } from '../../../site/MotifScatter';
 import { BlockFrame, BlockEmpty, blockCopy, type BlockSectionProps } from './_shared';
+import { FadeInImage } from '../../graceful-image';
 
 export interface ObituaryData { dates?: string; body?: string }
 
@@ -235,11 +236,7 @@ function PortraitMedallion({ portrait }: { portrait: string }) {
       }}
     >
       {portrait ? (
-        <img
-          src={portrait}
-          alt="In memoriam"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
+        <FadeInImage src={portrait} alt="In memoriam" style={{ width: '100%', height: '100%' }} />
       ) : (
         <OliveSprig size={44} color="var(--t-ink-muted)" berry={GOLD} style={{ opacity: 0.9 }} />
       )}

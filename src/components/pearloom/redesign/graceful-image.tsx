@@ -83,6 +83,7 @@ export function FadeInImage({
   eager = false,
   style = {},
   imgStyle = {},
+  title,
 }: {
   src: string;
   alt?: string;
@@ -92,6 +93,8 @@ export function FadeInImage({
   style?: CSSProperties;
   /** Extra styles on the <img> itself (rarely needed). */
   imgStyle?: CSSProperties;
+  /** Tooltip, forwarded to the <img> (honor-list stamp hovers). */
+  title?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -117,6 +120,7 @@ export function FadeInImage({
           ref={attachImg}
           src={src}
           alt={alt}
+          title={title}
           loading={eager ? 'eager' : 'lazy'}
           decoding="async"
           /* Eager = the hero/cover = the LCP candidate — tell the
