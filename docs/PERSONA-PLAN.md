@@ -590,10 +590,25 @@ Onboarding flow (fresh). Payments/domains at publish.
 > the wizard preview scroller wasn't keyboard-reachable
 > (tabIndex=0), and the preview's derived muted inks were bumped
 > (45%→62% / 68%→76% ink mixes). / and /dev/site now audit CLEAN.
-> REMAINING (the open worklist, from `axe.json` in the walk
-> scratchpad): color-contrast only — wizard preview 4 nodes, editor
-> chrome 20 nodes (e.g. the "3 to do" pill), dashboard 21 nodes —
-> all muted-ink-on-tinted-chrome token decisions, one design pass.
+> REMAINING (the open worklist — measured, clustered, ready for one
+> token-level design pass; do NOT fix node-by-node):
+>   · `#887f72`/`#898073` (--ink-muted family) on cream `#fbf8ee`/
+>     `#fdfaf0` — 3.71:1, needs 4.5 — 16 editor nodes. Target ≈
+>     `#746c5e` (keeps the warmth, clears 4.5).
+>   · `#c6703d` peach-ink small text on cream/peach-bg — 3.04–3.39,
+>     10 nodes across editor + dashboard. Needs a peach-ink-deep
+>     text variant (~`#a85a28`); keep the current hue for chips/
+>     borders.
+>   · `#c19a4b` GOLD as small text on cream — 2.45:1, 5 dashboard
+>     nodes. BRAND §5 says gold is punctuation, almost never text —
+>     these should likely become olive or ink with a gold rule, not
+>     a darker gold.
+>   · `#6d7d3f`/`#8b9c5a` olive/sage small text on cream — 2.8–4.21,
+>     8 dashboard nodes. Olive text token needs ~`#5c6b3f` at small
+>     sizes.
+> Any token change repaints every surface — make it with eyes on
+> the letterpress feel (BRAND is the constitution), then re-run
+> `axe-run.mjs` for the zero-serious gate.
 > Threads 1–3 + 5 (zoom walk, undo/confirm inventory, saved-state
 > visibility on dashboard/Studio, label audit) still open.
 > axe-core added as a devDependency. vitest 1246/1246.
