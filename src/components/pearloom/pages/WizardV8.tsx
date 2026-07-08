@@ -13,9 +13,9 @@ import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Pearl } from '@/components/brand/Pearl';
-import { letterpressShadow } from '@/components/brand/pressed';
+import { letterpressShadow, FoilGradient } from '@/components/brand/pressed';
 import { useSession } from 'next-auth/react';
-import { applyVibeLook, vibeLookSummary } from '@/lib/site-look/vibe-look';
+import { applyVibeLook, vibeLookSummary, VIBE_LOOKS } from '@/lib/site-look/vibe-look';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -1900,20 +1900,43 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
               </div>
             </div>
             {i < phases.length - 1 && (
-              <span
-                aria-hidden
-                style={{
-                  width: 54,
-                  height: 2,
-                  borderRadius: 2,
-                  margin: '0 4px',
-                  flexShrink: 0,
-                  background: done ? OLIVE : DIVIDER,
-                  backgroundImage: done ? 'none' : `linear-gradient(90deg, ${DIVIDER} 60%, transparent 0)`,
-                  backgroundSize: '7px 2px',
-                  transition: 'background 280ms cubic-bezier(0.22,1,0.36,1)',
-                }}
-              />
+              done ? (
+                /* A completed phase is WOVEN to the next — the flat bar
+                   becomes the two-strand thread (olive + foil), drawing
+                   in the moment the phase completes. */
+                <svg aria-hidden viewBox="0 0 54 10" style={{ width: 54, height: 10, margin: '0 4px', flexShrink: 0 }}>
+                  <defs>
+                    <FoilGradient id={`pl8-wzspine-${i}`} />
+                  </defs>
+                  <path
+                    className="pl-thread-draw"
+                    style={{ '--pl-draw-len': '60', '--pl-draw-dur': '0.6s', '--pl-draw-delay': '0s' } as CSSProperties}
+                    d="M 1 5 C 8 1, 14 1, 20 5 S 33 9, 39 5 S 50 1, 53 5"
+                    fill="none" stroke={OLIVE} strokeWidth="1.5" strokeLinecap="round" pathLength={60}
+                  />
+                  <path
+                    className="pl-thread-draw"
+                    style={{ '--pl-draw-len': '60', '--pl-draw-dur': '0.6s', '--pl-draw-delay': '0.12s' } as CSSProperties}
+                    d="M 1 5 C 8 9, 14 9, 20 5 S 33 1, 39 5 S 50 9, 53 5"
+                    fill="none" stroke={`url(#pl8-wzspine-${i})`} strokeWidth="1.5" strokeLinecap="round" pathLength={60}
+                  />
+                </svg>
+              ) : (
+                <span
+                  aria-hidden
+                  style={{
+                    width: 54,
+                    height: 2,
+                    borderRadius: 2,
+                    margin: '0 4px',
+                    flexShrink: 0,
+                    background: DIVIDER,
+                    backgroundImage: `linear-gradient(90deg, ${DIVIDER} 60%, transparent 0)`,
+                    backgroundSize: '7px 2px',
+                    transition: 'background 280ms cubic-bezier(0.22,1,0.36,1)',
+                  }}
+                />
+              )
             )}
           </Fragment>
         );
@@ -2113,6 +2136,34 @@ function WizardLivePreview({ st }: { st: WizardState }) {
   const mono = 'var(--font-mono, ui-monospace, monospace)';
   const display = 'var(--font-display, Fraunces, serif)';
 
+  // The vibes RE-PRESS the preview live (2026-07-08): the same
+  // first-vibe-wins axes applyVibeLook stamps at finish — display
+  // weight, hero scale, density, hero arrangement — drive the mini
+  // site, so a tap on "Editorial" visibly re-lays the phone.
+  const vibeAxes = (() => {
+    let weight: number | undefined;
+    let scale: number | undefined;
+    let density: string | undefined;
+    let hero: string | undefined;
+    for (const id of st.vibes) {
+      const look = VIBE_LOOKS[id];
+      if (!look) continue;
+      weight ??= look.displayWeight;
+      scale ??= look.heroScale;
+      density ??= look.density;
+      hero ??= look.layouts?.hero;
+    }
+    const pad = density === 'cozy' ? 0.85 : density === 'spacious' ? 1.2 : 1;
+    const poster = hero === 'typographic' || hero === 'plate';
+    const left = hero === 'minimal' || hero === 'spread';
+    return { weight: weight ?? 600, scale: scale ?? 1, pad, poster, left };
+  })();
+
+  // The host's own first photo is the preview's cover the moment it
+  // exists — THEIR site, not stock. No photo yet → a tonal block.
+  const coverUrl = st.photos.find((p) => p.previewUrl || p.url)?.previewUrl
+    || st.photos.find((p) => p.url)?.url;
+
   return (
     <aside
       className="pl8-wizard-preview"
@@ -2131,9 +2182,11 @@ function WizardLivePreview({ st }: { st: WizardState }) {
         <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--pl-olive, #5C6B3F)' }} /> Live preview
       </span>
 
-      {/* Phone frame — dark bezel + soft drop shadow. */}
+      {/* Phone frame — dark bezel + soft drop shadow. Re-keys on any
+          look-shaping pick (palette, names, VIBES) so the whole phone
+          presses in again — the pick is visibly a re-pressing. */}
       <div
-        key={`${st.palette}${title}`}
+        key={`${st.palette}${title}${st.vibes.join(',')}`}
         className="pl-press-in"
         style={{
           width: 300,
@@ -2154,23 +2207,55 @@ function WizardLivePreview({ st }: { st: WizardState }) {
             </span>
             <Icon name="list" size={16} color={inkMuted} />
           </div>
-          {/* Hero */}
-          <div style={{ textAlign: 'center', padding: '10px 18px 22px' }}>
+          {/* Hero — arrangement follows the picked vibes (poster =
+              typographic/plate heroes stack the names bigger; left =
+              minimal/spread heroes rag left). */}
+          <div style={{ textAlign: vibeAxes.left ? 'left' : 'center', padding: `${Math.round(10 * vibeAxes.pad)}px 18px ${Math.round(22 * vibeAxes.pad)}px` }}>
             <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkMuted }}>Save the date</div>
-            <div style={{ fontFamily: display, fontWeight: 600, fontSize: 28, lineHeight: 1.05, color: ink, margin: '8px 0 2px' }}>
-              {couple ? <>{a} <span style={{ fontStyle: 'italic', color: accent }}>&amp;</span> {b}</> : title}
+            <div style={{ fontFamily: display, fontWeight: vibeAxes.weight, fontSize: Math.round((vibeAxes.poster ? 34 : 28) * vibeAxes.scale), lineHeight: 1.02, color: ink, margin: '8px 0 2px' }}>
+              {couple ? (
+                vibeAxes.poster ? (
+                  <>
+                    {a}
+                    <br />
+                    <span style={{ fontStyle: 'italic', fontWeight: 400 }}>
+                      <span style={{ color: accent, fontSize: '0.6em', verticalAlign: '0.2em' }}>&amp; </span>
+                      {b}
+                    </span>
+                  </>
+                ) : (
+                  <>{a} <span style={{ fontStyle: 'italic', color: accent }}>&amp;</span> {b}</>
+                )
+              ) : title}
             </div>
             <div style={{ fontFamily: display, fontStyle: 'italic', fontSize: 13.5, color: accent }}>{verb}</div>
             <div style={{ fontSize: 10.5, color: inkSoft, marginTop: 10, lineHeight: 1.6 }}>
               {date || 'The date'}{place ? <><br />{place}</> : null}
             </div>
           </div>
-          {/* Photo cover */}
-          <img
-            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&q=80&auto=format&fit=crop"
-            alt=""
-            style={{ width: '100%', height: 132, objectFit: 'cover', display: 'block' }}
-          />
+          {/* Photo cover — the host's own first upload the moment it
+              exists; a tonal band with a sprig until then (no stock
+              photo pretending to be theirs). */}
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt=""
+              style={{ width: '100%', height: 132, objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <div
+              aria-hidden
+              style={{
+                width: '100%', height: 132,
+                background: `linear-gradient(160deg, ${section}, color-mix(in srgb, ${accent} 30%, ${paper}))`,
+                display: 'grid', placeItems: 'center',
+              }}
+            >
+              <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkMuted }}>
+                Your photo lands here
+              </span>
+            </div>
+          )}
           {/* Our story band */}
           <div style={{ padding: '22px 18px', background: section, textAlign: 'center' }}>
             <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent }}>Our story</div>
