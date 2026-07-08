@@ -11,7 +11,7 @@ export default function Loading() {
   return (
     <div
       role="status"
-      aria-label="Loading your site"
+      aria-label="Threading your site"
       style={{
         position: 'fixed',
         inset: 0,

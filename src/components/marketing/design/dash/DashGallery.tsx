@@ -906,7 +906,7 @@ function EmptyReel({ sitesCount }: { sitesCount: number }) {
           : 'Your sites have no photos yet. Open any site to add a cover, hero, or chapter images.'}
       </p>
       <Link href="/dashboard" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-        <Icon name="arrow-left" size={13} /> Back to Sites
+        <Icon name="arrow-left" size={13} /> Back to sites
       </Link>
     </div>
   );

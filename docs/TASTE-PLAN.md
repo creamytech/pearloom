@@ -100,7 +100,9 @@ olive and one gold hairline.
 
 ## 4 · Sprint blocks
 
-### T.1 — The chip & state language · status: not started · P0
+### T.1 — The chip & state language · status: SHIPPED 2026-07-08 (`dad78a24`) · P0
+
+> **Executed:** shell <StateChip> (7 kinds incl. lavender 'info') + rsvpStateKind/vendorStateKind; nine surfaces migrated (guests roster + sheet, /rsvps, editor GuestsPanel, vendor book, cadence, registry claims, submissions, music mode); 7 local color maps + 2 local chip components + the orphaned PaymentsPanel deleted. GuestReview's severity map stays — it tints cards, not chips.
 
 ```
 ## Active focus — T.1 · One chip to rule every status
@@ -123,7 +125,9 @@ shots in docs/audit-shots/taste/.
 territory (--t-*), not chrome.
 ```
 
-### T.2 — Type-scale drama on product chrome · status: not started · P0
+### T.2 — Type-scale drama on product chrome · status: SHIPPED 2026-07-08 (`75b0c9c2`) · P0
+
+> **Executed:** PageIntro + PLHead titles rise to clamp(28-30 → 44-46px) with .pl-letterpress + optical sizing; one shared eyebrow recipe (mono-caps, 0.2em, leading gold rule); SectionTitle card tier → 24px; 390px floors verified.
 
 ```
 ## Active focus — T.2 · Let Fraunces be loud
@@ -148,7 +152,9 @@ touched routes; before/after shots.
 (site territory).
 ```
 
-### T.3 — One hero plate per route · status: not started · P1
+### T.3 — One hero plate per route · status: SHIPPED 2026-07-08 (`ef239958`) · P1
+
+> **Executed:** shell <HeroPlate> + <PlateAction> generalized from the cockpit HeroBanner; adopted on Guests, Registry, Vendors, Budget, Keepsakes replacing their PageIntros — one saturated surface per screen, real figures only (zero-collapse), Guests keeps its interactive filter pills as the numbers.
 
 ```
 ## Active focus — T.3 · The pressed plate (focal hierarchy)
@@ -171,7 +177,9 @@ fence stays green; shots per route.
 **Skip:** Settings/help (utility surfaces stay quiet).
 ```
 
-### T.4 — Pattern-as-state (the line-screen) · status: not started · P1
+### T.4 — Pattern-as-state (the line-screen) · status: SHIPPED 2026-07-08 (`01827d34`) · P1
+
+> **Executed:** pl-hatch/-strong/-gold utilities (45° olive/gold line-screen, CSS-only); worn by settled things: fully-claimed registry tiles, sent cadence phases, thanked ledger rows, done day-of moments.
 
 ```
 ## Active focus — T.4 · Hatching is letterpress, not SaaS
@@ -192,7 +200,9 @@ AA contrast preserved under text.
 **Skip:** Published sites (themes own their textures).
 ```
 
-### T.5 — Space, radius, and the copy sweep · status: not started · P2
+### T.5 — Space, radius, and the copy sweep · status: SHIPPED 2026-07-08 (`this commit`) · P2
+
+> **Executed:** §7 copy fixes (Back to Sites → sites ×2, skeleton Loading → Threading ×2); radius audit found the atoms + card system already token-clean (--r-md/--pl-radius-*/999 from A.1) — per-surface small-element radii (8-14px) left deliberately, documented here rather than churned.
 
 ```
 ## Active focus — T.5 · The calm pass

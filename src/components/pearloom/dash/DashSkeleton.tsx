@@ -29,7 +29,7 @@ export interface DashSkeletonProps {
   style?: CSSProperties;
 }
 
-export function DashSkeleton({ kind = 'list', count, label = 'Loading', showLabel, style }: DashSkeletonProps) {
+export function DashSkeleton({ kind = 'list', count, label = 'Threading', showLabel, style }: DashSkeletonProps) {
   const visuallyHiddenLabel: CSSProperties = {
     position: 'absolute',
     width: 1,

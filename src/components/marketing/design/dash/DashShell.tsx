@@ -921,7 +921,7 @@ export function EmptyShell({
       pressed page can sit inside a route client's own layout. */
   inline?: boolean;
 }) {
-  const link = cta === null ? null : cta ?? { label: '← Back to Sites', href: '/dashboard' };
+  const link = cta === null ? null : cta ?? { label: '← Back to sites', href: '/dashboard' };
   const Wrapper = inline ? 'div' : 'main';
   return (
     <Wrapper style={inline ? undefined : { padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 1160, margin: '0 auto' }}>
