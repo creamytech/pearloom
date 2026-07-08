@@ -46,6 +46,20 @@ switcher. Every dashboard-card change must keep the §5 guardrails
 green (the forbidden-strings test IS the fence). Open decisions
 remain in AFTERGLOW-PLAN §8 (the 45-day afterglow→kept window is a
 constant in cockpit-phase.ts; per-photo focal point still
-deferred). vitest 1278/1278; all three plan queues (PERSONA,
-GRAND-PLAN-2, AFTERGLOW) are now empty — the next plan doc hasn't
-been written yet.
+deferred). vitest 1278/1278; the PERSONA, GRAND-PLAN-2, and
+AFTERGLOW queues are all fully executed.
+
+**The next plan is written and ready: `docs/ATELIER-PLAN.md`**
+(2026-07-08) — what we press, what we send, what we never fulfill.
+Four audited workstreams: §1 retire Pearloom Print (a LIVE Lob +
+Stripe print-and-mail pipeline ships today — the owner wants no
+physical anything; press-ready PDF replaces it), §2 Studio v2
+pressed from the site's real --t-* theme bag (today it's a parallel
+design system with 11 documented gaps + an autosave bug), §3 the
+invitation as one woven object (the batch invite email is unthemed
+near-black → an unthemed /i/ page that never shows the site; no OG
+on /i/ or /g/), §4 dashboard route merges (keepsakes+memory-book,
+gallery+library, payments→registry, connections→weekend) + routes
+reading cockpit-phase. TEN ready-to-paste sprint blocks at §6;
+recommended order PR.1 → INV.1 → INV.2 → ST.1 → ST.2 → DR.1 → DR.2
+→ INV.3 → ST.3 → DR.3. Paste a block over this heading to arm one.
