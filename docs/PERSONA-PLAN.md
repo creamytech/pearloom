@@ -264,7 +264,25 @@ layout work. New occasion content packs beyond the four threads.
 
 ---
 
-### S2 — The honest proof · **status: planned** · P0
+### S2 — The honest proof · **status: SHIPPED 2026-07-08** · P0
+
+> Shipped: `proof` mode on ThemedSite — the Review pressing renders
+> host content real and replaces every un-authored section with a
+> DRAFTING SLAT (`redesign/proof.ts`: occasion-routed heading + gold
+> hairline + one line in Pear's voice; solemn register for
+> memorials; guest-written walls say whose words land there). The
+> Review mount (`WizardStructureSection stage`) passes `proof`
+> instead of `demoCopy`, AND now carries the host's real facts —
+> date/location into the hero, Day-step picks via the same
+> `seedSectionsFromWizard` call handleFinish uses — so the proof IS
+> the site the press produces. Verified live: Maya's proof shows
+> "Saturday, July 25, 2026 · Asheville, NC", her picked
+> Ceremony/Dinner moments and Garden formal dress code, and zero
+> borrowed content (no olives story, no Santorini hotels); Denise's
+> proof reads gently throughout. The proof gate is unit-pinned
+> (`proof.test.ts`, content-wins included). Fitting room keeps
+> demoCopy by design (a try-on surface, not a promise). After-shot:
+> `review-proof-slats.png`. vitest 1246/1246.
 
 ```
 ## Active focus — S2 · The honest proof (Review shows only the truth)
@@ -661,6 +679,14 @@ testing: ≥80% task completion across personas, wizard→publish conversion
 ---
 
 ## 7 · Changelog
+
+### 2026-07-08 — S2 shipped (The honest proof)
+F2 closed. ThemedSite `proof` mode + `redesign/proof.ts` drafting
+slats (solemn-aware, content-wins, unit-pinned); the Review pressing
+also gained the host's real facts (date/location + Day-step picks via
+seedSectionsFromWizard — the proof now matches the press exactly).
+Maya + Denise walks re-run: zero borrowed content in either proof.
+vitest 1246/1246.
 
 ### 2026-07-08 — S1 shipped (One of one)
 F1, F7, F8, F9 closed — see the S1 status block in §4 for the full

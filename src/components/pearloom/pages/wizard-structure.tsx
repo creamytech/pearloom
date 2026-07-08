@@ -19,6 +19,7 @@ import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { applyVibeLook } from '@/lib/site-look/vibe-look';
 import { applySectionPicks, type SectionPicks } from '@/lib/event-os/wizard-sections';
+import { seedSectionsFromWizard, type DayPicks } from '@/lib/wizard-seed';
 import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Sparkle } from '../motifs';
 import { DEBOSS_SHEET } from '@/components/brand/pressed';
@@ -48,6 +49,10 @@ export function WizardStructureSection({
   sectionPicks,
   vibes,
   stage = false,
+  proof = false,
+  eventDate,
+  location,
+  seedPicks,
   onPressSeal,
   pressing = false,
   onChange: _onChange,
@@ -81,6 +86,17 @@ export function WizardStructureSection({
    *  a full-width desktop-scale sheet — the proof — instead of the
    *  phone. Review mounts it so. */
   stage?: boolean;
+  /** Review mount only — the pressing is framed as "the exact site
+   *  Pear will press", so it renders in ThemedSite's proof mode
+   *  (real content + drafting slats, never demo copy). */
+  proof?: boolean;
+  /** The host's real facts + Day-step picks — the proof carries the
+   *  same content the press will (seedSectionsFromWizard, identical
+   *  to handleFinish), so a picked schedule/hotels/FAQ render REAL
+   *  instead of slatting. */
+  eventDate?: string;
+  location?: string;
+  seedPicks?: DayPicks;
   /** Stage-only: mounts the floating wax seal ("Press it") over the
    *  sheet; fires the wizard's finish. */
   onPressSeal?: () => void;
@@ -113,11 +129,17 @@ export function WizardStructureSection({
     ? `${[...sectionPicks.on].sort().join(',')}~${Object.entries(sectionPicks.layouts).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}:${v}`).join(',')}`
     : '';
   const vibesKey = (vibes ?? []).join('|');
+  const seedKey = seedPicks ? JSON.stringify(seedPicks) : '';
   const manifest = useMemo<StoryManifest>(() => {
     const base = {
       occasion,
       coverPhoto,
       galleryImages,
+      /* The host's real date + location — the proof hero states the
+         facts they gave, exactly as the press will. */
+      ...(eventDate || location
+        ? { logistics: { ...(eventDate ? { date: eventDate } : {}), ...(location ? { place: location } : {}) } }
+        : {}),
     } as unknown as StoryManifest;
     const dressed = applyWizardLook(base, {
       selectedPaletteColors: paletteColors,
@@ -146,6 +168,9 @@ export function WizardStructureSection({
     // the fitting-room hero wins over the chooser's hero variant
     // (same precedence as handleFinish).
     let out = dressed as unknown as StoryManifest;
+    // Day-step picks seed the proof exactly as handleFinish seeds
+    // the press (seed FIRST, then section picks — same precedence).
+    if (seedPicks) out = seedSectionsFromWizard(out, seedPicks);
     if (sectionPicks) out = applySectionPicks(out, occasion, sectionPicks);
     // Vibes fold in exactly where handleFinish folds them — after
     // section picks, before the explicit nav/hero stamps — so the
@@ -162,7 +187,7 @@ export function WizardStructureSection({
     // Keyed by CONTENT (paletteKey/galleryKey/picksKey/recipeKey/
     // sectionPicksKey/vibesKey), not the per-render literal identities.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, sectionPicksKey, vibesKey, suggestedMotif, suggestedMotifLayout]);
+  }, [occasion, coverPhoto, paletteKey, galleryKey, picksKey, recipeKey, sectionPicksKey, vibesKey, suggestedMotif, suggestedMotifLayout, eventDate, location, seedKey]);
 
   /* Same treatment for names — the wizard passes a fresh tuple every
      render, which would defeat the compiler's memo of the ThemedSite
@@ -264,12 +289,12 @@ export function WizardStructureSection({
                 {stage ? (
                   stageWidth > 0 && (
                     <div style={{ width: STAGE_W, zoom: stageWidth / STAGE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                      <ThemedSite manifest={manifest} names={stableNames} demoCopy />
+                      <ThemedSite manifest={manifest} names={stableNames} demoCopy={!proof} proof={proof} />
                     </div>
                   )
                 ) : (
                   <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                    <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy />
+                    <ThemedSite manifest={manifest} names={stableNames} forceMobile demoCopy={!proof} proof={proof} />
                   </div>
                 )}
               </div>

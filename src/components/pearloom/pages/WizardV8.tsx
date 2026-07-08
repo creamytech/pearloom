@@ -4516,6 +4516,23 @@ export function WizardV8() {
                         sectionPicks={st.sectionPicks}
                         vibes={st.vibes}
                         stage
+                        proof
+                        eventDate={st.eventDate}
+                        location={st.location}
+                        seedPicks={{
+                          events: st.dayEvents,
+                          dressCode: st.dressCode,
+                          rsvpDeadline: st.rsvpDeadline,
+                          hotels: st.hotels,
+                          kidsPolicy: st.kidsPolicy,
+                          parkingNote: st.parkingNote,
+                          wantsCountdown: st.wantsCountdown,
+                          playlistUrl: st.playlistUrl,
+                          meals: st.meals,
+                          registryUrl: st.registryUrl,
+                          plusOnes: st.plusOnes,
+                          partyNames: st.partyNames,
+                        }}
                         onPressSeal={() => { if (canContinue && !busy) void handleFinish(); }}
                         pressing={busy}
                         onExpand={() => setFittingOpen(true)}

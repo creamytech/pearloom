@@ -40,6 +40,7 @@ import type { SectionId } from './EditorRedesign';
    with EditorRedesign / SectionRail (importing from EditorRedesign
    here would cycle: EditorRedesign imports ThemedSite). */
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
+import { proofSlatFor } from './proof';
 /* Occasion copy packs — fallback + demo copy routed by occasion so
    a solo birthday never renders "How we met" (leaf data module). */
 import { occasionCopyFor } from './occasion-copy';
@@ -169,6 +170,14 @@ interface Props {
      Published sites never pass this; the honesty rule (demo
      content never reaches guests) is untouched. */
   demoCopy?: boolean;
+  /* The wizard Review pressing — "the exact site Pear will press" —
+     must never dress itself in demo copy (PERSONA-PLAN S2, law 2:
+     never present borrowed content as theirs). Proof mode renders
+     host-given content real and replaces every section that would
+     have leaned on demo fallbacks with a quiet DRAFTING SLAT (the
+     section's own heading + one line in Pear's voice). Mutually
+     exclusive with demoCopy in practice; proof wins. */
+  proof?: boolean;
   manifest: StoryManifest;
   names: [string, string];
   /* Editor "mobile preview" pill renders the canvas inside a
@@ -227,6 +236,45 @@ const noop = () => {};
 const INLINE_GHOST_CSS =
   '[contenteditable].pl8-inline-ghost:empty::before{content:attr(aria-label);opacity:0.38;font-style:italic;pointer-events:none;}';
 
+/* The Review pressing's drafting slat — an un-authored section's
+   honest stand-in: the section's own heading (occasion-routed), a
+   gold hairline, and one line in Pear's voice. Styled as part of
+   the proof (site tokens), never as an error. */
+function ProofSlat({ label, note }: { label: string; note: string }) {
+  return (
+    <div style={{ padding: '52px 24px', textAlign: 'center' }}>
+      <div
+        style={{
+          fontFamily: 'var(--t-body, ui-sans-serif)',
+          fontSize: 10,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--t-accent)',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        aria-hidden
+        style={{ width: 44, height: 1, background: 'var(--t-gold)', margin: '14px auto 16px', opacity: 0.8 }}
+      />
+      <p
+        style={{
+          fontFamily: 'var(--t-display, serif)',
+          fontStyle: 'italic',
+          fontSize: 15.5,
+          lineHeight: 1.65,
+          color: 'var(--t-ink-soft)',
+          maxWidth: 380,
+          margin: '0 auto',
+        }}
+      >
+        {note}
+      </p>
+    </div>
+  );
+}
+
 export function ThemedSite(props: Props) {
   /* Photo focal points ride a context so FadeInImage (the shared
      photo atom) can honor manifest.photoFocus everywhere — editor
@@ -244,6 +292,7 @@ function ThemedSiteInner({
   setActive = noop,
   editable = false,
   demoCopy = false,
+  proof = false,
   manifest,
   names,
   forceMobile = false,
@@ -650,7 +699,7 @@ function ThemedSiteInner({
   })();
   const allSections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s))
-    .filter((s) => s !== 'story' || editable || demoCopy || storyAuthored)
+    .filter((s) => s !== 'story' || editable || demoCopy || proof || storyAuthored)
     .filter((s) =>
       !coreKinds.includes(s)
       || isCoreSectionApplicable(s, occasionId)
@@ -847,6 +896,10 @@ function ThemedSiteInner({
       && siteMode === 'multi-page'
       && multiPageSet.has(kind)
       && !homeBlockSet.has(kind);
+    /* Proof mode (the Review pressing): a section with no host
+       content renders a drafting slat instead of demo copy — the
+       proof stays "the exact site" without lying (S2, law 2). */
+    const slatNote = proof ? proofSlatFor(kind, manifest, occasionId) : null;
     return (
       <TSection
         key={kind}
@@ -861,7 +914,7 @@ function ThemedSiteInner({
         manifest={manifest}
         onEditField={onEditField}
       >
-        {renderKind(kind, ctx)}
+        {slatNote ? <ProofSlat label={sectionLabel(kind)} note={slatNote} /> : renderKind(kind, ctx)}
       </TSection>
     );
   };
