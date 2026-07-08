@@ -19,20 +19,13 @@
 // Never "AI-powered". Buttons are verb-first.
 // ─────────────────────────────────────────────────────────────
 
-import { emailLayout, button, type EmailThemeColors } from '@/lib/email-sequences';
+import { emailLayout, button, DEFAULT_EMAIL_THEME, type EmailThemeColors } from '@/lib/email-sequences';
 
 /** Pearloom's own paper — for product emails with no site context.
- *  Mirrors the light-mode tokens in CLAUDE-DESIGN.md §2. */
-export const BRAND_EMAIL_THEME: EmailThemeColors = {
-  background: '#F5EFE2', // --pl-cream
-  foreground: '#0E0D0B', // --pl-ink
-  accent: '#5C6B3F',     // --pl-olive
-  accentLight: '#E5DCC4',// --pl-divider-soft
-  card: '#FBF7EE',       // --pl-cream-card
-  muted: '#6F6557',      // --pl-muted
-  headingFont: 'Fraunces',
-  bodyFont: 'Inter',
-};
+ *  ONE token set with email-sequences' default (ATELIER-PLAN INV.1
+ *  killed the second "default cream" so unthemed emails can't
+ *  diverge). Kept as a named export for the existing call sites. */
+export const BRAND_EMAIL_THEME: EmailThemeColors = DEFAULT_EMAIL_THEME;
 
 const GOLD = '#B8935A'; // --pl-gold — punctuation only, 1px rules + glyphs
 

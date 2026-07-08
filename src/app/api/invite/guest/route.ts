@@ -20,6 +20,9 @@ import { suppressedEmails } from '@/lib/email/suppression';
 import { getSiteConfig } from '@/lib/db';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { emailThemeFromSuite, buildStationeryEmail } from '@/lib/email-sequences';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,6 +147,27 @@ export async function POST(req: NextRequest) {
         .join(' & ') || 'Your hosts';
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
+    /* The couple's own theme — the SAME SuiteTheme contract the
+       site, OG cards, and save-the-date email derive from. The
+       old hand-rolled near-black template ignored it entirely
+       (ATELIER-PLAN INV.1). */
+    const suite = suiteThemeFromManifest(
+      (manifest ?? { occasion }) as StoryManifest,
+      [String(names[0] ?? ''), String(names[1] ?? '')],
+    );
+    const themeColors = emailThemeFromSuite(suite);
+    const coverPhoto = String(manifest?.coverPhoto ?? '').trim();
+    const photoUrl = coverPhoto.startsWith('https://') ? coverPhoto : undefined;
+    const eventDateRaw = manifest?.logistics?.date;
+    const parsedDate = eventDateRaw ? new Date(`${eventDateRaw}T00:00:00`) : null;
+    const dateDisplay = parsedDate && !Number.isNaN(parsedDate.getTime())
+      ? parsedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+      : undefined;
+    const venueName = String(manifest?.logistics?.venue ?? '').trim() || undefined;
+    const initA = String(names[0] ?? '').trim().charAt(0).toUpperCase();
+    const initB = solo ? '' : String(names[1] ?? '').trim().charAt(0).toUpperCase();
+    const monogram = initA ? { initA, initB } : undefined;
+
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
         { error: 'Email is not configured on this server. Add RESEND_API_KEY and try again.' },
@@ -201,93 +225,27 @@ export async function POST(req: NextRequest) {
       }
 
       const inviteUrl = `${baseUrl}/i/${token}`;
-      const subject =
-        cardType === 'std'    ? `Save the date — ${displayNames}` :
-        cardType === 'thanks' ? (solemn ? `With thanks, from the family of ${displayNames}` : `Thank you, from ${displayNames}`) :
-        solemn                ? `${(eventType?.label ?? 'Memorial').split(' / ')[0]} for ${displayNames}` :
-                                `You're invited to ${displayNames}'s ${occasionLabel}`;
-      const eyebrowCopy =
-        cardType === 'std'    ? 'Save the date' :
-        cardType === 'thanks' ? (solemn ? 'With gratitude' : 'Thank you') :
-        solemn                ? 'Join us in remembering' :
-                                'You are cordially invited';
-      const bodyCopy =
-        cardType === 'std'    ? (solemn
-          ? `We've set a date to gather and remember together. Open the card for the details and the link to the site.`
-          : `We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.`) :
-        cardType === 'thanks' ? (solemn
-          ? `Thank you for standing with us. Open the card for a note from the family.`
-          : `Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.`) :
-        solemn ? `We're gathering to honor a beautiful life. Open the card for the details, and let us know if you can be with us.` :
-                                `We have prepared something special just for you.<br/>Open your personal invitation to see all the details<br/>and let us know if you'll be joining us.`;
-      const ctaLabel =
-        cardType === 'std'    ? 'Open the save-the-date' :
-        cardType === 'thanks' ? 'Open your thank-you' :
-                                'Open Your Invitation';
-
-      const esc = (s: string) =>
-        s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-      const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${esc(subject)}</title>
-</head>
-<body style="margin:0;padding:0;background:#0E0B12;font-family:'Georgia',serif;color:#F5F1E8;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E0B12;padding:48px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-          <tr>
-            <td style="text-align:center;padding-bottom:32px;">
-              <div style="display:inline-block;width:48px;height:1px;background:rgba(196,169,106,0.4);vertical-align:middle;margin-right:12px;"></div>
-              <span style="color:rgba(196,169,106,0.7);font-size:11px;letter-spacing:3px;text-transform:uppercase;">Pearloom</span>
-              <div style="display:inline-block;width:48px;height:1px;background:rgba(196,169,106,0.4);vertical-align:middle;margin-left:12px;"></div>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:rgba(163,177,138,0.04);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
-              <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">${esc(eyebrowCopy)}</p>
-              <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(displayNames)}</h1>
-              <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">${
-                cardType === 'std'    ? (solemn ? 'in loving memory' : `for the ${esc(occasionLabel)}`) :
-                cardType === 'thanks' ? (solemn ? 'with heartfelt thanks' : 'with all our love') :
-                solemn                ? 'a gathering to honor a beautiful life' :
-                solo                  ? `you're invited to the ${esc(occasionLabel)}` :
-                                        `invite you to celebrate their ${esc(occasionLabel)}`
-              }</p>
-
-              ${guestName ? `<p style="margin:0 0 32px;font-size:16px;color:rgba(245,241,232,0.8);">Dear <em>${esc(guestName)}</em>,</p>` : ''}
-
-              <p style="margin:0 0 40px;font-size:15px;line-height:1.7;color:rgba(245,241,232,0.7);">${bodyCopy}</p>
-
-              <a href="${esc(inviteUrl)}"
-                 style="display:inline-block;padding:16px 40px;background:rgba(196,169,106,0.15);border:1px solid rgba(196,169,106,0.5);border-radius:8px;color:#C4A96A;text-decoration:none;font-size:14px;letter-spacing:2px;text-transform:uppercase;">
-                ${esc(ctaLabel)}
-              </a>
-
-              <p style="margin:40px 0 0;font-size:12px;color:rgba(245,241,232,0.3);">
-                Or copy this link: <span style="color:rgba(196,169,106,0.5);">${esc(inviteUrl)}</span>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align:center;padding-top:24px;">
-              <p style="margin:0;font-size:11px;color:rgba(245,241,232,0.2);">Sent with love via Pearloom · pearloom.com</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+      /* One themed email system (emailLayout + SuiteTheme) — the
+         copy per cardType/solemn/solo lives in buildStationeryEmail
+         so every stationery send shares one voice + one look. */
+      const { subject, html } = buildStationeryEmail({
+        cardType,
+        coupleDisplay: displayNames,
+        occasionLabel,
+        occasionTitle: (eventType?.label ?? 'Memorial').split(' / ')[0],
+        solemn,
+        solo,
+        guestName: guestName || undefined,
+        ctaUrl: inviteUrl,
+        dateDisplay,
+        venueName,
+        photoUrl,
+        monogram,
+        themeColors,
+      });
 
       const { error: emailError } = await resend.emails.send({
-        from: 'Pearloom <invites@pearloom.com>',
+        from: `${displayNames} <invites@pearloom.com>`,
         to: guestEmail,
         subject,
         html,

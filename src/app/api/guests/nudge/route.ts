@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (!sb) return NextResponse.json({ error: 'Storage unavailable' }, { status: 503 });
 
   const resendKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || 'noreply@pearloom.com';
+  const fromAddress = process.env.EMAIL_FROM || 'noreply@pearloom.com';
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
   // Resolve site + ownership check.
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
 
       if (resend && r.email) {
         await resend.emails.send({
-          from: fromEmail,
+          from: `${couple} <${fromAddress.replace(/^.*</, '').replace(/>.*$/, '')}>`,
           to: r.email,
           subject: subjectLine,
           html,

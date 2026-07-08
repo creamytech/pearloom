@@ -230,7 +230,7 @@ Just write the body paragraph(s).`;
     `, t);
 
     await resend.emails.send({
-      from: 'Pearloom <noreply@pearloom.com>',
+      from: `${sender} <noreply@pearloom.com>`,
       to: guestEmail,
       subject,
       html: htmlBody,

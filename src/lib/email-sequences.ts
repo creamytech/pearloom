@@ -30,16 +30,21 @@ export interface EmailThemeColors {
   bodyFont: string;      // body font name
 }
 
-const DEFAULT_THEME: EmailThemeColors = {
-  background: '#F5F1E8',
-  foreground: '#2B2B2B',
-  accent: '#5C6B3F',
-  accentLight: '#EEE8DC',
-  card: '#FFFFFF',
-  muted: '#9A9488',
-  headingFont: 'Playfair Display',
+/** Pearloom's own paper — ONE default token set for every email
+ *  with no site theme (mirrors the light-mode --pl-* tokens).
+ *  brand-emails.ts aliases this; the old second "default cream"
+ *  (#F5F1E8 / Playfair) is gone so unthemed emails can't diverge. */
+export const DEFAULT_EMAIL_THEME: EmailThemeColors = {
+  background: '#F5EFE2', // --pl-cream
+  foreground: '#0E0D0B', // --pl-ink
+  accent: '#5C6B3F',     // --pl-olive
+  accentLight: '#E5DCC4',// --pl-divider-soft
+  card: '#FBF7EE',       // --pl-cream-card
+  muted: '#6F6557',      // --pl-muted
+  headingFont: 'Fraunces',
   bodyFont: 'Inter',
 };
+const DEFAULT_THEME = DEFAULT_EMAIL_THEME;
 
 /**
  * Parse a hex color to relative luminance (0 = black, 1 = white).
@@ -147,6 +152,17 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** CAN-SPAM §5(a)(5) postal line — rendered only when the real
+ *  registered address is configured (EMAIL_POSTAL_ADDRESS). An
+ *  honest omission beats a shipped placeholder. */
+function postalLine(t: EmailThemeColors, bodyStack: string): string {
+  const postal = process.env.EMAIL_POSTAL_ADDRESS?.trim();
+  if (!postal) return '';
+  return `<p style="font-size:10px;color:${t.muted};margin:10px 0 0;font-family:${bodyStack};opacity:0.7">
+                Pearloom · ${esc(postal)}
+              </p>`;
+}
+
 export function emailLayout(content: string, themeColors?: EmailThemeColors): string {
   const t = emailSafeTheme(themeColors || DEFAULT_THEME);
   const headingStack = `'${t.headingFont}',Georgia,serif`;
@@ -204,12 +220,7 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
               <p style="font-size:10.5px;color:${t.muted};margin:6px 0 0;font-family:${bodyStack};letter-spacing:0.04em;opacity:0.85">
                 The operating system for the days that matter
               </p>
-              <!-- CAN-SPAM §5(a)(5): a valid physical postal address.
-                   PLACEHOLDER — replace [MAILING ADDRESS] with the real
-                   registered address before launch. -->
-              <p style="font-size:10px;color:${t.muted};margin:10px 0 0;font-family:${bodyStack};opacity:0.7">
-                Pearloom · [MAILING ADDRESS] · California, USA
-              </p>
+              ${postalLine(t, bodyStack)}
             </td>
           </tr>
         </table>
@@ -518,6 +529,116 @@ export function buildSaveTheDateEmail(opts: SaveTheDateEmailOpts): { subject: st
     <tr><td style="padding:16px 36px 40px;text-align:center">
       ${button('Open the envelope', opts.ctaUrl, t)}
       <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">A formal invitation will follow.</p>
+    </td></tr>
+  `, t);
+
+  return { subject, html };
+}
+
+// ── The Studio batch stationery email (ATELIER-PLAN INV.1) ──
+//
+// One themed email for all three card types (save-the-date /
+// invitation / thank-you). Replaces the hand-rolled near-black
+// template that ignored the couple's theme: this one wears the
+// SuiteTheme palette + display face, carries the cover photo,
+// the date + venue, the monogram crest, and is addressed —
+// "Pressed for {guest}". Solemn occasions keep the remembering
+// register throughout.
+
+export type StationeryCardType = 'std' | 'invite' | 'thanks';
+
+export interface StationeryEmailOpts {
+  cardType: StationeryCardType;
+  coupleDisplay: string;
+  /** Lowercased registry label, e.g. "wedding", "bachelorette party". */
+  occasionLabel: string;
+  /** The registry label with original casing (solemn subjects). */
+  occasionTitle?: string;
+  solemn: boolean;
+  solo: boolean;
+  guestName?: string;
+  ctaUrl: string;
+  dateDisplay?: string;
+  venueName?: string;
+  /** Absolute https URL only — email clients need a real host. */
+  photoUrl?: string;
+  monogram?: { initA: string; initB: string };
+  themeColors?: EmailThemeColors;
+}
+
+export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: string; html: string } {
+  const t = emailSafeTheme(opts.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+  const { cardType, solemn, solo, coupleDisplay, occasionLabel } = opts;
+  const occasionTitle = opts.occasionTitle ?? 'Memorial';
+
+  const subject =
+    cardType === 'std'    ? `Save the date — ${coupleDisplay}` :
+    cardType === 'thanks' ? (solemn ? `With thanks, from the family of ${coupleDisplay}` : `Thank you, from ${coupleDisplay}`) :
+    solemn                ? `${occasionTitle} for ${coupleDisplay}` :
+                            `You're invited to ${coupleDisplay}'s ${occasionLabel}`;
+  const eyebrow =
+    cardType === 'std'    ? 'Save the date' :
+    cardType === 'thanks' ? (solemn ? 'With gratitude' : 'Thank you') :
+    solemn                ? 'Join us in remembering' :
+                            'You are cordially invited';
+  const subLine =
+    cardType === 'std'    ? (solemn ? 'in loving memory' : `for the ${occasionLabel}`) :
+    cardType === 'thanks' ? (solemn ? 'with heartfelt thanks' : 'with all our love') :
+    solemn                ? 'a gathering to honor a beautiful life' :
+    solo                  ? `you're invited to the ${occasionLabel}` :
+                            `invite you to celebrate their ${occasionLabel}`;
+  const bodyCopy =
+    cardType === 'std' ? (solemn
+      ? 'We’ve set a date to gather and remember together. Open the card for the details and the link to the site.'
+      : 'We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.') :
+    cardType === 'thanks' ? (solemn
+      ? 'Thank you for standing with us. Open the card for a note from the family.'
+      : 'Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.') :
+    solemn
+      ? 'We’re gathering to honor a beautiful life. Open the card for the details, and let us know if you can be with us.'
+      : 'We have prepared something special just for you. Open your personal invitation to see all the details and let us know if you’ll be joining us.';
+  const ctaLabel =
+    cardType === 'std'    ? 'Open the save-the-date' :
+    cardType === 'thanks' ? 'Open your thank-you' :
+                            'Open your invitation';
+
+  const greeting = opts.guestName
+    ? `<p style="font-size:14.5px;color:${t.foreground};margin:0 0 10px;font-family:${bodyStack}">Dear <em style="font-family:${headingStack}">${esc(opts.guestName)}</em>,</p>`
+    : '';
+  const dateVenueBlock = (opts.dateDisplay || opts.venueName)
+    ? `<tr><td style="padding:0 36px 8px">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
+          <tr><td style="padding:20px 24px;text-align:center">
+            ${opts.dateDisplay ? `<p style="font-size:17px;color:${t.foreground};margin:0 0 4px;font-weight:600;font-family:${headingStack};font-style:italic">${esc(opts.dateDisplay)}</p>` : ''}
+            ${opts.venueName ? `<p style="font-size:13px;color:${t.muted};margin:0;font-family:${bodyStack}">${esc(opts.venueName)}</p>` : ''}
+          </td></tr>
+        </table>
+      </td></tr>`
+    : '';
+  /* The exclusivity register — this envelope has one name on it. */
+  const pressedFor = opts.guestName
+    ? `<p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">Pressed for ${esc(opts.guestName)}</p>`
+    : '';
+
+  const html = emailLayout(`
+    ${opts.photoUrl ? `<tr><td style="padding:0"><img src="${esc(opts.photoUrl)}" alt="" width="560" style="display:block;width:100%;height:auto" /></td></tr>` : ''}
+    <tr><td style="padding:44px 36px 0;text-align:center">
+      ${opts.monogram ? monogramCrest(opts.monogram.initA, opts.monogram.initB, t) : ''}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:${opts.monogram ? '20px' : '0'} 0 16px;font-family:${bodyStack}">${esc(eyebrow)}</p>
+      <h1 style="font-family:${headingStack};font-size:32px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.2">${esc(coupleDisplay)}</h1>
+      <p style="font-size:13.5px;color:${t.muted};margin:0;font-family:${bodyStack};letter-spacing:0.04em">${esc(subLine)}</p>
+      <div style="width:48px;height:1px;background-color:${t.accent};opacity:0.6;margin:20px auto"></div>
+    </td></tr>
+    <tr><td style="padding:4px 36px 16px;text-align:center">
+      ${greeting}
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0;font-family:${bodyStack}">${esc(bodyCopy)}</p>
+    </td></tr>
+    ${dateVenueBlock}
+    <tr><td style="padding:16px 36px 40px;text-align:center">
+      ${button(ctaLabel, opts.ctaUrl, t)}
+      ${pressedFor}
     </td></tr>
   `, t);
 
