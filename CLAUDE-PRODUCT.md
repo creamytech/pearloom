@@ -21,9 +21,14 @@
 
 ## 1 · Positioning
 
-> *"The operating system for the days that matter."*
+> *"Beautiful websites for weddings and life's big days — plus everything to run them."*
+>
+> (Public-facing line, 2026-07-08. The old internal shorthand "the
+> operating system for the days that matter" reads as tech-founder
+> jargon to a non-technical or older host — it never ships in
+> user-facing copy. See BRAND.md §7.)
 
-Pearloom isn't a wedding-site builder. It's the workspace that carries a celebration from **"save the date"** to **"remember when"** — site, guests, vendors, day-of ops, and the post-event keepsake film, all woven together.
+Pearloom isn't just a wedding-site builder. It carries a celebration from **"save the date"** to **"remember when"** — the site, the guests, the vendors, the day itself, and the keepsake after, all in one place.
 
 Three product pillars (see `src/components/marketing/EventOSPillars.tsx`):
 

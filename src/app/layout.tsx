@@ -42,14 +42,14 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com'),
-  title: "Pearloom — The operating system for the days that matter",
+  title: "Pearloom — Beautiful websites for weddings & life's big days",
   description:
-    "One calm home for the whole celebration — the site, the guests, the day itself, and everything worth keeping after. Woven, not templated.",
+    "Create a beautiful website for your wedding, birthday, or celebration — then manage guests, RSVPs, and the whole day from one place.",
   openGraph: {
     siteName: 'Pearloom',
     type: 'website',
     locale: 'en_US',
-    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Pearloom — a craft house for memory' }],
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Pearloom — beautiful sites for the days that matter' }],
   },
   twitter: {
     card: 'summary_large_image',

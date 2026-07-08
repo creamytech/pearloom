@@ -62,7 +62,7 @@ function page(title: string, body: string, extra = '', status = 200): NextRespon
   ${body}
   ${extra}
   <div class="rule"></div>
-  <p class="fine">Pearloom · The operating system for the days that matter.</p>
+  <p class="fine">Pearloom · Beautiful sites for the days that matter.</p>
 </body></html>`;
   return new NextResponse(html, {
     status,

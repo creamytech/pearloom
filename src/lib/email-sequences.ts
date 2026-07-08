@@ -171,7 +171,7 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
                 Woven with care by <a href="${base}" style="color:${t.accent};text-decoration:none;font-weight:600">Pearloom</a>
               </p>
               <p style="font-size:10.5px;color:${t.muted};margin:6px 0 0;font-family:${bodyStack};letter-spacing:0.04em;opacity:0.85">
-                The operating system for the days that matter
+                Beautiful sites for the days that matter
               </p>
               ${postalLine(t, bodyStack)}
             </td>

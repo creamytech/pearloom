@@ -95,22 +95,47 @@ Always honour `prefers-reduced-motion`.
 
 ## 7 · Microcopy
 
-- **Never** say "AI-powered". Pear is a person, not a product.
-- **Never** say "Loading…". Say "Threading…".
-- **Never** say "No data" or "Empty". Say "Nothing yet. Begin a
-  thread." (or context-specific equivalent in the same key).
-- **Never** say "Generated". Say "drafted" or "basted in".
-- **Never** say "AI-generated". Say "drafted by Pear".
-- Buttons name the action verb-first, lowercase except first letter.
-  ("Begin a thread", not "Get Started Now!").
+**The governing rule: clarity first.** A first-time host — including
+someone older or not technical, planning an anniversary or a
+memorial — must never decode a word to do a task. When the craft
+verb and the plain word compete, the plain word wins. (Updated
+2026-07-08: the craft metaphor is a *flourish*, not the working
+language. It earns its place in the marketing hero, the footer
+signature, and a few designed brand moments — never in the buttons,
+forms, empty states, errors, or instructions a host uses to get
+something done.)
+
+**The positioning line is plain:** "Beautiful websites for weddings
+and life's big days — plus everything to run them." Never
+"operating system", "the OS for events", or any tech-founder
+framing. Warm phrases like *the days that matter* are fine; product
+jargon is not.
+
+- **Say what the button does, in words everyone knows.** "Create
+  your site", "Get started", "Add a guest", "Publish", "Save",
+  "Send invitations" — not "Begin a thread", "Weave a site", or
+  "Press it". Verb-first, sentence case.
+- **Empty states name the gap and the next step, plainly.** "Nothing
+  here yet — add your first guest." Not "Nothing yet. Begin a
+  thread." (The old `<EmptyState/>` key is retired.)
+- **Loaders may keep one small flourish** ("Threading…") *only* where
+  a spinner blocks nothing and the word is a wink, never where a
+  host is waiting on a result they need — there "One moment…" /
+  "Saving…" / "Publishing…" is clearer. When in doubt, plain.
+- **Never** say "AI-powered" or "AI-generated". Pear is a person:
+  "drafted by Pear", "Pear's draft". **Retire "basted in"** — say
+  "added" or "drafted".
 - **Control labels are plain words.** Pickers, rails, tabs, and
   field labels name the thing a first-time host already has a word
   for: *Colors*, *Menu*, *Spacing*, *Paper*, *Opening*, *Pages* —
   never *Palette*, *Nav variant*, *Density*, *Hero*, *Kit*,
-  *Edition* as labels. The craft vocabulary lives in prose, blurbs,
-  and moments — not in nouns a host must decode to find the knob
-  they want. (Internal ids and manifest fields keep the precise
-  names; only the label simplifies.)
+  *Edition* as labels. (Internal ids and manifest fields keep the
+  precise names; only the label simplifies.)
+- **Where craft language still lives:** the landing hero headline,
+  the email "Woven with care by Pearloom" signature, the sealed-
+  envelope arrival, the press/publish *moment* — designed places a
+  host lingers, not the controls they operate. One woven word in a
+  headline is a signature; a woven word on a button is a barrier.
 
 ## 8 · The brand primitives
 

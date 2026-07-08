@@ -11,12 +11,12 @@ import LandingPageWrapper from './LandingPageWrapper';
 export const metadata: Metadata = {
   title: 'Pearloom — beautiful sites for weddings & every day that matters',
   description:
-    'Weave a wedding, birthday, reunion, or memorial site in minutes — then run the whole day from one calm home: guests, RSVPs, registry, day-of, and the keepsake after.',
+    'Make a beautiful wedding, birthday, reunion, or memorial website in minutes — then manage guests, RSVPs, the registry, and the whole day from one place.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Pearloom — the operating system for the days that matter',
+    title: 'Pearloom — beautiful sites for the days that matter',
     description:
-      'A craft house for memory. Sites, guests, the day itself, and everything worth keeping after — woven, not templated.',
+      'Make a beautiful site for your celebration, invite your people, and keep every moment after — all in one place.',
     url: '/',
   },
 };
@@ -34,7 +34,7 @@ const JSON_LD = {
       name: 'Pearloom',
       url: BASE,
       logo: `${BASE}/email-logo.png`,
-      description: 'A craft house for memory — celebration sites and the operating system around them.',
+      description: 'Beautiful websites for weddings and life’s big days, with everything to run the event in one place.',
     },
     {
       '@type': 'WebSite',
@@ -50,7 +50,7 @@ const JSON_LD = {
       operatingSystem: 'Web',
       url: BASE,
       description:
-        'Weave a wedding, birthday, reunion, or memorial site in minutes — then run guests, RSVPs, registry, and the day itself from one calm home.',
+        'Make a wedding, birthday, reunion, or memorial website in minutes — then manage guests, RSVPs, the registry, and the day itself in one place.',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
   ],
