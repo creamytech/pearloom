@@ -512,7 +512,16 @@ redesign (it's fresh); copy + wiring only.
 
 ---
 
-### S6 — The first five minutes · **status: planned** · P1
+### S6 — The first five minutes · **status: IN PROGRESS 2026-07-08** · P1
+
+> Thread 1 SHIPPED — THE PREVIEW PEEK (F10): under 960px (where the
+> live-preview aside hides) a floating glass "See it so far" pill
+> opens the same preview in a bottom sheet — one tap in, "Done" out;
+> hidden on Review (the proof is the preview there) and while
+> pressing. Verified on phone: pill → sheet shows the occasion-true
+> frame live ("Tyler / is celebrating") → closes clean. Shot:
+> `wizard-preview-peek.png`. Threads 2 (the publish moment) and 3
+> (return-visit reassurance) are next — see the block below.
 
 ```
 ## Active focus — S6 · The first five minutes (from pressed to proud)

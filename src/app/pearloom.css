@@ -2056,6 +2056,22 @@ button.pl8-mobile-only { display: none !important; }
      to one column and hide the preview on narrow screens. */
   .pl8-wizard-canvas.is-look { display: block !important; max-width: 760px !important; }
   .pl8-wizard-preview { display: none !important; }
+  /* The preview peek pill takes over exactly where the aside
+     disappears (PERSONA-PLAN S6) — phones keep the reassurance
+     loop via a one-tap bottom sheet. */
+  .pl8-preview-peek { display: inline-flex !important; }
+}
+
+/* The peek pill exists only under the aside-hiding breakpoint —
+   desktop keeps the always-on preview instead. */
+.pl8-preview-peek { display: none; }
+/* Inside the peek sheet the preview aside must render despite the
+   breakpoint hiding it page-wide (that hiding is WHY the sheet
+   exists) — and it sits static, not sticky. */
+.pl8-preview-sheet .pl8-wizard-preview {
+  display: flex !important;
+  position: static !important;
+  margin: 6px auto 0;
 }
 
 @media (max-width: 640px) {

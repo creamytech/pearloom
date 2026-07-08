@@ -2444,6 +2444,9 @@ export function WizardV8() {
      
   }, []);
   const [busy, setBusy] = useState(false);
+  /* The phone preview peek (S6) — the live preview in a bottom
+     sheet, for viewports where the aside is hidden. */
+  const [peekOpen, setPeekOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   // Live mirror of wizard state for async flows — handleFinish
@@ -3355,6 +3358,79 @@ export function WizardV8() {
           parallel to the wizard. Skipped on step 0 (occasion) so
           there's nothing to support yet. */}
       {stepIndex > 0 && <BackgroundCookPill cooking={cookStatus.cooking} ready={cookStatus.decorReady} />}
+
+      {/* The preview peek (PERSONA-PLAN S6, F10) — under 960px the
+          live preview aside is hidden, so phones built blind until
+          Review. A floating glass pill opens the same preview in a
+          bottom sheet: one tap in, one tap out. Hidden on Review
+          (the proof IS the preview there) and while pressing. */}
+      {stepIndex > 0 && step !== 'Review' && !busy && (
+        <button
+          type="button"
+          className="pl8-preview-peek pl-glass-surface"
+          onClick={() => setPeekOpen(true)}
+          style={{
+            position: 'fixed',
+            right: 14,
+            bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+            zIndex: 60,
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 16px',
+            borderRadius: 999,
+            border: '1px solid var(--line)',
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <Icon name="eye" size={14} /> See it so far
+        </button>
+      )}
+      {peekOpen && (
+        <div
+          className="pl8-preview-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Your site so far"
+          style={{ position: 'fixed', inset: 0, zIndex: 120 }}
+          onClick={() => setPeekOpen(false)}
+        >
+          <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(20,17,10,0.44)' }} />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              left: 0, right: 0, bottom: 0,
+              maxHeight: '88vh',
+              overflowY: 'auto',
+              background: 'var(--cream, #FDFAF0)',
+              borderRadius: '20px 20px 0 0',
+              padding: '10px 16px calc(20px + env(safe-area-inset-bottom, 0px))',
+              boxShadow: '0 -24px 60px -30px rgba(30,25,12,0.5)',
+            }}
+          >
+            <div aria-hidden style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line)', margin: '4px auto 10px' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setPeekOpen(false)}
+                aria-label="Close the preview"
+                style={{
+                  border: '1px solid var(--line)', background: 'var(--card)', borderRadius: 999,
+                  padding: '6px 14px', fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', cursor: 'pointer',
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                Done
+              </button>
+            </div>
+            <WizardLivePreview st={st} />
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header
