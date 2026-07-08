@@ -24,6 +24,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'minimal',     label: 'Minimal',      sub: 'Left-aligned, no photos' },
     { id: 'fullbleed',   label: 'Full photo',   sub: 'Your photo, edge to edge' },
     { id: 'typographic', label: 'Big type',     sub: 'Names stacked, huge type' },
+    { id: 'plate',       label: 'Poster',       sub: 'Just their names, enormous' },
     { id: 'postcard',    label: 'Postcard',     sub: 'Card on a tinted mat' },
     { id: 'crest',       label: 'Crest',        sub: 'Monogram · no photo' },
   ],

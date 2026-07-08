@@ -1507,6 +1507,7 @@ function HeroBlock({ ctx }: { ctx: SectionCtx }) {
     case 'minimal':     return <HeroMinimal ctx={ctx} />;
     case 'fullbleed':   return <HeroFullbleed ctx={ctx} />;
     case 'typographic': return <HeroTypographic ctx={ctx} />;
+    case 'plate':       return <HeroPlate ctx={ctx} />;
     case 'postcard':    return <HeroPostcard ctx={ctx} />;
     case 'crest':       return <HeroCrest ctx={ctx} />;
     default:            return <HeroCentered ctx={ctx} />;
@@ -1902,6 +1903,100 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
             <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
           </TButton>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroPlate — "the Type Plate" (RADICAL-DESIGN-DIRECTIONS §B).
+   No photo at all: the names ARE the poster, at true display scale,
+   roman and italic sharing one headline. On arrival the glyphs
+   press INTO the paper — a one-shot animation on the Fraunces
+   optical-size/SOFT axes — and a two-strand thread (accent + foil
+   gold) draws in beneath them. For the design-forward host who
+   wants restraint; recommended wherever a photograph-led hero reads
+   wrong. Reduced motion renders everything settled, no animation. */
+function HeroPlate({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C, editable, edit } = ctx;
+  const foilId = useId();
+  const couple = C.subject.type === 'couple';
+  const nameSize = couple
+    ? 'clamp(52px, 15vw, calc(168px * var(--t-hero-scale)))'
+    : 'clamp(56px, 18vw, calc(196px * var(--t-hero-scale)))';
+  return (
+    <div style={{ position: 'relative', padding: `${88 * pad}px 32px ${64 * pad}px`, background: 'var(--t-paper)', overflow: 'hidden', textAlign: 'center' }}>
+      <style>{`
+        @keyframes pl8-plate-press {
+          from { opacity: 0; font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0; letter-spacing: 0.01em; }
+          to   { opacity: 1; font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1; letter-spacing: -0.04em; }
+        }
+        @keyframes pl8-plate-draw { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
+        @keyframes pl8-plate-fade { from { opacity: 0; } to { opacity: 1; } }
+        .pl8-plate-name { animation: pl8-plate-press 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+        .pl8-plate-name--b { animation-delay: 0.14s; }
+        .pl8-plate-strand { stroke-dasharray: 400; animation: pl8-plate-draw 1s cubic-bezier(0.3, 0, 0.2, 1) 0.75s both; }
+        .pl8-plate-meta { animation: pl8-plate-fade 0.7s ease 1.1s both; }
+        @media (prefers-reduced-motion: reduce) {
+          .pl8-plate-name, .pl8-plate-name--b, .pl8-plate-meta { animation: none; opacity: 1; letter-spacing: -0.04em; font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1; }
+          .pl8-plate-strand { animation: none; stroke-dashoffset: 0; }
+        }
+      `}</style>
+      <InlineEdit
+        as="div"
+        value={C.lead}
+        onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined}
+        editable={editable && !!edit?.copy}
+        placeholder="A small forever"
+        style={{ fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 22 }}
+      />
+      <h1
+        style={{
+          fontFamily: 'var(--t-display)',
+          fontSize: nameSize,
+          lineHeight: 0.92,
+          margin: 0,
+          color: 'var(--t-ink)',
+          overflowWrap: 'break-word',
+          /* Letterpress inset — the glyphs sit INTO the paper. */
+          textShadow: '0 1px 1px color-mix(in oklab, var(--t-paper) 82%, #fff), 0 -1px 1px color-mix(in oklab, var(--t-ink) 22%, transparent)',
+        }}
+      >
+        <span className="pl8-plate-name" style={{ display: 'block', fontWeight: 'var(--t-display-wght)' as unknown as number, fontStyle: 'normal' }}>
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
+        </span>
+        {couple && (
+          <span className="pl8-plate-name pl8-plate-name--b" style={{ display: 'block', fontStyle: 'italic', fontWeight: 400 }}>
+            <span aria-hidden style={{ fontSize: '0.42em', verticalAlign: '0.32em', marginRight: '0.16em', color: 'var(--t-gold)' }}>&amp;</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </span>
+        )}
+      </h1>
+      {/* The foil thread — two strands weave beneath the names. */}
+      <svg aria-hidden viewBox="0 0 400 22" style={{ width: 'min(400px, 62%)', height: 'auto', display: 'block', margin: '26px auto 0' }}>
+        <defs>
+          <linearGradient id={foilId} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#A87F35" />
+            <stop offset="0.45" stopColor="#E3C77E" />
+            <stop offset="0.7" stopColor="var(--t-gold, #C19A4B)" />
+            <stop offset="1" stopColor="#B8913F" />
+          </linearGradient>
+        </defs>
+        <path className="pl8-plate-strand" d="M 2 11 C 40 3, 80 3, 118 11 S 196 19, 234 11 S 312 3, 350 11 L 398 11" fill="none" stroke="var(--t-accent)" strokeWidth="1.6" strokeLinecap="round" pathLength={400} />
+        <path className="pl8-plate-strand" d="M 2 11 C 40 19, 80 19, 118 11 S 196 3, 234 11 S 312 19, 350 11 L 398 11" fill="none" stroke={`url(#${foilId})`} strokeWidth="1.6" strokeLinecap="round" pathLength={400} />
+      </svg>
+      <div className="pl8-plate-meta" style={{ marginTop: 24, display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', fontSize: 13, letterSpacing: '0.08em', color: 'var(--t-ink-soft)' }}>
+        <span>{C.meta.date}</span>
+        <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--t-gold)' }} />
+        <span>{C.meta.place}</span>
+      </div>
+      <div className="pl8-plate-meta" style={{ marginTop: 26, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <TButton variant="primary" href={C.ctaHref}>
+          <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
+          <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+        </TButton>
+        <TButton variant="outline" href={C.ctaSecondaryHref}>
+          <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
+        </TButton>
       </div>
     </div>
   );
