@@ -123,16 +123,26 @@ later block: the site's 6 named themes as pressable rows (the
 snapshot test for legacy rows (ids are untouched, aliasing was
 not needed).
 
-### SV.2 — Paper parity ("matches the paper types and stuff")
-Texture + **intensity** slider matching `--pl-texture-intensity`;
-paper STOCK color decoupled from the palette (cream / bright
-white / ecru / kraft / blush / navy, each with ink auto-contrast);
-edge treatments (none / hairline frame / double rule / deckle).
-The press sheet + print preview + per-guest card image
-(`/api/invite-card`) all carry the same paper. Counts as done:
-the card and the published site can wear the identical
-texture+intensity, verified side-by-side at `/dev/marks`-style
-harness; geometry tests still green.
+### SV.2 — Paper parity · **SHIPPED 2026-07-09**
+The sheet became a real dial. What landed, all persisted on
+`manifest.studio` (+ the autosave writableFields + stale-id
+sanitizers): **Grain strength** — a 25–150% slider driving
+`--pl-texture-intensity` on the card root, shown once a grain is
+on the sheet (the site's exact intensity mechanism); **Paper
+color** — six stocks decoupled from the palette (bright white /
+cream / ecru / blush / kraft / navy; kraft + navy bring their own
+ink so type never vanishes; dark sheets drop the light-paper
+noise overlay), sitting between the palette and custom colors in
+the override chain; **Edge** — plain / hairline / double rule /
+gilded (theme gold), where an explicit pick replaces the
+kit-derived frame. The press sheet prints the same sheet the
+canvas shows (props threaded through every card mount);
+`/dev/studio` screenshots: navy + gilded + kraft grain at 150%,
+blush + double rule + linen at 60%. Geometry tests untouched and
+green. Deferred: deckle edges (needs a mask treatment that
+survives the press sheet's squared trim), and the per-guest card
+image (`/api/invite-card`) carrying the stock — it renders from
+the SuiteTheme contract, a separate block.
 
 ### SV.3 — Marks & decor v2
 The postmark family grows in the ink language: dated postmark

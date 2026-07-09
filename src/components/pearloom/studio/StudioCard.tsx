@@ -45,6 +45,16 @@ interface CardProps {
   /** Paper texture ([data-pl-texture]) — same grain system the
    *  published site wears, so the suite matches the site. */
   texture?: string | null;
+  /** Grain strength (--pl-texture-intensity), 0–1.5; 1 = the
+   *  site's default press (STUDIO-PLAN SV.2). */
+  textureIntensity?: number;
+  /** Edge treatment (EDGE_TREATMENTS id). Unset = default (the
+   *  kit frame when wearing the site; bare paper otherwise). An
+   *  explicit pick replaces the kit-derived frame. */
+  edge?: string | null;
+  /** Dark sheet (navy stock / twilight palette) — suppresses the
+   *  light-paper noise overlay. */
+  darkPaper?: boolean;
   /** The site's resolved --t-* bag (siteThemeRootStyle) — when
    *  present the card renders inside .pl8-guest with the site's
    *  own vars, so the 'site' palette/font (var() references)
@@ -100,6 +110,30 @@ function KitFrame({ kitId, accent }: { kitId?: string | null; accent: string }) 
   );
 }
 
+/** Explicit edge treatments (STUDIO-PLAN SV.2) — a stationery
+ *  frame the host picks in the Paper group. An explicit pick
+ *  replaces the kit-derived frame; 'plain' suppresses every
+ *  frame. Gilded reads the theme gold when the card wears a
+ *  theme bag, the brand gold otherwise. */
+function EdgeFrame({ edge, accent }: { edge: string; accent: string }) {
+  if (edge === 'hairline') {
+    return <div aria-hidden style={{ position: 'absolute', inset: 14, zIndex: 1, pointerEvents: 'none', border: `1px solid ${accent}`, opacity: 0.5 }} />;
+  }
+  if (edge === 'double') {
+    return (
+      <div aria-hidden style={{ position: 'absolute', inset: 14, zIndex: 1, pointerEvents: 'none', border: `1px solid ${accent}`, opacity: 0.45 }}>
+        <div style={{ position: 'absolute', inset: 4, border: `0.5px solid ${accent}`, opacity: 0.75 }} />
+      </div>
+    );
+  }
+  if (edge === 'gilded') {
+    return (
+      <div aria-hidden style={{ position: 'absolute', inset: 12, zIndex: 1, pointerEvents: 'none', border: '1.5px solid var(--t-gold, #C19A4B)', opacity: 0.9 }} />
+    );
+  }
+  return null; // 'plain' — bare paper
+}
+
 /** Handwritten passages wear the site's own script face when the
  *  card wears the site ('site' font pair); preset pairs keep the
  *  Studio's Caveat. */
@@ -110,14 +144,14 @@ function scriptFont(font: StudioFontPair): string {
 export function CardFront(props: CardProps) {
   const { palette, font, content, layout, motif, type, nameA, nameB, photoUrl, monogram, customMotifUrl, texture, themeRoot } = props;
   const w = 420, h = 588;
-  const isDark = palette.id === 'twilight';
+  const isDark = props.darkPaper ?? palette.id === 'twilight';
   return (
     <div
       className={texture || themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
       data-pl-texture={texture ?? undefined}
       style={{
       ...(themeRoot ?? {}),
-      ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
+      ...(texture ? { ['--pl-texture-intensity' as string]: String(props.textureIntensity ?? 1) } : {}),
       width: w, height: h,
       background: palette.paper,
       color: palette.ink,
@@ -127,7 +161,10 @@ export function CardFront(props: CardProps) {
       overflow: 'hidden',
     }}>
       {!isDark && <PaperTexture />}
-      {themeRoot && <KitFrame kitId={props.kitId} accent={palette.accent} />}
+      {/* An explicit edge pick replaces the kit-derived frame. */}
+      {props.edge
+        ? <EdgeFrame edge={props.edge} accent={palette.accent} />
+        : themeRoot && <KitFrame kitId={props.kitId} accent={palette.accent} />}
 
       {layout === 'classic' && <ClassicLayout {...props} />}
       {layout === 'asym' && <AsymLayout {...props} />}
@@ -162,7 +199,7 @@ export function CardBack(props: CardProps) {
       data-pl-texture={texture ?? undefined}
       style={{
       ...(themeRoot ?? {}),
-      ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
+      ...(texture ? { ['--pl-texture-intensity' as string]: String(props.textureIntensity ?? 1) } : {}),
       width: w, height: h,
       background: palette.paper,
       color: palette.ink,
@@ -171,7 +208,8 @@ export function CardBack(props: CardProps) {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      <PaperTexture />
+      {!(props.darkPaper ?? palette.id === 'twilight') && <PaperTexture />}
+      {props.edge && <EdgeFrame edge={props.edge} accent={palette.accent} />}
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ fontFamily: font.display, fontStyle: 'italic', fontSize: 22, color: palette.accent, fontWeight: 600 }}>{monogram}</div>

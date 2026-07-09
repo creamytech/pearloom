@@ -25,7 +25,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Pear, PostIt, Icon } from '../motifs';
 import {
-  PALETTES, FONT_PAIRS, type StationeryType,
+  PALETTES, FONT_PAIRS, PAPER_STOCKS, type StationeryType,
   buildTypeContent, type AssetEntry, type StudioDraft,
 } from './studio-constants';
 import { useStudioState } from './useStudioState';
@@ -336,18 +336,26 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     : state.palette === SITE_LOOK_ID && siteLookOn
       ? SITE_PALETTE
       : (PALETTES.find(p => p.id === state.palette) ?? PALETTES[0]);
+  /* Paper stock (STUDIO-PLAN SV.2) sits between the palette and
+     the host's custom colors: the stock picks the SHEET (paper +
+     an ink override for tinted/dark sheets), custom colors still
+     win on top as the finest-grain control. */
+  const paperStock = state.paperStock
+    ? PAPER_STOCKS.find((s) => s.id === state.paperStock) ?? null
+    : null;
   /* Custom color overrides ride on top of the preset — the same
      accent/paper/ink freedom the site editor's Tweak-colors panel
      gives, so the suite can match a custom-colored site exactly. */
-  const palette = state.customColors
-    ? {
-        ...basePalette,
-        ...(state.customColors.paper ? { paper: state.customColors.paper } : {}),
-        ...(state.customColors.ink ? { ink: state.customColors.ink } : {}),
-        ...(state.customColors.accent ? { accent: state.customColors.accent } : {}),
-        ...(state.customColors.accent2 ? { accent2: state.customColors.accent2 } : {}),
-      }
-    : basePalette;
+  const palette = {
+    ...basePalette,
+    ...(paperStock ? { paper: paperStock.paper, ...(paperStock.ink ? { ink: paperStock.ink } : {}) } : {}),
+    ...(state.customColors?.paper ? { paper: state.customColors.paper } : {}),
+    ...(state.customColors?.ink ? { ink: state.customColors.ink } : {}),
+    ...(state.customColors?.accent ? { accent: state.customColors.accent } : {}),
+    ...(state.customColors?.accent2 ? { accent2: state.customColors.accent2 } : {}),
+  };
+  /* Dark sheet → the light-paper noise overlay comes off. */
+  const darkPaper = paperStock?.dark ?? basePalette.id === 'twilight';
   const font = fontPack
     ? packFont(fontPack)
     : state.fontPair === SITE_LOOK_ID && siteLookOn
@@ -726,6 +734,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+                textureIntensity={state.textureIntensity}
+                edge={state.edge}
+                darkPaper={darkPaper}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -749,6 +760,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+                textureIntensity={state.textureIntensity}
+                edge={state.edge}
+                darkPaper={darkPaper}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -773,6 +787,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 layout={state.layout}
                 motif={state.motif}
                 texture={state.texture}
+                textureIntensity={state.textureIntensity}
+                edge={state.edge}
+                darkPaper={darkPaper}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -1008,6 +1025,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           layout={state.layout}
           motif={state.motif}
           texture={state.texture}
+                textureIntensity={state.textureIntensity}
+                edge={state.edge}
+                darkPaper={darkPaper}
           solemn={solemn}
           palette={palette}
           font={font}
@@ -1039,6 +1059,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               layout={state.layout}
               motif={state.motif}
               texture={state.texture}
+                textureIntensity={state.textureIntensity}
+                edge={state.edge}
+                darkPaper={darkPaper}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}

@@ -24,6 +24,8 @@ import {
   DEFAULT_ASSET_PALETTE,
   PALETTES,
   STUDIO_TEXTURES,
+  PAPER_STOCKS,
+  EDGE_TREATMENTS,
   FONT_PAIRS,
   LAYOUTS,
   MOTIFS,
@@ -67,6 +69,15 @@ export interface StudioState {
   customColors: StudioCustomColors | null;
   /** Card paper texture ([data-pl-texture] id) — null = smooth. */
   texture: string | null;
+  /** Grain strength (--pl-texture-intensity), 0–1.5. 1 = the
+   *  site's default press. Only meaningful with a texture set. */
+  textureIntensity: number;
+  /** Physical paper stock (PAPER_STOCKS id) — null = the
+   *  palette's own paper. */
+  paperStock: string | null;
+  /** Edge treatment (EDGE_TREATMENTS id) — null = default (the
+   *  kit frame when wearing the site; bare paper otherwise). */
+  edge: string | null;
   /** AI-drafted alternates per stationery type. Falls back to the
    *  built-in TYPE_CONTENT defaults when empty. */
   drafts: Partial<Record<StationeryType, StudioDraft[]>>;
@@ -97,6 +108,9 @@ const DEFAULT_STATE: StudioState = {
   customMotifUrl: null,
   customColors: null,
   texture: null,
+  textureIntensity: 1,
+  paperStock: null,
+  edge: null,
   drafts: {},
   copyOverrides: {},
 };
@@ -115,6 +129,9 @@ interface ManifestStudio {
   customMotifUrl?: string | null;
   customColors?: StudioCustomColors | null;
   texture?: string | null;
+  textureIntensity?: number;
+  paperStock?: string | null;
+  edge?: string | null;
   assets?: AssetEntry[];
   drafts?: Partial<Record<StationeryType, StudioDraft[]>>;
   copyOverrides?: Partial<Record<StationeryType, {
@@ -147,6 +164,18 @@ function sanitizeTexture(raw: unknown): string | null {
   return typeof raw === 'string' && /^[a-z0-9-]{2,24}$/.test(raw) ? raw : null;
 }
 void STUDIO_TEXTURES;
+
+const VALID_STOCKS = new Set(PAPER_STOCKS.map((s) => s.id));
+const VALID_EDGES = new Set(EDGE_TREATMENTS.map((e) => e.id));
+
+/** Grain strength — clamp to the site's --pl-texture-intensity
+ *  range (0–1.5); anything unparseable falls back to the default
+ *  full press. */
+function sanitizeIntensity(raw: unknown): number {
+  const n = typeof raw === 'number' ? raw : Number.NaN;
+  if (!Number.isFinite(n)) return 1;
+  return Math.min(1.5, Math.max(0, n));
+}
 
 const HEX_RX = /^#[0-9a-fA-F]{6}$/;
 function sanitizeCustomColors(raw: unknown): StudioCustomColors | null {
@@ -224,6 +253,9 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     customMotifUrl: studio.customMotifUrl ?? null,
     customColors: sanitizeCustomColors(studio.customColors),
     texture: sanitizeTexture(studio.texture),
+    textureIntensity: sanitizeIntensity(studio.textureIntensity),
+    paperStock: typeof studio.paperStock === 'string' && VALID_STOCKS.has(studio.paperStock) ? studio.paperStock : null,
+    edge: typeof studio.edge === 'string' && VALID_EDGES.has(studio.edge) ? studio.edge : null,
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
@@ -323,6 +355,9 @@ export function useStudioState(args: {
       customMotifUrl: state.customMotifUrl,
       customColors: state.customColors,
       texture: state.texture,
+      textureIntensity: state.textureIntensity,
+      paperStock: state.paperStock,
+      edge: state.edge,
       assets: state.assets,
       drafts: state.drafts,
       copyOverrides: state.copyOverrides,
@@ -356,6 +391,7 @@ export function useStudioState(args: {
     state.type, state.view, state.draft, state.palette, state.fontPair,
     state.layout, state.motif, state.tone, state.customMotifUrl,
     state.customColors, state.texture,
+    state.textureIntensity, state.paperStock, state.edge,
     state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);

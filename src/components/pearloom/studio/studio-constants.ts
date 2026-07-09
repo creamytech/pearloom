@@ -41,6 +41,39 @@ export const STUDIO_TEXTURES: ReadonlyArray<{ id: string; name: string }> = [
   { id: 'gilded', name: 'Gilded' },
 ];
 
+/** Physical paper stocks (STUDIO-PLAN SV.2) — the sheet the card
+ *  is pressed on, decoupled from the palette. A stock overrides
+ *  the palette's paper (and, for the tinted/dark sheets, the ink,
+ *  so type never vanishes). Custom colors still win on top. */
+export interface PaperStock {
+  id: string;
+  name: string;
+  paper: string;
+  /** Ink override for sheets the palette's ink can't sit on. */
+  ink?: string;
+  /** Dark sheet — suppresses the light-paper noise overlay. */
+  dark?: boolean;
+}
+
+export const PAPER_STOCKS: ReadonlyArray<PaperStock> = [
+  { id: 'bright', name: 'Bright white', paper: '#FFFFFF' },
+  { id: 'cream',  name: 'Cream',        paper: '#FDFAF0' },
+  { id: 'ecru',   name: 'Ecru',         paper: '#F2E9D8' },
+  { id: 'blush',  name: 'Blush',        paper: '#FBEEEC' },
+  { id: 'kraft',  name: 'Kraft',        paper: '#D9C09A', ink: '#3A2E1C' },
+  { id: 'navy',   name: 'Navy',         paper: '#1F2236', ink: '#F8F1E4', dark: true },
+];
+
+/** Edge treatments (STUDIO-PLAN SV.2) — the card's frame. null =
+ *  default (the kit frame when the card wears the site; bare paper
+ *  otherwise). 'plain' explicitly suppresses every frame. */
+export const EDGE_TREATMENTS: ReadonlyArray<{ id: string; name: string }> = [
+  { id: 'plain',    name: 'Plain' },
+  { id: 'hairline', name: 'Hairline' },
+  { id: 'double',   name: 'Double rule' },
+  { id: 'gilded',   name: 'Gilded' },
+];
+
 export interface StudioFontPair {
   id: string;
   name: string;

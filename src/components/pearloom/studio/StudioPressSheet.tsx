@@ -43,6 +43,11 @@ interface Props {
   photoUrl?: string | null;
   customMotifUrl?: string | null;
   texture?: string | null;
+  /** Paper depth (STUDIO-PLAN SV.2) — the press sheet prints the
+   *  same sheet the canvas shows. */
+  textureIntensity?: number;
+  edge?: string | null;
+  darkPaper?: boolean;
   siteUrl: string;
   rsvpDeadline?: string;
   returnAddress: { name: string; line1?: string; line2?: string };
@@ -144,7 +149,8 @@ function PressPage({
 export function StudioPressSheet(props: Props) {
   const {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
-    solemn, photoUrl, customMotifUrl, texture, siteUrl, rsvpDeadline,
+    solemn, photoUrl, customMotifUrl, texture, textureIntensity, edge, darkPaper,
+    siteUrl, rsvpDeadline,
     returnAddress, themeRoot, postmarkDate, kitId,
     ceremonyAt, receptionAt, dressCode, hotelLine, onClose,
   } = props;
@@ -160,7 +166,8 @@ export function StudioPressSheet(props: Props) {
 
   const shared = {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
-    solemn, texture, themeRoot, postmarkDate, kitId, siteUrl, rsvpDeadline,
+    solemn, texture, textureIntensity, edge, darkPaper,
+    themeRoot, postmarkDate, kitId, siteUrl, rsvpDeadline,
   };
 
   const sheet = (

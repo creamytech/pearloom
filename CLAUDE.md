@@ -99,6 +99,10 @@ automatically; visual harness at `/dev/marks`. SV.1 SHIPPED same
 day: the store's theme packs press the card (`pack:<id>` palette/
 font sentinel over the pack's `--t-*` bag; Theme-packs shelf in
 the Colors rail, owned/free press in one tap with faces + grain,
-locked link to the store; `/dev/studio` harness). SV.2–SV.6 are
-planned, unexecuted. New mark law: marks are STAMPED ink, never
-pastel sticker discs.
+locked link to the store; `/dev/studio` harness). SV.2 SHIPPED
+same day: paper parity (Grain-strength slider on
+`--pl-texture-intensity`, six paper stocks with their own inks
+incl. dark navy, edge treatments plain/hairline/double/gilded;
+all persisted on manifest.studio; press sheet carries the same
+sheet). SV.3–SV.6 are planned, unexecuted. New mark law: marks
+are STAMPED ink, never pastel sticker discs.

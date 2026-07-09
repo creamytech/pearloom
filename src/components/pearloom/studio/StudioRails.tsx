@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
+  PAPER_STOCKS, EDGE_TREATMENTS,
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
 } from './studio-constants';
 import type { StudioState, SetStudioField } from './useStudioState';
@@ -1024,6 +1025,87 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
               {state.texture[0].toUpperCase() + state.texture.slice(1)}
             </button>
           )}
+        </div>
+        {/* Grain strength (STUDIO-PLAN SV.2) — how hard the press
+            bit. Only meaningful once a grain is on the sheet. */}
+        {state.texture && (
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <label htmlFor="pl-studio-grain" style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', flexShrink: 0 }}>
+              Grain strength
+            </label>
+            <input
+              id="pl-studio-grain"
+              type="range"
+              min={25}
+              max={150}
+              step={5}
+              value={Math.round(state.textureIntensity * 100)}
+              onChange={(e) => setField('textureIntensity', Number(e.target.value) / 100)}
+              style={{ flex: 1, accentColor: 'var(--pl-olive, #5C6B3F)' }}
+            />
+            <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', width: 34, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+              {Math.round(state.textureIntensity * 100)}%
+            </span>
+          </div>
+        )}
+        {/* Paper color (SV.2) — the sheet itself, decoupled from
+            the palette. Kraft + navy bring their own ink. */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Paper color</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[{ id: null as string | null, name: 'Default', paper: null as string | null }, ...PAPER_STOCKS].map((s) => {
+              const on = (state.paperStock ?? null) === s.id;
+              return (
+                <button
+                  key={s.id ?? 'default'}
+                  type="button"
+                  onClick={() => setField('paperStock', s.id)}
+                  aria-pressed={on}
+                  title={s.id ? `Press the card on ${s.name.toLowerCase()} stock` : "The palette's own paper"}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {s.paper && (
+                    <span aria-hidden style={{ width: 12, height: 12, borderRadius: '50%', background: s.paper, border: '1px solid var(--line)', flexShrink: 0 }} />
+                  )}
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* Edge (SV.2) — the card's frame. Default keeps the kit
+            frame when the card wears the site. */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Edge</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[{ id: null as string | null, name: 'Default' }, ...EDGE_TREATMENTS].map((e) => {
+              const on = (state.edge ?? null) === e.id;
+              return (
+                <button
+                  key={e.id ?? 'default'}
+                  type="button"
+                  onClick={() => setField('edge', e.id)}
+                  aria-pressed={on}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {e.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </RailGroup>
 
