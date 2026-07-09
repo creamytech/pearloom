@@ -169,6 +169,9 @@ export function FadeInImage({
             letterSpacing: '0.02em',
             pointerEvents: 'none',
             boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+            /* Editor-chrome tier: above the editable per-section
+               paper wash (z 50), beside the photo hints (106). */
+            zIndex: 106,
           }}
         >
           Photo didn&rsquo;t load — tap to replace
