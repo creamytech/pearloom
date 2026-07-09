@@ -52,6 +52,7 @@ export function DesignJourney() {
   return (
     <div style={{ background: PD.slab, color: PD.slabInk }}>
       <section
+        className="dj-sec"
         style={{
           padding: 'clamp(72px,10vw,120px) 24px',
           maxWidth: 1180,
@@ -164,12 +165,51 @@ export function DesignJourney() {
 
       <style>{`
         @media (max-width: 900px) {
+          /* Stacked: a tight vertical rail instead of five sparse
+             centered stacks. The horizontal strand becomes a vertical
+             two-tone thread at the left; each knot ties onto it, with
+             the step copy beside it. */
           .dj-grid {
             grid-template-columns: 1fr !important;
-            gap: 36px !important;
+            gap: 22px !important;
+            position: relative;
           }
           .dj-thread {
             display: none !important;
+          }
+          .dj-grid::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 10px;
+            bottom: 10px;
+            width: 1.5px;
+            background: linear-gradient(180deg, rgba(164, 181, 122, 0.5), rgba(224, 172, 126, 0.6));
+          }
+          .dj-grid > div {
+            display: grid !important;
+            grid-template-columns: 14px 1fr !important;
+            column-gap: 16px;
+            align-items: start !important;
+            text-align: left !important;
+          }
+          .dj-grid > div > span {
+            grid-row: 1 / span 2;
+            margin-top: 5px !important;
+          }
+          .dj-grid > div h4 {
+            grid-column: 2;
+            margin: 0 !important;
+          }
+          .dj-grid > div p {
+            grid-column: 2;
+            margin: 4px 0 0 !important;
+            max-width: none !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .dj-sec {
+            padding: 48px 20px !important;
           }
         }
       `}</style>

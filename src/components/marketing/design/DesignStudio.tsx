@@ -143,6 +143,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
       >
         {/* Left — controls */}
         <div
+          className="pd-studio-controls"
           style={{
             background: PD.paperCard,
             border: `1px solid ${PD.line}`,
@@ -152,6 +153,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         >
           <span style={CONTROL_LABEL}>Palette</span>
           <div
+            className="pd-studio-palette"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -217,6 +219,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
             <span style={COUNT_BADGE}>{STUDIO_KITS.length}</span>
           </span>
           <div
+            className="pd-studio-kits"
             style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -246,7 +249,10 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
             Paper
             <span style={COUNT_BADGE}>{STUDIO_PAPERS.length}</span>
           </span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 26 }}>
+          <div
+            className="pd-studio-papers"
+            style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 26 }}
+          >
             {STUDIO_PAPERS.map((pp) => (
               <button
                 key={pp.id}
@@ -306,7 +312,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
         </div>
 
         {/* Right — live device preview */}
-        <div>
+        <div className="pd-studio-main">
           <div
             className="pd-studio-device sk-device"
             data-kit={kit}
@@ -563,7 +569,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                 {blocks.length}
               </span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="pd-studio-blockchips" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {blocks.map((b) => {
                 const core = CORE_BLOCKS.includes(b);
                 return (
@@ -609,7 +615,98 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
       <style jsx>{`
         @media (max-width: 900px) {
           :global(.pd-studio-grid) {
-            grid-template-columns: 1fr !important;
+            /* minmax(0,1fr), NOT 1fr: bare 1fr's auto floor refuses to
+               shrink below the kit shelf's min-content width, blowing the
+               single column past the viewport (same trap as the hero). */
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          /* Stacked: the live preview leads (the payoff), controls follow.
+             Grid items honor order. */
+          :global(.pd-studio-main) {
+            order: -1;
+          }
+        }
+        /* Tablets only (641-900): no nested scroll region when stacked —
+           the kit chips simply wrap (the maxHeight scroller was a touch
+           trap). Phones get the 2-row shelf below instead. */
+        @media (min-width: 641px) and (max-width: 900px) {
+          :global(.pd-studio-kits) {
+            max-height: none !important;
+            overflow: visible !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-studio-controls) {
+            padding: 16px !important;
+          }
+          /* Palette: one snap row of theme cards. */
+          :global(.pd-studio-palette) {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            gap: 8px !important;
+            margin-bottom: 20px !important;
+            scroll-snap-type: x proximity;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+          }
+          :global(.pd-studio-palette)::-webkit-scrollbar {
+            display: none;
+          }
+          :global(.pd-studio-palette > button) {
+            flex: 0 0 128px;
+            scroll-snap-align: start;
+          }
+          /* Kits: a TWO-ROW horizontal shelf — 24 chips in one line would
+             be a ~1,800px scroll; two rows halve it. */
+          :global(.pd-studio-kits) {
+            display: grid !important;
+            grid-auto-flow: column;
+            grid-template-rows: auto auto;
+            justify-content: start;
+            gap: 6px;
+            max-height: none !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x proximity;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+          }
+          :global(.pd-studio-kits)::-webkit-scrollbar {
+            display: none;
+          }
+          :global(.pd-studio-kits > *) {
+            scroll-snap-align: start;
+          }
+          /* Papers + block chips: one snap row each. */
+          :global(.pd-studio-papers),
+          :global(.pd-studio-blockchips) {
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+          }
+          :global(.pd-studio-papers)::-webkit-scrollbar,
+          :global(.pd-studio-blockchips)::-webkit-scrollbar {
+            display: none;
+          }
+          :global(.pd-studio-papers > *),
+          :global(.pd-studio-blockchips > *) {
+            flex-shrink: 0;
+            scroll-snap-align: start;
           }
         }
         /* User-triggered palette / type switches animate the device
