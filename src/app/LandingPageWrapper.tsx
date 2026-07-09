@@ -379,11 +379,17 @@ export default function LandingPageWrapper() {
               scroll-snap-align: start;
               flex-shrink: 0;
             }
-            /* Shelf cards must not ride the [data-rv] reveal: the
-               IntersectionObserver never fires for horizontally clipped
-               cards, so without this they'd arrive blank when swiped to. */
+            /* Shelf cards must not ride EITHER reveal system — the page's
+               [data-rv] observer or pearloom-motion.js's [data-reveal]
+               stagger engine (it stamps data-reveal onto the children of
+               [data-reveal-stagger] groups at runtime). Both are driven by
+               viewport IntersectionObservers that never fire for
+               horizontally clipped cards, so without this the cards past
+               the fold of the shelf would arrive blank when swiped to. */
             main.pd-landing .pd-shelf [data-rv],
-            main.pd-landing .pd-shelf > [data-rv] {
+            main.pd-landing .pd-shelf > [data-rv],
+            main.pd-landing .pd-shelf [data-reveal],
+            main.pd-landing .pd-shelf > [data-reveal] {
               opacity: 1 !important;
               transform: none !important;
               filter: none !important;

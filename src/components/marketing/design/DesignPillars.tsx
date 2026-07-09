@@ -68,7 +68,11 @@ const PILLARS: Pillar[] = [
 
 export function DesignPillars() {
   return (
-    <section id="product" style={{ padding: 'clamp(64px,9vw,110px) 24px', maxWidth: 1180, margin: '0 auto' }}>
+    <section
+      id="product"
+      className="pd-pillars-sec"
+      style={{ padding: 'clamp(64px,9vw,110px) 24px', maxWidth: 1180, margin: '0 auto' }}
+    >
       <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center', marginBottom: 'clamp(36px,5vw,56px)' }}>
         <div
           style={{
@@ -100,7 +104,10 @@ export function DesignPillars() {
         </p>
       </div>
 
+      {/* pd-shelf: on phones (≤640) this grid becomes a horizontal snap
+          shelf — one pillar per swipe with the next card peeking. */}
       <div
+        className="pd-shelf"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -113,6 +120,11 @@ export function DesignPillars() {
       </div>
 
       <style jsx>{`
+        @media (max-width: 640px) {
+          .pd-pillars-sec {
+            padding: 48px 20px !important;
+          }
+        }
         @media (prefers-reduced-motion: reduce) {
           :global(.pd-anim),
           :global(.pd-anim *) {

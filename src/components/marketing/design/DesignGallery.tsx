@@ -31,7 +31,9 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
         </p>
       </div>
 
-      <div className="pd-gallery">
+      {/* pd-shelf: on phones the 2-col tile grid becomes a horizontal
+          snap shelf of full-size occasion cards. */}
+      <div className="pd-gallery pd-shelf">
         {GALLERY_TILES.map((o, i) => (
           <button
             key={o.nm}

@@ -107,7 +107,10 @@ export function DesignTestimonials() {
       </div>
 
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 820, marginInline: 'auto' }}>
+        <div
+          className="pd-testimonials-head"
+          style={{ textAlign: 'center', marginBottom: 72, maxWidth: 820, marginInline: 'auto' }}
+        >
           <Pill color="transparent" ink={PD.slabInk} style={{ marginBottom: 18, borderColor: PD.slabInk }}>
             <Pearl size={7} /> THE PROMISE
           </Pill>
@@ -136,8 +139,10 @@ export function DesignTestimonials() {
           </h2>
         </div>
 
+        {/* pd-shelf: on phones the six pressed notes become one swipe
+            shelf — a note per swipe instead of 2.5 screens of stack. */}
         <div
-          className="pd-testimonials-grid"
+          className="pd-testimonials-grid pd-shelf"
           data-reveal-stagger="70"
           data-reveal-as="fade"
           style={{
@@ -151,6 +156,7 @@ export function DesignTestimonials() {
           {NOTES.map((q) => (
             <div
               key={q.n}
+              className="pd-note"
               style={{
                 background: q.bg,
                 /* Pressed paper note, not a quote card — laid grain +
@@ -173,6 +179,7 @@ export function DesignTestimonials() {
               }}
             >
               <p
+                className="pd-note-quote"
                 style={{
                   ...DISPLAY_STYLE,
                   fontSize: 22,
@@ -231,6 +238,18 @@ export function DesignTestimonials() {
         @media (max-width: 900px) {
           :global(.pd-testimonials-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-note) {
+            padding: 26px 24px 22px !important;
+          }
+          :global(.pd-note-quote) {
+            font-size: 18px !important;
+            margin-bottom: 18px !important;
+          }
+          :global(.pd-testimonials-head) {
+            margin-bottom: 36px !important;
           }
         }
         @media (prefers-reduced-motion: reduce) {
