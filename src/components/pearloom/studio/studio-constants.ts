@@ -44,25 +44,11 @@ export const STUDIO_TEXTURES: ReadonlyArray<{ id: string; name: string }> = [
 /** Physical paper stocks (STUDIO-PLAN SV.2) — the sheet the card
  *  is pressed on, decoupled from the palette. A stock overrides
  *  the palette's paper (and, for the tinted/dark sheets, the ink,
- *  so type never vanishes). Custom colors still win on top. */
-export interface PaperStock {
-  id: string;
-  name: string;
-  paper: string;
-  /** Ink override for sheets the palette's ink can't sit on. */
-  ink?: string;
-  /** Dark sheet — suppresses the light-paper noise overlay. */
-  dark?: boolean;
-}
-
-export const PAPER_STOCKS: ReadonlyArray<PaperStock> = [
-  { id: 'bright', name: 'Bright white', paper: '#FFFFFF' },
-  { id: 'cream',  name: 'Cream',        paper: '#FDFAF0' },
-  { id: 'ecru',   name: 'Ecru',         paper: '#F2E9D8' },
-  { id: 'blush',  name: 'Blush',        paper: '#FBEEEC' },
-  { id: 'kraft',  name: 'Kraft',        paper: '#D9C09A', ink: '#3A2E1C' },
-  { id: 'navy',   name: 'Navy',         paper: '#1F2236', ink: '#F8F1E4', dark: true },
-];
+ *  so type never vanishes). Custom colors still win on top.
+ *  The table itself lives in @/lib/studio/paper-stocks (pure) so
+ *  /api/invite-card presses the guest's email card on the same
+ *  sheet — this re-export keeps every Studio import site stable. */
+export { PAPER_STOCKS, type PaperStock } from '@/lib/studio/paper-stocks';
 
 /** Edge treatments (STUDIO-PLAN SV.2) — the card's frame. null =
  *  default (the kit frame when the card wears the site; bare paper

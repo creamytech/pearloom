@@ -54,6 +54,12 @@ interface Props {
    *  print exactly as the canvas shows them. */
   backStyle?: string | null;
   addressee?: string | null;
+  /** SV.7 — pressed pieces + label styling print as the canvas
+   *  shows them. */
+  placed?: import('./useStudioState').PlacedAsset[];
+  assets?: import('./studio-constants').AssetEntry[];
+  labelInk?: string | null;
+  labelTracking?: string | null;
   siteUrl: string;
   rsvpDeadline?: string;
   returnAddress: { name: string; line1?: string; line2?: string };
@@ -157,6 +163,7 @@ export function StudioPressSheet(props: Props) {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
     solemn, photoUrl, customMotifUrl, texture, textureIntensity, edge, darkPaper,
     motifInk, headlineScale, backStyle, addressee,
+    placed, assets, labelInk, labelTracking,
     siteUrl, rsvpDeadline,
     returnAddress, themeRoot, postmarkDate, kitId,
     ceremonyAt, receptionAt, dressCode, hotelLine, onClose,
@@ -174,6 +181,7 @@ export function StudioPressSheet(props: Props) {
   const shared = {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
     solemn, texture, textureIntensity, edge, darkPaper, motifInk, headlineScale,
+    labelInk, labelTracking,
     themeRoot, postmarkDate, kitId, siteUrl, rsvpDeadline,
   };
 
@@ -256,6 +264,8 @@ export function StudioPressSheet(props: Props) {
             view="front"
             photoUrl={photoUrl}
             customMotifUrl={customMotifUrl}
+            placed={placed}
+            assets={assets}
           />
         </PressPage>
         <PressPage spec={CARD_PRESS} label="Back · 5×7″ + bleed" domW={420} domH={588}>

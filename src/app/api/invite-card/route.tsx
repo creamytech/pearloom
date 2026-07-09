@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSiteConfig } from '@/lib/db';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { paperStockById } from '@/lib/studio/paper-stocks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -91,7 +92,24 @@ export async function GET(req: NextRequest) {
   const solo = isSoloSubject(manifest);
   const displayNames = (solo ? [names[0]] : names).map((n) => String(n ?? '').trim()).filter(Boolean);
   const suite = suiteThemeFromManifest(manifest, names);
-  const p = suite.emailPalette; // email-safe (dark packs flip to paper)
+  /* The guest's email card presses on the SAME sheet the Studio
+     canvas shows (SV.7): the host's paper stock, then their custom
+     paper/ink tweaks, override the suite palette. Texture grains
+     can't ride an ImageResponse (no SVG filters in Satori) — the
+     stock color is the material story here. */
+  const studio = (manifest as unknown as {
+    studio?: { paperStock?: string | null; customColors?: { paper?: string; ink?: string } | null };
+  }).studio;
+  const stock = paperStockById(studio?.paperStock);
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const customPaper = HEX.test(studio?.customColors?.paper ?? '') ? studio!.customColors!.paper : undefined;
+  const customInk = HEX.test(studio?.customColors?.ink ?? '') ? studio!.customColors!.ink : undefined;
+  const p = {
+    ...suite.emailPalette, // email-safe (dark packs flip to paper)
+    ...(stock ? { paper: stock.paper, ...(stock.ink ? { ink: stock.ink } : {}) } : {}),
+    ...(customPaper ? { paper: customPaper } : {}),
+    ...(customInk ? { ink: customInk } : {}),
+  };
 
   const eyebrow =
     cardType === 'std' ? 'Save the date'

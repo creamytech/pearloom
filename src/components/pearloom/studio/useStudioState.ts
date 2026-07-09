@@ -50,6 +50,16 @@ export interface StudioCustomColors {
 /** The card elements a host can show/hide (SV.4). */
 export type StudioElementKey = 'eyebrow' | 'line2' | 'line4' | 'cta' | 'motif';
 
+/** One asset pressed onto the card front (SV.7). */
+export interface PlacedAsset {
+  /** Instance id — one asset can be placed twice. */
+  id: string;
+  /** AssetEntry id from state.assets. */
+  assetId: string;
+  /** Snap anchor 0–8 (row-major 3×3 grid). */
+  anchor: number;
+}
+
 export interface StudioState {
   type: StationeryType;
   view: CardView;
@@ -93,6 +103,18 @@ export interface StudioState {
   /** Back-of-card style (SV.6) — null = the per-type default
    *  back; 'photo' = the photograph back. */
   backStyle: string | null;
+  /** Label ink (SV.7) — the mono-caps lines (top line + footer)
+   *  stamped in ink | accent | gold; null keeps each layout's
+   *  own default. */
+  labelInk: string | null;
+  /** Label letter-spacing (SV.7) — null keeps each layout's own
+   *  tracking; 'wide' / 'widest' open it up. */
+  labelTracking: 'wide' | 'widest' | null;
+  /** Assets placed on the card front (SV.7) — per stationery
+   *  type, each at one of 9 snap anchors (0–8, row-major 3×3).
+   *  Drag on the canvas re-snaps; the press sheet prints them
+   *  in place. */
+  placed: Partial<Record<StationeryType, PlacedAsset[]>>;
   /** AI-drafted alternates per stationery type. Falls back to the
    *  built-in TYPE_CONTENT defaults when empty. */
   drafts: Partial<Record<StationeryType, StudioDraft[]>>;
@@ -132,6 +154,9 @@ const DEFAULT_STATE: StudioState = {
   elements: {},
   headlineScale: 'm',
   backStyle: null,
+  labelInk: null,
+  labelTracking: null,
+  placed: {},
   drafts: {},
   copyOverrides: {},
 };
@@ -157,6 +182,9 @@ interface ManifestStudio {
   elements?: Partial<Record<StationeryType, Partial<Record<StudioElementKey, boolean>>>>;
   headlineScale?: 's' | 'm' | 'l';
   backStyle?: string | null;
+  labelInk?: string | null;
+  labelTracking?: 'wide' | 'widest' | null;
+  placed?: Partial<Record<StationeryType, PlacedAsset[]>>;
   assets?: AssetEntry[];
   drafts?: Partial<Record<StationeryType, StudioDraft[]>>;
   copyOverrides?: Partial<Record<StationeryType, {
@@ -195,6 +223,28 @@ const VALID_STOCKS = new Set(PAPER_STOCKS.map((s) => s.id));
 const VALID_EDGES = new Set(EDGE_TREATMENTS.map((e) => e.id));
 const VALID_MARK_INKS = new Set(MARK_INKS.map((m) => m.id));
 const VALID_ELEMENT_KEYS: ReadonlySet<StudioElementKey> = new Set(['eyebrow', 'line2', 'line4', 'cta', 'motif']);
+
+/** Placed assets — keep well-formed rows on known types; anchors
+ *  clamp to the 3×3 grid; capped so a corrupt manifest can't
+ *  flood the card. */
+function sanitizePlaced(raw: unknown): StudioState['placed'] {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: StudioState['placed'] = {};
+  for (const t of ['std', 'invite', 'thanks'] as StationeryType[]) {
+    const rows = (raw as Record<string, unknown>)[t];
+    if (!Array.isArray(rows)) continue;
+    const clean: PlacedAsset[] = [];
+    for (const r of rows.slice(0, 9)) {
+      if (!r || typeof r !== 'object') continue;
+      const { id, assetId, anchor } = r as Record<string, unknown>;
+      if (typeof id !== 'string' || typeof assetId !== 'string') continue;
+      const a = typeof anchor === 'number' && Number.isFinite(anchor) ? Math.min(8, Math.max(0, Math.round(anchor))) : 0;
+      clean.push({ id, assetId, anchor: a });
+    }
+    if (clean.length > 0) out[t] = clean;
+  }
+  return out;
+}
 
 /** Element visibility — keep only boolean values on known keys
  *  under known stationery types. */
@@ -307,6 +357,9 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     elements: sanitizeElements(studio.elements),
     headlineScale: studio.headlineScale === 's' || studio.headlineScale === 'l' ? studio.headlineScale : 'm',
     backStyle: studio.backStyle === 'photo' ? 'photo' : null,
+    labelInk: typeof studio.labelInk === 'string' && VALID_MARK_INKS.has(studio.labelInk) ? studio.labelInk : null,
+    labelTracking: studio.labelTracking === 'wide' || studio.labelTracking === 'widest' ? studio.labelTracking : null,
+    placed: sanitizePlaced(studio.placed),
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
@@ -413,6 +466,9 @@ export function useStudioState(args: {
       elements: state.elements,
       headlineScale: state.headlineScale,
       backStyle: state.backStyle,
+      labelInk: state.labelInk,
+      labelTracking: state.labelTracking,
+      placed: state.placed,
       assets: state.assets,
       drafts: state.drafts,
       copyOverrides: state.copyOverrides,
@@ -448,6 +504,7 @@ export function useStudioState(args: {
     state.customColors, state.texture,
     state.textureIntensity, state.paperStock, state.edge, state.motifInk,
     state.elements, state.headlineScale, state.backStyle,
+    state.labelInk, state.labelTracking, state.placed,
     state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);

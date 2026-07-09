@@ -30,6 +30,7 @@ import {
 } from './studio-constants';
 import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
+import { ANCHOR_ORDER } from './StudioPlacedAssets';
 import { TextureFilters } from '../site/TextureFilters';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { packFromLookId, packPalette, packFont, packThemeRootStyle } from './studio-theme-packs';
@@ -409,6 +410,46 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     });
   }, [state.copyOverrides, state.type, setMany]);
   const headlineScaleFactor = state.headlineScale === 's' ? 0.85 : state.headlineScale === 'l' ? 1.18 : 1;
+
+  /* Label ink + tracking (SV.7) — resolved once against the live
+     palette; layouts fall back to their own defaults on null. */
+  const labelInkColor = state.labelInk === 'ink' ? palette.ink
+    : state.labelInk === 'accent' ? palette.accent
+    : state.labelInk === 'gold' ? 'var(--t-gold, #C19A4B)'
+    : null;
+  const labelTrackingValue = state.labelTracking === 'wide' ? '0.4em'
+    : state.labelTracking === 'widest' ? '0.55em'
+    : null;
+
+  /* Placed assets (SV.7) — pressed pieces on the card front.
+     New pieces take the first free anchor, corners first; drag
+     on the canvas re-snaps; the press sheet prints them as-is. */
+  const placedForType = state.placed[state.type] ?? [];
+  const placeAsset = useCallback((assetId: string) => {
+    const current = state.placed[state.type] ?? [];
+    if (current.length >= 6) return; // a card is not a scrapbook page
+    const taken = new Set(current.map((piece) => piece.anchor));
+    const anchor = ANCHOR_ORDER.find((a) => !taken.has(a));
+    if (anchor === undefined) return;
+    /* Deterministic instance id — counter-based, never a clock. */
+    let n = 1;
+    while (current.some((piece) => piece.id === `${assetId}-${n}`)) n += 1;
+    setMany({
+      placed: { ...state.placed, [state.type]: [...current, { id: `${assetId}-${n}`, assetId, anchor }] },
+    });
+  }, [state.placed, state.type, setMany]);
+  const moveAsset = useCallback((id: string, anchor: number) => {
+    const current = state.placed[state.type] ?? [];
+    setMany({
+      placed: { ...state.placed, [state.type]: current.map((piece) => piece.id === id ? { ...piece, anchor } : piece) },
+    });
+  }, [state.placed, state.type, setMany]);
+  const removeAsset = useCallback((id: string) => {
+    const current = state.placed[state.type] ?? [];
+    setMany({
+      placed: { ...state.placed, [state.type]: current.filter((piece) => piece.id !== id) },
+    });
+  }, [state.placed, state.type, setMany]);
   /* Pear's layout pick for this occasion (SV.5) — the gold pearl
      on the Layout chips. Lookup-only. */
   const recommendedLayout = recommendedStudioLayoutFor(occasion);
@@ -734,6 +775,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
 
       {!viewportMobile && (
         <DraftsRail
+          onPlaceAsset={placeAsset}
           state={state}
           setField={setField}
           content={content}
@@ -771,6 +813,10 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 type={state.type}
                 view="front"
                 onEditCopy={editCopy}
+                placed={placedForType}
+                assets={state.assets}
+                onMoveAsset={moveAsset}
+                onRemoveAsset={removeAsset}
                 layout={state.layout}
                 motif={activeMotif}
                 texture={state.texture}
@@ -779,6 +825,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 darkPaper={darkPaper}
                 motifInk={state.motifInk}
                 headlineScale={headlineScaleFactor}
+                labelInk={labelInkColor}
+                labelTracking={labelTrackingValue}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -810,6 +858,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 darkPaper={darkPaper}
                 motifInk={state.motifInk}
                 headlineScale={headlineScaleFactor}
+                labelInk={labelInkColor}
+                labelTracking={labelTrackingValue}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -840,6 +890,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 darkPaper={darkPaper}
                 motifInk={state.motifInk}
                 headlineScale={headlineScaleFactor}
+                labelInk={labelInkColor}
+                labelTracking={labelTrackingValue}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -953,6 +1005,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           >
             {displaySheet === 'drafts' && (
               <DraftsRail
+          onPlaceAsset={placeAsset}
                 state={state}
                 setField={setField}
                 content={content}
@@ -1073,6 +1126,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           themeRoot={cardThemeRoot}
           backStyle={state.backStyle}
           addressee={addressee}
+          placed={placedForType}
+          assets={state.assets}
           postmarkDate={postmarkDate}
           kitId={kitId}
           type={state.type}
@@ -1084,6 +1139,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 darkPaper={darkPaper}
                 motifInk={state.motifInk}
                 headlineScale={headlineScaleFactor}
+                labelInk={labelInkColor}
+                labelTracking={labelTrackingValue}
           solemn={solemn}
           palette={palette}
           font={font}
@@ -1112,6 +1169,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
             <CardFront
               type={state.type}
               view="front"
+              placed={placedForType}
+              assets={state.assets}
               layout={state.layout}
               motif={activeMotif}
               texture={state.texture}
@@ -1120,6 +1179,8 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 darkPaper={darkPaper}
                 motifInk={state.motifInk}
                 headlineScale={headlineScaleFactor}
+                labelInk={labelInkColor}
+                labelTracking={labelTrackingValue}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}

@@ -9,7 +9,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useId } from 'react';
-import type { StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
+import type { AssetEntry, StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
+import type { PlacedAsset } from './useStudioState';
+import { PlacedAssets } from './StudioPlacedAssets';
 import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 import {
   ClassicLayout, AsymLayout, PhotoLayout, ScriptLayout, MinimalLayout,
@@ -72,6 +74,19 @@ interface CardProps {
   /** First real guest's name for the envelope preview (SV.6);
    *  placeholders when the guest list is empty. */
   addressee?: string | null;
+  /** Assets pressed onto the card front (SV.7) — with the asset
+   *  palette they resolve against. */
+  placed?: PlacedAsset[];
+  assets?: AssetEntry[];
+  /** Canvas-only handlers — drag re-snaps, × removes. */
+  onMoveAsset?: (id: string, anchor: number) => void;
+  onRemoveAsset?: (id: string) => void;
+  /** Label ink (SV.7) — a resolved CSS color for the mono-caps
+   *  lines (top line + footer); null keeps layout defaults. */
+  labelInk?: string | null;
+  /** Label letter-spacing (SV.7) — a resolved CSS length; null
+   *  keeps each layout's own tracking. */
+  labelTracking?: string | null;
   /** The site's resolved --t-* bag (siteThemeRootStyle) — when
    *  present the card renders inside .pl8-guest with the site's
    *  own vars, so the 'site' palette/font (var() references)
@@ -203,6 +218,16 @@ export function CardFront(props: CardProps) {
         markInk={props.motifInk}
         postmarkDate={props.postmarkDate}
       />
+      {/* Assets the host pressed on (SV.7) — nine snap anchors,
+          draggable on the canvas, printed in place. */}
+      {props.placed && props.placed.length > 0 && props.assets && (
+        <PlacedAssets
+          placed={props.placed}
+          assets={props.assets}
+          onMove={props.onMoveAsset}
+          onRemove={props.onRemoveAsset}
+        />
+      )}
       {/* Used to silence the unused warning when Card-only props
           aren't read by every layout. */}
       <span style={{ display: 'none' }}>{font.name}{type}{nameA}{nameB}</span>

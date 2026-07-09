@@ -109,6 +109,9 @@ interface RailProps {
   /** Pear's layout pick for this occasion (SV.5) — the gold pearl
    *  on the Layout chips. Lookup-only, never auto-applied. */
   recommendedLayout?: string;
+  /** Press an asset onto the card front at the next free snap
+   *  anchor (SV.7). */
+  onPlaceAsset?: (assetId: string) => void;
   /** Which inspector tab the RemixRail opens on. The mobile
    *  bottom bar's Design / Words buttons mount the rail inside a
    *  bottom sheet keyed on this, so each button lands on its tab
@@ -432,7 +435,7 @@ function formatRelative(ts: number): string {
   return 'Saved earlier';
 }
 
-export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, onOpenProofSheet, sendStats, aiBusy }: RailProps) {
+export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, onOpenProofSheet, sendStats, aiBusy, onPlaceAsset }: RailProps) {
   const drafts = content.drafts;
   return (
     <aside aria-label="Pear's drafts" style={{
@@ -543,7 +546,7 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
         )}
       </div>
 
-      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} aiBusy={aiBusy} />
+      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} aiBusy={aiBusy} onPlaceAsset={onPlaceAsset} />
 
       <div style={{
         marginTop: 'auto', padding: 12,
@@ -621,7 +624,7 @@ function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; activ
   );
 }
 
-function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>; aiBusy?: boolean }) {
+function AssetPalette({ state, setField, onAskPearForAsset, aiBusy, onPlaceAsset }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>; aiBusy?: boolean; onPlaceAsset?: (assetId: string) => void }) {
   // Tracks which asset kind the host most recently asked Pear to
   // paint. Combined with aiBusy at render time to flip the matching
   // pill to "Painting…". When aiBusy goes false, the kind is stale
@@ -649,8 +652,8 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
             padding: 10, background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 10,
           }}>
             {state.assets.map(a => (
+              <div key={a.id} style={{ position: 'relative' }}>
               <button
-                key={a.id}
                 type="button"
                 onClick={() => {
                   // Use this asset as the active motif. AI URLs flow through customMotifUrl.
@@ -683,11 +686,31 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
                   cursor: 'pointer', border: '1px solid var(--line-soft)',
                   padding: 4, transition: 'transform 160ms ease',
                 }}
-                title={a.kind}
+                title={`Use ${a.kind} as the card's mark`}
                 aria-label={`Use ${a.kind} asset`}
               >
                 <AssetGlyph asset={a} />
               </button>
+              {/* Press onto the card (SV.7) — adds this piece at the
+                  next free snap anchor; drag it on the card after. */}
+              {onPlaceAsset && !a.url && (
+                <button
+                  type="button"
+                  onClick={() => onPlaceAsset(a.id)}
+                  title="Add to the card, then drag it into place"
+                  aria-label={`Add ${a.kind} to the card`}
+                  style={{
+                    position: 'absolute', top: 2, right: 2,
+                    width: 16, height: 16, borderRadius: '50%',
+                    background: 'var(--ink)', color: 'var(--cream)',
+                    border: 'none', fontSize: 11, lineHeight: 1,
+                    display: 'grid', placeItems: 'center', cursor: 'pointer', padding: 0,
+                  }}
+                >
+                  +
+                </button>
+              )}
+              </div>
             ))}
           </div>
           {onAskPearForAsset && (
@@ -1160,6 +1183,59 @@ function DesignTab({ state, setField, decorAssets, siteSwatch, recommendedLayout
                   key={id}
                   type="button"
                   onClick={() => setField('headlineScale', id)}
+                  aria-pressed={on}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* Label ink + spacing (SV.7) — the mono-caps lines (top
+            line + footer) stamped in a chosen ink, tracking opened
+            up like real letterpress labels. */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Label ink</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[{ id: null as string | null, name: 'Auto' }, ...MARK_INKS].map((mi) => {
+              const on = (state.labelInk ?? null) === mi.id;
+              return (
+                <button
+                  key={mi.id ?? 'auto'}
+                  type="button"
+                  onClick={() => setField('labelInk', mi.id)}
+                  aria-pressed={on}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {mi.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Label spacing</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {([[null, 'Normal'], ['wide', 'Wide'], ['widest', 'Widest']] as const).map(([id, label]) => {
+              const on = (state.labelTracking ?? null) === id;
+              return (
+                <button
+                  key={id ?? 'normal'}
+                  type="button"
+                  onClick={() => setField('labelTracking', id)}
                   aria-pressed={on}
                   style={{
                     padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,

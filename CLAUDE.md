@@ -110,7 +110,14 @@ picker (SV.3); click-to-edit lines on the canvas + the On-the-card
 show/hide group + Names size (SV.4); 10 layouts with
 `recommendedStudioLayoutFor` gold-pearl picks (SV.5); the photo
 back, the envelope liner + real-guest addressee, and the
-`no-sticker-marks.test.ts` fence (SV.6). Open deferrals live in
-each block's stamp (asset snap, per-element alignment/ink, deckle,
-invite-card stock). New mark law: marks are STAMPED ink, never
-pastel sticker discs — the fence test enforces it.
+`no-sticker-marks.test.ts` fence (SV.6). SV.7 (the depth pass)
+closed every deferral: placed assets (press pieces onto the card
+at 9 snap anchors, drag to re-snap, printed in place —
+`manifest.studio.placed`), Label ink + spacing for the mono-caps
+lines, the per-guest email card pressing on the studio's paper
+stock (`lib/studio/paper-stocks.ts` shared with /api/invite-card),
+and deckle CLOSED as a product decision (print-at-home can't
+manufacture a torn edge; deckled stock + the Plain edge is the
+honest answer). Nothing in the plan remains open except §7 Q2/Q3
+judgment calls. New mark law: marks are STAMPED ink, never pastel
+sticker discs — the fence test enforces it.

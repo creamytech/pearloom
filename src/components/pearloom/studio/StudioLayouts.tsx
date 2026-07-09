@@ -34,6 +34,11 @@ interface LayoutProps {
   onEditCopy?: (field: EditableCopyField, value: string) => void;
   /** Names size multiplier (SV.4) — 0.85 / 1 / 1.18. */
   headlineScale?: number;
+  /** Label ink (SV.7) — a resolved CSS color for the mono-caps
+   *  lines; null/undefined keeps each layout's default ink. */
+  labelInk?: string | null;
+  /** Label letter-spacing (SV.7) — a resolved CSS length. */
+  labelTracking?: string | null;
 }
 
 const AMP_DEFAULT = 'and';
@@ -72,14 +77,14 @@ export function Editable({ field, value, onEdit }: {
   );
 }
 
-export function ClassicLayout({ content, palette, font, type, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function ClassicLayout({ content, palette, font, type, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', height: '100%', textAlign: 'center', position: 'relative', zIndex: 2 }}>
       <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
         {content.eyebrow && (
           <>
             <Rule color={palette.accent} width={48} />
-            <div style={{ fontSize: 9, letterSpacing: '0.32em', textTransform: 'uppercase', fontWeight: 600, color: palette.ink, opacity: 0.7 }}>
+            <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.32em', textTransform: 'uppercase', fontWeight: 600, color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.7 }}>
               <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
             </div>
             <Rule color={palette.accent} width={48} />
@@ -117,18 +122,18 @@ export function ClassicLayout({ content, palette, font, type, nameA, nameB, amp 
         )}
       </div>
 
-      <div style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
+      <div style={{ fontSize: 10, letterSpacing: labelTracking ?? '0.22em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.9 : 0.55, fontWeight: 600 }}>
         {content.cta && <Editable field="cta" value={content.cta} onEdit={onEditCopy} />}
       </div>
     </div>
   );
 }
 
-export function AsymLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function AsymLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   return (
     <div style={{ position: 'relative', height: '100%', zIndex: 2 }}>
       {content.eyebrow && (
-        <div style={{ position: 'absolute', top: 0, left: 0, fontSize: 9, letterSpacing: '0.26em', textTransform: 'uppercase', color: palette.ink, opacity: 0.7, fontWeight: 600 }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, fontSize: 9, letterSpacing: labelTracking ?? '0.26em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.7, fontWeight: 600 }}>
           <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
         </div>
       )}
@@ -173,7 +178,7 @@ export function AsymLayout({ content, palette, font, nameA, nameB, amp = AMP_DEF
   );
 }
 
-export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   const photoBg = photoUrl
     ? `center/cover no-repeat url("${photoUrl}")`
     : `linear-gradient(135deg, ${palette.accent}, ${palette.accent2})`;
@@ -181,7 +186,7 @@ export function PhotoLayout({ content, palette, font, photoUrl, nameA, nameB, am
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2, gap: 16, margin: -36, padding: 0 }}>
       <div style={{ height: '62%', background: photoBg }} />
       <div style={{ padding: '0 36px 36px', display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'center', flex: 1 }}>
-        {content.eyebrow && <div style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: palette.ink, opacity: 0.65, fontWeight: 600, marginBottom: 4 }}><Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} /></div>}
+        {content.eyebrow && <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.3em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.65, fontWeight: 600, marginBottom: 4 }}><Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} /></div>}
         <div style={{ fontFamily: font.display, fontStyle: font.italic ? 'italic' : 'normal', fontWeight: font.weight, fontSize: Math.round(40 * headlineScale), lineHeight: 1, color: palette.ink, letterSpacing: '-0.02em' }}>
           {nameA}{nameB && <> <span style={{ fontStyle: 'italic', color: palette.accent, fontSize: Math.round(30 * headlineScale) }}>{amp}</span> {nameB}</>}
         </div>
@@ -232,7 +237,7 @@ export function MinimalLayout({ content, palette, font, nameA, nameB, headlineSc
 /** Crest — the site's crest hero, miniaturized: monogram in a
  *  double hairline ring, quiet centered type. The solemn
  *  recommendation (memorial / funeral). */
-export function CrestLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, monogram }: LayoutProps & { monogram?: string }) {
+export function CrestLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, monogram, labelInk, labelTracking }: LayoutProps & { monogram?: string }) {
   const mono = monogram ?? `${(nameA[0] ?? '').toUpperCase()}${nameB ? `&${(nameB[0] ?? '').toUpperCase()}` : ''}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', height: '100%', textAlign: 'center', position: 'relative', zIndex: 2, paddingTop: 6 }}>
@@ -244,7 +249,7 @@ export function CrestLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
         {content.eyebrow && (
-          <div style={{ fontSize: 9, letterSpacing: '0.32em', textTransform: 'uppercase', fontWeight: 600, color: palette.ink, opacity: 0.65 }}>
+          <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.32em', textTransform: 'uppercase', fontWeight: 600, color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.65 }}>
             <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
           </div>
         )}
@@ -265,7 +270,7 @@ export function CrestLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
         )}
       </div>
 
-      <div style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
+      <div style={{ fontSize: 10, letterSpacing: labelTracking ?? '0.22em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.9 : 0.55, fontWeight: 600 }}>
         {content.cta && <Editable field="cta" value={content.cta} onEdit={onEditCopy} />}
       </div>
     </div>
@@ -274,12 +279,12 @@ export function CrestLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
 
 /** Split — two columns on a center hairline: the names hold the
  *  left page, the day holds the right. Reads like a spread. */
-export function SplitLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function SplitLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   return (
     <div style={{ position: 'relative', height: '100%', zIndex: 2, display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 18 }}>
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
         {content.eyebrow && (
-          <div style={{ fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', fontWeight: 600, color: palette.ink, opacity: 0.65 }}>
+          <div style={{ fontSize: 8.5, letterSpacing: labelTracking ?? '0.26em', textTransform: 'uppercase', fontWeight: 600, color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.65 }}>
             <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
           </div>
         )}
@@ -308,7 +313,7 @@ export function SplitLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
           </div>
         )}
         {content.cta && (
-          <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.18em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.9 : 0.55, fontWeight: 600, lineHeight: 1.6 }}>
             <Editable field="cta" value={content.cta} onEdit={onEditCopy} />
           </div>
         )}
@@ -319,12 +324,12 @@ export function SplitLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
 
 /** Border — a full hairline frame with the eyebrow set INTO the
  *  top rule, everything centered inside. Formal stationery. */
-export function FrameLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function FrameLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   return (
     <div style={{ position: 'relative', height: '100%', zIndex: 2 }}>
       <div style={{ position: 'absolute', inset: 6, border: `1px solid ${palette.accent}`, opacity: 0.55 }} />
       {content.eyebrow && (
-        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -44%)', background: palette.paper, padding: '2px 12px', fontSize: 8.5, letterSpacing: '0.28em', textTransform: 'uppercase', fontWeight: 600, color: palette.ink, opacity: 0.8, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -44%)', background: palette.paper, padding: '2px 12px', fontSize: 8.5, letterSpacing: labelTracking ?? '0.28em', textTransform: 'uppercase', fontWeight: 600, color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.8, whiteSpace: 'nowrap' }}>
           <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
         </div>
       )}
@@ -352,7 +357,7 @@ export function FrameLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
         )}
       </div>
       {content.cta && (
-        <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translate(-50%, 40%)', background: palette.paper, padding: '2px 12px', fontSize: 8.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: palette.ink, opacity: 0.7, fontWeight: 600, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translate(-50%, 40%)', background: palette.paper, padding: '2px 12px', fontSize: 8.5, letterSpacing: labelTracking ?? '0.22em', textTransform: 'uppercase', color: labelInk ?? palette.ink, opacity: labelInk ? 0.9 : 0.7, fontWeight: 600, whiteSpace: 'nowrap' }}>
           <Editable field="cta" value={content.cta} onEdit={onEditCopy} />
         </div>
       )}
@@ -363,7 +368,7 @@ export function FrameLayout({ content, palette, font, nameA, nameB, amp = AMP_DE
 /** Full photo — the photograph IS the card; type settles onto a
  *  quiet ink scrim at the foot. Falls back to an accent wash
  *  when the site has no cover photo yet. */
-export function FullPhotoLayout({ content, palette, font, photoUrl, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function FullPhotoLayout({ content, palette, font, photoUrl, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   const photoBg = photoUrl
     ? `center/cover no-repeat url("${photoUrl}")`
     : `linear-gradient(160deg, ${palette.accent}, ${palette.accent2})`;
@@ -373,7 +378,7 @@ export function FullPhotoLayout({ content, palette, font, photoUrl, nameA, nameB
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(14,13,11,0) 42%, rgba(14,13,11,0.62) 100%)' }} />
       <div style={{ position: 'absolute', left: 28, right: 28, bottom: 26, display: 'flex', flexDirection: 'column', gap: 6, color: '#FBF7EE' }}>
         {content.eyebrow && (
-          <div style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 600, opacity: 0.85 }}>
+          <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.3em', textTransform: 'uppercase', fontWeight: 600, opacity: 0.85, ...(labelInk ? { color: labelInk } : {}) }}>
             <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
           </div>
         )}
@@ -395,7 +400,7 @@ export function FullPhotoLayout({ content, palette, font, photoUrl, nameA, nameB
 
 /** Ticket — a stub on the left behind a perforation line, the
  *  card proper on the right. The playful recommendation. */
-export function TicketLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1 }: LayoutProps) {
+export function TicketLayout({ content, palette, font, nameA, nameB, amp = AMP_DEFAULT, onEditCopy, headlineScale = 1, labelInk, labelTracking }: LayoutProps) {
   return (
     <div style={{ position: 'relative', height: '100%', zIndex: 2, display: 'grid', gridTemplateColumns: '64px 1fr', margin: -36 }}>
       <div style={{ borderRight: `1.5px dashed ${palette.accent}`, background: palette.accent2, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.9 }}>
@@ -406,7 +411,7 @@ export function TicketLayout({ content, palette, font, nameA, nameB, amp = AMP_D
       <div style={{ padding: '34px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           {content.eyebrow ? (
-            <div style={{ fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 600, color: palette.ink, opacity: 0.7 }}>
+            <div style={{ fontSize: 9, letterSpacing: labelTracking ?? '0.24em', textTransform: 'uppercase', fontWeight: 600, color: labelInk ?? palette.ink, opacity: labelInk ? 0.95 : 0.7 }}>
               <Editable field="eyebrow" value={content.eyebrow} onEdit={onEditCopy} />
             </div>
           ) : <span />}

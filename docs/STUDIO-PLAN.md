@@ -198,6 +198,36 @@ disc fill exists anywhere in the mark surfaces. Deferred:
 registry-QR and details back variants (the per-type Default backs
 already carry details/reply/note).
 
+### SV.7 — The depth pass · **SHIPPED 2026-07-09**
+Every deferral from SV.2–SV.6, closed:
+- **Placed assets** (the SV.3 deferral, now a real system): the
+  asset palette's tiles press pieces onto the card front with a
+  `+` — each lands at the next free of NINE snap anchors (3×3,
+  corners first), **drags between anchors on the canvas**
+  (pointer-capture, snaps on release), removes with an ×, capped
+  at 6 per card, persisted per stationery type
+  (`manifest.studio.placed`), and prints in place on the press
+  sheet. Stale asset ids render nothing.
+- **Label ink + spacing** (the SV.4 deferral): the mono-caps
+  lines (top line + footer) can be stamped in Ink / Accent / Gold
+  and tracked Normal / Wide / Widest — threaded through all ten
+  layouts and the press sheet. Per-element ALIGNMENT is a closed
+  design decision, not a control: composition is the layout
+  registry's job (ten compositions), and a free alignment knob
+  inside a fixed layout mostly manufactures broken cards.
+- **The guest's email card carries the paper** (the SV.2
+  deferral): `/api/invite-card` reads `manifest.studio`'s paper
+  stock + custom paper/ink and presses the per-guest hero image
+  on the same sheet (PAPER_STOCKS extracted to
+  `lib/studio/paper-stocks.ts`, pure, one table for both
+  surfaces). Texture grains can't ride an ImageResponse (Satori
+  has no SVG filters) — the stock color is the material story.
+- **Deckle: closed, not deferred.** Print-at-home can't
+  manufacture a torn edge — a printed deckle illusion is exactly
+  the fake material BRAND §10 bans, and the press sheet's trim
+  cut is straight by definition. The honest answer: buy deckled
+  stock and the Plain edge honors it. Never revisit as pixels.
+
 ## 6 · Explicitly out of scope
 
 - Physical print fulfillment (retired; ATELIER §1 — the
