@@ -9226,13 +9226,22 @@ html { scroll-behavior: smooth; }
     padding-inline: var(--pl-shelf-gutter);
     padding-bottom: 4px;
     scrollbar-width: none;
-    align-items: flex-start;
+    /* Slides equalize: the shorter card stretches its paper to the
+       tallest slide, so swiping never reveals raw page grain below
+       a short card. !important because rows carry their own inline
+       alignItems for the desktop grid. */
+    align-items: stretch !important;
     mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
   }
   .pl8-pl-chrome .pl8-homerow { --pl-shelf-gutter: 18px; }
   .pl8 .pl8-homerow::-webkit-scrollbar { display: none; }
-  .pl8 .pl8-homerow > * {
+  /* Slides: direct children AND the children of dissolved
+     .pl8-homestack columns (display: contents removes the stack's
+     box, so its children are flex items but NOT `> *` of the row —
+     they need their own slide sizing). */
+  .pl8 .pl8-homerow > *,
+  .pl8 .pl8-homerow .pl8-homestack > * {
     flex: 0 0 86vw;
     max-width: 86vw;
     min-width: 0;

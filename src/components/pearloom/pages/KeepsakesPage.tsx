@@ -499,7 +499,10 @@ export function KeepsakesPage() {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
             gap: 18,
-            alignItems: 'start',
+            /* stretch, not start: short cards extend their paper to
+               the row so neither desktop rows nor phone shelf slides
+               leave raw page gaps beside a taller sibling. */
+            alignItems: 'stretch',
           }}
         >
           {showThanks && <ThankYouGenerator />}

@@ -182,11 +182,11 @@ export function DevDashboardClient() {
           narrow={heroNarrow}
           afterglowStats={post ? { celebrated: 74, photos: 212, notes: 31 } : null}
         />
-        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? '1fr' : twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? '1fr' : twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'stretch' }}>
           {!post && <ProgressCard pct={68} done={31} prog={12} todo={12} />}
           <QuickActions actions={post ? QUICK_AFTERGLOW : QUICK_PLAN} />
         </div>
-        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: phase === 'kept' ? '1fr' : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: phase === 'kept' ? '1fr' : twoCol('1fr', '1fr'), gap: 18, alignItems: 'stretch' }}>
           {phase !== 'kept' && (
             <RoadCard
               milestones={post ? ROAD_STORY : ROAD_PLAN}
@@ -218,7 +218,7 @@ export function DevDashboardClient() {
           </div>
         </div>
         {phase !== 'kept' && (
-          <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: twoCol('1.25fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: twoCol('1.25fr', '1fr'), gap: 18, alignItems: 'stretch' }}>
             <NeedsYouNow
               rows={post ? NEEDS_AFTERGLOW : NEEDS_PLAN}
               phaseLabel={copy.label}
@@ -230,7 +230,7 @@ export function DevDashboardClient() {
             </div>
           </div>
         )}
-        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? twoCol('1.25fr', '1fr') : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? twoCol('1.25fr', '1fr') : twoCol('1fr', '1fr'), gap: 18, alignItems: 'stretch' }}>
           {post ? (
             <>
               <MemoryCard

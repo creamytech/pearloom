@@ -522,17 +522,23 @@ export function ChecklistCard({
     setDone(items.map(() => false));
   }
   if (items.length === 0) return null;
+  /* A glance card, not the working list — cap what renders so this
+     card can't tower over its row siblings (the full list lives at
+     the footer link). Done-state still tracks the full array, so
+     indexes stay aligned. */
+  const shown = items.slice(0, 8);
+  const more = items.length - shown.length;
   return (
     <div style={{ ...cockpitCard, padding: 26 }}>
       <Eyebrow>{eyebrow}</Eyebrow>
       <CardHeadline size={21} margin="8px 0 14px">{headline ?? <>You can <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>do this.</span></>}</CardHeadline>
       <div>
-        {items.map((c, i) => (
+        {shown.map((c, i) => (
           <button
             key={c.t}
             type="button"
             onClick={() => setDone((d) => d.map((v, j) => (j === i ? !v : v)))}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 0', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 'none', background: 'transparent', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', textAlign: 'left' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 0', borderBottom: i < shown.length - 1 || more > 0 ? '1px solid var(--line-soft)' : 'none', background: 'transparent', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', textAlign: 'left' }}
           >
             <span style={{ width: 19, height: 19, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', border: `1.5px solid ${done[i] ? 'var(--sage)' : 'var(--line)'}`, background: done[i] ? 'var(--sage)' : 'transparent' }}>
               {done[i] ? <Icon name="check" size={11} strokeWidth={3} color="var(--cream)" /> : null}
@@ -541,6 +547,11 @@ export function ChecklistCard({
             <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', color: PRI[c.p] }}>{c.p}</span>
           </button>
         ))}
+        {more > 0 && (
+          <div style={{ padding: '11px 0 0', fontSize: 12.5, color: 'var(--ink-muted)' }}>
+            + {more} more on the day-of page
+          </div>
+        )}
       </div>
       {href ? (
         <Link href={href} style={{ marginTop: 14, fontSize: 12.5, color: 'var(--peach-ink)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
