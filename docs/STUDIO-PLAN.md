@@ -101,14 +101,27 @@ the `Squiggle`/`Filigree` components are deleted from motifs.tsx
 so the glyph cannot quietly return. Never reintroduce a wavy-line
 mark — HairlineRule / Asterism / Fleuron are the ornament set.
 
-### SV.1 — One look contract (themes + fonts parity)
-`studioThemeFrom()` in `src/lib/site-look/` + the Colors rail
-regrouped: **Your site** → the site's 6 named themes → owned
-packs (via `useEntitlements`) → custom colors. Fonts rail follows
-the same order (theme stacks first). Legacy palette/font ids
-alias through. Counts as done: a host who owns a pack can press
-the card in that pack's full look; persisted old rows render
-byte-identical (snapshot test).
+### SV.1 — Theme packs press the card · **SHIPPED 2026-07-09**
+The store's pack catalog is pressable in the Studio.
+`studio/studio-theme-packs.ts` is the bridge: a pack look rides
+`manifest.studio.palette` / `.fontPair` as `pack:<id>`; the card
+root mounts the pack's full `--t-*` bag (the `'site'` sentinel
+mechanism, generalized) so the card wears the pack's REAL colors,
+faces, and paper grain — including the store-exclusive materials
+(silk / washi / …). What landed: the Colors rail's **Theme packs**
+shelf (owned + free packs press in one tap — colors + faces +
+texture together; locked packs list quietly under "In the store"
+with an Unlock link — one purchase covers site + stationery, §7
+Q1 resolved YES); the Typography group shows the pack's own
+display face as the active pair; the Paper row surfaces
+pack-exclusive grains as the active chip; `<StoreFonts />` loads
+the catalog faces only while a pack is pressed; stale pack ids
+fall back like every other Studio dial (unit-tested across the
+whole catalog). Visual harness at `/dev/studio`. Deferred to a
+later block: the site's 6 named themes as pressable rows (the
+'site' row covers the common case), and the byte-identical
+snapshot test for legacy rows (ids are untouched, aliasing was
+not needed).
 
 ### SV.2 — Paper parity ("matches the paper types and stuff")
 Texture + **intensity** slider matching `--pl-texture-intensity`;

@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { studioDefaultsFromLook } from './studio-defaults-from-look';
+import { packFromLookId } from './studio-theme-packs';
 import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
 import { cockpitPhaseFor, isPostEventPhase } from '@/lib/event-os/cockpit-phase';
 import {
@@ -162,6 +163,15 @@ function pick<T extends string>(value: unknown, allowed: ReadonlySet<T>, fallbac
   return typeof value === 'string' && allowed.has(value as T) ? (value as T) : fallback;
 }
 
+/* Palette / fontPair accept pack looks ('pack:<id>', STUDIO-PLAN
+   SV.1) on top of the preset + 'site' sets — valid only while the
+   pack is still in the catalog, so a retired pack falls back like
+   any other stale id. */
+function pickLook(value: unknown, allowed: ReadonlySet<string>, fallback: string): string {
+  if (typeof value === 'string' && packFromLookId(value)) return value;
+  return pick(value, allowed, fallback);
+}
+
 /** Has this site's day already passed? (Drives the default card
  *  type — thank-yous after the day, never save-the-dates.) */
 function manifestPostEvent(manifest: StoryManifest | null | undefined): boolean {
@@ -206,8 +216,8 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     })(),
     view: pick(studio.view, VALID_VIEWS, DEFAULT_STATE.view),
     draft: studio.draft ?? DEFAULT_STATE.draft,
-    palette: pick(studio.palette, VALID_PALETTES, DEFAULT_STATE.palette),
-    fontPair: pick(studio.fontPair, VALID_FONTS, DEFAULT_STATE.fontPair),
+    palette: pickLook(studio.palette, VALID_PALETTES, DEFAULT_STATE.palette),
+    fontPair: pickLook(studio.fontPair, VALID_FONTS, DEFAULT_STATE.fontPair),
     layout: pick(studio.layout, VALID_LAYOUTS, DEFAULT_STATE.layout),
     motif: pick(studio.motif, VALID_MOTIFS, DEFAULT_STATE.motif),
     tone: pick(studio.tone, VALID_TONES, DEFAULT_STATE.tone),

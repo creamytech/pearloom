@@ -31,6 +31,8 @@ import {
 import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { TextureFilters } from '../site/TextureFilters';
+import { StoreFonts } from '@/lib/theme-store/fonts';
+import { packFromLookId, packPalette, packFont, packThemeRootStyle } from './studio-theme-packs';
 import {
   siteLookAvailable, siteThemeRootStyle, SITE_PALETTE, SITE_FONT, SITE_LOOK_ID,
 } from './studio-defaults-from-look';
@@ -290,7 +292,19 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
     () => (siteLookOn ? siteThemeRootStyle(manifest) : undefined),
     [siteLookOn, manifest],
   );
-  const cardThemeRoot = state.palette === SITE_LOOK_ID || state.fontPair === SITE_LOOK_ID ? themeRoot : undefined;
+  /* Pack looks (STUDIO-PLAN SV.1) ride the same mechanism: the
+     card root mounts the PACK's --t-* bag instead of the site's.
+     The rail always sets palette + fontPair together; if they
+     ever diverge, the palette's pack wins the bag. */
+  const palettePack = packFromLookId(state.palette);
+  const fontPack = packFromLookId(state.fontPair);
+  const lookPack = palettePack ?? fontPack;
+  const packRoot = useMemo(() => (lookPack ? packThemeRootStyle(lookPack) : undefined), [lookPack]);
+  const cardThemeRoot = lookPack
+    ? packRoot
+    : state.palette === SITE_LOOK_ID || state.fontPair === SITE_LOOK_ID
+      ? themeRoot
+      : undefined;
   /* Concrete swatch hexes for the rail's "Your site" row — read
      straight off the resolved bag (the rail chrome sits outside
      .pl8-guest, so var() references wouldn't paint there). */
@@ -317,9 +331,11 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
       accent2: bag['--t-accent-bg'] ?? bag['--t-section'] ?? '#F3E9D4',
     };
   }, [themeRoot]);
-  const basePalette = state.palette === SITE_LOOK_ID && siteLookOn
-    ? SITE_PALETTE
-    : (PALETTES.find(p => p.id === state.palette) ?? PALETTES[0]);
+  const basePalette = palettePack
+    ? packPalette(palettePack)
+    : state.palette === SITE_LOOK_ID && siteLookOn
+      ? SITE_PALETTE
+      : (PALETTES.find(p => p.id === state.palette) ?? PALETTES[0]);
   /* Custom color overrides ride on top of the preset — the same
      accent/paper/ink freedom the site editor's Tweak-colors panel
      gives, so the suite can match a custom-colored site exactly. */
@@ -332,9 +348,11 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
         ...(state.customColors.accent2 ? { accent2: state.customColors.accent2 } : {}),
       }
     : basePalette;
-  const font = state.fontPair === SITE_LOOK_ID && siteLookOn
-    ? SITE_FONT
-    : (FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0]);
+  const font = fontPack
+    ? packFont(fontPack)
+    : state.fontPair === SITE_LOOK_ID && siteLookOn
+      ? SITE_FONT
+      : (FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0]);
 
   const baseContent = useMemo(() => buildTypeContent({
     type: state.type,
@@ -618,6 +636,11 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           mounts, so live materials (watercolor bleed, marble wash)
           resolve on the card exactly as on the published site. */}
       <TextureFilters />
+      {/* Pack looks sell typography — load the store's webfont
+          catalog whenever a pack is pressed so Cormorant / Bodoni /
+          friends actually render (idempotent, cached for the
+          session). Preset + site looks never pay for it. */}
+      {lookPack && <StoreFonts />}
       <StudioTopbar
         state={state}
         setField={setField}

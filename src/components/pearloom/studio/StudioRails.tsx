@@ -7,7 +7,7 @@
 //   - RemixRail (right): Design / Copy / Pear tabs
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
@@ -18,6 +18,9 @@ import { Pear, Stamp, Icon } from '../motifs';
 import { AssetGlyph } from './StudioAssetGlyph';
 import { PearThinking } from '../pear-thinking';
 import { PlColorPicker } from '../redesign/PlColorPicker';
+import { PACKS } from '@/lib/theme-store/packs';
+import { useEntitlements } from '../store/useEntitlements';
+import { isPackLookId, packFromLookId, packLookId, packStudioTexture } from './studio-theme-packs';
 
 // Editorial chrome tokens — the .pl8 handoff family (cockpit.tsx /
 // QuietDash pattern). Mono eyebrows lead with a gold hairline;
@@ -784,10 +787,96 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
   );
 }
 
+/* ── Theme packs shelf (STUDIO-PLAN SV.1) ─────────────────────
+   The store's pack catalog inside the Colors group. Owned packs
+   (purchases + the free tier) press onto the card in one tap —
+   colors, faces, AND the pack's paper grain together, since a
+   pack is one designed object. Locked packs list quietly with a
+   store link; nothing applies without ownership (one purchase
+   covers site + stationery — STUDIO-PLAN §7 Q1). */
+function PackShelf({ state, setField }: { state: StudioState; setField: SetStudioField }) {
+  const { owned } = useEntitlements();
+  const activePack = packFromLookId(state.palette);
+  /* Owned first (they're pressable), catalog order within groups. */
+  const { own, locked } = useMemo(() => ({
+    own: PACKS.filter((p) => owned.has(p.id)),
+    locked: PACKS.filter((p) => !owned.has(p.id)),
+  }), [owned]);
+
+  function pressPack(packId: string) {
+    const pack = packFromLookId(packLookId(packId));
+    if (!pack) return;
+    setField('palette', packLookId(pack.id));
+    setField('fontPair', packLookId(pack.id));
+    setField('texture', packStudioTexture(pack));
+  }
+
+  const rowStyle = (on: boolean): React.CSSProperties => ({
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '8px 10px', borderRadius: 10, textAlign: 'left',
+    background: on ? 'var(--cream-3)' : 'transparent',
+    border: `1px solid ${on ? 'var(--peach-ink)' : 'transparent'}`,
+    cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+  });
+  const swatchStrip = (swatches: readonly [string, string, string, string]) => (
+    <span style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--line)', flexShrink: 0 }}>
+      {swatches.map((c, j) => (
+        <span key={j} style={{ width: 15, height: 24, background: c }} />
+      ))}
+    </span>
+  );
+
+  return (
+    <details style={{ marginTop: 8 }} open={Boolean(activePack)}>
+      <summary style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', cursor: 'pointer', userSelect: 'none' }}>
+        Theme packs{activePack ? ` · ${activePack.name}` : ''}
+      </summary>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+        {own.map((p) => {
+          const on = state.palette === packLookId(p.id);
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => pressPack(p.id)}
+              aria-pressed={on}
+              title={p.blurb}
+              style={rowStyle(on)}
+            >
+              {swatchStrip(p.swatches)}
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+              {on ? <Icon name="check" size={14} color="var(--peach-ink)" strokeWidth={2.4} /> : null}
+            </button>
+          );
+        })}
+        {locked.length > 0 && (
+          <>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '6px 0 0 2px' }}>
+              In the store
+            </div>
+            {locked.map((p) => (
+              <Link
+                key={p.id}
+                href="/store"
+                title={`${p.blurb} Unlock it in the store; it covers the site and the stationery.`}
+                style={{ ...rowStyle(false), opacity: 0.72, textDecoration: 'none' }}
+              >
+                {swatchStrip(p.swatches)}
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-muted)', flexShrink: 0 }}>Unlock</span>
+              </Link>
+            ))}
+          </>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string } }) {
   return (
     <>
-      <RailGroup label="Colors" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
+      <RailGroup label="Colors" sub={packFromLookId(state.palette)?.name ?? PALETTES.find(p => p.id === state.palette)?.sub}>
         {/* Palette rows — the zip's Studio palette card: a four-swatch
             strip (paper · ink · accent · wash) + name, the active row
             washed in cream-3 with a peach hairline + check. */}
@@ -849,6 +938,10 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
             );
           })}
         </div>
+        {/* Theme packs (STUDIO-PLAN SV.1) — the store's signature
+            looks, pressable onto the card. One tap wears the pack's
+            colors + faces + paper grain. */}
+        <PackShelf state={state} setField={setField} />
         {/* Custom colors — the site editor's Tweak-colors freedom,
             here. Each picker overrides one slot of the preset. */}
         <details style={{ marginTop: 8 }}>
@@ -858,7 +951,14 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, marginTop: 8 }}>
             {([['paper', 'Paper'], ['ink', 'Ink'], ['accent', 'Accent'], ['accent2', 'Wash']] as const).map(([key, label]) => {
               const preset = PALETTES.find(pp => pp.id === state.palette) ?? PALETTES[0];
-              const current = state.customColors?.[key] ?? preset[key];
+              /* Pack looks: seed the pickers from the pack's own bag
+                 where the slot is a plain hex (derived color-mix()
+                 slots fall back to the preset's hex — the picker
+                 needs a concrete value). */
+              const packBag = packFromLookId(state.palette)?.themeRef as Record<string, string> | undefined;
+              const packSlot = packBag?.[{ paper: '--t-paper', ink: '--t-ink', accent: '--t-accent', accent2: '--t-accent-2' }[key]];
+              const packHex = typeof packSlot === 'string' && /^#[0-9a-fA-F]{6}$/.test(packSlot.trim()) ? packSlot.trim() : undefined;
+              const current = state.customColors?.[key] ?? packHex ?? preset[key];
               return (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--ink)' }}>
                   <PlColorPicker
@@ -906,6 +1006,24 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
               </button>
             );
           })}
+          {/* A pack-exclusive grain (silk / washi / …) isn't on the
+              standard shelf — show it as the active chip so the
+              Paper row never looks unselected while the card
+              clearly wears a texture. */}
+          {state.texture && !STUDIO_TEXTURES.some((t) => t.id === state.texture) && (
+            <button
+              type="button"
+              aria-pressed
+              title="This grain came with the theme pack"
+              style={{
+                padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                background: 'var(--ink)', color: 'var(--cream)',
+                border: '1px solid var(--ink)', cursor: 'default', fontFamily: 'inherit',
+              }}
+            >
+              {state.texture[0].toUpperCase() + state.texture.slice(1)}
+            </button>
+          )}
         </div>
       </RailGroup>
 
@@ -982,8 +1100,39 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
         </div>
       </RailGroup>
 
-      <RailGroup label="Typography" sub={state.fontPair === 'site' ? 'the site’s faces' : FONT_PAIRS.find(f => f.id === state.fontPair)?.sub}>
+      <RailGroup
+        label="Typography"
+        sub={
+          state.fontPair === 'site'
+            ? 'the site’s faces'
+            : isPackLookId(state.fontPair)
+              ? packFromLookId(state.fontPair)?.name ?? 'theme pack faces'
+              : FONT_PAIRS.find(f => f.id === state.fontPair)?.sub
+        }
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Active pack pair — a pack's faces ride with its colors
+              (one designed object). Picking any pair below departs
+              from the pack's type while keeping its colors. */}
+          {isPackLookId(state.fontPair) && packFromLookId(state.fontPair) && (
+            <div
+              style={{
+                padding: '10px 12px', borderRadius: 8,
+                background: 'var(--ink)', color: 'var(--cream)',
+                border: '1px solid var(--ink)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+              }}
+            >
+              <div>
+                {/* The pack's real display face — the rail sits outside
+                    the card's var scope, so read the stack straight off
+                    the pack bag (StoreFonts has it loaded). */}
+                <div style={{ fontFamily: String(packFromLookId(state.fontPair)!.themeRef['--t-display'] ?? DISPLAY), fontWeight: 600, fontSize: 18, lineHeight: 1, letterSpacing: '-0.02em' }}>Aa Bb</div>
+                <div style={{ fontSize: 10, opacity: 0.7, marginTop: 4 }}>{packFromLookId(state.fontPair)!.name}</div>
+              </div>
+              <Icon name="check" size={13} color="var(--cream)" />
+            </div>
+          )}
           {FONT_PAIRS.map(f => {
             const on = state.fontPair === f.id;
             return (
@@ -1278,7 +1427,7 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
           The <strong>{state.layout}</strong> layout reads {LAYOUT_CHARACTER[state.layout] ?? 'warm and confident'}. With{' '}
-          <strong>{PALETTES.find(p => p.id === state.palette)?.name ?? 'this'}</strong> and the{' '}
+          <strong>{packFromLookId(state.palette)?.name ?? PALETTES.find(p => p.id === state.palette)?.name ?? 'this'}</strong> and the{' '}
           <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the {PALETTE_NEIGHBOURHOOD[state.palette] ?? 'editorial-classic'} neighbourhood for {nameB ? `${nameA} & ${nameB}` : nameA}.
         </div>
       </div>
