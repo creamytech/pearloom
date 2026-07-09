@@ -15,6 +15,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/use-focus-trap';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { Icon } from '@/components/pearloom/motifs';
+import { Thread } from '@/components/brand/Thread';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 
 interface Item {
@@ -291,53 +292,62 @@ function ItemEditor({
   }
 
   return (
-    <div role="presentation" aria-hidden onClick={onClose} style={modalBackdropStyle}>
+    <div role="presentation" aria-hidden onClick={onClose} className="pl-modal-veil" style={modalBackdropStyle}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
+        className="pl-modal-card"
         style={modalCardStyle}
       >
         <button type="button" onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
-        <h3 id={titleId} style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, margin: 0 }}>
+        <h3
+          id={titleId}
+          className="pl-letterpress"
+          style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}
+        >
           {existing ? 'Edit item' : 'New item'}
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+        {/* The two-strand thread — the brand's divider, not a bare rule. */}
+        <div aria-hidden style={{ maxWidth: 180, margin: '10px 0 2px' }}>
+          <Thread variant="weave" height={10} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
           <Field label="Item name">
-            <input value={name} onChange={(e) => setName(e.target.value)} autoFocus style={inputStyle} />
+            <input value={name} onChange={(e) => setName(e.target.value)} autoFocus className="pl-modal-input" style={inputStyle} />
           </Field>
           <Field label="Description (optional)">
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
-              style={{ ...inputStyle, resize: 'vertical' }} />
+              className="pl-modal-input" style={{ ...inputStyle, resize: 'vertical' }} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <Field label="Price (USD)">
               <input type="number" min={1} step="0.01" value={price}
-                onChange={(e) => setPrice(e.target.value)} style={inputStyle} />
+                onChange={(e) => setPrice(e.target.value)} className="pl-modal-input" style={inputStyle} />
             </Field>
             <Field label="Quantity">
               <input type="number" min={1} step="1" value={quantity}
-                onChange={(e) => setQuantity(e.target.value)} style={inputStyle} />
+                onChange={(e) => setQuantity(e.target.value)} className="pl-modal-input" style={inputStyle} />
             </Field>
           </div>
           <Field label="Image URL (optional)">
             <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://…" style={inputStyle} />
+              placeholder="https://…" className="pl-modal-input" style={inputStyle} />
           </Field>
           <Field label="External link (optional)">
             <input value={itemUrl} onChange={(e) => setItemUrl(e.target.value)}
-              placeholder="https://crateandbarrel.com/…" style={inputStyle} />
+              placeholder="https://crateandbarrel.com/…" className="pl-modal-input" style={inputStyle} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <Field label="Category">
               <input value={category} onChange={(e) => setCategory(e.target.value)}
-                placeholder="Kitchen, Bath, Honeymoon…" style={inputStyle} />
+                placeholder="Kitchen, Bath, Honeymoon…" className="pl-modal-input" style={inputStyle} />
             </Field>
             <Field label="Priority">
               <select value={priority} onChange={(e) => setPriority(e.target.value as Item['priority'])}
-                style={inputStyle}>
+                className="pl-modal-input" style={inputStyle}>
                 <option value="need">Need</option>
                 <option value="want">Want</option>
                 <option value="dream">Dream</option>
@@ -407,31 +417,41 @@ const inputStyle: React.CSSProperties = {
 };
 
 const primaryButtonStyle: React.CSSProperties = {
-  padding: '10px 18px', borderRadius: 999, border: 'none',
-  background: 'var(--ink, #18181B)', color: 'var(--cream, #FBF7EE)',
+  padding: '10px 20px', borderRadius: 999, border: 'none',
+  // Deep olive-brown, matching the sidebar's active pill — pure ink
+  // read as a black slab against the paper system.
+  background: 'var(--pl-nav-active-bg, var(--pl-olive-deep, #363F22))',
+  color: 'var(--pl-nav-active-ink, #F7F2E4)',
   fontSize: 13, fontWeight: 600, cursor: 'pointer',
+  transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease',
 };
 
 const smallButtonStyle: React.CSSProperties = {
-  padding: '6px 12px', borderRadius: 6,
+  padding: '6px 12px', borderRadius: 999,
   border: '1px solid var(--line, rgba(61,74,31,0.14))',
   background: 'var(--card, #FFFFFF)', fontSize: 12,
   cursor: 'pointer', color: 'var(--ink)',
 };
 
 const modalBackdropStyle: React.CSSProperties = {
-  position: 'fixed', inset: 0, background: 'rgba(14,13,11,0.55)',
-  backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center',
+  position: 'fixed', inset: 0, background: 'rgba(20, 16, 8, 0.48)',
+  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+  display: 'flex', alignItems: 'center',
   justifyContent: 'center', padding: 20, zIndex: 1000,
 };
 
 const modalCardStyle: React.CSSProperties = {
-  background: 'var(--cream, #FDFAF0)', borderRadius: 18,
+  background: 'var(--cream, #FDFAF0)', borderRadius: 20,
+  border: '1px solid var(--line-soft, rgba(61, 74, 31, 0.08))',
+  boxShadow: '0 40px 90px -30px rgba(31, 26, 12, 0.45), 0 4px 16px rgba(31, 26, 12, 0.10)',
   padding: 28, maxWidth: 540, width: '100%', position: 'relative',
   maxHeight: 'calc(100vh - 40px)', overflowY: 'auto',
 };
 
 const modalCloseStyle: React.CSSProperties = {
-  position: 'absolute', top: 12, right: 12, background: 'transparent',
-  border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--ink-soft)',
+  position: 'absolute', top: 14, right: 14, width: 32, height: 32,
+  display: 'grid', placeItems: 'center', borderRadius: 999,
+  background: 'var(--cream-2, #F5EFE2)',
+  border: '1px solid var(--line-soft, rgba(61, 74, 31, 0.08))',
+  fontSize: 18, lineHeight: 1, cursor: 'pointer', color: 'var(--ink-soft)',
 };

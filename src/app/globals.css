@@ -1108,6 +1108,52 @@ input[type='radio']:not(.pl-native-control):disabled {
   }
 }
 
+/* ── Modal motion — every floating sheet enters the same way ────
+   The veil fades in (its backdrop blur rides the fade); the card
+   settles onto the paper a beat later — rise + a soft scale on the
+   emphasis curve, like a sheet being laid down. Apply
+   .pl-modal-veil to the fixed backdrop and .pl-modal-card to the
+   dialog card. One recipe for every dashboard modal.
+
+   Usage:
+     <div className="pl-modal-veil" style={fixed inset 0 …}>
+       <div className="pl-modal-card" role="dialog" …>…</div>
+     </div> */
+@keyframes pl-modal-veil-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pl-modal-card-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.pl-modal-veil {
+  animation: pl-modal-veil-in 220ms ease-out both;
+}
+.pl-modal-card {
+  animation: pl-modal-card-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* The veil registers first; the card arrives ON it. */
+  animation-delay: 50ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-modal-veil,
+  .pl-modal-card {
+    animation: none !important;
+  }
+}
+
+/* Form fields inside dashboard modals: a soft olive focus instead
+   of the harsh default focus ring. */
+.pl-modal-input {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.pl-modal-input:focus,
+.pl-modal-input:focus-visible {
+  outline: none;
+  border-color: var(--pl-olive, #5C6B3F) !important;
+  box-shadow: 0 0 0 3px var(--pl-olive-15, rgba(92, 107, 63, 0.15));
+}
+
 /* ─── Base Reset ─── */
 
 *, *::before, *::after {

@@ -100,12 +100,13 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
   }
 
   return (
-    <div role="presentation" aria-hidden onClick={onClose} style={modalBackdropStyle}>
+    <div role="presentation" aria-hidden onClick={onClose} className="pl-modal-veil" style={modalBackdropStyle}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
+        className="pl-modal-card"
         style={modalCardStyle}
       >
         <button type="button" onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
@@ -271,7 +272,9 @@ const modalBackdropStyle: React.CSSProperties = {
 };
 
 const modalCardStyle: React.CSSProperties = {
-  background: 'var(--cream, #FDFAF0)', borderRadius: 18,
+  background: 'var(--cream, #FDFAF0)', borderRadius: 20,
+  border: '1px solid var(--line-soft, rgba(61, 74, 31, 0.08))',
+  boxShadow: '0 40px 90px -30px rgba(31, 26, 12, 0.45), 0 4px 16px rgba(31, 26, 12, 0.10)',
   padding: 28, maxWidth: 600, width: '100%', position: 'relative',
   maxHeight: 'calc(100vh - 40px)', overflowY: 'auto',
 };

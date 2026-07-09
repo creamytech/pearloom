@@ -26,10 +26,16 @@ import { toggleAskPear } from './DashAskPear';
 interface CmdItem {
   id: string;
   kind: 'nav' | 'site' | 'action';
+  /** Mono-caps section eyebrow the row renders under. Items are
+   *  pushed group-contiguously; the renderer draws a header at
+   *  every group change. */
+  group: string;
   label: string;
   hint?: string;
   icon?: string;
   href?: string;
+  /** The currently-selected site (gold pearl marker). */
+  current?: boolean;
   onSelect?: () => void;
 }
 
@@ -114,23 +120,28 @@ export function DashCommandPalette() {
     };
   }, [open]);
 
-  // Build the full item list. Memoised so search filtering is fast.
+  // Build the full item list, group-contiguously (the renderer draws
+  // a mono eyebrow at every group boundary). Memoised so search
+  // filtering is fast.
   const allItems = useMemo<CmdItem[]>(() => {
     const items: CmdItem[] = [];
     // Top-level destinations.
     for (const d of TOP_LEVEL_DESTINATIONS) {
-      items.push({ id: d.id, kind: 'nav', label: d.label, icon: d.icon, href: d.href });
+      items.push({ id: d.id, kind: 'nav', group: 'Go to', label: d.label, icon: d.icon, href: d.href });
     }
     // Sub-tabs across every section — occasion-gated so e.g. a
     // bachelor-party host doesn't see Registry in the switcher.
+    // Clean label + the section as a quiet hint (was "Site · My
+    // sites", which read as duplicate noise in a flat list).
     for (const [sectionId, section] of Object.entries(DASH_SECTIONS)) {
       for (const tab of section.tabs) {
         if (!isDashSurfaceApplicable(tab.id, selectedSite?.occasion)) continue;
         items.push({
           id: `tab-${sectionId}-${tab.id}`,
           kind: 'nav',
-          label: `${section.label} · ${tab.label}`,
-          hint: tab.label,
+          group: 'This event',
+          label: tab.label,
+          hint: section.label,
           icon: 'sparkles',
           href: tab.href,
         });
@@ -148,8 +159,9 @@ export function DashCommandPalette() {
         items.push({
           id: `side-${group.id}-${item.id}`,
           kind: 'nav',
-          label: group.label ? `${group.label} · ${item.label}` : item.label,
-          hint: item.label,
+          group: 'This event',
+          label: item.label,
+          hint: group.label || undefined,
           icon: item.icon,
           href: item.href,
         });
@@ -159,7 +171,7 @@ export function DashCommandPalette() {
     // surfaces, so the trimmed nav doesn't orphan it. Occasion-gated.
     for (const d of DEPROMOTED_DESTINATIONS) {
       if (d.gate && !isDashSurfaceApplicable(d.gate, selectedSite?.occasion)) continue;
-      items.push({ id: d.id, kind: 'nav', label: d.label, hint: d.hint, icon: d.icon, href: d.href });
+      items.push({ id: d.id, kind: 'nav', group: 'Tools', label: d.label, hint: d.hint, icon: d.icon, href: d.href });
     }
     // "Settings" always routes to the settings PAGE (one word, one
     // destination — the nav-settings entry above covers it). The
@@ -171,6 +183,7 @@ export function DashCommandPalette() {
     items.push({
       id: 'action-ask-pear',
       kind: 'action',
+      group: 'Pear & account',
       label: 'Ask Pear a question',
       hint: 'The help desk, advice on your event',
       icon: 'sparkles',
@@ -182,6 +195,7 @@ export function DashCommandPalette() {
     items.push({
       id: 'action-settings-usage',
       kind: 'action',
+      group: 'Pear & account',
       label: 'Usage & credits',
       hint: 'Pear AI credits',
       icon: 'sparkles',
@@ -193,6 +207,7 @@ export function DashCommandPalette() {
     items.push({
       id: 'action-settings-subscription',
       kind: 'action',
+      group: 'Pear & account',
       label: 'Subscription & billing',
       hint: 'Manage your plan',
       icon: 'star',
@@ -201,7 +216,8 @@ export function DashCommandPalette() {
         setOpen(false);
       },
     });
-    // Site switcher entries.
+    // Site switcher entries — the group header says "switch";
+    // the row carries the site's own name.
     const list = (allSites ?? sites ?? []) as SiteSummary[];
     for (const s of list) {
       const label = siteDisplayName(s);
@@ -209,9 +225,11 @@ export function DashCommandPalette() {
       items.push({
         id: `site-${s.id}`,
         kind: 'site',
-        label: `Switch to ${label}${isCurrent ? ' (current)' : ''}`,
+        group: 'Switch site',
+        label,
         hint: s.occasion ?? '',
-        icon: 'check',
+        icon: 'layout',
+        current: isCurrent,
         onSelect: () => {
           selectSite(s.id);
           setOpen(false);
@@ -225,7 +243,7 @@ export function DashCommandPalette() {
     const q = query.trim().toLowerCase();
     if (!q) return allItems;
     return allItems.filter((it) => {
-      const hay = `${it.label} ${it.hint ?? ''}`.toLowerCase();
+      const hay = `${it.label} ${it.hint ?? ''} ${it.group}`.toLowerCase();
       // Loose fuzzy: every token in q must appear (in order) somewhere.
       let lastIdx = -1;
       for (const tok of q.split(/\s+/)) {
@@ -270,10 +288,11 @@ export function DashCommandPalette() {
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"
+      className="pl-modal-veil"
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(14,13,11,0.42)',
+        background: 'rgba(20,16,8,0.42)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         zIndex: 400, // above modal-tier; this is the highest UI surface
@@ -283,22 +302,22 @@ export function DashCommandPalette() {
         // Top-aligned with a safe margin; 12px gutters keep the
         // sheet ≥ calc(100vw - 24px) wide on phones.
         padding: 'clamp(32px, 8vh, 120px) 12px 16px',
-        animation: 'pl8-dash-page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) setOpen(false);
       }}
     >
       <div
+        className="pl-modal-card"
         style={{
           width: 'min(640px, 100%)',
           background: 'var(--pl-glass)',
-        backgroundImage: 'var(--pl-glass-sheen)',
+          backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           border: '1px solid var(--pl-glass-border)',
-          borderRadius: 16,
-          boxShadow: '0 32px 64px rgba(14,13,11,0.32), 0 8px 16px rgba(14,13,11,0.16)',
+          borderRadius: 18,
+          boxShadow: '0 40px 90px -20px rgba(20,16,8,0.45), 0 8px 20px rgba(20,16,8,0.14)',
           overflow: 'hidden',
           fontFamily: 'var(--font-ui)',
         }}
@@ -327,7 +346,7 @@ export function DashCommandPalette() {
                 if (item) onPick(item);
               }
             }}
-            placeholder="Jump to a tab, switch sites, or run a command…"
+            placeholder="Jump to a page, switch sites, or ask Pear…"
             style={{
               flex: 1,
               border: 'none',
@@ -338,19 +357,26 @@ export function DashCommandPalette() {
               fontFamily: 'inherit',
             }}
           />
-          <span style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.18em',
-            color: 'var(--ink-muted)',
-            textTransform: 'uppercase',
-          }}>
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--gold-ink, #8A6A2E)',
+              padding: '3px 7px',
+              borderRadius: 5,
+              background: 'rgba(193, 154, 75, 0.14)',
+              border: '1px solid rgba(193, 154, 75, 0.28)',
+            }}
+          >
             Esc
           </span>
         </div>
         {/* dvh clamp keeps the footer + a few rows on short phone
             viewports (keyboard up) instead of overflowing. */}
-        <div role="listbox" aria-label="Command results" style={{ maxHeight: 'min(420px, 62dvh)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: 6 }}>
+        <div role="listbox" aria-label="Command results" style={{ maxHeight: 'min(440px, 62dvh)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 8px 8px' }}>
           {filtered.length === 0 ? (
             <div style={{ padding: '24px 18px', fontSize: 13, color: 'var(--ink-muted)', textAlign: 'center' }}>
               Nothing matches “{query}”. Try a different word.
@@ -358,6 +384,10 @@ export function DashCommandPalette() {
           ) : (
             filtered.map((item, idx) => {
               const active = idx === safeActiveIdx;
+              // Items arrive group-contiguously: a mono eyebrow marks
+              // every boundary (the flat run of rows read as an
+              // undesigned list).
+              const groupStart = idx === 0 || filtered[idx - 1].group !== item.group;
               const inner = (
                 <div
                   role="option"
@@ -366,45 +396,117 @@ export function DashCommandPalette() {
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => onPick(item)}
                   style={{
+                    position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
+                    gap: 11,
+                    padding: '10px 12px 10px 14px',
                     minHeight: 44, // touch-sized rows
                     boxSizing: 'border-box',
                     borderRadius: 10,
-                    background: active ? 'var(--cream-2, #FBF7EE)' : 'transparent',
-                    border: active ? '1.5px solid var(--ink, #0E0D0B)' : '1.5px solid transparent',
+                    // Soft settle, not a hard ring — the previous
+                    // 1.5px ink border read as a harsh outline.
+                    background: active ? 'color-mix(in oklab, var(--pl-olive, #5C6B3F) 9%, var(--cream-2, #FBF7EE))' : 'transparent',
+                    boxShadow: active ? 'inset 0 0 0 1px color-mix(in oklab, var(--pl-olive, #5C6B3F) 22%, transparent)' : 'none',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     fontSize: 13.5,
                     color: 'var(--ink)',
                     // Keyboard navigation glides between rows instead
                     // of snapping (arrow keys move `active` fast).
-                    transition: 'background var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease), border-color var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease)',
+                    transition: 'background var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease), box-shadow var(--pl-dur-subtle, 120ms) var(--pl-ease-out, ease)',
                   }}
                 >
-                  <Icon name={item.icon ?? 'sparkles'} size={14} color="var(--peach-ink, #C6703D)" />
-                  <span style={{ flex: 1, minWidth: 0, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.label}
+                  {/* The thread rail — the two-strand hover language the
+                      sidebar already speaks, drawn on the active row. */}
+                  {active && (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        left: 4,
+                        top: 9,
+                        bottom: 9,
+                        width: 2,
+                        borderRadius: 2,
+                        background: 'linear-gradient(180deg, var(--pl-olive, #5C6B3F), var(--pl-gold, #C19A4B))',
+                      }}
+                    />
+                  )}
+                  <Icon name={item.icon ?? 'sparkles'} size={14} color={active ? 'var(--peach-ink, #C6703D)' : 'var(--ink-muted, #8A8275)'} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 600 }}>{item.label}</span>
+                    {item.hint && (
+                      <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--ink-muted)', marginLeft: 8 }}>
+                        {item.hint}
+                      </span>
+                    )}
                   </span>
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '0.18em',
-                    color: 'var(--ink-muted)',
-                    textTransform: 'uppercase',
-                  }}>
-                    {item.kind === 'site' ? 'Switch' : item.kind === 'action' ? 'Open' : 'Go'}
-                  </span>
+                  {/* The current site wears the gold pearl. */}
+                  {item.current && (
+                    <span
+                      aria-label="Current site"
+                      style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--pl-gold, #C19A4B)', boxShadow: '0 0 0 1.5px var(--cream, #FDFAF0)', flexShrink: 0 }}
+                    />
+                  )}
+                  {/* One quiet return hint on the active row — the old
+                      per-row GO/SWITCH/OPEN column was pure noise. */}
+                  {active && (
+                    <span
+                      aria-hidden
+                      style={{
+                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                        fontSize: 10,
+                        color: 'var(--gold-ink, #8A6A2E)',
+                        padding: '2px 6px',
+                        borderRadius: 5,
+                        background: 'rgba(193, 154, 75, 0.14)',
+                        border: '1px solid rgba(193, 154, 75, 0.28)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      ↵
+                    </span>
+                  )}
                 </div>
               );
-              return item.href && !item.onSelect ? (
-                <Link key={item.id} href={item.href} prefetch onClick={() => setOpen(false)} style={{ textDecoration: 'none', display: 'block' }}>
+              const row = item.href && !item.onSelect ? (
+                <Link href={item.href} prefetch onClick={() => setOpen(false)} style={{ textDecoration: 'none', display: 'block' }}>
                   {inner}
                 </Link>
               ) : (
-                <div key={item.id}>{inner}</div>
+                inner
+              );
+              return (
+                <div key={item.id}>
+                  {groupStart && (
+                    <div
+                      aria-hidden
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: idx === 0 ? '8px 14px 6px' : '16px 14px 6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                          fontSize: 9.5,
+                          fontWeight: 600,
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted, #8A8275)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.group}
+                      </span>
+                      <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, color-mix(in oklab, var(--pl-gold, #C19A4B) 38%, transparent), transparent)' }} />
+                    </div>
+                  )}
+                  {row}
+                </div>
               );
             })
           )}

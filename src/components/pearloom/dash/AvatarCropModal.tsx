@@ -73,6 +73,7 @@ export function AvatarCropModal({
       aria-modal="true"
       aria-label="Seat your photo"
       onClick={onCancel}
+      className="pl-modal-veil"
       style={{
         position: 'fixed', inset: 0, zIndex: 260,
         background: 'rgba(20,14,8,0.55)',
@@ -82,6 +83,7 @@ export function AvatarCropModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="pl-modal-card"
         style={{
           background: 'var(--card, #FBF7EE)',
           border: '1px solid var(--line, #D8CFB8)',
