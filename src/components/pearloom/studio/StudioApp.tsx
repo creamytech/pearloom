@@ -21,7 +21,7 @@
 //   - /api/invite/guest for actual invitation send
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Pear, PostIt, Icon } from '../motifs';
 import {
@@ -35,6 +35,7 @@ import { StoreFonts } from '@/lib/theme-store/fonts';
 import { packFromLookId, packPalette, packFont, packThemeRootStyle } from './studio-theme-packs';
 import {
   siteLookAvailable, siteThemeRootStyle, SITE_PALETTE, SITE_FONT, SITE_LOOK_ID,
+  recommendedStudioLayoutFor,
 } from './studio-defaults-from-look';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioMobileBar, useViewportSize, type StudioSheetId } from './StudioMobileChrome';
@@ -378,18 +379,56 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   const content = useMemo(() => {
     const aiDrafts = state.drafts[state.type];
     const overrides = state.copyOverrides[state.type] ?? {};
+    /* Element visibility (SV.4): an explicit false blanks the
+       field; the layouts collapse empty blocks. */
+    const shown = state.elements[state.type] ?? {};
     const merged = {
       ...baseContent,
-      eyebrow: overrides.eyebrow?.trim() || baseContent.eyebrow,
-      line2:   overrides.line2?.trim()   || baseContent.line2,
-      line4:   overrides.line4?.trim()   || baseContent.line4,
-      cta:     overrides.cta?.trim()     || baseContent.cta,
+      eyebrow: shown.eyebrow === false ? '' : (overrides.eyebrow?.trim() || baseContent.eyebrow),
+      line2:   shown.line2 === false ? '' : (overrides.line2?.trim()   || baseContent.line2),
+      line4:   shown.line4 === false ? '' : (overrides.line4?.trim()   || baseContent.line4),
+      cta:     shown.cta === false ? '' : (overrides.cta?.trim()     || baseContent.cta),
+      scriptBody: overrides.scriptBody?.trim() || baseContent.scriptBody,
     };
     if (aiDrafts && aiDrafts.length > 0) {
       return { ...merged, drafts: aiDrafts };
     }
     return merged;
-  }, [baseContent, state.drafts, state.copyOverrides, state.type]);
+  }, [baseContent, state.drafts, state.copyOverrides, state.elements, state.type]);
+
+  /* Hiding the mark routes through the same visibility slice. */
+  const activeMotif = (state.elements[state.type] ?? {}).motif === false ? 'none' : state.motif;
+
+  /* Inline canvas edits (SV.4) land in the SAME per-type override
+     slice the Copy rail + Pear rewrites use, so every surface
+     agrees on the words. */
+  const editCopy = useCallback((field: 'eyebrow' | 'line2' | 'line4' | 'cta' | 'scriptBody', value: string) => {
+    const prevSlice = state.copyOverrides[state.type] ?? {};
+    setMany({
+      copyOverrides: { ...state.copyOverrides, [state.type]: { ...prevSlice, [field]: value } },
+    });
+  }, [state.copyOverrides, state.type, setMany]);
+  const headlineScaleFactor = state.headlineScale === 's' ? 0.85 : state.headlineScale === 'l' ? 1.18 : 1;
+  /* Pear's layout pick for this occasion (SV.5) — the gold pearl
+     on the Layout chips. Lookup-only. */
+  const recommendedLayout = recommendedStudioLayoutFor(occasion);
+
+  /* First real guest → the envelope's addressee preview (SV.6).
+     Fails soft to the bracketed placeholders (no guests yet, or
+     no session in a dev harness). */
+  const [addressee, setAddressee] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { guests?: Array<{ name?: string }> } | null) => {
+        if (cancelled) return;
+        const name = (d?.guests?.[0]?.name ?? '').trim();
+        if (name) setAddressee(name);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [siteSlug]);
 
   // When stationery type changes, reset to the first draft of that
   // type so palette/layout/motif pick up sensible defaults.
@@ -731,12 +770,15 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               <CardFront
                 type={state.type}
                 view="front"
+                onEditCopy={editCopy}
                 layout={state.layout}
-                motif={state.motif}
+                motif={activeMotif}
                 texture={state.texture}
                 textureIntensity={state.textureIntensity}
                 edge={state.edge}
                 darkPaper={darkPaper}
+                motifInk={state.motifInk}
+                headlineScale={headlineScaleFactor}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -757,12 +799,17 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
                 type={state.type}
                 solemn={solemn}
                 view="back"
+                onEditCopy={editCopy}
+                backStyle={state.backStyle}
+                photoUrl={(manifest.coverPhoto as string | undefined) ?? null}
                 layout={state.layout}
-                motif={state.motif}
+                motif={activeMotif}
                 texture={state.texture}
                 textureIntensity={state.textureIntensity}
                 edge={state.edge}
                 darkPaper={darkPaper}
+                motifInk={state.motifInk}
+                headlineScale={headlineScaleFactor}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -783,13 +830,16 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
             {state.view === 'envelope' && (
               <CardEnvelope
                 type={state.type}
+                addressee={addressee}
                 view="envelope"
                 layout={state.layout}
-                motif={state.motif}
+                motif={activeMotif}
                 texture={state.texture}
                 textureIntensity={state.textureIntensity}
                 edge={state.edge}
                 darkPaper={darkPaper}
+                motifInk={state.motifInk}
+                headlineScale={headlineScaleFactor}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}
@@ -859,6 +909,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
 
       {!viewportMobile && (
         <RemixRail
+          recommendedLayout={recommendedLayout}
           siteSwatch={siteSwatch}
           decorAssets={decorAssets}
           state={state}
@@ -919,6 +970,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
             )}
             {(displaySheet === 'design' || displaySheet === 'words') && (
               <RemixRail
+          recommendedLayout={recommendedLayout}
           siteSwatch={siteSwatch}
           decorAssets={decorAssets}
                 /* Keyed remount so Design / Words each land on
@@ -1019,15 +1071,19 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
       {showPrintPair && (
         <StudioPressSheet
           themeRoot={cardThemeRoot}
+          backStyle={state.backStyle}
+          addressee={addressee}
           postmarkDate={postmarkDate}
           kitId={kitId}
           type={state.type}
           layout={state.layout}
-          motif={state.motif}
+          motif={activeMotif}
           texture={state.texture}
                 textureIntensity={state.textureIntensity}
                 edge={state.edge}
                 darkPaper={darkPaper}
+                motifInk={state.motifInk}
+                headlineScale={headlineScaleFactor}
           solemn={solemn}
           palette={palette}
           font={font}
@@ -1057,11 +1113,13 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
               type={state.type}
               view="front"
               layout={state.layout}
-              motif={state.motif}
+              motif={activeMotif}
               texture={state.texture}
                 textureIntensity={state.textureIntensity}
                 edge={state.edge}
                 darkPaper={darkPaper}
+                motifInk={state.motifInk}
+                headlineScale={headlineScaleFactor}
               themeRoot={cardThemeRoot}
               postmarkDate={postmarkDate}
               kitId={kitId}

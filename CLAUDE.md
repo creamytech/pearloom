@@ -104,5 +104,13 @@ same day: paper parity (Grain-strength slider on
 `--pl-texture-intensity`, six paper stocks with their own inks
 incl. dark navy, edge treatments plain/hairline/double/gilded;
 all persisted on manifest.studio; press sheet carries the same
-sheet). SV.3–SV.6 are planned, unexecuted. New mark law: marks
-are STAMPED ink, never pastel sticker discs.
+sheet). SV.3–SV.6 SHIPPED same day — **the plan is fully
+executed**: dated Postmark + monogram Seal marks + the Mark-ink
+picker (SV.3); click-to-edit lines on the canvas + the On-the-card
+show/hide group + Names size (SV.4); 10 layouts with
+`recommendedStudioLayoutFor` gold-pearl picks (SV.5); the photo
+back, the envelope liner + real-guest addressee, and the
+`no-sticker-marks.test.ts` fence (SV.6). Open deferrals live in
+each block's stamp (asset snap, per-element alignment/ink, deckle,
+invite-card stock). New mark law: marks are STAMPED ink, never
+pastel sticker discs — the fence test enforces it.

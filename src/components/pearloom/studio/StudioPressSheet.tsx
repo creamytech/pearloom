@@ -48,6 +48,12 @@ interface Props {
   textureIntensity?: number;
   edge?: string | null;
   darkPaper?: boolean;
+  motifInk?: string | null;
+  headlineScale?: number;
+  /** SV.6 — the photo back + the envelope's addressee preview
+   *  print exactly as the canvas shows them. */
+  backStyle?: string | null;
+  addressee?: string | null;
   siteUrl: string;
   rsvpDeadline?: string;
   returnAddress: { name: string; line1?: string; line2?: string };
@@ -150,6 +156,7 @@ export function StudioPressSheet(props: Props) {
   const {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
     solemn, photoUrl, customMotifUrl, texture, textureIntensity, edge, darkPaper,
+    motifInk, headlineScale, backStyle, addressee,
     siteUrl, rsvpDeadline,
     returnAddress, themeRoot, postmarkDate, kitId,
     ceremonyAt, receptionAt, dressCode, hotelLine, onClose,
@@ -166,7 +173,7 @@ export function StudioPressSheet(props: Props) {
 
   const shared = {
     type, layout, motif, palette, font, content, nameA, nameB, monogram,
-    solemn, texture, textureIntensity, edge, darkPaper,
+    solemn, texture, textureIntensity, edge, darkPaper, motifInk, headlineScale,
     themeRoot, postmarkDate, kitId, siteUrl, rsvpDeadline,
   };
 
@@ -255,6 +262,8 @@ export function StudioPressSheet(props: Props) {
           <CardBack
             {...shared}
             view="back"
+            backStyle={backStyle}
+            photoUrl={photoUrl}
             ceremonyAt={ceremonyAt}
             receptionAt={receptionAt}
             dressCode={dressCode}
@@ -265,6 +274,7 @@ export function StudioPressSheet(props: Props) {
           <CardEnvelope
             {...shared}
             view="envelope"
+            addressee={addressee}
             returnAddress={returnAddress}
           />
         </PressPage>

@@ -8,11 +8,14 @@
 // (envelope). Background of the card uses the active palette.
 // ─────────────────────────────────────────────────────────────
 
+import { useId } from 'react';
 import type { StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
 import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 import {
   ClassicLayout, AsymLayout, PhotoLayout, ScriptLayout, MinimalLayout,
+  CrestLayout, SplitLayout, FrameLayout, FullPhotoLayout, TicketLayout,
   PaperTexture, MotifOverlay, Rule,
+  type EditableCopyField,
 } from './StudioLayouts';
 import { Pear } from '../motifs';
 
@@ -55,6 +58,20 @@ interface CardProps {
   /** Dark sheet (navy stock / twilight palette) — suppresses the
    *  light-paper noise overlay. */
   darkPaper?: boolean;
+  /** Mark ink pick (MARK_INKS id) — null keeps each mark's own
+   *  default (STUDIO-PLAN SV.3). */
+  motifInk?: string | null;
+  /** Click-to-edit on the live canvas (SV.4) — absent on the
+   *  press sheet + send preview, which render read-only. */
+  onEditCopy?: (field: EditableCopyField, value: string) => void;
+  /** Names size multiplier (SV.4). */
+  headlineScale?: number;
+  /** Back-of-card style (SV.6) — 'photo' swaps the per-type back
+   *  for the photograph back. */
+  backStyle?: string | null;
+  /** First real guest's name for the envelope preview (SV.6);
+   *  placeholders when the guest list is empty. */
+  addressee?: string | null;
   /** The site's resolved --t-* bag (siteThemeRootStyle) — when
    *  present the card renders inside .pl8-guest with the site's
    *  own vars, so the 'site' palette/font (var() references)
@@ -169,8 +186,13 @@ export function CardFront(props: CardProps) {
       {layout === 'classic' && <ClassicLayout {...props} />}
       {layout === 'asym' && <AsymLayout {...props} />}
       {layout === 'photo' && <PhotoLayout {...props} photoUrl={photoUrl} />}
+      {layout === 'fullphoto' && <FullPhotoLayout {...props} photoUrl={photoUrl} />}
       {layout === 'script' && <ScriptLayout {...props} />}
       {layout === 'minimal' && <MinimalLayout {...props} />}
+      {layout === 'crest' && <CrestLayout {...props} monogram={monogram} />}
+      {layout === 'split' && <SplitLayout {...props} />}
+      {layout === 'frame' && <FrameLayout {...props} />}
+      {layout === 'ticket' && <TicketLayout {...props} />}
 
       <MotifOverlay
         motif={motif}
@@ -178,6 +200,8 @@ export function CardFront(props: CardProps) {
         stampText={content.stamp}
         monogram={monogram}
         customUrl={customMotifUrl}
+        markInk={props.motifInk}
+        postmarkDate={props.postmarkDate}
       />
       {/* Used to silence the unused warning when Card-only props
           aren't read by every layout. */}
@@ -193,6 +217,50 @@ export function CardBack(props: CardProps) {
   } = props;
   const w = 420, h = 588;
   const script = scriptFont(font);
+
+  /* The photograph back (SV.6) — the cover photo carries the back,
+     with the monogram, a short line, and the site QR beneath. */
+  if (props.backStyle === 'photo') {
+    const photoBg = props.photoUrl
+      ? `center/cover no-repeat url("${props.photoUrl}")`
+      : `linear-gradient(150deg, ${palette.accent}, ${palette.accent2})`;
+    return (
+      <div
+        className={texture || themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+        data-pl-texture={texture ?? undefined}
+        style={{
+          ...(themeRoot ?? {}),
+          ...(texture ? { ['--pl-texture-intensity' as string]: String(props.textureIntensity ?? 1) } : {}),
+          width: w, height: h,
+          background: palette.paper,
+          color: palette.ink,
+          borderRadius: 6,
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{ height: '64%', background: photoBg }} />
+        {props.edge && <EdgeFrame edge={props.edge} accent={palette.accent} />}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 28px 22px', textAlign: 'center' }}>
+          <div style={{ fontFamily: font.display, fontStyle: 'italic', fontSize: 24, color: palette.accent, fontWeight: 600 }}>{monogram}</div>
+          <div style={{ fontFamily: script, fontSize: 20, color: palette.ink, opacity: 0.85 }}>
+            {solemn ? 'with love, always' : type === 'thanks' ? 'thank you, truly' : 'we can\u2019t wait to see you'}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+            <div style={{ fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.6, fontWeight: 600 }}>
+              {siteUrl ?? 'pearloom.com'}
+            </div>
+            {siteUrl && (
+              <div style={{ width: 46, height: 46, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 3 }}>
+                <BrandedQR value={`https://${siteUrl}`} size={38} dark={palette.ink} light="#ffffff" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className={texture || themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
@@ -353,14 +421,23 @@ export function CardEnvelope(props: CardProps) {
   const w = 540, h = 380;
   const ret = returnAddress ?? { name: nameB ? `${nameA} & ${nameB}` : nameA, line1: '', line2: '' };
   const script = scriptFont(font);
+  const linerId = useId();
   return (
     <div
       style={{ ...(themeRoot ?? {}), width: w, height: h, position: 'relative' }}
       className={themeRoot ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
     >
       <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ position: 'absolute', inset: 0 }}>
+        {/* The liner (SV.6) — fine diagonal hairlines in the card's
+            accent, pressed inside the flap like a real envelope. */}
+        <defs>
+          <pattern id={`${linerId}-liner`} width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <rect width="7" height="7" fill={palette.accent2} />
+            <line x1="0" y1="0" x2="0" y2="7" stroke={palette.accent} strokeWidth="1.1" opacity="0.55" />
+          </pattern>
+        </defs>
         <rect width={w} height={h} fill={palette.accent2} rx="6" />
-        <path d={`M0 0 L ${w / 2} ${h * 0.42} L ${w} 0 Z`} fill={palette.accent} opacity="0.25" />
+        <path d={`M0 0 L ${w / 2} ${h * 0.42} L ${w} 0 Z`} fill={`url(#${linerId}-liner)`} opacity="0.8" />
         <path d={`M0 0 L ${w / 2} ${h * 0.42} L ${w} 0`} stroke={palette.ink} strokeWidth="0.5" fill="none" opacity="0.3" />
       </svg>
 
@@ -370,7 +447,7 @@ export function CardEnvelope(props: CardProps) {
         zIndex: 2,
       }}>
         <div style={{ fontFamily: script, fontSize: 22, color: palette.ink, opacity: 0.85 }}>
-          [Guest first name] [Guest last name]
+          {props.addressee ?? '[Guest first name] [Guest last name]'}
         </div>
         <div style={{ fontFamily: script, fontSize: 18, color: palette.ink, opacity: 0.7 }}>
           [Guest street]

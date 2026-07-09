@@ -163,24 +163,45 @@ export const FONT_PAIRS: StudioFontPair[] = [
   { id: 'script',    name: 'Handwritten', display: "'Caveat', cursive",               ui: "'Inter', system-ui, sans-serif", weight: 600, italic: false, sub: 'Caveat · Inter' },
 ];
 
+// crest / split / frame / fullphoto / ticket joined 2026-07-09
+// (STUDIO-PLAN SV.5) — the registry pattern mirrors the site's
+// section-variant registries.
 export const LAYOUTS: StudioLayout[] = [
-  { id: 'classic', name: 'Classic',    sub: 'centered · airy' },
-  { id: 'asym',    name: 'Asymmetric', sub: 'off-center · stamp' },
-  { id: 'photo',   name: 'Photo-led',  sub: 'big image · caption' },
-  { id: 'script',  name: 'Letter',     sub: 'handwritten note' },
-  { id: 'minimal', name: 'Minimal',    sub: 'two lines + rule' },
+  { id: 'classic',   name: 'Classic',    sub: 'centered · airy' },
+  { id: 'asym',      name: 'Asymmetric', sub: 'off-center · stamp' },
+  { id: 'photo',     name: 'Photo-led',  sub: 'big image · caption' },
+  { id: 'fullphoto', name: 'Full photo', sub: 'photo · overlay' },
+  { id: 'script',    name: 'Letter',     sub: 'handwritten note' },
+  { id: 'minimal',   name: 'Minimal',    sub: 'two lines + rule' },
+  { id: 'crest',     name: 'Crest',      sub: 'monogram ring · quiet' },
+  { id: 'split',     name: 'Split',      sub: 'two columns' },
+  { id: 'frame',     name: 'Border',     sub: 'full hairline frame' },
+  { id: 'ticket',    name: 'Ticket',     sub: 'stub · perforation' },
 ];
 
 // 'doodle' (the squiggle) is retired — owner call, 2026-07-09.
 // Persisted motif='doodle' rows render clean (MotifOverlay falls
 // through to null, same as 'none').
+// 'postmark' + 'seal' (STUDIO-PLAN SV.3): the dated ink postmark
+// (the same mark the envelope + Sealed Arrival wear) and the
+// monogram seal (the site's crest hero, miniaturized).
 export const MOTIFS: StudioMotif[] = [
   { id: 'none',     name: 'Clean' },
   { id: 'stamp',    name: 'Stamp' },
+  { id: 'postmark', name: 'Postmark' },
+  { id: 'seal',     name: 'Seal' },
   { id: 'leaves',   name: 'Leaves' },
   { id: 'tape',     name: 'Tape' },
   { id: 'monogram', name: 'Monogram' },
   { id: 'wax',      name: 'Wax seal' },
+];
+
+/** Mark ink choices (SV.3) — which ink the mark is stamped in.
+ *  null/auto keeps each mark's own default. */
+export const MARK_INKS: ReadonlyArray<{ id: string; name: string }> = [
+  { id: 'ink',    name: 'Ink' },
+  { id: 'accent', name: 'Accent' },
+  { id: 'gold',   name: 'Gold' },
 ];
 
 export const COPY_TONES: StudioCopyTone[] = [

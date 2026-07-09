@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
-  PAPER_STOCKS, EDGE_TREATMENTS,
+  PAPER_STOCKS, EDGE_TREATMENTS, MARK_INKS,
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
 } from './studio-constants';
 import type { StudioState, SetStudioField } from './useStudioState';
@@ -106,6 +106,9 @@ interface RailProps {
   /** Site decor library + uploads — offered as card flourishes
    *  via the customMotifUrl pipeline. */
   decorAssets?: Array<{ id: string; url: string; label: string }>;
+  /** Pear's layout pick for this occasion (SV.5) — the gold pearl
+   *  on the Layout chips. Lookup-only, never auto-applied. */
+  recommendedLayout?: string;
   /** Which inspector tab the RemixRail opens on. The mobile
    *  bottom bar's Design / Words buttons mount the rail inside a
    *  bottom sheet keyed on this, so each button lands on its tab
@@ -724,7 +727,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
   );
 }
 
-export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab, decorAssets, siteSwatch }: RailProps) {
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab, decorAssets, siteSwatch, recommendedLayout }: RailProps) {
   const [tab, setTab] = useState<'design' | 'copy' | 'pear'>(initialTab ?? 'design');
   return (
     <aside aria-label="Inspector" style={{
@@ -768,7 +771,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       </div>
 
       <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} siteSwatch={siteSwatch} />}
+        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} siteSwatch={siteSwatch} recommendedLayout={recommendedLayout} />}
         {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
         {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} onSuggestPair={onSuggestPair} />}
       </div>
@@ -874,7 +877,7 @@ function PackShelf({ state, setField }: { state: StudioState; setField: SetStudi
   );
 }
 
-function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string } }) {
+function DesignTab({ state, setField, decorAssets, siteSwatch, recommendedLayout }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string }; recommendedLayout?: string }) {
   return (
     <>
       <RailGroup label="Colors" sub={packFromLookId(state.palette)?.name ?? PALETTES.find(p => p.id === state.palette)?.sub}>
@@ -1109,6 +1112,74 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
         </div>
       </RailGroup>
 
+      <RailGroup label="On the card" sub="Show or hide each line">
+        {/* Element visibility + names size (SV.4). Hidden lines
+            collapse on the card; the built-in copy returns the
+            moment the line is shown again. */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {([
+            ['eyebrow', 'Top line'],
+            ['line2', 'Message'],
+            ['line4', 'Place line'],
+            ['cta', 'Footer line'],
+            ['motif', 'Mark'],
+          ] as const).map(([key, label]) => {
+            const slice = state.elements[state.type] ?? {};
+            const shown = slice[key] !== false;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setField('elements', {
+                  ...state.elements,
+                  [state.type]: { ...slice, [key]: !shown ? true : false },
+                })}
+                aria-pressed={shown}
+                title={shown ? `Hide the ${label.toLowerCase()}` : `Show the ${label.toLowerCase()}`}
+                style={{
+                  padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                  background: shown ? 'var(--ink)' : 'var(--card)',
+                  color: shown ? 'var(--cream)' : 'var(--ink-muted)',
+                  border: '1px solid ' + (shown ? 'var(--ink)' : 'var(--line-soft)'),
+                  textDecoration: shown ? 'none' : 'line-through',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Names size</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {([['s', 'Small'], ['m', 'Medium'], ['l', 'Large']] as const).map(([id, label]) => {
+              const on = state.headlineScale === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setField('headlineScale', id)}
+                  aria-pressed={on}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ marginTop: 10, fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+          Tip: click any line on the card to rewrite it in place.
+        </div>
+      </RailGroup>
+
       <RailGroup label="Decor library" sub="Flourishes from your site's decor">
         {(decorAssets?.length ?? 0) === 0 ? (
           <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
@@ -1174,11 +1245,46 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
                 textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700 }}>{l.name}</div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  {l.name}
+                  {recommendedLayout === l.id && (
+                    /* Pear's pick — the gold pearl, same language as
+                       the site editor's Layout bar (SV.5). */
+                    <span aria-label="Pear's pick" title="Pear's pick for this occasion" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
+                  )}
+                </div>
                 <div style={{ fontSize: 10, opacity: on ? 0.75 : 0.6 }}>{l.sub}</div>
               </button>
             );
           })}
+        </div>
+        {/* Back of card (SV.6) — Default keeps the per-type back
+            (reply card / details / note); Photo carries the cover
+            photograph with the monogram + site QR beneath. */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Back of card</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[{ id: null as string | null, name: 'Default' }, { id: 'photo', name: 'Photo' }].map((b) => {
+              const on = (state.backStyle ?? null) === b.id;
+              return (
+                <button
+                  key={b.id ?? 'default'}
+                  type="button"
+                  onClick={() => setField('backStyle', b.id)}
+                  aria-pressed={on}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {b.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </RailGroup>
 
@@ -1270,6 +1376,35 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
             );
           })}
         </div>
+        {/* Mark ink (SV.3) — which ink the mark is stamped in.
+            Auto keeps each mark's own default. */}
+        {state.motif !== 'none' && !state.customMotifUrl && (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Mark ink</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {[{ id: null as string | null, name: 'Auto' }, ...MARK_INKS].map((mi) => {
+                const on = (state.motifInk ?? null) === mi.id;
+                return (
+                  <button
+                    key={mi.id ?? 'auto'}
+                    type="button"
+                    onClick={() => setField('motifInk', mi.id)}
+                    aria-pressed={on}
+                    style={{
+                      padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                      background: on ? 'var(--ink)' : 'var(--card)',
+                      color: on ? 'var(--cream)' : 'var(--ink)',
+                      border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {mi.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </RailGroup>
     </>
   );
@@ -1278,6 +1413,20 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
 function MiniMotif({ id, on }: { id: string; on: boolean }) {
   const c = on ? 'var(--cream)' : 'var(--ink)';
   if (id === 'stamp') return <Stamp size={20} tone="lavender" text="" icon="heart" rotation={-6} />;
+  if (id === 'postmark') return (
+    <svg viewBox="0 0 24 24" width={20} height={20}>
+      <circle cx="12" cy="12" r="10" fill="none" stroke={c} strokeWidth="1.4" />
+      <circle cx="12" cy="12" r="7.5" fill="none" stroke={c} strokeWidth="0.6" />
+      <text x="12" y="14.5" textAnchor="middle" fontSize="6" fontFamily="ui-monospace, monospace" fontWeight="700" fill={c}>12</text>
+    </svg>
+  );
+  if (id === 'seal') return (
+    <svg viewBox="0 0 24 24" width={20} height={20}>
+      <circle cx="12" cy="12" r="10" fill="none" stroke={c} strokeWidth="1.4" />
+      <circle cx="12" cy="12" r="7" fill="none" stroke={c} strokeWidth="0.6" />
+      <text x="12" y="15.5" textAnchor="middle" fontSize="9" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="600" fill={c}>S</text>
+    </svg>
+  );
   if (id === 'leaves') return (
     <svg viewBox="0 0 30 30" width={20} height={20}>
       <path d="M5 25 Q 15 5 25 18" stroke={c} strokeWidth="1" fill="none" />

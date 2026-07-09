@@ -26,6 +26,7 @@ import {
   STUDIO_TEXTURES,
   PAPER_STOCKS,
   EDGE_TREATMENTS,
+  MARK_INKS,
   FONT_PAIRS,
   LAYOUTS,
   MOTIFS,
@@ -45,6 +46,9 @@ export interface StudioCustomColors {
   accent?: string;
   accent2?: string;
 }
+
+/** The card elements a host can show/hide (SV.4). */
+export type StudioElementKey = 'eyebrow' | 'line2' | 'line4' | 'cta' | 'motif';
 
 export interface StudioState {
   type: StationeryType;
@@ -78,6 +82,17 @@ export interface StudioState {
   /** Edge treatment (EDGE_TREATMENTS id) — null = default (the
    *  kit frame when wearing the site; bare paper otherwise). */
   edge: string | null;
+  /** Mark ink (MARK_INKS id: ink | accent | gold) — null keeps
+   *  each mark's own default (STUDIO-PLAN SV.3). */
+  motifInk: string | null;
+  /** Per-type element visibility (SV.4) — explicit false hides
+   *  the element; absent/true shows it. */
+  elements: Partial<Record<StationeryType, Partial<Record<StudioElementKey, boolean>>>>;
+  /** Names size on the card front (SV.4). */
+  headlineScale: 's' | 'm' | 'l';
+  /** Back-of-card style (SV.6) — null = the per-type default
+   *  back; 'photo' = the photograph back. */
+  backStyle: string | null;
   /** AI-drafted alternates per stationery type. Falls back to the
    *  built-in TYPE_CONTENT defaults when empty. */
   drafts: Partial<Record<StationeryType, StudioDraft[]>>;
@@ -89,6 +104,8 @@ export interface StudioState {
     line2?: string;
     line4?: string;
     cta?: string;
+    /** The handwritten layout's letter body (SV.4 inline edit). */
+    scriptBody?: string;
   }>>;
 }
 
@@ -111,6 +128,10 @@ const DEFAULT_STATE: StudioState = {
   textureIntensity: 1,
   paperStock: null,
   edge: null,
+  motifInk: null,
+  elements: {},
+  headlineScale: 'm',
+  backStyle: null,
   drafts: {},
   copyOverrides: {},
 };
@@ -132,6 +153,10 @@ interface ManifestStudio {
   textureIntensity?: number;
   paperStock?: string | null;
   edge?: string | null;
+  motifInk?: string | null;
+  elements?: Partial<Record<StationeryType, Partial<Record<StudioElementKey, boolean>>>>;
+  headlineScale?: 's' | 'm' | 'l';
+  backStyle?: string | null;
   assets?: AssetEntry[];
   drafts?: Partial<Record<StationeryType, StudioDraft[]>>;
   copyOverrides?: Partial<Record<StationeryType, {
@@ -139,6 +164,7 @@ interface ManifestStudio {
     line2?: string;
     line4?: string;
     cta?: string;
+    scriptBody?: string;
   }>>;
   showAssets?: boolean;
 }
@@ -167,6 +193,27 @@ void STUDIO_TEXTURES;
 
 const VALID_STOCKS = new Set(PAPER_STOCKS.map((s) => s.id));
 const VALID_EDGES = new Set(EDGE_TREATMENTS.map((e) => e.id));
+const VALID_MARK_INKS = new Set(MARK_INKS.map((m) => m.id));
+const VALID_ELEMENT_KEYS: ReadonlySet<StudioElementKey> = new Set(['eyebrow', 'line2', 'line4', 'cta', 'motif']);
+
+/** Element visibility — keep only boolean values on known keys
+ *  under known stationery types. */
+function sanitizeElements(raw: unknown): StudioState['elements'] {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: StudioState['elements'] = {};
+  for (const t of ['std', 'invite', 'thanks'] as StationeryType[]) {
+    const slice = (raw as Record<string, unknown>)[t];
+    if (!slice || typeof slice !== 'object') continue;
+    const clean: Partial<Record<StudioElementKey, boolean>> = {};
+    for (const [k, v] of Object.entries(slice)) {
+      if ((VALID_ELEMENT_KEYS as Set<string>).has(k) && typeof v === 'boolean') {
+        clean[k as StudioElementKey] = v;
+      }
+    }
+    if (Object.keys(clean).length > 0) out[t] = clean;
+  }
+  return out;
+}
 
 /** Grain strength — clamp to the site's --pl-texture-intensity
  *  range (0–1.5); anything unparseable falls back to the default
@@ -256,6 +303,10 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     textureIntensity: sanitizeIntensity(studio.textureIntensity),
     paperStock: typeof studio.paperStock === 'string' && VALID_STOCKS.has(studio.paperStock) ? studio.paperStock : null,
     edge: typeof studio.edge === 'string' && VALID_EDGES.has(studio.edge) ? studio.edge : null,
+    motifInk: typeof studio.motifInk === 'string' && VALID_MARK_INKS.has(studio.motifInk) ? studio.motifInk : null,
+    elements: sanitizeElements(studio.elements),
+    headlineScale: studio.headlineScale === 's' || studio.headlineScale === 'l' ? studio.headlineScale : 'm',
+    backStyle: studio.backStyle === 'photo' ? 'photo' : null,
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
@@ -358,6 +409,10 @@ export function useStudioState(args: {
       textureIntensity: state.textureIntensity,
       paperStock: state.paperStock,
       edge: state.edge,
+      motifInk: state.motifInk,
+      elements: state.elements,
+      headlineScale: state.headlineScale,
+      backStyle: state.backStyle,
       assets: state.assets,
       drafts: state.drafts,
       copyOverrides: state.copyOverrides,
@@ -391,7 +446,8 @@ export function useStudioState(args: {
     state.type, state.view, state.draft, state.palette, state.fontPair,
     state.layout, state.motif, state.tone, state.customMotifUrl,
     state.customColors, state.texture,
-    state.textureIntensity, state.paperStock, state.edge,
+    state.textureIntensity, state.paperStock, state.edge, state.motifInk,
+    state.elements, state.headlineScale, state.backStyle,
     state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);

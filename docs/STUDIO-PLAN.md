@@ -144,45 +144,59 @@ survives the press sheet's squared trim), and the per-guest card
 image (`/api/invite-card`) carrying the stock — it renders from
 the SuiteTheme contract, a separate block.
 
-### SV.3 — Marks & decor v2
-The postmark family grows in the ink language: dated postmark
-(event date around the ring — same mark the envelope and Sealed
-Arrival wear), monogram seal (double hairline ring, Fraunces
-initials — the site's `crest` hero variant, miniaturized), wax
-seal (keeps its fill — wax is physical), corner flourishes,
-Thread rules. Per-mark ink picker (theme inks only). Decor
-library becomes first-class in the Marks rail (not a disclosure).
-Dragged assets snap to 9 anchor positions. Counts as done: every
-mark option renders from theme inks; no solid pastel fills
-anywhere in `studio/`.
+### SV.3 — Marks & decor v2 · **SHIPPED 2026-07-09**
+Two new marks in the ink language, both persisted like every
+dial: **Postmark** (the dated cancel — PEARLOOM POST + the event
+date around the ring, the same mark the envelope and Sealed
+Arrival wear) and **Seal** (double hairline ring, display-italic
+initials — the crest, miniaturized). Plus the **Mark ink** picker
+(Auto / Ink / Accent / Gold) routing through every mark: postmark
++ seal + stamp rings, leaves, monogram; wax keeps its FILL (it's
+physical) and the pick chooses the wax color instead. Deferred:
+asset snap positions (there is no drag system to snap — assets
+apply through the customMotifUrl slot; revisit if drag ever
+lands).
 
-### SV.4 — Element-level control (the editor's fine-tune, for cards)
-Inline editing ON the canvas (InlineEdit pattern from the
-editor) for every text element; per-element controls: show/hide,
-alignment, size step (S/M/L), ink override, letter-spacing for
-eyebrows. Element order within the layout's slots. Counts as
-done: a host can compose a card without opening the Copy rail;
-autosave stays scoped (`manifestPatch`, never the whole
-manifest).
+### SV.4 — Element-level control · **SHIPPED 2026-07-09**
+**Click any line on the card to rewrite it in place** — a
+contentEditable `Editable` span on eyebrow / message / place /
+footer lines (+ the letter body on the handwritten layout),
+committing into the SAME per-type copyOverrides slice the Copy
+rail and Pear rewrites use. Clearing a line restores the built-in
+copy (empty = unset), so inline edits can never vanish an
+element; hiding is the rail's explicit job: the new **On the
+card** group shows/hides each line + the mark per stationery
+type, and **Names size** (Small / Medium / Large) scales the
+display names on every layout — carried through the press sheet.
+The press sheet + send preview render read-only (no
+`onEditCopy`). Deferred: per-element alignment / ink /
+letter-spacing (named in §7).
 
-### SV.5 — Layout registry + occasion recommendations
-5 → ~10 layouts as a registry (`studio-layouts.ts`, mirroring the
-site's variant registries): adds crest (solemn-recommended),
-split, border-frame, full-photo with scrim, ticket (site kit
-kinship), postcard back. `recommendedLayoutFor(occasion)` marks
-Pear's pick with the gold pearl, exactly like the editor's Layout
-bar. Counts as done: memorial defaults to crest/quiet, wedding to
-classic; recommendations are lookup-only, never auto-applied to
-existing cards.
+### SV.5 — Layout registry + occasion recommendations · **SHIPPED 2026-07-09**
+5 → 10 layouts: **Crest** (monogram ring, the solemn pick),
+**Split** (two columns on a center hairline), **Border** (full
+hairline frame, eyebrow set into the top rule), **Full photo**
+(the photograph IS the card, ink scrim, paper-colored type),
+**Ticket** (perforated stub with rotated mono type, the playful
+pick). `recommendedStudioLayoutFor(occasion)` (lookup-only:
+solemn → crest, playful → ticket, reunion → split, ceremonial →
+border, couple arc → classic) marks Pear's pick with the gold
+pearl on the Layout chips — never auto-applied.
 
-### SV.6 — Back & envelope parity + the fence
-Back-of-card layouts (RSVP card, details card, photo back,
-registry QR back); envelope liner pressed from the card's texture
-+ accent; addressee preview from real guest rows. Plus the fence:
-a `no-sticker-marks.test.ts` asserting no component in
-`studio/` or `motifs.tsx` renders a filled `<circle>` of a
-pastel `bg` behind circular text (the disc can't quietly return),
-and a press-sheet geometry extension for the new backs.
+### SV.6 — Back & envelope parity + the fence · **SHIPPED 2026-07-09**
+**Back of card** chips (Default / Photo): the photo back carries
+the cover photograph with the monogram, a short line in the
+script face, and the site QR — printed identically by the press
+sheet (same 5×7 spec, geometry tests untouched). The **envelope
+liner** presses fine diagonal hairlines in the card's accent
+inside the flap; the **addressee preview** shows the first real
+guest's name (bracketed placeholders when the list is empty or
+unauthenticated). And the fence: `no-sticker-marks.test.ts`
+pins that Squiggle/Filigree stay deleted, no studio surface
+imports them, every Stamp circle is `fill="none"`, and no pastel
+disc fill exists anywhere in the mark surfaces. Deferred:
+registry-QR and details back variants (the per-type Default backs
+already carry details/reply/note).
 
 ## 6 · Explicitly out of scope
 

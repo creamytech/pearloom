@@ -18,7 +18,7 @@
 
 import type { StoryManifest } from '@/types';
 import { hexToRgb, rgbToHsl } from '@/lib/look-engine/palette-from-photo';
-import { lookDefaultsFor } from '@/lib/event-os/event-types';
+import { getEventType, lookDefaultsFor } from '@/lib/event-os/event-types';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import type { StudioPalette, StudioFontPair } from './studio-constants';
 
@@ -301,4 +301,19 @@ export function presetDefaultsFromLook(manifest: StoryManifest): StudioLookDefau
     tone: VOICE_TO_TONE[voice],
     texture: null,
   };
+}
+
+/* ── Pear's layout recommendation (STUDIO-PLAN SV.5) ──
+   Lookup-only, shown as a gold pearl on the Layout chips —
+   never auto-applied to an existing card. Mirrors the site
+   editor's recommendedVariantFor contract. */
+export function recommendedStudioLayoutFor(occasion: string | null | undefined): string {
+  const et = occasion ? getEventType(occasion as never) : null;
+  const voice = et?.voice ?? 'celebratory';
+  if (voice === 'solemn') return 'crest';
+  if (voice === 'playful') return 'ticket';
+  if (occasion === 'reunion') return 'split';
+  if (occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal') return 'classic';
+  if (voice === 'ceremonial') return 'frame';
+  return 'classic';
 }

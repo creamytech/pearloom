@@ -9186,3 +9186,15 @@ html { scroll-behavior: smooth; }
     text-align: left !important;
   }
 }
+
+/* ── Studio inline editing (STUDIO-PLAN SV.4) ──
+   Click-to-edit lines on the live card. Quiet until hovered;
+   a soft olive ring while focused. Never printed — the press
+   sheet renders read-only spans. */
+.pl-studio-editable:hover {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--pl-olive, #5C6B3F) 35%, transparent);
+}
+.pl-studio-editable:focus {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--pl-olive, #5C6B3F) 55%, transparent);
+  background: color-mix(in oklab, var(--pl-olive, #5C6B3F) 6%, transparent);
+}
