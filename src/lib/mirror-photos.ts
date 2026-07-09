@@ -12,6 +12,11 @@
 //   • manifest.coverPhoto
 //   • manifest.heroSlideshow[]
 //   • manifest.chapters[*].images[*]
+//   • manifest.galleryImages[] (untyped sidecar — the gallery +
+//     hero-strip array the editor's photo drawer writes; missing
+//     from the walk until 2026-07-09, which left Google-picked
+//     gallery photos rotting after the ~1h baseUrl expiry while
+//     the mirrored cover survived)
 //
 // It also transparently unwraps `/api/photos/proxy?url=<...>`
 // wrappers that the wizard uses for live-preview images — the
@@ -239,12 +244,30 @@ export async function mirrorManifestPhotos(
     );
   }
 
-  return {
+  // galleryImages — the gallery section + hero strip array. URLs are
+  // replaced IN PLACE (index-stable) so the index-keyed
+  // galleryCaptions sidecar stays attached to the right photo.
+  const galleryImages = (manifest as unknown as { galleryImages?: string[] }).galleryImages;
+  let updatedGallery = galleryImages;
+  if (updatedGallery && updatedGallery.length > 0) {
+    updatedGallery = await Promise.all(
+      updatedGallery.map((url, i) => limit(async () => {
+        if (!isExpiringGoogleUrl(url)) return unwrapProxyUrl(url);
+        return mirrorOne(ctx, url, `gallery-${i}`);
+      })),
+    );
+  }
+
+  const result = {
     ...manifest,
     chapters: updatedChapters,
     coverPhoto: updatedCover,
     heroSlideshow: updatedHeroSlideshow,
-  };
+  } as StoryManifest;
+  if (updatedGallery) {
+    (result as unknown as { galleryImages?: string[] }).galleryImages = updatedGallery;
+  }
+  return result;
 }
 
 /**
@@ -330,12 +353,17 @@ export function stripProxyUrls(manifest: StoryManifest): StoryManifest {
     return { ...ch, images };
   });
 
-  return {
+  const result = {
     ...manifest,
     chapters,
     coverPhoto: manifest.coverPhoto ? unwrapProxyUrl(manifest.coverPhoto) : manifest.coverPhoto,
     heroSlideshow: manifest.heroSlideshow
       ? manifest.heroSlideshow.map(unwrapProxyUrl)
       : manifest.heroSlideshow,
-  };
+  } as StoryManifest;
+  const gallery = (manifest as unknown as { galleryImages?: string[] }).galleryImages;
+  if (gallery) {
+    (result as unknown as { galleryImages?: string[] }).galleryImages = gallery.map(unwrapProxyUrl);
+  }
+  return result;
 }
