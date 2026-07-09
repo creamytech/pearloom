@@ -648,19 +648,10 @@ export function WelcomeHome() {
           gap: 18,
         }}
       >
-        {/* The first thread — brand-new hosts only. Steps check
-            themselves off from the same data the cockpit reads. */}
-        {showFirstThread && (
-          <FirstThreadCard
-            done={firstThreadDone}
-            siteSlug={site?.domain ?? null}
-            solemn={solemn || getEventType(occasion)?.voice === 'solemn'}
-            onDismiss={dismissFirstThread}
-          />
-        )}
-
         {/* 2 · The photographic countdown banner — real cover photo
-            (or a warm gradient placeholder) + a live countdown. */}
+            (or a warm gradient placeholder) + a live countdown. The
+            SITE leads the home (owner 2026-07-09); the first-thread
+            bar rides just under it. */}
         <HeroBanner
           names={namesArr}
           occasion={occasion}
@@ -673,6 +664,17 @@ export function WelcomeHome() {
           narrow={heroNarrow}
           afterglowStats={afterglowStats}
         />
+
+        {/* The first thread — brand-new hosts only. Steps check
+            themselves off from the same data the cockpit reads. */}
+        {showFirstThread && (
+          <FirstThreadCard
+            done={firstThreadDone}
+            siteSlug={site?.domain ?? null}
+            solemn={solemn || getEventType(occasion)?.voice === 'solemn'}
+            onDismiss={dismissFirstThread}
+          />
+        )}
 
         {/* Resume a half-finished wizard run (self-hides). */}
         <ResumeDraftCard />

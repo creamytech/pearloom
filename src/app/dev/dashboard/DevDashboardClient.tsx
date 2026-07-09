@@ -35,6 +35,7 @@ import {
   type LatelyItem,
   type BudgetLine,
 } from '@/components/pearloom/dash/cockpit';
+import { FirstThreadCard } from '@/components/pearloom/dash/FirstThreadCard';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import { useIsMobile } from '@/components/pearloom/redesign/use-nav-hooks';
 import { cockpitPhaseFor, phaseCopyFor, postEventEyebrowFor, type CockpitPhase } from '@/lib/event-os/cockpit-phase';
@@ -182,6 +183,16 @@ export function DevDashboardClient() {
           narrow={heroNarrow}
           afterglowStats={post ? { celebrated: 74, photos: 212, notes: 31 } : null}
         />
+        {/* The first thread — horizontal process bar, new hosts
+            only in production (rides just under the hero, same as
+            WelcomeHome's order). Planning world only here. */}
+        {phase === 'planning' && (
+          <FirstThreadCard
+            done={{ site: true, madeYours: true, invited: false, published: false, dayArrived: false }}
+            siteSlug="mira-and-jun"
+            onDismiss={() => {}}
+          />
+        )}
         <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? '1fr' : twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'stretch' }}>
           {!post && <ProgressCard pct={68} done={31} prog={12} todo={12} />}
           <QuickActions actions={post ? QUICK_AFTERGLOW : QUICK_PLAN} />

@@ -4,9 +4,11 @@
 // FirstThreadCard — the first thread, woven step by step.
 //
 // A self-checking guided path for brand-new hosts on the
-// dashboard home. NOT a tooltip tour: five steps on a vertical
-// thread spine that check themselves off from real data and
-// deep-link into the product.
+// dashboard home. NOT a tooltip tour: five steps on a HORIZONTAL
+// thread (2026-07-09 — the vertical spine with 3D gold spheres
+// read heavy; owner asked for a flat process bar) that check
+// themselves off from real data and deep-link into the product.
+// Only the CURRENT step speaks below the bar — one line, one CTA.
 //
 // Purely presentational (the cockpit rule): WelcomeHome derives
 // every `done` boolean from data it already has in scope —
@@ -48,6 +50,8 @@ export interface FirstThreadDone {
 interface Step {
   key: string;
   label: string;
+  /** Short name under the bar node — plain words, fits a column. */
+  short: string;
   /** Muted supporting line, shown while the step is open. */
   sub?: string;
   done: boolean;
@@ -84,12 +88,14 @@ export function FirstThreadCard({
     {
       key: 'press',
       label: 'Press your first site',
+      short: 'Your site',
       done: done.site,
       cta: { label: 'Begin', href: '/wizard/new' },
     },
     {
       key: 'yours',
       label: 'Make it yours',
+      short: 'Make it yours',
       sub: 'A cover photo or a first chapter, either counts.',
       done: done.madeYours,
       cta: { label: 'Open the editor', href: `${editorBase}?jump=hero` },
@@ -97,18 +103,21 @@ export function FirstThreadCard({
     {
       key: 'guests',
       label: solemn ? 'Gather your people' : 'Invite your guests',
+      short: solemn ? 'Your people' : 'Guests',
       done: done.invited,
       cta: { label: 'Add guests', href: '/dashboard/rsvp' },
     },
     {
       key: 'publish',
       label: solemn ? 'Share the site' : 'Send the word',
+      short: 'Publish',
       done: done.published,
       cta: { label: 'Publish', href: `${editorBase}?jump=share` },
     },
     {
       key: 'day-of',
       label: solemn ? 'The day itself' : 'The day-of room',
+      short: 'The day',
       sub: done.dayArrived ? undefined : 'Opens closer to the day.',
       done: done.dayArrived,
       cta: { label: 'Open the day-of room', href: '/dashboard/day-of', quiet: true },
@@ -156,118 +165,126 @@ export function FirstThreadCard({
     );
   }
 
+  const current = currentIdx >= 0 ? steps[currentIdx] : null;
+  /* The track spans node centers: 10% → 90% of the row (five equal
+     columns). The woven overlay reaches the CURRENT node's center. */
+  const trackPct = currentIdx <= 0 ? 0 : (currentIdx / (steps.length - 1)) * 80;
+
   return (
     <section className="card" style={{ padding: 20, borderRadius: 20 }}>
       <Header wovenLine={`${wovenCount} of 5 woven`} />
       <h2
         className="display"
-        style={{ fontSize: 21, fontWeight: 600, lineHeight: 1.1, color: 'var(--ink)', margin: '8px 0 14px' }}
+        style={{ fontSize: 21, fontWeight: 600, lineHeight: 1.1, color: 'var(--ink)', margin: '8px 0 16px' }}
       >
         Five steps, <span className="display-italic">one site</span>.
       </h2>
 
-      {/* pl-stagger: gentle staggered rise on mount, CSS only —
-          the global reduced-motion rule collapses it to static. */}
-      <div className="pl-stagger" style={{ display: 'flex', flexDirection: 'column' }}>
-        {steps.map((step, i) => {
-          const isCurrent = i === currentIdx;
-          const isLast = i === steps.length - 1;
-          // Sub-copy stays quiet on future steps — except the day-of
-          // room, whose "opens closer to the day" note always shows.
-          const showSub = !step.done && step.sub && (isCurrent || step.key === 'day-of');
-          return (
-            <div key={step.key} style={{ display: 'flex', gap: 12 }}>
-              {/* thread spine — dot + 1px connecting strand */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 14 }}>
-                <span
-                  aria-hidden
-                  style={
-                    step.done
-                      ? { ...pearlDot, marginTop: 4 }
-                      : isCurrent
-                        ? { width: 12, height: 12, borderRadius: '50%', flexShrink: 0, marginTop: 4, background: 'var(--card)', border: '2px solid var(--pl-gold, #C19A4B)' }
-                        : { width: 10, height: 10, borderRadius: '50%', flexShrink: 0, marginTop: 5, background: 'var(--card)', border: '1.5px solid var(--line)' }
-                  }
-                />
-                {!isLast && (
-                  <span aria-hidden style={{ width: 1, flex: 1, background: 'var(--line)', margin: '3px 0' }} />
-                )}
-              </div>
-
-              <div style={{ paddingBottom: isLast ? 0 : 14, minWidth: 0, flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span
-                    style={{
-                      fontSize: isCurrent ? 14.5 : 13.5,
-                      fontWeight: isCurrent ? 700 : 500,
-                      color: step.done ? 'var(--ink-soft)' : isCurrent ? 'var(--ink)' : 'var(--ink-muted)',
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    {step.label}
+      {/* ── The process bar — five flat marks on one thread. ────── */}
+      <div style={{ position: 'relative' }}>
+        {/* the thread — hairline track + the woven stretch in olive */}
+        <span aria-hidden style={{ position: 'absolute', top: 9, left: '10%', right: '10%', height: 1.5, background: 'var(--line)', borderRadius: 2 }} />
+        {trackPct > 0 && (
+          <span aria-hidden style={{ position: 'absolute', top: 9, left: '10%', width: `${trackPct}%`, height: 1.5, background: 'var(--pl-olive, #5C6B3F)', borderRadius: 2 }} />
+        )}
+        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
+          {steps.map((step, i) => {
+            const isCurrent = i === currentIdx;
+            return (
+              <div key={step.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                {/* Flat marks — solid gold pearl (done), gold ring
+                    with a seated pearl (current), hairline ring
+                    (ahead). No gradients, no shadows. */}
+                {step.done ? (
+                  <span aria-hidden style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Icon name="check" size={9} color="var(--card, #FBF7EE)" strokeWidth={3} />
                   </span>
-                  {step.done && (
-                    <Icon name="check" size={11} color="var(--sage-deep, #5C6B3F)" strokeWidth={2.5} />
-                  )}
-                </div>
-                {showSub && (
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2, lineHeight: 1.45 }}>
-                    {step.sub}
-                  </div>
+                ) : isCurrent ? (
+                  <span aria-hidden style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--card)', border: '1.5px solid var(--pl-gold, #C19A4B)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)' }} />
+                  </span>
+                ) : (
+                  <span aria-hidden style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--card)', border: '1.5px solid var(--line)', flexShrink: 0 }} />
                 )}
-                {isCurrent && step.cta && (
-                  step.cta.quiet ? (
-                    <Link
-                      href={step.cta.href}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        marginTop: 6,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: 'var(--pl-olive, #5C6B3F)',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {step.cta.label} <span aria-hidden>→</span>
-                    </Link>
-                  ) : (
-                    <Link
-                      href={step.cta.href}
-                      className="pl-pearl-accent"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        marginTop: 8,
-                        padding: '7px 15px',
-                        borderRadius: 999,
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {step.cta.label}
-                    </Link>
-                  )
-                )}
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: isCurrent ? 700 : 600,
+                    lineHeight: 1.25,
+                    textAlign: 'center',
+                    color: step.done ? 'var(--ink-soft)' : isCurrent ? 'var(--ink)' : 'var(--ink-muted)',
+                    padding: '0 3px',
+                  }}
+                >
+                  {step.short}
+                </span>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      {/* ── The current step speaks — one line, one CTA. ────────── */}
+      {current && (
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+            marginTop: 16, padding: '10px 12px', borderRadius: 12,
+            background: 'var(--cream-2, #F5EFE2)',
+            border: '1px solid var(--line-soft)',
+          }}
+        >
+          <div style={{ minWidth: 0, flex: '1 1 180px' }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.35 }}>
+              {current.label}
+            </div>
+            {current.sub && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 1, lineHeight: 1.45 }}>
+                {current.sub}
+              </div>
+            )}
+          </div>
+          {current.cta && (
+            current.cta.quiet ? (
+              <Link
+                href={current.cta.href}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontSize: 12, fontWeight: 600,
+                  color: 'var(--pl-olive, #5C6B3F)', textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {current.cta.label} <span aria-hidden>→</span>
+              </Link>
+            ) : (
+              <Link
+                href={current.cta.href}
+                className="pl-pearl-accent"
+                style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  padding: '7px 15px', borderRadius: 999,
+                  fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {current.cta.label}
+              </Link>
+            )
+          )}
+        </div>
+      )}
     </section>
   );
 }
 
-/** Gold pearl dot — the done marker on the spine. */
+/** Flat gold pearl — the woven marker (kept for the Woven state). */
 const pearlDot: React.CSSProperties = {
   width: 12,
   height: 12,
   borderRadius: '50%',
   flexShrink: 0,
-  background: 'radial-gradient(circle at 35% 30%, #E9D6AC, var(--pl-gold, #C19A4B) 72%)',
-  boxShadow: '0 0 0 1px color-mix(in oklab, var(--pl-gold, #C19A4B) 45%, transparent)',
+  background: 'var(--pl-gold, #C19A4B)',
 };
 
 /** Mono eyebrow + 1px gold rule + quiet progress line. */
