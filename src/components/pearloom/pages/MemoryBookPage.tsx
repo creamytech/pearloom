@@ -826,6 +826,41 @@ export function MemoryBookPage() {
           voice/playlist lists run single-column. Print is unaffected
           — the paper box is wider than 640px. */}
       <style jsx global>{`
+        /* APP PASS (cards wave A): "pages are leafed, not scrolled"
+           (BRAND §2). On phones the book becomes a bounded viewport
+           whose parts — frontispiece, chapters, plates, memories,
+           playlist, colophon — are SPREADS you leaf through with a
+           horizontal swipe; each spread scrolls vertically inside
+           itself. Screen-only: print keeps the vertical flow. */
+        @media screen and (max-width: 640px) {
+          .pl8-memory-book {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 14px;
+            height: min(74dvh, 620px);
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
+            padding: 16px 14px !important;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 30px), transparent);
+            mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 30px), transparent);
+          }
+          .pl8-memory-book::-webkit-scrollbar { display: none; }
+          .pl8-memory-book > * {
+            flex: 0 0 92%;
+            min-width: 0;
+            scroll-snap-align: center;
+            max-height: 100%;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            border-bottom: none !important;
+            margin: 0 !important;
+          }
+        }
         @media (max-width: 640px) {
           .pl8-mb-entry {
             grid-template-columns: 1fr !important;

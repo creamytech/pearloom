@@ -406,7 +406,7 @@ export function WeekendBuilderPage() {
               {/* ── Step 3 · the events ──────────────────────── */}
               <Card>
                 <StepEyebrow n={3} label="Choose the events" hint="Tap to include one. Small moments join the main site’s schedule; trips and dinners can carry their own site and guest list." />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 10 }}>
+                <div className="pl8-weekend-events" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 10 }}>
                   {arc.events.map((e) => {
                     const on = chosen.has(e.kind);
                     const iso = eventDate(e);
@@ -599,6 +599,32 @@ export function WeekendBuilderPage() {
           }
           :global(.pl8-weekend-anchor-blurb) {
             display: none;
+          }
+          /* APP PASS (cards wave A): the arc's event cards become a
+             left-to-right timeline shelf — Welcome drinks → the big
+             day → brunch — bleeding to the card's own edges (the
+             Card pads 24px). */
+          :global(.pl8-weekend-events) {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 10px !important;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
+            margin-inline: -24px;
+            padding-inline: 24px;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 34px), transparent);
+            mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 34px), transparent);
+          }
+          :global(.pl8-weekend-events)::-webkit-scrollbar { display: none; }
+          :global(.pl8-weekend-events) > * {
+            flex: 0 0 78%;
+            min-width: 0;
+            scroll-snap-align: center;
           }
         }
       `}</style>

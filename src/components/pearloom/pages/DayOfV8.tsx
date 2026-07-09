@@ -1701,7 +1701,7 @@ export function DayOfV8() {
             )}
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
           </div>
-          <div className="pl8-dayof-rail" style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 20, minWidth: 0 }}>
+          <div className="pl8-dayof-rail pl8-homerow" style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 20, minWidth: 0 }}>
             <WhoToCall siteId={site?.id} />
             <PointPerson manifest={site?.manifest} />
           </div>
@@ -1710,7 +1710,7 @@ export function DayOfV8() {
         {/* The live room — what guests are doing right now. */}
         <div>
           <DayOfBand label="The live room" />
-          <div className="pl8-dayof-live" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 18, marginTop: 14, alignItems: 'start' }}>
+          <div className="pl8-dayof-live pl8-homerow" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 18, marginTop: 14, alignItems: 'start' }}>
             <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
             {/* Song queue only where music fits the occasion — the
                 registry gate hides it for memorials and the like. */}
@@ -1732,6 +1732,14 @@ export function DayOfV8() {
         }
         @media (max-width: 460px) {
           .pl8-dayof-hero-stats { grid-template-columns: 1fr 1fr !important; }
+        }
+        /* APP PASS (cards wave A): the call-sheet rail and the live
+           room ride snap shelves on phones — WhoToCall/PointPerson
+           side by side, the four live cards swipeable. The homerow
+           base rules live in pearloom.css; the rail's inline column
+           direction needs the row override. */
+        @media (max-width: 640px) {
+          .pl8-dayof-rail.pl8-homerow { flex-direction: row !important; }
         }
       `}</style>
     </DashLayout>
