@@ -9327,14 +9327,16 @@ html { scroll-behavior: smooth; }
     min-height: 0;
     display: flex !important;
     flex-direction: row !important;
-    gap: 10px !important;
+    gap: 12px !important;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
-    padding-inline: 14px;
+    /* Bottom breathing room — the row clips overflow-y, so without
+       it the card shadows amputate (CARD-PLAN law #1). */
+    padding: 3px 14px 16px;
     scrollbar-width: none;
     align-items: stretch;
   }
@@ -9346,11 +9348,15 @@ html { scroll-behavior: smooth; }
     max-height: 100%;
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    background: var(--cream-2);
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
+    /* Elevated paper — a card must READ as a card (the old
+       cream-2-on-cream + line-soft was invisible; owner shot
+       2026-07-09). Ground + real hairline + two-layer shadow. */
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
     padding: 14px;
     margin: 0;
+    box-shadow: 0 14px 30px -12px rgba(40, 28, 12, 0.18), 0 3px 10px rgba(40, 28, 12, 0.07);
   }
   /* A lone group (single-card panels) takes the full width — no
      phantom second-card peek on panels with one group. */
@@ -9372,13 +9378,14 @@ html { scroll-behavior: smooth; }
 @media screen and (max-width: 767px) {
   [data-pl-mobile-sheet] .pl-studio-scroll {
     flex-direction: row !important;
-    gap: 10px !important;
+    gap: 12px !important;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
+    padding-bottom: 16px;
     scrollbar-width: none;
     align-items: stretch;
   }
@@ -9390,9 +9397,11 @@ html { scroll-behavior: smooth; }
     max-height: 100%;
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    background: var(--cream-2);
-    border: 1px solid var(--line-soft);
-    border-radius: 14px;
+    /* Elevated paper — same card law as the editor deck. */
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
     padding: 14px;
+    box-shadow: 0 14px 30px -12px rgba(40, 28, 12, 0.18), 0 3px 10px rgba(40, 28, 12, 0.07);
   }
 }

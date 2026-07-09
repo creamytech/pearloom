@@ -38,6 +38,8 @@ import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { LAYOUTS, readVariant, recommendedVariantFor } from './layouts';
+import { SiteLookPlate } from './site-look-plate';
+import { TextureLayer } from './ThemedSite';
 import { VariantThumb } from './variant-thumb';
 import { useCanvasTryOn, expandThemeVarsForPreview, findCanvasRoot } from './design-tryon';
 import { announceDesignChange } from './design-feedback';
@@ -122,9 +124,28 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
             <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
           </>
         )}
-        {door === 'colors' && <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />}
-        {door === 'fonts' && <FontsPick theme={theme} manifest={manifest} onChange={onChange} />}
-        {door === 'paper' && <TexturePick theme={theme} manifest={manifest} onChange={onChange} />}
+        {/* Colors / Fonts / Paper carry the live look plate — the
+            full-height sheet hides the canvas, so the plate is the
+            feedback: tap a swatch, watch it re-press (CARD-PLAN
+            CD-A). */}
+        {door === 'colors' && (
+          <>
+            <SiteLookPlate manifest={manifest} height={130} />
+            <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
+          </>
+        )}
+        {door === 'fonts' && (
+          <>
+            <SiteLookPlate manifest={manifest} height={130} />
+            <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
+          </>
+        )}
+        {door === 'paper' && (
+          <>
+            <SiteLookPlate manifest={manifest} height={130} />
+            <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+          </>
+        )}
         {door === 'layout' && (
           <>
             <SiteLayoutPick manifest={manifest} onChange={onChange} />
@@ -1858,7 +1879,12 @@ function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: St
           </button>
         )}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+      {/* Real material swatches — every tile is the site's own paper
+          under the actual TextureLayer recipe, pressed a touch
+          stronger than life so the material reads at swatch size
+          (the text pills said "Velvet"; these SHOW it — CARD-PLAN
+          CD-A). */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 7 }}>
         {TEXTURE_OPTIONS.map((o) => {
           const on = o.id === active;
           return (
@@ -1868,14 +1894,31 @@ function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: St
               onClick={() => set(o.id, o.label)}
               aria-pressed={on}
               style={{
-                padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
-                background: on ? 'var(--ink)' : 'transparent',
-                color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', flexDirection: 'column', gap: 4,
+                padding: 4, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+                border: on ? '1.5px solid var(--ink)' : '1px solid var(--line-soft)',
+                background: on ? 'var(--cream-2)' : 'transparent',
               }}
             >
-              {o.label}
+              <span
+                aria-hidden
+                style={{
+                  position: 'relative', display: 'block', width: '100%', height: 46,
+                  borderRadius: 7, overflow: 'hidden',
+                  background: theme.vars['--t-paper'] ?? 'var(--cream)',
+                  border: '1px solid var(--line-soft)',
+                }}
+              >
+                <TextureLayer texture={o.id} intensity={1.35} />
+                {o.id === 'none' && (
+                  <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                    Smooth
+                  </span>
+                )}
+              </span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: on ? 'var(--ink)' : 'var(--ink-soft)', textAlign: 'center' }}>
+                {o.label}
+              </span>
             </button>
           );
         })}

@@ -28,6 +28,8 @@ import { SectionPanelShell } from '../editor/panels/_section-atoms';
 import { ThemePickerBody, type DesignDoorId } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
 import { LAYOUTS, readVariant } from './layouts';
+import { SiteLookPlate, siteLookTexture, siteLookVars } from './site-look-plate';
+import { TextureLayer } from './ThemedSite';
 import { VariantThumb } from './variant-thumb';
 
 const DESIGN_DOORS: ReadonlyArray<{ id: DesignDoorId; label: string; blurb: string }> = [
@@ -66,31 +68,21 @@ function designDoorState(id: DesignDoorId, manifest: StoryManifest): string {
   }
 }
 
-/* The site's resolved --t-* bag — same chain the canvas uses
-   (themeVars override wins over the named theme's values). Read as
-   plain data for the previews. */
-function siteVars(manifest: StoryManifest): Record<string, string> {
-  const loose = manifest as unknown as {
-    themeId?: string; theme?: { id?: string }; themeVars?: Record<string, string>;
-  };
-  const t = getTheme(loose.themeId ?? loose.theme?.id);
-  return { ...((t?.vars as Record<string, string> | undefined) ?? {}), ...(loose.themeVars ?? {}) };
-}
-
 const PREVIEW_FRAME: React.CSSProperties = {
-  height: 78,
+  height: '100%',
+  minHeight: 96,
   borderRadius: 10,
   border: '1px solid var(--line-soft)',
   overflow: 'hidden',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'var(--card)',
+  background: 'var(--cream-2)',
 };
 
 /** The live preview atop each door card. */
 function DoorPreview({ id, manifest }: { id: DesignDoorId; manifest: StoryManifest }) {
-  const v = siteVars(manifest);
+  const v = siteLookVars(manifest);
   const paper = v['--t-paper'] ?? 'var(--cream)';
   const ink = v['--t-ink'] ?? 'var(--ink)';
   const inkSoft = v['--t-ink-soft'] ?? 'var(--ink-soft)';
@@ -101,23 +93,9 @@ function DoorPreview({ id, manifest }: { id: DesignDoorId; manifest: StoryManife
   const body = v['--t-body'] ?? 'inherit';
 
   switch (id) {
-    case 'theme': {
-      /* A miniature of the site's own opening — real paper, real
-         faces, the host's names when we have them. */
-      const names = (manifest as unknown as { names?: [string, string] }).names;
-      const title = names?.filter(Boolean).join(' & ') || 'Your names';
-      return (
-        <div style={{ ...PREVIEW_FRAME, background: paper, flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontFamily: display, fontSize: 17, color: ink, lineHeight: 1.1, maxWidth: '86%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {title}
-          </span>
-          <span aria-hidden style={{ width: 28, height: 1, background: gold }} />
-          <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 8, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: inkSoft }}>
-            The day itself
-          </span>
-        </div>
-      );
-    }
+    case 'theme':
+      /* THE miniature — real paper, real texture, real faces. */
+      return <SiteLookPlate manifest={manifest} style={{ minHeight: 96 }} />;
     case 'colors':
       return (
         <div style={{ ...PREVIEW_FRAME, gap: 9 }}>
@@ -139,20 +117,19 @@ function DoorPreview({ id, manifest }: { id: DesignDoorId; manifest: StoryManife
           </span>
         </div>
       );
-    case 'paper':
-      /* The site's paper with a laid-grain suggestion. */
+    case 'paper': {
+      /* The site's paper under its REAL material recipe, pressed a
+         touch stronger than life so it reads at card size. */
+      const { texture } = siteLookTexture(manifest);
       return (
         <div style={{ ...PREVIEW_FRAME, background: paper, position: 'relative' }}>
-          <svg aria-hidden width="100%" height="100%" style={{ position: 'absolute', inset: 0, opacity: 0.5 }}>
-            {[14, 30, 46, 62].map((y) => (
-              <path key={y} d={`M 0 ${y} q 40 -3 80 0 t 80 0 t 80 0 t 80 0 t 80 0`} fill="none" stroke={inkSoft} strokeWidth="0.7" opacity="0.4" />
-            ))}
-          </svg>
-          <span style={{ position: 'relative', fontFamily: display, fontStyle: 'italic', fontSize: 15, color: inkSoft }}>
+          <TextureLayer texture={texture} intensity={1.35} />
+          <span style={{ position: 'relative', fontFamily: display, fontStyle: 'italic', fontSize: 16, color: inkSoft }}>
             {designDoorState('paper', manifest)}
           </span>
         </div>
       );
+    }
     case 'layout':
       /* The page's real bones — current variants, real schematics. */
       return (
@@ -302,10 +279,11 @@ export function DesignDoorDeck({
   );
 }
 
-/* Full-width wrapper so the preview stretches across the card. */
+/* The preview owns the card's spare height (capped) — a short card
+   never floats its text in a void (CARD-PLAN law #3). */
 function DoorPreviewBlock({ id, manifest }: { id: DesignDoorId; manifest: StoryManifest }) {
   return (
-    <span style={{ display: 'block', width: '100%' }}>
+    <span style={{ display: 'block', width: '100%', flex: '1 1 auto', minHeight: 110, maxHeight: 380 }}>
       <DoorPreview id={id} manifest={manifest} />
     </span>
   );

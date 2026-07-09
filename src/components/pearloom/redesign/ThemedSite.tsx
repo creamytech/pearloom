@@ -6300,7 +6300,11 @@ function StickyNoise({ filter, opacity, blend }: {
   );
 }
 
-function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?: number }) {
+/* Exported 2026-07-09 (CARD-PLAN CD-A): the material recipes are
+   pure inline styles + data-URI noise tiles, so editor chrome can
+   press HONEST texture swatches (site-look-plate.tsx, TexturePick)
+   without duplicating them. */
+export function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?: number }) {
   if (!texture || texture === 'none') return null;
   const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 };
 
