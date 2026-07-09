@@ -14,13 +14,16 @@ describe('LAYOUTS registry', () => {
     expect(LAYOUTS.map!.map((v) => v.id)).not.toContain('static');
   });
 
-  it("manifests still carrying layouts.map='static' keep resolving (renderer falls through to embed)", () => {
+  it("manifests still carrying layouts.map='static' keep resolving (renderer falls through to the live embed)", () => {
     /* readVariant returns the stored pick verbatim; MapBlock has no
-       'static' branch any more, so this id lands on the default
-       embed path. The contract pinned here is just "no crash + a
-       string comes back". */
+       'static' branch, so this id lands on MapBlock's final return —
+       the live embed, which is what those hosts explicitly chose.
+       The contract pinned here is just "no crash + a string comes
+       back". */
     expect(readVariant({ layouts: { map: 'static' } }, 'map')).toBe('static');
-    expect(readVariant({}, 'map')).toBe('embed');
+    /* Unpicked sites press the DRAWN plate (2026-07-09) — the
+       Google iframe is a deliberate pick now, never the default. */
+    expect(readVariant({}, 'map')).toBe('plate');
   });
 });
 

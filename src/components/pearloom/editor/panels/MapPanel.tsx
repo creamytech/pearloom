@@ -4,16 +4,17 @@
 /* MapPanel — host config for the Map section. Reads the venue
    from manifest.logistics.venue + optional manifest.logistics.address.
    Writes manifest.mapBlock = { variant, height, showDirections }.
-   The actual embed uses Google Maps' free no-key iframe at
-   maps.google.com/?output=embed (works without a billing-enabled
-   API key for static venue display). */
+   The DEFAULT layout is the drawn map plate (map-plate.tsx) in the
+   site's own tints; the 'embed'/'split'/'postcard' layouts use
+   Google Maps' free no-key iframe at maps.google.com/?output=embed
+   (works without a billing-enabled API key). */
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
 /* MapPanel — Content tab fields only. The layout variant
-   (embed / static / pin / split / postcard) is picked in the
+   (plate / embed / pin / split / postcard) is picked in the
    Layout tab via the LAYOUTS registry. */
 interface MapData {
   height?: 'short' | 'tall';
@@ -73,7 +74,7 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
           )}
         </FGroup>
 
-        <FGroup label="Height" hint="Only applies to embed / static layouts, pin variant uses a card.">
+        <FGroup label="Height" hint="Applies to the live-map layouts; the drawn map and pin card size themselves.">
           <FSelect
             value={height}
             onChange={(v) => patch({ height: v as 'short' | 'tall' })}
@@ -86,7 +87,7 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
 
         <FToggleStandalone
           label="Show directions button"
-          sub={showDirections ? 'Opens Google Maps directions in a new tab' : 'No CTA, just the map'}
+          sub={showDirections ? 'Opens the guest’s maps app in a new tab' : 'No button — guests copy the address'}
           def={showDirections}
           onChange={(v) => patch({ showDirections: v })}
         />

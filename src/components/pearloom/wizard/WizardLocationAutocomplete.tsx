@@ -105,18 +105,38 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
     debounceRef.current = setTimeout(() => search(text), 260);
   };
 
-  const handleSelect = (pred: Prediction) => {
+  const handleSelect = async (pred: Prediction) => {
     const display = pred.formattedAddress
       ? `${pred.displayName} · ${pred.formattedAddress}`
       : pred.displayName;
     onChange(display);
     setShowDropdown(false);
     setSuggestions([]);
+    /* Google AUTOCOMPLETE predictions never carry coordinates (the
+       fieldMask is id + text only) — only the OSM fallback does. A
+       venue picked without coords silently killed everything
+       downstream that biases on logistics.venueLat/Lng (hotel
+       search near the venue, the map pin, enrich distances). One
+       cheap details read fills them in before onSelect fires. */
+    let lat = pred.location?.lat;
+    let lng = pred.location?.lng;
+    if ((lat == null || lng == null) && pred.id && !pred.id.startsWith('osm-') && !pred.id.startsWith('pred-')) {
+      try {
+        const r = await fetch(`/api/venue/search?placeId=${encodeURIComponent(pred.id)}&type=details`);
+        if (r.ok) {
+          const d = (await r.json()) as { place?: { location?: { lat?: number; lng?: number } } };
+          if (typeof d.place?.location?.lat === 'number' && typeof d.place?.location?.lng === 'number') {
+            lat = d.place.location.lat;
+            lng = d.place.location.lng;
+          }
+        }
+      } catch { /* coords stay undefined — the pick still lands */ }
+    }
     onSelect?.({
       name: pred.displayName,
       address: pred.formattedAddress,
-      lat: pred.location?.lat,
-      lng: pred.location?.lng,
+      lat,
+      lng,
       /* The Places id rides along so hotel picks can fetch the rich
          details (photo, stars) the editor's Travel panel gets. */
       placeId: pred.id,
@@ -133,7 +153,7 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
       setActiveIdx((prev) => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter' && activeIdx >= 0) {
       e.preventDefault();
-      handleSelect(suggestions[activeIdx]);
+      void handleSelect(suggestions[activeIdx]);
     } else if (e.key === 'Escape') {
       setShowDropdown(false);
     }
@@ -239,7 +259,7 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
                 type="button"
                 onMouseEnter={() => setActiveIdx(i)}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSelect(pred)}
+                onClick={() => void handleSelect(pred)}
                 style={{
                   width: '100%',
                   display: 'grid',
@@ -301,6 +321,27 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
               </button>
             );
           })}
+          {/* Google's data policy asks for attribution when Places
+              results render outside a Google map — said once, as a
+              whisper, only when the results ARE Google's (the OSM
+              fallback's ids carry an osm- prefix). */}
+          {suggestions.some((s) => !s.id.startsWith('osm-') && !s.id.startsWith('pred-')) && (
+            <div
+              style={{
+                padding: '5px 14px 7px',
+                borderTop: '1px solid var(--line-soft, rgba(61,74,31,0.08))',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: 8.5,
+                fontWeight: 600,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted, #6F6557)',
+                textAlign: 'right',
+              }}
+            >
+              Results from Google
+            </div>
+          )}
         </div>
       )}
 

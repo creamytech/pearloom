@@ -13,10 +13,11 @@
 // This route is purely the search-box autocomplete behind the
 // editor map strip.
 //
-// POST { query: string, near?: { lat, lng }, radius?: number }
+// POST { query: string, near?: { lat, lng }, nearText?: string,
+//   radius?: number }
 // Returns { results: Array<{ placeId, name, address, rating,
 //   userRatingCount, priceLevel, types, location: { lat, lng } }>,
-//   fallback?: boolean }
+//   bias?: { lat, lng }, fallback?: boolean }
 //
 // Graceful degrade: missing key or upstream failure returns
 // { results: [], fallback: true } so the client can fall back to
@@ -35,8 +36,48 @@ export const maxDuration = 30;
 interface Body {
   query?: string;
   near?: { lat?: number; lng?: number };
+  /** Fallback bias: the venue's ADDRESS TEXT when the manifest never
+   *  cached coords (most pre-2026-07-09 sites — the autocomplete
+   *  didn't stamp them). Geocoded server-side once and cached, so
+   *  "hotels" still lands near the event, not worldwide. Ignored
+   *  when `near` carries real coords. */
+  nearText?: string;
   /** Radius in meters around `near`. Defaults to 50 km. */
   radius?: number;
+}
+
+/* Address-text → coords, cached for the process lifetime. Venue
+ * addresses repeat on every keystroke-debounced search from the
+ * same panel, so this keeps the fallback to ONE upstream geocode
+ * per venue. */
+const geocodeCache = new Map<string, { lat: number; lng: number } | null>();
+
+async function geocodeText(text: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
+  const key = text.trim().toLowerCase();
+  if (geocodeCache.has(key)) return geocodeCache.get(key) ?? null;
+  let coords: { lat: number; lng: number } | null = null;
+  try {
+    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.location',
+      },
+      body: JSON.stringify({ textQuery: text, maxResultCount: 1 }),
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { places?: Array<{ location?: { latitude: number; longitude: number } }> };
+      const loc = data.places?.[0]?.location;
+      if (loc && typeof loc.latitude === 'number' && typeof loc.longitude === 'number') {
+        coords = { lat: loc.latitude, lng: loc.longitude };
+      }
+    }
+  } catch { /* bias stays unset */ }
+  if (geocodeCache.size > 500) geocodeCache.clear();
+  geocodeCache.set(key, coords);
+  return coords;
 }
 
 interface SearchResult {
@@ -97,8 +138,15 @@ export async function POST(req: NextRequest) {
   // result set; `locationRestriction` would hard-filter them out
   // which is too aggressive when a host searches "hotels in NYC"
   // from a venue 5 km outside the city.
-  const lat = body.near?.lat;
-  const lng = body.near?.lng;
+  let lat = body.near?.lat;
+  let lng = body.near?.lng;
+  // No coords but a venue address? Geocode it (cached) so the
+  // search still centers on the event.
+  let resolvedBias: { lat: number; lng: number } | null = null;
+  if ((typeof lat !== 'number' || typeof lng !== 'number') && typeof body.nearText === 'string' && body.nearText.trim().length > 3) {
+    resolvedBias = await geocodeText(body.nearText, apiKey);
+    if (resolvedBias) { lat = resolvedBias.lat; lng = resolvedBias.lng; }
+  }
   const radius = typeof body.radius === 'number' && body.radius > 0 ? body.radius : 50000;
   if (typeof lat === 'number' && typeof lng === 'number') {
     requestBody.locationBias = {
@@ -158,7 +206,10 @@ export async function POST(req: NextRequest) {
         : undefined,
     }));
 
-    return NextResponse.json({ results });
+    /* `bias` = the geocoded nearText center, when one was resolved —
+       the client backfills manifest.logistics.venueLat/Lng from it
+       so future searches (and the map pin) skip the geocode. */
+    return NextResponse.json(resolvedBias ? { results, bias: resolvedBias } : { results });
   } catch (err) {
     console.error('[places.search] fetch failed', err);
     return NextResponse.json({ results: [], fallback: true });

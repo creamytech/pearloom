@@ -193,7 +193,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
      Once present, render through the same dispatch as core
      sections. */
   countdown: { id: 'countdown', label: 'Countdown', desc: 'Cards · stripe · minimal · hero' },
-  map:       { id: 'map',       label: 'Map',       desc: 'Live Google Maps embed' },
+  map:       { id: 'map',       label: 'Map',       desc: 'Drawn map plate, or the live map' },
   music:     { id: 'music',     label: 'Music',     desc: 'Spotify · Apple · YouTube playlist' },
   /* Event-OS blocks — occasion-gated sections added via the Add
      Section picker (isBlockApplicable). */

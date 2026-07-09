@@ -21,7 +21,6 @@ import {
   FInput,
   FSuggest,
   FToggleStandalone,
-  PearChip,
   SectionPanelShell,
   SectionVisibilityFooter,
   Stars,
@@ -171,14 +170,18 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
   async function runSearch(query: string) {
     setSearching(true); setErr(null);
     try {
-      const body: { query: string; near?: { lat: number; lng: number } } = { query };
-      /* Bias results around the venue when we have lat/lng. PlaceAutocomplete
-         caches these onto manifest.logistics.venueLat/Lng when the host
-         picks a venue; without them the search is global, which is fine
-         but less precise. */
+      const body: { query: string; near?: { lat: number; lng: number }; nearText?: string } = { query };
+      /* Bias results around the venue. Coords when the manifest has
+         them (the wizard's venue pick stamps venueLat/Lng since
+         2026-07-09); otherwise the venue's ADDRESS TEXT — the route
+         geocodes it once (cached) so "hotels" still lands near the
+         event instead of worldwide. */
       const lat = manifest.logistics?.venueLat;
       const lng = manifest.logistics?.venueLng;
+      const venueAnchor = [manifest.logistics?.venue, (manifest.logistics as { place?: string } | undefined)?.place]
+        .filter(Boolean).join(', ');
       if (typeof lat === 'number' && typeof lng === 'number') body.near = { lat, lng };
+      else if (venueAnchor) body.nearText = venueAnchor;
       const res = await fetch('/api/places/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -189,7 +192,16 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
         console.error('[travel] place search failed:', res.status);
         throw new Error((j as { error?: string }).error ?? 'The search didn’t come back, try again?');
       }
-      const data = await res.json() as { results?: SearchResult[]; fallback?: boolean };
+      const data = await res.json() as { results?: SearchResult[]; fallback?: boolean; bias?: { lat: number; lng: number } };
+      /* The route geocoded the venue for us — cache the coords onto
+         logistics so the map pin, enrich distances, and every later
+         search skip the geocode. */
+      if (data.bias && (typeof lat !== 'number' || typeof lng !== 'number')) {
+        onChange({
+          ...manifest,
+          logistics: { ...(manifest.logistics ?? {}), venueLat: data.bias.lat, venueLng: data.bias.lng },
+        } as StoryManifest);
+      }
       setResults(Array.isArray(data.results) ? data.results : []);
       setOpen(true);
     } catch (e) {
@@ -263,17 +275,17 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
     ? `Hotels near ${venueAddress.split(',')[0].trim()}…`
     : 'Search hotels & venues…';
 
-  /* One-tap hotel finder — only when we have venue coordinates to
-     bias the search (PlaceAutocomplete caches venueLat/Lng onto
-     manifest.logistics when the host picks a venue) AND the host
-     hasn't added any hotels yet. Setting q runs the exact same
-     debounced search flow as typing — a visible affordance, never
-     an auto-fired network call on mount. */
+  /* One-tap hotel finder — whenever we can anchor the search to the
+     event (cached coords, or just the venue text — runSearch passes
+     it as nearText and the route geocodes) AND the host hasn't
+     added any hotels yet. Setting q runs the exact same debounced
+     search flow as typing — a visible affordance, never an
+     auto-fired network call on mount. */
   const venueLat = manifest.logistics?.venueLat;
   const venueLng = manifest.logistics?.venueLng;
   const hasVenueCoords = typeof venueLat === 'number' && typeof venueLng === 'number';
   const venueShort = venueAddress ? venueAddress.split(',')[0].trim() : '';
-  const showHotelFinder = hasVenueCoords && hotels.length === 0 && !q.trim();
+  const showHotelFinder = (hasVenueCoords || !!venueAddress.trim()) && hotels.length === 0 && !q.trim();
 
   return (
     <SectionPanelShell>
@@ -285,7 +297,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
               eyebrow override lives tucked under "More" below so the
               default order is 1:1. */}
         {/* Real Places search */}
-        <FGroup label="Find hotels & venues" action={<PearChip>Powered by Google</PearChip>}>
+        <FGroup label="Find hotels & venues">
           {showHotelFinder && (
             <button
               type="button"
@@ -366,8 +378,15 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
               {err}
             </div>
           )}
-          <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 7, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <Icon name="sparkles" size={11} color="var(--gold)" /> Ratings, photos &amp; amenities come from Google Places.
+          {/* Attribution — Google's data policy asks that Places
+              results shown off-map credit Google. It earns one
+              editorial whisper (BRAND §4 mono label + gold rule),
+              not a badge riding the header. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 7 }}>
+            <span aria-hidden style={{ width: 14, height: 1, background: 'var(--gold)' }} />
+            <span style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              Search · ratings · photos — Google
+            </span>
           </div>
         </FGroup>
 

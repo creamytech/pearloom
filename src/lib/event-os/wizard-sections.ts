@@ -153,7 +153,7 @@ export const CORE_SECTION_META: readonly SectionMeta[] = [
 // Order preserved from SectionRail.OPTIONAL_SECTIONS.
 export const OPTIONAL_SECTION_META: readonly SectionMeta[] = [
   { id: 'countdown',    label: 'Countdown',     icon: 'clock',          desc: 'Stat tiles · stripe · minimal · statement' },
-  { id: 'map',          label: 'Map',           icon: 'map',            desc: 'Live embed · pin · static' },
+  { id: 'map',          label: 'Map',           icon: 'map',            desc: 'Drawn map · live map · pin' },
   { id: 'music',        label: 'Music',         icon: 'music',          desc: 'Spotify · Apple · YouTube' },
   { id: 'itinerary',    label: 'Itinerary',     icon: 'calendar-check', desc: 'Multi-day plan, hour by hour' },
   { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket', desc: 'Who owes what, settled gently' },

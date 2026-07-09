@@ -17,7 +17,9 @@ type Archetype =
      open shapes, and the footer's three sign-offs. */
   | 'nav-centered' | 'nav-split' | 'nav-block' | 'nav-minimal' | 'nav-iconic'
   | 'menu-overlay' | 'menu-slidein' | 'menu-sheet' | 'menu-pill'
-  | 'footer-signature' | 'footer-columns' | 'footer-minimal';
+  | 'footer-signature' | 'footer-columns' | 'footer-minimal'
+  /* The drawn map plate — street hairlines + the gold pearl. */
+  | 'map-plate';
 
 /** Map a section+variant to the archetype schematic that evokes it. */
 export function archetypeFor(section: string, variant: string): Archetype {
@@ -57,6 +59,7 @@ export function archetypeFor(section: string, variant: string): Archetype {
       ? 'type'
       : 'hero';
   }
+  if (section === 'map' && variant === 'plate') return 'map-plate';
   if (section === 'gallery' || section === 'thenAndNow') return 'grid';
   // Vertical-rail layouts.
   if (['timeline', 'centerline', 'flow', 'stepper'].includes(variant)) return 'timeline';
@@ -158,6 +161,24 @@ function ThumbArt({ arch }: { arch: Archetype }) {
               opacity={i % 3 === 1 ? 0.34 : 0.2}
             />
           ))}
+        </>
+      );
+    case 'map-plate':
+      return (
+        <>
+          {/* the plate frame */}
+          <rect x="6" y="10" width="44" height="52" rx="2" fill="none" stroke={THUMB_LINE} strokeWidth="1.2" />
+          {/* street hairlines */}
+          {[20, 32, 44, 54].map((y) => (
+            <line key={`h${y}`} x1="8" y1={y} x2="48" y2={y + 1} stroke={THUMB_LINE} strokeWidth="1" opacity={0.8} />
+          ))}
+          {[16, 28, 40].map((x) => (
+            <line key={`v${x}`} x1={x} y1="12" x2={x + 1} y2="60" stroke={THUMB_LINE} strokeWidth="1" opacity={0.8} />
+          ))}
+          <line x1="8" y1="14" x2="48" y2="34" stroke={THUMB_INK} strokeWidth="1" opacity={0.35} />
+          {/* the pearl + its dotted ring */}
+          <circle cx="28" cy="36" r="7" fill="none" stroke={THUMB_GOLD} strokeWidth="1" strokeDasharray="1.5 2.5" opacity={0.9} />
+          <circle cx="28" cy="36" r="3" fill={THUMB_GOLD} />
         </>
       );
     /* ── Chrome drawings (LAY.2). The top band is the bar; the page

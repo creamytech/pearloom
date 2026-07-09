@@ -34,6 +34,7 @@ import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant, LAYOUTS, recommendedVariantFor } from './layouts';
+import { MapPlateArt } from './map-plate';
 import { VariantThumb } from './variant-thumb';
 import type { SectionId } from './EditorRedesign';
 /* Occasion gating for the nine core sections — leaf module shared
@@ -4061,14 +4062,17 @@ function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
   );
 }
 
-/* ─── MapBlock — 3 layout variants. ───────────────────────────
-   Live Google Maps iframe (no API key needed for embed), static
-   pin+map graphic, or pin-only with an "Open in Maps" CTA. */
+/* ─── MapBlock — layout variants. ─────────────────────────────
+   'plate' (default, 2026-07-09) — the drawn map plate in the
+   site's own tints (map-plate.tsx); every press hands off to the
+   guest's maps app. 'embed'/'split'/'postcard' keep the live
+   Google iframe for hosts who want the utility; 'pin' is the
+   quiet card. */
 
 function MapBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, manifest, editable, variants } = ctx;
   const mapCfg = (manifest as unknown as { mapBlock?: { height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
-  const variant = variants.map || 'embed';
+  const variant = variants.map || 'plate';
   const height = mapCfg.height === 'tall' ? 560 : 320;
   const showDirections = mapCfg.showDirections !== false;
   const venue = manifest.logistics?.venue ?? '';
@@ -4095,6 +4099,77 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
   const mapsUrl = `https://www.google.com/maps?q=${encodedAddress}`;
+
+  if (variant === 'plate') {
+    /* The drawn plate — decorative, deterministic from the address,
+       pressed in the site's tints. The whole plate is the
+       directions press on published sites; on the canvas it stays
+       a plain drawing so section-select taps aren't hijacked. */
+    const plate = (
+      /* 800/460 matches the SVG viewBox exactly — no slice-cropping,
+         so the drawn frame + compass always survive. */
+      <div style={{ position: 'relative', aspectRatio: '800/460', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+        <MapPlateArt seedKey={address} style={{ position: 'absolute', inset: 0, height: '100%' }} />
+      </div>
+    );
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <TSectionHead
+          eyebrow={eyebrow}
+          title={venue || 'The venue'}
+          editable={false}
+          divider={ctx.dividerLook}
+        />
+        <div style={{ maxWidth: 880, margin: '0 auto' }}>
+          {editable ? plate : (
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open directions to ${venue || 'the venue'}`}
+              style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+            >
+              {plate}
+            </a>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', marginTop: 16 }}>
+            <div style={{ minWidth: 0 }}>
+              {place && (
+                <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+                  {place}
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', marginTop: 3 }}>
+                A drawn keepsake, not to scale — press it for the real way there.
+              </div>
+            </div>
+            {showDirections && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pl-hit44"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Directions
+                </a>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pl-hit44"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Open in Maps
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (variant === 'pin') {
     return (
