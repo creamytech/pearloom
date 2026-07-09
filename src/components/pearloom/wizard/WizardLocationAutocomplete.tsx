@@ -19,7 +19,7 @@ import { WeaveLoader } from '@/components/brand/WeaveLoader';
 interface Props {
   value: string;
   onChange: (value: string) => void;
-  onSelect?: (place: { name: string; address: string; lat?: number; lng?: number }) => void;
+  onSelect?: (place: { name: string; address: string; lat?: number; lng?: number; placeId?: string }) => void;
   placeholder?: string;
   /** Restrict results to a Places kind ('hotel' → lodging only,
    *  'airport') — same param the editor's Travel panel uses. */
@@ -117,6 +117,9 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
       address: pred.formattedAddress,
       lat: pred.location?.lat,
       lng: pred.location?.lng,
+      /* The Places id rides along so hotel picks can fetch the rich
+         details (photo, stars) the editor's Travel panel gets. */
+      placeId: pred.id,
     });
   };
 

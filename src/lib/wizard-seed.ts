@@ -37,7 +37,15 @@ export interface DayPicks {
    *  parking. Each seeds the section guests actually read
    *  (Travel hotels / Details cards / FAQ answers). Lat/lng ride
    *  along from the autocomplete so the Travel map can pin them. */
-  hotels?: Array<{ name: string; address: string; lat?: number; lng?: number }>;
+  hotels?: Array<{
+    name: string; address: string; lat?: number; lng?: number;
+    /* Rich Places fields (wizard enrichment 2026-07-09) — forwarded
+       verbatim so wizard hotels render with the same stars/photo the
+       editor's Travel panel produces. */
+    id?: string; rating?: number; ratingCount?: number; priceLevel?: number;
+    photoUrl?: string; photoUrls?: string[]; amenities?: string;
+    description?: string; bookingUrl?: string;
+  }>;
   kidsPolicy?: string;
   parkingNote?: string;
   /** "The extras" — component picks. Countdown joins the block
@@ -155,12 +163,20 @@ export function seedSectionsFromWizard(
   const existingHotels = (travelInfo.hotels as unknown[] | undefined) ?? [];
   if (hostHotels.length > 0 && existingHotels.length === 0) {
     travelInfo.hotels = hostHotels.map((h, i) => ({
-      id: `h-seed-${i}`,
+      id: h.id || `h-seed-${i}`,
       name: h.name.trim(),
       address: h.address.trim(),
       ...(typeof h.lat === 'number' && typeof h.lng === 'number'
         ? { lat: h.lat, lng: h.lng }
         : {}),
+      ...(typeof h.rating === 'number' ? { rating: h.rating } : {}),
+      ...(typeof h.ratingCount === 'number' ? { ratingCount: h.ratingCount } : {}),
+      ...(typeof h.priceLevel === 'number' ? { priceLevel: h.priceLevel } : {}),
+      ...(h.photoUrl ? { photoUrl: h.photoUrl } : {}),
+      ...(h.photoUrls?.length ? { photoUrls: h.photoUrls } : {}),
+      ...(h.amenities ? { amenities: h.amenities } : {}),
+      ...(h.description ? { description: h.description } : {}),
+      ...(h.bookingUrl ? { bookingUrl: h.bookingUrl } : {}),
     }));
     loose.travelInfo = travelInfo;
   }

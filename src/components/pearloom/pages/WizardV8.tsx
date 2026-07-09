@@ -58,6 +58,56 @@ import { WizardStructureSection } from './wizard-structure';
 import { WizardFittingRoom, type PaletteChoice } from './wizard-fitting-room';
 import type { StoryManifest } from '@/types';
 
+/* ── Wizard hotel enrichment (2026-07-09) ──
+   The wizard's hotel picker rides the thin autocomplete endpoint
+   (name/address only), so wizard-picked hotels rendered starless and
+   photoless while the editor's Travel panel — which follows up with
+   /api/places/details — got the full card. Same follow-up here:
+   fire-and-forget after the pick; on failure the basic hotel stays
+   (the old behavior), never a blocked step. */
+interface WizardPlaceDetails {
+  placeId: string;
+  name?: string;
+  formattedAddress?: string;
+  website?: string;
+  photoUrl?: string;
+  photoUrls?: string[];
+  location?: { lat: number; lng: number };
+  rating?: number;
+  userRatingCount?: number;
+  priceLevel?: number;
+  editorialSummary?: string;
+}
+
+function enrichWizardHotel(
+  placeId: string,
+  merge: (patch: Record<string, unknown>) => void,
+) {
+  fetch('/api/places/details', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ placeId }),
+  })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((data) => {
+      const d = (data as { details?: WizardPlaceDetails | null } | null)?.details;
+      if (!d) return;
+      merge({
+        id: d.placeId,
+        ...(typeof d.rating === 'number' ? { rating: d.rating } : {}),
+        ...(typeof d.userRatingCount === 'number' ? { ratingCount: d.userRatingCount } : {}),
+        ...(typeof d.priceLevel === 'number' ? { priceLevel: d.priceLevel } : {}),
+        ...(d.photoUrl ? { photoUrl: d.photoUrl } : {}),
+        ...(d.photoUrls?.length ? { photoUrls: d.photoUrls } : {}),
+        ...(d.editorialSummary ? { description: d.editorialSummary } : {}),
+        ...(d.website ? { bookingUrl: d.website } : {}),
+        ...(d.formattedAddress ? { address: d.formattedAddress } : {}),
+        ...(d.location ? { lat: d.location.lat, lng: d.location.lng } : {}),
+      });
+    })
+    .catch(() => { /* enrichment is best-effort */ });
+}
+
 // Layout step removed 2026-05-30 — superseded again 2026-06-10:
 // Editions are no longer host-facing anywhere; layout variants now
 // stamp via applyWizardLook at generation, so making the
@@ -336,7 +386,17 @@ interface WizardState {
   /** "Guests will ask" quick-collect — seeds Travel / Details /
    *  FAQ at finish so the editor opens with real answers. Lat/lng
    *  ride along from the autocomplete → Travel map pins. */
-  hotels?: Array<{ name: string; address: string; lat?: number; lng?: number }>;
+  hotels?: Array<{
+    name: string; address: string; lat?: number; lng?: number;
+    /* Rich fields from /api/places/details — the same richness the
+       editor's Travel panel writes (stars, photo, price tier), so a
+       wizard-picked hotel renders identically (owner report: wizard
+       hotels had no image and no rating). Enriched async after the
+       pick; absent when the details call fails. */
+    id?: string; rating?: number; ratingCount?: number; priceLevel?: number;
+    photoUrl?: string; photoUrls?: string[]; amenities?: string;
+    description?: string; bookingUrl?: string;
+  }>;
   kidsPolicy?: string;
   parkingNote?: string;
   /** Venue coordinates captured when the host picks a Places
@@ -1417,6 +1477,12 @@ function GuestsWillAsk({
                     if (cur.some((h) => h.name === name)) return s;
                     return { ...s, hotels: [...cur, { name, address: place.address ?? '', lat: place.lat, lng: place.lng }] };
                   });
+                  if (place.placeId) {
+                    enrichWizardHotel(place.placeId, (patch) => setSt((s) => ({
+                      ...s,
+                      hotels: (s.hotels ?? []).map((h) => (h.name === name ? { ...h, ...patch } : h)),
+                    })));
+                  }
                   setHotelQuery('');
                 }}
                 kind="hotel"
@@ -1808,6 +1874,12 @@ function PearsQuestions({
             const name = place.name || place.address;
             if (!name) return;
             setSt((s) => ({ ...s, hotels: [...(s.hotels ?? []), { name, address: place.address ?? '', lat: place.lat, lng: place.lng }] }));
+            if (place.placeId) {
+              enrichWizardHotel(place.placeId, (patch) => setSt((s) => ({
+                ...s,
+                hotels: (s.hotels ?? []).map((h) => (h.name === name ? { ...h, ...patch } : h)),
+              })));
+            }
             setHotelQuery('');
           }}
           kind="hotel"
