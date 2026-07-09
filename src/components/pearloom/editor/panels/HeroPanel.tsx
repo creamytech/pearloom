@@ -19,29 +19,105 @@ import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { SECTION_LINK_TARGETS, SPECIAL_LINK_TARGETS, resolveLinkLabel } from './_link-targets';
 import { useVoicePack } from './_voice-pack';
 
-interface CoverPhotoFieldProps {
-  url: string;
-  onChange: (next: string) => void;
-  pool: string[];
-  hint: string;
-}
+/* ─── OpeningPhotosStrip — PH.2 (EDITOR-RAILS-PLAN): the whole
+   4-tile hero strip in the panel, not just the cover. Slot 0 =
+   manifest.coverPhoto; slots 1-3 = galleryImages[0..2] — the SAME
+   window the canvas strip renders ("These lead your gallery"), so
+   there's no hero-owned field and no sync bugs. Tapping a tile
+   dispatches pearloom:open-photo — the exact flow the canvas tiles
+   use — so swap / upload / remove ride the CanvasPhotoDrawer on
+   every device. The ‹ nudge on a gallery tile swaps it left. */
 
-function CoverPhotoField({ url, onChange, pool, hint }: CoverPhotoFieldProps) {
+function OpeningPhotosStrip({
+  manifest,
+  onChange,
+  hint,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+  hint: string;
+}) {
+  const loose = manifest as unknown as { coverPhoto?: string; galleryImages?: string[] };
+  const cover = (loose.coverPhoto ?? '').trim();
+  const gallery = (loose.galleryImages ?? []).filter(Boolean);
+  const openSlot = (slot: Record<string, unknown>) => {
+    try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+  };
+  const swapLeft = (gi: number) => {
+    if (gi <= 0) return;
+    const next = [...gallery];
+    [next[gi - 1], next[gi]] = [next[gi], next[gi - 1]];
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      galleryImages: next,
+    } as unknown as StoryManifest);
+  };
+  const tiles: Array<{ url?: string; slot: Record<string, unknown>; tag?: string; gi?: number }> = [
+    { url: cover || undefined, slot: { kind: 'cover', label: 'the cover', current: cover || undefined }, tag: 'Cover' },
+    ...[0, 1, 2].map((gi) => ({
+      url: gallery[gi],
+      slot: { kind: 'gallery', index: gi, label: 'this tile', current: gallery[gi] },
+      gi,
+    })),
+  ];
   return (
     <FGroup
-      label="Cover photo"
+      label="Opening photos"
       hint={hint}
-      /* Quiet attention signal when no cover photo is set — a
-         small peach dot + "needed" in the label row. Not an
-         alarm; just the one thing the hero genuinely wants. */
-      action={!url ? (
+      action={!cover ? (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', color: 'var(--peach-ink)' }}>
           <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', flexShrink: 0 }} />
           needed
         </span>
       ) : undefined}
     >
-      <PhotoUploadSlot url={url} onChange={onChange} aspectRatio="16/9" size="md" pool={pool} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+        {tiles.map((t, i) => (
+          <div key={i} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              title={t.url ? 'Change this photo' : 'Add a photo'}
+              onClick={() => openSlot(t.slot)}
+              style={{
+                display: 'block', width: '100%', aspectRatio: '3 / 4',
+                borderRadius: 8, overflow: 'hidden', cursor: 'pointer', padding: 0,
+                border: t.url ? '1px solid var(--line)' : '1.5px dashed var(--line)',
+                background: t.url ? 'var(--cream-3)' : 'var(--cream-2)',
+              }}
+            >
+              {t.url ? (
+                <img src={t.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <span style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%', color: 'var(--ink-muted)' }}>
+                  <Icon name="plus" size={15} color="var(--ink-muted)" />
+                </span>
+              )}
+            </button>
+            {t.tag && (
+              <span aria-hidden style={{ position: 'absolute', top: 4, left: 4, padding: '1px 5px', borderRadius: 5, background: 'rgba(255,253,247,0.92)', border: '1px solid var(--line)', fontSize: 7.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-soft)', pointerEvents: 'none' }}>
+                {t.tag}
+              </span>
+            )}
+            {t.gi !== undefined && t.gi > 0 && t.url && gallery[t.gi - 1] && (
+              <button
+                type="button"
+                title="Move this photo left"
+                onClick={(e) => { e.stopPropagation(); swapLeft(t.gi!); }}
+                style={{
+                  position: 'absolute', bottom: 4, left: 4, width: 20, height: 20,
+                  borderRadius: 6, border: '1px solid var(--line)', cursor: 'pointer',
+                  background: 'rgba(255,253,247,0.92)', display: 'grid', placeItems: 'center', padding: 0,
+                }}
+              >
+                <Icon name="arrow-left" size={10} color="var(--ink-soft)" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 6, lineHeight: 1.4 }}>
+        The cover leads; the next three tiles come from your gallery — these lead your gallery.
+      </div>
     </FGroup>
   );
 }
@@ -257,7 +333,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Where the gathering happens" />
         </FGroup>
-        <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} hint={v.hero.coverGroupHint} />
+        <OpeningPhotosStrip manifest={manifest} onChange={onChange} hint={v.hero.coverGroupHint} />
 
         <details className="pl-panel-more">
           <summary

@@ -41,6 +41,13 @@ import { LAYOUTS, readVariant } from './layouts';
 import { useCanvasTryOn, expandThemeVarsForPreview, findCanvasRoot } from './design-tryon';
 import { announceDesignChange } from './design-feedback';
 
+/** One rung of the Design ladder, renderable alone (EDITOR-RAILS-PLAN
+ *  DK.3): the phone Design tab shows a deck of DOORS, each opening
+ *  exactly one of these instead of the whole 6-screen ladder. */
+export type DesignDoorId =
+  | 'theme' | 'colors' | 'fonts' | 'paper' | 'layout'
+  | 'background' | 'motion' | 'menu' | 'finetune';
+
 interface Props {
   manifest: StoryManifest;
   onChange: (next: StoryManifest) => void;
@@ -51,6 +58,9 @@ interface Props {
    *  Motion tab (Atelier kits only). 'inline' (default) keeps the
    *  motion picker in the flow — used by the mobile Theme sheet. */
   motion?: 'inline' | 'hidden' | 'only';
+  /** Render ONLY this ladder rung (no jump chips, no CTAs) — the
+   *  body behind one phone Design door. Desktop never sets it. */
+  door?: DesignDoorId;
 }
 
 /* Texture → 6-theme catalog id mapping. /api/look/from-story
@@ -69,7 +79,7 @@ const TEXTURE_TO_THEME_ID: Record<string, string> = {
   gilded: 'midnight',
 };
 
-export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, motion = 'inline' }: Props) {
+export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, motion = 'inline', door }: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
@@ -96,6 +106,47 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
     onChange(next);
     fireUndoable('Pack applied, your old look is one tap away', () => onChange(prior));
   };
+
+  /* One door only (DK.3) — the body behind a phone Design door.
+     No jump chips, no CTAs, no sibling rungs: the door named it,
+     this renders it. */
+  if (door) {
+    return (
+      <div style={{ flex: 1, overflow: 'auto', padding: '12px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <StoreFonts />
+        {door === 'theme' && (
+          <>
+            <GenerateCard manifest={manifest} onChange={onChange} />
+            <MatchMyPhotos manifest={manifest} onChange={onChange} />
+            <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
+          </>
+        )}
+        {door === 'colors' && <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />}
+        {door === 'fonts' && <FontsPick theme={theme} manifest={manifest} onChange={onChange} />}
+        {door === 'paper' && <TexturePick theme={theme} manifest={manifest} onChange={onChange} />}
+        {door === 'layout' && (
+          <>
+            <SiteLayoutPick manifest={manifest} onChange={onChange} />
+            <KitPick theme={theme} manifest={manifest} onChange={onChange} />
+          </>
+        )}
+        {door === 'background' && <LivingBackgroundPick manifest={manifest} onChange={onChange} />}
+        {door === 'motion' && <MotionKitPick manifest={manifest} onChange={onChange} />}
+        {door === 'menu' && (
+          <>
+            <NavPick manifest={manifest} onChange={onChange} />
+            <FooterPick manifest={manifest} onChange={onChange} />
+          </>
+        )}
+        {door === 'finetune' && (
+          <>
+            <FineTune theme={theme} manifest={manifest} onChange={onChange} />
+            <LegibilityNote manifest={manifest} theme={theme} onChange={onChange} />
+          </>
+        )}
+      </div>
+    );
+  }
 
   /* ── The altitude ladder (reordered 2026-07-08) ─────────────────
      One 6.4-screen scroll used to bury Colors + Fonts (the two
