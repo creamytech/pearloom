@@ -1,0 +1,409 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// Pearloom / marketing/design/dash/hooks.ts
+//
+// Shared client-side hooks for the new dashboard design.
+//
+//   useUserSites()       — fetches the current user's sites
+//   useSelectedSite()    — reads ?site= or localStorage, returns
+//                          the active site's id, domain, manifest
+//   useUserPrefs()       — Pear voice + autonomy + quiet hours
+//                          (persisted via /api/user/preferences)
+//
+// Every page in /marketing/design/dash/ uses these. The shell's
+// sidebar reads session + useUserSites() to render the avatar
+// and loom label; per-site pages read useSelectedSite() and
+// thread the id through their data fetches.
+// ─────────────────────────────────────────────────────────────
+
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+export interface SiteSummary {
+  id: string;
+  domain: string;
+  names?: [string, string] | null;
+  occasion?: string;
+  manifest?: unknown;
+  coverPhoto?: string | null;
+  eventDate?: string | null;
+  venue?: string | null;
+  published?: boolean;
+  updated_at?: string;
+  created_at?: string;
+}
+
+export interface UserSitesState {
+  sites: SiteSummary[] | null;
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+}
+
+// Shared cache so multiple hooks mounted simultaneously don't
+// each fire their own /api/sites call. Simple module-level
+// memoisation — enough for dashboard navigation.
+let sitesCache: SiteSummary[] | null = null;
+let sitesCacheAt = 0;
+let sitesInFlight: Promise<void> | null = null;
+const SITES_CACHE_TTL_MS = 30_000;
+const sitesSubscribers: Set<() => void> = new Set();
+
+/** Merge freshly-saved manifest fields into the cached site row so
+ *  in-view consumers (and back-navigation within the TTL) see what
+ *  was just saved, without nulling the whole cache (invalidation
+ *  only refetches on the NEXT mount — mid-view it would blank the
+ *  site list). */
+export function patchSiteManifestInCache(siteId: string, patch: Record<string, unknown>): void {
+  if (!sitesCache) return;
+  sitesCache = sitesCache.map((s) =>
+    s.id === siteId
+      ? { ...s, manifest: { ...(s.manifest ?? {}), ...patch } as SiteSummary['manifest'] }
+      : s,
+  );
+  notifySitesSubscribers();
+}
+
+/** Lets producers (wizard completion, publish flow) invalidate the
+ *  cache so the next dashboard view shows the freshly-created site. */
+export function invalidateSitesCache(): void {
+  sitesCache = null;
+  sitesCacheAt = 0;
+  notifySitesSubscribers();
+}
+
+export interface ApiSiteRow {
+  id: string;
+  domain: string;
+  /** Top-level occasion from /api/sites (extracted server-side from
+   *  manifest.occasion or site_config.occasion). Falls back to
+   *  manifest.occasion below if the API hasn't been redeployed. */
+  occasion?: string | null;
+  names?: unknown;
+  manifest?: unknown;
+  published?: boolean;
+  updated_at?: string;
+  created_at?: string;
+}
+
+interface ApiSitesResponse {
+  sites: ApiSiteRow[];
+}
+
+/** Shape raw /api/sites rows into SiteSummary — shared by the client
+ *  refresh path and the server-side seed. */
+function shapeApiSites(rows: ApiSiteRow[]): SiteSummary[] {
+  return rows.map((s) => {
+    const m = s.manifest as {
+      occasion?: string;
+      coverPhoto?: string;
+      logistics?: { date?: string; venue?: string };
+      names?: [string, string];
+    } | null;
+    return {
+      id: s.id,
+      domain: s.domain,
+      names: ((s.names ?? m?.names ?? null) || null) as [string, string] | null,
+      // Prefer the API's top-level occasion (extracted server-side,
+      // defensive against legacy sites where it lived only on
+      // site_config). Falls back to manifest for older deployments.
+      occasion: s.occasion ?? m?.occasion ?? undefined,
+      manifest: s.manifest,
+      coverPhoto: m?.coverPhoto ?? null,
+      eventDate: m?.logistics?.date ?? null,
+      venue: m?.logistics?.venue ?? null,
+      published: s.published,
+      updated_at: s.updated_at,
+      created_at: s.created_at,
+    };
+  });
+}
+
+/** Seed the module cache from server-rendered data (the shell layout
+ *  runs the same DB query and hands the rows to <SitesHydrator/>),
+ *  so the first dashboard paint has the host's sites WITHOUT a
+ *  hydrate → session → /api/sites round trip. Render-safe: writes
+ *  the module cache only (no notify — it runs before consumers
+ *  mount, and they read the snapshot directly). A fresher client-
+ *  side cache always wins. */
+export function seedSitesCache(rows: ApiSiteRow[]): void {
+  if (sitesCache !== null && Date.now() - sitesCacheAt <= SITES_CACHE_TTL_MS) return;
+  sitesCache = shapeApiSites(rows);
+  sitesCacheAt = Date.now();
+}
+
+function notifySitesSubscribers() {
+  sitesSubscribers.forEach((fn) => fn());
+}
+function subscribeSites(cb: () => void): () => void {
+  sitesSubscribers.add(cb);
+  return () => {
+    sitesSubscribers.delete(cb);
+  };
+}
+function getSitesSnapshot(): SiteSummary[] | null {
+  return sitesCache;
+}
+function getSitesServerSnapshot(): SiteSummary[] | null {
+  return null;
+}
+
+export function useUserSites(): UserSitesState {
+  // useSyncExternalStore, not a useState-tick: under the React
+  // Compiler (reactCompiler: true) a tick whose value is never
+  // read gets memoized away — sibling components stopped seeing
+  // cache refreshes (new site created → stale picker).
+  const sites = useSyncExternalStore(subscribeSites, getSitesSnapshot, getSitesServerSnapshot);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    // In-flight dedupe: a dashboard page mounts ~10 useUserSites
+    // consumers (sidebar picker, home, bell, palette, …) whose
+    // effects all fire before any fetch resolves — without this,
+    // one load stampeded TEN parallel /api/sites calls, each
+    // serializing every manifest ("5 seconds to show my event").
+    // All concurrent callers now await the same promise.
+    if (!sitesInFlight) {
+      sitesInFlight = (async () => {
+        try {
+          const res = await fetch('/api/sites', { cache: 'no-store' });
+          if (!res.ok) throw new Error(`sites ${res.status}`);
+          const data = (await res.json()) as ApiSitesResponse;
+          sitesCache = shapeApiSites(data.sites ?? []);
+          sitesCacheAt = Date.now();
+          notifySitesSubscribers();
+        } finally {
+          sitesInFlight = null;
+        }
+      })();
+    }
+    try {
+      await sitesInFlight;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
+
+  useEffect(() => {
+    const stale = sitesCache === null || Date.now() - sitesCacheAt > SITES_CACHE_TTL_MS;
+    if (stale) void refresh();
+  }, [refresh]);
+
+  // Derived, not stateful: a useState(sitesCache === null) initial
+  // differs between the server render (cache always null) and a
+  // seeded client render (SitesHydrator) — a hydration mismatch.
+  // Deriving from the store snapshot keeps both passes consistent,
+  // and stale background refreshes no longer flash the skeleton
+  // over data we already have.
+  const loading = sites === null && !error;
+
+  return { sites, loading, error, refresh };
+}
+
+// ── useSelectedSite ───────────────────────────────────────────
+// Resolves the active site from (in order):
+//   1. ?site= query param  (single source of truth for page)
+//   2. localStorage('pl-dash-site')  (sticky across routes)
+//   3. sites[0]  (fallback for first-time users)
+//
+// Returns null when user has no sites at all.
+
+const SITE_KEY = 'pl-dash-site';
+
+/* The sticky selection is a REACTIVE module store, not a bare
+   localStorage read. The old version read localStorage inside a
+   useMemo keyed on [sites, queryId] — inside the persistent shell
+   neither changes when you return to an already-visited tab, so
+   the memo served the PREVIOUS site, and the write-back effect
+   then stamped that stale id over the fresh pick: selecting an
+   event and switching tabs "reset" it to the one before. With
+   useSyncExternalStore every mounted consumer re-renders the
+   moment the selection changes, on every tab. */
+let stickySiteId: string | null | undefined; // undefined = not read yet
+const stickySiteSubscribers: Set<() => void> = new Set();
+
+function readStickySiteId(): string | null {
+  if (stickySiteId === undefined) {
+    // Safari Private Mode + some enterprise policies throw on any
+    // localStorage access — fall through to the first-site default.
+    try {
+      stickySiteId = typeof window === 'undefined' ? null : window.localStorage.getItem(SITE_KEY);
+    } catch {
+      stickySiteId = null;
+    }
+  }
+  return stickySiteId;
+}
+
+/** Write the sticky selection from OUTSIDE the dashboard hooks —
+ *  the login threshold (/threshold) picks a celebration before the
+ *  dashboard shell ever mounts. Same store, same subscribers. */
+export function setStickySiteSelection(id: string): void {
+  writeStickySiteId(id);
+}
+
+function writeStickySiteId(id: string): void {
+  if (stickySiteId === id) return;
+  stickySiteId = id;
+  try { window.localStorage.setItem(SITE_KEY, id); } catch { /* ignore */ }
+  stickySiteSubscribers.forEach((fn) => fn());
+}
+
+function subscribeStickySiteId(fn: () => void): () => void {
+  stickySiteSubscribers.add(fn);
+  return () => stickySiteSubscribers.delete(fn);
+}
+
+/** Resolve the dashboard's sticky site selection WITHOUT the
+ *  ?site= query param — for surfaces (modals, global chrome)
+ *  that shouldn't pull in useSearchParams. Same fallback order
+ *  as useSelectedSite minus the URL: sticky store → first site. */
+export function resolveStickySite(sites: SiteSummary[] | null): SiteSummary | null {
+  if (!sites || sites.length === 0) return null;
+  if (typeof window !== 'undefined') {
+    const stored = readStickySiteId();
+    if (stored) {
+      const match = sites.find((s) => s.id === stored || s.domain === stored);
+      if (match) return match;
+    }
+  }
+  return sites[0];
+}
+
+export function useSelectedSite() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const { sites, loading } = useUserSites();
+
+  const queryId = params?.get('site') ?? null;
+  const stickyId = useSyncExternalStore(subscribeStickySiteId, readStickySiteId, () => null);
+
+  const selected = useMemo(() => {
+    if (!sites || sites.length === 0) return null;
+    if (queryId) {
+      const byId = sites.find((s) => s.id === queryId || s.domain === queryId);
+      if (byId) return byId;
+    }
+    if (stickyId) {
+      const match = sites.find((s) => s.id === stickyId || s.domain === stickyId);
+      if (match) return match;
+    }
+    return sites[0];
+  }, [sites, queryId, stickyId]);
+
+  /* Stamp deep-link (?site=) and first-site resolutions into the
+     sticky store so they hold across tabs. writeStickySiteId is a
+     no-op when unchanged, so this can't clobber a fresher pick. */
+  useEffect(() => {
+    if (selected) writeStickySiteId(selected.id);
+  }, [selected]);
+
+  const selectSite = useCallback(
+    (id: string) => {
+      writeStickySiteId(id);
+      const sp = new URLSearchParams(params?.toString() ?? '');
+      sp.set('site', id);
+      router.push(`?${sp.toString()}`);
+    },
+    [params, router],
+  );
+
+  return { site: selected, sites, loading, selectSite };
+}
+
+// ── useUserPrefs ──────────────────────────────────────────────
+// Persists Pear voice, autonomy, quiet hours. Backed by
+// /api/user/preferences (GET + PATCH). Falls back to sensible
+// defaults when the user has no prefs row yet.
+
+export type PearVoice = 'gentle' | 'candid' | 'witty' | 'minimal';
+export type AutonomyKey =
+  | 'draft_emails'
+  | 'call_vendors'
+  | 'update_site'
+  | 'respond_guest'
+  | 'adjust_schedule';
+
+export interface UserPrefs {
+  voice: PearVoice;
+  quiet_hours: boolean;
+  autonomy: Record<AutonomyKey, 1 | 2 | 3>;
+  display_name?: string | null;
+  pronouns?: string | null;
+  timezone?: string | null;
+}
+
+const PREF_DEFAULTS: UserPrefs = {
+  voice: 'gentle',
+  quiet_hours: true,
+  autonomy: {
+    draft_emails: 2,
+    call_vendors: 1,
+    update_site: 3,
+    respond_guest: 2,
+    adjust_schedule: 1,
+  },
+  display_name: null,
+  pronouns: null,
+  timezone: null,
+};
+
+export function useUserPrefs() {
+  const [prefs, setPrefs] = useState<UserPrefs>(PREF_DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/user/preferences', { cache: 'no-store' });
+        if (!r.ok) throw new Error(`prefs ${r.status}`);
+        const data = (await r.json()) as Partial<UserPrefs>;
+        if (cancelled) return;
+        setPrefs({ ...PREF_DEFAULTS, ...data, autonomy: { ...PREF_DEFAULTS.autonomy, ...(data.autonomy ?? {}) } });
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const save = useCallback(async (patch: Partial<UserPrefs>) => {
+    // Optimistic local update — server writes return the full row.
+    setPrefs((prev) => ({
+      ...prev,
+      ...patch,
+      autonomy: { ...prev.autonomy, ...(patch.autonomy ?? {}) },
+    }));
+    try {
+      const r = await fetch('/api/user/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) throw new Error(`prefs save ${r.status}`);
+      const data = (await r.json()) as Partial<UserPrefs>;
+      setPrefs((prev) => ({ ...prev, ...data, autonomy: { ...prev.autonomy, ...(data.autonomy ?? {}) } }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
+
+  return { prefs, save, loading, error };
+}
+
+// ── Helper: format names from a site ──────────────────────────
+export function siteDisplayName(site: SiteSummary | null | undefined): string {
+  if (!site) return '';
+  const [a, b] = site.names ?? [null, null];
+  if (a && b) return `${a} & ${b}`;
+  if (a) return a;
+  return site.domain;
+}

@@ -1,0 +1,165 @@
+'use client';
+
+/* ========================================================================
+   BroadcastBar — slim banner that appears on a published site when the
+   host posts a live update via /api/sites/live-updates. Delivery is a
+   Supabase Realtime ping on `pl-live-${subdomain}` (content-free — the
+   ping means "refetch"; the composer fires it after a successful POST),
+   with a 30s poll as the fallback for keyless deploys. Auto-dismisses 4
+   hours after posting so a stale "Cocktails by the pool" doesn't linger
+   after the event ends.
+   ======================================================================== */
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMessagePings } from '@/lib/messages-realtime';
+
+type LiveUpdate = {
+  id: string;
+  message: string;
+  type?: string;
+  photo_url?: string | null;
+  created_at: string;
+};
+
+interface Props {
+  subdomain: string;
+}
+
+const STALE_MS = 4 * 60 * 60 * 1000;       // hide updates older than 4h
+const POLL_MS = 30 * 1000;                  // refresh every 30s
+const DISMISS_KEY_PREFIX = 'pl-bcast-dismissed:';
+
+export function BroadcastBar({ subdomain }: Props) {
+  const [latest, setLatest] = useState<LiveUpdate | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = window.sessionStorage.getItem(DISMISS_KEY_PREFIX + subdomain);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      return new Set();
+    }
+  });
+
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  const fetchLatest = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/sites/live-updates?subdomain=${encodeURIComponent(subdomain)}`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { updates?: LiveUpdate[] };
+      if (!mounted.current) return;
+      const newest = (data.updates ?? [])
+        .filter((u) => Date.now() - new Date(u.created_at).getTime() < STALE_MS)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      setLatest(newest ?? null);
+    } catch {}
+  }, [subdomain]);
+
+  useEffect(() => {
+    /* Initial fetch via a 0ms timer — calling the async fetcher
+       synchronously in the effect body trips the compiler's
+       setState-in-effect rule even though the set happens after
+       the await. */
+    const t = setTimeout(() => { void fetchLatest(); }, 0);
+    const id = setInterval(() => { void fetchLatest(); }, POLL_MS);
+    return () => { clearTimeout(t); clearInterval(id); };
+  }, [fetchLatest]);
+
+  /* Instant delivery — a ping on the broadcast channel means a new
+     update landed; refetch through the normal authenticated API. */
+  useMessagePings(`pl-live-${subdomain}`, () => { void fetchLatest(); });
+
+  if (!latest) return null;
+  if (dismissedIds.has(latest.id)) return null;
+
+  const dismiss = () => {
+    const next = new Set(dismissedIds);
+    next.add(latest.id);
+    setDismissedIds(next);
+    try {
+      window.sessionStorage.setItem(DISMISS_KEY_PREFIX + subdomain, JSON.stringify([...next]));
+    } catch {}
+  };
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 60,
+        background: 'var(--peach-ink, #C6703D)',
+        color: 'var(--cream, #FDFAF0)',
+        padding: '10px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        fontSize: 14,
+        fontWeight: 500,
+        boxShadow: '0 2px 12px rgba(14,13,11,0.18)',
+        animation: 'pl-bcast-in 380ms cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: 'var(--cream, #FDFAF0)',
+          animation: 'pl-bcast-pulse 1.6s ease-in-out infinite',
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ flex: 1, lineHeight: 1.4 }}>{latest.message}</span>
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Dismiss"
+        style={{
+          background: 'rgba(255,255,255,0.18)',
+          border: 'none',
+          color: 'inherit',
+          // 8/14 padding + 12 font ≈ 28px — comfortable thumb
+          // pill on mobile without ballooning the bar height.
+          // 4px vertical previously made the pill feel cramped
+          // against the bar's 10px outer padding.
+          padding: '8px 14px',
+          borderRadius: 999,
+          fontSize: 12,
+          fontWeight: 500,
+          cursor: 'pointer',
+        }}
+      >
+        Dismiss
+      </button>
+      <style jsx>{`
+        @keyframes pl-bcast-in {
+          from { opacity: 0; transform: translateY(-100%); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pl-bcast-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.4); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes pl-bcast-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes pl-bcast-pulse {
+            0%, 100% { opacity: 0.85; transform: none; }
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

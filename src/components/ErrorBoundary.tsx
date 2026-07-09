@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -25,6 +26,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[ErrorBoundary]', error, errorInfo);
+    // The glass box (PERSONA-PLAN S8): boundary catches reach the
+    // product_events spine — fire-and-forget, never throws.
+    trackEvent('client_error', {
+      kind: 'boundary',
+      message: String(error?.message ?? error).slice(0, 300),
+      source: String(errorInfo?.componentStack ?? '').slice(0, 140),
+      route: typeof window !== 'undefined' ? window.location.pathname : '',
+    });
     this.props.onError?.(error, errorInfo);
   }
 
@@ -36,22 +45,22 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         <div style={{
           padding: '2rem',
           textAlign: 'center',
-          background: 'var(--eg-bg, #F5F1E8)',
-          borderRadius: '12px',
+          background: 'var(--pl-cream, #F5F1E8)',
+          borderRadius: 'var(--pl-radius-lg)',
           border: '1px solid rgba(255,59,48,0.15)',
           margin: '1rem',
         }}>
-          <p style={{ color: 'var(--eg-fg, #2B2B2B)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+          <p style={{ color: 'var(--pl-ink, #2B2B2B)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
             Something went wrong loading this section.
           </p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{
               padding: '0.5rem 1.25rem',
-              background: 'var(--eg-fg, #2B2B2B)',
-              color: 'var(--eg-bg, #F5F1E8)',
+              background: 'var(--pl-ink, #2B2B2B)',
+              color: 'var(--pl-cream, #F5F1E8)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--pl-radius-md)',
               cursor: 'pointer',
               fontSize: '0.85rem',
             }}

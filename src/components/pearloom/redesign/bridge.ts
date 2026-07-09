@@ -1,0 +1,415 @@
+'use client';
+
+ 
+/* Bridge: production manifest state → prototype-style locals.
+   Keeps the shell pure prototype shape while autosave + undo + publish
+   live behind a stable interface. */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+/* useEffect imported above; explicit so the beforeunload + cleanup
+   wiring stays obvious to future readers. */
+import type { StoryManifest } from '@/types';
+import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { stripArtForStorage } from '@/lib/editor-state';
+
+interface BridgeInput {
+  initialManifest: StoryManifest;
+  initialNames: [string, string];
+  siteSlug: string;
+}
+
+export type SaveState = 'saved' | 'saving' | 'unsaved' | 'error';
+
+export interface EditorBridge {
+  manifest: StoryManifest;
+  names: [string, string];
+  setManifest: (next: StoryManifest) => void;
+  setNames: (next: [string, string]) => void;
+  editField: (patch: (m: StoryManifest) => StoryManifest) => void;
+  savedAt: string;
+  saveState: SaveState;
+  displayNames: string;
+  prettyUrl: string;
+  prettyPath: string;
+  completion: number;
+  openPublish: () => void;
+  openSettings: () => void;
+  openThemeShop: () => void;
+  openDecor: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  /** Read-only peek at the previous history entry (the manifest
+   *  before the last committed change) — the Compare hold's
+   *  "before" frame. Never mutates the stack or persists. */
+  peekUndo: () => StoryManifest | null;
+}
+
+/* Autosave debounce window — same value the old EditorClient used so
+   keystroke bursts coalesce into a single POST. */
+const AUTOSAVE_DEBOUNCE_MS = 2000;
+
+/* Names sanitiser — strips UUID/hex/numeric-only slug fragments from
+   either name slot so the published renderer never shows "F7d9a3b2"
+   in the hero. Applies once when the manifest first loads + on every
+   setNames call. */
+const isUuidLike = (s: string): boolean =>
+  /^[0-9a-f]{4,}$/i.test(s) || /^\d+$/.test(s) || s.toLowerCase() === 'couple';
+const cleanName = (s: string, fallback: string): string =>
+  s && !isUuidLike(s) ? s : fallback;
+const sanitiseNames = (raw: [string, string]): [string, string] => [
+  cleanName(raw[0] ?? '', ''),
+  cleanName(raw[1] ?? '', ''),
+];
+
+export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlug }: BridgeInput): EditorBridge {
+  const [manifest, setManifestState] = useState<StoryManifest>(initialManifest);
+  const [names, setNamesState] = useState<[string, string]>(() => sanitiseNames(initialNames));
+  const [savedAt, setSavedAt] = useState<string>('just now');
+  const [saveState, setSaveState] = useState<SaveState>('saved');
+  /* Mirror saveState into a ref so the unmount cleanup (empty-deps
+     effect) can read the LATEST value without re-subscribing. */
+  const saveStateRef = useRef<SaveState>('saved');
+  useEffect(() => { saveStateRef.current = saveState; }, [saveState]);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestPayload = useRef<{ manifest: StoryManifest; names: [string, string] }>({ manifest: initialManifest, names: initialNames });
+  /* In-flight guard: prevents two POSTs racing against the same
+     Supabase row. If a save is mid-flight when a new edit lands,
+     we stash the latest payload + queue a follow-up that fires
+     once the in-flight POST resolves. */
+  const saveInFlight = useRef<boolean>(false);
+  const pendingFollowup = useRef<boolean>(false);
+  /* Retry counter for transient failures (5xx, network errors).
+     Resets on each successful save. Capped so we don't spin
+     forever on a permanent outage. */
+  const retryAttempt = useRef<number>(0);
+
+  /* Undo/redo — a simple manifest history. Each setManifest call
+     pushes a snapshot; undo rewinds the cursor. Capped at 50 to keep
+     memory in check. */
+  const history = useRef<{ stack: StoryManifest[]; cursor: number }>({ stack: [initialManifest], cursor: 0 });
+  /* cursor + length mirrored into STATE so canUndo/canRedo derive
+     from state at render time (reading history.current during
+     render trips the React Compiler's ref rule and can go stale). */
+  const [historyMeta, setHistoryMeta] = useState({ cursor: 0, length: 1 });
+  const pushHistory = useCallback((m: StoryManifest) => {
+    const { stack, cursor } = history.current;
+    /* Slice off forward history once the user edits after an undo. */
+    const head = stack.slice(0, cursor + 1);
+    head.push(m);
+    const next = head.length > 50 ? head.slice(head.length - 50) : head;
+    history.current = { stack: next, cursor: next.length - 1 };
+    setHistoryMeta({ cursor: next.length - 1, length: next.length });
+  }, []);
+  const canUndo = historyMeta.cursor > 0;
+  const canRedo = historyMeta.cursor < historyMeta.length - 1;
+
+  const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
+  const prettyPath = buildSitePath(siteSlug, '', occasion);
+  const prettyUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
+
+  const displayNames = useMemo(() => {
+    const [a, b] = names;
+    if (a && b) return `${a} & ${b}`;
+    return a || b || 'Your site';
+  }, [names]);
+
+  /* Completion %% — quick fill-state heuristic across the canonical
+     manifest fields. Mirrors what production's SiteCompletenessPanel
+     computes but condensed to a single number for the rail. */
+  const completion = useMemo(() => {
+    const checks = [
+      Boolean(names[0] && names[1]),
+      Boolean((manifest as unknown as { logistics?: { date?: string } }).logistics?.date),
+      Boolean((manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue),
+      Boolean((manifest.chapters ?? []).length > 0),
+      Boolean((manifest.events ?? []).length > 0),
+      Boolean((manifest.faqs ?? []).length > 0),
+      Boolean((manifest as unknown as { themeId?: string }).themeId),
+    ];
+    const filled = checks.filter(Boolean).length;
+    return Math.round((filled / checks.length) * 100);
+  }, [manifest, names]);
+
+  /* fireSave — the actual POST, factored out so the in-flight
+     guard + retry timer can re-enter without re-arming the
+     debounce. Returns nothing; updates saveState as it progresses. */
+  const fireSaveRef = useRef<(() => void) | null>(null);
+  const fireSave = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (saveInFlight.current) {
+      /* Another save is mid-flight; mark a follow-up pending so we
+         re-fire once the in-flight one resolves with whatever the
+         newest payload happens to be at that moment. */
+      pendingFollowup.current = true;
+      return;
+    }
+    saveInFlight.current = true;
+    setSaveState('saving');
+    /* Strip base64 DataURLs from chapter images + vibeSkin so the
+       JSON payload stays small. NOTE: deliberately NOT using
+       keepalive on the regular autosave — keepalive imposes a
+       64 KB body cap, which silently rejects any manifest with
+       photos still embedded as base64. beforeunload uses
+       sendBeacon (which has the same 64 KB cap) but at that
+       point we've already stripped art too. */
+    const { manifest: m, names: n } = latestPayload.current;
+    const m2 = stripArtForStorage(m);
+    const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
+    fetch('/api/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).then(async (res) => {
+      saveInFlight.current = false;
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.error(`[redesign/bridge] save failed ${res.status}:`, text);
+        /* 4xx is permanent (bad payload, auth, conflict). 5xx +
+           network errors are transient — back off and retry up
+           to 3 times. */
+        if (res.status >= 500 || res.status === 0) {
+          if (retryAttempt.current < 3) {
+            retryAttempt.current += 1;
+            const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
+            // Re-enter through the ref — fireSave can't reference
+            // itself before its useCallback declaration completes.
+            setTimeout(() => fireSaveRef.current?.(), wait);
+            setSaveState('unsaved');
+            return;
+          }
+        }
+        setSaveState('error');
+        return;
+      }
+      retryAttempt.current = 0;
+      setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      setSaveState('saved');
+      /* A follow-up edit may have landed while this POST was in
+         flight; fire one more save with the newest payload. */
+      if (pendingFollowup.current) {
+        pendingFollowup.current = false;
+        fireSaveRef.current?.();
+      }
+    }).catch((err) => {
+      saveInFlight.current = false;
+      console.error('[redesign/bridge] save network error:', err);
+      if (retryAttempt.current < 3) {
+        retryAttempt.current += 1;
+        const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
+        setTimeout(() => fireSaveRef.current?.(), wait);
+        setSaveState('unsaved');
+        return;
+      }
+      setSaveState('error');
+    });
+  }, [siteSlug]);
+  useEffect(() => { fireSaveRef.current = fireSave; }, [fireSave]);
+
+  const persist = useCallback(
+    (m: StoryManifest, n: [string, string]) => {
+      if (typeof window === 'undefined') return;
+      latestPayload.current = { manifest: m, names: n };
+      /* Each fresh host edit is a new save attempt — reset the
+         transient-failure budget so a previous run that exhausted
+         its 3 retries doesn't immediately error-out this one. */
+      retryAttempt.current = 0;
+      setSaveState('unsaved');
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(fireSave, AUTOSAVE_DEBOUNCE_MS);
+    },
+    [fireSave],
+  );
+
+  /* flushViaFetch — a state-free POST of the latest payload used on
+     UNMOUNT (client-side navigation away from the editor). A plain
+     fetch, not keepalive: an SPA nav doesn't unload the page, so the
+     request completes normally and carries no 64 KB body cap. The
+     tab-close case is handled separately by the beforeunload beacon
+     below. Reads latestPayload.current so it can never send stale
+     data, and never touches React state (the component is tearing
+     down). */
+  const flushViaFetch = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const { manifest: m, names: n } = latestPayload.current;
+    const m2 = stripArtForStorage(m);
+    const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
+    try {
+      void fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      }).catch(() => { /* nav in progress, nothing to surface */ });
+    } catch { /* fetch can throw mid-teardown, swallow */ }
+  }, [siteSlug]);
+
+  /* beforeunload — flush in-flight changes via sendBeacon so the
+     last edit makes it to the server even if the user closes the
+     tab during the 2-second debounce window. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const flush = () => {
+      const { manifest: m, names: n } = latestPayload.current;
+      const m2 = stripArtForStorage(m);
+      const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
+      try {
+        navigator.sendBeacon('/api/sites', new Blob([body], { type: 'application/json' }));
+      } catch {
+        /* sendBeacon can throw on some browsers when the page is
+           already unloading — swallow. */
+      }
+    };
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveState !== 'saved') {
+        flush();
+        /* Show the native "you have unsaved changes" prompt while
+           the beacon fires in the background. */
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [siteSlug, saveState]);
+
+  const setManifest = useCallback((next: StoryManifest) => {
+    const incomingNames = (next as unknown as { names?: [string, string] }).names;
+    const nextNames = Array.isArray(incomingNames) && incomingNames.length === 2
+      ? sanitiseNames(incomingNames as [string, string])
+      : names;
+    setManifestState(next);
+    if (nextNames[0] !== names[0] || nextNames[1] !== names[1]) {
+      setNamesState(nextNames);
+    }
+    pushHistory(next);
+    persist(next, nextNames);
+  }, [persist, names, pushHistory]);
+
+  const undo = useCallback(() => {
+    if (history.current.cursor <= 0) return;
+    history.current.cursor -= 1;
+    const prev = history.current.stack[history.current.cursor];
+    setManifestState(prev);
+    persist(prev, names);
+    setHistoryMeta({ cursor: history.current.cursor, length: history.current.stack.length });
+  }, [persist, names]);
+
+  /* peekUndo — event-handler-time read of the history ref (render
+     never calls this, so the compiler's ref rule stays happy). */
+  const peekUndo = useCallback((): StoryManifest | null => {
+    const { stack, cursor } = history.current;
+    return cursor > 0 ? (stack[cursor - 1] ?? null) : null;
+  }, []);
+
+  const redo = useCallback(() => {
+    if (history.current.cursor >= history.current.stack.length - 1) return;
+    history.current.cursor += 1;
+    const next = history.current.stack[history.current.cursor];
+    setManifestState(next);
+    persist(next, names);
+    setHistoryMeta({ cursor: history.current.cursor, length: history.current.stack.length });
+  }, [persist, names]);
+
+  /* Keyboard shortcuts — Cmd/Ctrl+Z (+Shift = redo), Cmd+S
+     (flush the autosave debounce now — pure muscle-memory
+     reassurance; the topbar dot flips Saving… → Saved), and
+     Cmd+Enter (open the publish flow, unless the host is typing
+     in a field that uses it as its own submit). */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+      if (!meta) return;
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo(); }
+      else if (e.key === 's') {
+        e.preventDefault();
+        if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+        fireSave();
+      } else if (e.key === 'Enter') {
+        const ae = document.activeElement as HTMLElement | null;
+        const typing = !!ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+        if (!typing) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('pearloom:open-publish'));
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo, fireSave]);
+
+  const setNames = useCallback((next: [string, string]) => {
+    const clean = sanitiseNames(next);
+    setNamesState(clean);
+    persist(manifest, clean);
+  }, [persist, manifest]);
+
+  /* editField — patch-function variant matching the renderer's
+     FieldEditor signature. The renderer hands us a manifest
+     transformer; we apply it, push history, persist, and store
+     the next manifest. Runs OUTSIDE the setState updater so
+     StrictMode's double-invocation doesn't fire persist twice. */
+  const editField = useCallback((patch: (m: StoryManifest) => StoryManifest) => {
+    const next = patch(manifest);
+    setManifestState(next);
+    pushHistory(next);
+    persist(next, names);
+  }, [manifest, persist, names, pushHistory]);
+
+  /* Unmount — flush any pending edit before the editor tears down.
+     beforeunload only fires on a real tab close / full page unload;
+     a Next.js CLIENT-SIDE navigation (a link back to the dashboard,
+     router.push, etc.) unmounts this hook WITHOUT firing it. The old
+     cleanup just cleared the debounce timer, silently dropping the
+     last ≤2s of edits. Now: cancel the timer AND, if a save is
+     genuinely outstanding, fire one final POST. 'saving' is skipped —
+     that in-flight fetch completes on its own regardless of unmount. */
+  useEffect(() => () => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    if (saveStateRef.current === 'unsaved' || saveStateRef.current === 'error') {
+      flushViaFetch();
+    }
+  }, [flushViaFetch]);
+
+  const openPublish = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-publish'));
+  }, []);
+  const openSettings = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-settings'));
+  }, []);
+  const openThemeShop = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-theme-shop'));
+  }, []);
+  const openDecor = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
+  }, []);
+
+  return {
+    manifest,
+    names,
+    setManifest,
+    setNames,
+    editField,
+    savedAt,
+    saveState,
+    displayNames,
+    prettyUrl,
+    prettyPath,
+    completion,
+    openPublish,
+    openSettings,
+    openThemeShop,
+    openDecor,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    peekUndo,
+  };
+}

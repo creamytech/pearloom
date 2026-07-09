@@ -66,7 +66,7 @@ export function CapsuleReveal({
               {/* Flap */}
               <div className="flap" style={envelopeStyles.flap} />
               {/* Seal dot */}
-              <div style={envelopeStyles.sealDot}>💌</div>
+              <div style={envelopeStyles.sealDot}><svg viewBox="0 0 24 24" width={20} height={20} aria-hidden style={{ display: 'block' }}><g fill="none" stroke="#FDFAF0" strokeWidth="1.6"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /></g></svg></div>
               {/* Bottom triangle */}
               <div style={envelopeStyles.bottomTriangle} />
             </div>
@@ -113,7 +113,7 @@ export function CapsuleReveal({
         <div style={letterStyles.texture} aria-hidden="true" />
 
         {/* Decorative top */}
-        <div style={letterStyles.topDecor}>💌</div>
+        <div style={letterStyles.topDecor}><svg viewBox="0 0 24 24" width={22} height={22} aria-hidden style={{ display: 'block' }}><g fill="none" stroke="#C19A4B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 7.5 L 12 14 L 21 7.5" /></g></svg></div>
 
         {/* Greeting */}
         <p style={letterStyles.greeting}>Dear {toName},</p>
@@ -186,7 +186,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     height: '100px',
     background: '#2E2720',
     border: '2px solid rgba(214,198,168,0.3)',
-    borderRadius: '4px',
+    borderRadius: 'var(--pl-radius-xs)',
     overflow: 'visible',
   },
   flap: {
@@ -223,7 +223,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   sub: {
@@ -232,7 +232,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     color: 'rgba(214,198,168,0.65)',
   },
   name: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
   },
   dateLine: {
     margin: 0,
@@ -243,13 +243,13 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
   openBtn: {
     background: 'rgba(214,198,168,0.08)',
     border: '1px solid rgba(214,198,168,0.3)',
-    borderRadius: '8px',
-    color: '#D6C6A8',
+    borderRadius: 'var(--pl-radius-md)',
+    color: 'var(--pl-muted)',
     fontSize: '15px',
     fontWeight: 500,
     padding: '12px 32px',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all var(--pl-dur-fast)',
     marginTop: '8px',
   },
 };
@@ -269,7 +269,7 @@ const letterStyles: Record<string, React.CSSProperties> = {
   card: {
     position: 'relative',
     background: '#FAF7F0',
-    borderRadius: '4px',
+    borderRadius: 'var(--pl-radius-xs)',
     boxShadow: '0 4px 32px rgba(60,45,30,0.18), 0 1px 4px rgba(60,45,30,0.1)',
     padding: '56px 52px 48px',
     maxWidth: '600px',

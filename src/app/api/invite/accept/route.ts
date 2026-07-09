@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { acceptSiteInvite } from '@/lib/db';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +14,12 @@ export const dynamic = 'force-dynamic';
 // Body: { token: string }
 // No auth required (guest accepts via token link)
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`invite-accept:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const { token } = await req.json() as { token: string };
 
@@ -33,7 +41,7 @@ export async function POST(req: NextRequest) {
       siteId: result.siteId,
       role: result.role,
       subdomain: result.subdomain,
-      redirectTo: result.subdomain ? `https://pearloom.com/${result.subdomain}` : 'https://pearloom.com',
+      redirectTo: result.subdomain ? buildSiteUrl(result.subdomain) : 'https://pearloom.com',
     });
   } catch (err) {
     console.error('[invite/accept POST] Error:', err);

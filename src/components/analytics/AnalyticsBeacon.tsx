@@ -13,8 +13,30 @@ interface AnalyticsBeaconProps {
 }
 
 export function AnalyticsBeacon({ siteId }: AnalyticsBeaconProps) {
+  /* Visit ping — the row behind the dashboard's "visits" stat and the
+     Analytics traffic-source split (site_analytics is keyed by the
+     site slug). Once per browser session so refreshes don't inflate
+     the count; fire-and-forget. */
   useEffect(() => {
     if (!siteId) return;
+    try {
+      const key = `pl:visit:${siteId}`;
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, '1');
+    } catch { /* private mode, still record the visit */ }
+    fetch('/api/analytics/visit', {
+      method: 'POST',
+      body: JSON.stringify({ siteId, referrer: document.referrer || null }),
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+    }).catch(() => {});
+  }, [siteId]);
+
+  useEffect(() => {
+    if (!siteId) return;
+    /* Analytics must never be the reason a guest sees an error —
+       environments without IntersectionObserver just skip it. */
+    if (typeof IntersectionObserver === 'undefined') return;
 
     const observers: IntersectionObserver[] = [];
 

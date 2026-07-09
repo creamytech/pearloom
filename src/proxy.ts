@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / src/proxy.ts  (Next.js 16 Proxy — formerly middleware)
-// Subdomain routing: {slug}.pearloom.com  →  /sites/{slug}
+//
+// 1. Security headers on ALL responses
+// 2. Subdomain routing: {slug}.pearloom.com  →  /sites/{slug}
 //
 // Root domain is resolved from NEXT_PUBLIC_ROOT_DOMAIN or
 // NEXT_PUBLIC_SITE_URL so this works on any deployment.
@@ -8,6 +10,53 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { getAllOccasionIds } from '@/lib/event-os/event-types';
+import { GATE_COOKIE, GATE_TOKEN, GATE_ENABLED, isGateExemptPath } from '@/lib/site-gate';
+
+// ── Security headers ────────────────────────────────────────
+
+const CSP_HEADER = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://maps.google.com https://www.google.com https://open.spotify.com https://player.vimeo.com https://www.youtube.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https: http:",
+  "font-src 'self' https://fonts.gstatic.com",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://open.spotify.com https://player.vimeo.com https://www.youtube.com https://js.stripe.com",
+  "connect-src 'self' https: wss:",
+  "media-src 'self' https:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+/**
+ * Apply security headers to the given response.
+ * Skips X-Frame-Options on /preview routes (they render in iframes).
+ */
+function applySecurityHeaders(response: NextResponse): void {
+  response.headers.set('Content-Security-Policy', CSP_HEADER);
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+
+  // SAMEORIGIN so the editor can iframe `/sites/{slug}` and
+  // `/dev/site` from inside `/editor/{slug}`. (The old /preview
+  // iframe surface was deleted 2026-06-12.)
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+
+  if (isProduction) {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=63072000; includeSubDomains; preload',
+    );
+  }
+}
+
+// ── Subdomain routing helpers ───────────────────────────────
 
 // Derive the root domain from env vars at request time.
 // e.g. NEXT_PUBLIC_SITE_URL="https://pearloom.com" → "pearloom.com"
@@ -26,12 +75,132 @@ function getRootDomain(): string {
   return 'pearloom.com'; // safe default
 }
 
-export function proxy(req: NextRequest) {
+// Is this request hitting the main marketing app (apex / www /
+// localhost / vercel preview) rather than a published-site host?
+// On a site host, "/" is a guest site, so it must stay gated too —
+// only the apex landing page is public.
+function isMainAppHost(hostname: string): boolean {
+  const clean = hostname.replace(/:\d+$/, '');
+  if (clean === 'localhost' || clean === '127.0.0.1') return true;
+  if (clean.endsWith('.localhost')) return false; // subdomain in dev = site host
+  if (clean.includes('.vercel.app')) return true;
+  const root = getRootDomain();
+  if (clean === root || clean === `www.${root}`) return true;
+  if (clean.endsWith(`.${root}`)) return false; // subdomain = site host
+  return true; // unknown host → treat as main app (landing public, rest gated)
+}
+
+// ── Occasion-based canonical URLs ───────────────────────────
+//
+// Published sites now live at `/{occasion}/{slug}` (Zola-style).
+// For example: pearloom.com/wedding/scott, pearloom.com/birthday/ana.
+//
+// We keep the internal route tree rooted at `/sites/{slug}` and
+// simply REWRITE (not redirect) from the occasion-prefixed URL
+// so the browser bar shows the pretty path while the existing
+// SiteRenderer logic at /sites/[domain] does the actual work.
+//
+// The legacy `/sites/{slug}` URL is preserved as a permanent
+// fallback for already-shared links.
+// Occasion allowlist for the URL rewrite. Sourced from the
+// EVENT_TYPES registry (imported at top) so adding a new event
+// type anywhere auto-propagates here — no manual sync.
+const OCCASION_SEGMENTS = new Set<string>(getAllOccasionIds());
+
+// ── Proxy entry point ───────────────────────────────────────
+
+// Routes that require authentication. Migrated from
+// (shell)/layout.tsx so the layout can drop force-dynamic and
+// children can be statically prerendered — eliminates the SSR
+// roundtrip per tab swap that was reading as a "fade".
+const AUTH_REQUIRED_PREFIXES = [
+  '/dashboard',
+  '/templates',
+  '/vendors',
+];
+
+export async function proxy(req: NextRequest) {
   const rawHost = req.headers.get('host') || '';
-  let hostname = rawHost.toLowerCase();
+  const hostname = rawHost.toLowerCase();
+  const pathname = req.nextUrl.pathname;
+
+  // ── Pre-launch access wall ─────────────────────────────────
+  // The general public sees ONLY the marketing landing page. Every
+  // other surface — login, dashboard, wizard, editor, published
+  // sites, guest passports — redirects to /gate until the shared
+  // preview word is entered (stored as an httpOnly cookie). Runs
+  // before everything else. Lift with SITE_GATE_ENABLED=false.
+  if (GATE_ENABLED) {
+    const isLanding = pathname === '/' && isMainAppHost(hostname);
+    const isGatePage = pathname === '/gate';
+    if (!isGatePage && !isLanding && !isGateExemptPath(pathname)) {
+      const cookie = req.cookies.get(GATE_COOKIE)?.value;
+      if (cookie !== GATE_TOKEN) {
+        const gateUrl = new URL('/gate', req.url);
+        const search = req.nextUrl.searchParams.toString();
+        const dest = `${pathname}${search ? `?${search}` : ''}`;
+        if (dest !== '/') gateUrl.searchParams.set('next', dest);
+        const res = NextResponse.redirect(gateUrl);
+        applySecurityHeaders(res);
+        return res;
+      }
+    }
+  }
+
+  // ── Auth gate for shell routes ─────────────────────────────
+  // Runs as a middleware-style check before any rewrite logic.
+  // Redirects unauthenticated users to /login with a `next` param
+  // so they bounce back after sign-in. Only runs for prefixes
+  // listed in AUTH_REQUIRED_PREFIXES so public routes stay open.
+  if (AUTH_REQUIRED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    try {
+      const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+      if (!token?.email) {
+        const loginUrl = new URL('/login', req.url);
+        loginUrl.searchParams.set('next', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    } catch {
+      // If auth check fails for any reason, fall through to normal
+      // handling rather than blocking the request — the layout's
+      // own auth check (still in place during transition) will
+      // catch it.
+    }
+  }
 
   const searchParams = req.nextUrl.searchParams.toString();
-  const path = `${req.nextUrl.pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;
+  const path = `${pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;
+
+  // Helper: create a NextResponse.next() with security headers applied.
+  function next(): NextResponse {
+    const res = NextResponse.next();
+    applySecurityHeaders(res);
+    return res;
+  }
+
+  // Helper: create a NextResponse.rewrite() with security headers applied.
+  function rewrite(destination: URL): NextResponse {
+    const res = NextResponse.rewrite(destination);
+    applySecurityHeaders(res);
+    return res;
+  }
+
+  // ── Occasion-based URL rewrite ─────────────────────────────
+  // `/wedding/scott` → `/sites/scott` (URL bar stays on the pretty path).
+  // Only rewrites when the first segment is a known occasion so we
+  // don't collide with /dashboard, /editor, /api, /preview, etc.
+  {
+    const occMatch = pathname.match(/^\/([^/]+)\/([^/]+)(\/.*)?$/);
+    if (occMatch && OCCASION_SEGMENTS.has(occMatch[1])) {
+      const slug = occMatch[2];
+      const rest = occMatch[3] ?? '';
+      const dest = `/sites/${slug}${rest}${searchParams ? `?${searchParams}` : ''}`;
+      return rewrite(new URL(dest, req.url));
+    }
+  }
 
   // ── Localhost dev: rewrite subdomain.localhost:PORT → treat as subdomain.rootDomain ──
   const localhostMatch = hostname.match(/^(.+)\.localhost(:\d+)?$/);
@@ -39,14 +208,14 @@ export function proxy(req: NextRequest) {
     const subdomain = localhostMatch[1];
     // Don't rewrite _next internals or API routes
     if (path.startsWith('/_next') || path.startsWith('/api') || path.startsWith('/sites')) {
-      return NextResponse.next();
+      return next();
     }
-    return NextResponse.rewrite(new URL(`/sites/${subdomain}${path}`, req.url));
+    return rewrite(new URL(`/sites/${subdomain}${path}`, req.url));
   }
 
   // ── Vercel preview deployments: path-based routing already works, skip subdomain logic ──
   if (hostname.includes('.vercel.app')) {
-    return NextResponse.next();
+    return next();
   }
 
   const rootDomain = getRootDomain();
@@ -55,12 +224,12 @@ export function proxy(req: NextRequest) {
 
   // Pass through the apex domain and www — these serve the main app
   if (cleanHost === rootDomain || cleanHost === `www.${rootDomain}`) {
-    return NextResponse.next();
+    return next();
   }
 
   // Only act on *.rootDomain subdomains
   if (!cleanHost.endsWith(`.${rootDomain}`)) {
-    return NextResponse.next();
+    return next();
   }
 
   const subdomain = cleanHost.slice(0, cleanHost.length - rootDomain.length - 1);
@@ -74,16 +243,18 @@ export function proxy(req: NextRequest) {
     path === '/robots.txt' ||
     path === '/sitemap.xml'
   ) {
-    return NextResponse.next();
+    return next();
   }
 
   // Rewrite to /sites/{subdomain}{path}
   const rewritePath = path === '/' ? `/sites/${subdomain}` : `/sites/${subdomain}${path}`;
-  return NextResponse.rewrite(new URL(rewritePath, req.url));
+  return rewrite(new URL(rewritePath, req.url));
 }
+
+// ── Route matcher ───────────────────────────────────────────
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

@@ -1,15 +1,32 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/invite/guest/route.ts
-// Send per-guest animated invitation emails with unique tokens
-// POST { subdomain, guestIds?: string[] }
+// Send per-guest animated stationery emails with unique tokens.
+// POST { subdomain, guestIds?: string[], stationeryType?: 'std' | 'invite' | 'thanks' }
+//
+// stationeryType picks the subject line + email copy. Defaults
+// to 'invite' for back-compat. 'std' = save-the-date, 'thanks' =
+// thank-you. The CTA points at the PUBLISHED SITE with the
+// guest's ?g= passport token — the site-themed Sealed Arrival
+// addresses them by name (ATELIER-PLAN INV.2; the /i/ world is
+// retired and 301s here).
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { authOptions } from '@/lib/auth';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { suppressedEmails } from '@/lib/email/suppression';
 import { getSiteConfig } from '@/lib/db';
+import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { emailThemeFromSuite, buildStationeryEmail } from '@/lib/email-sequences';
+import { buildSiteUrl } from '@/lib/site-urls';
+import { guestTokenColumns } from '@/lib/guest-tokens';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +45,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  /* One send burst per host per minute — a double-clicked "Send to
+     N" must not fire N duplicate emails. */
+  const rate = checkRateLimit(`studio-send:${session.user.email}`, { max: 3, windowMs: 60_000 });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: 'That batch just went out. Give it a minute before sending again.' }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
-    const { subdomain, guestIds } = body as {
+    const { subdomain, guestIds, stationeryType } = body as {
       subdomain: string;
       guestIds?: string[];
+      stationeryType?: 'std' | 'invite' | 'thanks';
     };
+    const cardType: 'std' | 'invite' | 'thanks' =
+      stationeryType === 'std' || stationeryType === 'thanks' ? stationeryType : 'invite';
 
     if (!subdomain) {
       return NextResponse.json({ error: 'subdomain is required' }, { status: 400 });
@@ -57,8 +84,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const ownerEmail = (siteRow.site_config as Record<string, unknown>)?.creator_email;
-    if (ownerEmail !== session.user.email) {
+    // Normalize both sides — saveSiteDraft / publishSite store the
+    // creator_email lowercased + trimmed; NextAuth returns the
+    // session email in whatever casing the IdP issued at signup.
+    // Comparing raw strings rejects the owner whenever those
+    // differ ("Foo@Gmail.com" session vs "foo@gmail.com" stored)
+    // and surfaces in the Studio as a 403 on Send. Matches the
+    // pattern already used in /api/sites/[domain].
+    const ownerEmail = String(
+      (siteRow.site_config as Record<string, unknown>)?.creator_email ?? '',
+    ).toLowerCase().trim();
+    const sessionEmail = session.user.email.toLowerCase().trim();
+    if (ownerEmail && ownerEmail !== sessionEmail) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -72,7 +109,18 @@ export async function POST(req: NextRequest) {
 
     if (guestIds && guestIds.length > 0) {
       guestsQuery = guestsQuery.in('id', guestIds);
+    } else if (cardType === 'std') {
+      // Save-the-date: every guest on the list, regardless of
+      // RSVP status. The host hasn't asked them anything yet.
+      // No status filter.
+    } else if (cardType === 'thanks') {
+      // Thank-you: only the guests who actually attended. We
+      // don't have an explicit "attended" status, so 'attending'
+      // (i.e. RSVP'd yes) is the closest proxy.
+      guestsQuery = guestsQuery.eq('status', 'attending');
     } else {
+      // Invitation default — pending guests only, so we don't
+      // re-spam those who've already replied.
       guestsQuery = guestsQuery.eq('status', 'pending');
     }
 
@@ -87,111 +135,154 @@ export async function POST(req: NextRequest) {
 
     const manifest = siteConfig.manifest;
     const names = siteConfig.names || ['', ''];
-    const occasion = manifest?.occasion || 'celebration';
+    const occasion = manifest?.occasion || 'wedding';
+    /* Occasion routing — the registry label ("Bachelorette party",
+       "Memorial / Celebration of life") beats the raw hyphenated id
+       in guest-facing copy; solemn occasions swap the celebratory
+       lines; solo honorees get one name, never "Eleanor & ". */
+    const eventType = getEventType(occasion);
+    const occasionLabel = (eventType?.label ?? 'celebration').split(' / ')[0].toLowerCase();
+    const solemn = eventType?.voice === 'solemn';
+    const solo = isSoloSubject(manifest ?? { occasion });
+    const displayNames =
+      (solo ? [names[0]] : names)
+        .map((n) => String(n ?? '').trim())
+        .filter(Boolean)
+        .join(' & ') || 'Your hosts';
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
+    /* The couple's own theme — the SAME SuiteTheme contract the
+       site, OG cards, and save-the-date email derive from. The
+       old hand-rolled near-black template ignored it entirely
+       (ATELIER-PLAN INV.1). */
+    const suite = suiteThemeFromManifest(
+      (manifest ?? { occasion }) as StoryManifest,
+      [String(names[0] ?? ''), String(names[1] ?? '')],
+    );
+    const themeColors = emailThemeFromSuite(suite);
+    const coverPhoto = String(manifest?.coverPhoto ?? '').trim();
+    const photoUrl = coverPhoto.startsWith('https://') ? coverPhoto : undefined;
+    const eventDateRaw = manifest?.logistics?.date;
+    const parsedDate = eventDateRaw ? new Date(`${eventDateRaw}T00:00:00`) : null;
+    const dateDisplay = parsedDate && !Number.isNaN(parsedDate.getTime())
+      ? parsedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+      : undefined;
+    const venueName = String(manifest?.logistics?.venue ?? '').trim() || undefined;
+    const initA = String(names[0] ?? '').trim().charAt(0).toUpperCase();
+    const initB = solo ? '' : String(names[1] ?? '').trim().charAt(0).toUpperCase();
+    const monogram = initA ? { initA, initB } : undefined;
+
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: 'Email is not configured on this server. Add RESEND_API_KEY and try again.' },
+        { status: 503 },
+      );
+    }
     const resend = new Resend(process.env.RESEND_API_KEY);
+
+    /* Skip anyone who opted out (one-click List-Unsubscribe) or whose
+       address hard-bounced. Fail-open: a lookup hiccup returns an
+       empty set, never blocking the whole send. */
+    const suppressed = await suppressedEmails(
+      supabase,
+      guests.map((g) => (g as Record<string, unknown>).email as string | undefined),
+      siteId,
+    );
 
     let sent = 0;
     let failed = 0;
+    /* Guests with no email aren't failures — the host needs to
+       know to add addresses, not to retry. Counted separately. */
+    let noEmail = 0;
+    let skipped = 0;
     const tokens: string[] = [];
 
     for (const guest of guests) {
       const guestEmail = (guest as Record<string, unknown>).email as string | undefined;
       if (!guestEmail) {
-        failed++;
+        noEmail++;
+        continue;
+      }
+      if (suppressed.has(guestEmail.toLowerCase())) {
+        skipped++;
         continue;
       }
 
-      const token = crypto.randomUUID();
       const guestName = (guest as Record<string, unknown>).name as string;
 
-      // Upsert the invite token
-      const { error: tokenError } = await supabase.from('invite_tokens').upsert(
-        {
-          token,
-          guest_id: (guest as Record<string, unknown>).id,
-          site_id: siteId,
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: 'guest_id,site_id' }
-      );
-
-      if (tokenError) {
-        console.error('[invite/guest] token upsert error:', tokenError);
-        failed++;
-        continue;
+      /* The invite link is the published site ITSELF, carrying the
+         guest's passport token — every guest lands in the site-
+         themed Sealed Arrival, addressed to them (ATELIER-PLAN
+         INV.2). The parallel /i/ invite world is retired; old /i/
+         links 301 here. Rows that predate token minting get one. */
+      let passportToken = String(
+        (guest as Record<string, unknown>).passport_token
+        ?? (guest as Record<string, unknown>).guest_token
+        ?? '',
+      ).trim() || null;
+      if (!passportToken) {
+        const cols = guestTokenColumns();
+        const { error: mintErr } = await supabase
+          .from('guests')
+          .update(cols)
+          .eq('id', (guest as Record<string, unknown>).id);
+        if (!mintErr) passportToken = cols.passport_token;
       }
-
-      const inviteUrl = `${baseUrl}/i/${token}`;
-      const coupleNames = `${names[0]} & ${names[1]}`;
-      const occasionLabel = occasion === 'wedding' ? 'wedding' : occasion === 'engagement' ? 'engagement' : occasion;
-      const subject = `You're invited to ${coupleNames}'s ${occasionLabel}`;
-
-      const esc = (s: string) =>
-        s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-      const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${esc(subject)}</title>
-</head>
-<body style="margin:0;padding:0;background:#0E0B12;font-family:'Georgia',serif;color:#F5F1E8;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E0B12;padding:48px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-          <tr>
-            <td style="text-align:center;padding-bottom:32px;">
-              <div style="display:inline-block;width:48px;height:1px;background:rgba(196,169,106,0.4);vertical-align:middle;margin-right:12px;"></div>
-              <span style="color:rgba(196,169,106,0.7);font-size:11px;letter-spacing:3px;text-transform:uppercase;">Pearloom</span>
-              <div style="display:inline-block;width:48px;height:1px;background:rgba(196,169,106,0.4);vertical-align:middle;margin-left:12px;"></div>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
-              <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">You are cordially invited</p>
-              <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(coupleNames)}</h1>
-              <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">invite you to celebrate their ${esc(occasionLabel)}</p>
-
-              ${guestName ? `<p style="margin:0 0 32px;font-size:16px;color:rgba(245,241,232,0.8);">Dear <em>${esc(guestName)}</em>,</p>` : ''}
-
-              <p style="margin:0 0 40px;font-size:15px;line-height:1.7;color:rgba(245,241,232,0.7);">
-                We have prepared something special just for you.<br/>
-                Open your personal invitation to see all the details<br/>
-                and let us know if you'll be joining us.
-              </p>
-
-              <a href="${esc(inviteUrl)}"
-                 style="display:inline-block;padding:16px 40px;background:rgba(196,169,106,0.15);border:1px solid rgba(196,169,106,0.5);border-radius:8px;color:#C4A96A;text-decoration:none;font-size:14px;letter-spacing:2px;text-transform:uppercase;">
-                Open Your Invitation
-              </a>
-
-              <p style="margin:40px 0 0;font-size:12px;color:rgba(245,241,232,0.3);">
-                Or copy this link: <span style="color:rgba(196,169,106,0.5);">${esc(inviteUrl)}</span>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align:center;padding-top:24px;">
-              <p style="margin:0;font-size:11px;color:rgba(245,241,232,0.2);">Sent with love via Pearloom · pearloom.com</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+      const publishedUrl = buildSiteUrl(subdomain, '', baseUrl, occasion);
+      const inviteUrl = (passportToken
+        ? `${publishedUrl}?g=${encodeURIComponent(passportToken)}`
+        : publishedUrl)
+        /* Invitations deep-link the RSVP anchor — one gold path. */
+        + (cardType === 'invite' ? '#rsvp' : '');
+      const token = passportToken ?? '';
+      /* INV.3 — the amazement layer: the guest's OWN card image as
+         the email hero (name resolved server-side from the token),
+         an .ics door on date-carrying cards, and the numbered-
+         edition register when the batch is a real edition. */
+      const cardImageUrl = `${baseUrl}/api/invite-card?site=${encodeURIComponent(subdomain)}&type=${cardType}`
+        + (passportToken ? `&g=${encodeURIComponent(passportToken)}` : '');
+      const calendarUrl = passportToken && cardType !== 'thanks' && dateDisplay
+        ? `${baseUrl}/api/invite/ics?token=${encodeURIComponent(passportToken)}`
+        : undefined;
+      const editionLine = guests.length > 1 ? `One of ${guests.length}` : undefined;
+      /* One themed email system (emailLayout + SuiteTheme) — the
+         copy per cardType/solemn/solo lives in buildStationeryEmail
+         so every stationery send shares one voice + one look. */
+      const { subject, html } = buildStationeryEmail({
+        cardType,
+        coupleDisplay: displayNames,
+        occasionLabel,
+        occasionTitle: (eventType?.label ?? 'Memorial').split(' / ')[0],
+        solemn,
+        solo,
+        guestName: guestName || undefined,
+        ctaUrl: inviteUrl,
+        dateDisplay,
+        venueName,
+        photoUrl,
+        cardImageUrl,
+        calendarUrl,
+        editionLine,
+        monogram,
+        themeColors,
+      });
 
       const { error: emailError } = await resend.emails.send({
-        from: 'Pearloom <invites@pearloom.com>',
+        from: `${displayNames} <invites@pearloom.com>`,
         to: guestEmail,
         subject,
         html,
+        text: htmlToText(html),
+        headers: listUnsubHeaders({ email: guestEmail, siteId, channel: cardType }),
+        // Tag with site_id + guest_id so the Resend webhook
+        // (/api/webhooks/resend) lands delivered/opened events
+        // on the right guests row. The dashboard's tracking pips
+        // and "X opened" nudge depend on this match.
+        tags: [
+          { name: 'channel', value: String(cardType ?? 'invite') },
+          { name: 'site_id', value: String(siteId) },
+          { name: 'guest_id', value: String((guest as Record<string, unknown>).id) },
+        ],
       });
 
       if (emailError) {
@@ -200,10 +291,17 @@ export async function POST(req: NextRequest) {
       } else {
         sent++;
         tokens.push(token);
+        // Stamp email_sent_at so the dashboard timeline pip lights
+        // up immediately. The webhook will set delivered/opened
+        // later as events arrive.
+        await supabase
+          .from('guests')
+          .update({ email_sent_at: new Date().toISOString() })
+          .eq('id', (guest as Record<string, unknown>).id);
       }
     }
 
-    return NextResponse.json({ sent, failed, tokens });
+    return NextResponse.json({ sent, failed, noEmail, tokens, ...(skipped > 0 ? { skipped } : {}) });
   } catch (err) {
     console.error('[invite/guest] error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

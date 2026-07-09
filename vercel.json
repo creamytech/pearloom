@@ -1,0 +1,28 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/communications",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/film",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/notification-digest",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/recap/day-after",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/anniversary",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 16 * * 1"
+    }
+  ]
+}

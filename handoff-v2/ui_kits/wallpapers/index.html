@@ -1,0 +1,132 @@
+<!-- @dsCard group="Wallpapers" viewport="1280x800" name="Interactive backgrounds" subtitle="Five shader wallpapers — drag, click & tap to play" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Pearloom — Living Backgrounds</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--pl-ink); font-family: var(--pl-font-body); }
+  #stage { position: fixed; inset: 0; }
+  #gl { width: 100%; height: 100%; display: block; }
+
+  /* Top chrome */
+  .top { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; pointer-events: none; }
+  .top > * { pointer-events: auto; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .eyebrow { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--pl-cream); opacity: 0.85; }
+  .chip-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.28); background: rgba(20,16,10,0.32); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--pl-cream); font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+
+  /* Caption card (left) */
+  .caption { position: fixed; left: 22px; bottom: 132px; z-index: 10; max-width: 340px; padding: 20px 22px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.22); background: rgba(20,16,10,0.40); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); color: var(--pl-cream); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+  .caption .occ { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pl-gold); }
+  .caption h1 { font-family: var(--pl-font-display); font-weight: 400; font-size: 34px; line-height: 1.0; letter-spacing: -0.02em; margin: 8px 0 6px; color: #fff; }
+  .caption h1 em { font-style: italic; }
+  .caption p { font-size: 13.5px; line-height: 1.55; opacity: 0.82; margin: 0 0 16px; }
+  .caption .buy { display: flex; align-items: center; gap: 14px; }
+  .price { font-family: var(--pl-font-display); font-size: 22px; color: #fff; }
+  .price.free { font-style: italic; color: var(--pl-gold); }
+  .apply { border: none; cursor: pointer; padding: 10px 18px; border-radius: 999px; font-family: var(--pl-font-body); font-weight: 600; font-size: 13px; color: var(--pl-ink); background: linear-gradient(135deg,#F4ECD8 0%,#E8C77A 32%,#D9A89E 58%,#B8C96B 82%,#F4ECD8 100%); }
+  .hint { margin-top: 14px; font-family: var(--pl-font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6; }
+
+  /* Bottom dock — swatch switcher */
+  .dock { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 10; display: flex; gap: 10px; padding: 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); background: rgba(20,16,10,0.40); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); max-width: calc(100vw - 32px); overflow-x: auto; scrollbar-width: none; }
+  .dock::-webkit-scrollbar { display: none; }
+  .sw { flex: 0 0 auto; width: 92px; height: 64px; border-radius: 14px; cursor: pointer; position: relative; overflow: hidden; border: 2px solid transparent; transition: border-color 160ms, transform 160ms; }
+  .sw:hover { transform: translateY(-2px); }
+  .sw.on { border-color: var(--pl-gold); }
+  .sw .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 5px 7px; font-family: var(--pl-font-mono); font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
+  .sw .free-tag { position: absolute; top: 5px; right: 5px; font-family: var(--pl-font-mono); font-size: 7px; letter-spacing: 0.1em; background: var(--pl-gold); color: var(--pl-ink); border-radius: 4px; padding: 1px 4px; }
+
+  /* toast */
+  .toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(16px); opacity: 0; visibility: hidden; z-index: 30; padding: 12px 20px; border-radius: 999px; background: rgba(20,16,10,0.7); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); color: var(--pl-cream); font-size: 13.5px; display: flex; align-items: center; gap: 9px; transition: opacity 240ms, transform 240ms cubic-bezier(.34,1.56,.64,1), visibility 0s linear 240ms; }
+  .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); transition: opacity 240ms, transform 240ms cubic-bezier(.34,1.56,.64,1); }
+
+  @media (max-width: 640px) {
+    .caption { left: 12px; right: 12px; bottom: 110px; max-width: none; padding: 16px 18px; }
+    .caption h1 { font-size: 28px; }
+    .top { padding: 12px 14px; }
+    .dock { bottom: 12px; gap: 8px; padding: 8px; }
+    .sw { width: 72px; height: 52px; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="gl"></canvas></div>
+
+<div class="top">
+  <div class="brand">
+    <svg width="26" height="30" viewBox="0 0 96 112" aria-hidden="true"><path d="M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29" fill="none" stroke="#E8DCB4" stroke-width="5" stroke-linecap="round"/><path d="M 48 27 C 49 21, 52 15, 58 10" fill="none" stroke="#E8DCB4" stroke-width="5" stroke-linecap="round"/><path d="M 58 10 C 63 2.5, 74 2, 80 8 C 76 16.5, 64 17.5, 58 10 Z" fill="#E8DCB4"/><circle cx="46" cy="64" r="5" fill="#C19A4B" stroke="#18181B" stroke-width="2"/></svg>
+    <span class="eyebrow">Living Backgrounds · for your site</span>
+  </div>
+  <button class="chip-btn" id="themeToggle">◐ <span id="themeLabel">Dark</span></button>
+</div>
+
+<div class="caption">
+  <div class="occ" id="cOcc">Weddings</div>
+  <h1 id="cName">Woven <em>Silk</em></h1>
+  <p id="cDesc">Two threads, olive and gold, weave themselves across warm paper — and lean toward your cursor as you move.</p>
+  <div class="buy">
+    <span class="price" id="cPrice">$12</span>
+    <button class="apply" id="applyBtn">Apply to my site →</button>
+  </div>
+  <div class="hint">Drag to weave · click / tap to ripple</div>
+</div>
+
+<div class="dock" id="dock"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="wallpaper-engine.js"></script>
+<script>
+(function(){
+  var root=document.documentElement;
+  var saved=localStorage.getItem('pl-theme')||'dark';
+  function applyTheme(t){ root.setAttribute('data-theme',t); var l=document.getElementById('themeLabel'); if(l) l.textContent=t==='dark'?'Light':'Dark'; }
+  applyTheme(saved);
+  document.getElementById('themeToggle').addEventListener('click',function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('pl-theme',n); applyTheme(n); });
+
+  var ITEMS=[
+    { key:'silk',   name:'Woven <em>Silk</em>',   occ:'Weddings',              price:'$12', desc:'Two threads, olive and gold, weave themselves across warm paper — and lean toward your cursor as you move.', grad:'linear-gradient(135deg,#5C6B3F,#C19A4B)' },
+    { key:'aurora', name:'Aurora <em>Linen</em>', occ:'Engagements & showers', price:'$12', desc:'Soft bands of cream, peach and sage drift like light through a curtain. Move to bend the flow; press to warm it.', grad:'linear-gradient(135deg,#FBE8D6,#8B9C5A 70%,#C19A4B)' },
+    { key:'water',  name:'Still <em>Water</em>',  occ:'Memorials',             price:'Free', free:true, desc:'A quiet pool that ripples where you rest your hand. Lavender and sage, slow and calm. Free, always, for memorials.', grad:'linear-gradient(135deg,#1A1610,#6B5A8C 80%,#8B9C5A)' },
+    { key:'dust',   name:'Gilded <em>Dust</em>',  occ:'Anniversaries',         price:'$14', desc:'Golden motes drift on a warm ember ground and gather where you touch. Tap to send up a small bloom.', grad:'linear-gradient(135deg,#2A1E12,#C6703D 70%,#C19A4B)' },
+    { key:'marble', name:'Marbled <em>Paper</em>',occ:'Garden & milestones',   price:'$14', desc:'Hand-marbled ink — rose, sage and gold veins — that swirls under your cursor like a craftsman stirring the bath.', grad:'linear-gradient(135deg,#FDFAF0,#D9A89E 55%,#8B9C5A)' }
+  ];
+
+  var canvas=document.getElementById('gl');
+  var wp=window.PearloomWallpaper(canvas);
+
+  var dock=document.getElementById('dock');
+  function setActive(i){
+    var it=ITEMS[i];
+    if(wp) wp.set(it.key);
+    document.getElementById('cOcc').textContent=it.occ;
+    document.getElementById('cName').innerHTML=it.name;
+    document.getElementById('cDesc').textContent=it.desc;
+    var pr=document.getElementById('cPrice'); pr.textContent=it.price; pr.className='price'+(it.free?' free':'');
+    [].forEach.call(dock.children,function(c,j){ c.classList.toggle('on',j===i); });
+    localStorage.setItem('pl-wallpaper', String(i));
+  }
+  ITEMS.forEach(function(it,i){
+    var b=document.createElement('button'); b.className='sw'; b.style.background=it.grad;
+    b.innerHTML='<span class="nm">'+it.name.replace(/<\/?em>/g,'')+'</span>'+(it.free?'<span class="free-tag">FREE</span>':'');
+    b.addEventListener('click',function(){ setActive(i); });
+    dock.appendChild(b);
+  });
+
+  var toast=document.getElementById('toast');
+  document.getElementById('applyBtn').addEventListener('click',function(){
+    var i=ITEMS.findIndex(function(x){return x.key===(wp?wp.get():'silk');});
+    var it=ITEMS[i<0?0:i];
+    toast.innerHTML='<span style="width:8px;height:8px;border-radius:9px;background:#C19A4B;display:inline-block"></span> '+(it.free?'Applied — memorials are always free.':'“'+it.name.replace(/<\/?em>/g,'')+'” added to your site for '+it.price+'.');
+    toast.classList.add('show'); clearTimeout(window.__t); window.__t=setTimeout(function(){ toast.classList.remove('show'); },2600);
+  });
+
+  var start=parseInt(localStorage.getItem('pl-wallpaper')||'0',10); if(isNaN(start)||start<0||start>=ITEMS.length) start=0;
+  setActive(start);
+})();
+</script>
+</body>
+</html>

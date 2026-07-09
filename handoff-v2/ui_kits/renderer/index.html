@@ -1,0 +1,147 @@
+<!-- @dsCard group="Renderer" viewport="1240x900" name="Published site renderer" subtitle="Real --t-* theme contract; six production themes re-skin every block live" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Site Renderer</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { margin: 0; background: #15110A; }
+  /* The guest-site root. Everything inside binds to --t-* tokens only,
+     so spreading themeRootStyle() onto it re-skins the whole site. */
+  .pl8-guest { font-family: var(--t-body, sans-serif); color: var(--t-ink); background: var(--t-paper); transition: background .4s ease, color .4s ease; }
+  .pl8-guest * { transition: background-color .4s ease, border-color .4s ease, color .4s ease; }
+  .seg { padding: clamp(48px,7vw,96px) 24px; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  .eyebrow { font-family: var(--t-body); font-size: 11px; font-weight: 700; letter-spacing: var(--t-eyebrow-ls,0.18em); text-transform: uppercase; color: var(--t-accent-ink); }
+  .disp { font-family: var(--t-display); font-weight: var(--t-display-wght,600); letter-spacing: -0.01em; color: var(--t-ink); }
+  .btn { font-family: var(--t-body); font-weight: 600; font-size: 14px; cursor: pointer; border: none; padding: 13px 26px; background: var(--t-rsvp); color: var(--t-rsvp-ink); }
+  .btn.square { border-radius: var(--t-radius); } .btn.pill { border-radius: 999px; } .btn.sharp { border-radius: 0; letter-spacing: 0.04em; }
+  /* theme switcher dock */
+  .dock { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 50; display: flex; gap: 8px; padding: 9px; border-radius: 999px; background: rgba(20,16,10,0.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.18); max-width: calc(100vw - 24px); overflow-x: auto; }
+  .dock button { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: #F1EBDC; font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+  .dock button.on { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3); }
+  .dock .sw { display: inline-flex; gap: 2px; }
+  .dock .sw i { width: 8px; height: 8px; border-radius: 99px; display: inline-block; }
+</style>
+</head>
+<body>
+<div id="site"></div>
+<div class="dock" id="dock"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="themes.js"></script>
+<script>
+(function(){
+  var h=React.createElement;
+  var NS=window.PearloomDesignSystem_55118c;
+  var Monogram=NS.Monogram, Motif=NS.Motif, Divider=NS.Divider, Pearl=NS.Pearl;
+  var THEMES=window.PEARLOOM_SITE_THEMES;
+
+  // map a theme's look.divider → our Divider ornament; look.motif density drives scatter
+  var DIV_MAP={ sprig:'sprig', brush:'fleuron', dot:'pearl', rule:'diamond', deckle:'infinity' };
+  var MOTIF_MAP={ olive:'sprig', bloom:'bloom', pressed:'laurel', none:null };
+
+  function ThemedDivider(t){ return h(Divider,{ ornament:DIV_MAP[t.look.divider]||'fleuron', ink:'var(--t-accent)', accent:'var(--t-gold)', color:'var(--t-line)', width:'160px' }); }
+
+  // Photo treatment per look.photo
+  function Photo(t, h2){
+    var base={ background:'linear-gradient(135deg, var(--t-accent-bg), var(--t-section))', border:'1px solid var(--t-line)', height:h2||220, position:'relative', overflow:'hidden', display:'grid', placeItems:'center', color:'var(--t-ink-muted)' };
+    var sty=Object.assign({}, base);
+    var wrap={};
+    if(t.look.photo==='arch'){ sty.borderRadius='140px 140px 6px 6px'; }
+    else if(t.look.photo==='polaroid'){ wrap={ background:'#fff', padding:10, paddingBottom:30, boxShadow:'var(--t-shadow)', transform:'rotate(-1.5deg)' }; sty.borderRadius=4; }
+    else if(t.look.photo==='tape'){ sty.borderRadius=4; }
+    else if(t.look.photo==='deckle'){ sty.borderRadius=0; sty.border='none'; sty.boxShadow='0 0 0 1px var(--t-line)'; }
+    else { sty.borderRadius='var(--t-radius-lg)'; }
+    var img=h('div',{style:sty}, h(Motif,{ name:MOTIF_MAP[t.motif]||'bloom', size:54, color:'var(--t-accent)', accent:'var(--t-gold)' }),
+      t.look.photo==='tape'? h('div',{style:{position:'absolute',top:-10,left:'42%',width:74,height:22,background:'var(--t-accent-2)',opacity:0.5,transform:'rotate(-4deg)'}}):null );
+    return Object.keys(wrap).length? h('div',{style:wrap}, img) : img;
+  }
+
+  function Site(props){
+    var t=props.theme;
+    var rootStyle=window.themeRootStyle(t,'comfortable');
+    var center=t.look.heroAlign==='center';
+    var card={ background:'var(--t-card)', border:'1px solid var(--t-line)', borderRadius:'var(--t-radius-lg)', boxShadow:'var(--t-shadow)' };
+    var scatter=MOTIF_MAP[t.motif] && t.look.motifDensity!=='none';
+
+    return h('div',{className:'pl8-guest',style:rootStyle},
+      // NAV
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 26px',borderBottom:'1px solid var(--t-line-soft)'}},
+        h('span',{className:'disp',style:{fontSize:20}}, 'A', h('em',{style:{fontStyle:'italic',color:'var(--t-ink-soft)',fontWeight:400,margin:'0 .12em'}},'&'),'J'),
+        h('span',{style:{display:'flex',gap:18,fontSize:12.5,color:'var(--t-ink-soft)'}}, ['Story','The day','Travel'].map(function(x){return h('span',{key:x},x);}), h('span',{style:{color:'var(--t-accent-ink)',fontWeight:600}},'RSVP'))
+      ),
+      // HERO
+      h('section',{className:'seg',style:{textAlign:center?'center':'left',background:'var(--t-paper)',position:'relative'}},
+        h('div',{className:'wrap',style:{margin:center?'0 auto':'0', maxWidth: center?880:760}},
+          scatter? h('div',{style:{position:'absolute',top:18,right:24,opacity:0.5}}, h(Motif,{name:MOTIF_MAP[t.motif],size:46,color:'var(--t-accent-2)',accent:'var(--t-gold)'})):null,
+          h('div',{className:'eyebrow',style:{marginBottom:14}},'Save the date'),
+          h('h1',{className:'disp',style:{fontSize:'calc(clamp(40px,7vw,76px) * var(--t-hero-scale,1))',lineHeight:0.98,margin:0}},'Alex ',h('span',{style:{fontStyle:'italic',fontWeight:400,color:'var(--t-ink-soft)'}},'&'),' Jamie'),
+          h('div',{style:{display:'flex',justifyContent:center?'center':'flex-start',margin:'18px 0'}}, ThemedDivider(t)),
+          h('p',{style:{fontSize:17,lineHeight:1.6,color:'var(--t-ink-soft)',maxWidth:520,margin:center?'0 auto':'0'}},'A bright Saturday in Portland — two families, one very long table. Come hungry, stay late.'),
+          h('div',{style:{marginTop:26,display:'flex',gap:12,justifyContent:center?'center':'flex-start'}},
+            h('button',{className:'btn '+t.look.button},'Press RSVP'),
+            h('button',{className:'btn '+t.look.button,style:{background:'transparent',color:'var(--t-ink)',border:'1px solid var(--t-line)'}},'Our story'))
+        )
+      ),
+      // STORY (section bg) with photo treatment
+      h('section',{className:'seg',style:{background:'var(--t-section)'}},
+        h('div',{className:'wrap',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:40,alignItems:'center'}},
+          h('div',null,
+            h('div',{className:'eyebrow',style:{marginBottom:10}},'Our story'),
+            h('h2',{className:'disp',style:{fontSize:'clamp(26px,3.4vw,38px)',margin:'0 0 12px'}},'A very long table'),
+            h('p',{style:{fontSize:15,lineHeight:1.7,color:'var(--t-ink-soft)',margin:0}},'We met over a shared dessert and never quite stopped sharing. Two years on, we are gathering everyone we love in one orchard for one unhurried afternoon.')),
+          Photo(t,240)
+        )
+      ),
+      // SCHEDULE
+      h('section',{className:'seg'},
+        h('div',{className:'wrap',style:{textAlign:'center'}},
+          h('div',{className:'eyebrow',style:{marginBottom:10}},'The run of the day'),
+          h('h2',{className:'disp',style:{fontSize:'clamp(26px,3.4vw,38px)',margin:'0 0 28px'}},'Saturday, the sixth'),
+          h('div',{style:{maxWidth:440,margin:'0 auto',textAlign:'left'}},
+            [['4:00','Arrive & gather'],['5:00','The vows'],['6:30','Supper & toasts'],['9:00','Dancing']].map(function(r,i){
+              return h('div',{key:i,style:Object.assign({display:'flex',gap:20,alignItems:'baseline',padding:'14px 0'},i<3?{borderBottom:'1px solid var(--t-line-soft)'}:{})},
+                h('span',{style:{fontFamily:'var(--pl-font-mono)',fontSize:13,color:'var(--t-accent-ink)',width:54}},r[0]),
+                h('span',{className:'disp',style:{fontSize:19}},r[1]));
+            }))
+        )
+      ),
+      // RSVP
+      h('section',{className:'seg',style:{background:'var(--t-rsvp)',color:'var(--t-rsvp-ink)',textAlign:'center'}},
+        h('div',{className:'wrap'},
+          h('h2',{className:'disp',style:{fontSize:'clamp(30px,4.5vw,52px)',margin:0,color:'var(--t-rsvp-ink)'}},'Kindly reply'),
+          h('p',{style:{fontSize:15,opacity:0.85,margin:'12px 0 22px'}},'by August 10th, so we can set a place for you.'),
+          h('button',{className:'btn '+t.look.button,style:{background:'var(--t-rsvp-ink)',color:'var(--t-rsvp)'}},'Press RSVP →'))
+      ),
+      // FOOTER
+      h('footer',{style:{padding:'40px 24px',textAlign:'center',borderTop:'1px solid var(--t-line-soft)'}},
+        h('div',{style:{display:'flex',justifyContent:'center',marginBottom:12}}, h(Monogram,{left:'A',right:'J',frame:t.dark?'diamond':'ring',size:74,ink:'var(--t-ink)',accent:'var(--t-accent)',paper:'var(--t-paper)'})),
+        h('div',{style:{fontFamily:'var(--pl-font-mono)',fontSize:10,letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--t-ink-muted)'}},'June 22 · Portland'))
+    );
+  }
+
+  var dock=document.getElementById('dock');
+  var root=ReactDOM.createRoot(document.getElementById('site'));
+  function render(id){
+    var t=THEMES.find(function(x){return x.id===id;})||THEMES[0];
+    root.render(h(Site,{theme:t}));
+    [].forEach.call(dock.children,function(b){ b.classList.toggle('on', b.dataset.id===id); });
+    localStorage.setItem('pl-site-theme', id);
+  }
+  THEMES.forEach(function(t){
+    var b=document.createElement('button'); b.dataset.id=t.id;
+    b.innerHTML='<span class="sw">'+t.swatches.slice(0,3).map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'</span>'+t.name;
+    b.addEventListener('click',function(){ render(t.id); });
+    dock.appendChild(b);
+  });
+  var start=localStorage.getItem('pl-site-theme')||'garden';
+  render(THEMES.find(function(x){return x.id===start;})?start:'garden');
+})();
+</script>
+</body>
+</html>

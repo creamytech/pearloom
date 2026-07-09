@@ -1,0 +1,338 @@
+'use client';
+
+/* eslint-disable no-restricted-syntax */
+/* LITERAL PORT of ClaudeDesign/pages/section-fields.jsx FaqEditor —
+   now host-editable. Writes manifest.faqs[] (canonical FaqItem
+   shape) which ThemedSite's FaqBlock reads. */
+
+import { useRef, useState } from 'react';
+import type { FaqItem, StoryManifest } from '@/types';
+import { Icon } from '../../motifs';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { moveItem, ReorderHandle } from './_reorder';
+import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
+import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
+import { DraftedBadge } from './_drafted-badge';
+import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
+import { AISource } from '../../ai-source';
+import { occasionCopyFor } from '../../redesign/occasion-copy';
+import { voiceProfileFrom } from '@/lib/pear/editor-voice';
+
+/* Wording matches the canvas exactly — both sides read
+   occasionCopyFor(occasion).faqDemo — so the panel and the preview
+   never show two different drafts. */
+function defaultFaqsFor(occasion?: string): FaqItem[] {
+  return occasionCopyFor(occasion).faqDemo.map((question, i) => ({
+    id: `f-demo-${i}`, question, answer: '', order: i,
+  }));
+}
+
+export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'faq');
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const questionSet = faqQuestionSuggestions(occasion);
+  const defaultFaqs = defaultFaqsFor(occasion);
+  const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : defaultFaqs;
+  const [faqEyebrow, setFaqEyebrow] = useCopyOverride(manifest, onChange, 'faqEyebrow');
+  const [openId, setOpenId] = useState<string | null>(null);
+  /* Tracks per-row "Draft answer from Pear" busy state. Keyed by
+     faq id so multiple rows can stage independently. */
+  const [draftingId, setDraftingId] = useState<string | null>(null);
+  const [draftErr, setDraftErr] = useState<string | null>(null);
+  /* Last answer Pear drafted — shown as a transient "drafted by
+     Pear" stamp under the answer field until the host edits it
+     (at which point it's theirs, not Pear's). */
+  const [drafted, setDrafted] = useState<{ id: string; text: string } | null>(null);
+  /* Bulk "Draft all unanswered" — sequential runs of draftAnswer
+     over every question with an empty answer. `done` counts
+     completed rows so the chip can read "Drafting 2 of 5…". */
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
+  const [bulkErr, setBulkErr] = useState<string | null>(null);
+
+  /* Refs mirror the latest manifest/faqs so the sequential bulk
+     drafter never writes through a stale closure — each patch in
+     the loop must see the answers earlier iterations landed. */
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+
+  /* Returns null on success, or the sanitized error copy on
+     failure (so the bulk runner can abort + surface it). */
+  async function draftAnswer(f: FaqItem, idx: number): Promise<string | null> {
+    if (!f.question.trim()) {
+      const msg = 'Add a question first so Pear knows what to answer.';
+      setDraftErr(msg);
+      return msg;
+    }
+    setDraftingId(f.id); setDraftErr(null);
+    try {
+      const res = await fetch('/api/inline-rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: f.question,
+          context: `FAQ answer, the question is "${f.question}". Draft a warm, factual 1-2 sentence answer for a celebration-website FAQ. Don't restate the question, answer it directly.`,
+          voiceProfile: voiceProfileFrom(manifest),
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        console.error('[faq] draft-answer failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one, try again?');
+      }
+      const { rewritten } = await res.json() as { rewritten: string };
+      if (rewritten && rewritten !== f.question) {
+        patch(idx, { answer: rewritten });
+        setDrafted({ id: f.id, text: rewritten });
+      }
+      return null;
+    } catch (e) {
+      console.error('[faq] draft-answer error:', e);
+      const msg = pearErrorMessage(e, 'Pear couldn’t draft that one, try again?');
+      setDraftErr(msg);
+      return msg;
+    } finally {
+      setDraftingId(null);
+    }
+  }
+
+  /* Sequential bulk drafter — reuses draftAnswer row by row (no
+     new API route, same busy + sanitized-error handling). Aborts
+     the remaining rows on the first error. Indexes stay stable
+     during the run (no add/remove can happen mid-bulk). */
+  async function draftAllUnanswered() {
+    if (bulk || draftingId) return;
+    const current = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : defaultFaqs;
+    const targets = current
+      .map((f, i) => ({ f, i }))
+      .filter(({ f }) => f.question.trim() && !f.answer.trim());
+    if (targets.length === 0) return;
+    setBulkErr(null);
+    setBulk({ done: 0, total: targets.length });
+    for (let k = 0; k < targets.length; k++) {
+      setBulk({ done: k, total: targets.length });
+      const errMsg = await draftAnswer(targets[k].f, targets[k].i);
+      if (errMsg) {
+        setBulkErr(errMsg);
+        break;
+      }
+    }
+    setBulk(null);
+  }
+
+  const write = (next: FaqItem[]) => onChange({ ...manifestRef.current, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
+  const patch = (i: number, p: Partial<FaqItem>) => {
+    const cur = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : defaultFaqs;
+    let m = { ...manifestRef.current, faqs: cur.map((f, idx) => idx === i ? { ...f, ...p } : f).map((f, ix) => ({ ...f, order: ix })) } as StoryManifest;
+    /* Editing an answer Pear drafted makes it the host's — drop the
+       badge for this row. */
+    if ('answer' in p) m = clearDraftedPath(m, `faqs.${i}.answer`);
+    onChange(m);
+  };
+  const remove = (i: number) => write(faqs.filter((_, idx) => idx !== i));
+  /* Empty seed, not a literal 'New question' — hosts published that
+     string verbatim. The published renderer skips question-less
+     rows, and the row opens immediately so the host types theirs. */
+  const add = () => {
+    const id = `f-${Date.now()}`;
+    write([...faqs, { id, question: '', answer: '', order: faqs.length }]);
+    setOpenId(id);
+  };
+  /* "Quick-add" — tap a curated question; appends it with an
+     empty answer so the host can fill in details. Skipped if a
+     question with that text already exists. */
+  const quickAdd = (q: string) => {
+    if (faqs.some((f) => f.question.trim().toLowerCase() === q.toLowerCase())) return;
+    write([...faqs, { id: `f-${Date.now()}`, question: q, answer: '', order: faqs.length }]);
+  };
+  const remainingQuickAdds = questionSet.options.filter(
+    (q) => !faqs.some((f) => f.question.trim().toLowerCase() === q.toLowerCase()),
+  );
+  const unansweredCount = faqs.filter((f) => f.question.trim() && !f.answer.trim()).length;
+
+  return (
+    <SectionPanelShell>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* ── Zip FaqEditor layout (section-fields.jsx L305-323):
+              Questions · N (drag + text + chevron rows, "Add a
+              question", "Suggest from data" PearChip). The
+              production-only extras (eyebrow, quick-add common
+              questions, guest questions) live tucked under "More"
+              below so the default view is 1:1. */}
+        <FGroup label={`Questions · ${faqs.length}`} action={<PearChip>Suggest from data</PearChip>}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Bulk drafter — only worth surfacing when 2+ rows are
+                unanswered (a single row has its own per-row chip). */}
+            {(unansweredCount >= 2 || bulk) && (
+              <PearAiChip
+                onClick={draftAllUnanswered}
+                busy={!!bulk}
+                disabled={!!draftingId && !bulk}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {bulk
+                  ? `Drafting ${Math.min(bulk.done + 1, bulk.total)} of ${bulk.total}…`
+                  : `Draft all ${unansweredCount} unanswered`}
+              </PearAiChip>
+            )}
+            {bulkErr && !bulk && (
+              <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+                {bulkErr}
+              </div>
+            )}
+            {faqs.map((f, i) => {
+              const isOpen = openId === f.id;
+              return (
+                <div key={f.id} style={{ borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)', overflow: 'hidden' }}>
+                  {/* Header row is a DIV wrapping the toggle button so
+                      the reorder handle (real buttons, unlike the old
+                      decorative drag glyph) never nests inside it. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 8 }}>
+                    <ReorderHandle
+                      index={i}
+                      count={faqs.length}
+                      label={f.question || 'question'}
+                      onMove={(from, to) => write(moveItem(faqs, from, to))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(isOpen ? null : f.id)}
+                      style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px 11px 4px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <span style={{ flex: 1, fontSize: 12.5 }}>{f.question || 'Write your question…'}</span>
+                      <Icon name={isOpen ? 'chev-up' : 'chev-down'} size={13} color="var(--ink-muted)" />
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding: 10, borderTop: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <FSuggest
+                        value={f.question}
+                        onChange={(v) => patch(i, { question: v })}
+                        onPick={(opt) => {
+                          /* Picking a suggested question also drafts a
+                             venue-aware answer when the answer box is
+                             empty — the host edits a sentence instead
+                             of facing a blank field. */
+                          const draft = !f.answer.trim()
+                            ? faqAnswerDraftFor(opt, smartContext(manifest), manifest)
+                            : null;
+                          patch(i, draft ? { question: opt, answer: draft } : { question: opt });
+                        }}
+                        placeholder="Question"
+                        options={questionSet.options}
+                      />
+                      <FInput value={f.answer} onChange={(v) => patch(i, { answer: v })} placeholder="Answer (shown on the FAQ page)" />
+                      <DraftedBadge
+                        manifest={manifest}
+                        onChange={onChange}
+                        paths={`faqs.${i}.answer`}
+                        onClear={(m) => {
+                          const cur = m.faqs && m.faqs.length > 0 ? m.faqs : defaultFaqs;
+                          return { ...(m as StoryManifest), faqs: cur.map((row, idx) => idx === i ? { ...row, answer: '' } : row).map((row, ix) => ({ ...row, order: ix })) } as StoryManifest;
+                        }}
+                      />
+                      {drafted?.id === f.id && drafted.text === f.answer && (
+                        /* Transient attribution — disappears the
+                           moment the host edits the drafted answer. */
+                        <AISource style={{ fontSize: 10.5, opacity: 0.85, alignSelf: 'flex-start' }} />
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          <PearAiChip
+                            onClick={() => draftAnswer(f, i)}
+                            busy={draftingId === f.id}
+                            disabled={!!draftingId && draftingId !== f.id}
+                          >
+                            {draftingId === f.id ? 'Pear is drafting…' : f.answer ? 'Draft a fresh answer' : 'Draft answer'}
+                          </PearAiChip>
+                          {f.answer.trim().length >= 2 && (
+                            /* Rewrite-tone chips for the existing
+                               answer — Shorten / Warmer / etc. */
+                            <PearInlineRewrite
+                fxSection="faq"
+                              value={f.answer}
+                              onCommit={(v) => patch(i, { answer: v })}
+                              context={`FAQ answer to "${f.question}"`}
+                              tones={['shorten', 'warmer', 'poetic']}
+                            />
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => remove(i)}
+                          style={{ padding: '5px 10px', borderRadius: 7, background: 'transparent', border: '1px solid var(--line)', fontSize: 11, color: 'var(--ink-muted)', cursor: 'pointer' }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      {draftErr && draftingId === null && (
+                        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+                          {draftErr}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <AddCard label="Add a question" onClick={add} />
+          </div>
+        </FGroup>
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More, eyebrow, quick-add, guest questions
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
+            </FGroup>
+            {remainingQuickAdds.length > 0 && (
+              <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer, fill it in below.">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {remainingQuickAdds.slice(0, 8).map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => quickAdd(q)}
+                      style={{
+                        fontSize: 11.5, fontWeight: 600,
+                        padding: '5px 10px', borderRadius: 999,
+                        background: 'var(--cream-2)', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}
+                    >
+                      + {q}
+                    </button>
+                  ))}
+                </div>
+              </FGroup>
+            )}
+            <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard, guests never see each other's.">
+              <FToggleStandalone
+                label="Let guests ask a question"
+                sub="Off by default, flip it on when you're ready"
+                def={((manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true}
+                onChange={(v) => onChange({
+                  ...(manifest as unknown as Record<string, unknown>),
+                  faqConfig: { ...((manifest as unknown as { faqConfig?: Record<string, unknown> }).faqConfig ?? {}), allowQuestions: v },
+                } as unknown as StoryManifest)}
+              />
+            </FGroup>
+          </div>
+        </details>
+
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="FAQ" />
+      </div>
+    </SectionPanelShell>
+  );
+}
+
+export default FaqPanel;

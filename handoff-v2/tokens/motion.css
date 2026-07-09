@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOTION — the weaving language (BRAND §6)
+   ───────────────────────────────────────────────────────────────
+   Things don't fade — they THREAD in: two strands grow from a
+   center, content settles between them. Springs for taps/CTAs,
+   expo-out for chrome. Always honour prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Easing ── */
+  --pl-ease-out:      cubic-bezier(0.22, 1, 0.36, 1);   /* @kind other */
+  --pl-ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);   /* @kind other */
+  --pl-ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);  /* @kind other */ /* taps, primary CTA */
+  --pl-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);      /* @kind other */ /* signature expo-out */
+
+  /* ── Durations ── */
+  --pl-dur-instant: 100ms;  /* @kind other */
+  --pl-dur-subtle:  120ms;  /* @kind other */ /* hairline micro-feedback */
+  --pl-dur-quick:   140ms;  /* @kind other */ /* chip / pill hover+active */
+  --pl-dur-fast:    180ms;  /* @kind other */
+  --pl-dur-base:    280ms;  /* @kind other */
+  --pl-dur-slow:    480ms;  /* @kind other */
+  --pl-dur-glacial: 800ms;  /* @kind other */
+}
+
+/* ─── The signature weave reveal ─── */
+/* Two strands draw across, content settles between. Apply to a
+   divider/loader; pair with the Thread/WeaveLoader components. */
+@keyframes pl-weave {
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { stroke-dashoffset: -0.32; opacity: 1; }
+}
+
+/* ─── Press: tactile spring ─── */
+.pl-press { transition: transform var(--pl-dur-subtle) var(--pl-ease-spring); }
+.pl-press:active { transform: scale(0.96); }
+
+/* ─── Hover lift ─── */
+.pl-hover-lift {
+  transition: transform var(--pl-dur-base) var(--pl-ease-emphasis),
+              box-shadow var(--pl-dur-base) var(--pl-ease-emphasis);
+}
+.pl-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pl-shadow-md);
+}
+
+/* ─── Entrance: content threads up ─── */
+@keyframes pl-enter-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pl-enter { animation: pl-enter-up var(--pl-dur-slow) var(--pl-ease-emphasis) both; }
+.pl-enter-d1 { animation-delay: 0.06s; }
+.pl-enter-d2 { animation-delay: 0.12s; }
+.pl-enter-d3 { animation-delay: 0.18s; }
+.pl-enter-d4 { animation-delay: 0.24s; }
+
+/* ─── Pearl shimmer (the iridescent bead) ─── */
+@keyframes pl-pearl-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-enter, .pl-press, .pl-hover-lift { animation: none !important; transition: none !important; }
+}

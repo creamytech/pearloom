@@ -8,12 +8,14 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 import type { Chapter } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 export interface ChapterTranslation {
   title: string;
@@ -53,18 +55,79 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
 
   try {
     const body = await req.json();
+
+    // Mode A: arbitrary string segments (used by the live page language switcher — public).
+    if (Array.isArray(body.segments) && body.segments.length > 0) {
+      if (body.segments.length > 400) {
+        return Response.json({ error: 'Too many segments' }, { status: 413 });
+      }
+      const target: string = body.target ?? body.targetLocale ?? 'en';
+      const languageName = LOCALE_NAMES[target] || target;
+      const segments: string[] = body.segments.map((s: unknown) => String(s ?? ''));
+      const prompt = `Translate each string in the JSON array below to ${languageName}.
+Keep proper nouns, place names, times (e.g. "4:00"), and short numeric tokens unchanged.
+Preserve punctuation and capitalization style.
+Return ONLY a valid JSON array of strings, same length (${segments.length}), no markdown.
+
+Input:
+${JSON.stringify(segments)}`;
+
+      // Daily AI dollar cap (src/lib/ai-budget.ts). This mode is
+      // public (live-page language switcher) so key by client IP.
+      // Fails open — only blocks on a confirmed over-budget read.
+      const budgetA = budgetKey(null, getClientIp(req));
+      if (await overBudget(budgetA)) {
+        return Response.json(
+          { error: "You've reached today's AI limit. Try again tomorrow." },
+          { status: 429 }
+        );
+      }
+
+      try {
+        const raw = await callGemini(prompt, apiKey);
+        // Charge the estimated cost once the model call succeeded.
+        void chargeAi(
+          budgetA,
+          centsForUsage({
+            provider: 'gemini',
+            model: 'gemini-3.1-flash-lite-preview',
+            inputTokens: approxTokens(prompt),
+            outputTokens: approxTokens(raw),
+            ms: 0,
+          })
+        );
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error('Not an array');
+        const out = parsed.map((v) => (typeof v === 'string' ? v : String(v ?? '')));
+        return Response.json({ segments: out });
+      } catch {
+        return Response.json({ error: 'AI translation failed. Try again' }, { status: 502 });
+      }
+    }
+
+    // Mode B: chapter objects (legacy, auth-gated).
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
+    // email. Fails open — only blocks on a confirmed over-budget read.
+    const budgetB = budgetKey(session.user.email, getClientIp(req));
+    if (await overBudget(budgetB)) {
+      return Response.json(
+        { error: "You've reached today's AI limit — try again tomorrow." },
+        { status: 429 }
+      );
+    }
+
     const chapters: Chapter[] = body.chapters;
     const targetLocale: string = body.targetLocale;
     const coupleNames: [string, string] = body.coupleNames;
@@ -96,12 +159,23 @@ ${JSON.stringify(chaptersJson, null, 2)}`;
     let translations: ChapterTranslation[];
     try {
       const raw = await callGemini(prompt, apiKey);
+      // Charge the estimated cost once the model call succeeded.
+      void chargeAi(
+        budgetB,
+        centsForUsage({
+          provider: 'gemini',
+          model: 'gemini-3.1-flash-lite-preview',
+          inputTokens: approxTokens(prompt),
+          outputTokens: approxTokens(raw),
+          ms: 0,
+        })
+      );
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) throw new Error('Not an array');
       translations = parsed;
     } catch {
       console.warn('[translate] Gemini parse failed');
-      return Response.json({ error: 'AI translation failed — try again' }, { status: 502 });
+      return Response.json({ error: 'AI translation failed. Try again' }, { status: 502 });
     }
 
     return Response.json({ translations });

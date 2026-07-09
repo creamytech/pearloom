@@ -1,0 +1,29 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Editorial midnight (dark)" subtitle="Dark mode is warm #0D0B07, never OLED black" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 20px 24px 8px; }
+  .sw { border-radius: var(--pl-radius-md); overflow: hidden; border: 1px solid var(--pl-divider); }
+  .chip { height: 48px; }
+  .nm { font-family: var(--pl-font-mono); font-size: 9px; color: var(--pl-muted); padding: 6px 7px; background: var(--pl-cream-card); }
+  .cap { padding: 4px 24px 18px; font-family: var(--pl-font-display); font-style: italic; font-size: 18px; color: var(--pl-olive); font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1; }
+</style>
+</head>
+<body>
+<div class="grid" id="root"></div>
+<div class="cap">the same warmth, after dark</div>
+<script>
+  const t = [
+    ['--pl-cream','paper'], ['--pl-cream-card','card'], ['--pl-ink','ink'],
+    ['--pl-olive','olive'], ['--pl-gold','gold'], ['--peach-ink','peach'],
+  ];
+  document.getElementById('root').innerHTML = t.map(([v, n]) =>
+    `<div class="sw"><div class="chip" style="background:var(${v})"></div><div class="nm">${n}</div></div>`
+  ).join('');
+</script>
+</body>
+</html>

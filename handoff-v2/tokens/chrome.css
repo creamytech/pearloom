@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════════
+   CHROME — the product UI layer (the ".pl8" handoff aliases)
+   ───────────────────────────────────────────────────────────────
+   Pearloom has TWO palettes, and they are both correct:
+
+   1. The EDITORIAL BRAND (tokens/colors.css) — olive + gold + ink on
+      cream. This is the marketing site and the published guest site.
+   2. The PRODUCT CHROME (this file) — the dashboard + the site editor.
+      It runs on friendlier aliases (--cream, --card, --ink, --line,
+      --paper) plus THREE named accent families that the brand layer
+      does not expose:
+        · sage     — the calm/positive accent (saved, success, "yes")
+        · peach    — the warm/active accent (saving, in-progress, CTAs,
+                     selection, the editor's working state)
+        · lavender — the editorial accent; **italic display type in the
+                     chrome defaults to lavender-ink** (#6B5A8C), NOT olive
+      Gold stays the shared punctuation across both.
+
+   Everything here aliases the canonical --pl-* tokens where possible
+   so theme-switching flows through. Build dashboard + editor surfaces
+   against THESE tokens.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Paper & ink (alias the brand tokens) ── */
+  --cream:     var(--pl-cream);        /* @kind color */
+  --cream-2:   var(--pl-cream-card);   /* @kind color */
+  --cream-3:   var(--pl-cream-deep);   /* @kind color */
+  --ink:       var(--pl-ink);          /* @kind color */
+  --ink-soft:  var(--pl-ink-soft);     /* @kind color */
+  --ink-muted: var(--pl-muted);        /* @kind color */
+  --paper:     var(--pl-cream);        /* @kind color */
+  --card:      var(--pl-cream-card);   /* @kind color */
+  --card-ring: var(--pl-divider-soft); /* @kind color */
+  --line:      var(--pl-divider);      /* @kind color */
+  --line-soft: var(--pl-divider-soft); /* @kind color */
+
+  /* ── Sage — calm / saved / success / "yes" ── */
+  --sage:      #8B9C5A;  /* @kind color */
+  --sage-2:    #A8BA72;  /* @kind color */
+  --sage-deep: #6D7D3F;  /* @kind color */
+  --sage-bg:   #CBD29E;  /* @kind color */
+  --sage-tint: #E3E6C8;  /* @kind color */
+
+  /* ── Lavender — editorial accent · italic display ink ── */
+  --lavender:    #C4B5D9;  /* @kind color */
+  --lavender-2:  #B7A4D0;  /* @kind color */
+  --lavender-3:  #D7CCE5;  /* @kind color */
+  --lavender-bg: #E8E0F0;  /* @kind color */
+  --lavender-ink:#6B5A8C;  /* @kind color */
+
+  /* ── Peach — warm / active / working / CTA / selection ── */
+  --peach:     #F0C9A8;  /* @kind color */
+  --peach-2:   #EAB286;  /* @kind color */
+  --peach-3:   #F7DDC2;  /* @kind color */
+  --peach-bg:  #FBE8D6;  /* @kind color */
+  --peach-ink: #C6703D;  /* @kind color */
+
+  /* ── Shared punctuation ── */
+  --gold:      var(--pl-gold);  /* @kind color */
+  --gold-line: color-mix(in oklab, var(--pl-gold) 76%, #FFF6E4);  /* @kind color */
+  --heart:     #E8A07A;  /* @kind color */
+
+  /* ── Chrome radii + shadows (warmer, larger than brand radii) ── */
+  --r-xs: 8px;   --r-sm: 10px;  --r: 14px;
+  --r-md: 20px;  --r-lg: 28px;  --r-xl: 36px;
+  --shadow-sm: 0 2px 6px rgba(61,74,31,0.05);   /* @kind shadow */
+  --shadow:    0 6px 18px rgba(61,74,31,0.08);  /* @kind shadow */
+  --shadow-md: 0 12px 32px rgba(61,74,31,0.10); /* @kind shadow */
+  --shadow-lg: 0 24px 56px rgba(61,74,31,0.14); /* @kind shadow */
+
+  /* ── Chrome type aliases ── */
+  --font-ui:      var(--pl-font-body);     /* @kind font */
+  --font-display: var(--pl-font-display);  /* @kind font */
+  --font-script:  var(--pl-font-script);   /* @kind font */
+
+  /* ── EDITOR-CHROME insulation tokens (BRAND/CLAUDE-DESIGN §3.5) ──
+     The site editor's PANELS bind to these only, so they never
+     repaint when the edited site's theme changes. The accent is a
+     calibrated groove TERRACOTTA (~60% sat) and the left icon rail
+     is near-black. */
+  --pl-chrome-bg:            #F5EFE2;  /* @kind color */
+  --pl-chrome-surface:       #FBF7EE;  /* @kind color */
+  --pl-chrome-surface-2:     #F0E9D8;  /* @kind color */
+  --pl-chrome-border:        #D8CFB8;  /* @kind color */
+  --pl-chrome-border-strong: #B8AC8E;  /* @kind color */
+  --pl-chrome-text:          #0E0D0B;  /* @kind color */
+  --pl-chrome-text-soft:     #3A332C;  /* @kind color */
+  --pl-chrome-text-muted:    #7A6F5C;  /* @kind color */
+  --pl-chrome-accent:        #B8754A;  /* @kind color */
+  --pl-chrome-accent-soft:   rgba(184,117,74,0.12);  /* @kind color */
+  --pl-chrome-accent-ink:    #FBF7EE;  /* @kind color */
+  --pl-chrome-danger:        #7A2D2D;  /* @kind color */
+  --pl-chrome-success:       #7A8B4A;  /* @kind color */
+  --pl-chrome-rail:          #18181B;  /* @kind color */
+  --pl-chrome-rail-ink:      #FBF7EE;  /* @kind color */
+  --pl-chrome-rail-ink-muted:rgba(251,247,238,0.55);  /* @kind color */
+  --pl-chrome-rail-hover:    rgba(251,247,238,0.08);   /* @kind color */
+  --pl-chrome-rail-active:   rgba(251,247,238,0.15);   /* @kind color */
+}
+
+/* ─── DARK · editorial-midnight companions for the accents ─── */
+[data-theme='dark'] {
+  --sage:        #97A968;  --sage-2: #ABBD7E;  --sage-deep: #B8C98F;
+  --sage-bg:     #2A301B;  --sage-tint: #20251A;
+  --lavender:    #9D8BB8;  --lavender-2: #B7A4D0;  --lavender-3: #463C5C;
+  --lavender-bg: #221E2D;  --lavender-ink: #C5B5DD;
+  --peach:       #D9A172;  --peach-2: #E0AC7E;  --peach-3: #3A2B1D;
+  --peach-bg:    #2B2014;  --peach-ink: #E29B62;
+  --gold-line:   color-mix(in oklab, var(--pl-gold) 62%, #0D0B07);
+  --heart:       #ECAB85;
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.40);
+  --shadow:    0 6px 18px rgba(0,0,0,0.45);
+  --shadow-md: 0 12px 32px rgba(0,0,0,0.50);
+  --shadow-lg: 0 24px 56px rgba(0,0,0,0.55);
+
+  --pl-chrome-bg:            #15110A;
+  --pl-chrome-surface:       #1F1A12;
+  --pl-chrome-surface-2:     #272015;
+  --pl-chrome-border:        #2F2819;
+  --pl-chrome-border-strong: #3F3726;
+  --pl-chrome-text:          #F1EBDC;
+  --pl-chrome-text-soft:     #D4CDBC;
+  --pl-chrome-text-muted:    #9A9080;
+  --pl-chrome-accent:        #E08A5C;
+  --pl-chrome-accent-soft:   rgba(224,138,92,0.14);
+  --pl-chrome-accent-ink:    #0D0B07;
+  --pl-chrome-rail:          #0A0806;
+}
+
+/* The italic-display voice of the chrome: lavender ink (BRAND uses
+   olive on the published site; the product chrome uses lavender). */
+.pl8-display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--lavender-ink);
+}

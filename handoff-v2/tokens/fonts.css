@@ -1,0 +1,17 @@
+/* ═══════════════════════════════════════════════════════════════
+   FONTS — Pearloom typeface stack
+   ───────────────────────────────────────────────────────────────
+   Display / Heading : Fraunces (variable — opsz · SOFT · WONK).
+                       Italic is the brand's voice (BRAND §4).
+   Body              : Geist
+   Mono / labels     : Geist Mono (editorial uppercase labels)
+   Script            : Caveat (handwritten notes, captions)
+
+   All four are served from Google Fonts. The repo loaded them via
+   next/font; here we @import the hosted CSS so a consumer who links
+   styles.css gets the webfonts with zero extra setup. If you need
+   self-hosted binaries, drop them in assets/fonts/ and swap these
+   @imports for @font-face rules pointing at the local files.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Caveat:wght@400..700&display=swap");

@@ -1,0 +1,27 @@
+<!-- @dsCard group="Brand" viewport="700x220" name="Monograms" subtitle="Couple monogram — six editorial frames" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); }
+  .row { display: flex; align-items: center; justify-content: space-around; gap: 8px; padding: 24px 26px; flex-wrap: wrap; }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .m span { font-family: var(--pl-font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pl-muted); }
+</style>
+</head>
+<body>
+<div class="row" id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../_ds_bundle.js"></script>
+<script>
+  var h=React.createElement, NS=window.PearloomDesignSystem_55118c, Monogram=NS.Monogram;
+  var frames=[['ring','M','J',false],['interlock','M','J',false],['crest','A','',true],['wreath','M','J',false],['diamond','M','J',false],['plain','M','J',false]];
+  function App(){ return h(React.Fragment,null, frames.map(function(f,i){
+    return h('div',{className:'m',key:i}, h(Monogram,{frame:f[0],left:f[1],right:f[2],single:f[3],size:96}), h('span',null,f[0])); })); }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
