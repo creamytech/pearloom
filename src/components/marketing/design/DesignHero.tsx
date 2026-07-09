@@ -751,6 +751,10 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             flex-wrap: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            /* Only claim horizontal pans — a vertical swipe that lands on
+               this strip still scrolls the page instead of being eaten by
+               the horizontal scroller. */
+            touch-action: pan-x;
           }
           .pd-occ-tabs::-webkit-scrollbar {
             display: none;

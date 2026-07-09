@@ -151,7 +151,12 @@ export default function LandingPageWrapper() {
           minHeight: '100vh',
           fontFamily: 'var(--pl-font-body)',
           position: 'relative',
-          overflowX: 'hidden',
+          // overflow-x: clip (not hidden). `hidden` forces overflow-y to
+          // `auto` per spec, turning this <main> into a nested scroll
+          // container — on iOS that traps vertical touch swipes over the
+          // hero. `clip` hides horizontal overflow without a scroll box,
+          // so the page scrolls on the window as it should.
+          overflowX: 'clip',
         }}
       >
         <ThreadSpine />
