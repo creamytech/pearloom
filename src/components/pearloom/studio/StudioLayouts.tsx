@@ -214,7 +214,16 @@ export function MotifOverlay({
   if (motif === 'stamp') {
     return (
       <div style={{ position: 'absolute', top: 16, right: 16, transform: 'rotate(8deg)', zIndex: 3 }}>
-        <Stamp size={70} tone={palette.id === 'sage' ? 'sage' : palette.id === 'peach' ? 'peach' : 'lavender'} text={stampText} icon="heart" rotation={0} />
+        <Stamp
+          size={70}
+          tone={palette.id === 'sage' ? 'sage' : palette.id === 'peach' ? 'peach' : 'lavender'}
+          // Dark papers (twilight) stamp in the palette's light
+          // accent so the postmark stays legible on navy.
+          inkColor={palette.id === 'twilight' ? palette.accent : undefined}
+          text={stampText}
+          icon="heart"
+          rotation={0}
+        />
       </div>
     );
   }

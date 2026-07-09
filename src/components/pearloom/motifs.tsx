@@ -261,6 +261,7 @@ export function Stamp({
   text = 'MADE FOR MEANINGFUL MOMENTS',
   icon = 'pear',
   rotation = -8,
+  inkColor,
   className = '',
   style,
 }: {
@@ -269,17 +270,25 @@ export function Stamp({
   text?: string;
   icon?: 'pear' | 'heart' | 'sparkle';
   rotation?: number;
+  /** Override the postmark ink — for dark papers (e.g. the Studio's
+   *  twilight palette) pass a light accent so the mark stays legible. */
+  inkColor?: string;
   className?: string;
   style?: CSSProperties;
 }) {
   const id = useId();
-  const tones: Record<StampTone, { bg: string; ink: string }> = {
-    lavender: { bg: '#C4B5D9', ink: '#3D4A1F' },
-    peach: { bg: '#F0C9A8', ink: '#3D4A1F' },
-    sage: { bg: '#CBD29E', ink: '#3D4A1F' },
-    cream: { bg: '#F3E9D4', ink: '#3D4A1F' },
+  /* A POSTMARK, not a sticker (owner call, 2026-07-09: the old
+     solid pastel disc read as a sticker pasted over the design).
+     Ink rings on bare paper — the paper always shows through.
+     Tones now pick the ink, never a background. */
+  const inks: Record<StampTone, string> = {
+    lavender: '#7C6E9C',
+    peach: '#C6703D',
+    sage: '#5C6B3F',
+    cream: '#8A6A2E',
   };
-  const t = tones[tone];
+  const ink = inkColor ?? inks[tone] ?? inks.lavender;
+  const label = (text ?? '').toUpperCase();
   return (
     <div
       className={className}
@@ -291,26 +300,27 @@ export function Stamp({
         ...style,
       }}
     >
-      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden>
-        <circle cx="50" cy="50" r="48" fill={t.bg} />
-        <circle cx="50" cy="50" r="44" fill="none" stroke={t.ink} strokeWidth="0.5" strokeDasharray="1 3" />
+      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden style={{ opacity: 0.9 }}>
+        <circle cx="50" cy="50" r="47.5" fill="none" stroke={ink} strokeWidth="1.4" />
+        <circle cx="50" cy="50" r="44.5" fill="none" stroke={ink} strokeWidth="0.5" />
+        <circle cx="50" cy="50" r="29.5" fill="none" stroke={ink} strokeWidth="0.6" strokeDasharray="0.8 2.6" />
         <defs>
-          <path id={`${id}-arc`} d="M 50,50 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
+          <path id={`${id}-arc`} d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" />
         </defs>
-        <text fill={t.ink} fontSize="9" fontWeight={700} fontFamily="Inter, sans-serif" letterSpacing="1.2">
+        <text fill={ink} fontSize="8" fontWeight={600} fontFamily="var(--font-mono, 'Geist Mono', ui-monospace, monospace)" letterSpacing="1.8">
           <textPath href={`#${id}-arc`} startOffset="2%">
-            {text} · {text} ·
+            {label} · {label} ·
           </textPath>
         </text>
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
-        {icon === 'pear' && <Pear size={size * 0.32} tone="ink" shadow={false} />}
+      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', opacity: 0.9 }}>
+        {icon === 'pear' && <Pear size={size * 0.26} tone="ink" shadow={false} />}
         {/* Legacy 'heart' icon now renders the Sprig glyph — every
             prior Stamp icon="heart" call automatically swaps. */}
-        {icon === 'heart' && <Sprig size={size * 0.36} color="#3D4A1F" />}
+        {icon === 'heart' && <Sprig size={size * 0.3} color={ink} />}
         {icon === 'sparkle' && (
-          <svg viewBox="0 0 24 24" width={size * 0.32} height={size * 0.32}>
-            <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#3D4A1F" />
+          <svg viewBox="0 0 24 24" width={size * 0.26} height={size * 0.26}>
+            <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill={ink} />
           </svg>
         )}
       </div>

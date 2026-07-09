@@ -86,4 +86,15 @@ tiles, sent phases, thanked rows, done moments); BRAND §7 copy
 fixes. New chrome rules for future sessions: statuses render via
 StateChip (never bare colored text), one plate per route (never
 two), pattern-as-state via pl-hatch (never new patterns). vitest
-1269/1269; the next plan doc hasn't been written yet.
+1269/1269.
+
+**`docs/STUDIO-PLAN.md` is the next plan** (authored 2026-07-09,
+owner brief: replace the pastel Stamp marks + bring the Studio to
+editor-level customization with paper parity). SV.0 SHIPPED same
+day: the `Stamp` motif redesigned in place (`pearloom/motifs.tsx`)
+from a solid pastel disc to a letterpress ink postmark — hairline
+double ring, dotted inner ring, mono-caps circular text, tone
+picks the ink, paper shows through; every consumer swapped
+automatically; visual harness at `/dev/marks`. SV.1–SV.6 are
+planned, unexecuted. New mark law: marks are STAMPED ink, never
+pastel sticker discs.
