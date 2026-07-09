@@ -323,6 +323,73 @@ export default function LandingPageWrapper() {
               animation: none !important;
             }
           }
+
+          /* ── Phone snap shelves (≤640px only; inert on desktop) ────
+             .pd-shelf turns a stacked card grid into a horizontal
+             swipe shelf: ~82vw cards with the next card peeking (the
+             affordance), edge-fade mask, hidden scrollbar. touch-action
+             pan-x pan-y (NEVER bare pan-x — per spec that forbids
+             vertical page scroll for touches starting on the element).
+             .pd-shelf-row is the small-chip variant for control rows. */
+          @media (max-width: 640px) {
+            main.pd-landing .pd-shelf {
+              display: flex !important;
+              flex-wrap: nowrap !important;
+              gap: 12px !important;
+              overflow-x: auto;
+              overflow-y: visible;
+              scroll-snap-type: x mandatory;
+              overscroll-behavior-x: contain;
+              -webkit-overflow-scrolling: touch;
+              touch-action: pan-x pan-y;
+              margin-inline: -20px;
+              padding-inline: 20px;
+              padding-block: 8px 18px;
+              scroll-padding-inline: 20px;
+              scrollbar-width: none;
+              -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 44px), transparent 100%);
+              mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 44px), transparent 100%);
+            }
+            main.pd-landing .pd-shelf::-webkit-scrollbar {
+              display: none;
+            }
+            main.pd-landing .pd-shelf > * {
+              flex: 0 0 min(82vw, 340px) !important;
+              min-width: 0;
+              scroll-snap-align: start;
+            }
+            main.pd-landing .pd-shelf-row {
+              display: flex !important;
+              flex-wrap: nowrap !important;
+              max-height: none !important;
+              overflow-x: auto;
+              overflow-y: hidden;
+              scroll-snap-type: x proximity;
+              overscroll-behavior-x: contain;
+              -webkit-overflow-scrolling: touch;
+              touch-action: pan-x pan-y;
+              scrollbar-width: none;
+              -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+              mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent 100%);
+            }
+            main.pd-landing .pd-shelf-row::-webkit-scrollbar {
+              display: none;
+            }
+            main.pd-landing .pd-shelf-row > * {
+              scroll-snap-align: start;
+              flex-shrink: 0;
+            }
+            /* Shelf cards must not ride the [data-rv] reveal: the
+               IntersectionObserver never fires for horizontally clipped
+               cards, so without this they'd arrive blank when swiped to. */
+            main.pd-landing .pd-shelf [data-rv],
+            main.pd-landing .pd-shelf > [data-rv] {
+              opacity: 1 !important;
+              transform: none !important;
+              filter: none !important;
+              transition: none !important;
+            }
+          }
         `}</style>
       </main>
     </GrooveMotion>

@@ -163,7 +163,7 @@ export function DesignJourney() {
       </section>
 
       <style>{`
-        @media (max-width: 720px) {
+        @media (max-width: 900px) {
           .dj-grid {
             grid-template-columns: 1fr !important;
             gap: 36px !important;

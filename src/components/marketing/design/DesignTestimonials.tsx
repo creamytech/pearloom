@@ -228,7 +228,7 @@ export function DesignTestimonials() {
       </div>
 
       <style jsx>{`
-        @media (max-width: 820px) {
+        @media (max-width: 900px) {
           :global(.pd-testimonials-grid) {
             grid-template-columns: 1fr !important;
           }

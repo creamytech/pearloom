@@ -328,7 +328,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
             display: flex !important;
           }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           :global(.pd-nav-signin) {
             display: none !important;
           }

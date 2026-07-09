@@ -736,8 +736,17 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             width: 100%;
             max-width: 560px;
           }
+          /* Contain the floating cards inside the single column so they
+             stop overhanging the viewport in the 641-900 band (they
+             hide entirely at 640). */
+          .pd-pcard.dash {
+            left: 6px;
+          }
+          .pd-pcard.album {
+            right: 6px;
+          }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           .pd-pcard {
             display: none;
           }

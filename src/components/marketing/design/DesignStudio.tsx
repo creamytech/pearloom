@@ -607,7 +607,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
       </div>
 
       <style jsx>{`
-        @media (max-width: 880px) {
+        @media (max-width: 900px) {
           :global(.pd-studio-grid) {
             grid-template-columns: 1fr !important;
           }

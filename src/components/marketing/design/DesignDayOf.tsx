@@ -103,7 +103,7 @@ export function DesignDayOf() {
         </p>
       </div>
 
-      {/* Two columns → stacks below 820px */}
+      {/* Two columns → stacks below 900px */}
       <div
         className="pd-day-grid"
         style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 24, alignItems: 'start' }}
@@ -289,7 +289,7 @@ export function DesignDayOf() {
       </div>
 
       <style jsx>{`
-        @media (max-width: 820px) {
+        @media (max-width: 900px) {
           :global(.pd-day-grid) {
             grid-template-columns: 1fr !important;
           }

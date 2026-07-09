@@ -41,7 +41,21 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
             style={{ ['--rv-d' as string]: `${(i % 4) * 90}ms` } as React.CSSProperties}
             onClick={() => o.key && onPickOccasion?.(o.key)}
           >
-            <img src={U(o.img, 700)} alt={o.nm} loading="lazy" decoding="async" />
+            {/* Paper-tile fallback behind the photograph: a failed image
+                load reveals the occasion initial on paper inside a
+                hairline frame, never an empty gradient. */}
+            <span className="pd-gfallback" aria-hidden>
+              {o.nm.charAt(0)}
+            </span>
+            <img
+              src={U(o.img, 700)}
+              alt={o.nm}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.style.opacity = '0';
+              }}
+            />
             <span className="pd-gmeta">
               <span className="pd-gtone">{o.tone}</span>
               <span className="pd-gnm">{o.nm}</span>
@@ -71,8 +85,22 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
           overflow: hidden;
           aspect-ratio: 3 / 4;
           cursor: pointer;
+          background: var(--pd-paper2, #f7f0e0);
           box-shadow: var(--pl-shadow-sm, 0 4px 14px -6px rgba(31, 36, 24, 0.2));
           transition: transform 0.4s var(--pl-ease-emphasis, ease), box-shadow 0.4s;
+        }
+        .pd-gfallback {
+          position: absolute;
+          inset: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--pd-line, #e2d9c3);
+          border-radius: 10px;
+          font-family: var(--pl-font-display);
+          font-style: italic;
+          font-size: 64px;
+          color: var(--pd-stone, #c8bfa5);
         }
         .pd-gtile:hover {
           transform: translateY(-6px);
@@ -138,6 +166,17 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
         .pd-gtile:hover .pd-gblk {
           opacity: 1;
           max-height: 22px;
+        }
+        /* Touch devices have no hover: the block count and the settled
+           label position must simply be there. Desktop keeps the reveal. */
+        @media (hover: none) {
+          .pd-gblk {
+            opacity: 1;
+            max-height: 22px;
+          }
+          .pd-gmeta {
+            transform: none;
+          }
         }
         @media (max-width: 900px) {
           .pd-gallery {
