@@ -839,16 +839,16 @@ export function MobileNextStepStrip({ label, hint, onFollow, onDismiss }: {
           pointerEvents: 'auto',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 2,
+          gap: 7,
           maxWidth: '100%',
-          padding: '3px 5px 3px 6px',
+          padding: '4px 7px 4px 8px',
           borderRadius: 999,
           background: 'var(--pl-glass)',
           backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           border: '1px solid var(--pl-glass-border)',
-          boxShadow: '0 10px 30px rgba(40,40,30,0.16)',
+          boxShadow: '0 12px 32px rgba(40,40,30,0.18)',
         }}
       >
         <button
@@ -887,6 +887,9 @@ export function MobileNextStepStrip({ label, hint, onFollow, onDismiss }: {
           </span>
           <Icon name="arrow-right" size={11} color="var(--ink-soft)" />
         </button>
+        {/* Hairline between the action and its dismiss — two targets
+            should read as two targets. */}
+        <span aria-hidden style={{ width: 1, height: 16, background: 'var(--line)', flexShrink: 0 }} />
         <button
           type="button"
           className="pl-hit44"

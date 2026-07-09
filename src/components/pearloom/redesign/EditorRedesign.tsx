@@ -760,8 +760,12 @@ export default function EditorRedesign({
       )}
       {/* Golden-thread strip — the one next-best-action, riding
           above the bottom bar. Hidden while a sheet is open (it
-          would collide) and in preview. Dismiss lasts the session. */}
-      {viewportMobile && mode === 'edit' && mobileSheet === null && !nextStepDismissed && nextStep && (
+          would collide) and in preview. Dismiss lasts the session.
+          ONE floater in the lane at a time: the return-reassurance
+          card below rides the same spot, so the strip yields until
+          it finishes (they stacked on top of each other — owner
+          screenshot 2026-07-09). */}
+      {viewportMobile && mode === 'edit' && mobileSheet === null && !returnNote && !nextStepDismissed && nextStep && (
         <MobileNextStepStrip
           label={nextStep.label}
           hint={nextStep.hint}
@@ -926,37 +930,66 @@ export default function EditorRedesign({
         />
       )}
 
-      {/* Return-visit reassurance (S6) — one quiet glass pill, once
-          per browser session per site. Floating chrome per BRAND §9. */}
-      {returnNote && (
+      {/* Return-visit reassurance (S6) — a structured glass card,
+          once per browser session per site. Floating chrome per
+          BRAND §9. Two set lines (lead + quiet sub), never a
+          wrapping mega-pill; hidden while a sheet is up (it would
+          float over the sheet's controls), and the next-step strip
+          yields the lane while this speaks. */}
+      {returnNote && (!viewportMobile || mobileSheet === null) && (
+        /* Wrapper handles the centering so the pop-in keyframe's
+           fill-mode never fights an inline transform (same pattern
+           as PreviewExitPill). */
         <div
-          role="status"
-          className="pl-glass-surface"
           style={{
             position: 'fixed',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: 0,
+            right: 0,
             /* Clears the mobile bottom bar; on desktop it simply
                floats a touch higher — quiet either way. */
-            bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
+            bottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
             zIndex: 70,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 18px',
-            borderRadius: 999,
-            border: '1px solid var(--line)',
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            maxWidth: 'min(92vw, 520px)',
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
           }}
         >
-          <Icon name="check" size={13} color="var(--sage-deep, #5C6B3F)" />
-          <span>
-            Everything you set is here.
-            {!isManifestPublished(bridge.manifest) && ' Nothing is public until you publish.'}
+        <div
+          role="status"
+          className="pl-glass-surface pl-rd-pop-in"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 11,
+            padding: '11px 16px 11px 12px',
+            borderRadius: 14,
+            border: '1px solid var(--line)',
+            boxShadow: '0 12px 32px rgba(40,28,12,0.16)',
+            width: 'max-content',
+            maxWidth: 'min(92vw, 420px)',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+              background: 'var(--sage-bg, rgba(92,107,63,0.14))',
+              display: 'grid', placeItems: 'center',
+            }}
+          >
+            <Icon name="check" size={12} color="var(--sage-deep, #5C6B3F)" />
           </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.35 }}>
+              Everything you set is here.
+            </span>
+            {!isManifestPublished(bridge.manifest) && (
+              <span style={{ display: 'block', fontSize: 11.5, fontWeight: 500, color: 'var(--ink-soft)', lineHeight: 1.35 }}>
+                Nothing is public until you publish.
+              </span>
+            )}
+          </span>
+        </div>
         </div>
       )}
     </div>
