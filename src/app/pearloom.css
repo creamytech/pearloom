@@ -3016,6 +3016,18 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-editable] [data-section-id] {
   content-visibility: visible;
 }
+/* iOS async-scroll checkerboarding (owner report 2026-07-09): on a
+   fast flick the phone editor showed blank paper for a beat while
+   Safari re-rasterized the long, blend-heavy canvas. Promoting each
+   section to its own compositing layer keeps painted sections
+   cached across the flick. Editable + phones only; the nav is
+   excluded (its phone menus position drawers fixed — a transformed
+   ancestor would trap them). */
+@media screen and (max-width: 760px) {
+  .pl8-guest[data-pl-editable] [data-section-id]:not([data-section-id='nav']) {
+    transform: translateZ(0);
+  }
+}
 
 /* ── Editor canvas hover chrome (TSection) ───────────────────
    The dashed basting outline + section label on hover are pure
@@ -6429,60 +6441,31 @@ html { scroll-behavior: smooth; }
   z-index: 0 !important; /* beats the component's inline zIndex 6 */
 }
 
-/* ── Editor: the paper SHOWS again (owner request 2026-07-09) ──
-   Sinking the washes made the editor's canvas read as untextured
-   paper — a host picking Linen saw nothing until Preview. The
-   per-section wash returns in editable mode, mounted on the
-   TSection divs ([data-section-id]) at z-index 50: ABOVE the
-   section's content (z-auto) but BELOW every piece of editing
-   chrome — selection frame 104, "Editing ·" tag 106, photo hints
-   106, layout chip 110 — which all share the same z-1 wrapper
-   stacking context. Root-level washes stay sunk (from the root
-   context they'd paint over that chrome). Published sites are
-   untouched: [data-pl-editable] never ships. */
-.pl8-guest[data-pl-editable][data-pl-texture]:not([data-pl-texture="smooth"]) [data-section-id]::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-  mix-blend-mode: multiply;
-  opacity: calc(0.35 * var(--pl-texture-intensity, 1));
-}
-
 /* Per-texture per-section grain — same SVG noise filters as the
    root layer but mounted per-section so it actually tints each
    section's visible content. */
-.pl8-guest[data-pl-texture="watercolor"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="watercolor"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="watercolor"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wcs' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.55 0 0 0 0 0.35 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wcs)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="linen"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="linen"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="linen"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='lns'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95 0.15' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.72 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23lns)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="letterpress"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="letterpress"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="letterpress"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='lps'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.65 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23lps)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="vellum"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="vellum"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="vellum"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vls'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.45 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vls)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="newsprint"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="newsprint"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="newsprint"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='nps'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.58' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23nps)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="paper"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="paper"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="paper"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='ps'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.18 0 0 0 0 0.12 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23ps)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="cotton"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="cotton"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="cotton"] section[id]::after {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='cs'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5 0.85' numOctaves='2' seed='6' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.22 0 0 0 0 0.18 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23cs)'/%3E%3C/svg%3E");
 }
-.pl8-guest[data-pl-texture="velvet"] section[id]::after,
-.pl8-guest[data-pl-editable][data-pl-texture="velvet"] [data-section-id]::after {
+.pl8-guest[data-pl-texture="velvet"] section[id]::after {
   background-image:
     repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px),
     linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.10) 50%, transparent 72%);

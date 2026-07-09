@@ -4864,6 +4864,13 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
            z-100 grain) so chrome scrolling beneath it is covered.
            Published site keeps 50 — under the grain, as designed. */
         ...(stickyTop ? { top: 0, zIndex: editable ? 112 : 50 } : {}),
+        /* Phones promote each editable section to its own compositing
+           layer (pearloom.css translateZ — iOS scroll blanking fix),
+           which makes every section a sibling stacking context in
+           DOM order. The ACTIVE section must ride above the next
+           section or its layout-chip popover would paint underneath
+           it. Harmless where no transform applies. */
+        ...(editable && isActive && !stickyTop ? { zIndex: 5 } : {}),
         cursor: editable ? 'pointer' : 'default',
         scrollMarginTop: 80,
       }}
