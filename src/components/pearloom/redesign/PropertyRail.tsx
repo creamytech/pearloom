@@ -485,40 +485,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     ? (section ? (liveSectionDesc(section.id, manifest) ?? section.desc) : 'Click any section on the canvas (or in the list on the left) to edit it.')
     : 'Theme, type, texture & navigation, for the whole site.';
 
-  return (
-    <aside
-      className="pl-rd-rail-right"
-      style={{
-        /* Desktop grid placement only — inside the phone bottom
-           sheet's single-cell grid, the named-area lookup creates an
-           implicit empty track that shoves the rail off-center (same
-           fix as PearAside / SectionRail). */
-        ...(isMobileViewport
-          ? {}
-          : { gridArea: 'right', borderLeft: '1px solid var(--line-soft)' }),
-        background: 'var(--card)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header — prototype L684-694. */}
-      <div style={{ padding: '16px 20px 10px', borderBottom: '1px solid var(--line-soft)' }}>
-        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          {headEyebrow}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
-            {headTitle}
-          </h3>
-          {/* Design tab — hold to see the site before the last
-              change (read-only undo-stack peek). */}
-          {effectiveTab === 'design' && <CompareHold />}
-          {/* Hide / move act on canvas sections; tool panels (Guests,
-              Share, Privacy…) aren't on the canvas, so the controls
-              would write meaningless keys into hiddenSections. */}
-          {effectiveTab === 'content' && section && !isToolPanel && (
-          <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
+  /* Eye + ⋯ section controls — ONE instance (it owns optionsWrapRef +
+     the options dropdown), homed in the desktop title row or beside
+     the mobile tab strip (EDITOR-RAILS-PLAN DK.2). */
+  const sectionActions = section ? (
+    <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
             <button
               type="button"
               title={
@@ -611,22 +582,65 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
               </div>
             )}
           </div>
-          )}
+  ) : null;
+
+  return (
+    <aside
+      className="pl-rd-rail-right"
+      style={{
+        /* Desktop grid placement only — inside the phone bottom
+           sheet's single-cell grid, the named-area lookup creates an
+           implicit empty track that shoves the rail off-center (same
+           fix as PearAside / SectionRail). */
+        ...(isMobileViewport
+          ? {}
+          : { gridArea: 'right', borderLeft: '1px solid var(--line-soft)' }),
+        background: 'var(--card)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header — prototype L684-694. On phones (DK.2) the sheet's own
+          header already names the section, so the eyebrow / title /
+          blurb stand down and ONE compact row carries the tabs plus
+          the section controls — ~90px returned to the controls. Tool
+          panels own the whole rail; on phones their header renders
+          nothing, so it unmounts. */}
+      {!(isMobileViewport && isToolPanel) && (
+      <div style={{ padding: isMobileViewport ? '10px 14px 8px' : '16px 20px 10px', borderBottom: '1px solid var(--line-soft)' }}>
+        {!isMobileViewport && (<>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          {headEyebrow}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
+            {headTitle}
+          </h3>
+          {/* Design tab — hold to see the site before the last
+              change (read-only undo-stack peek). */}
+          {effectiveTab === 'design' && <CompareHold />}
+          {/* Hide / move act on canvas sections; tool panels (Guests,
+              Share, Privacy…) aren't on the canvas, so the controls
+              would write meaningless keys into hiddenSections. */}
+          {effectiveTab === 'content' && section && !isToolPanel && sectionActions}
         </div>
         <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{headDesc}</div>
+        </>)}
 
         {/* Tabs — Content · Design · ✦ Motion (the v2 inspector).
             Hidden on tool panels (Guests / Share / Day-of / etc.)
             which own the whole rail with their own workspace. */}
         {!isToolPanel && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: isMobileViewport ? 0 : 12 }}>
         <div
           style={{
+            flex: 1,
             display: 'flex',
             gap: 4,
             padding: 3,
             background: 'var(--cream-2)',
             borderRadius: 8,
-            marginTop: 12,
           }}
         >
           {([
@@ -662,8 +676,12 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
             );
           })}
         </div>
+        {isMobileViewport && effectiveTab === 'design' && <CompareHold />}
+        {isMobileViewport && effectiveTab === 'content' && section && !isToolPanel && sectionActions}
+        </div>
         )}
       </div>
+      )}
 
       {/* Body — prototype L718-790. minHeight: 0 is critical for the
           flex:1 + overflow:auto pattern to actually scroll inside a

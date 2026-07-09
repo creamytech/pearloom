@@ -8,7 +8,7 @@
    Every className + inline style here is verbatim from the prototype.
    ========================================================================= */
 
-import { useState, type ReactNode, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react';
 import { Icon, Pear } from '../../motifs';
 
 export function FGroup({
@@ -146,9 +146,71 @@ export function FToggleStandalone({ label, sub, def = false, onChange }: { label
    .lift / .btn / .btn-outline / .btn-primary / .btn-sm classes resolve
    (those are scoped under .pl8 in src/app/pearloom.css). */
 export function SectionPanelShell({ children }: { children: ReactNode }) {
+  /* DK.1 (EDITOR-RAILS-PLAN): inside the phone bottom sheet, the
+     shell's first child — the panel's flex column of FGroups —
+     becomes a horizontal snap DECK: one control group per swipeable
+     card, sized to the sheet, instead of a cramped vertical scroll
+     nobody notices. Pure CSS ([data-pl-mobile-sheet] .pl-panel-shell
+     in pearloom.css); desktop rendering is untouched. The dot rail
+     below tracks the active card. */
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   return (
-    <div className="pl8" style={{ padding: 14 } as CSSProperties}>
+    <div ref={wrapRef} className="pl8 pl-panel-shell" style={{ padding: 14 } as CSSProperties}>
       {children}
+      <PanelDeckDots wrapRef={wrapRef} />
+    </div>
+  );
+}
+
+/* PanelDeckDots — the deck's position rail. Renders nothing outside
+   the phone sheet (where the deck CSS is inert). Card count comes
+   from the DOM (the deck's children), so panels never declare it. */
+function PanelDeckDots({ wrapRef }: { wrapRef: React.RefObject<HTMLDivElement | null> }) {
+  const [state, setState] = useState<{ count: number; active: number } | null>(null);
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    /* Deck mode = inside the mobile sheet on a phone viewport. */
+    const inSheet = !!wrap.closest('[data-pl-mobile-sheet]');
+    const phone = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+    if (!inSheet || !phone) return;
+    const deck = wrap.firstElementChild as HTMLElement | null;
+    if (!deck || deck.children.length < 2) return;
+    const measure = () => {
+      const kids = [...deck.children] as HTMLElement[];
+      if (kids.length < 2) { setState(null); return; }
+      const mid = deck.scrollLeft + deck.clientWidth / 2;
+      let active = 0;
+      kids.forEach((k, i) => {
+        if (k.offsetLeft <= mid) active = i;
+      });
+      setState({ count: kids.length, active });
+    };
+    const raf = requestAnimationFrame(measure);
+    deck.addEventListener('scroll', measure, { passive: true });
+    const ro = new ResizeObserver(measure);
+    ro.observe(deck);
+    return () => {
+      cancelAnimationFrame(raf);
+      deck.removeEventListener('scroll', measure);
+      ro.disconnect();
+    };
+  }, [wrapRef]);
+  if (!state) return null;
+  return (
+    <div className="pl-panel-deck-dots" aria-hidden style={{ display: 'flex', justifyContent: 'center', gap: 5, paddingTop: 8 }}>
+      {Array.from({ length: state.count }, (_, i) => (
+        <span
+          key={i}
+          style={{
+            width: i === state.active ? 14 : 5,
+            height: 5,
+            borderRadius: 999,
+            background: i === state.active ? 'var(--pl-gold, #C19A4B)' : 'var(--line)',
+            transition: 'width 200ms var(--pl-ease-out, ease), background 200ms var(--pl-ease-out, ease)',
+          }}
+        />
+      ))}
     </div>
   );
 }

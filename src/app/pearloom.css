@@ -9284,3 +9284,61 @@ html { scroll-behavior: smooth; }
     scroll-snap-align: center;
   }
 }
+
+
+/* ── The phone editor's control deck (EDITOR-RAILS-PLAN DK.1,
+   2026-07-09) ──
+   Inside the mobile bottom sheet, each section panel's top-level
+   control groups become swipeable CARDS on a horizontal snap deck
+   instead of a cramped vertical scroll. Scope is the sheet's
+   [data-pl-mobile-sheet] attribute (never present on desktop), so
+   the desktop rail keeps the stacked form verbatim. The shell's
+   first child is the panel's own flex column of FGroups — the deck
+   re-cuts it without touching 39 panel files. */
+@media (max-width: 767px) {
+  [data-pl-mobile-sheet] .pl-panel-shell {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0 6px !important;
+  }
+  [data-pl-mobile-sheet] .pl-panel-shell > :first-child {
+    flex: 1;
+    min-height: 0;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    padding-inline: 14px;
+    scrollbar-width: none;
+    align-items: stretch;
+  }
+  [data-pl-mobile-sheet] .pl-panel-shell > :first-child::-webkit-scrollbar { display: none; }
+  [data-pl-mobile-sheet] .pl-panel-shell > :first-child > * {
+    flex: 0 0 86%;
+    min-width: 0;
+    scroll-snap-align: center;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    background: var(--cream-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 14px;
+    margin: 0;
+  }
+  /* A lone group (single-card panels) takes the full width — no
+     phantom second-card peek on panels with one group. */
+  [data-pl-mobile-sheet] .pl-panel-shell > :first-child > :only-child {
+    flex: 1 0 100%;
+  }
+  /* The "More" disclosure keeps its identity as a quiet card. */
+  [data-pl-mobile-sheet] .pl-panel-shell > :first-child > details.pl-panel-more {
+    background: var(--cream-2);
+  }
+}
