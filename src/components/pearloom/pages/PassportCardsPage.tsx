@@ -196,7 +196,7 @@ export function PassportCardsPage() {
                 }}
               >
                 <div
-                  className="pl8-passport-grid"
+                  className="pl8-passport-grid pl8-homerow pl8-homerow-flush"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',

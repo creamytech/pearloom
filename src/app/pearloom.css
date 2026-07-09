@@ -9240,7 +9240,7 @@ html { scroll-behavior: smooth; }
    dashboard home pads clamp(20px,4vw,40px); PLChrome pages
    (keepsakes etc.) pad 18px on phones. Desktop is untouched —
    these rules exist only under 640px. */
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .pl8 .pl8-homerow {
     --pl-shelf-gutter: clamp(20px, 4vw, 40px);
     display: flex !important;
@@ -9295,7 +9295,7 @@ html { scroll-behavior: smooth; }
    grammar. Filtered/search results keep the vertical list —
    those sets are already small and scanning them top-to-bottom
    is the point. The store's main pads 26px at every width. */
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .pl-store-root .pl-store-shelf {
     display: flex !important;
     grid-template-columns: none !important;
@@ -9332,7 +9332,7 @@ html { scroll-behavior: smooth; }
    the desktop rail keeps the stacked form verbatim. The shell's
    first child is the panel's own flex column of FGroups — the deck
    re-cuts it without touching 39 panel files. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   [data-pl-mobile-sheet] .pl-panel-shell {
     height: 100%;
     display: flex;
@@ -9377,5 +9377,39 @@ html { scroll-behavior: smooth; }
   /* The "More" disclosure keeps its identity as a quiet card. */
   [data-pl-mobile-sheet] .pl-panel-shell > :first-child > details.pl-panel-more {
     background: var(--cream-2);
+  }
+}
+
+/* ── The Studio's phone design deck (cards wave C) ──
+   The Studio's Design/Words sheets mount RemixRail — a vertical
+   column of control groups inside the same MobileSheet the editor
+   uses. Same grammar as the editor's control deck: each group
+   becomes a swipeable card. Desktop rail untouched (the selector
+   requires the sheet). */
+@media screen and (max-width: 767px) {
+  [data-pl-mobile-sheet] .pl-studio-scroll {
+    flex-direction: row !important;
+    gap: 10px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    scrollbar-width: none;
+    align-items: stretch;
+  }
+  [data-pl-mobile-sheet] .pl-studio-scroll::-webkit-scrollbar { display: none; }
+  [data-pl-mobile-sheet] .pl-studio-scroll > * {
+    flex: 0 0 86%;
+    min-width: 0;
+    scroll-snap-align: center;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    background: var(--cream-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 14px;
   }
 }
