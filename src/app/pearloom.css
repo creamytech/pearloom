@@ -95,14 +95,29 @@
   --line:        var(--pl-divider, rgba(14, 13, 11, 0.14));
   --line-soft:   var(--pl-divider-soft, rgba(14, 13, 11, 0.06));
 
-  /* Dashboard glow — the warm atmosphere behind the cockpit, ported
-     1:1 from the v2 ui_kits/dashboard/index.html (--glow): a peach
-     bloom top-right + a sage bloom top-left over the sunk cream
-     ground. Painted on .pl8-dashshell > main. */
+  /* Dashboard atmosphere — heirloom paper, not a productivity
+     surface. Layered (top → bottom): an almost-invisible woven
+     texture (two thread directions), the old drafting grid kept at
+     ~5% as a faded artifact, a warm vignette that settles the edges
+     so the celebration hero pops at the center, then the v2 peach +
+     sage blooms over the sunk cream ground. Painted on
+     .pl8-dashshell > main. */
   --pl-dash-glow:
+    repeating-linear-gradient(0deg, rgba(61, 54, 38, 0.016) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(61, 54, 38, 0.012) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(61, 54, 38, 0.045) 1px, transparent 1px) 0 -1px / 44px 44px,
+    linear-gradient(90deg, rgba(61, 54, 38, 0.045) 1px, transparent 1px) -1px 0 / 44px 44px,
+    radial-gradient(130% 100% at 50% 0%, transparent 52%, rgba(84, 62, 38, 0.07) 100%),
     radial-gradient(ellipse 70% 55% at 100% -5%, var(--peach-bg) 0%, transparent 60%),
     radial-gradient(ellipse 48% 42% at -3% 6%, var(--sage-tint) 0%, transparent 55%),
     var(--cream-3);
+
+  /* Sidebar active pill — deep olive folded with a little brown
+     warmth. Pure --ink read as a harsh black slab against the soft
+     paper system. Per-theme pair (the ink/cream flip in dark mode
+     would otherwise invert it into a glaring light bar). */
+  --pl-nav-active-bg: color-mix(in oklab, var(--pl-olive-deep, #363F22) 78%, #4A3423);
+  --pl-nav-active-ink: #F7F2E4;
 
   /* Shadow */
   --shadow-sm:  0 2px 6px rgba(61, 74, 31, 0.05);
@@ -168,12 +183,23 @@
   --shadow-md:  0 12px 32px rgba(0, 0, 0, 0.50);
   --shadow-lg:  0 24px 56px rgba(0, 0, 0, 0.55);
 
-  /* Editorial-midnight glow — softer washes so the atmosphere reads
-     without glaring on #0D0B07 (v2 index.html dark --glow). */
+  /* Editorial-midnight atmosphere — same layer stack as light
+     (weave, faded grid artifact, vignette, blooms), cream-toned and
+     quieter so it reads without glaring on #0D0B07. */
   --pl-dash-glow:
+    repeating-linear-gradient(0deg, rgba(241, 235, 220, 0.012) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(241, 235, 220, 0.009) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(241, 235, 220, 0.03) 1px, transparent 1px) 0 -1px / 44px 44px,
+    linear-gradient(90deg, rgba(241, 235, 220, 0.03) 1px, transparent 1px) -1px 0 / 44px 44px,
+    radial-gradient(130% 100% at 50% 0%, transparent 52%, rgba(0, 0, 0, 0.32) 100%),
     radial-gradient(ellipse 70% 55% at 100% -5%, rgba(214,120,82,0.10) 0%, transparent 60%),
     radial-gradient(ellipse 48% 42% at -3% 6%, rgba(151,169,104,0.07) 0%, transparent 55%),
     var(--cream-3);
+
+  /* Sidebar active pill on midnight — a mossy panel with cream
+     ink, in place of the inverted light bar. */
+  --pl-nav-active-bg: color-mix(in oklab, var(--pl-olive, #A4B57A) 26%, var(--pl-cream-card, #1A1610));
+  --pl-nav-active-ink: var(--pl-ink, #F1EBDC);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1930,21 +1956,34 @@ button.pl8-mobile-only { display: none !important; }
   align-items: center;
   gap: 10px;
   flex: 1 1 auto;
-  max-width: 440px;
-  padding: 8px 14px;
+  max-width: 480px;
+  padding: 9px 16px;
   border-radius: 999px;
-  background: var(--cream-3, #F0E8D6);
-  border: 1px solid var(--line, rgba(31, 36, 24, 0.14));
+  /* Command ribbon — a raised paper pill instead of the flat
+     cream-3 fill that vanished into the (already glass) utility
+     bar. Warm card paper, a soft lift, and a hairline that reads. */
+  background: var(--pl-cream-card, var(--card, #FBF7EE));
+  border: 1px solid color-mix(in oklab, var(--pl-gold, #C19A4B) 32%, var(--line, rgba(31, 36, 24, 0.14)));
+  box-shadow:
+    0 10px 26px -16px rgba(61, 54, 31, 0.38),
+    inset 0 1px 0 rgba(255, 253, 245, 0.7);
   cursor: pointer;
   font-family: var(--font-ui, inherit);
   font-size: 13px;
-  color: var(--ink-muted, #6F6557);
+  color: var(--ink-soft, #4A4438);
   transition: border-color var(--pl-dur-fast, 160ms) var(--pl-ease-out, ease),
+    box-shadow var(--pl-dur-fast, 160ms) var(--pl-ease-out, ease),
     background var(--pl-dur-fast, 160ms) var(--pl-ease-out, ease);
 }
 .pl8-dash-ask:hover {
-  border-color: var(--peach-ink, #C6703D);
+  border-color: var(--pl-gold, #C19A4B);
   background: var(--card, #FBF7EE);
+  box-shadow:
+    0 14px 32px -16px rgba(61, 54, 31, 0.45),
+    inset 0 1px 0 rgba(255, 253, 245, 0.7);
+}
+[data-theme='dark'] .pl8-dash-ask {
+  box-shadow: 0 10px 26px -16px rgba(0, 0, 0, 0.6);
 }
 .pl8-dash-ask > svg {
   color: var(--peach-ink, #C6703D);
@@ -1961,10 +2000,11 @@ button.pl8-mobile-only { display: none !important; }
   font-family: var(--pl-font-mono, monospace);
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: var(--ink-muted, #6F6557);
+  color: var(--gold-ink, #8A6A2E);
   padding: 2px 6px;
-  background: var(--peach-bg, #FBE8D6);
-  border-radius: 4px;
+  background: rgba(193, 154, 75, 0.14);
+  border: 1px solid rgba(193, 154, 75, 0.28);
+  border-radius: 5px;
   flex-shrink: 0;
 }
 @media (max-width: 960px) {

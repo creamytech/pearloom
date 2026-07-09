@@ -1107,8 +1107,11 @@ function NavLink({
         borderRadius: 10,
         fontSize: 14,
         fontWeight: isActive ? 600 : 500,
-        color: isActive ? 'var(--cream)' : 'var(--ink)',
-        backgroundColor: isActive ? 'var(--ink)' : 'transparent',
+        /* Deep olive-brown pill, not pure ink — the black slab read
+           harsh against the soft paper system (tokens in pearloom.css,
+           per-theme). */
+        color: isActive ? 'var(--pl-nav-active-ink, var(--cream))' : 'var(--ink)',
+        backgroundColor: isActive ? 'var(--pl-nav-active-bg, var(--ink))' : 'transparent',
         textDecoration: 'none',
         zIndex: 1,
       }}
@@ -1125,7 +1128,7 @@ function NavLink({
             width: 6,
             height: 6,
             borderRadius: 999,
-            background: isActive ? 'var(--cream)' : 'var(--peach-ink, #C6703D)',
+            background: isActive ? 'var(--pl-nav-active-ink, var(--cream))' : 'var(--peach-ink, #C6703D)',
             display: 'inline-block',
             marginRight: 4,
             animation: 'pl-dot-pulse 0.9s ease-in-out infinite',
@@ -1144,10 +1147,10 @@ function NavLink({
             fontWeight: 700,
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             background: isActive
-              ? 'color-mix(in oklab, var(--cream) 18%, transparent)'
+              ? 'color-mix(in oklab, var(--pl-nav-active-ink, var(--cream)) 18%, transparent)'
               : (badgeTone === 'gold' ? 'rgba(193,154,75,0.18)' : 'var(--peach-bg)'),
             color: isActive
-              ? 'var(--cream)'
+              ? 'var(--pl-nav-active-ink, var(--cream))'
               : (badgeTone === 'gold' ? '#8A6A2E' : 'var(--peach-ink)'),
           }}
         >
@@ -1173,7 +1176,7 @@ function NavLinkPending({ isActive }: { isActive: boolean }) {
         width: 6,
         height: 6,
         borderRadius: 999,
-        background: isActive ? 'var(--cream)' : 'var(--peach-ink, #C6703D)',
+        background: isActive ? 'var(--pl-nav-active-ink, var(--cream))' : 'var(--peach-ink, #C6703D)',
         display: 'inline-block',
         marginRight: 4,
         animation: 'pl-dot-pulse 0.9s ease-in-out infinite',

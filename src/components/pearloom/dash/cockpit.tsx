@@ -222,7 +222,7 @@ export function HeroBanner({
   const dateLines = [dateLabel, venueLabel].filter(Boolean) as string[];
 
   return (
-    <div style={{ borderRadius: 'var(--r-md, 20px)', overflow: 'hidden', background: HERO_BG, color: HERO_CREAM, position: 'relative', boxShadow: 'var(--shadow-md, 0 18px 48px -24px rgba(20,24,12,0.55))' }}>
+    <div style={{ borderRadius: 'var(--r-md, 20px)', overflow: 'hidden', background: HERO_BG, color: HERO_CREAM, position: 'relative', boxShadow: '0 34px 80px -34px rgba(30, 24, 10, 0.55), 0 0 0 1px rgba(193, 154, 75, 0.26)' }}>
       <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', backgroundImage: HERO_LINEN, backgroundSize: '5px 5px' }} />
       <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1.32fr 1fr', position: 'relative' }}>
         {/* LEFT — names, countdown, actions */}
