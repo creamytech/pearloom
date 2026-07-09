@@ -9264,6 +9264,14 @@ html { scroll-behavior: smooth; }
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
   }
   .pl8-pl-chrome .pl8-homerow { --pl-shelf-gutter: 18px; }
+  /* Flush variant — for shelves nested INSIDE padded cards/sections
+     (vendor roster, registry items, site index): no edge bleed, and
+     slides size to the CONTAINER (82%) instead of the viewport. */
+  .pl8 .pl8-homerow.pl8-homerow-flush { --pl-shelf-gutter: 0px; }
+  .pl8 .pl8-homerow.pl8-homerow-flush > * {
+    flex: 0 0 82%;
+    max-width: 82%;
+  }
   .pl8 .pl8-homerow::-webkit-scrollbar { display: none; }
   /* Slides: direct children AND the children of dissolved
      .pl8-homestack columns (display: contents removes the stack's

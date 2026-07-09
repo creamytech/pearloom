@@ -573,7 +573,7 @@ export function EventIndexPage() {
 
         {!loading && visibleSites.length > 0 && (
           <div
-            className="pl8-dash-stagger"
+            className="pl8-dash-stagger pl8-homerow pl8-homerow-flush"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',

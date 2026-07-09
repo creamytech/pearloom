@@ -103,6 +103,7 @@ export function RegistryItemsManager({ siteId }: Props) {
         <EmptyState onAdd={() => setShowAdd(true)} />
       ) : (
         <div
+          className="pl8-homerow pl8-homerow-flush"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))',

@@ -668,7 +668,7 @@ export function VendorBookClient() {
                       <div aria-hidden style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
                     </div>
                     <div
-                      className="pd-vb-grid"
+                      className="pd-vb-grid pl8-homerow pl8-homerow-flush"
                       style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
