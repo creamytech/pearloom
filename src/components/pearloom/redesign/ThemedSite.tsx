@@ -868,7 +868,7 @@ function ThemedSiteInner({
        its Layout chip on the canvas (desktop variants, plus the
        phone-menu row TSection special-cases for id="nav") instead
        of a silent gold frame. */
-    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop manifest={manifest} onEditField={onEditField}>
+    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop manifest={manifest} onEditField={onEditField} editorTexture={effectiveTexture} editorTextureIntensity={textureIntensity}>
       <SiteNav
         sectionIds={sections.map(String)}
         isMobile={isMobile}
@@ -888,7 +888,7 @@ function ThemedSiteInner({
          carries the feature toggle + the moderation door. No
          LAYOUTS entry, so no chip; just no dead press. */
       return (
-        <TSection key="guestbook" id="guestbook" label="Guestbook" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField}>
+        <TSection key="guestbook" id="guestbook" label="Guestbook" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField} editorTexture={effectiveTexture} editorTextureIntensity={textureIntensity}>
           <GuestbookSection siteSlug={siteSlug} preview={editable && !siteSlug} />
         </TSection>
       );
@@ -924,6 +924,8 @@ function ThemedSiteInner({
         motif={ctx.motif}
         manifest={manifest}
         onEditField={onEditField}
+        editorTexture={effectiveTexture}
+        editorTextureIntensity={textureIntensity}
       >
         {slatNote ? <ProofSlat label={sectionLabel(kind)} note={slatNote} /> : renderKind(kind, ctx)}
       </TSection>
@@ -945,7 +947,7 @@ function ThemedSiteInner({
        columns footer links to sections living on other pages; the
        page-aware handler navigates there (same path as the header
        nav) instead of preventDefault-ing into a dead anchor. */
-    <TSection id="footer" label="Footer" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField}>
+    <TSection id="footer" label="Footer" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField} editorTexture={effectiveTexture} editorTextureIntensity={textureIntensity}>
       <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
     </TSection>
   );
@@ -4705,7 +4707,7 @@ function SectionDotRail({ sectionIds }: { sectionIds: string[] }) {
 
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, stickyTop, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
+function TSection({ id, label, children, active, setActive, editable, onSectionFocus, hideHandle, stickyTop, motifLayout = 'none', motif = 'none', manifest, onEditField, editorTexture, editorTextureIntensity = 1 }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
@@ -4732,6 +4734,16 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
    *  Absent on the published site — no bar there. */
   manifest?: StoryManifest;
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+  /** Editor-only paper: the root TextureLayer lives in the ROOT
+   *  stacking context, where anything above the z-1 content wrapper
+   *  would also cover the editing chrome — so it's sunk (invisible)
+   *  under [data-pl-editable]. Passing the texture here remounts the
+   *  SAME layer inside each section at z 50: over the content, under
+   *  the chrome (frame 104 / tag 106 / chip 110). The full texture
+   *  catalog, the real blend modes — dark themes included, which the
+   *  earlier multiply-only per-section wash could not show. */
+  editorTexture?: string;
+  editorTextureIntensity?: number;
 }) {
   const isActive = active === id;
   /* Inline Layout chip — the on-canvas section-layout switcher.
@@ -4858,6 +4870,11 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
     >
       <MotifLayer layout={motifLayout} kind={motif} sectionId={id} />
       {children}
+      {editable && editorTexture && editorTexture !== 'none' && editorTextureIntensity > 0 && (
+        <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none', overflow: 'hidden' }}>
+          <TextureLayer texture={editorTexture} intensity={editorTextureIntensity} />
+        </div>
+      )}
       {editable && (
         <>
           {/* Selection chrome (design-system v2): peach is the
