@@ -14,7 +14,7 @@ import {
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
 } from './studio-constants';
 import type { StudioState, SetStudioField } from './useStudioState';
-import { Pear, Stamp, Squiggle, Icon } from '../motifs';
+import { Pear, Stamp, Icon } from '../motifs';
 import { AssetGlyph } from './StudioAssetGlyph';
 import { PearThinking } from '../pear-thinking';
 import { PlColorPicker } from '../redesign/PlColorPicker';
@@ -1057,7 +1057,6 @@ function MiniMotif({ id, on }: { id: string; on: boolean }) {
   if (id === 'tape') return <div style={{ width: 22, height: 8, background: 'var(--peach)', opacity: 0.7, transform: 'rotate(-6deg)' }} />;
   if (id === 'monogram') return <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: c, fontWeight: 700, lineHeight: 1 }}>S&amp;S</div>;
   if (id === 'wax') return <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#C97A6E' }} />;
-  if (id === 'doodle') return <Squiggle width={22} height={10} variant={1} stroke={c} />;
   return <div style={{ width: 18, height: 18, border: '1.5px solid ' + c }} />;
 }
 

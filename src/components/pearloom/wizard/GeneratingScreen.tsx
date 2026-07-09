@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo } from 'react';
-import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
+import { Blob, Icon, Pear, Sparkle } from '../motifs';
 import { AmbientSprig, AmbientThread } from '../ambient';
 import { Float, Reveal } from '../motion';
 import { FoilGradient } from '@/components/brand/pressed';

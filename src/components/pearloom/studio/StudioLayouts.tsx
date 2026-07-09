@@ -10,7 +10,7 @@
 
 import type { ReactNode } from 'react';
 import type { StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
-import { Stamp, Squiggle } from '../motifs';
+import { Stamp } from '../motifs';
 
 interface LayoutProps {
   content: StudioContent;
@@ -262,12 +262,7 @@ export function MotifOverlay({
       </div>
     );
   }
-  if (motif === 'doodle') {
-    return (
-      <div style={{ position: 'absolute', bottom: 24, left: 24, zIndex: 3, opacity: 0.7 }}>
-        <Squiggle width={90} height={36} variant={1} stroke={palette.accent} />
-      </div>
-    );
-  }
+  // 'doodle' (the squiggle) is retired — persisted picks render
+  // clean, same as 'none' (owner call, 2026-07-09).
   return null;
 }

@@ -4,18 +4,21 @@
    PEARLOOM MOTIFS — shared visual language (v9, editorial pass)
 
    2026-04-24 — refactored to remove the clip-art-y squiggles, generic
-   blobs, and the heart that used to land everywhere. The legacy
-   exports (Heart / Squiggle / Blob) are preserved as named functions
-   so existing callsites keep compiling, but their internals are
-   replaced with editorial primitives:
+   blobs, and the heart that used to land everywhere. Legacy exports
+   (Heart / Blob) are preserved as named functions so existing
+   callsites keep compiling, but their internals are replaced with
+   editorial primitives:
 
        Heart      → Sprig (olive sprig, hairline + small leaves)
-       Squiggle   → Filigree (bezier book-ornament flourish)
        Blob       → Wash (paper-grain radial wash)
-       Stamp icon="heart"  → renders the new Sprig glyph
+       Stamp icon="heart"  → renders the Asterism ornament
+
+   2026-07-09 — Squiggle + Filigree DELETED entirely (owner call:
+   the squiggle mark is gone completely). The Stamp is a letterpress
+   ink postmark, never a pastel disc.
 
    New exports (use these in new code):
-       Sprig, Filigree, Asterism, Fleuron, HairlineRule, Wash, Bookmark
+       Sprig, Asterism, Fleuron, HairlineRule, Wash, Bookmark
    ======================================================================== */
 
 import React, { useId, type CSSProperties, type ReactNode } from 'react';
@@ -315,9 +318,10 @@ export function Stamp({
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', opacity: 0.9 }}>
         {icon === 'pear' && <Pear size={size * 0.26} tone="ink" shadow={false} />}
-        {/* Legacy 'heart' icon now renders the Sprig glyph — every
-            prior Stamp icon="heart" call automatically swaps. */}
-        {icon === 'heart' && <Sprig size={size * 0.3} color={ink} />}
+        {/* Legacy 'heart' icon renders the Asterism — the old Sprig
+            center read as a squiggle at stamp sizes (owner call,
+            2026-07-09: the squiggle mark is gone completely). */}
+        {icon === 'heart' && <Asterism size={size * 0.13} color={ink} />}
         {icon === 'sparkle' && (
           <svg viewBox="0 0 24 24" width={size * 0.26} height={size * 0.26}>
             <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill={ink} />
@@ -400,126 +404,15 @@ export function Wash({
 export const Blob = Wash;
 export type BlobTone = WashTone;
 
-/* ────────────────────────────────────────────────────────────────────
-   Filigree — replaces Squiggle with a hairline book-ornament
-   flourish. No zigzag clipart. Five variants share the same DNA:
-   single-stroke bezier curls drawn at hairline weight, ~half opacity
-   so they read as a quiet trace rather than decoration.
-   Default stroke is the brand gold; the line caps are round so the
-   path feels handmade, not mechanical.
-   ──────────────────────────────────────────────────────────────────── */
-export function Filigree({
-  width = 220,
-  height = 80,
-  variant = 0,
-  // Theme accent inside .pl8-guest; brand gold elsewhere.
-  stroke = 'var(--pl-olive, var(--gold-line, #D4A95D))',
-  strokeWidth = 1.2,
-  className = '',
-  style,
-}: {
-  width?: number;
-  height?: number;
-  variant?: number;
-  stroke?: string;
-  strokeWidth?: number;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  const id = useId();
-  // Each variant is a clean editorial flourish — gentle bezier sweep
-  // (variant 0), classical S-curve (1), bracket with terminal dots
-  // (2), arc with center fleuron (3), trailing tendril (4). All sit
-  // inside the same 220×80 viewBox so they swap visually 1:1 with
-  // the legacy Squiggle calls.
-  const variants: Array<{ d: string; dots?: Array<[number, number]>; fleur?: [number, number] }> = [
-    { d: 'M 6 40 C 50 16, 100 64, 150 40 C 180 26, 200 36, 214 40' },
-    { d: 'M 8 50 C 30 24, 70 24, 110 40 S 200 56, 212 30' },
-    { d: 'M 8 40 C 60 8, 110 72, 162 40', dots: [[8, 40], [212, 40]] },
-    { d: 'M 14 44 C 60 14, 160 14, 206 44', fleur: [110, 32] },
-    { d: 'M 8 56 C 40 16, 90 76, 130 40 C 158 14, 196 56, 212 28' },
-  ];
-  const v = variants[Math.abs(variant) % variants.length] ?? variants[0]!;
-  return (
-    <svg
-      viewBox="0 0 220 80"
-      width={width}
-      height={height}
-      className={className}
-      style={style}
-      aria-hidden
-    >
-      <defs>
-        <linearGradient id={id} x1="0%" x2="100%" y1="50%" y2="50%">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0" />
-          <stop offset="20%" stopColor={stroke} stopOpacity="0.9" />
-          <stop offset="80%" stopColor={stroke} stopOpacity="0.9" />
-          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d={v.d}
-        stroke={`url(#${id})`}
-        strokeWidth={strokeWidth}
-        fill="none"
-        strokeLinecap="round"
-      />
-      {v.dots?.map((pt, i) => (
-        <circle key={i} cx={pt[0]} cy={pt[1]} r={1.6} fill={stroke} />
-      ))}
-      {v.fleur && (
-        <g transform={`translate(${v.fleur[0]} ${v.fleur[1]})`}>
-          <circle cx="0" cy="0" r="2" fill={stroke} />
-          <path
-            d="M -10 0 C -7 -4, -3 -4, 0 0 C 3 -4, 7 -4, 10 0"
-            stroke={stroke}
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeLinecap="round"
-          />
-        </g>
-      )}
-    </svg>
-  );
-}
-
-/** Legacy alias — every prior `<Squiggle>` now renders a Filigree.
- *  Default stroke chains through the theme accent first so squiggles
- *  inside .pl8-guest follow the host's palette; falls back to
- *  --gold-line so squiggles in editor chrome (outside .pl8-guest)
- *  keep the brand gold. */
-export function Squiggle({
-  width = 200,
-  height = 80,
-  variant = 0,
-  stroke = 'var(--pl-olive, var(--gold-line, #D4A95D))',
-  className = '',
-  style,
-}: {
-  width?: number;
-  height?: number;
-  variant?: number;
-  stroke?: string;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <Filigree
-      width={width}
-      height={height}
-      variant={variant}
-      stroke={stroke}
-      className={className}
-      style={style}
-    />
-  );
-}
+/* Filigree + the legacy Squiggle alias are DELETED (owner call,
+   2026-07-09: the squiggle mark is gone completely — stamp centers,
+   card doodles, desk flourishes, picker chips, all of it). Reach for
+   HairlineRule / Asterism / Fleuron where a divider or ornament is
+   needed; never reintroduce a wavy-line glyph. */
 
 /* ────────────────────────────────────────────────────────────────────
    HairlineRule — a thin double-line section divider with an optional
-   centred glyph (asterism / fleuron / dot). Designed to replace the
-   Squiggle when used as a *divider* between sections — a place where
-   the wavy line never read as editorial.
+   centred glyph (asterism / fleuron / dot).
    ──────────────────────────────────────────────────────────────────── */
 export function HairlineRule({
   width = 240,
@@ -974,11 +867,10 @@ export function PhotoPlaceholder({
 }
 
 /* ────────────────────────────────────────────────────────────────────
-   Atmosphere — composed background paper-washes + hairline filigree.
-   v9: same prop API as before, so every existing call site is
-   unchanged, but the items render as Wash + Filigree instead of
-   Blob + Squiggle. Opacities pulled down ~30% so the new washes
-   read as quiet light through paper, not shapes pasted on top.
+   Atmosphere — composed background paper-washes. Same prop API as
+   the original, but items render as Wash only. Opacities pulled
+   down ~30% so the washes read as quiet light through paper, not
+   shapes pasted on top.
    ──────────────────────────────────────────────────────────────────── */
 export function Atmosphere({
   preset = 'warm',

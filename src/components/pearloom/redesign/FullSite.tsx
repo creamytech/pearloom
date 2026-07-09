@@ -14,7 +14,7 @@
 
 import { type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
-import { Blob, Icon, Pear, Squiggle } from '../motifs';
+import { Blob, Icon, Pear } from '../motifs';
 import { AmbientThread } from '../ambient';
 import { getTheme, themeRootStyle, type Density } from '../site/themes';
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
@@ -75,7 +75,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
   /* Host-visible toggles that the prototype's tweaks panel exposes.
      Texture intensity 0 → off; motifsOn=false suppresses every
-     decorative shape (Blob, Squiggle, photo strip rotation glyphs). */
+     decorative shape (Blob, photo strip rotation glyphs). */
   const textureIntensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
   const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
   /* Texture overlay style — a quiet noise filter painted on top of
@@ -193,7 +193,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             overflow: 'hidden',
           }}
         >
-          {/* Decorative blobs + squiggle — suppressed when motifsOn=false
+          {/* Decorative blobs — suppressed when motifsOn=false
               per the prototype's tweaks panel Motifs toggle. */}
           {motifsOn && (
             <>

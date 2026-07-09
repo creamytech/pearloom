@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { AssetEntry } from './studio-constants';
-import { Stamp, Squiggle } from '../motifs';
+import { Stamp } from '../motifs';
 
 export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: number }) {
   if (asset.url) {
@@ -48,7 +48,10 @@ export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: num
     );
   }
   if (asset.kind === 'doodle') {
-    return asset.shape === 'sun' ? (
+    // The squiggle doodle is retired (owner call, 2026-07-09) —
+    // persisted squiggle assets render nothing; the sun survives.
+    if (asset.shape !== 'sun') return null;
+    return (
       <svg viewBox="0 0 40 40" width={size - 4} height={size - 4}>
         <circle cx="20" cy="20" r="6" fill="none" stroke="#D4A95D" strokeWidth="1.5" />
         {[0, 45, 90, 135, 180, 225, 270, 315].map(a => (
@@ -60,8 +63,6 @@ export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: num
             stroke="#D4A95D" strokeWidth="1.2" strokeLinecap="round" />
         ))}
       </svg>
-    ) : (
-      <Squiggle width={size} height={size / 2} variant={1} />
     );
   }
   if (asset.kind === 'mono') {

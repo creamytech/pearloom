@@ -29,7 +29,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getPackById, type Pack } from '@/lib/theme-store/packs';
 import { APPLIED_PACK_STASH_KEY } from '@/lib/theme-store/apply';
-import { Pear, Squiggle, Wash, Icon } from '@/components/pearloom/motifs';
+import { Pear, Wash, Icon } from '@/components/pearloom/motifs';
 import { TemplateVignette, type OccasionGroup } from './TemplateVignette';
 
 // ─────────────────────────────────────────────────────────────
@@ -760,12 +760,6 @@ export function TemplatesBrowser() {
       <section style={{ padding: '40px 32px 100px' }}>
         <div style={{ maxWidth: 1040, margin: '0 auto' }}>
           <div style={pearOfferShell}>
-            <Squiggle
-              width={280}
-              height={80}
-              variant={1}
-              style={{ position: 'absolute', top: 30, right: 260, opacity: 0.6 }}
-            />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={pearOfferEyebrow}>
                 <Icon name="wand" size={12} color="var(--peach-ink, #C6703D)" />

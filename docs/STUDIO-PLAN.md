@@ -91,6 +91,16 @@ StudioLayouts). Every consumer swapped automatically: Studio card
 motif overlay, rails' draft previews, asset chips, dashboard
 chrome, press sheet. Visual harness at `/dev/marks`.
 
+Same day, second owner call: **the squiggle glyph is gone
+completely.** Stamp centers render the Asterism (the Sprig read
+as a wavy line at stamp sizes); the Studio's 'doodle' motif +
+squiggle asset are retired (persisted picks render clean); the
+desk-scene and error-pill flourishes, the templates-browser
+flourish, and BuilderV8's dead "Loop Lines" option are removed;
+the `Squiggle`/`Filigree` components are deleted from motifs.tsx
+so the glyph cannot quietly return. Never reintroduce a wavy-line
+mark — HairlineRule / Asterism / Fleuron are the ornament set.
+
 ### SV.1 — One look contract (themes + fonts parity)
 `studioThemeFrom()` in `src/lib/site-look/` + the Colors rail
 regrouped: **Your site** → the site's 6 named themes → owned

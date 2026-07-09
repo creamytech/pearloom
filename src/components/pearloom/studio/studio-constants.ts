@@ -138,6 +138,9 @@ export const LAYOUTS: StudioLayout[] = [
   { id: 'minimal', name: 'Minimal',    sub: 'two lines + rule' },
 ];
 
+// 'doodle' (the squiggle) is retired — owner call, 2026-07-09.
+// Persisted motif='doodle' rows render clean (MotifOverlay falls
+// through to null, same as 'none').
 export const MOTIFS: StudioMotif[] = [
   { id: 'none',     name: 'Clean' },
   { id: 'stamp',    name: 'Stamp' },
@@ -145,7 +148,6 @@ export const MOTIFS: StudioMotif[] = [
   { id: 'tape',     name: 'Tape' },
   { id: 'monogram', name: 'Monogram' },
   { id: 'wax',      name: 'Wax seal' },
-  { id: 'doodle',   name: 'Doodle' },
 ];
 
 export const COPY_TONES: StudioCopyTone[] = [
@@ -163,7 +165,6 @@ export const DEFAULT_ASSET_PALETTE: AssetEntry[] = [
   { id: 'w2', kind: 'wax',   color: '#3D4A1F' },
   { id: 'l1', kind: 'leaf' },
   { id: 'l2', kind: 'leaf2' },
-  { id: 'd1', kind: 'doodle', shape: 'squiggle' },
   { id: 'd2', kind: 'doodle', shape: 'sun' },
   { id: 'm1', kind: 'mono', letters: 'S&S' },
   { id: 't1', kind: 'tape', color: '#F0C9A8' },

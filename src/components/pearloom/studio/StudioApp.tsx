@@ -23,7 +23,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { Pear, PostIt, Squiggle, Icon } from '../motifs';
+import { Pear, PostIt, Icon } from '../motifs';
 import {
   PALETTES, FONT_PAIRS, type StationeryType,
   buildTypeContent, type AssetEntry, type StudioDraft,
@@ -936,7 +936,6 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
             animation: 'pl-studio-nudge-in 240ms ease both',
           }}
         >
-          <Squiggle variant={2} width={32} style={{ color: 'var(--peach-ink, #C6703D)', flexShrink: 0 }} />
           <span style={{ lineHeight: 1.4 }}>{aiError}</span>
           <button
             type="button"
@@ -1128,20 +1127,15 @@ function CanvasStage({ children }: { children: React.ReactNode }) {
 }
 
 function DeskStickers({ type }: { type: StationeryType }) {
+  // The desk's squiggle flourishes are retired (owner call,
+  // 2026-07-09: the squiggle mark is gone completely) — the note
+  // card carries the scene alone.
   return (
-    <>
-      <div style={{ position: 'absolute', top: '14%', left: '7%', transform: 'rotate(-12deg)', opacity: 0.95 }}>
-        <PostIt tone="lavender" width={140} rotation={-8} tape={false} style={{ fontSize: 14 }}>
-          {type === 'std' ? 'save\nthe date!' : type === 'invite' ? 'send by\nthe deadline' : 'with love'}
-        </PostIt>
-      </div>
-      <div style={{ position: 'absolute', top: '8%', right: '14%', opacity: 0.7 }}>
-        <Squiggle width={120} height={50} variant={2} stroke="#D4A95D" />
-      </div>
-      <div style={{ position: 'absolute', bottom: '18%', left: '10%', opacity: 0.6 }}>
-        <Squiggle width={100} height={40} variant={4} stroke="#C4B5D9" />
-      </div>
-    </>
+    <div style={{ position: 'absolute', top: '14%', left: '7%', transform: 'rotate(-12deg)', opacity: 0.95 }}>
+      <PostIt tone="lavender" width={140} rotation={-8} tape={false} style={{ fontSize: 14 }}>
+        {type === 'std' ? 'save\nthe date!' : type === 'invite' ? 'send by\nthe deadline' : 'with love'}
+      </PostIt>
+    </div>
   );
 }
 

@@ -9,7 +9,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Blob, Icon, Pear, PearloomLogo, PhotoPlaceholder, Sparkle, Squiggle } from '../motifs';
+import { Blob, Icon, Pear, PearloomLogo, PhotoPlaceholder, Sparkle } from '../motifs';
 import type { StoryManifest } from '@/types';
 import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
@@ -42,9 +42,11 @@ const PALETTES = [
   { id: 'olive-gold', name: 'Olive & Gold', colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#C19A4B', '#CBD29E'] },
 ];
 
+// 'squiggle' (Loop Lines) is retired — owner call, 2026-07-09. The
+// option only wrote manifest.motifs.squiggle, which no live renderer
+// reads (V8-era config); existing rows keep their field harmlessly.
 const MOTIFS = [
   { id: 'pear', name: 'Pear Stamps', icon: <Pear size={24} tone="sage" shadow={false} /> },
-  { id: 'squiggle', name: 'Loop Lines', icon: <Squiggle variant={1} width={40} height={16} /> },
   { id: 'blob', name: 'Soft Shapes', icon: <Blob tone="lavender" size={32} /> },
 ];
 
