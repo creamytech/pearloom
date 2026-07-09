@@ -4,9 +4,10 @@
 /* MapPanel — host config for the Map section. Reads the venue
    from manifest.logistics.venue + optional manifest.logistics.address.
    Writes manifest.mapBlock = { variant, height, showDirections }.
-   The DEFAULT layout is the drawn map plate (map-plate.tsx) in the
-   site's own tints; the 'embed'/'split'/'postcard' layouts use
-   Google Maps' free no-key iframe at maps.google.com/?output=embed
+   The DEFAULT layout is the map plate (map-plate.tsx) — the
+   venue's real OSM streets in the site's own tints, drawn-art
+   fallback; the 'embed'/'split'/'postcard' layouts use Google
+   Maps' free no-key iframe at maps.google.com/?output=embed
    (works without a billing-enabled API key). */
 
 import type { StoryManifest } from '@/types';

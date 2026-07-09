@@ -125,10 +125,11 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
      clicks disabled masquerading as a static image. Old manifests
      with layouts.map='static' fall through to the embed default. */
   map: [
-    /* 'plate' became the default 2026-07-09 — the drawn map in the
-       site's own tints; presses hand off to the guest's maps app.
-       The Google iframe stays one pick away as 'embed'. */
-    { id: 'plate',    label: 'Drawn map',    sub: 'Hand-set plate in your colors' },
+    /* 'plate' became the default 2026-07-09 — the venue's REAL
+       streets (OSM) pressed in the site's own tints; presses hand
+       off to the guest's maps app. The Google iframe stays one
+       pick away as 'embed'. */
+    { id: 'plate',    label: 'Your map',     sub: 'Real streets, in your colors' },
     { id: 'embed',    label: 'Live map',     sub: 'Pannable Google Maps' },
     { id: 'pin',      label: 'Pin only',     sub: 'Card with pin + Open in Maps' },
     { id: 'split',    label: 'Split',        sub: 'Map left · venue info right' },

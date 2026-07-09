@@ -34,7 +34,7 @@ import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant, LAYOUTS, recommendedVariantFor } from './layouts';
-import { MapPlateArt } from './map-plate';
+import { RealMapPlate } from './map-plate';
 import { VariantThumb } from './variant-thumb';
 import type { SectionId } from './EditorRedesign';
 /* Occasion gating for the nine core sections — leaf module shared
@@ -4071,6 +4071,10 @@ function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
 
 function MapBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, manifest, editable, variants } = ctx;
+  /* Which face the plate variant is currently wearing — the real
+     OSM streets, or the drawn fallback. Drives the caption's
+     honesty ("not to scale" only when it's actually not). */
+  const [plateMode, setPlateMode] = useState<'drawn' | 'real'>('drawn');
   const mapCfg = (manifest as unknown as { mapBlock?: { height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
   const variant = variants.map || 'plate';
   const height = mapCfg.height === 'tall' ? 560 : 320;
@@ -4101,15 +4105,25 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
   const mapsUrl = `https://www.google.com/maps?q=${encodedAddress}`;
 
   if (variant === 'plate') {
-    /* The drawn plate — decorative, deterministic from the address,
-       pressed in the site's tints. The whole plate is the
-       directions press on published sites; on the canvas it stays
-       a plain drawing so section-select taps aren't hijacked. */
+    /* The plate — the venue's REAL streets (OSM via
+       /api/map/geometry) pressed in the site's tints; the drawn
+       abstract art stands in while geometry threads in or when it
+       can't be fetched. The whole plate is the directions press on
+       published sites; on the canvas it stays a plain drawing so
+       section-select taps aren't hijacked. */
+    const lg = manifest.logistics as { venueLat?: number; venueLng?: number } | undefined;
     const plate = (
       /* 800/460 matches the SVG viewBox exactly — no slice-cropping,
          so the drawn frame + compass always survive. */
       <div style={{ position: 'relative', aspectRatio: '800/460', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
-        <MapPlateArt seedKey={address} style={{ position: 'absolute', inset: 0, height: '100%' }} />
+        <RealMapPlate
+          seedKey={address}
+          lat={lg?.venueLat}
+          lng={lg?.venueLng}
+          address={address}
+          onModeChange={setPlateMode}
+          style={{ position: 'absolute', inset: 0, height: '100%' }}
+        />
       </div>
     );
     return (
@@ -4140,7 +4154,21 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
                 </div>
               )}
               <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', marginTop: 3 }}>
-                A drawn keepsake, not to scale — press it for the real way there.
+                {plateMode === 'real' ? (
+                  <>
+                    The real streets, in your colors — press the map for directions.{' '}
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                    >
+                      Map data © OpenStreetMap
+                    </a>
+                  </>
+                ) : (
+                  <>A drawn keepsake, not to scale — press it for the real way there.</>
+                )}
               </div>
             </div>
             {showDirections && (
