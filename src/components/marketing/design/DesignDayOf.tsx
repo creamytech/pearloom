@@ -72,6 +72,7 @@ export function DesignDayOf() {
   return (
     <section
       id="day"
+      className="pd-day-sec"
       style={{ padding: 'clamp(64px,9vw,110px) 24px', maxWidth: 1180, margin: '0 auto' }}
     >
       {/* Header */}
@@ -118,6 +119,9 @@ export function DesignDayOf() {
                 marginBottom: 12,
                 borderRadius: 12,
                 overflow: 'hidden',
+                // Paper behind every photograph: a failed load shows warm
+                // paper, never a void.
+                background: PD.paper2,
                 boxShadow: `0 8px 22px -14px ${pdInkMix(30)}`,
               }}
             >
@@ -292,6 +296,11 @@ export function DesignDayOf() {
         @media (max-width: 900px) {
           :global(.pd-day-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-day-sec) {
+            padding: 48px 20px !important;
           }
         }
         :global(.pd-day-tile:hover) {

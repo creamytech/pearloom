@@ -2,7 +2,10 @@
 
 // Pricing — three tiers. Middle tier is featured (dark, lifted,
 // MOST CHOSEN badge). Matches design bundle's pricing.jsx.
+// On phones each tier folds its feature list behind a plain
+// "Everything included" toggle so three stacked cards stay scannable.
 
+import { useState } from 'react';
 import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 type TierName = 'Journal' | 'Atelier' | 'Legacy';
@@ -88,13 +91,22 @@ interface DesignPricingProps {
 }
 
 export function DesignPricing({ onGetStarted }: DesignPricingProps) {
+  /* Phone-only feature fold. The lists stay in the DOM at every width
+     (CSS hides them collapsed ≤640); desktop never sees the toggle. */
+  const [openTiers, setOpenTiers] = useState<Record<string, boolean>>({});
+  const toggleTier = (name: TierName) =>
+    setOpenTiers((prev) => ({ ...prev, [name]: !prev[name] }));
+
   return (
     <section
       id="pricing"
       style={{ padding: 'clamp(48px, 8vw, 96px) clamp(20px, 5vw, 24px) clamp(56px, 10vw, 120px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
     >
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
-        <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 760, marginInline: 'auto' }}>
+        <div
+          className="pd-pricing-head"
+          style={{ textAlign: 'center', marginBottom: 48, maxWidth: 760, marginInline: 'auto' }}
+        >
           <Pill style={{ marginBottom: 18 }}>
             <Pearl size={7} /> ONE-TIME, NOT A SUBSCRIPTION
           </Pill>
@@ -152,7 +164,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
           {TIERS.map((t) => (
             <div
               key={t.name}
-              className={`pd-tier${t.featured ? ' pd-tier-featured' : ''}`}
+              className={`pd-tier${t.featured ? ' pd-tier-featured' : ''}${openTiers[t.name] ? ' pd-tier-open' : ''}`}
               style={{
                 position: 'relative',
                 // The featured tier floats above its neighbours so the
@@ -234,6 +246,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
 
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '28px 0 6px' }}>
                 <span
+                  className="pd-price"
                   style={{
                     ...DISPLAY_STYLE,
                     fontSize: 58,
@@ -250,7 +263,37 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
               </div>
               <div style={{ width: 60, height: 1, background: t.accent, margin: '18px 0 20px' }} />
 
+              {/* Phone-only expander (desktop hides it; the list is
+                  always open there). Plain words, real state. */}
+              <button
+                type="button"
+                className="pd-feats-toggle"
+                aria-expanded={!!openTiers[t.name]}
+                onClick={() => toggleTier(t.name)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  margin: '0 0 18px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--pl-font-body)',
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  color: 'inherit',
+                  opacity: 0.85,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                {openTiers[t.name]
+                  ? 'Hide the list ▴'
+                  : `Everything included (${t.feats.length}) ▾`}
+              </button>
+
               <ul
+                className="pd-tier-feats"
                 style={{
                   listStyle: 'none',
                   padding: 0,
@@ -320,6 +363,30 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
         @media (max-width: 900px) {
           :global(.pd-pricing-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        /* Desktop always shows the full lists; the toggle is phone-only. */
+        @media (min-width: 641px) {
+          :global(.pd-feats-toggle) {
+            display: none !important;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-pricing-head) {
+            margin-bottom: 32px !important;
+          }
+          :global(.pd-tier > .pl-lift) {
+            padding: 24px 22px 26px !important;
+          }
+          :global(.pd-price) {
+            font-size: 44px !important;
+          }
+          /* Collapsed by default: name, blurb, price, toggle, button. */
+          :global(.pd-tier-feats) {
+            display: none !important;
+          }
+          :global(.pd-tier-open .pd-tier-feats) {
+            display: flex !important;
           }
         }
         @media (prefers-reduced-motion: reduce) {

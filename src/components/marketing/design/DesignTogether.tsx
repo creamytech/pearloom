@@ -24,6 +24,7 @@ const ROLES: Array<{ label: string; sub: string; tone: string }> = [
 export function DesignTogether({ onGetStarted }: Props) {
   return (
     <section
+      className="pd-together-sec"
       style={{ position: 'relative', padding: 'clamp(60px, 8vw, 116px) 24px' }}
     >
       <div
@@ -126,7 +127,7 @@ export function DesignTogether({ onGetStarted }: Props) {
             </div>
 
             {/* stacked section bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="pd-together-stack" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <SectionBar label="Cover" />
               <SectionBar label="Story" />
               {/* the live-edited section — outlined + labeled, like CoEditHighlights */}
@@ -202,6 +203,34 @@ export function DesignTogether({ onGetStarted }: Props) {
             justify-content: center !important;
           }
           :global(.pd-together-br) {
+            display: none;
+          }
+        }
+        @media (max-width: 640px) {
+          :global(.pd-together-sec) {
+            padding: 48px 20px !important;
+          }
+          :global(.pd-together-grid) {
+            gap: 28px !important;
+          }
+          /* Three compact role chips share one row. */
+          :global(.pd-together-roles) {
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+          }
+          :global(.pd-together-roles > div) {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 9px 10px !important;
+          }
+          :global(.pd-together-roles > div > span:first-child) {
+            font-size: 12px !important;
+          }
+          :global(.pd-together-roles > div > span:last-child) {
+            font-size: 10px !important;
+          }
+          /* One mock bar fewer — the point lands with four. */
+          :global(.pd-together-stack > :nth-child(5)) {
             display: none;
           }
         }

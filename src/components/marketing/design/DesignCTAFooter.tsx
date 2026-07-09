@@ -57,7 +57,10 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
   return (
     <Fragment>
       {/* ── Pear's Promise ───────────────────────────────────── */}
-      <section style={{ padding: 'clamp(48px, 10vw, 100px) clamp(20px, 5vw, 24px) 40px', position: 'relative', background: PD.paper }}>
+      <section
+        className="pd-promise-sec"
+        style={{ padding: 'clamp(48px, 10vw, 100px) clamp(20px, 5vw, 24px) 40px', position: 'relative', background: PD.paper }}
+      >
         <div
           className="pd-promise-grid"
           style={{
@@ -111,7 +114,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             </p>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: 220, height: 220 }}>
+            <div className="pd-promise-swirl" style={{ position: 'relative', width: 220, height: 220 }}>
               <div
                 className="pd-anim"
                 style={{ position: 'absolute', inset: 0, animation: 'pl-spin-slow 50s linear infinite' }}
@@ -137,6 +140,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
 
       {/* ── Giant CTA ───────────────────────────────────────── */}
       <section
+        className="pd-cta-sec"
         style={{ padding: 'clamp(40px, 8vw, 80px) clamp(20px, 5vw, 24px) clamp(48px, 10vw, 100px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
       >
         <div
@@ -173,11 +177,15 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
 
         {/* Extra top padding keeps the closing CTA clear of the
             sticky nav pill at natural scroll stops. */}
-        <div style={{ maxWidth: 1080, margin: '0 auto', position: 'relative', textAlign: 'center', paddingTop: 32 }}>
-          <div className="pd-anim" style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+        <div
+          className="pd-cta-inner"
+          style={{ maxWidth: 1080, margin: '0 auto', position: 'relative', textAlign: 'center', paddingTop: 32 }}
+        >
+          <div className="pd-anim pd-cta-threads" style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
             <ThreadStrand length={120} height={14} />
           </div>
           <h2
+            className="pd-cta-h2"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(56px, 9vw, 140px)',
@@ -200,6 +208,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             </span>
           </h2>
           <p
+            className="pd-cta-sub"
             style={{
               fontFamily: 'var(--pl-font-body)',
               fontSize: 20,
@@ -224,7 +233,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               Read a real site ↗
             </PLButton>
           </div>
-          <div className="pd-anim" style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+          <div className="pd-anim pd-cta-threads-after" style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
             <ThreadStrand length={120} height={14} />
           </div>
         </div>
@@ -334,7 +343,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               finalized mark at mural scale, replacing the old Fraunces
               type-set lockup (MIGRATION §2). Fluid width so it scales
               across every viewport. */}
-          <div aria-hidden style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
+          <div aria-hidden className="pd-footer-wordmark" style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
             <PearloomWordmark
               color="var(--pd-wordmark, #2C3022)"
               style={{ width: 'min(92vw, 1100px)', height: 'auto', userSelect: 'none' }}
@@ -360,6 +369,51 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           }
           :global(.pd-footer-cols) {
             grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          /* Compression pass: the promise, the giant CTA, and the mural
+             wordmark all carried desktop-scale air. (Shared with
+             /privacy + /terms, which mount this footer — intended.) */
+          :global(.pd-promise-sec) {
+            padding: 36px 20px 28px !important;
+          }
+          :global(.pd-promise-grid) {
+            gap: 24px !important;
+          }
+          :global(.pd-promise-swirl) {
+            width: 150px !important;
+            height: 150px !important;
+          }
+          :global(.pd-promise-swirl svg) {
+            width: 150px;
+            height: 150px;
+          }
+          :global(.pd-cta-sec) {
+            padding: 28px 20px 44px !important;
+          }
+          :global(.pd-cta-inner) {
+            padding-top: 8px !important;
+          }
+          :global(.pd-cta-h2) {
+            font-size: clamp(42px, 12vw, 56px) !important;
+            margin-bottom: 20px !important;
+          }
+          :global(.pd-cta-sub) {
+            font-size: 16.5px !important;
+            margin-bottom: 28px !important;
+          }
+          :global(.pd-cta-threads) {
+            margin-bottom: 16px !important;
+          }
+          :global(.pd-cta-threads-after) {
+            margin-top: 20px !important;
+          }
+          :global(.pd-footer-wordmark) {
+            margin-top: 24px !important;
+          }
+          :global(.pd-footer-wordmark svg) {
+            width: min(80vw, 480px) !important;
           }
         }
         @media (prefers-reduced-motion: reduce) {
