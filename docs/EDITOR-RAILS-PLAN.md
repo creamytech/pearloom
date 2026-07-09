@@ -338,14 +338,27 @@ fights the per-card swipe.
 
 ## 7 · Sprint blocks
 
-### Block 1 — PH.1 + SEL.1 + SEL.2 (the reported bugs)
+> **ALL FOUR BLOCKS SHIPPED 2026-07-09** (commits `20cf4031`,
+> `c0388b3c`, `e98c1c7c`, Block 4 follows). Per-block notes stamped
+> inline. Deliberate deviations from the letter of the plan:
+> DK.2's tabs stayed inside PropertyRail as the compact first row
+> (same 90px reclaimed, less state plumbing than a sheet-header
+> slot); LAY.1 mounts the rail chooser as a disclosure ROW above
+> the panel body (one mount in PropertyRail, not a
+> SectionPanelShell header slot — the rail scrolls, a floating
+> popover there fights it); SEL.3's linked-events strip stays
+> unwrapped ON PURPOSE (published-only surface that self-hides —
+> in the editor it renders only when siblings exist, and its home
+> is /dashboard/connections; noted, not silent).
+
+### Block 1 — PH.1 + SEL.1 + SEL.2 (the reported bugs) — ✅ SHIPPED (`20cf4031`)
 Goal: the owner's two screenshots can't be reproduced. Every hero
 tile taps; nav press → chip + panel; footer press → chip + panel.
 Counts as done: canvas tap-audit green (SEL.3 sweep on a maximal
 fixture site), `tsc`/eslint/vitest clean, screenshots desktop+390px.
 Skip: deck work, LAY polish.
 
-### Block 2 — DK.1 + DK.2 (the deck lands)
+### Block 2 — DK.1 + DK.2 (the deck lands) — ✅ SHIPPED (`c0388b3c`)
 Goal: phone props sheet = card deck, one header. The Opening panel
 reads as 5 swipeable cards with zero interior scroll at 390×844.
 Counts as done: deck on all core-section panels via
@@ -354,14 +367,14 @@ keyboard-lift + peek regression-tested; e2e smoke for tap-to-swap on
 the Photos card.
 Skip: Design deck (next block), DK.5.
 
-### Block 3 — DK.3 + DK.4 + PH.2
+### Block 3 — DK.3 + DK.4 + PH.2 — ✅ SHIPPED (`e98c1c7c`)
 Goal: Design tab is a deck of doors on phones; Opening photos strip
 in the panel on all devices.
 Counts as done: no full-ladder scroll inside the sheet anywhere; the
 photos strip writes/reorders `galleryImages` correctly (autosave +
 undo verified through bridge.ts).
 
-### Block 4 — LAY.1-3 + SEL.3 sweep
+### Block 4 — LAY.1-3 + SEL.3 sweep — ✅ SHIPPED (this commit)
 Goal: layout everywhere it's expected, schematic everywhere, pearls
 on nav/footer, zero dead presses.
 Counts as done: LayoutChip mounted in panel headers; VariantThumb

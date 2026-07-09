@@ -37,7 +37,8 @@ import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
 import { StoreFonts } from '@/lib/theme-store/fonts';
-import { LAYOUTS, readVariant } from './layouts';
+import { LAYOUTS, readVariant, recommendedVariantFor } from './layouts';
+import { VariantThumb } from './variant-thumb';
 import { useCanvasTryOn, expandThemeVarsForPreview, findCanvasRoot } from './design-tryon';
 import { announceDesignChange } from './design-feedback';
 
@@ -1134,6 +1135,7 @@ function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange:
     } as unknown as StoryManifest);
     announceDesignChange('footer', label);
   };
+  const rec = recommendedVariantFor('footer', (manifest as unknown as { occasion?: string }).occasion);
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
@@ -1151,14 +1153,19 @@ function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange:
               type="button"
               onClick={() => set(f.id, f.label)}
               className="lift"
+              title={f.id === rec ? `${f.blurb} · Recommended for this occasion` : f.blurb}
               style={{
-                textAlign: 'left', padding: '8px 9px', borderRadius: 9, cursor: 'pointer',
-                background: on ? 'var(--ink)' : 'var(--card)',
-                border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                textAlign: 'center', padding: '8px 6px', borderRadius: 9, cursor: 'pointer',
+                background: on ? 'var(--sage-tint)' : 'var(--card)',
+                border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid var(--line)',
               }}
             >
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: on ? 'var(--cream)' : 'var(--ink)' }}>{f.label}</div>
-              <div style={{ fontSize: 9, lineHeight: 1.3, color: on ? 'rgba(248,241,228,0.72)' : 'var(--ink-muted)', marginTop: 1 }}>{f.blurb}</div>
+              <VariantThumb section="footer" variant={f.id} size="chip" />
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700, color: 'var(--ink)' }}>
+                {f.label}
+                {f.id === rec && <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />}
+              </div>
             </button>
           );
         })}
@@ -1192,28 +1199,41 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
     announceDesignChange('menu', key === 'navMobile' ? `${label} (phone)` : label);
   };
   const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 7 };
-  const chipRow = (opts: { id: string; label: string }[], value: string, key: 'nav' | 'navMobile') => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {opts.map((o) => {
-        const on = value === o.id;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => set(key, o.id, o.label)}
-            className="lift"
-            style={{
-              padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 11.5, fontWeight: 600,
-              border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
-              background: on ? 'var(--ink)' : 'var(--card)', color: on ? 'var(--cream)' : 'var(--ink-soft)',
-            }}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  /* Schematic cards, not text chips (LAY.2) — the same VariantThumb
+     drawings the canvas popover and wizard use, with the gold
+     occasion pearl. */
+  const chipRow = (opts: { id: string; label: string }[], value: string, key: 'nav' | 'navMobile') => {
+    const rec = recommendedVariantFor(key, occasion);
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+        {opts.map((o) => {
+          const on = value === o.id;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => set(key, o.id, o.label)}
+              className="lift"
+              title={o.id === rec ? `${o.label} · Recommended for this occasion` : o.label}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                padding: '8px 4px', borderRadius: 9, cursor: 'pointer',
+                border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid var(--line)',
+                background: on ? 'var(--sage-tint)' : 'var(--card)',
+              }}
+            >
+              <VariantThumb section={key} variant={o.id} size="chip" />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, lineHeight: 1.15, color: 'var(--ink-soft)', textAlign: 'center' }}>
+                {o.label}
+                {o.id === rec && <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={labelStyle}>Menu, desktop</div>

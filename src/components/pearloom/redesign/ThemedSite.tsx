@@ -884,7 +884,14 @@ function ThemedSiteInner({
        render the live wall + sign form directly, no TSection chrome.
        In the editor canvas (no siteSlug) it shows a preview. */
     if (kind === 'guestbook') {
-      return <GuestbookSection key="guestbook" siteSlug={siteSlug} preview={editable && !siteSlug} />;
+      /* SEL.3: the wall selects like any section now — its panel
+         carries the feature toggle + the moderation door. No
+         LAYOUTS entry, so no chip; just no dead press. */
+      return (
+        <TSection key="guestbook" id="guestbook" label="Guestbook" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField}>
+          <GuestbookSection siteSlug={siteSlug} preview={editable && !siteSlug} />
+        </TSection>
+      );
     }
     /* Linked events — when this site is part of a celebration, the
        other events show as a strip (published only; self-hides when

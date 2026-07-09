@@ -301,6 +301,19 @@ export function readVariant(
    anniversary's as a letter). Occasion sets within a section must
    stay disjoint — first-match order is the only tie-break. */
 const VARIANT_RECOMMENDATIONS: Partial<Record<Exclude<SectionId, null>, ReadonlyArray<{ id: string; occasions: readonly string[] }>>> = {
+  /* Chrome (LAY.3): solemn occasions read best with the quietest
+     menu + footer; the playful trips get the floating pill menu. */
+  nav: [
+    { id: 'minimal-text', occasions: ['memorial', 'funeral'] },
+    { id: 'centered', occasions: ['wedding', 'vow-renewal', 'baptism', 'first-communion', 'confirmation'] },
+  ],
+  navMobile: [
+    { id: 'pill', occasions: ['bachelor-party', 'bachelorette-party', 'reunion', 'sweet-sixteen'] },
+  ],
+  footer: [
+    { id: 'minimal', occasions: ['memorial', 'funeral'] },
+    { id: 'signature', occasions: ['wedding', 'vow-renewal', 'anniversary', 'engagement'] },
+  ],
   /* Monogram crest — the solemn/formal opening (no photo, no
      scale). Recommended where a photograph-led hero reads wrong. */
   hero: [{ id: 'crest', occasions: ['memorial', 'funeral', 'baptism', 'first-communion', 'confirmation'] }],

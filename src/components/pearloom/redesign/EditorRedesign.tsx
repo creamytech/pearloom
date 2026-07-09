@@ -81,6 +81,7 @@ export type EditorMode = 'edit' | 'preview' | 'mobile';
 export type SectionId =
   | 'hero' | 'story' | 'details' | 'schedule' | 'travel'
   | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | 'navMobile' | 'footer'
+  | 'guestbook'
   /* Optional sections added via Add Section — applicability gated
      by occasion (see isSectionApplicable below). */
   | 'countdown' | 'map' | 'music'
@@ -162,7 +163,7 @@ export { isCoreSectionApplicable, sectionHasContent } from './section-applicabil
    means touching both lines in the same screenful. */
 const JUMPABLE_SECTIONS: ReadonlySet<string> = new Set([
   'hero', 'story', 'details', 'schedule', 'travel',
-  'registry', 'gallery', 'rsvp', 'faq', 'nav', 'navMobile', 'footer',
+  'registry', 'gallery', 'rsvp', 'faq', 'nav', 'navMobile', 'footer', 'guestbook',
   'countdown', 'map', 'music',
   ...BLOCK_SECTION_IDS,
   'guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor',

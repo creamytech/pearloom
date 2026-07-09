@@ -19,7 +19,8 @@ import { useMobileViewport } from './use-mobile-viewport';
 import { ThemePickerBody, type DesignDoorId } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
 import { SectionPanelShell } from '../editor/panels/_section-atoms';
-import { LAYOUTS, readVariant } from './layouts';
+import { LAYOUTS, readVariant, recommendedVariantFor } from './layouts';
+import { VariantThumb } from './variant-thumb';
 import { getTheme } from '../site/themes';
 import { occasionCopyFor } from './occasion-copy';
 
@@ -137,6 +138,7 @@ import { ThenAndNowPanel } from '../editor/panels/blocks/ThenAndNowPanel';
 import { GroupChatPanel } from '../editor/panels/blocks/GroupChatPanel';
 import { NavPanel } from '../editor/panels/NavPanel';
 import { FooterPanel } from '../editor/panels/FooterPanel';
+import { GuestbookPanel } from '../editor/panels/GuestbookPanel';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
@@ -186,6 +188,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   nav:      { id: 'nav',      label: 'Menu',      desc: 'How guests get around' },
   navMobile:{ id: 'navMobile',label: 'Menu, phone',desc: 'How the menu opens on phones' },
   footer:   { id: 'footer',   label: 'Footer',    desc: 'How the site signs off' },
+  guestbook:{ id: 'guestbook',label: 'Guestbook', desc: 'Signatures from your guests' },
   /* Optional sections — added via the Add Section picker.
      Once present, render through the same dispatch as core
      sections. */
@@ -731,11 +734,15 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           </button>
         )}
 
-        {effectiveTab === 'content' && active && renderSectionEditor(active, manifest, onChange, siteSlug)}
+        {/* Layout in BOTH places (LAY.1): the canvas chip stays the
+            first touch; this row is the rail's copy so a host who
+            lives in the panel never hunts for where layouts moved.
+            Skipped for nav/footer — their panels ARE the picker. */}
+        {effectiveTab === 'content' && active && !isToolPanel && active !== 'nav' && active !== 'navMobile' && active !== 'footer' && (
+          <RailLayoutRow active={active} manifest={manifest} onChange={onChange} />
+        )}
 
-        {/* Layout is NOT a rail control — it lives inline on the
-            canvas (the floating "Layout" bar over the selected
-            section, ThemedSite's InlineLayoutBar). */}
+        {effectiveTab === 'content' && active && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
         {/* Pear can populate this — rich AI suggestion cards (the v2
             "✦ Show me" card). Opens the CanvasPearBlocks modal, which
@@ -915,6 +922,86 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
    (ThemePickerBody's door prop) with a back chevron home. Rides
    SectionPanelShell so the sheet's deck CSS + dot rail apply. */
 
+/* ─── RailLayoutRow — LAY.1: the section's layout chooser in the
+   rail, same schematics + gold pearl as the canvas chip. A quiet
+   disclosure row, not a floating popover — the rail scrolls. */
+function RailLayoutRow({
+  active, manifest, onChange,
+}: {
+  active: Exclude<SectionId, null>;
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const variants = LAYOUTS[active];
+  if (!Array.isArray(variants) || variants.length < 2) return null;
+  const current = readVariant(manifest, active);
+  const rec = recommendedVariantFor(active, (manifest as unknown as { occasion?: string }).occasion);
+  const pick = (vid: string) => {
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      layouts: {
+        ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+        [active]: vid,
+      },
+    } as unknown as StoryManifest);
+  };
+  return (
+    <div style={{ margin: '0 14px', border: '1px solid var(--line-soft)', borderRadius: 10, background: 'var(--cream-2)' }}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="pl-hit44"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+          padding: '9px 12px', border: 'none', background: 'transparent',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          Layout
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+          {variants.find((v) => v.id === current)?.label ?? 'Default'}
+        </span>
+        <Icon name={open ? 'arrow-up' : 'arrow-down'} size={11} color="var(--ink-muted)" />
+        <span style={{ marginLeft: 'auto', fontSize: 10.5, color: 'var(--ink-muted)' }}>
+          {variants.length} styles
+        </span>
+      </button>
+      {open && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, padding: '0 8px 8px' }}>
+          {variants.map((v) => {
+            const on = v.id === current;
+            const isRec = v.id === rec;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                title={isRec ? `${v.label} · Recommended for this occasion` : (v.sub ? `${v.label}, ${v.sub}` : v.label)}
+                onClick={() => pick(v.id)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                  padding: '8px 4px 6px', borderRadius: 9, cursor: 'pointer',
+                  border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid transparent',
+                  background: on ? 'var(--sage-tint)' : 'transparent',
+                }}
+              >
+                <VariantThumb section={active} variant={v.id} size="chip" />
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, lineHeight: 1.15, color: 'var(--ink-soft)', textAlign: 'center' }}>
+                  {v.label}
+                  {isRec && <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const DESIGN_DOORS: ReadonlyArray<{ id: DesignDoorId; label: string; blurb: string }> = [
   { id: 'theme',      label: 'Theme',          blurb: 'One pick dresses the whole site' },
   { id: 'colors',     label: 'Colors',         blurb: 'Accent, paper & ink' },
@@ -1081,7 +1168,18 @@ function renderSectionEditor(
     case 'nav':
     case 'navMobile':   return <NavPanel {...props} />;
     case 'footer':      return <FooterPanel {...props} />;
-    default:         return null;
+    case 'guestbook':   return <GuestbookPanel {...props} />;
+    /* Safety net (SEL.3): a selected thing must never meet silence.
+       If a new section lands without a panel, say so out loud
+       instead of rendering a bare header over nothing. */
+    default:
+      return (
+        <SectionPanelShell>
+          <div style={{ padding: '18px 6px', textAlign: 'center', color: 'var(--ink-muted)', fontSize: 12.5, lineHeight: 1.5 }}>
+            This part has no options yet — edit it right on the canvas.
+          </div>
+        </SectionPanelShell>
+      );
   }
 }
 

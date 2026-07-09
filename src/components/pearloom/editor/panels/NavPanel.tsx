@@ -15,39 +15,50 @@
    ========================================================================= */
 
 import type { StoryManifest } from '@/types';
-import { LAYOUTS, readVariant } from '../../redesign/layouts';
+import { LAYOUTS, readVariant, recommendedVariantFor } from '../../redesign/layouts';
+import { VariantThumb } from '../../redesign/variant-thumb';
 import { FGroup, SectionPanelShell } from './_section-atoms';
 
 const NAV_DESKTOP = LAYOUTS.nav ?? [];
 const NAV_PHONE = LAYOUTS.navMobile ?? [];
 
-function VariantChipRow({
+function VariantThumbRow({
+  section,
   options,
   value,
+  recommended,
   onPick,
 }: {
+  section: string;
   options: ReadonlyArray<{ id: string; label: string; sub?: string }>;
   value: string;
+  recommended?: string;
   onPick: (id: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
       {options.map((o) => {
         const on = value === o.id;
+        const rec = o.id === recommended;
         return (
           <button
             key={o.id}
             type="button"
-            title={o.sub ? `${o.label}, ${o.sub}` : o.label}
+            title={rec ? `${o.label} · Recommended for this occasion` : (o.sub ? `${o.label}, ${o.sub}` : o.label)}
             onClick={() => onPick(o.id)}
             className="lift"
             style={{
-              padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 11.5, fontWeight: 600,
-              border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
-              background: on ? 'var(--ink)' : 'var(--card)', color: on ? 'var(--cream)' : 'var(--ink-soft)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+              padding: '8px 4px', borderRadius: 9, cursor: 'pointer',
+              border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid var(--line)',
+              background: on ? 'var(--sage-tint)' : 'var(--card)',
             }}
           >
-            {o.label}
+            <VariantThumb section={section} variant={o.id} size="chip" />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, lineHeight: 1.15, color: 'var(--ink-soft)', textAlign: 'center' }}>
+              {o.label}
+              {rec && <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />}
+            </span>
           </button>
         );
       })}
@@ -71,14 +82,15 @@ export function NavPanel({
       layouts: { ...layouts, [key]: id },
     } as unknown as StoryManifest);
   };
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <FGroup label="Menu, desktop" hint="How the menu sits across the top on larger screens.">
-          <VariantChipRow options={NAV_DESKTOP} value={desktop} onPick={set('nav')} />
+          <VariantThumbRow section="nav" options={NAV_DESKTOP} value={desktop} recommended={recommendedVariantFor('nav', occasion)} onPick={set('nav')} />
         </FGroup>
         <FGroup label="Menu, phone" hint="How the menu opens on phones.">
-          <VariantChipRow options={NAV_PHONE} value={phone} onPick={set('navMobile')} />
+          <VariantThumbRow section="navMobile" options={NAV_PHONE} value={phone} recommended={recommendedVariantFor('navMobile', occasion)} onPick={set('navMobile')} />
         </FGroup>
         <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
           The menu&rsquo;s name comes from your names in the Opening section, and its links follow
