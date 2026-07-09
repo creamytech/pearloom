@@ -805,12 +805,12 @@ export default function EditorRedesign({
               ? 'min(88dvh, 760px)'
               : '75vh'
           }
-          /* Props opens near-full — real working room for the
-             control decks, a strip of canvas riding above. Theme
-             opens at the half stop: watching the canvas repaint IS
-             the Design sheet's point. Drag the header between
-             stops either way. */
-          defaultSnap={displaySheet === 'theme' ? 'half' : 'open'}
+          /* Both see-through sheets open near-full — real working
+             room for the control decks, a strip of canvas riding
+             above (owner 2026-07-09: Design matches the section
+             panels' height). The half stop stays one drag away for
+             watching the canvas repaint while dialing a look. */
+          defaultSnap="open"
           label={
             displaySheet === 'sections' ? 'Page sections'
               : displaySheet === 'theme' ? 'Theme'
