@@ -788,20 +788,29 @@ export default function EditorRedesign({
         <MobileSheet
           open={mobileSheet !== null}
           onClose={() => setMobileSheet(null)}
-          /* Props + Theme are SEE-THROUGH half sheets — their whole
-             point is watching the canvas repaint as you change
-             things ("you can't see your changes till you put the
-             drawer away", 2026-06-12). Sections stays modal. */
+          /* Props + Theme are SEE-THROUGH sheets — no backdrop, the
+             canvas stays live above them ("you can't see your
+             changes till you put the drawer away", 2026-06-12).
+             Sections stays modal. */
           seeThrough={displaySheet === 'props' || displaySheet === 'theme'}
           /* Content identity — a change while open swaps content in
-             place and rises a peeked sheet back to open (tapping a
-             new section IS intent to edit it). */
+             place and returns the sheet to that content's default
+             stop (tapping a new section IS intent to edit it). */
           contentKey={displaySheet === 'props' ? `props:${String(active)}` : displaySheet}
+          /* Near-full paper for the see-through pair — the sheet's
+             rest STOPS (full / half / peek) decide how much of it
+             shows ("expand the panels", 2026-07-09). */
           height={
             displaySheet === 'props' || displaySheet === 'theme'
-              ? 'min(48vh, 460px)'
+              ? 'min(88dvh, 760px)'
               : '75vh'
           }
+          /* Props opens near-full — real working room for the
+             control decks, a strip of canvas riding above. Theme
+             opens at the half stop: watching the canvas repaint IS
+             the Design sheet's point. Drag the header between
+             stops either way. */
+          defaultSnap={displaySheet === 'theme' ? 'half' : 'open'}
           label={
             displaySheet === 'sections' ? 'Page sections'
               : displaySheet === 'theme' ? 'Theme'

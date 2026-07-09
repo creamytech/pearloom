@@ -11,15 +11,26 @@
    MODAL (sections) — backdrop, body lock, full height.
 
    SEE-THROUGH (props / theme) — the host's complaint, 2026-06-12:
-   "you can't see your changes till you put the drawer away." The
-   sheet is HALF height with NO backdrop and no body lock: the
-   live canvas stays visible above it, still scrollable, and
-   repaints as every control changes. A "See my site" peek toggle
-   drops the sheet to a slim bar for a full-canvas look without
-   losing the panel's state. The header doubles as a drag handle —
-   drag between expanded and peek, release snaps to the nearer
-   state, a fast downward fling from peek closes (the button is
-   the discoverable path; the drag is the power path).
+   "you can't see your changes till you put the drawer away." NO
+   backdrop and no body lock: the live canvas stays visible above
+   the sheet, still scrollable, and repaints as every control
+   changes. Three rest stops (2026-07-09, owner: "expand the
+   panels to full screen"):
+
+     open — near-full (~88dvh): real working room for the rich
+            control decks; a slim strip of canvas stays visible
+            so "I'm editing THIS" never gets lost. The props
+            sheet opens here.
+     half — the classic half sheet (min(48vh, 460px) visible):
+            watching the canvas repaint is the point of the
+            Design sheet, so IT opens here.
+     peek — a slim bar; full-canvas look without losing panel
+            state ("See my site").
+
+   The header doubles as a drag handle — drag between the stops,
+   release snaps to the nearest one (a fling biases one stop in
+   its direction; a fast downward fling from peek closes). The
+   buttons are the discoverable path; the drag is the power path.
 
    ── POSITION OWNERSHIP (2026-07-03 rebuild) ─────────────────
    The sheet's position used to have THREE writers — React state
@@ -40,11 +51,12 @@
    controller is free to mutate transform / transition / bottom /
    maxHeight / pointerEvents without ever being overwritten or
    wiping React's values. React state expresses INTENT only
-   (open? + snap: 'open' | 'peek'); an effect routes intent into
-   controller.snapTo(); drag and keyboard-lift route through the
-   same controller. After ANY gesture sequence the sheet is at a
-   named snap point ('open' | 'peek' | 'closed'), published on
-   data-pl-sheet-state / data-pl-sheet-settled for tests.
+   (open? + snap: 'open' | 'half' | 'peek'); an effect routes
+   intent into controller.snapTo(); drag and keyboard-lift route
+   through the same controller. After ANY gesture sequence the
+   sheet is at a named snap point ('open' | 'half' | 'peek' |
+   'closed'), published on data-pl-sheet-state /
+   data-pl-sheet-settled for tests.
 
    Visual language borrowed from EditorThemeShop's bottom drawer
    (grab handle, rounded 22px top, slide-up). prefers-reduced-
@@ -60,6 +72,12 @@ import type { SaveState } from './bridge';
 
 const SHEET_MS = 360;
 const PEEK_BAR = 54;
+/* The half stop's visible height — the classic half sheet, kept as
+   the middle snap. The CSS string drives the transform; the px
+   twin drives the drag geometry (both must describe the same
+   height or releases snap somewhere the transform isn't). */
+const HALF_VISIBLE_CSS = 'min(48vh, 460px)';
+const halfVisiblePx = () => Math.min(window.innerHeight * 0.48, 460);
 /* Finger travel before a header touch becomes a drag (px) — under
    this it stays a tap so the header's buttons keep working. */
 const DRAG_SLOP = 6;
@@ -72,10 +90,13 @@ const FLICK = 0.55;
    on the sheet element. Everything else (React renders, drag
    handlers, the keyboard lift) expresses intent through it. */
 
-type SheetSnap = 'open' | 'peek' | 'closed';
+type SheetSnap = 'open' | 'half' | 'peek' | 'closed';
+/** The stops a host can rest at — React intent vocabulary. */
+type SheetRestSnap = 'open' | 'half' | 'peek';
 
 const SNAP_TRANSFORM: Record<SheetSnap, string> = {
   open: 'translateY(0px)',
+  half: `translateY(calc(100% - ${HALF_VISIBLE_CSS}))`,
   peek: `translateY(calc(100% - ${PEEK_BAR}px - env(safe-area-inset-bottom, 0px)))`,
   /* 102% — a hair past the edge so the top shadow clears too. */
   closed: 'translateY(102%)',
@@ -95,6 +116,7 @@ class SheetController {
   onSettle: ((snap: SheetSnap) => void) | null = null;
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
   private peekOffset = 0;
+  private halfOffset = 0;
 
   constructor(el: HTMLElement) {
     this.el = el;
@@ -161,6 +183,9 @@ class SheetController {
     const el = this.el;
     const padBottom = parseFloat(getComputedStyle(el).paddingBottom) || 0;
     this.peekOffset = Math.max(el.offsetHeight - PEEK_BAR - padBottom, 0);
+    /* px twin of SNAP_TRANSFORM.half — clamped inside the drag
+       range so a short sheet can't put half below peek. */
+    this.halfOffset = Math.min(Math.max(el.offsetHeight - halfVisiblePx(), 0), this.peekOffset);
     this.dragging = true;
     if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
     el.dataset.plSheetSettled = '0';
@@ -181,15 +206,34 @@ class SheetController {
     this.el.style.transform = `translateY(${Math.min(Math.max(offset, 0), this.peekOffset)}px)`;
   }
 
-  /** Resolve a drag: nearest snap, overridden by a fling; a fast
-   *  downward fling FROM peek closes. Returns the chosen snap so
-   *  the component can sync React intent / call onClose. */
-  dragEnd(offset: number, velocity: number, fromPeek: boolean): SheetSnap {
+  /** Resolve a drag: nearest of the three rest stops, biased one
+   *  stop in a fling's direction; a fast downward fling FROM the
+   *  peek stop closes. Returns the chosen snap so the component
+   *  can sync React intent / call onClose. */
+  dragEnd(offset: number, velocity: number, origin: SheetRestSnap): SheetSnap {
     if (!this.dragging) return this.target;
     this.dragging = false;
-    let snap: SheetSnap = offset > this.peekOffset / 2 ? 'peek' : 'open';
-    if (velocity > FLICK) snap = fromPeek ? 'closed' : 'peek';
-    else if (velocity < -FLICK) snap = 'open';
+    const stops: Array<{ snap: SheetRestSnap; at: number }> = [
+      { snap: 'open', at: 0 },
+      { snap: 'half', at: this.halfOffset },
+      { snap: 'peek', at: this.peekOffset },
+    ];
+    let idx = 0;
+    for (let i = 1; i < stops.length; i++) {
+      if (Math.abs(offset - stops[i].at) < Math.abs(offset - stops[idx].at)) idx = i;
+    }
+    if (velocity > FLICK) {
+      if (idx === stops.length - 1) {
+        /* Below peek there's only closed — and only a grab that
+           STARTED at peek earns it (matches the two-stop rule). */
+        if (origin === 'peek') { this.snapTo('closed'); return 'closed'; }
+      } else {
+        idx += 1;
+      }
+    } else if (velocity < -FLICK) {
+      idx = Math.max(0, idx - 1);
+    }
+    const snap = stops[idx].snap;
     this.snapTo(snap);
     return snap;
   }
@@ -220,6 +264,7 @@ export function MobileSheet({
   label,
   children,
   seeThrough = false,
+  defaultSnap = 'open',
   contentKey,
   onPrev,
   onNext,
@@ -228,9 +273,15 @@ export function MobileSheet({
 }: {
   open: boolean;
   onClose: () => void;
-  /** Sheet height — see-through panels ride lower (~48vh) so the
-   *  canvas above stays readable. */
+  /** Sheet height — see-through panels ride near-full (the 'open'
+   *  stop); the half/peek stops translate the sheet down so the
+   *  canvas shows through. */
   height?: string;
+  /** The rest stop a see-through sheet opens at (and returns to on
+   *  a content swap): 'open' (near-full — content panels) or
+   *  'half' (the classic half sheet — the Design sheet, whose
+   *  point is watching the canvas repaint). */
+  defaultSnap?: 'open' | 'half';
   /** Accessible dialog name — doubles as the header title (the
    *  props sheet passes the ACTIVE SECTION's display label, so
    *  the peek bar names what's being edited). */
@@ -257,9 +308,15 @@ export function MobileSheet({
   nextDisabled?: boolean;
 }) {
   /* ── React state = INTENT only ───────────────────────────────
-     open (prop) + snap ('open' | 'peek'). The controller owns the
-     actual position; the effect below routes intent into it. */
-  const [snap, setSnap] = useState<'open' | 'peek'>('open');
+     open (prop) + snap ('open' | 'half' | 'peek'). The controller
+     owns the actual position; the effect below routes intent into
+     it. */
+  const [snap, setSnap] = useState<SheetRestSnap>(defaultSnap);
+  /* The last stop that showed the CONTROLS — where the peek bar's
+     tap (and the "Back to editing" button) returns to. Render-time
+     adjustment, same pattern as prevOpen below. */
+  const [lastRest, setLastRest] = useState<'open' | 'half'>(defaultSnap);
+  if (snap !== 'peek' && snap !== lastRest) setLastRest(snap);
 
   /* Keep children mounted while the sheet animates out so the
      exit slide doesn't show an empty shell. Mount synchronously
@@ -268,18 +325,21 @@ export function MobileSheet({
   const [render, setRender] = useState(open);
   if (open && !render) setRender(true);
 
-  /* Reset to open on every (re)open — a peek is a transient way
-     of looking at the site, not a persistent preference. */
+  /* Reset to the sheet's default stop on every (re)open — a peek
+     (or a dragged height) is a transient way of looking at the
+     site, not a persistent preference. */
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open && snap !== 'open') setSnap('open');
+    if (open && snap !== defaultSnap) setSnap(defaultSnap);
   }
-  /* Content swap while open → rise from peek (see contentKey doc). */
+  /* Content swap while open → back to the (new) content's default
+     stop (see contentKey doc): picking something new is intent to
+     edit it, and props/theme carry different defaults. */
   const [prevKey, setPrevKey] = useState(contentKey);
   if (contentKey !== prevKey) {
     setPrevKey(contentKey);
-    if (open && snap !== 'open') setSnap('open');
+    if (open && snap !== defaultSnap) setSnap(defaultSnap);
   }
 
   /* ── The controller — created with the element, disposed with
@@ -326,7 +386,7 @@ export function MobileSheet({
     startOffset: number;
     peekOffset: number;
     started: boolean;
-    fromPeek: boolean;
+    origin: SheetRestSnap;
     lastY: number;
     lastT: number;
     velocity: number;
@@ -344,7 +404,7 @@ export function MobileSheet({
       startOffset: 0,
       peekOffset: 0,
       started: false,
-      fromPeek: snap === 'peek',
+      origin: snap,
       lastY: e.clientY,
       lastT: e.timeStamp,
       velocity: 0,
@@ -380,11 +440,11 @@ export function MobileSheet({
     dragRef.current = null;
     if (!ctrl || !d.started) return;
     const offset = Math.min(Math.max(d.startOffset + (e.clientY - d.startY), 0), d.peekOffset);
-    const resolved = ctrl.dragEnd(offset, d.velocity, d.fromPeek);
+    const resolved = ctrl.dragEnd(offset, d.velocity, d.origin);
     /* Sync React intent with the controller's resolution — its
        next effect run is a no-op (controller already there). */
     if (resolved === 'closed') onClose();
-    else setSnap(resolved);
+    else setSnap(resolved as SheetRestSnap);
   };
   const onHeaderPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     const d = dragRef.current;
@@ -541,7 +601,7 @@ export function MobileSheet({
              is one tap anywhere. Pointer handlers live HERE only —
              the panel body below scrolls. */
           <div
-            onClick={snap === 'peek' ? () => { if (!dragMovedRef.current) setSnap('open'); } : undefined}
+            onClick={snap === 'peek' ? () => { if (!dragMovedRef.current) setSnap(lastRest); } : undefined}
             onPointerDown={onHeaderPointerDown}
             onPointerMove={onHeaderPointerMove}
             onPointerUp={onHeaderPointerEnd}
@@ -580,7 +640,7 @@ export function MobileSheet({
               onClick={(e) => {
                 e.stopPropagation();
                 if (dragMovedRef.current) return;
-                setSnap((s) => (s === 'peek' ? 'open' : 'peek'));
+                setSnap((s) => (s === 'peek' ? lastRest : 'peek'));
               }}
               aria-pressed={snap === 'peek'}
               style={{
