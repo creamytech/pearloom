@@ -140,7 +140,7 @@ no invented prices.
 
 ## 4 · Sprint blocks
 
-### Block RG-A — RG.1 + RG.2 (the owner's ask)
+### Block RG-A — RG.1 + RG.2 (the owner's ask) — ✅ SHIPPED 2026-07-09
 Goal: adding a gift is one gesture and every item has a face.
 Counts as done: shared composer mounted in BOTH the editor panel
 and the dashboard manager; paste-URL → rich preview → save;
@@ -148,15 +148,38 @@ manual add offers photo-or-plate (bare Image URL input gone);
 plate set renders in site tints; broken images confess;
 from-url de-dupe guard. tsc/eslint/vitest + phone screenshots.
 Skip: shelves, store plates, refresh.
+> Landed as `src/components/registry/gift-face.tsx` — the shared
+> face system (8 plates via a `plate:<id>` imageUrl sentinel, no
+> migration) + link-intake helpers, consumed by
+> RegistryItemsManager, RegistryPanel, and RegistryItemsGrid.
+> Deviation: the composer is shared HELPERS + one contract
+> (paste field → readProductPage → prefill), not one mounted
+> component — the two hosts' form stacks (modal fields vs FInput
+> atoms) made a literal shared component worse, the drift-proof
+> part (URL detect / read / de-dupe / faces) is one module.
 
-### Block RG-B — RG.3 (the card grows up)
+### Block RG-B — RG.3 (the card grows up) — ✅ SHIPPED 2026-07-09
 Goal: manager cards match the published grid's richness.
 Counts as done: store plates + priority pearl + category shelves
 + chip-in/quantity state on manager cards; most-wanted sort.
+> Manager: GiftFace faces, store-domain chip, "Most wanted" gold
+> pearl on priority='need', category shelves (pl8-homerow-flush
+> on phones), need→want→dream sort inside each shelf, multi-unit
+> progress bar kept.
 
-### Block RG-C — RG.4 + RG.5 + refresh
+### Block RG-C — RG.4 + RG.5 + refresh — ✅ SHIPPED 2026-07-09
 Goal: refresh-from-store with price-change confirm; multi-link
 paste queue; guest-side filter/sort polish.
+> Refresh: per-item "Refresh" (itemUrl only) → from-url re-read →
+> confirm dialog naming exactly what changed ("price $X → $Y" /
+> "a newer photo") before the PATCH. Queue: 2+ pasted URLs open
+> LinkQueue — sequential reads with a 700ms courtesy pause
+> (from-url allows 10/min), per-row title/price edit + "Add it",
+> failed rows get "Try again", dupes marked. Published grid:
+> most-wanted-first sort, "Still available only" chip (shown past
+> 6 items with something spoken for), reserve copy line
+> ("Reserving marks it spoken for here — you buy it at the
+> store."), priority pearl in --t tints.
 
 ---
 

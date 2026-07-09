@@ -20,6 +20,7 @@ import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { DraftedBadge } from './_drafted-badge';
 import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { cleanCashtag, cleanVenmo, type RegistryFunds } from '@/lib/registry-funds';
+import { GiftFace, PlateRow, isPlateUrl, findDuplicateByUrl } from '@/components/registry/gift-face';
 import { useVoicePack } from './_voice-pack';
 import { readVariant } from '../../redesign/layouts';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
@@ -455,6 +456,9 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
   const [pasteUrl, setPasteUrl] = useState('');
   const [reading, setReading] = useState(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
+  /* De-dupe guard (RG.4) — a pasted link that matches an existing
+     item's itemUrl offers "edit that one" instead of a twin. */
+  const [pasteDupe, setPasteDupe] = useState<OwnerItem | null>(null);
 
   const refetch = useCallback(async () => {
     try {
@@ -482,6 +486,9 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
   async function readProductUrl() {
     const url = pasteUrl.trim();
     if (!url || reading) return;
+    const twin = findDuplicateByUrl(items ?? [], url);
+    if (twin) { setPasteDupe(twin); return; }
+    setPasteDupe(null);
     setReading(true);
     setPasteError(null);
     try {
@@ -608,7 +615,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <FInput
               value={pasteUrl}
-              onChange={(v) => { setPasteUrl(v); if (pasteError) setPasteError(null); }}
+              onChange={(v) => { setPasteUrl(v); if (pasteError) setPasteError(null); if (pasteDupe) setPasteDupe(null); }}
               type="url"
               icon="link"
               placeholder="Paste a product link, Pear reads the page"
@@ -632,6 +639,18 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
         {pasteError && (
           <div style={{ fontSize: 11, color: 'var(--plum, #7A2D2D)' }}>{pasteError}</div>
         )}
+        {pasteDupe && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--ink-soft)' }}>
+            Already on your list — “{pasteDupe.name}”.
+            <button
+              type="button"
+              onClick={() => { const t = pasteDupe; setPasteDupe(null); setPasteUrl(''); if (t) startEdit(t); }}
+              style={{ padding: '3px 9px', borderRadius: 7, background: 'transparent', border: '1px solid var(--line)', cursor: 'pointer', color: 'var(--ink-soft)', fontSize: 10.5, fontWeight: 700 }}
+            >
+              Edit that one
+            </button>
+          </div>
+        )}
       </div>
       {items === null ? (
         <div style={{ display: 'grid', placeItems: 'center', padding: '14px 0' }}>
@@ -653,9 +672,13 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
                   onSave={save} onCancel={() => { setOpen(null); setError(null); }} />
               ) : (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                  <span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--sage-2)', display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 2 }}>
-                    <Icon name="gift" size={14} color="#3D4A1F" />
-                  </span>
+                  {/* The item's face — photo, plate sentinel, or the
+                      category plate when the photo is broken/absent. */}
+                  <GiftFace
+                    url={item.imageUrl}
+                    alt=""
+                    style={{ width: 44, height: 33, borderRadius: 8, border: '1px solid var(--line)', flexShrink: 0, marginTop: 2 }}
+                  />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.name}
@@ -736,13 +759,36 @@ function ItemFields({
         on={draft.allowGroupGift}
         set={(v) => setDraft({ ...draft, allowGroupGift: v })}
       />
-      <PhotoUploadSlot
-        url={draft.imageUrl}
-        onChange={(next) => setDraft({ ...draft, imageUrl: next })}
-        aspectRatio="4/3"
-        size="sm"
-        hint="A photo of the item (optional)"
-      />
+      {/* RG.2 — the face on the card: a photo (upload or the one the
+          link supplied), or a Pearloom gift plate. The plate persists
+          through imageUrl as a `plate:` sentinel — GiftFace resolves
+          it everywhere it renders. */}
+      {isPlateUrl(draft.imageUrl) ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <GiftFace url={draft.imageUrl} alt="" style={{ width: 72, height: 54, borderRadius: 8, border: '1px solid var(--line)', flexShrink: 0 }} />
+          <button
+            type="button"
+            onClick={() => setDraft({ ...draft, imageUrl: '' })}
+            style={{ padding: '4px 10px', borderRadius: 7, background: 'transparent', border: '1px solid var(--line)', cursor: 'pointer', color: 'var(--ink-soft)', fontSize: 10.5, fontWeight: 700 }}
+          >
+            Use a photo instead
+          </button>
+        </div>
+      ) : (
+        <PhotoUploadSlot
+          url={draft.imageUrl}
+          onChange={(next) => setDraft({ ...draft, imageUrl: next })}
+          aspectRatio="4/3"
+          size="sm"
+          hint="A photo of the item (optional)"
+        />
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          …or a Pearloom plate
+        </span>
+        <PlateRow value={draft.imageUrl} onPick={(sentinel) => setDraft({ ...draft, imageUrl: sentinel })} />
+      </div>
       {error && <div style={{ fontSize: 11, color: 'var(--plum, #7A2D2D)' }}>{error}</div>}
       <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
         <button

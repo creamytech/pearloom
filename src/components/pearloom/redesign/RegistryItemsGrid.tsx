@@ -26,6 +26,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { GiftFace } from '@/components/registry/gift-face';
 
 interface PublicItem {
   id: string;
@@ -34,6 +35,8 @@ interface PublicItem {
   price: number | null;
   imageUrl: string | null;
   itemUrl: string | null;
+  category: string | null;
+  priority: 'need' | 'want' | 'dream';
   quantity: number;
   quantityClaimed: number;
   purchased: boolean;
@@ -61,19 +64,23 @@ interface Props {
 const DEMO_ITEMS: PublicItem[] = [
   {
     id: 'demo-1', name: 'The dutch oven', description: 'The one every soup for the next thirty years comes out of.',
-    price: 120, imageUrl: null, itemUrl: null, quantity: 1, quantityClaimed: 0, purchased: false, claimedByFirstName: null,
+    price: 120, imageUrl: 'plate:kitchen', itemUrl: null, category: 'Kitchen', priority: 'need',
+    quantity: 1, quantityClaimed: 0, purchased: false, claimedByFirstName: null,
   },
   {
     id: 'demo-2', name: 'A case of the good olive oil', description: 'For the table we keep setting.',
-    price: 38, imageUrl: null, itemUrl: null, quantity: 4, quantityClaimed: 1, purchased: false, claimedByFirstName: 'June',
+    price: 38, imageUrl: 'plate:table', itemUrl: null, category: 'Table', priority: 'want',
+    quantity: 4, quantityClaimed: 1, purchased: false, claimedByFirstName: 'June',
   },
   {
     id: 'demo-3', name: 'Two nights in the hills', description: 'The first quiet weekend after.',
-    price: 260, imageUrl: null, itemUrl: null, quantity: 1, quantityClaimed: 1, purchased: true, claimedByFirstName: 'June',
+    price: 260, imageUrl: 'plate:away', itemUrl: null, category: 'Honeymoon', priority: 'want',
+    quantity: 1, quantityClaimed: 1, purchased: true, claimedByFirstName: 'June',
   },
   {
     id: 'demo-4', name: 'The long table', description: 'Every dinner party for the next decade starts here.',
-    price: 1200, imageUrl: null, itemUrl: null, quantity: 1, quantityClaimed: 0, purchased: false, claimedByFirstName: null,
+    price: 1200, imageUrl: 'plate:home', itemUrl: null, category: 'Home', priority: 'dream',
+    quantity: 1, quantityClaimed: 0, purchased: false, claimedByFirstName: null,
     allowGroupGift: true,
   },
 ];
@@ -93,6 +100,13 @@ function formatPrice(n: number): string {
 
 function storeNameFor(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'the store'; }
+}
+
+const PRIORITY_RANK: Record<string, number> = { need: 0, want: 1, dream: 2 };
+
+/** Group gifts never become spoken for — chip-ins keep the card warm. */
+function isSpokenFor(it: PublicItem): boolean {
+  return !it.allowGroupGift && (it.purchased || it.quantityClaimed >= it.quantity);
 }
 
 export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
@@ -143,6 +157,10 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
     return () => window.removeEventListener('pearloom:registry-items', onPing);
   }, [editable, refresh]);
 
+  /* "Still available" filter — offered only when the list is long
+     enough for spoken-for cards to be real noise (RG.5). */
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
+
   /* Honesty rule: demo furniture is gated by `editable` only, and
      ONLY stands in while the host has zero real items (or while
      the first fetch is still threading). */
@@ -152,6 +170,16 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
 
   // Published with nothing listed (or still threading) → no extra chrome.
   if (!shown || shown.length === 0) return null;
+
+  /* Most-wanted first ('need' → 'want' → 'dream'); the host's own
+     sort order holds inside each tier (stable sort over the
+     server's sort_order ordering). */
+  const sorted = [...shown].sort(
+    (a, b) => (PRIORITY_RANK[a.priority] ?? 1) - (PRIORITY_RANK[b.priority] ?? 1),
+  );
+  const spokenForCount = sorted.filter(isSpokenFor).length;
+  const offerFilter = sorted.length > 6 && spokenForCount > 0;
+  const visible = offerFilter && onlyAvailable ? sorted.filter((it) => !isSpokenFor(it)) : sorted;
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto 30px' }}>
@@ -169,6 +197,24 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
         </span>
         <span aria-hidden style={{ width: 26, height: 1, background: 'var(--t-gold, var(--t-accent))' }} />
       </div>
+      {offerFilter && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+          <button
+            type="button"
+            onClick={() => setOnlyAvailable((v) => !v)}
+            aria-pressed={onlyAvailable}
+            style={{
+              padding: '6px 14px', borderRadius: 999,
+              border: '1px solid var(--t-line)',
+              background: onlyAvailable ? 'var(--t-accent-bg)' : 'transparent',
+              color: onlyAvailable ? 'var(--t-accent-ink)' : 'var(--t-ink-soft)',
+              fontSize: 11.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            {onlyAvailable ? `Showing what’s still available · ${visible.length}` : 'Still available only'}
+          </button>
+        </div>
+      )}
       <div
         style={{
           display: 'grid',
@@ -177,7 +223,7 @@ export function RegistryItemsGrid({ siteSlug, editable = false }: Props) {
           textAlign: 'left',
         }}
       >
-        {shown.map((item) => (
+        {visible.map((item) => (
           <ItemCard
             key={item.id}
             item={item}
@@ -253,17 +299,38 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
         transition: 'opacity 240ms ease',
       }}
     >
-      {/* Photo — or a quiet paper tile with the gift glyph. */}
+      {/* The face — photo, gift plate (`plate:` sentinel), or the
+          quiet paper tile with the gift glyph. A dead photo URL
+          falls back to the category plate in the site's own tints
+          instead of a gray gap (RG.2). */}
       {item.imageUrl ? (
-        <div
-          role="img"
-          aria-label={item.name}
-          style={{
-            aspectRatio: '4/3',
-            background: `var(--t-section) center / cover no-repeat url("${item.imageUrl.replace(/"/g, '%22')}")`,
-            filter: spokenFor ? 'grayscale(0.5)' : undefined,
-          }}
-        />
+        <GiftFace
+          url={item.imageUrl}
+          category={item.category}
+          alt={item.name}
+          ink="var(--t-ink-soft)"
+          gold="var(--t-gold, var(--t-accent))"
+          paper="var(--t-section)"
+          style={{ aspectRatio: '4/3', filter: spokenFor ? 'grayscale(0.5)' : undefined }}
+        >
+          {item.priority === 'need' && !spokenFor && (
+            /* The gold pearl — "most wanted" (RG.3). */
+            <span
+              style={{
+                position: 'absolute', top: 8, left: 8,
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '3px 9px', borderRadius: 999,
+                background: 'var(--t-paper)', border: '1px solid var(--t-line)',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em',
+                textTransform: 'uppercase', color: 'var(--t-ink-soft)',
+              }}
+            >
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-gold, var(--t-accent))' }} />
+              Most wanted
+            </span>
+          )}
+        </GiftFace>
       ) : (
         <div style={{ aspectRatio: '4/3', background: 'var(--t-section)', display: 'grid', placeItems: 'center' }}>
           <GiftGlyph crossed={spokenFor || stage === 'done'} />
@@ -381,6 +448,10 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
               disabled={stage === 'sending'}
               style={{ ...cardInput, resize: 'vertical', lineHeight: 1.45 }}
             />
+            {/* What reserving means — said once, plainly (RG.5). */}
+            <div style={{ fontSize: 11, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+              Reserving marks it spoken for here — you buy it at the store.
+            </div>
             {error && <div style={{ fontSize: 11.5, color: 'var(--t-accent)' }}>{error}</div>}
             <div style={{ display: 'flex', gap: 6 }}>
               <button
