@@ -246,9 +246,13 @@ function GuestEntry({
 }
 
 export function MemoryBookPage() {
-  const { site } = useSelectedSite();
+  const { site, loading: sitesLoading } = useSelectedSite();
   const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(false);
+  // Distinguish "the book failed to load" from "no site selected" —
+  // an API error must never masquerade as a missing selection.
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!site?.id) return;
@@ -256,18 +260,22 @@ export function MemoryBookPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/memory-book?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`memory-book ${r.status}`))))
       .then((d) => {
-        if (!cancelled) setData(d ?? null);
+        if (cancelled) return;
+        setData(d ?? null);
+        setFailed(!d);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [site?.id]);
+  }, [site?.id, attempt]);
 
   function print() {
     if (typeof window !== 'undefined') window.print();
@@ -338,16 +346,27 @@ export function MemoryBookPage() {
         />
       </div>
 
-      {loading ? (
+      {loading || sitesLoading ? (
         <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>
           Loading…
         </div>
-      ) : !data ? (
+      ) : !site ? (
         <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>
           <div style={{ marginBottom: 12 }}>Pick a site first.</div>
           <Link href="/dashboard/event" className="btn btn-outline btn-sm">
             Choose a celebration →
           </Link>
+        </div>
+      ) : !data || failed ? (
+        <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '60px 0' }}>
+          <div style={{ marginBottom: 12 }}>We couldn&apos;t open the book just now.</div>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setAttempt((a) => a + 1)}
+          >
+            Try again
+          </button>
         </div>
       ) : (
         <article

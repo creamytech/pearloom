@@ -318,11 +318,16 @@ export function useStudioState(args: {
       copyOverrides: state.copyOverrides,
       showAssets: state.showAssets,
     };
-    const nextManifest = {
-      ...args.manifest,
-      studio: writableFields,
-    } as unknown as StoryManifest;
-    const payload = JSON.stringify({ subdomain: args.siteSlug, manifest: nextManifest });
+    // Scoped patch — the Studio only owns manifest.studio. Posting
+    // the whole mount-time manifest here used to revert any edit
+    // made in the editor while the Studio tab sat open (and, with
+    // no `names` in the payload, wiped site_config.names — the
+    // 2026-07-09 data-loss bug). The server merges this patch onto
+    // the FRESH stored manifest.
+    const payload = JSON.stringify({
+      subdomain: args.siteSlug,
+      manifestPatch: { studio: writableFields },
+    });
     pendingPayload.current = payload;
     // First-render call captures the just-loaded state. There's
     // nothing to save — those values came out of the manifest we

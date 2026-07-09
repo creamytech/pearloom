@@ -27,6 +27,7 @@ export const viewport: Viewport = {
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
+import { resolveSiteNames } from '@/lib/site-names';
 import EditorClient from './EditorClient';
 
 interface Props {
@@ -109,9 +110,13 @@ export default async function EditorPage({ params }: Props) {
     }
   }
 
-  const names: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
-    ? [siteConfig.names[0] ?? '', siteConfig.names[1] ?? '']
-    : ['', ''];
+  // Heal wiped config pairs from the manifest (see lib/site-names) —
+  // the editor's autosave echoes `names` back, so seeding it empty
+  // here would cement the wipe on the next save.
+  const names: [string, string] = resolveSiteNames(
+    siteConfig.names,
+    (siteConfig.manifest as unknown as { names?: unknown } | null)?.names,
+  );
 
   return (
     <EditorClient

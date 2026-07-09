@@ -87,10 +87,51 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { manifest, names } = body;
+    const { names } = body;
+    let manifest = body.manifest;
     const requestedSubdomain: string | undefined = body.subdomain;
-    if (!requestedSubdomain || !manifest) {
+
+    // Scoped patch mode — `manifestPatch` merges the given top-level
+    // keys onto the FRESH stored manifest server-side. Secondary
+    // authors with long-lived snapshots (the Studio autosave holds
+    // its manifest from mount) use this so their save can never
+    // revert edits made in the editor meanwhile. Exclusive with
+    // `manifest` (full-save wins) and never a create.
+    const manifestPatch =
+      !manifest && body.manifestPatch && typeof body.manifestPatch === 'object' && !Array.isArray(body.manifestPatch)
+        ? (body.manifestPatch as Record<string, unknown>)
+        : null;
+
+    if (!requestedSubdomain || (!manifest && !manifestPatch)) {
       return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
+    }
+
+    if (manifestPatch) {
+      if (body.create === true) {
+        return NextResponse.json({ error: 'manifestPatch cannot create a site' }, { status: 400 });
+      }
+      const patchDb = getSupabase();
+      if (!patchDb) {
+        return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+      }
+      const { data: row, error: patchReadError } = await patchDb
+        .from('sites')
+        .select('ai_manifest')
+        .eq('subdomain', requestedSubdomain)
+        .maybeSingle();
+      if (patchReadError) {
+        console.error('[api/sites] manifestPatch read failed:', patchReadError);
+        return NextResponse.json({ error: 'Could not load site' }, { status: 500 });
+      }
+      if (!row) {
+        return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+      }
+      // Ownership is enforced by saveSiteDraft before anything is
+      // written; the merged manifest is never returned to the caller.
+      manifest = {
+        ...(((row as { ai_manifest?: Record<string, unknown> | null }).ai_manifest) ?? {}),
+        ...manifestPatch,
+      };
     }
 
     // CREATE intent (wizard) — never land on a taken slug. Autosave

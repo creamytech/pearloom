@@ -5,6 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { recordProductEvent } from '@/lib/analytics/product-events';
+import { usableNamesPair } from '@/lib/site-names';
 import type {
   SiteConfig,
   RsvpResponse,
@@ -179,6 +180,16 @@ export async function saveSiteDraft(
       if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
+      // Names fence: manifest-only savers (Studio autosave, unload
+      // beacons) don't carry names — an empty incoming pair must
+      // NEVER clobber a stored one. Fall back through the stored
+      // config pair, then the incoming manifest's own names field.
+      const existingConfig = (existing.site_config as Record<string, unknown>) || {};
+      const namesToStore =
+        usableNamesPair(names)
+        ?? usableNamesPair(existingConfig.names)
+        ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+        ?? ['', ''];
       const { error } = await supabase
         .from('sites')
         .update({
@@ -188,10 +199,10 @@ export async function saveSiteDraft(
           // (lib/cohost-access.ts has the full history).
           creator_email: normalizedUserId,
           site_config: {
-            ...((existing.site_config as Record<string, unknown>) || {}),
+            ...existingConfig,
             slug: subdomain,
             creator_email: normalizedUserId,
-            names,
+            names: namesToStore,
           },
         })
         .eq('subdomain', subdomain);
@@ -208,7 +219,10 @@ export async function saveSiteDraft(
         site_config: {
           slug: subdomain,
           creator_email: normalizedUserId,
-          names,
+          names:
+            usableNamesPair(names)
+            ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+            ?? ['', ''],
           createdAt: new Date().toISOString(),
         },
       });
@@ -275,18 +289,26 @@ export async function publishSite(
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
 
-      // Same user re-publishing — update
+      // Same user re-publishing — update. Same names fence as
+      // saveSiteDraft: a publish without names must never wipe the
+      // stored pair. createdAt is preserved too (a re-publish is
+      // not a re-creation; this used to stamp it fresh every time).
+      const existingConfig = (existing.site_config as Record<string, unknown>) || {};
       const { error } = await supabase
         .from('sites')
         .update({
           ai_manifest: manifest,
           creator_email: normalizedUserId,
           site_config: {
-            ...((existing.site_config as Record<string, unknown>) || {}),
+            ...existingConfig,
             slug: subdomain,
             creator_email: normalizedUserId,
-            names,
-            createdAt: new Date().toISOString()
+            names:
+              usableNamesPair(names)
+              ?? usableNamesPair(existingConfig.names)
+              ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+              ?? ['', ''],
+            createdAt: existingConfig.createdAt ?? new Date().toISOString()
           }
         })
         .eq('subdomain', subdomain);
@@ -311,7 +333,10 @@ export async function publishSite(
         site_config: {
           slug: subdomain,
           creator_email: normalizedUserId,
-          names,
+          names:
+            usableNamesPair(names)
+            ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+            ?? ['', ''],
           createdAt: new Date().toISOString()
         }
       });

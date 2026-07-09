@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StoryManifest } from '@/types';
+import { resolveSiteNames } from '@/lib/site-names';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { StudioApp } from '@/components/pearloom/studio/StudioApp';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
@@ -60,11 +61,16 @@ export function StudioLoader({ initialSlug, initialThanks }: Props) {
         }
         const body = await r.json() as { manifest?: StoryManifest | null; names?: [string, string] };
         if (cancelled) return;
+        // Real names first (config pair healed by the API, then the
+        // manifest's own field); the placeholder only when the site
+        // genuinely has no names anywhere.
+        const realNames = resolveSiteNames(
+          body.names,
+          (body.manifest as unknown as { names?: unknown } | null)?.names,
+        );
         setData({
           manifest: body.manifest ?? null,
-          names: Array.isArray(body.names) && body.names.length >= 2
-            ? [body.names[0], body.names[1]]
-            : ['Your', 'Celebration'],
+          names: realNames[0] || realNames[1] ? realNames : ['Your', 'Celebration'],
         });
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load.');

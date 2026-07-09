@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
+import { resolveSiteNames } from '@/lib/site-names';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,8 @@ export async function GET(
       occasion: (manifest?.occasion as string | undefined)
         ?? (config?.occasion as string | undefined)
         ?? null,
-      names: Array.isArray(config?.names) ? config.names : ['', ''],
+      // Heal wiped config pairs from the manifest (see lib/site-names).
+      names: resolveSiteNames(config?.names, manifest?.names),
       eventDate: (manifest as { logistics?: { date?: string } } | null)?.logistics?.date ?? null,
       published: Boolean(manifest?.published),
       manifest,

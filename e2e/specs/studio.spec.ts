@@ -682,8 +682,15 @@ test.describe('Studio (stationery editor)', () => {
       if (method === 'POST') {
         const post = route.request().postData() ?? '';
         try {
-          const parsed = JSON.parse(post) as { manifest?: { studio?: Record<string, unknown> } };
-          if (parsed.manifest?.studio) savedManifestStudio = parsed.manifest.studio;
+          // The Studio autosave posts a scoped manifestPatch (it
+          // only owns manifest.studio); accept the legacy full-
+          // manifest shape too.
+          const parsed = JSON.parse(post) as {
+            manifest?: { studio?: Record<string, unknown> };
+            manifestPatch?: { studio?: Record<string, unknown> };
+          };
+          const studioSlice = parsed.manifestPatch?.studio ?? parsed.manifest?.studio;
+          if (studioSlice) savedManifestStudio = studioSlice;
         } catch { /* ignore */ }
         await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
         return;

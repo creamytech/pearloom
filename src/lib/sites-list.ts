@@ -22,6 +22,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { resolveSiteNames } from '@/lib/site-names';
 
 export interface ListedSite {
   id: string;
@@ -70,7 +71,8 @@ function mapRow(site: SiteRow, coHostRole?: string): ListedSite {
     // Derived from manifest.published — the sites table carries no
     // `published` column in current deployments (42703 otherwise).
     published: Boolean(manifest?.published),
-    names: Array.isArray(config?.names) ? (config.names as unknown[]) : ['', ''],
+    // Heal wiped config pairs from the manifest (see lib/site-names).
+    names: resolveSiteNames(config?.names, manifest?.names),
     ...(coHostRole ? { coHostRole } : {}),
   };
 }
