@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Thread } from '@/components/brand/Thread';
+import { usePrefersReducedMotion } from '@/components/pearloom/redesign/graceful-image';
 import { Pearl, PLButton } from './DesignAtoms';
 import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, U, parseNames, type OccasionKey } from './landing-data';
 
@@ -69,6 +70,30 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
     [setOcc],
   );
 
+  /* Touch has no mouseenter: a finger on the interactives (tabs, the
+     name form, the stationery card) pauses the rotation the way a
+     hovering cursor does. A scroll-through swipe elsewhere on the hero
+     deliberately does NOT pause — the ambient showcase keeps playing. */
+  const touchPause = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') setPaused(true);
+  }, []);
+
+  /* When the tabs strip scrolls (phones), keep the active tab in view —
+     otherwise the rotation walks the selection off-screen. scrollTo on
+     the container only (never scrollIntoView, which can scroll the page). */
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    const c = tabsRef.current;
+    if (!c || c.scrollWidth <= c.clientWidth + 4) return;
+    const tab = c.querySelector<HTMLElement>('.pd-otab.on');
+    if (!tab) return;
+    c.scrollTo({
+      left: Math.max(0, tab.offsetLeft - (c.clientWidth - tab.offsetWidth) / 2),
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }, [occ, reducedMotion]);
+
   /* The hero's promise is "type a name, start your loom" — so the
      typed name (and an explicitly picked occasion) must actually
      arrive in the wizard (PERSONA-PLAN S5). Demo placeholders never
@@ -98,7 +123,13 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
 
       <div className="pd-hero-inner">
         <div className="pd-hero-copy">
-          <div className={'pd-occ-tabs' + (paused ? ' paused' : '')} role="tablist" aria-label="Occasion">
+          <div
+            ref={tabsRef}
+            className={'pd-occ-tabs' + (paused ? ' paused' : '')}
+            role="tablist"
+            aria-label="Occasion"
+            onPointerDown={touchPause}
+          >
             {OCC_KEYS.map((k) => (
               <button
                 key={k}
@@ -120,10 +151,17 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
               <em>{O.em}</em>
               {O.h1b}
             </h1>
-            <p className="pd-hero-sub">{O.sub}</p>
           </div>
 
-          <div className="pd-hero-form">
+          {/* The sub lives OUTSIDE the keyed block so phones can order it
+              below the form (rotation reflow then never moves the input).
+              Its own key + the same key-in animation keep the desktop
+              rotation visually identical. */}
+          <p className="pd-hero-sub" key={`sub-${occ}`}>
+            {O.sub}
+          </p>
+
+          <div className="pd-hero-form" onPointerDown={touchPause}>
             <input
               value={names}
               onChange={(e) => {
@@ -185,7 +223,11 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             </div>
           </div>
 
-          <div className="pd-std" style={{ ['--occ' as string]: O.accent } as React.CSSProperties}>
+          <div
+            className="pd-std"
+            style={{ ['--occ' as string]: O.accent } as React.CSSProperties}
+            onPointerDown={touchPause}
+          >
             <div className="pd-std-lift" key={occ}>
               <div className="std-eyebrow">{O.eyebrow}</div>
               <div className="std-pre">{O.pre}</div>
@@ -428,6 +470,9 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           /* Reserve three lines so the subhead height is constant across
              occasions (they run 2–3 lines) — no reflow on rotation. */
           min-height: 4.86em;
+          /* The sub sits outside .pd-hero-key (phones order it below the
+             form), so it carries the same key-in remount animation. */
+          animation: pd-key-in 0.62s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .pd-hero-form {
           display: flex;
@@ -751,7 +796,34 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             display: none;
           }
           .pd-hero-inner {
-            padding: 104px 18px 64px;
+            padding: 96px 18px 56px;
+            gap: 30px;
+          }
+          /* Phone-first order: the name form moves ABOVE the rotating
+             sub-copy so the first screen is tabs → headline → input →
+             CTA, and rotation reflow happens below the interactives. */
+          .pd-hero-copy {
+            display: flex;
+            flex-direction: column;
+          }
+          .pd-occ-tabs {
+            order: 1;
+          }
+          .pd-hero-key {
+            order: 2;
+          }
+          .pd-hero-form {
+            order: 3;
+            margin-top: 20px;
+          }
+          .pd-hero-sub {
+            order: 4;
+          }
+          .pd-ticker {
+            order: 5;
+          }
+          .pd-hero-stats {
+            order: 6;
           }
           .pd-occ-tabs {
             width: 100%;
@@ -760,26 +832,37 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             flex-wrap: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            /* Only claim horizontal pans — a vertical swipe that lands on
-               this strip still scrolls the page instead of being eaten by
-               the horizontal scroller. */
-            touch-action: pan-x;
+            /* pan-x pan-y: horizontal swipes scroll the strip, vertical
+               swipes starting here still scroll the page (bare pan-x
+               would forbid them per spec). */
+            touch-action: pan-x pan-y;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x proximity;
+            scroll-padding-inline: 12px;
+            /* Right edge fades: there are more tabs than fit. */
+            -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent 100%);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent 100%);
           }
           .pd-occ-tabs::-webkit-scrollbar {
             display: none;
+          }
+          .pd-otab {
+            scroll-snap-align: start;
           }
           .pd-hero-h1 {
             font-size: clamp(34px, 9vw, 46px);
             overflow-wrap: break-word;
             /* Narrower column → the longest headline wraps to 3 lines;
-               reserve them so rotation never reflows the mobile hero. */
+               reserve them so rotation never reflows the input below. */
             min-height: 2.94em;
           }
           .pd-hero-sub {
             font-size: 15.5px;
             max-width: 100%;
-            /* The longest subhead runs ~5 lines at this width. */
-            min-height: 8.1em;
+            margin: 18px 0 0;
+            /* No reserved lines on phones: the sub sits below the form,
+               so rotation reflow no longer moves anything interactive. */
+            min-height: 0;
           }
           .pd-hero-form {
             max-width: 100%;
@@ -787,11 +870,20 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
           .pd-hero-stats {
             gap: 18px 22px;
           }
+          /* The stationery preview stays a second-screen moment, but a
+             tighter one: less padding, names sized for a 354px card. */
+          .pd-std {
+            padding: 34px 26px 30px;
+          }
+          .std-names {
+            font-size: clamp(28px, 8vw, 40px);
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           .pd-hero-photos img.on,
           .pd-pcard,
           .pd-hero-key,
+          .pd-hero-sub,
           .pd-std-lift,
           .pd-occ-tabs .pd-otab.on::after,
           .pd-scroll-cue :global(.arw) {
