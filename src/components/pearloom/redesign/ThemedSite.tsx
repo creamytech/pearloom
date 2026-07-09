@@ -864,7 +864,11 @@ function ThemedSiteInner({
   };
 
   const navEl = (
-    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop>
+    /* manifest + onEditField (SEL.1): pressing the menu now offers
+       its Layout chip on the canvas (desktop variants, plus the
+       phone-menu row TSection special-cases for id="nav") instead
+       of a silent gold frame. */
+    <TSection id="nav" label="Site nav" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} hideHandle stickyTop manifest={manifest} onEditField={onEditField}>
       <SiteNav
         sectionIds={sections.map(String)}
         isMobile={isMobile}
@@ -920,16 +924,23 @@ function ThemedSiteInner({
   };
 
   /* Site footer — port of v2 site-renderer Footer (signature /
-     columns / minimal). Brand chrome closing every page; reads
-     manifest.footerVariant. Rendered once at the foot of each
-     layout below. */
-  const footerVariant = (manifest as unknown as { footerVariant?: 'signature' | 'columns' | 'minimal' }).footerVariant || 'signature';
+     columns / minimal). Brand chrome closing every page. SEL.2:
+     reads through readVariant('footer') — manifest.layouts.footer
+     first, legacy manifest.footerVariant honored — and rides its
+     own TSection so pressing it selects it and offers the Layout
+     chip like any section. */
+  const footerRaw = readVariant(manifest, 'footer');
+  const footerVariant = (['signature', 'columns', 'minimal'].includes(footerRaw)
+    ? footerRaw
+    : 'signature') as 'signature' | 'columns' | 'minimal';
   const footerEl = (
     /* onNavClick, not raw scrollToSection — on multi-page sites the
        columns footer links to sections living on other pages; the
        page-aware handler navigates there (same path as the header
        nav) instead of preventDefault-ing into a dead anchor. */
-    <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
+    <TSection id="footer" label="Footer" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField}>
+      <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
+    </TSection>
   );
 
   /* kitId hoisted above ctx for motifLayout. */
@@ -1693,37 +1704,50 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
    in front of guests — the honesty rule). */
 function HeroPhotos({ ctx }: { ctx: SectionCtx }) {
   const gallery = ((ctx.manifest as unknown as { galleryImages?: string[] }).galleryImages ?? []).filter(Boolean);
-  const photos = [ctx.coverPhoto, ...gallery]
-    .filter((p, i, a): p is string => !!p && a.indexOf(p) === i)
-    .slice(0, 4);
-  if (photos.length > 0) {
+  /* Editor: the strip is always four live slots — cover + the first
+     three gallery tiles. Filled tiles swap/reframe, empty tiles
+     invite, broken tiles confess (PH.1: the strip never goes inert;
+     before this, one photo made the whole strip untappable). */
+  if (ctx.editable) {
+    const slots: Array<{ slot: CanvasPhotoSlotDetail; url?: string }> = [
+      { slot: { kind: 'cover', label: 'the cover', current: ctx.coverPhoto || undefined }, url: ctx.coverPhoto || undefined },
+      ...([0, 1, 2] as const).map((gi) => ({
+        slot: { kind: 'gallery' as const, index: gi, label: 'this tile', current: gallery[gi] },
+        url: gallery[gi] as string | undefined,
+      })),
+    ];
+    const tones: PhotoTone[] = ['warm', 'lavender', 'peach', 'sage'];
     return (
-      <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: `repeat(${Math.min(photos.length, 4)}, minmax(0, 1fr))`, gap: 14, maxWidth: photos.length < 3 ? 620 : 940, marginInline: 'auto' }}>
-        {photos.map((src, i) => (
-          <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
-            <FadeInImage src={src} eager={i === 0} style={{ width: '100%', height: '100%' }} />
-          </div>
+      <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
+        {slots.map(({ slot, url }, i) => (
+          <EditPhotoTarget
+            key={i}
+            editable
+            slot={slot}
+            style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}
+          >
+            {url ? (
+              <FadeInImage src={url} eager={i === 0} confessBroken style={{ width: '100%', height: '100%' }} />
+            ) : (
+              <PhotoPlaceholder tone={tones[i]} aspect="3/4" />
+            )}
+          </EditPhotoTarget>
         ))}
       </div>
     );
   }
-  if (!ctx.editable) return null;
-  /* Empty editor state — the placeholder strip doubles as "press a
-     square to add a photo": the first tile fills the cover, the rest
-     seed the first gallery slots. */
+  /* Published: real photos only — deduped, capped at four, and the
+     strip vanishes entirely when there's nothing real (honesty). */
+  const photos = [ctx.coverPhoto, ...gallery]
+    .filter((p, i, a): p is string => !!p && a.indexOf(p) === i)
+    .slice(0, 4);
+  if (photos.length === 0) return null;
   return (
-    <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
-      {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
-        <EditPhotoTarget
-          key={i}
-          editable
-          slot={i === 0
-            ? { kind: 'cover', label: 'the cover' }
-            : { kind: 'gallery', index: i - 1, label: 'this tile' }}
-          style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}
-        >
-          <PhotoPlaceholder tone={t} aspect="3/4" />
-        </EditPhotoTarget>
+    <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: `repeat(${Math.min(photos.length, 4)}, minmax(0, 1fr))`, gap: 14, maxWidth: photos.length < 3 ? 620 : 940, marginInline: 'auto' }}>
+      {photos.map((src, i) => (
+        <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
+          <FadeInImage src={src} eager={i === 0} style={{ width: '100%', height: '100%' }} />
+        </div>
       ))}
     </div>
   );
@@ -4720,15 +4744,21 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
   const recommendedId = showLayoutBar
     ? recommendedVariantFor(id, (manifest as unknown as { occasion?: string } | undefined)?.occasion)
     : undefined;
-  const pickLayout = (vid: string) => {
+  const pickLayoutFor = (key: string) => (vid: string) => {
     onEditField?.((m) => ({
       ...(m as unknown as Record<string, unknown>),
       layouts: {
         ...((m as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
-        [id]: vid,
+        [key]: vid,
       },
     } as unknown as StoryManifest));
   };
+  const pickLayout = pickLayoutFor(id);
+  /* The nav's popover carries a second group — the phone menu
+     (LAYOUTS.navMobile), which otherwise has no canvas presence at
+     all (SEL.1): its variants only lived in the Design tab. */
+  const phoneMenuVariants = id === 'nav' ? LAYOUTS.navMobile : undefined;
+  const currentPhoneMenu = id === 'nav' && manifest ? readVariant(manifest, 'navMobile') : undefined;
   /* Popover open state. Reset on deselect via render-time
      adjustment (not setState-in-effect — React Compiler lint):
      when the chip unmounts, a stale `true` would otherwise
@@ -4968,6 +4998,50 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
                       </button>
                     );
                   })}
+                  {phoneMenuVariants && phoneMenuVariants.length > 0 && (
+                    <>
+                      <div
+                        aria-hidden
+                        style={{
+                          gridColumn: '1 / -1',
+                          margin: '6px 2px 2px',
+                          paddingTop: 8,
+                          borderTop: '1px solid var(--pl-line, #E2D9C3)',
+                          fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
+                          color: 'var(--pl-ink-muted, #9B9384)',
+                          fontFamily: 'var(--pl-font-mono, monospace)',
+                        }}
+                      >
+                        Menu, phone
+                      </div>
+                      {phoneMenuVariants.map((v) => {
+                        const on = v.id === currentPhoneMenu;
+                        const sub = v.sub ? `${v.label}, ${v.sub}` : v.label;
+                        return (
+                          <button
+                            key={`ph-${v.id}`}
+                            type="button"
+                            role="option"
+                            aria-selected={on}
+                            title={sub}
+                            onClick={(e) => { e.stopPropagation(); pickLayoutFor('navMobile')(v.id); setLbOpen(false); }}
+                            style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                              padding: '9px 6px 7px', borderRadius: 10, cursor: 'pointer',
+                              border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid transparent',
+                              background: on ? 'rgba(92,107,63,0.08)' : 'transparent',
+                              fontFamily: 'inherit',
+                            }}
+                          >
+                            <VariantThumb section="navMobile" variant={v.id} />
+                            <span style={{ fontSize: 10.5, fontWeight: 600, lineHeight: 1.2, color: 'var(--pl-ink-soft, #3A332C)', textAlign: 'center' }}>
+                              {v.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </>
+                  )}
                 </div>
               )}
             </div>

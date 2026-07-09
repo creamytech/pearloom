@@ -1061,8 +1061,9 @@ function LivingBackgroundPick({ manifest, onChange }: { manifest: StoryManifest;
 }
 
 /* ─── FooterPick — the v2 site-renderer Footer treatment
-   (signature / columns / minimal). Writes manifest.footerVariant;
-   ThemedSite's <SiteFooter> reads it. ──────────────────────────── */
+   (signature / columns / minimal). SEL.2: writes
+   manifest.layouts.footer (the canvas chip + FooterPanel's field);
+   readVariant honors legacy manifest.footerVariant rows. ────────── */
 
 const FOOTERS = [
   { id: 'signature', label: 'Signature', blurb: 'Sprig · names · date · place' },
@@ -1071,9 +1072,15 @@ const FOOTERS = [
 ];
 
 function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const value = (manifest as unknown as { footerVariant?: string }).footerVariant ?? 'signature';
+  const value = readVariant(manifest, 'footer');
   const set = (id: string, label: string) => {
-    onChange({ ...(manifest as unknown as Record<string, unknown>), footerVariant: id } as unknown as StoryManifest);
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      layouts: {
+        ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+        footer: id,
+      },
+    } as unknown as StoryManifest);
     announceDesignChange('footer', label);
   };
   return (

@@ -132,6 +132,8 @@ import { NameVotePanel } from '../editor/panels/blocks/NameVotePanel';
 import { RoomsPanel } from '../editor/panels/blocks/RoomsPanel';
 import { ThenAndNowPanel } from '../editor/panels/blocks/ThenAndNowPanel';
 import { GroupChatPanel } from '../editor/panels/blocks/GroupChatPanel';
+import { NavPanel } from '../editor/panels/NavPanel';
+import { FooterPanel } from '../editor/panels/FooterPanel';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
@@ -178,8 +180,9 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   gallery:  { id: 'gallery',  label: 'Gallery',   desc: 'Your photo wall' },
   rsvp:     { id: 'rsvp',     label: 'RSVP',      desc: 'Reply form & deadline' },
   faq:      { id: 'faq',      label: 'FAQ',       desc: 'Guest questions' },
-  nav:      { id: 'nav',      label: 'Site nav',  desc: 'Brand + links' },
-  navMobile:{ id: 'navMobile',label: 'Mobile nav',desc: 'Drawer for phones' },
+  nav:      { id: 'nav',      label: 'Menu',      desc: 'How guests get around' },
+  navMobile:{ id: 'navMobile',label: 'Menu, phone',desc: 'How the menu opens on phones' },
+  footer:   { id: 'footer',   label: 'Footer',    desc: 'How the site signs off' },
   /* Optional sections — added via the Add Section picker.
      Once present, render through the same dispatch as core
      sections. */
@@ -922,8 +925,11 @@ function renderSectionEditor(
     case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;
     case 'memorial':    return <MemorialPanel {...props} />;
     case 'bachelor':    return <BachelorPanel {...props} />;
-    /* nav / navMobile fall through — handled by PropertyRail's
-       own dispatch via Pear quick actions; no panel mounts. */
+    /* Chrome sections — pressing the menu or the footer gets their
+       options (SEL.1/SEL.2); navMobile rides inside NavPanel. */
+    case 'nav':
+    case 'navMobile':   return <NavPanel {...props} />;
+    case 'footer':      return <FooterPanel {...props} />;
     default:         return null;
   }
 }

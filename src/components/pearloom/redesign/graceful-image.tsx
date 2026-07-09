@@ -85,6 +85,7 @@ export function FadeInImage({
   style = {},
   imgStyle = {},
   title,
+  confessBroken = false,
 }: {
   src: string;
   alt?: string;
@@ -96,6 +97,10 @@ export function FadeInImage({
   imgStyle?: CSSProperties;
   /** Tooltip, forwarded to the <img> (honor-list stamp hovers). */
   title?: string;
+  /** Editor surfaces only: a failed photo shows a plum "didn't load"
+   *  chip over the mat instead of hiding the breakage behind grace.
+   *  Published sites never set this — guests keep the quiet mat. */
+  confessBroken?: boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -147,6 +152,28 @@ export function FadeInImage({
         />
       )}
       {failed && <PressedMat />}
+      {failed && confessBroken && (
+        <span
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: 10,
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--pl-plum, #6E3B4E)',
+            color: 'var(--pl-cream, #F5EFE2)',
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            pointerEvents: 'none',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+          }}
+        >
+          Photo didn&rsquo;t load — tap to replace
+        </span>
+      )}
     </div>
   );
 }

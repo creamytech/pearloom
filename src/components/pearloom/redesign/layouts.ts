@@ -101,6 +101,15 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'bottom-sheet', label: 'Bottom sheet',        sub: 'Drag-up modal' },
     { id: 'pill',         label: 'Compact pill',        sub: 'Floating pill with collapsed menu' },
   ],
+  /* Footer — SEL.2: pressing the footer now selects it and offers
+     these on the canvas chip. Backed by manifest.layouts.footer with
+     a legacy manifest.footerVariant fallback in readVariant (no data
+     migration — old rows keep rendering their pick). */
+  footer: [
+    { id: 'signature', label: 'Signature', sub: 'Sprig · names · date · place' },
+    { id: 'columns',   label: 'Columns',   sub: 'Names left · nav links right' },
+    { id: 'minimal',   label: 'Minimal',   sub: 'One quiet centered line' },
+  ],
   /* Optional sections (added via the Add Section picker). Each
      has a Layout tab in the PropertyRail; ThemedSite reads
      manifest.layouts.<section> via readVariant and dispatches. */
@@ -234,6 +243,7 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   rsvp: 'centered',
   nav: 'split',
   navMobile: 'slide-in',
+  footer: 'signature',
   countdown: 'cards',
   map: 'embed',
   music: 'card',
@@ -265,11 +275,15 @@ export function readVariant(
   manifest: { layouts?: Record<string, string>; edition?: string } | unknown,
   section: Exclude<SectionId, null>,
 ): string {
-  const m = manifest as { layouts?: Record<string, string>; edition?: string };
+  const m = manifest as { layouts?: Record<string, string>; edition?: string; footerVariant?: string };
   const layouts = m?.layouts ?? {};
   /* 1. Explicit host pick → 2. Edition's layoutDefaults[section]
      → 3. per-section hardcoded default. */
   if (layouts[section]) return layouts[section];
+  /* Footer legacy: picks made before SEL.2 live on
+     manifest.footerVariant — honor them so the chip's label and the
+     rendered footer never disagree. */
+  if (section === 'footer' && m?.footerVariant) return m.footerVariant;
   const editionFallback = EDITION_LAYOUT_DEFAULTS[m?.edition ?? ''];
   if (editionFallback && editionFallback[section]) return editionFallback[section] ?? '';
   return DEFAULT_VARIANT[section] ?? '';
