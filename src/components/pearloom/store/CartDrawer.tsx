@@ -157,6 +157,11 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
         inset: 0,
         zIndex: 400 /* --z-toast tier; above modals, below max */,
         pointerEvents: open ? 'auto' : 'none',
+        /* Clip the parked panel: closed, the aside sits at
+           translateX(100%), and without this the browser counts
+           that off-canvas box as scrollable overflow — the whole
+           store page wobbled sideways on phones. */
+        overflow: 'hidden',
       }}
       aria-hidden={!open}
     >

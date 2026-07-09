@@ -182,11 +182,11 @@ export function DevDashboardClient() {
           narrow={heroNarrow}
           afterglowStats={post ? { celebrated: 74, photos: 212, notes: 31 } : null}
         />
-        <div style={{ display: 'grid', gridTemplateColumns: post ? '1fr' : twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? '1fr' : twoCol('1.1fr', '1fr'), gap: 18, alignItems: 'start' }}>
           {!post && <ProgressCard pct={68} done={31} prog={12} todo={12} />}
           <QuickActions actions={post ? QUICK_AFTERGLOW : QUICK_PLAN} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: phase === 'kept' ? '1fr' : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: phase === 'kept' ? '1fr' : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
           {phase !== 'kept' && (
             <RoadCard
               milestones={post ? ROAD_STORY : ROAD_PLAN}
@@ -196,7 +196,7 @@ export function DevDashboardClient() {
               headline={post ? <>How it <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>came together.</span></> : undefined}
             />
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <ChecklistCard
               items={checklist}
               href="#"
@@ -218,19 +218,19 @@ export function DevDashboardClient() {
           </div>
         </div>
         {phase !== 'kept' && (
-          <div style={{ display: 'grid', gridTemplateColumns: twoCol('1.25fr', '1fr'), gap: 18, alignItems: 'start' }}>
+          <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: twoCol('1.25fr', '1fr'), gap: 18, alignItems: 'start' }}>
             <NeedsYouNow
               rows={post ? NEEDS_AFTERGLOW : NEEDS_PLAN}
               phaseLabel={copy.label}
               phaseNote={post ? '11 days ago' : phase === 'the-day' ? 'today' : '84 days out'}
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {!post && <BudgetBreakdown lines={BUDGET} onSave={() => {}} />}
               <Lately items={LATELY} />
             </div>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: post ? twoCol('1.25fr', '1fr') : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: post ? twoCol('1.25fr', '1fr') : twoCol('1fr', '1fr'), gap: 18, alignItems: 'start' }}>
           {post ? (
             <>
               <MemoryCard

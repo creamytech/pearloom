@@ -680,7 +680,7 @@ export function WelcomeHome() {
         {/* 3 · Planning progress + quick actions. A finished day
             isn't 73% done — the % bar retires post-event and the
             story rail below says it better with dates. */}
-        <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || postEvent) ? '1fr' : '1.1fr 1fr', gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || postEvent) ? '1fr' : '1.1fr 1fr', gap: 18, alignItems: 'start' }}>
           {!postEvent && <ProgressCard pct={progress.pct} done={progress.done} prog={progress.prog} todo={progress.todo} />}
           <QuickActions actions={quickActions} />
         </div>
@@ -689,7 +689,7 @@ export function WelcomeHome() {
             checklist and the themed site preview. In the afterglow
             the same rail turns past-tense (the StoryCard — real
             stamps, every dot filled); in the kept phase it rests. */}
-        <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || phase === 'kept') ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || phase === 'kept') ? '1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
           {phase !== 'kept' && (
             <RoadCard
               milestones={roadMilestones}
@@ -699,7 +699,7 @@ export function WelcomeHome() {
               headline={postEvent ? <>How it <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>came together.</span></> : undefined}
             />
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <ChecklistCard
               items={checklistItems}
               href={phase === 'afterglow'
@@ -730,9 +730,9 @@ export function WelcomeHome() {
             cards). All still data-wired; the row hides entirely when
             there's nothing to say. */}
         {showWorkZone && (
-          <div style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || queueEmpty) ? '1fr' : '1.25fr 1fr', gap: 18, alignItems: 'start' }}>
+          <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: (workZoneNarrow || queueEmpty) ? '1fr' : '1.25fr 1fr', gap: 18, alignItems: 'start' }}>
             {!queueEmpty && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 {/* Sparse activity (<3 items) folds into the queue as
                     a footer list; a fuller feed gets its own card. */}
                 <NeedsYouNow
@@ -744,7 +744,7 @@ export function WelcomeHome() {
                 {latelyItems.length >= 3 && <Lately items={latelyItems} />}
               </div>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {/* Budget — host-entered, planning surface. Hidden for
                   solemn occasions and after the event has passed. */}
               {budgetVisible && <BudgetBreakdown lines={budget} onSave={saveBudget} />}
@@ -767,7 +767,7 @@ export function WelcomeHome() {
             memory book takes the lead (six tiles, guest photos
             woven in) and the donut retires for the honest recap:
             who celebrated with you. */}
-        <div style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : postEvent ? '1.25fr 1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
+        <div className="pl8-homerow" style={{ display: 'grid', gridTemplateColumns: workZoneNarrow ? '1fr' : postEvent ? '1.25fr 1fr' : '1fr 1fr', gap: 18, alignItems: 'start' }}>
           {postEvent ? (
             <>
               <MemoryCard images={memoryImages} href="/dashboard/keepsakes" expanded moreCount={memoryMoreCount} blurb={memoryBlurb} />

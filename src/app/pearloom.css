@@ -9198,3 +9198,80 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--pl-olive, #5C6B3F) 55%, transparent);
   background: color-mix(in oklab, var(--pl-olive, #5C6B3F) 6%, transparent);
 }
+
+/* ── Mobile shelves (APP PASS, 2026-07-09) ──
+   Paired card rows read as one long stack on phones. At ≤640px
+   each .pl8-homerow becomes a horizontal snap shelf — cards sit
+   side by side at 86vw with the next card peeking, the same
+   swipe language the landing's shelves taught (pan-x pan-y so a
+   vertical swipe still scrolls the page). .pl8-homestack
+   wrappers dissolve (display: contents) so every card inside a
+   nested column becomes its own slide. The bleed gutter is a
+   var so pages with different main padding stay flush: the
+   dashboard home pads clamp(20px,4vw,40px); PLChrome pages
+   (keepsakes etc.) pad 18px on phones. Desktop is untouched —
+   these rules exist only under 640px. */
+@media (max-width: 640px) {
+  .pl8 .pl8-homerow {
+    --pl-shelf-gutter: clamp(20px, 4vw, 40px);
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 12px !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    margin-inline: calc(-1 * var(--pl-shelf-gutter));
+    padding-inline: var(--pl-shelf-gutter);
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    align-items: flex-start;
+    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
+  }
+  .pl8-pl-chrome .pl8-homerow { --pl-shelf-gutter: 18px; }
+  .pl8 .pl8-homerow::-webkit-scrollbar { display: none; }
+  .pl8 .pl8-homerow > * {
+    flex: 0 0 86vw;
+    max-width: 86vw;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
+  .pl8 .pl8-homestack { display: contents; }
+}
+
+/* ── Mobile store shelves (APP PASS, 2026-07-09) ──
+   The Theme Store's browse-all view is ~86 packs in a single
+   column on phones — an endless wall. At ≤640px each collection
+   grid becomes a horizontal snap shelf (one collection per
+   screen row, swipe through its packs), the exact app-store
+   grammar. Filtered/search results keep the vertical list —
+   those sets are already small and scanning them top-to-bottom
+   is the point. The store's main pads 26px at every width. */
+@media (max-width: 640px) {
+  .pl-store-root .pl-store-shelf {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 12px !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    margin-inline: -26px;
+    padding-inline: 26px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    align-items: stretch;
+    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 40px), transparent);
+  }
+  .pl-store-root .pl-store-shelf::-webkit-scrollbar { display: none; }
+  .pl-store-root .pl-store-shelf > * {
+    flex: 0 0 78vw;
+    max-width: 78vw;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
+}

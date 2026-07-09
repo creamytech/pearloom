@@ -811,7 +811,12 @@ function StoreInner() {
                         {inCol.length}
                       </span>
                     </header>
-                    <div style={gridStyle}>{inCol.map((p) => card(p, idx++))}</div>
+                    {/* pl-store-shelf: ≤640px this grid becomes a
+                        horizontal snap shelf (pearloom.css APP PASS)
+                        so browse-all reads collection-by-collection
+                        instead of an 86-card wall. Desktop grid is
+                        untouched. */}
+                    <div className="pl-store-shelf" style={gridStyle}>{inCol.map((p) => card(p, idx++))}</div>
                   </section>
                 );
               })}

@@ -301,7 +301,10 @@ export function KeepsakesPage() {
                 Nothing woven in yet, as guests add photos and notes, they gather here.
               </div>
             )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {/* Hidden ≤640px — PageIntro already carries the same
+                two actions; on a phone the duplicate row just adds
+                a screen of scroll. */}
+            <div className="pl8-mem-hero-ctas" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Link href="/dashboard/memory-book" className="btn btn-pearl btn-sm" style={{ textDecoration: 'none' }}>
                 Open the book <Pearl size={8} />
               </Link>
@@ -333,8 +336,13 @@ export function KeepsakesPage() {
       >
         <div>
           {reel.length > 0 ? (
+            /* pl8-homerow: ≤640px the masonry becomes a horizontal
+               snap shelf (pearloom.css APP PASS) — swipe through
+               the reel instead of scrolling a column of 15 cards.
+               Desktop keeps the 3-column masonry (column-count is
+               inert once the shelf flips to flex). */
             <div
-              className="pl8-mem-reel"
+              className="pl8-mem-reel pl8-homerow"
               style={{ columnCount: 3, columnGap: 12 }}
             >
               {reel.map((item, i) =>
@@ -420,7 +428,10 @@ export function KeepsakesPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}>
+        {/* pl8-mem-rail + pl8-homerow: ≤640px the rail cards ride a
+            snap shelf beside each other instead of stacking (the
+            styled-jsx below flips direction + drops sticky). */}
+        <div className="pl8-mem-rail pl8-homerow" style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}>
           <RailCard title="What's inside">
             {chapters.length > 0 ? (
               <div>
@@ -483,7 +494,7 @@ export function KeepsakesPage() {
         )}
 
         <div
-          className="pl8-keepsakes-grid pl8-dash-stagger"
+          className="pl8-keepsakes-grid pl8-dash-stagger pl8-homerow"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
@@ -533,6 +544,28 @@ export function KeepsakesPage() {
           .pl8-mem-reel {
             column-count: 1 !important;
           }
+        }
+        /* ── APP PASS (2026-07-09) — phone shelves. The .pl8-homerow
+           base rules live in pearloom.css; these are the page-local
+           overrides. Desktop (>640px) is untouched. */
+        @media (max-width: 640px) {
+          /* Reel slides read better a notch narrower than cards. */
+          .pl8-pl-chrome .pl8-mem-reel.pl8-homerow > * {
+            flex: 0 0 68vw;
+            max-width: 68vw;
+            margin-bottom: 0;
+          }
+          /* The rail becomes a side-by-side shelf, not a sticky
+             column. */
+          .pl8-pl-chrome .pl8-mem-rail.pl8-homerow {
+            flex-direction: row !important;
+            position: static !important;
+          }
+          /* Hero compaction: PageIntro already carries the same
+             CTAs; the book art needs less stage on a phone. */
+          .pl8-mem-hero-ctas { display: none !important; }
+          .pl8-mem-hero-art { min-height: 168px !important; }
+          .pl8-mem-hero-art > div { transform: rotate(-4deg) scale(0.78) !important; }
         }
       `}</style>
     </PLChrome>
