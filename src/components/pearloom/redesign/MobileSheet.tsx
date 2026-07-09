@@ -739,8 +739,8 @@ export function MobileSheet({
           </div>
         )}
         {/* Single-cell grid so flex-column rails (PropertyRail /
-            ThemeRail) stretch to the full sheet height and keep
-            their internal scroll regions. */}
+            the Design door deck) stretch to the full sheet height
+            and keep their internal scroll regions. */}
         <div style={{ flex: 1, minHeight: 0, display: 'grid' }}>
           {(open || render) && children}
         </div>

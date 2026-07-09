@@ -35,7 +35,7 @@ import { DesignChangeBeacon } from './DesignChangeBeacon';
 import { DESIGN_COMPARE_EVENT, type DesignCompareDetail } from './design-feedback';
 import { EditorRailLeft, sectionOrderFor, sectionDisplayLabel } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
-import { ThemeRail } from './ThemeRail';
+import { DesignDoorDeck } from './DesignDoorDeck';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
@@ -844,11 +844,18 @@ export default function EditorRedesign({
             />
           )}
           {displaySheet === 'theme' && (
-            <ThemeRail
+            /* Phones get the rich door deck, not the desktop's
+               six-screen ladder — each door a preview card pressed
+               from the site's own look ("rich beautiful cards like
+               the sections", 2026-07-09). The sheet only exists on
+               phones; desktop design lives in PropertyRail's Design
+               tab (ThemeRail was this sheet's only mount — deleted). */
+            <DesignDoorDeck
               manifest={bridge.manifest}
               onChange={bridge.setManifest}
               onOpenShop={bridge.openThemeShop}
               onOpenDecor={bridge.openDecor}
+              header
             />
           )}
           {displaySheet === 'props' && active && (

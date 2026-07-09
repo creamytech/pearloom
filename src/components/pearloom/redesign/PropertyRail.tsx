@@ -16,8 +16,9 @@ import { fireUndoable } from './UndoToast';
 import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
 import { useMobileViewport } from './use-mobile-viewport';
-import { ThemePickerBody, type DesignDoorId } from './ThemePickerBody';
+import { ThemePickerBody } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
+import { DesignDoorDeck } from './DesignDoorDeck';
 import { SectionPanelShell } from '../editor/panels/_section-atoms';
 import { LAYOUTS, readVariant, recommendedVariantFor } from './layouts';
 import { VariantThumb } from './variant-thumb';
@@ -915,13 +916,6 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
   }
 }
 
-/* ─── DesignDoorDeck — the phone Design tab (EDITOR-RAILS-PLAN DK.3).
-   The desktop ladder is a 6-screen scroll; in a 48vh sheet it was a
-   tunnel. Phones get a deck of DOORS instead: each card names one
-   rung + its current state; tapping drills into just that rung
-   (ThemePickerBody's door prop) with a back chevron home. Rides
-   SectionPanelShell so the sheet's deck CSS + dot rail apply. */
-
 /* ─── RailLayoutRow — LAY.1: the section's layout chooser in the
    rail, same schematics + gold pearl as the canvas chip. A quiet
    disclosure row, not a floating popover — the rail scrolls. */
@@ -999,117 +993,6 @@ function RailLayoutRow({
         </div>
       )}
     </div>
-  );
-}
-
-const DESIGN_DOORS: ReadonlyArray<{ id: DesignDoorId; label: string; blurb: string }> = [
-  { id: 'theme',      label: 'Theme',          blurb: 'One pick dresses the whole site' },
-  { id: 'colors',     label: 'Colors',         blurb: 'Accent, paper & ink' },
-  { id: 'fonts',      label: 'Fonts',          blurb: 'Display & body pairing' },
-  { id: 'paper',      label: 'Paper',          blurb: 'Texture & grain strength' },
-  { id: 'layout',     label: 'Layout & cards', blurb: 'Page feel + card styles' },
-  { id: 'background', label: 'Background',     blurb: 'Wallpaper behind the paper' },
-  { id: 'motion',     label: 'Motion',         blurb: 'How things arrive & move' },
-  { id: 'menu',       label: 'Menu & footer',  blurb: 'How guests get around' },
-  { id: 'finetune',   label: 'Fine-tune',      blurb: 'Voice, spacing, motifs' },
-];
-
-function designDoorState(id: DesignDoorId, manifest: StoryManifest): string {
-  const loose = manifest as unknown as {
-    themeId?: string; theme?: { id?: string };
-    texture?: string; kitId?: string; siteLayout?: string;
-  };
-  switch (id) {
-    case 'theme': {
-      const t = getTheme(loose.themeId ?? loose.theme?.id);
-      return t?.name ?? 'House theme';
-    }
-    case 'paper':
-      return loose.texture ? loose.texture.charAt(0).toUpperCase() + loose.texture.slice(1) : 'Natural';
-    case 'layout':
-      return loose.kitId ? `${loose.kitId.charAt(0).toUpperCase()}${loose.kitId.slice(1)} cards` : 'Classic';
-    case 'menu': {
-      const nav = readVariant(manifest, 'nav');
-      const label = (LAYOUTS.nav ?? []).find((v) => v.id === nav)?.label;
-      return label ?? 'Split';
-    }
-    default:
-      return '';
-  }
-}
-
-function DesignDoorDeck({
-  manifest, onChange, onOpenShop, onOpenDecor,
-}: {
-  manifest: StoryManifest;
-  onChange: (m: StoryManifest) => void;
-  onOpenShop: () => void;
-  onOpenDecor: () => void;
-}) {
-  const [door, setDoor] = useState<DesignDoorId | null>(null);
-  if (door) {
-    const meta = DESIGN_DOORS.find((d) => d.id === door);
-    return (
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <button
-          type="button"
-          onClick={() => setDoor(null)}
-          className="pl-hit44"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 16px 8px', border: 'none', background: 'transparent',
-            cursor: 'pointer', textAlign: 'left',
-          }}
-        >
-          <Icon name="arrow-left" size={14} color="var(--ink-soft)" />
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 17, color: 'var(--lavender-ink)' }}>
-            {meta?.label ?? 'Design'}
-          </span>
-          <span style={{ fontSize: 11, color: 'var(--ink-muted)', marginLeft: 'auto' }}>All design</span>
-        </button>
-        <ThemePickerBody
-          manifest={manifest}
-          onChange={onChange}
-          onOpenShop={onOpenShop}
-          onOpenDecor={onOpenDecor}
-          door={door}
-        />
-      </div>
-    );
-  }
-  return (
-    <SectionPanelShell>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {DESIGN_DOORS.map((d) => {
-          const state = designDoorState(d.id, manifest);
-          return (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => setDoor(d.id)}
-              className="lift"
-              style={{
-                display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6,
-                textAlign: 'left', cursor: 'pointer',
-                background: 'transparent', border: 'none', padding: 0,
-                minHeight: 120,
-              }}
-            >
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>
-                Design
-              </span>
-              <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, lineHeight: 1.1, color: 'var(--ink)' }}>
-                {d.label}
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.4 }}>{d.blurb}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--peach-ink)', marginTop: 2 }}>
-                {state ? `${state} · change` : 'Open'} <Icon name="arrow-right" size={12} color="var(--peach-ink)" />
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </SectionPanelShell>
   );
 }
 
