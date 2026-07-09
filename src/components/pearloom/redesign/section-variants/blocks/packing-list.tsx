@@ -160,7 +160,7 @@ export function PackingListSection({ manifest, pad, editable, variant, onEditCop
                   color: 'var(--t-ink-muted)',
                 }}
               >
-                Guests check these off privately — on their own device
+                Guests check these off privately, on their own device
               </span>
             </div>
           )}

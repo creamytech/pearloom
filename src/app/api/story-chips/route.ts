@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     windowMs: 5 * 60_000,
   });
   if (!rate.allowed) {
-    return NextResponse.json({ error: 'Too many chip requests — wait a moment.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many chip requests. Wait a moment.' }, { status: 429 });
   }
 
   let body: Body;
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, getClientIp(req));
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { error: "You've reached today's AI limit — try again tomorrow." },
+      { error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return Response.json(
-      { error: "You've reached today's AI limit — try again tomorrow." },
+      { error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -109,7 +109,7 @@ Keep title under 6 words. Subtitle: 1 poetic sentence. Description: 3-4 sentence
       result = JSON.parse(raw);
     } catch {
       console.warn('[rewrite-chapter] Gemini parse failed, returning original');
-      return Response.json({ error: 'AI generation failed — try again' }, { status: 502 });
+      return Response.json({ error: 'AI generation failed. Try again' }, { status: 502 });
     }
 
     if (!result.title && !result.description) {

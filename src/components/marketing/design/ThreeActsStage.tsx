@@ -50,7 +50,7 @@ const ACTS: Act[] = [
     verb: 'Remember',
     tag: 'THE FILM',
     h: "Pearloom doesn't quietly retire.",
-    p: "Photos file themselves into The Reel, one gallery across every site you've ever made. On your anniversary the site returns, rewoven with everything your guests left behind — the photos, the toasts, the time-capsule notes. Your first site is yours to keep, free, forever.",
+    p: "Photos file themselves into The Reel, one gallery across every site you've ever made. On your anniversary the site returns, rewoven with everything your guests left behind: the photos, the toasts, the time-capsule notes. Your first site is yours to keep, free, forever.",
     accent: PD.gold,
   },
 ];
@@ -666,7 +666,7 @@ function RememberStage({ accent }: { accent: string }) {
           <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>LANDS SEP 6 · 2027</div>
         </div>
         <div style={{ fontSize: 12, color: PD.inkSoft, lineHeight: 1.45, fontFamily: 'var(--pl-font-body)' }}>
-          On the anniversary, the site rebroadcasts itself — every photo and note your guests left, gathered into one keepsake page. The site stays, always.
+          On the anniversary, the site rebroadcasts itself: every photo and note your guests left, gathered into one keepsake page. The site stays, always.
         </div>
       </div>
 

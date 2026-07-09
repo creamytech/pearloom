@@ -103,7 +103,7 @@ export function AISuggestButton({
       )}
       {state === 'gated' && (
         <span role="status" style={{ fontSize: 11.5, color: 'var(--peach-ink)' }}>
-          You've used this month's Pear credits — upgrade in settings to keep going.
+          You've used this month's Pear credits, upgrade in settings to keep going.
         </span>
       )}
     </div>

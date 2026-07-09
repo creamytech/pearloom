@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const rate = checkRateLimit(key, { max: 30, windowMs: 60 * 60 * 1000 });
   if (!rate.allowed) {
     return NextResponse.json(
-      { error: 'You\'ve asked Pear a lot — try again in an hour.' },
+      { error: 'You\'ve asked Pear a lot. Try again in an hour.' },
       { status: 429 },
     );
   }
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 },
     );
   }

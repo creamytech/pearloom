@@ -31,19 +31,19 @@ function hotelTemplatesFor(occasion: string): DraftHotel[] {
   }
   // Standard 3-tier hotel scaffold for weddings + events.
   return [
-    { name: 'The closest', address: 'Address — within walking distance of the venue', groupRate: 'Mention {names} at booking for the group rate' },
-    { name: 'A comfortable option', address: 'Address — 10-15 minute drive', groupRate: '' },
-    { name: 'Budget-friendly nearby', address: 'Address — short drive or rideshare', groupRate: '' },
+    { name: 'The closest', address: 'Address, within walking distance of the venue', groupRate: 'Mention {names} at booking for the group rate' },
+    { name: 'A comfortable option', address: 'Address, 10-15 minute drive', groupRate: '' },
+    { name: 'Budget-friendly nearby', address: 'Address, short drive or rideshare', groupRate: '' },
   ];
 }
 
 function travelNoteFor(occasion: string, venue: string | null): string {
   const venueRef = venue ? `the venue (${venue})` : 'the venue';
   if (occasion === 'memorial' || occasion === 'funeral') {
-    return `Anyone travelling — here are a few places to stay near ${venueRef}, and a note on parking. Reach out to the family if you need help with logistics.`;
+    return `Anyone travelling, here are a few places to stay near ${venueRef}, and a note on parking. Reach out to the family if you need help with logistics.`;
   }
   if (occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion') {
-    return `We've sorted accommodations together — see below for where everyone's staying and how to get there.`;
+    return `We've sorted accommodations together, see below for where everyone's staying and how to get there.`;
   }
   return `If you're travelling in, here are a few hotels near ${venueRef} and a quick note on parking + getting there.`;
 }

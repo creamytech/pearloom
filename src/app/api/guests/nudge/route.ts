@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   }
   const rl = checkRateLimit(`guests-nudge:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many sends — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many sends. Try again in an hour.' }, { status: 429 });
   }
 
   let body: { siteId?: string; guestIds?: string[]; bodyText?: string; subject?: string } = {};

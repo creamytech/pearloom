@@ -180,7 +180,7 @@ export function DashAnalytics() {
         sections: s ? ((s.sections ?? []) as SectionStat[]) : null,
         funnel,
         sources: src ? ((src.sources ?? []) as Source[]) : null,
-        error: failed ? 'Some numbers couldn’t load just now — showing what we have. Refresh to retry.' : null,
+        error: failed ? 'Some numbers couldn’t load just now, showing what we have. Refresh to retry.' : null,
       });
     });
     return () => {
@@ -222,7 +222,7 @@ export function DashAnalytics() {
         <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
           <PageIntro eyebrow="Analytics" title="The reading of the room." />
         </div>
-        <EmptyShell message="Publish a site first — analytics light up once guests visit." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
+        <EmptyShell message="Publish a site first, analytics light up once guests visit." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
       </DashLayout>
     );
   }
@@ -388,7 +388,7 @@ export function DashAnalytics() {
                   ? 'Loading…'
                   : funnel
                     ? 'Nothing yet. The funnel fills in as you add guests and replies land.'
-                    : 'The guest list couldn’t be read just now — refresh to retry.'}
+                    : 'The guest list couldn’t be read just now, refresh to retry.'}
               </div>
             )}
           </div>
@@ -439,7 +439,7 @@ export function DashAnalytics() {
                     ? 'Loading…'
                     : sources
                       ? 'Nothing yet. Sources appear once visits arrive with a known referrer.'
-                      : 'Sources couldn’t be read just now — refresh to retry.'}
+                      : 'Sources couldn’t be read just now, refresh to retry.'}
                 </div>
               )}
             </div>

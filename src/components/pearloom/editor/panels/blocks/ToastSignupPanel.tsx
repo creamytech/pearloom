@@ -49,7 +49,7 @@ export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`Toast slots · ${slots.length}`}
-          hint="Each slot can be pre-assigned or left open for guests to claim. Claims attach to a slot's position in this list — once guests start claiming, add new slots at the end rather than removing or inserting mid-list."
+          hint="Each slot can be pre-assigned or left open for guests to claim. Claims attach to a slot's position in this list, once guests start claiming, add new slots at the end rather than removing or inserting mid-list."
           action={
             slots.length === 0 ? (
               <button
@@ -58,7 +58,7 @@ export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
                   write([
                     { id: mkId('toast'), label: 'Welcome toast' },
                     { id: mkId('toast'), label: 'A story about the early days' },
-                    { id: mkId('toast'), label: 'Open toast — anyone' },
+                    { id: mkId('toast'), label: 'Open toast, anyone' },
                     { id: mkId('toast'), label: 'The send-off' },
                   ])
                 }

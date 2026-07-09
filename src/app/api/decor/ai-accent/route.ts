@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
       isolated: cutout.isolated,
       prompt,
       customPrompt: customPrompt && customPrompt.trim() ? customPrompt.trim() : null,
-      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the accent — try regenerating.' }),
+      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the accent. Try regenerating.' }),
     });
   } catch (err) {
     console.error('[ai-accent] Error:', err);

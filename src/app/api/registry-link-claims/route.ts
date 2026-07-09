@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const rl = checkRateLimit(`registry-link-claim:${ip}`, { max: 10, windowMs: 60_000 });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many claims — slow down a tick.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many claims. Slow down a tick.' }, { status: 429 });
   }
 
   let body: ClaimBody = {};
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
 
   if (error || !data) {
     console.error('[registry-link-claims POST]', error);
-    return NextResponse.json({ error: 'Could not save your claim — try again in a moment.' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not save your claim. Try again in a moment.' }, { status: 500 });
   }
 
   // Gift claims default to an instant host email (thank-you notes

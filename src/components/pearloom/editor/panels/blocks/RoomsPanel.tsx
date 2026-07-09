@@ -33,7 +33,7 @@ export function RoomsPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`Rooms · ${rooms.length}`}
-          hint="Sleeping arrangements — each room lists who's in it, comma-separated. Rooms appear on the site in this order."
+          hint="Sleeping arrangements, each room lists who's in it, comma-separated. Rooms appear on the site in this order."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {rooms.map((room, i) => (
@@ -62,7 +62,7 @@ export function RoomsPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="bachelor"
             label="Also in the Weekend planner"
-            body="Costs, polls, and packing live there — same rooms, one store."
+            body="Costs, polls, and packing live there, same rooms, one store."
           />
         )}
 

@@ -278,7 +278,7 @@ export function ClaimCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guestName: claim.claimer_name || claim.claimer_email.split('@')[0] || 'A guest',
-          giftDescription: claim.message ? `${entryLabel} — they noted: "${claim.message}"` : entryLabel,
+          giftDescription: claim.message ? `${entryLabel}, they noted: "${claim.message}"` : entryLabel,
           coupleNames: names.filter(Boolean).join(' & '),
           occasion,
           vibe: vibes,
@@ -303,7 +303,7 @@ export function ClaimCard({
     navigator.clipboard.writeText(note).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
-    }).catch(() => { /* clipboard blocked — host can manual-copy */ });
+    }).catch(() => { /* clipboard blocked, host can manual-copy */ });
   }
 
   return (
@@ -344,7 +344,7 @@ export function ClaimCard({
           <>
             gave directly toward <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
             {typeof claim.amountCents === 'number' && claim.amountCents > 0
-              ? <> — <strong style={{ fontWeight: 600 }}>{formatDollars(claim.amountCents)}</strong></>
+              ? <>, <strong style={{ fontWeight: 600 }}>{formatDollars(claim.amountCents)}</strong></>
               : null}
           </>
         ) : (
@@ -460,7 +460,7 @@ export function ClaimCard({
               type="button"
               onClick={toggleThanked}
               disabled={thankBusy}
-              title="Stamp this gift as thanked — your note is out the door."
+              title="Stamp this gift as thanked, your note is out the door."
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -624,8 +624,8 @@ function RevokeButton({ onConfirm }: { onConfirm: () => void }) {
       aria-label={armed ? 'Confirm revoke claim' : 'Revoke claim'}
       title={
         armed
-          ? 'Tap again to confirm — stays in your records, hides from public.'
-          : 'Revoke claim — useful if a guest claimed by mistake'
+          ? 'Tap again to confirm, stays in your records, hides from public.'
+          : 'Revoke claim, useful if a guest claimed by mistake'
       }
       style={{
         height: 22,

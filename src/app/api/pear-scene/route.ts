@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ scene: 'linen', reason: "Pear isn't connected — picked Linen as a calm default." });
+    return NextResponse.json({ scene: 'linen', reason: "Pear isn't connected. Picked Linen as a calm default." });
   }
 
   // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP.
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(null, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { error: "You've reached today's AI limit — try again tomorrow." },
+      { error: "You've reached today's AI limit, try again tomorrow." },
       { status: 429 }
     );
   }
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       }),
     });
     if (!res.ok) {
-      return NextResponse.json({ scene: 'linen', reason: 'Pear hesitated — Linen is a safe pick.' });
+      return NextResponse.json({ scene: 'linen', reason: 'Pear hesitated. Linen is a safe pick.' });
     }
     const data = await res.json();
     const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
@@ -114,6 +114,6 @@ export async function POST(req: NextRequest) {
     const reason = (parsed.reason ?? '').slice(0, 100) || 'Pear thinks this fits the section.';
     return NextResponse.json({ scene, reason });
   } catch {
-    return NextResponse.json({ scene: 'linen', reason: 'Pear hiccuped — Linen is a safe pick.' });
+    return NextResponse.json({ scene: 'linen', reason: 'Pear hiccuped. Linen is a safe pick.' });
   }
 }

@@ -44,7 +44,7 @@ export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`Polls · ${votes.length}`}
-          hint="Multi-choice questions for the group. Live tallies key off the option text — renaming an option after guests vote resets its count (reordering is safe)."
+          hint="Multi-choice questions for the group. Live tallies key off the option text, renaming an option after guests vote resets its count (reordering is safe)."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {votes.map((poll, i) => (
@@ -109,7 +109,7 @@ export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="bachelor"
             label="Also in the Weekend planner"
-            body="Costs, packing, and rooms live there — same polls, one store."
+            body="Costs, packing, and rooms live there, same polls, one store."
           />
         )}
 

@@ -104,13 +104,13 @@ export async function POST(req: NextRequest) {
     }
     const body = (parsed.body ?? '').trim();
     if (!body || body.length > 2000) {
-      return NextResponse.json({ error: 'Say something — up to 2000 characters.' }, { status: 400 });
+      return NextResponse.json({ error: 'Say something, up to 2000 characters.' }, { status: 400 });
     }
     const thread = parsed.thread === 'dm' ? 'dm' : 'party';
 
     const rate = checkRateLimit(`messages:${parsed.token ?? ip}`, { max: 20, windowMs: 300_000 });
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'A breath between messages — try again in a moment.' }, { status: 429 });
+      return NextResponse.json({ error: 'A breath between messages. Try again in a moment.' }, { status: 429 });
     }
 
     const supabase = getSupabase();
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       .single();
     if (error) {
       console.error('[messages] insert failed:', error);
-      return NextResponse.json({ error: 'Could not send — try again?' }, { status: 500 });
+      return NextResponse.json({ error: 'Could not send. Try again?' }, { status: 500 });
     }
 
     // DMs ping the host through the notification bell (existing

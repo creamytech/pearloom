@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: 'Too many requests — try again later.' },
+        { error: 'Too many requests. Try again later.' },
         { status: 429 },
       );
     }

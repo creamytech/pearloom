@@ -98,7 +98,7 @@ export function DesignDayOf() {
             margin: '18px 0 0',
           }}
         >
-          The run of show, the seating, the live photo wall — one quiet room the whole party fills.
+          The run of show, the seating, the live photo wall: one quiet room the whole party fills.
           Guests open one link; everything they leave behind comes home to you.
         </p>
       </div>

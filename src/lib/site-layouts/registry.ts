@@ -65,9 +65,9 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
   hero: [
     { id: 'centered',     label: 'Centered',     oneLiner: 'Names centered, hairline rule above + below, photo cluster underneath.', status: 'planned' },
     { id: 'split',        label: 'Split',        oneLiner: '4:5 portrait left, names + meta right.',                                   status: 'shipped' },
-    { id: 'minimal',      label: 'Minimal',      oneLiner: 'Type only — no photos, no atmosphere.',                                    status: 'shipped' },
+    { id: 'minimal', label: 'Minimal', oneLiner: 'Type only, no photos, no atmosphere.', status: 'shipped' },
     { id: 'fullbleed',    label: 'Full-bleed',   oneLiner: 'Edge-to-edge cover photo with overlaid names.',                            status: 'planned' },
-    { id: 'typographic',  label: 'Typographic',  oneLiner: 'Oversized stacked names — display type as the hero.',                       status: 'planned' },
+    { id: 'typographic', label: 'Typographic', oneLiner: 'Oversized stacked names, display type as the hero.', status: 'planned' },
     { id: 'postcard',     label: 'Postcard',     oneLiner: 'Editorial centered card on a mat with polaroid strip below.',              status: 'shipped' },
     // Production-only variants that don't map to the prototype but
     // are part of the v8 hero family. Kept in the registry so the
@@ -78,14 +78,14 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
 
   // ── STORY ───────────────────────────────────────────────────
   story: [
-    { id: 'sidebyside', label: 'Side by side', oneLiner: 'Photo left, narrative right — the editorial default.',                  status: 'registered' },
+    { id: 'sidebyside', label: 'Side by side', oneLiner: 'Photo left, narrative right, the editorial default.', status: 'registered' },
     { id: 'stacked',    label: 'Stacked',      oneLiner: 'Photo on top, narrative below, centered column.',                        status: 'registered' },
     { id: 'quote',      label: 'Quote-led',    oneLiner: 'Pull-quote first, with the body as supporting text underneath.',         status: 'registered' },
-    { id: 'timeline',   label: 'Timeline',     oneLiner: 'Chronological vine — events beaded down a centre line.',                 status: 'shipped' },
+    { id: 'timeline', label: 'Timeline', oneLiner: 'Chronological vine, events beaded down a centre line.', status: 'shipped' },
     { id: 'zigzag',     label: 'Zigzag',       oneLiner: 'Alternating left-right photo / text rows.',                              status: 'registered' },
     { id: 'letter',     label: 'Letter',       oneLiner: 'A handwritten note on cream paper, signed at the bottom.',               status: 'registered' },
     // Production extras (Phase 4 of layout overhaul):
-    { id: 'parallax',   label: 'Parallax',     oneLiner: 'Full-bleed photos with scroll depth — cinematic.',                       status: 'shipped' },
+    { id: 'parallax', label: 'Parallax', oneLiner: 'Full-bleed photos with scroll depth, cinematic.', status: 'shipped' },
     { id: 'filmstrip',  label: 'Film strip',   oneLiner: 'Cinematic horizontal-scroll photo strip per chapter.',                   status: 'shipped' },
     { id: 'magazine',   label: 'Magazine',     oneLiner: 'Editorial photo + text pairing, like a spread.',                         status: 'shipped' },
     { id: 'kenburns',   label: 'Ken Burns',    oneLiner: 'Slow-zoom photo crops with text overlays.',                              status: 'shipped' },
@@ -94,30 +94,30 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
 
   // ── DETAILS ─────────────────────────────────────────────────
   details: [
-    { id: 'tiles',     label: 'Tiles',       oneLiner: 'Equal cards in a row — date / venue / dress code / parking.',     status: 'registered' },
+    { id: 'tiles', label: 'Tiles', oneLiner: 'Equal cards in a row, date / venue / dress code / parking.', status: 'registered' },
     { id: 'iconrow',   label: 'Icon row',    oneLiner: 'Circular icons centered, label + value stacked beneath.',         status: 'registered' },
     { id: 'list',      label: 'Leader list', oneLiner: 'Two columns joined by a dotted leader line.',                     status: 'registered' },
-    { id: 'accordion', label: 'Accordion',   oneLiner: 'Tappable rows with a chevron — each card expands inline.',         status: 'registered' },
-    { id: 'bento',     label: 'Bento',       oneLiner: 'Asymmetric grid — the headline card spans two columns.',           status: 'registered' },
+    { id: 'accordion', label: 'Accordion', oneLiner: 'Tappable rows with a chevron, each card expands inline.', status: 'registered' },
+    { id: 'bento', label: 'Bento', oneLiner: 'Asymmetric grid, the headline card spans two columns.', status: 'registered' },
   ],
 
   // ── SCHEDULE ────────────────────────────────────────────────
   schedule: [
-    { id: 'cards',    label: 'Cards',    oneLiner: 'Grid of event cards — time, title, blurb per tile.',                  status: 'registered' },
+    { id: 'cards', label: 'Cards', oneLiner: 'Grid of event cards, time, title, blurb per tile.', status: 'registered' },
     { id: 'list',     label: 'List',     oneLiner: 'Rows of time / title / detail with a hairline between each.',         status: 'registered' },
     { id: 'timeline', label: 'Timeline', oneLiner: 'Vertical rail with a dot per event.',                                  status: 'shipped' },
-    { id: 'stepper',  label: 'Stepper',  oneLiner: 'Horizontal numbered dots — like a recipe or progress bar.',           status: 'registered' },
+    { id: 'stepper', label: 'Stepper', oneLiner: 'Horizontal numbered dots, like a recipe or progress bar.', status: 'registered' },
     { id: 'numbered', label: 'Numbered', oneLiner: 'Oversized 01, 02, 03 down the left column.',                          status: 'registered' },
     // Production:
-    { id: 'run-of-show', label: 'Run of show', oneLiner: 'Vertical timeline rail with a dot per event — the classic flow.', status: 'shipped' },
+    { id: 'run-of-show', label: 'Run of show', oneLiner: 'Vertical timeline rail with a dot per event, the classic flow.', status: 'shipped' },
   ],
 
   // ── TRAVEL ──────────────────────────────────────────────────
   travel: [
     { id: 'map',      label: 'Map + cards', oneLiner: 'Illustrated map strip with hotel cards underneath.',         status: 'shipped' },
-    { id: 'rows',     label: 'Rows',        oneLiner: 'Wide single-column rows — photo left, info right per hotel.', status: 'shipped' },
-    { id: 'table',    label: 'Comparison',  oneLiner: 'Compact table — name, rating, price, distance per row.',     status: 'shipped' },
-    { id: 'carousel', label: 'Carousel',    oneLiner: 'Horizontal swipe of hotel cards — fixed 300px per slide.',   status: 'shipped' },
+    { id: 'rows', label: 'Rows', oneLiner: 'Wide single-column rows, photo left, info right per hotel.', status: 'shipped' },
+    { id: 'table', label: 'Comparison', oneLiner: 'Compact table, name, rating, price, distance per row.', status: 'shipped' },
+    { id: 'carousel', label: 'Carousel', oneLiner: 'Horizontal swipe of hotel cards, fixed 300px per slide.', status: 'shipped' },
   ],
 
   // ── REGISTRY ────────────────────────────────────────────────
@@ -125,34 +125,34 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
     { id: 'cards',    label: 'Cards',     oneLiner: 'Per-store cards with icon, name, status, and a Contribute pill.', status: 'shipped' },
     { id: 'chips',    label: 'Chips',     oneLiner: 'Pill-shaped link chips, centered, with an arrow glyph.',           status: 'registered' },
     { id: 'progress', label: 'Fund hero', oneLiner: 'Honeymoon-fund headline card with a progress bar + chips beneath.', status: 'registered' },
-    { id: 'logowall', label: 'Logo wall', oneLiner: 'Grid of branded store tiles — gift icon + name per tile.',          status: 'registered' },
+    { id: 'logowall', label: 'Logo wall', oneLiner: 'Grid of branded store tiles, gift icon + name per tile.', status: 'registered' },
   ],
 
   // ── GALLERY ─────────────────────────────────────────────────
   gallery: [
-    { id: 'grid',      label: 'Grid',         oneLiner: '6-up uniform 1:1 tiles — the editorial default.',                  status: 'registered' },
-    { id: 'mosaic',    label: 'Mosaic',       oneLiner: 'Bento-style — mixed-size tiles arranged like a story spread.',     status: 'shipped' },
+    { id: 'grid', label: 'Grid', oneLiner: '6-up uniform 1:1 tiles, the editorial default.', status: 'registered' },
+    { id: 'mosaic', label: 'Mosaic', oneLiner: 'Bento-style, mixed-size tiles arranged like a story spread.', status: 'shipped' },
     { id: 'strip',     label: 'Filmstrip',    oneLiner: 'Horizontal snap-scroll row at a fixed height.',                    status: 'shipped' },
-    { id: 'masonry',   label: 'Masonry',      oneLiner: '4-column waterfall — each tile takes its own aspect.',             status: 'registered' },
+    { id: 'masonry', label: 'Masonry', oneLiner: '4-column waterfall, each tile takes its own aspect.', status: 'registered' },
     { id: 'slideshow', label: 'Slideshow',    oneLiner: 'Hero photo on top, thumbnail strip beneath.',                      status: 'registered' },
-    { id: 'polaroid',  label: 'Polaroid wall', oneLiner: 'Scattered tilted polaroids — handwritten, casual.',                status: 'registered' },
+    { id: 'polaroid', label: 'Polaroid wall', oneLiner: 'Scattered tilted polaroids, handwritten, casual.', status: 'registered' },
     // Production:
-    { id: 'wall',      label: 'Photo wall',   oneLiner: 'Uniform 4-up grid — every tile the same aspect ratio.',            status: 'shipped' },
+    { id: 'wall', label: 'Photo wall', oneLiner: 'Uniform 4-up grid, every tile the same aspect ratio.', status: 'shipped' },
   ],
 
   // ── RSVP ────────────────────────────────────────────────────
   rsvp: [
     { id: 'centered', label: 'Centered', oneLiner: 'Headline + CTA centered on a dark ground.',                          status: 'shipped' },
     { id: 'split',    label: 'Split',    oneLiner: 'Photo left, CTA panel right.',                                       status: 'registered' },
-    { id: 'banner',   label: 'Banner',   oneLiner: 'Thin band across the page — eyebrow + title left, CTA right.',       status: 'registered' },
-    { id: 'minimal',  label: 'Minimal',  oneLiner: 'Centered headline + hairline CTA on cream — no chrome.',             status: 'registered' },
+    { id: 'banner', label: 'Banner', oneLiner: 'Thin band across the page, eyebrow + title left, CTA right.', status: 'registered' },
+    { id: 'minimal', label: 'Minimal', oneLiner: 'Centered headline + hairline CTA on cream, no chrome.', status: 'registered' },
   ],
 
   // ── FAQ ─────────────────────────────────────────────────────
   faq: [
     { id: 'accordion', label: 'Accordion',   oneLiner: 'Tappable Q&A rows that expand inline.',                          status: 'shipped' },
     { id: 'twocol',    label: 'Two column',  oneLiner: 'Side-by-side Q&A pairs in two columns.',                         status: 'shipped' },
-    { id: 'numbered',  label: 'Numbered',    oneLiner: 'Numbered list — 01 / 02 / 03 down the left.',                    status: 'shipped' },
+    { id: 'numbered', label: 'Numbered', oneLiner: 'Numbered list, 01 / 02 / 03 down the left.', status: 'shipped' },
     { id: 'cards',     label: 'Cards',       oneLiner: 'Each Q&A as its own padded card in a 2-column grid.',            status: 'shipped' },
   ],
 };

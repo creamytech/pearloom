@@ -284,7 +284,7 @@ export function KeepsakesPage() {
               A keepsake <span style={{ fontStyle: 'italic', color: 'var(--pl-gold)' }}>weaving itself</span>.
             </div>
             <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 440, margin: '0 0 18px' }}>
-              {headline.body} Every photo, signature, and note your guests leave threads into one book — it grows as more arrives.
+              {headline.body} Every photo, signature, and note your guests leave threads into one book, it grows as more arrives.
             </p>
             {stats.length > 0 && (
               <div style={{ display: 'flex', gap: 26, marginBottom: 20, flexWrap: 'wrap' }}>
@@ -298,7 +298,7 @@ export function KeepsakesPage() {
             )}
             {bookEmpty && (
               <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginBottom: 18, fontStyle: 'italic', fontFamily: DISPLAY }}>
-                Nothing woven in yet — as guests add photos and notes, they gather here.
+                Nothing woven in yet, as guests add photos and notes, they gather here.
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -392,7 +392,7 @@ export function KeepsakesPage() {
                     <div style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 16, lineHeight: 1.4, color: 'var(--ink)' }}>
                       {item.text.length > 180 ? `${item.text.slice(0, 180)}…` : item.text}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>— {item.who}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>, {item.who}</div>
                   </div>
                 ),
               )}
@@ -404,8 +404,8 @@ export function KeepsakesPage() {
                 Nothing woven in yet.
               </div>
               <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
-                As guests leave photos, signatures, and notes on your site — and as you add story chapters in the
-                editor — they gather here into the book.
+                As guests leave photos, signatures, and notes on your site, and as you add story chapters in the
+                editor, they gather here into the book.
               </div>
               {site?.domain && (
                 <Link

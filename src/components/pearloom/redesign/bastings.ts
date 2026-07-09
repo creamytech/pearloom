@@ -68,13 +68,13 @@ function starterFaqs(occasion?: string): Array<{ question: string; answer: strin
   const solemn = occasion === 'memorial' || occasion === 'funeral';
   if (solemn) {
     return [
-      { question: 'Is there a dress code?', answer: 'Dress comfortably — dark or muted colors are welcome, but presence matters more than wardrobe.' },
+      { question: 'Is there a dress code?', answer: 'Dress comfortably, dark or muted colors are welcome, but presence matters more than wardrobe.' },
       { question: 'May I bring flowers?', answer: 'Your company is enough. If you’d like to give, the family will share a preferred remembrance.' },
     ];
   }
   return [
-    { question: 'What should I wear?', answer: 'Dress to celebrate — we’ll share the dress code here once it’s settled.' },
-    { question: 'Can I bring a plus-one?', answer: 'Check your invitation — if your invite includes a guest, the RSVP form will offer a spot for them.' },
+    { question: 'What should I wear?', answer: 'Dress to celebrate, we’ll share the dress code here once it’s settled.' },
+    { question: 'Can I bring a plus-one?', answer: 'Check your invitation, if your invite includes a guest, the RSVP form will offer a spot for them.' },
   ];
 }
 
@@ -99,7 +99,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'story-from-facts',
       label: 'Your story, drafted from your words',
-      detail: 'You told me how it started in the wizard — I can baste a first draft of the story section in from exactly what you said.',
+      detail: 'You told me how it started in the wizard, I can baste a first draft of the story section in from exactly what you said.',
       section: 'story',
       apply: (m) => m,
       applyAsync: async (m) => {
@@ -143,7 +143,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'countdown',
       label: 'A countdown to the day',
-      detail: 'Your date is set — I can baste in a countdown so guests feel it approaching.',
+      detail: 'Your date is set, I can baste in a countdown so guests feel it approaching.',
       section: 'countdown',
       apply: (m) => blockOrderWith(m, 'countdown'),
     });
@@ -155,7 +155,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'map',
       label: 'A map beside your hotels',
-      detail: `You've saved ${hotels.length} ${hotels.length === 1 ? 'stay' : 'stays'} — a map section would let guests see where everything sits.`,
+      detail: `You've saved ${hotels.length} ${hotels.length === 1 ? 'stay' : 'stays'}, a map section would let guests see where everything sits.`,
       section: 'map',
       apply: (m) => blockOrderWith(m, 'map'),
     });
@@ -169,7 +169,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'faq-starters',
       label: 'Two FAQ starters, basted in',
-      detail: 'Guests always ask the same first questions — I drafted two you can edit or pull out.',
+      detail: 'Guests always ask the same first questions, I drafted two you can edit or pull out.',
       section: 'faq',
       apply: (m) => {
         const l = m as unknown as Loose;

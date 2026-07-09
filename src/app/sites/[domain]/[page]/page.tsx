@@ -37,7 +37,7 @@ type V8PageKey = typeof V8_PAGE_KEYS[number];
 
 const PAGE_META: Record<V8PageKey, { title: string; description: string }> = {
   story:    { title: 'Our Story',     description: 'How we got here, chapter by chapter.' },
-  schedule: { title: 'Schedule',      description: 'Our day — every moment that brings us together.' },
+  schedule: { title: 'Schedule', description: 'Our day, every moment that brings us together.' },
   travel:   { title: 'Travel',        description: 'Hotels, airports, and directions.' },
   registry: { title: 'Registry',      description: 'Your presence is the gift, but if you\'d like to celebrate us with something more.' },
   gallery:  { title: 'Gallery',       description: 'A few of our favourite frames.' },
@@ -87,7 +87,7 @@ export async function generateMetadata(
       url: siteUrl,
       siteName: 'Pearloom',
       type: 'website',
-      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${coupleTitle} — ${meta.title}` }],
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${coupleTitle}, ${meta.title}` }],
     },
     twitter: {
       card: 'summary_large_image',

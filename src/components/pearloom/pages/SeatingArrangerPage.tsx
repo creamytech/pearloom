@@ -271,8 +271,8 @@ export function SeatingArrangerPage() {
               </div>
               <HintChip
                 storageKey="pl-hint-seating-arranger"
-                hint="Drag a guest onto a table — or tap the guest, then the table."
-                detail="Drag guests onto tables, or tap a guest and then tap a table to seat them (the touch path). Auto-solve fills every open seat, table by table, up to each table's capacity — add a table and run it again for the overflow."
+                hint="Drag a guest onto a table, or tap the guest, then the table."
+                detail="Drag guests onto tables, or tap a guest and then tap a table to seat them (the touch path). Auto-solve fills every open seat, table by table, up to each table's capacity, add a table and run it again for the overflow."
               />
             </div>
           }
@@ -348,7 +348,7 @@ export function SeatingArrangerPage() {
                 touch path's only affordance. */}
             {armedId && (
               <div style={{ fontSize: 11.5, color: 'var(--sage-deep)', background: 'var(--sage-tint, rgba(122,138,79,0.12))', borderRadius: 8, padding: '7px 10px', marginBottom: 8, lineHeight: 1.4 }}>
-                Tap a table to seat {guests.find((g) => g.id === armedId)?.name ?? 'them'} — or tap their name again to cancel.
+                Tap a table to seat {guests.find((g) => g.id === armedId)?.name ?? 'them'}, or tap their name again to cancel.
               </div>
             )}
             {loading && <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Threading guests…</div>}
@@ -504,7 +504,7 @@ function GuestChip({ guest, armed, onTap, onDragStart, onDragEnd }: { guest: Gue
         minHeight: 36,
         alignItems: 'center',
       }}
-      title={armed ? 'Tap a table to seat — or tap again to cancel' : (guest.email ?? '')}
+      title={armed ? 'Tap a table to seat, or tap again to cancel' : (guest.email ?? '')}
     >
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.name}</span>
       {guest.meal && <span style={{ fontSize: 10, color: armed ? 'rgba(255,255,255,0.7)' : 'var(--ink-muted)' }}>{guest.meal[0]?.toUpperCase()}</span>}

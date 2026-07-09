@@ -272,7 +272,7 @@ export function AnniversaryRecap({
                       color: MUTED,
                     }}
                   >
-                    — {n.name}
+                    , {n.name}
                   </footer>
                 </motion.blockquote>
               ))}
@@ -376,7 +376,7 @@ export function AnniversaryRecap({
                       margin: 0,
                     }}
                   >
-                    — {g.name}
+                    , {g.name}
                   </p>
                 </div>
               ))}
@@ -403,7 +403,7 @@ export function AnniversaryRecap({
                 margin: '0 0 10px',
               }}
             >
-              Nothing to look back at — yet.
+              Nothing to look back at, yet.
             </p>
             <p
               style={{

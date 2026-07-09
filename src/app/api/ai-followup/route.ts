@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -131,7 +131,7 @@ Return ONLY valid JSON (no markdown, no backticks):
     } catch {
       parsed = {
         subject: `We'd love to hear from you!`,
-        body: `Hey there!\n\nWe're getting so excited for our ${occasionLabel} and we noticed we haven't heard from you yet. We'd love to know if you'll be joining us${eventDate ? ` on ${eventDate}` : ''}!\n\nYour RSVP helps us make sure everything is perfect for the big day — from seating to catering. It only takes a minute and means the world to us.\n\nCan't wait to celebrate with you!\n\nWith love,\n${coupleNames}`,
+        body: `Hey there!\n\nWe're getting so excited for our ${occasionLabel} and we noticed we haven't heard from you yet. We'd love to know if you'll be joining us${eventDate ? ` on ${eventDate}` : ''}!\n\nYour RSVP helps us make sure everything is perfect for the big day, from seating to catering. It only takes a minute and means the world to us.\n\nCan't wait to celebrate with you!\n\nWith love,\n${coupleNames}`,
       };
     }
 

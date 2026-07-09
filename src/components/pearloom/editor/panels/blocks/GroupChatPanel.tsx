@@ -31,7 +31,7 @@ export function GroupChatPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label="Invite link"
-          hint="The group's invite URL — WhatsApp, Signal, GroupMe, Discord, Telegram. Guests tap through; nothing embeds on the site."
+          hint="The group's invite URL, WhatsApp, Signal, GroupMe, Discord, Telegram. Guests tap through; nothing embeds on the site."
         >
           <FInput
             value={url}
@@ -47,7 +47,7 @@ export function GroupChatPanel({ manifest, onChange }: BlockPanelProps) {
           )}
         </FGroup>
 
-        <FGroup label="A line under the thread" hint="Optional — what happens in there.">
+        <FGroup label="A line under the thread" hint="Optional, what happens in there.">
           <FInput
             value={note}
             onChange={setNote}
@@ -59,7 +59,7 @@ export function GroupChatPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="bachelor"
             label="Also in the Weekend planner"
-            body="Costs, polls, packing, and rooms live there — same group-chat link, one store."
+            body="Costs, polls, packing, and rooms live there, same group-chat link, one store."
           />
         )}
 

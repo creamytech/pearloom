@@ -248,7 +248,7 @@ export function DashSubmissions() {
         <div style={{ padding: '16px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
           <PageIntro eyebrow="Submissions" title="What guests sent." />
         </div>
-        <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
+        <EmptyShell message="Create a site first, Pear needs somewhere for submissions to land." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
       </DashLayout>
     );
   }
@@ -608,7 +608,7 @@ function VotesTally({ manifest, siteDomain }: { manifest: unknown; siteDomain: s
                 {tallies === null
                   ? 'THREADING…'
                   : total === 0
-                    ? 'NO VOTES YET — GUESTS VOTE ON THE PUBLISHED SITE'
+                    ? 'NO VOTES YET, GUESTS VOTE ON THE PUBLISHED SITE'
                     : `${total} VOTE${total === 1 ? '' : 'S'}`}
               </div>
             </Panel>
@@ -689,7 +689,7 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
               “{w.message}”
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: PD.inkSoft }}>— {w.guestName}</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: PD.inkSoft }}>, {w.guestName}</span>
               <button
                 type="button"
                 disabled={busy === w.id}

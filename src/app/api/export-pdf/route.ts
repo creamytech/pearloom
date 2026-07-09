@@ -98,7 +98,7 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
     .join('\n');
 
   const title = coupleNames[0] && coupleNames[1]
-    ? `${coupleNames[0]} & ${coupleNames[1]} — Our Story`
+    ? `${coupleNames[0]} & ${coupleNames[1]}: Our Story`
     : 'Our Story Book';
 
   return `<!DOCTYPE html>
@@ -293,7 +293,7 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 
   <!-- Print bar (screen only) -->
   <div class="print-bar">
-    <span>📄 Story Book — ready to print or save as PDF</span>
+    <span>📄 Story Book, ready to print or save as PDF</span>
     <button onclick="window.print()">Print / Save PDF</button>
   </div>
 

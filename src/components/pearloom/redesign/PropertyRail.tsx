@@ -189,7 +189,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   /* Event-OS blocks — occasion-gated sections added via the Add
      Section picker (isBlockApplicable). */
   itinerary:    { id: 'itinerary',    label: 'Itinerary',     desc: 'Multi-day plan, hour by hour' },
-  costSplitter: { id: 'costSplitter', label: 'Cost splitter', desc: 'Who owes what — settled gently' },
+  costSplitter: { id: 'costSplitter', label: 'Cost splitter', desc: 'Who owes what, settled gently' },
   activityVote: { id: 'activityVote', label: 'Group vote',    desc: 'Let the group pick' },
   toastSignup:  { id: 'toastSignup',  label: 'Toast signup',  desc: 'Claim a toast slot' },
   adviceWall:   { id: 'adviceWall',   label: 'Advice wall',   desc: 'Words for the honoree' },
@@ -213,7 +213,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   cohost:      { id: 'cohost',      label: 'Co-hosts',        desc: 'Invite a partner to edit' },
   privacy:     { id: 'privacy',     label: 'Privacy',         desc: 'Password / public' },
   dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
-  toasts:      { id: 'toasts',      label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies — drafted with Pear' },
+  toasts: { id: 'toasts', label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies, drafted with Pear' },
   memorial:    { id: 'memorial',    label: 'Memorial',        desc: 'Obituary + program' },
   bachelor:    { id: 'bachelor',    label: 'Weekend planner', desc: 'Costs + polls + rooms' },
 };
@@ -402,7 +402,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[property-rail] rewrite failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one, try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== current) {
@@ -412,7 +412,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     } catch (e) {
       console.error('[property-rail] rewrite error:', e);
       pearWorking('error', active);
-      setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
+      setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one, try again?'));
     } finally {
       setPearBusy(null);
     }
@@ -445,7 +445,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: current, context: target.context, instruction, voiceProfile: voiceProfileFrom(manifest) }),
         });
-        if (!res.ok) throw new Error('Pear couldn’t press the variations — try again?');
+        if (!res.ok) throw new Error('Pear couldn’t press the variations, try again?');
         const { rewritten } = await res.json() as { rewritten: string };
         return [name, rewritten] as const;
       }));
@@ -457,13 +457,13 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
         }));
       pearWorking('done', active);
       if (variants.length === 0 || variants.every((v) => readPath(v.manifest, target.fieldPath) === current)) {
-        setPearErr('Pear pressed the same line three times — try a whisper instead.');
+        setPearErr('Pear pressed the same line three times, try a whisper instead.');
         return;
       }
       showPressings(active ?? 'hero', variants);
     } catch (e) {
       pearWorking('error', active);
-      setPearErr(pearErrorMessage(e, 'Pear couldn’t press the variations — try again?'));
+      setPearErr(pearErrorMessage(e, 'Pear couldn’t press the variations, try again?'));
     } finally {
       setPearBusy(null);
     }
@@ -479,8 +479,8 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     ? (section ? section.label : 'Pick a section')
     : 'Design';
   const headDesc = effectiveTab === 'content'
-    ? (section ? (liveSectionDesc(section.id, manifest) ?? section.desc) : 'Click any section on the canvas — or in the list on the left — to edit it.')
-    : 'Theme, type, texture & navigation — for the whole site.';
+    ? (section ? (liveSectionDesc(section.id, manifest) ?? section.desc) : 'Click any section on the canvas (or in the list on the left) to edit it.')
+    : 'Theme, type, texture & navigation, for the whole site.';
 
   return (
     <aside
@@ -730,7 +730,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
                 {POPULATE_TITLE[active]}
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginBottom: 11 }}>
-                {POPULATE_BLURB[active] ?? 'Pear returns rich, ready-to-place cards — review and Add what fits.'}
+                {POPULATE_BLURB[active] ?? 'Pear returns rich, ready-to-place cards, review and Add what fits.'}
               </div>
               <button
                 type="button"
@@ -842,13 +842,13 @@ const POPULATE_TITLE: Record<string, string> = {
    so the copy fits what each section actually returns (Story is prose,
    not cards). */
 const POPULATE_BLURB: Record<string, string> = {
-  faq: 'Real answers drawn from your venue, date, dress code & registry — keep the ones that fit.',
-  travel: 'Real stays near your venue — distance, price & amenities. Add the ones you like.',
-  details: 'Common starting points for your celebration — Add what fits, then edit.',
-  schedule: 'A timeline shaped for your occasion — Add the moments that fit.',
-  registry: 'Funds & shops that suit your celebration — Add what fits, then drop in your links.',
-  gallery: 'A quiet caption for each of your photos — Add the ones you like.',
-  story: 'A first draft in your voice, from your details — use it as a start, then edit anything.',
+  faq: 'Real answers drawn from your venue, date, dress code & registry, keep the ones that fit.',
+  travel: 'Real stays near your venue, distance, price & amenities. Add the ones you like.',
+  details: 'Common starting points for your celebration, Add what fits, then edit.',
+  schedule: 'A timeline shaped for your occasion, Add the moments that fit.',
+  registry: 'Funds & shops that suit your celebration, Add what fits, then drop in your links.',
+  gallery: 'A quiet caption for each of your photos, Add the ones you like.',
+  story: 'A first draft in your voice, from your details, use it as a start, then edit anything.',
 };
 /* Sections that can summon the Pear Picks rich-card modal. */
 const POPULATE_KINDS = new Set(['faq', 'travel', 'details', 'schedule', 'registry', 'gallery', 'story']);

@@ -58,7 +58,7 @@ export function WizardStructureSection({
   onChange: _onChange,
   onExpand,
   title = 'The structure',
-  blurb = 'This is your site, live — scroll it. Step into the fitting room to try every palette, paper, kit, layout, and motif on it in real time.',
+  blurb = 'This is your site, live, scroll it. Step into the fitting room to try every palette, paper, kit, layout, and motif on it in real time.',
 }: {
   occasion: string;
   paletteColors: string[] | undefined;
@@ -358,7 +358,7 @@ export function WizardStructureSection({
                 type="button"
                 onClick={onPressSeal}
                 disabled={pressing}
-                aria-label="Press the seal — build my site"
+                aria-label="Press the seal, build my site"
                 className="pl-tap"
                 style={{
                   width: 88, height: 88, borderRadius: '50%',

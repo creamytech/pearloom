@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     }
     const body = (parsed.body ?? '').trim();
     if (!body || body.length > 2000) {
-      return NextResponse.json({ error: 'Say something — up to 2000 characters.' }, { status: 400 });
+      return NextResponse.json({ error: 'Say something, up to 2000 characters.' }, { status: 400 });
     }
     const thread = parsed.thread === 'dm' ? 'dm' : 'party';
     if (thread === 'dm' && !parsed.guestId) {
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
       .single();
     if (error) {
       console.error('[messages/host] insert failed:', error);
-      return NextResponse.json({ error: 'Could not send — try again?' }, { status: 500 });
+      return NextResponse.json({ error: 'Could not send, try again?' }, { status: 500 });
     }
 
     /* A direct note reaches the guest's inbox (email audit

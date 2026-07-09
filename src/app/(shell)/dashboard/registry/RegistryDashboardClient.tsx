@@ -284,7 +284,7 @@ export function RegistryDashboardClient() {
           <EmptyShell
             inline
             cta={null}
-            message="Pick a celebration first — the switcher in the sidebar opens its registry."
+            message="Pick a celebration first, the switcher in the sidebar opens its registry."
           />
         ) : (
           /* Zip Registry shape: the gift grid leads the content
@@ -311,7 +311,7 @@ export function RegistryDashboardClient() {
                     hint="Draft thank-you writes the note; Mark thanked stamps it."
                     detail={
                       <>
-                        Every gift in one thread — reservations, purchases,
+                        Every gift in one thread, reservations, purchases,
                         and &ldquo;I got this&rdquo; link claims. Tap{' '}
                         <strong style={{ color: 'var(--peach-ink, #C6703D)' }}>Draft thank-you</strong>{' '}
                         and Pear writes a personal note. When it&rsquo;s out the
@@ -361,7 +361,7 @@ export function RegistryDashboardClient() {
                   </div>
                 )}
                 <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginTop: 8 }}>
-                  Cash gifts go straight to your own Venmo / PayPal / Cash App —
+                  Cash gifts go straight to your own Venmo / PayPal / Cash App, 
                   Pearloom never touches the money. Amounts are as shared by guests.
                 </div>
                 <Link

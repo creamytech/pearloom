@@ -122,7 +122,7 @@ export const THEMES: Theme[] = [
   {
     id: 'midnight',
     name: 'Midnight Velvet',
-    blurb: 'Inky velvet, candlelight gold — made for evenings.',
+    blurb: 'Inky velvet, candlelight gold, made for evenings.',
     swatches: ['#1A1B2E', '#C9A24B', '#B9A6E0', '#262842'],
     dark: true,
     foil: true,
@@ -168,7 +168,7 @@ export const THEMES: Theme[] = [
   {
     id: 'amalfi',
     name: 'Amalfi Citrus',
-    blurb: 'Sun-bleached blue, lemon and terracotta — a coastal supper.',
+    blurb: 'Sun-bleached blue, lemon and terracotta, a coastal supper.',
     swatches: ['#2E6B8A', '#C6703D', '#D9B44A', '#FBF6EA'],
     texture: 'linen',
     motif: 'bloom',
@@ -188,7 +188,7 @@ export const THEMES: Theme[] = [
   {
     id: 'first-light',
     name: 'First Light',
-    blurb: 'Dawn rose and gold — the morning after, every year after.',
+    blurb: 'Dawn rose and gold, the morning after, every year after.',
     swatches: ['#C6563D', '#C19A4B', '#D9A89E', '#FCF4EE'],
     texture: 'paper',
     motif: 'pressed',
@@ -208,7 +208,7 @@ export const THEMES: Theme[] = [
   {
     id: 'deco-gilt',
     name: 'Deco Gilt',
-    blurb: 'Jazz-age geometry — ink, gilt and a hard-edged fan.',
+    blurb: 'Jazz-age geometry, ink, gilt and a hard-edged fan.',
     swatches: ['#14110C', '#C9A24B', '#7C8A6A', '#F3ECD9'],
     dark: true,
     foil: true,
@@ -230,7 +230,7 @@ export const THEMES: Theme[] = [
   {
     id: 'tide-coast',
     name: 'Tide & Coast',
-    blurb: 'Fog, driftwood and rope — an unhurried seaside vow.',
+    blurb: 'Fog, driftwood and rope, an unhurried seaside vow.',
     swatches: ['#5E7A82', '#C8BFA5', '#9DB0B2', '#F2F1EC'],
     texture: 'cotton',
     motif: 'none',

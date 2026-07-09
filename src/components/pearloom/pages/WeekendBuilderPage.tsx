@@ -167,7 +167,7 @@ export function WeekendBuilderPage() {
     : !date ? `Pick the ${arc.dateLabel.toLowerCase()}`
     : baseSlug.length < 3 ? 'Give the sites a web address'
     : chosen.size === 0 ? 'Choose at least one event'
-    : momentCount > 0 && !anchorChosen ? 'Include the main event — moments live on its schedule'
+    : momentCount > 0 && !anchorChosen ? 'Include the main event, moments live on its schedule'
     : null;
 
   async function build() {
@@ -244,7 +244,7 @@ export function WeekendBuilderPage() {
         >
           <PearloomGlyph size={20} color="var(--lavender-ink)" />
           <span style={{ flex: 1, minWidth: 220, fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5 }}>
-            Every event shares one base core — the names, palette, and guest list weave across the whole weekend. Edit once, thread everywhere.
+            Every event shares one base core, the names, palette, and guest list weave across the whole weekend. Edit once, thread everywhere.
           </span>
           <span
             style={{
@@ -282,13 +282,13 @@ export function WeekendBuilderPage() {
               {created.length} {created.length === 1 ? 'draft' : 'drafts'} <span style={{ fontStyle: 'italic', color: 'var(--sage-deep)' }}>ready.</span>
             </h2>
             <p style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.55 }}>
-              Each one is a private draft, already linked to the others. Open one to make it yours and publish when it&rsquo;s ready —
+              Each one is a private draft, already linked to the others. Open one to make it yours and publish when it&rsquo;s ready, 
               once published, guests on any site see a strip pointing to the rest of the weekend.
             </p>
             {createdMoments.length > 0 && (
               <p style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 480, margin: '-6px auto 18px', lineHeight: 1.55 }}>
                 {createdMoments.map((m) => m.label).join(' · ')} {createdMoments.length === 1 ? 'lives' : 'live'} on the main
-                site&rsquo;s schedule — no extra site to manage. Edit them any time from the editor&rsquo;s Itinerary section.
+                site&rsquo;s schedule, no extra site to manage. Edit them any time from the editor&rsquo;s Itinerary section.
               </p>
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, maxWidth: 720, margin: '0 auto' }}>
@@ -398,7 +398,7 @@ export function WeekendBuilderPage() {
                     </button>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>
-                    Events with their own site get their own address on top of this one — {baseSlug || 'your-names'}-bach, {baseSlug || 'your-names'}-rehearsal… Moments share the main address.
+                    Events with their own site get their own address on top of this one, {baseSlug || 'your-names'}-bach, {baseSlug || 'your-names'}-rehearsal… Moments share the main address.
                   </div>
                 </div>
               </Card>

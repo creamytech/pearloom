@@ -80,7 +80,7 @@ export function SiteModeSection({
           {mode === 'scroll' ? (
             <>Every block lives on one long, scrollable home page. Nav links scroll to anchors.</>
           ) : (
-            <>Home page renders only the selected blocks below. Every other section becomes its own route — guests click <em>Travel</em> in the nav and land on a focused page.</>
+            <>Home page renders only the selected blocks below. Every other section becomes its own route, guests click <em>Travel</em> in the nav and land on a focused page.</>
           )}
         </div>
 
@@ -141,7 +141,7 @@ export function SiteModeSection({
               lineHeight: 1.5,
             }}
           >
-            Tip — leave Story or Gallery on home so the page still feels editorial. <em>Details</em> is always on home (it&rsquo;s a thin summary strip, not a destination).
+            Tip, leave Story or Gallery on home so the page still feels editorial. <em>Details</em> is always on home (it&rsquo;s a thin summary strip, not a destination).
           </div>
         )}
       </div>

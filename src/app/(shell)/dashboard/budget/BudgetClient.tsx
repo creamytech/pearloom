@@ -197,7 +197,7 @@ export function BudgetClient() {
     const saved = await postLine(input);
     setSaving(false);
     if (!saved) {
-      setFormError('That didn’t save — check your connection and try again.');
+      setFormError('That didn’t save, check your connection and try again.');
       return;
     }
     setForm(null);
@@ -213,7 +213,7 @@ export function BudgetClient() {
     if (res?.ok) {
       setLines((prev) => prev.filter((l) => l.id !== id));
     } else {
-      setOpError('That line didn’t clear — try again.');
+      setOpError('That line didn’t clear, try again.');
     }
   }, [siteId, setLines]);
 
@@ -235,7 +235,7 @@ export function BudgetClient() {
       if (!ok) anyFailed = true;
     }
     setSeeding(false);
-    if (anyFailed) setOpError('Some lines didn’t save — refresh and try again.');
+    if (anyFailed) setOpError('Some lines didn’t save, refresh and try again.');
   }, [occasion, postLine]);
 
   const importQuickBudget = useCallback(async () => {
@@ -254,7 +254,7 @@ export function BudgetClient() {
       if (!ok) anyFailed = true;
     }
     setSeeding(false);
-    if (anyFailed) setOpError('Some lines didn’t come over — refresh and try again.');
+    if (anyFailed) setOpError('Some lines didn’t come over, refresh and try again.');
   }, [quickBudget, postLine]);
 
   // ── Derived views ──
@@ -319,13 +319,13 @@ export function BudgetClient() {
           <EmptyShell
             inline
             cta={null}
-            message="Pick a celebration first — the switcher in the sidebar keeps its budget."
+            message="Pick a celebration first, the switcher in the sidebar keeps its budget."
           />
         ) : (
           <>
             {loadError && (
               <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
-                The budget didn&rsquo;t load — refresh to try again.
+                The budget didn&rsquo;t load, refresh to try again.
               </div>
             )}
 
@@ -412,7 +412,7 @@ export function BudgetClient() {
                 )}
 
                 <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
-                  Every figure here is yours — Pearloom keeps the ledger and never touches the money.
+                  Every figure here is yours, Pearloom keeps the ledger and never touches the money.
                 </div>
               </>
             )}
@@ -584,7 +584,7 @@ function EmptyLedger({
       </div>
       <Thread variant="weave" width="64px" height={12} weight={1} style={{ margin: '0 auto 14px' }} />
       <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.55 }}>
-        One ledger for the whole celebration — planned, committed, and paid, with your vendors woven in.
+        One ledger for the whole celebration, planned, committed, and paid, with your vendors woven in.
         {categories.length > 0 && (
           <> Start from the lines this day usually plans: <span style={{ color: 'var(--ink)' }}>{categories.slice(0, 4).join(', ')}</span>{categories.length > 4 ? '…' : '.'}</>
         )}

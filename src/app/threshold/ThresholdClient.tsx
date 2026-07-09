@@ -110,7 +110,7 @@ export function ThresholdClient({ cards, firstName }: { cards: ThresholdCard[]; 
           Welcome back{firstName ? <>, <span style={{ fontStyle: 'italic' }}>{firstName}</span></> : ''}.
         </h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', margin: '10px 0 0' }}>
-          Choose the day you’re tending — everything is where you left it.
+          Choose the day you’re tending, everything is where you left it.
         </p>
 
         {/* The desk — pressed cards, wrap-centered. */}
@@ -269,7 +269,7 @@ export function ThresholdClient({ cards, firstName }: { cards: ThresholdCard[]; 
             textUnderlineOffset: 3, fontFamily: 'inherit',
           }}
         >
-          Skip — go to my dashboard
+          Skip, go to my dashboard
         </button>
       </div>
     </div>

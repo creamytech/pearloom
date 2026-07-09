@@ -20,7 +20,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   memorial: [
     {
       title: 'Write the obituary',
-      body: 'A few paragraphs about a life — Pear will help if you want.',
+      body: 'A few paragraphs about a life, Pear will help if you want.',
       cta: 'Open the editor',
       href: '/editor',
       tone: 'lavender',
@@ -46,7 +46,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   funeral: [
     {
       title: 'Write the obituary',
-      body: 'A few paragraphs about a life — Pear will help if you want.',
+      body: 'A few paragraphs about a life, Pear will help if you want.',
       cta: 'Open the editor',
       href: '/editor',
       tone: 'lavender',
@@ -62,7 +62,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'In lieu of flowers',
-      body: 'Link a donation fund or a charity — or leave it out entirely.',
+      body: 'Link a donation fund or a charity, or leave it out entirely.',
       cta: 'Add a link',
       href: '/editor',
       tone: 'sage',
@@ -124,7 +124,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   'baby-shower': [
     {
       title: 'Set up the registry',
-      body: 'Link one or many — Pear prefills the top-picked items from each.',
+      body: 'Link one or many, Pear prefills the top-picked items from each.',
       cta: 'Add registry',
       href: '/editor',
       tone: 'peach',
@@ -140,7 +140,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'Name vote',
-      body: 'Optional — collect suggestions the parents might love.',
+      body: 'Optional, collect suggestions the parents might love.',
       cta: 'Start a vote',
       href: '/editor',
       tone: 'sage',
@@ -150,7 +150,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   'bridal-shower': [
     {
       title: 'Registry, gently',
-      body: 'Link the gift registries — Pear keeps the copy light.',
+      body: 'Link the gift registries, Pear keeps the copy light.',
       cta: 'Add registry',
       href: '/editor',
       tone: 'peach',
@@ -184,7 +184,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'Then & now photos',
-      body: 'One of each guest — past and present. A quiet highlight.',
+      body: 'One of each guest, past and present. A quiet highlight.',
       cta: 'Add photos',
       href: '/editor',
       tone: 'lavender',
@@ -210,7 +210,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'The menu',
-      body: 'Courses, dietary flags, wine notes — all in one card.',
+      body: 'Courses, dietary flags, wine notes, all in one card.',
       cta: 'Add menu',
       href: '/editor',
       tone: 'cream',
@@ -228,7 +228,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   graduation: [
     {
       title: 'School years recap',
-      body: 'A short timeline — elementary through to today.',
+      body: 'A short timeline, elementary through to today.',
       cta: 'Open story',
       href: '/editor',
       tone: 'lavender',
@@ -244,7 +244,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'Open-house hours',
-      body: 'Let people drop by on their own time — publish the window.',
+      body: 'Let people drop by on their own time, publish the window.',
       cta: 'Set hours',
       href: '/editor',
       tone: 'sage',
@@ -358,7 +358,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
   quinceanera: [
     {
       title: 'Court of honor',
-      body: 'Damas y chambelanes — the names, the pairings.',
+      body: 'Damas y chambelanes, the names, the pairings.',
       cta: 'Open court',
       href: '/editor',
       tone: 'lavender',
@@ -374,7 +374,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'Dress code',
-      body: 'Gown and suit palette — guests need to know.',
+      body: 'Gown and suit palette, guests need to know.',
       cta: 'Add dress code',
       href: '/editor',
       tone: 'sage',
@@ -392,7 +392,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     },
     {
       title: 'Toast signups',
-      body: 'Slots for the speech order — keep it short and sweet.',
+      body: 'Slots for the speech order, keep it short and sweet.',
       cta: 'Open toast slots',
       href: '/editor',
       tone: 'lavender',
@@ -599,7 +599,7 @@ export function getAnalyticsCopy(occasion?: string | null): {
       return {
         title: 'Quiet',
         italic: 'signals.',
-        body: 'Who visited, which memories were read most. Nothing invasive — just enough to know the site reached the right people.',
+        body: 'Who visited, which memories were read most. Nothing invasive, just enough to know the site reached the right people.',
       };
     case 'bachelor':
       return {
@@ -637,7 +637,7 @@ export function getAnalyticsCopy(occasion?: string | null): {
       return {
         title: 'Quiet',
         italic: 'numbers,',
-        body: 'Privacy-respecting signals — visits, devices, and the sections your guests dwell on. No creepy trackers.',
+        body: 'Privacy-respecting signals, visits, devices, and the sections your guests dwell on. No creepy trackers.',
       };
   }
 }
@@ -679,34 +679,34 @@ export interface RememberSection {
 
 const REMEMBER_WEDDING: RememberSection[] = [
   { id: 'reel',    title: 'The highlight reel',  body: 'Pear cuts a short film from the photos guests shared.',     ctaLabel: 'Open reel',       ctaHref: '/dashboard/gallery', tone: 'peach',    icon: 'image' },
-  { id: 'toasts',  title: 'Voice toasts',        body: 'Guests left spoken notes — an audio keepsake.',              ctaLabel: 'Listen',          ctaHref: '/dashboard/submissions?kind=toast', tone: 'lavender', icon: 'mic' },
+  { id: 'toasts', title: 'Voice toasts', body: 'Guests left spoken notes, an audio keepsake.', ctaLabel: 'Listen', ctaHref: '/dashboard/submissions?kind=toast', tone: 'lavender', icon: 'mic' },
   { id: 'thanks',  title: 'Thank-you notes',     body: 'Pear drafts a personal note for every guest who came.',       ctaLabel: 'Draft notes',     ctaHref: '/dashboard/keepsakes', tone: 'sage',    icon: 'heart' },
   { id: 'anniv',   title: 'Anniversary nudges',  body: 'A new chapter each year on the day. Looking back, looking forward.', ctaLabel: 'Preview',   ctaHref: '/dashboard/keepsakes', tone: 'cream',   icon: 'gift' },
 ];
 
 const REMEMBER_MEMORIAL: RememberSection[] = [
-  { id: 'tributes',title: 'Tribute wall',        body: 'Every memory guests shared — a living archive.',             ctaLabel: 'Open wall',       ctaHref: '/dashboard/submissions?kind=tribute', tone: 'lavender', icon: 'heart' },
+  { id: 'tributes',title: 'Tribute wall', body: 'Every memory guests shared, a living archive.', ctaLabel: 'Open wall', ctaHref: '/dashboard/submissions?kind=tribute', tone: 'lavender', icon: 'heart' },
   { id: 'reel',    title: 'Memorial reel',       body: 'A gentle montage of the photos and memories submitted.',     ctaLabel: 'Open reel',       ctaHref: '/dashboard/gallery', tone: 'sage',    icon: 'image' },
   { id: 'archive', title: 'Print the archive',   body: 'Export the obituary + tributes as a bound keepsake book.',   ctaLabel: 'Export book',     ctaHref: '/dashboard/keepsakes', tone: 'cream',   icon: 'grid' },
   { id: 'donations',title:'Donations summary',   body: 'A summary of donations made in memory, if any.',             ctaLabel: 'View summary',    ctaHref: '/dashboard/analytics', tone: 'peach',   icon: 'gift' },
 ];
 
 const REMEMBER_BACHELOR: RememberSection[] = [
-  { id: 'reel',    title: 'Weekend reel',        body: 'Every photo and clip the crew shared — one short film.',     ctaLabel: 'Open reel',       ctaHref: '/dashboard/gallery', tone: 'peach',    icon: 'image' },
-  { id: 'costs',   title: 'Final cost split',    body: 'Settle up with the group — who owes what, who paid.',        ctaLabel: 'Open split',      ctaHref: '/editor', tone: 'lavender', icon: 'gift' },
-  { id: 'votes',   title: 'The winners',         body: 'Which bar, which activity, which dare — the crew voted.',    ctaLabel: 'See results',     ctaHref: '/dashboard/submissions?kind=vote', tone: 'sage',    icon: 'users' },
+  { id: 'reel', title: 'Weekend reel', body: 'Every photo and clip the crew shared, one short film.', ctaLabel: 'Open reel', ctaHref: '/dashboard/gallery', tone: 'peach', icon: 'image' },
+  { id: 'costs', title: 'Final cost split', body: 'Settle up with the group, who owes what, who paid.', ctaLabel: 'Open split', ctaHref: '/editor', tone: 'lavender', icon: 'gift' },
+  { id: 'votes', title: 'The winners', body: 'Which bar, which activity, which dare, the crew voted.', ctaLabel: 'See results', ctaHref: '/dashboard/submissions?kind=vote', tone: 'sage', icon: 'users' },
   { id: 'thanks',  title: 'Thanks from the crew',body: 'Short notes the groom can send to each attendee.',           ctaLabel: 'Draft notes',     ctaHref: '/dashboard/keepsakes', tone: 'cream',   icon: 'heart' },
 ];
 
 const REMEMBER_SHOWER: RememberSection[] = [
-  { id: 'advice',  title: 'Advice for the couple',body: 'Every note guests left — printable as a keepsake card.',    ctaLabel: 'Open advice',     ctaHref: '/dashboard/submissions?kind=advice', tone: 'lavender', icon: 'heart' },
+  { id: 'advice', title: 'Advice for the couple',body: 'Every note guests left, printable as a keepsake card.', ctaLabel: 'Open advice', ctaHref: '/dashboard/submissions?kind=advice', tone: 'lavender', icon: 'heart' },
   { id: 'reel',    title: 'Shower reel',          body: 'Gentle montage of the afternoon.',                          ctaLabel: 'Open reel',       ctaHref: '/dashboard/gallery', tone: 'peach',    icon: 'image' },
   { id: 'thanks',  title: 'Thank-you notes',      body: 'One for each guest who brought something, and each who came.', ctaLabel: 'Draft notes', ctaHref: '/dashboard/keepsakes', tone: 'sage',    icon: 'mic' },
 ];
 
 const REMEMBER_REUNION: RememberSection[] = [
-  { id: 'reel',      title: 'Weekend reel',       body: 'Every reunion photo — the trip told in one montage.',        ctaLabel: 'Open reel',       ctaHref: '/dashboard/gallery', tone: 'peach',    icon: 'image' },
-  { id: 'thenNow',   title: 'Then & now',          body: 'Past and present side by side — for the yearbook.',         ctaLabel: 'See pairs',       ctaHref: '/editor', tone: 'lavender', icon: 'grid' },
+  { id: 'reel', title: 'Weekend reel', body: 'Every reunion photo, the trip told in one montage.', ctaLabel: 'Open reel', ctaHref: '/dashboard/gallery', tone: 'peach', icon: 'image' },
+  { id: 'thenNow', title: 'Then & now', body: 'Past and present side by side, for the yearbook.', ctaLabel: 'See pairs', ctaHref: '/editor', tone: 'lavender', icon: 'grid' },
   { id: 'whosWho',   title: 'Who was there',       body: 'A printable roster of everyone who came, with notes.',      ctaLabel: 'Export roster',   ctaHref: '/dashboard/keepsakes', tone: 'sage',    icon: 'users' },
   { id: 'nextYear',  title: 'Lock next year',      body: 'Start the next reunion now while everyone’s in touch.',    ctaLabel: 'Start next',      ctaHref: '/wizard/new',   tone: 'cream',   icon: 'heart' },
 ];
@@ -762,7 +762,7 @@ export function getRememberHeadline(occasion?: string | null): { eyebrow: string
         eyebrow: 'Remember the day',
         title: 'The',
         italic: 'keepsakes.',
-        body: 'Voice toasts, thank-you notes, anniversary nudges — everything after the day.',
+        body: 'Voice toasts, thank-you notes, anniversary nudges, everything after the day.',
       };
   }
 }
@@ -792,7 +792,7 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
       ];
     case 'bachelor':
       return [
-        { id: 'thanks',     title: 'Thanks from the crew', body: 'Short notes from the guest of honor — one per guest.',          actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
+        { id: 'thanks', title: 'Thanks from the crew', body: 'Short notes from the guest of honor, one per guest.', actionLabel: 'Draft notes', actionHref: '#thanks', tone: 'peach' },
         { id: 'settleup',   title: 'Final cost settle-up', body: 'A summary of who paid what, who owes what.',                    actionLabel: 'Settle up',      actionHref: '/editor',              tone: 'lavender' },
       ];
     case 'shower':
@@ -825,7 +825,7 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
     case 'wedding':
     default:
       return [
-        { id: 'thanks',    title: 'Thank-you notes',      body: 'Paste a guest list — Pear drafts a personalized note for each.', actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
+        { id: 'thanks', title: 'Thank-you notes', body: 'Paste a guest list, Pear drafts a personalized note for each.', actionLabel: 'Draft notes', actionHref: '#thanks', tone: 'peach' },
         { id: 'anniversary-nudge', title: 'Anniversary nudge', body: 'Pear writes a new chapter each year on the anniversary.', actionLabel: 'Preview',         actionHref: '#anniversary',         tone: 'lavender' },
       ];
   }

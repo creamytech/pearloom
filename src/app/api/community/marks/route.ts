@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const rl = checkRateLimit(`community-publish:${ip}`, { max: 20, windowMs: 60 * 60 * 1000 });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many community publishes — try again in an hour' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many community publishes. Try again in an hour' }, { status: 429 });
   }
 
   const sb = getServiceClient();
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     .single();
   if (parentErr || !parent) {
     console.error('[community/marks POST] parent insert error:', parentErr);
-    return NextResponse.json({ error: 'Failed to share — try again' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to share. Try again' }, { status: 500 });
   }
 
   // Megasheet child rows.

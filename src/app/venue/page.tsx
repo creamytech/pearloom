@@ -135,7 +135,7 @@ export default function VenuePage() {
             }}
           >
             List your venue once and appear inside every Pearloom wedding wizard
-            that searches your region — with your photos, contact details, and the
+            that searches your region, with your photos, contact details, and the
             warm context a couple actually reads.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
@@ -347,7 +347,7 @@ export default function VenuePage() {
                   setVenue(venuePartialToData(partial));
                 }}
                 onAddManually={() => setAddManually(true)}
-                placeholder="Search venues — e.g. The Grand Ballroom NYC"
+                placeholder="Search venues, e.g. The Grand Ballroom NYC"
               />
             </div>
 
@@ -488,7 +488,7 @@ export default function VenuePage() {
           <Sparkles size={20} style={{ color: '#8B774B', flexShrink: 0, marginTop: '2px' }} />
           <p style={{ margin: 0, color: '#6B5F4B', fontSize: '0.9rem', lineHeight: 1.6 }}>
             <strong style={{ color: '#2C2416' }}>Pearloom tip:</strong> Once your venue is set,
-            Pearloom can help you plan your seating chart and travel details for guests — from
+            Pearloom can help you plan your seating chart and travel details for guests, from
             nearest airports to hotel block suggestions tailored to your location.
           </p>
         </div>

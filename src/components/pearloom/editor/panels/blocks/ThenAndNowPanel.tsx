@@ -43,7 +43,7 @@ export function ThenAndNowPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`Pairs · ${pairs.length}`}
-          hint="A photo from back then beside one from now. A pair with only one side still shows — add the other whenever it turns up."
+          hint="A photo from back then beside one from now. A pair with only one side still shows, add the other whenever it turns up."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {pairs.map((pair, i) => (
@@ -85,7 +85,7 @@ export function ThenAndNowPanel({ manifest, onChange }: BlockPanelProps) {
                 <FInput
                   value={pair.caption ?? ''}
                   onChange={(v) => patchPair(i, { caption: v })}
-                  placeholder="One line under the pair — “Maya · 1998 / 2026”"
+                  placeholder="One line under the pair, “Maya · 1998 / 2026”"
                 />
               </RowCard>
             ))}

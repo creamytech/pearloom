@@ -62,7 +62,7 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
               maxWidth: 560,
             }}
           >
-            Add all your registry links — guests will see them beautifully on your site.
+            Add all your registry links, guests will see them beautifully on your site.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
           <span>
             Adding a <strong style={{ color: 'var(--ink)' }}>Honeymoon or Cash Fund</strong>?
             Paste any Venmo / PayPal / Honeyfund link above and set the category to
-            &ldquo;Cash Fund&rdquo; — we&apos;ll style it with a heart.
+            &ldquo;Cash Fund&rdquo;, we&apos;ll style it with a heart.
           </span>
         </div>
       </div>

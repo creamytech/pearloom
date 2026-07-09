@@ -392,7 +392,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, multi-day, visibility
+            <Icon name="chev-down" size={12} /> More, eyebrow, multi-day, visibility
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
@@ -410,7 +410,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                   Multi-day event
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
-                  {multiDay ? `${maxDay} days set up` : 'Groups your timeline by day — for weekends and trips.'}
+                  {multiDay ? `${maxDay} days set up` : 'Groups your timeline by day, for weekends and trips.'}
                 </div>
               </div>
               <button
@@ -464,7 +464,7 @@ function TemplateStrip({ occasion, onPick }: { occasion?: string; onPick: (key: 
         Start from a template
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1, marginBottom: 8 }}>
-        One tap drops in a starting timeline — every moment stays editable.
+        One tap drops in a starting timeline, every moment stays editable.
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {keys.map((key) => {
@@ -541,7 +541,7 @@ function ScheduleRow({
         <FInput
           value={e.description ?? ''}
           onChange={(v) => onPatch({ description: v })}
-          placeholder="A note for guests — “unplugged ceremony”, “cash bar”… (optional)"
+          placeholder="A note for guests, “unplugged ceremony”, “cash bar”… (optional)"
         />
         {badge}
         {/* Street address → a "Directions" link on the published
@@ -550,7 +550,7 @@ function ScheduleRow({
         <FInput
           value={e.address ?? ''}
           onChange={(v) => onPatch({ address: v })}
-          placeholder="Address — adds a Directions link (optional)"
+          placeholder="Address, adds a Directions link (optional)"
         />
       </div>
       <button
@@ -590,7 +590,7 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[schedule] from-notes failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one, try again?');
       }
       const data = await res.json() as { events?: Array<{ name: string; time: string; venue?: string }> };
       const drafted: WeddingEvent[] = (data.events ?? []).map((e, i) => ({
@@ -611,7 +611,7 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
       }
     } catch (e) {
       console.error('[schedule] from-notes error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one, try again?'));
     } finally {
       setBusy(false);
     }

@@ -240,8 +240,8 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body,
-      }).catch(() => { /* nav in progress — nothing to surface */ });
-    } catch { /* fetch can throw mid-teardown — swallow */ }
+      }).catch(() => { /* nav in progress, nothing to surface */ });
+    } catch { /* fetch can throw mid-teardown, swallow */ }
   }, [siteSlug]);
 
   /* beforeunload — flush in-flight changes via sendBeacon so the

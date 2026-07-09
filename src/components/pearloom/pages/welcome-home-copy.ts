@@ -186,7 +186,7 @@ export function buildMilestones({
         label: ph.label,
         sub: ph.status === 'scheduled'
           ? (daysToDue <= 0 ? 'sending today' : `sends in ${daysToDue} day${daysToDue === 1 ? '' : 's'}`)
-          : ph.status === 'draft' ? 'drafted — approve to schedule' : 'suggested by Pear',
+          : ph.status === 'draft' ? 'drafted, approve to schedule' : 'suggested by Pear',
         status: urgent ? 'urgent' : isFirstOpen ? 'next' : 'upcoming',
         urgency: urgent ? 'urgent' : isFirstOpen ? 'soon' : 'on-track',
       });

@@ -127,8 +127,8 @@ export function OfflineIndicator() {
         <WifiOff size={14} />
         You&apos;re offline
         {pendingCount > 0
-          ? ` — ${pendingCount} pending change${pendingCount !== 1 ? 's' : ''} will sync when you reconnect`
-          : ' — changes will sync when you reconnect'}
+          ? `, ${pendingCount} pending change${pendingCount !== 1 ? 's' : ''} will sync when you reconnect`
+          : ', changes will sync when you reconnect'}
       </>
     ),
     syncing: (

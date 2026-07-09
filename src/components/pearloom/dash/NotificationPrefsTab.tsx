@@ -87,7 +87,7 @@ export function NotificationPrefsTab() {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category, ...patch }),
-    }).catch(() => { /* optimistic — re-syncs on next open */ });
+    }).catch(() => { /* optimistic, re-syncs on next open */ });
   }
 
   async function enablePush() {
@@ -137,7 +137,7 @@ export function NotificationPrefsTab() {
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: 0 }}>Notifications</h2>
         <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-          The bell catches everything. Choose what reaches your inbox — instantly, in the daily note, or not at all.
+          The bell catches everything. Choose what reaches your inbox, instantly, in the daily note, or not at all.
         </div>
       </div>
 

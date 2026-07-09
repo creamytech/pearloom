@@ -125,12 +125,12 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
         <FGroup label="After they reply" hint="Pear nudges non-responders on the schedule you pick.">
           <ReminderCadencePicker manifest={manifest} onChange={onChange} />
         </FGroup>
-        <FGroup label="The Loom" hint="A living tapestry above your RSVP — it grows denser as your day approaches. No names are shown, just the threads.">
+        <FGroup label="The Loom" hint="A living tapestry above your RSVP, it grows denser as your day approaches. No names are shown, just the threads.">
           <FToggleStandalone
-            label="The Loom — every reply weaves a thread"
+            label="The Loom, every reply weaves a thread"
             sub={manifest.rsvpLoom
               ? 'Each attending reply weaves one more thread into the cloth.'
-              : 'Off — the RSVP section stays as-is.'}
+              : 'Off, the RSVP section stays as-is.'}
             def={!!manifest.rsvpLoom}
             onChange={(v) => onChange({
               ...(manifest as unknown as Record<string, unknown>),
@@ -148,7 +148,7 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, button, meals, who can reply
+            <Icon name="chev-down" size={12} /> More, eyebrow, button, meals, who can reply
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
@@ -253,7 +253,7 @@ function ReminderCadencePicker({
   const HINTS: Record<string, string> = {
     'off':      'No automatic reminder phases. You can still send manual nudges from the Guests panel.',
     'gentle':   'One reminder phase before your reply-by date.',
-    'standard': 'Both reminder phases — the full cadence.',
+    'standard': 'Both reminder phases, the full cadence.',
   };
 
   return (
@@ -262,9 +262,9 @@ function ReminderCadencePicker({
         value={value}
         onChange={setValue}
         options={[
-          { value: 'off',      label: 'Off — no nudges',        hint: 'Manual sends only' },
-          { value: 'gentle',   label: 'Gentle — 1 reminder',    hint: 'One phase before the deadline' },
-          { value: 'standard', label: 'Standard — 2 reminders', hint: 'The full cadence' },
+          { value: 'off', label: 'Off, no nudges', hint: 'Manual sends only' },
+          { value: 'gentle', label: 'Gentle, 1 reminder', hint: 'One phase before the deadline' },
+          { value: 'standard', label: 'Standard, 2 reminders', hint: 'The full cadence' },
         ]}
         icon="clock"
       />
@@ -301,7 +301,7 @@ function MealCounts({ siteSlug, mealOptions }: { siteSlug?: string; mealOptions:
           tally[key] = (tally[key] ?? 0) + 1;
         }
         if (!cancelled) setCounts(tally);
-      } catch { /* ignore — counts stay null */ }
+      } catch { /* ignore, counts stay null */ }
     })();
     return () => { cancelled = true; };
   }, [siteSlug]);
@@ -366,9 +366,9 @@ function ShowGoingToggle({
   } as unknown as StoryManifest);
   return (
     <FToggleStandalone
-      label={current ? 'Showing attendee pile' : 'Hidden — private guest list'}
+      label={current ? 'Showing attendee pile' : 'Hidden, private guest list'}
       sub={current
-        ? 'Guests see a small attendee pile + count under the RSVP button — real replies only.'
+        ? 'Guests see a small attendee pile + count under the RSVP button, real replies only.'
         : 'Standard for weddings + memorials. Your guest list stays private.'}
       def={current}
       onChange={setVal}

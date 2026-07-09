@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -152,8 +152,8 @@ Make the suggestions feel like insider tips from a local, not generic tourist re
         ],
         weather: {
           temp: isWinter ? '30-45°F' : isSummer ? '75-90°F' : isSpring ? '55-70°F' : '50-65°F',
-          description: isWinter ? 'Cool to cold — dress in warm layers'
-            : isSummer ? 'Warm and sunny — stay hydrated'
+          description: isWinter ? 'Cool to cold. Dress in warm layers'
+            : isSummer ? 'Warm and sunny. Stay hydrated'
             : isSpring ? 'Mild and pleasant with occasional showers'
             : 'Crisp autumn air with beautiful foliage',
           packingTip: isWinter ? 'Bring a warm coat and layers'

@@ -89,7 +89,7 @@ function useToastClaims(siteId: string, enabled: boolean) {
     let cancelled = false;
     fetchClaims()
       .then((claims) => { if (!cancelled && claims) setServerClaims(claims); })
-      .catch(() => { /* offline — local only */ });
+      .catch(() => { /* offline, local only */ });
     return () => { cancelled = true; };
   }, [canSync, fetchClaims]);
 
@@ -144,13 +144,13 @@ function useToastClaims(siteId: string, enabled: boolean) {
               const refreshed = await fetchClaims();
               if (refreshed) setServerClaims(refreshed);
             } catch { /* the rollback above already freed the slot */ }
-            setError('Someone else grabbed that slot first — pick another and it’s yours.');
+            setError('Someone else grabbed that slot first, pick another and it’s yours.');
           } else {
             setError(data?.error ?? 'Could not save the claim. Try again.');
           }
         }
       } catch {
-        setError('You look offline — your claim is held in this browser. Claim it again once you’re back.');
+        setError('You look offline, your claim is held in this browser. Claim it again once you’re back.');
       }
     }
   };

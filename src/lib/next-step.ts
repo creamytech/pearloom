@@ -148,7 +148,7 @@ export function nextStepFor(
     return {
       id: 'cover',
       label: 'Add your cover photo',
-      hint: 'The first thing guests see — set it in the Hero panel.',
+      hint: 'The first thing guests see, set it in the Hero panel.',
       target: 'hero',
     };
   }
@@ -182,7 +182,7 @@ export function nextStepFor(
     return {
       id: 'story',
       label: 'Tell the story',
-      hint: 'A first chapter is enough — Pear can draft it with you.',
+      hint: 'A first chapter is enough, Pear can draft it with you.',
       target: 'story',
     };
   }
@@ -192,7 +192,7 @@ export function nextStepFor(
     return {
       id: 'publish',
       label: 'Press it live',
-      hint: 'The essentials are in — press your site and share the link.',
+      hint: 'The essentials are in, press your site and share the link.',
       target: 'publish',
     };
   }
@@ -214,7 +214,7 @@ export function nextStepFor(
     return {
       id: 'nudge',
       label: `Nudge ${momentum.pending} pending repl${momentum.pending === 1 ? 'y' : 'ies'}`,
-      hint: `Reply-by lands ${dateLabel} — a gentle nudge now fills the table.`,
+      hint: `Reply-by lands ${dateLabel}, a gentle nudge now fills the table.`,
       target: 'guests',
     };
   }

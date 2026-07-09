@@ -361,7 +361,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {g.email ?? <span style={{ opacity: 0.3 }}>—</span>}
+                    {g.email ?? <span style={{ opacity: 0.3 }}>, </span>}
                   </td>
                   <td style={{ padding: '0.9rem 1rem' }}>
                     <StatusBadge status={g.status ?? 'pending'} />
@@ -379,7 +379,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                         {g.plus_one_name ? g.plus_one_name : 'Yes'}
                       </span>
                     ) : (
-                      <span style={{ opacity: 0.3 }}>—</span>
+                      <span style={{ opacity: 0.3 }}>, </span>
                     )}
                   </td>
                   <td
@@ -391,7 +391,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     }}
                   >
                     {g.meal_preference ?? (
-                      <span style={{ opacity: 0.3 }}>—</span>
+                      <span style={{ opacity: 0.3 }}>, </span>
                     )}
                   </td>
                   <td
@@ -407,7 +407,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     }}
                   >
                     {g.song_request ?? (
-                      <span style={{ opacity: 0.3 }}>—</span>
+                      <span style={{ opacity: 0.3 }}>, </span>
                     )}
                     <PresetAnswerChips guest={g} />
                   </td>
@@ -427,7 +427,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                         year: 'numeric',
                       })
                     ) : (
-                      <span style={{ opacity: 0.3 }}>—</span>
+                      <span style={{ opacity: 0.3 }}>, </span>
                     )}
                   </td>
                 </tr>
@@ -1312,7 +1312,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             lineHeight: 1.55,
           }}
         >
-          Every RSVP, meal note, song pick, and message — gathered in one place.
+          Every RSVP, meal note, song pick, and message, gathered in one place.
         </div>
       </BlurFade>
 

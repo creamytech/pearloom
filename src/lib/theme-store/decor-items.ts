@@ -51,13 +51,13 @@ function it(o: Omit<DecorItem, 'tier'> & { tier?: Tier }): DecorItem {
 /* ── Motifs — line ornaments + botanicals. The free Decor Library
    basics stay free here; the fancier marks carry a price. ── */
 const MOTIFS: DecorItem[] = [
-  it({ id: 'motif-olive', kind: 'motif', value: 'olive', name: 'Olive Sprig', blurb: 'The house mark — a quiet olive branch.', price: 0, tags: ['botanical', 'classic'] }),
+  it({ id: 'motif-olive', kind: 'motif', value: 'olive', name: 'Olive Sprig', blurb: 'The house mark, a quiet olive branch.', price: 0, tags: ['botanical', 'classic'] }),
   it({ id: 'motif-rings', kind: 'motif', value: 'pl-rings', name: 'Rings', blurb: 'Two interlocking rings, drawn by one line.', price: 0, tags: ['wedding', 'line'] }),
-  it({ id: 'motif-orchid', kind: 'motif', value: 'orchid', name: 'Orchid', blurb: 'A single stem in fine line — patient and rare.', price: 6, tags: ['botanical', 'premium'] }),
+  it({ id: 'motif-orchid', kind: 'motif', value: 'orchid', name: 'Orchid', blurb: 'A single stem in fine line, patient and rare.', price: 6, tags: ['botanical', 'premium'] }),
   it({ id: 'motif-monstera', kind: 'motif', value: 'monstera', name: 'Monstera', blurb: 'Split-leaf green for a garden in full voice.', price: 6, tags: ['botanical', 'tropical'] }),
   it({ id: 'motif-peony', kind: 'motif', value: 'peony', name: 'Peony', blurb: 'A blowsy bloom at the height of June.', price: 6, tags: ['botanical', 'floral'] }),
   it({ id: 'motif-hummingbird', kind: 'motif', value: 'hummingbird', name: 'Hummingbird', blurb: 'A hovering wing, caught mid-note.', price: 8, tags: ['fauna', 'fine'] }),
-  it({ id: 'motif-champagne', kind: 'motif', value: 'champagne', name: 'Champagne', blurb: 'A coupe and a rising bead — the toast.', price: 8, tags: ['celebration'] }),
+  it({ id: 'motif-champagne', kind: 'motif', value: 'champagne', name: 'Champagne', blurb: 'A coupe and a rising bead, the toast.', price: 8, tags: ['celebration'] }),
   it({ id: 'motif-disco', kind: 'motif', value: 'disco', name: 'Disco Ball', blurb: 'A faceted glint for the late dancing.', price: 8, badges: { new: true }, tags: ['party', 'night'] }),
 ];
 
@@ -66,7 +66,7 @@ const DIVIDERS: DecorItem[] = [
   it({ id: 'divider-fleuron', kind: 'divider', value: 'pl-fleuron', name: 'Fleuron', blurb: 'A printer’s flower flanked by hairlines.', price: 0, tags: ['fleuron', 'classic'] }),
   it({ id: 'divider-sprig', kind: 'divider', value: 'sprig', name: 'Sprig', blurb: 'A small leaf, centered on the seam.', price: 0, tags: ['botanical'] }),
   it({ id: 'divider-pearl', kind: 'divider', value: 'pl-pearl', name: 'Pearl', blurb: 'A single gold bead between two rules.', price: 5, tags: ['fine', 'gold'] }),
-  it({ id: 'divider-infinity', kind: 'divider', value: 'pl-infinity', name: 'Infinity', blurb: 'An unbroken loop — for the long view.', price: 5, tags: ['wedding'] }),
+  it({ id: 'divider-infinity', kind: 'divider', value: 'pl-infinity', name: 'Infinity', blurb: 'An unbroken loop, for the long view.', price: 5, tags: ['wedding'] }),
   it({ id: 'divider-thread', kind: 'divider', value: 'thread', name: 'Loom Thread', blurb: 'The two-strand olive-and-gold thread.', price: 5, badges: { best: true }, tags: ['brand', 'thread'] }),
   it({ id: 'divider-vine', kind: 'divider', value: 'vine', name: 'Vine', blurb: 'A trailing vine across the page.', price: 6, tags: ['botanical'] }),
   it({ id: 'divider-stars', kind: 'divider', value: 'stars', name: 'Stars', blurb: 'A scatter of small stars for evening.', price: 6, tags: ['celestial', 'night'] }),
@@ -85,7 +85,7 @@ const MONOGRAMS: DecorItem[] = [
 
 /* ── Component kits — the repeating card / row personality. ── */
 const KITS: DecorItem[] = [
-  it({ id: 'kit-classic', kind: 'kit', value: 'classic', name: 'Classic', blurb: 'Framed cards, centered — the house default.', price: 0, tags: ['classic'] }),
+  it({ id: 'kit-classic', kind: 'kit', value: 'classic', name: 'Classic', blurb: 'Framed cards, centered, the house default.', price: 0, tags: ['classic'] }),
   it({ id: 'kit-minimal', kind: 'kit', value: 'minimal', name: 'Minimal', blurb: 'Hairline rules, no card chrome at all.', price: 0, tags: ['modern'] }),
   it({ id: 'kit-ticket', kind: 'kit', value: 'ticket', name: 'Ticket', blurb: 'Perforated ticket stubs for every row.', price: 8, tags: ['playful'] }),
   it({ id: 'kit-plate', kind: 'kit', value: 'plate', name: 'Plate', blurb: 'Engraved plate cards with a pressed edge.', price: 8, tags: ['formal'] }),

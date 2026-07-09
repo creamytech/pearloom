@@ -199,7 +199,7 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
         setPhotoErr(d?.error ?? 'Could not save your photo.');
       }
     } catch {
-      setPhotoErr('Could not save — check your connection.');
+      setPhotoErr('Could not save, check your connection.');
     } finally {
       setUploading(false);
     }
@@ -235,7 +235,7 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ display_name: v || null }),
-    }).catch(() => { /* optimistic — re-syncs on next open */ });
+    }).catch(() => { /* optimistic, re-syncs on next open */ });
   }
   return (
     <div>
@@ -454,7 +454,7 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
         ))}
       </div>
       <UsRow style={{ borderBottom: 'none' }}>
-        <UsField label="Billing" value="Purchases are one-time through Stripe — receipts arrive by email." />
+        <UsField label="Billing" value="Purchases are one-time through Stripe, receipts arrive by email." />
         <Link href="/#pricing" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>See pricing</Link>
       </UsRow>
     </div>

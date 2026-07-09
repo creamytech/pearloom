@@ -179,7 +179,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   });
   const enterStudio = (t: StationeryType) => {
     setField('type', t);
-    try { localStorage.setItem(`pl-studio-entered-${siteSlug}`, '1'); } catch { /* private mode — just proceed */ }
+    try { localStorage.setItem(`pl-studio-entered-${siteSlug}`, '1'); } catch { /* private mode, just proceed */ }
     setShowLanding(false);
   };
   // The press sheet — front, back, and envelope at exact physical
@@ -253,7 +253,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
         const ready = guests.filter(g => g.status === 'attending').length;
         setGuestStats({ total, sent, ready });
       })
-      .catch(() => { /* silent — rail just shows the empty hint */ });
+      .catch(() => { /* silent, rail just shows the empty hint */ });
     return () => { cancelled = true; };
   }, [siteSlug, statsTick]);
 
@@ -387,7 +387,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   // thread" copy that matches Pear's voice.
   function aiErrorFor(flow: 'draft' | 'asset' | 'rewrite', status: number | null, kind?: string): string {
     if (status === 429) {
-      return 'Pear is taking a breath — try again in a minute.';
+      return 'Pear is taking a breath, try again in a minute.';
     }
     if (flow === 'draft') return 'Pear lost the thread on a fresh draft. Try again in a moment.';
     if (flow === 'asset') return `Pear couldn't paint a ${kind}. Try again or pick a different palette.`;

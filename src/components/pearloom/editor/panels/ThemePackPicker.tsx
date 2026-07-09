@@ -107,7 +107,7 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
         Recommended for {occasionLabel}
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: -4, marginBottom: 4 }}>
-        One pick sets the whole theme — palette, fonts, radii, atmosphere.
+        One pick sets the whole theme, palette, fonts, radii, atmosphere.
       </div>
       <div
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}

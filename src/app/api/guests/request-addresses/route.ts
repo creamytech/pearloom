@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   }
   const rl = checkRateLimit(`request-addresses:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many sends — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many sends. Try again in an hour.' }, { status: 429 });
   }
 
   let body: { siteId?: string } = {};
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         ${first ? `<p style="font-size:14.5px;margin:0 0 10px">Dear <em>${esc(first)}</em>,</p>` : ''}
         <p style="font-size:15px;line-height:1.7;margin:0">
           We're addressing real envelopes and we'd love one to reach
-          you. Share your mailing address — it takes ten seconds, and
+          you. Share your mailing address. It takes ten seconds, and
           only we see it.
         </p>
       </td></tr>
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from: `${couple} <${fromAddress}>`,
           to: r.email,
-          subject: `Where should we send yours? — ${couple}`,
+          subject: `Where should we send yours? ${couple}`,
           html,
           text: htmlToText(html),
           headers: listUnsubHeaders({ email: r.email, siteId: site.id, channel: 'address-collect' }),

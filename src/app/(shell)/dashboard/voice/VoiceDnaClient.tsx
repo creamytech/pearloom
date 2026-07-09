@@ -19,7 +19,7 @@ interface VoicePrompt {
 // sets so recorded samples survive a site switch — only the label
 // and framing change with the occasion.
 const COUPLE_PROMPTS: VoicePrompt[] = [
-  { id: 'meet', label: 'How did you meet?', body: 'Tell me the story — the version you tell at parties.' },
+  { id: 'meet', label: 'How did you meet?', body: 'Tell me the story, the version you tell at parties.' },
   { id: 'three-words', label: 'Three words', body: 'How would your closest friends describe you?' },
   { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
   { id: 'love', label: 'Why this person', body: 'What do you love about your partner / why this celebration?' },
@@ -30,10 +30,10 @@ const COUPLE_PROMPTS: VoicePrompt[] = [
 ];
 
 const SOLO_PROMPTS: VoicePrompt[] = [
-  { id: 'meet', label: 'A favorite story', body: 'Tell a favorite story about the guest of honor — the version you tell at parties.' },
+  { id: 'meet', label: 'A favorite story', body: 'Tell a favorite story about the guest of honor, the version you tell at parties.' },
   { id: 'three-words', label: 'Three words', body: 'How would your closest friends describe you?' },
   { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
-  { id: 'love', label: 'Why this celebration', body: 'What makes the guest of honor — and this milestone — worth celebrating?' },
+  { id: 'love', label: 'Why this celebration', body: 'What makes the guest of honor (and this milestone) worth celebrating?' },
   { id: 'guests', label: 'Why these guests', body: 'Why these particular people get invited?' },
   { id: 'today', label: 'Today, in your voice', body: 'Tell me what today felt like, in your normal voice.' },
   { id: 'thanks', label: 'Saying thank you', body: 'How would you thank someone who travelled to be there?' },
@@ -41,7 +41,7 @@ const SOLO_PROMPTS: VoicePrompt[] = [
 ];
 
 const MEMORIAL_PROMPTS: VoicePrompt[] = [
-  { id: 'meet', label: 'How you knew them', body: 'Tell me how you came to know them — the version you find yourself telling.' },
+  { id: 'meet', label: 'How you knew them', body: 'Tell me how you came to know them, the version you find yourself telling.' },
   { id: 'three-words', label: 'Three words', body: 'How would the people who loved them describe them?' },
   { id: 'phrase', label: 'A phrase you say a lot', body: 'A few sentences using it naturally.' },
   { id: 'love', label: 'What you want remembered', body: 'What do you most want people to carry with them about their life?' },
@@ -238,8 +238,8 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
               <StatStrip items={[{ label: `of ${prompts.length} captured`, value: recordedCount, tone: 'sage' }]} />
               <HintChip
                 storageKey="pl-hint-voice-dna"
-                hint="Record a few prompts — Pear drafts in your voice from then on."
-                detail="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you. Record at least two prompts to build the profile."
+                hint="Record a few prompts, Pear drafts in your voice from then on."
+                detail="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on, save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you. Record at least two prompts to build the profile."
               />
             </div>
           }

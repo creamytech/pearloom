@@ -152,7 +152,7 @@ export function isHeicLike(file: { type?: string; name?: string }): boolean {
  *  can't decode. */
 export function heicUnsupportedMessage(): string {
   return (
-    "This photo's format (HEIC) can't be read in this browser — try " +
+    "This photo's format (HEIC) can't be read in this browser, try " +
     "'Most compatible' in iPhone Settings › Camera › Formats, or pick " +
     'from your gallery again.'
   );
@@ -169,7 +169,7 @@ export function normalizeErrorMessage(err: unknown): string {
       case 'not-image':
         return "That file isn't an image.";
       case 'too-large':
-        return "That photo is enormous — we couldn't shrink it enough. Try a smaller one.";
+        return "That photo is enormous, we couldn't shrink it enough. Try a smaller one.";
       case 'decode-failed':
         return "This photo couldn't be read. Try a different one, or re-save it as JPG.";
       case 'encode-failed':
@@ -178,7 +178,7 @@ export function normalizeErrorMessage(err: unknown): string {
         return 'Photo preparation is only available in the browser.';
     }
   }
-  return "This photo couldn't be prepared — try another?";
+  return "This photo couldn't be prepared, try another?";
 }
 
 // ─── Browser-only decode / canvas / encode ───────────────────
@@ -319,7 +319,7 @@ export async function normalizeImageFile(
     if (best.size > o.hardCeilingBytes) {
       throw new ImageNormalizeError(
         'too-large',
-        "That photo is enormous — we couldn't shrink it enough.",
+        "That photo is enormous, we couldn't shrink it enough.",
       );
     }
 

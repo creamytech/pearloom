@@ -1335,7 +1335,7 @@ function PostEventBanner() {
         fontSize: 18, color: 'var(--t-ink)',
         lineHeight: 1.3,
       }}>
-        Thank you for joining us — every part of the day felt like family because of you.
+        Thank you for joining us, every part of the day felt like family because of you.
       </div>
     </div>
   );
@@ -1828,7 +1828,7 @@ function HeroCover({ ctx }: { ctx: SectionCtx }) {
 
   useEffect(() => {
     if (editable || reduced) return;
-    try { if (localStorage.getItem(storageKey)) return; } catch { /* private mode — show it */ }
+    try { if (localStorage.getItem(storageKey)) return; } catch { /* private mode, show it */ }
     // rAF, not a synchronous set — render-time state stays SSR-clean.
     const id = requestAnimationFrame(() => setPhase('closed'));
     return () => cancelAnimationFrame(id);
@@ -1860,7 +1860,7 @@ function HeroCover({ ctx }: { ctx: SectionCtx }) {
       <HeroCentered ctx={ctx} />
       {editable && (
         <div aria-hidden style={{ position: 'absolute', top: 10, left: 10, zIndex: 3, pointerEvents: 'none', padding: '4px 11px', borderRadius: 999, background: 'color-mix(in oklab, var(--t-paper) 82%, transparent)', border: '1px solid var(--t-line)', fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>
-          Sealed cover — parts on arrival
+          Sealed cover, parts on arrival
         </div>
       )}
       {phase !== 'unmounted' && (
@@ -2858,7 +2858,7 @@ function FaqAskStrip({ ctx }: { ctx: SectionCtx }) {
       <div style={{ maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
         {state === 'sent' ? (
           <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)' }}>
-            Sent — your hosts will see it. ✓
+            Sent, your hosts will see it. ✓
           </div>
         ) : (
           <>
@@ -2896,7 +2896,7 @@ function FaqAskStrip({ ctx }: { ctx: SectionCtx }) {
               </button>
               {state === 'error' && (
                 <div style={{ fontSize: 12, color: 'var(--t-ink-soft)' }}>
-                  Couldn&rsquo;t send — try again in a moment.
+                  Couldn&rsquo;t send, try again in a moment.
                 </div>
               )}
             </div>
@@ -3366,7 +3366,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
       <SectionEmpty
         eyebrow="Gallery"
         title="No photos yet."
-        hint="Add your first photos — they'll fill this gallery."
+        hint="Add your first photos, they'll fill this gallery."
         icon="camera"
         pad={pad}
         addLabel="Add your first photos"
@@ -4371,7 +4371,7 @@ function MusicEmbed({ ctx }: { ctx: SectionCtx }) {
     return (
       <iframe
         src={embedUrl}
-        title={`${title} — playlist`}
+        title={`${title}, playlist`}
         style={{ width: '100%', height, border: 0, display: 'block', background: isSpotify || dark ? '#181818' : 'transparent' }}
         loading="lazy"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -4939,7 +4939,7 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
                   {layoutVariants.map((v) => {
                     const on = v.id === currentVariant;
                     const rec = v.id === recommendedId;
-                    const sub = v.sub ? `${v.label} — ${v.sub}` : v.label;
+                    const sub = v.sub ? `${v.label}, ${v.sub}` : v.label;
                     return (
                       <button
                         key={v.id}
@@ -5563,7 +5563,7 @@ function EditPhotoTarget({
         <button
           type="button"
           className="pl-photo-reframe-btn"
-          title="Reframe — drag the photo inside its frame"
+          title="Reframe, drag the photo inside its frame"
           onClick={(e) => { e.stopPropagation(); setReframing(true); }}
         >
           <ReframeGlyph />
@@ -5759,7 +5759,7 @@ function EditPhotoCorner({ editable, slot }: { editable: boolean; slot: CanvasPh
           {canReframe && (
             <button
               type="button"
-              title="Reframe — drag the photo inside its frame"
+              title="Reframe, drag the photo inside its frame"
               onClick={(e) => { e.stopPropagation(); setReframing(true); }}
               style={chip}
             >
@@ -6481,7 +6481,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
                kidsWelcome=true wins; adultsOnly=true forces an
                adults-only label; neither set leaves the cream default. */
             kidsWelcomeRaw === true
-              ? { l: 'Kids welcome', v: 'All ages — bring the little ones', icon: 'users' }
+              ? { l: 'Kids welcome', v: 'All ages, bring the little ones', icon: 'users' }
               : adultsOnlyRaw === true
                 ? { l: 'Adults-only evening', v: 'Reception is 18+', icon: 'users' }
                 : { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
@@ -6595,7 +6595,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
            counts) must never reach guests — editor preview only. */
         hotels: mapped.length > 0 ? mapped : !demo ? [] : [
           { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
-          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A quiet cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
+          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A quiet cliff retreat carved into the caldera, a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
         ],
       };
     })(),

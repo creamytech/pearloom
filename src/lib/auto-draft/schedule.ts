@@ -58,7 +58,7 @@ const TEMPLATES: Record<string, OccasionTemplate> = {
     events: [
       { name: 'Check-in', offsetMin: 0, description: 'Pick up keys + drop bags.' },
       { name: 'First dinner', offsetMin: 90, description: 'Reservation under the host name.' },
-      { name: 'Out on the town', offsetMin: 210, description: 'The list of spots — we\'ll regroup at midnight.' },
+      { name: 'Out on the town', offsetMin: 210, description: 'The list of spots, we\'ll regroup at midnight.' },
     ],
   },
   'bachelorette-party': {
@@ -66,7 +66,7 @@ const TEMPLATES: Record<string, OccasionTemplate> = {
     events: [
       { name: 'Welcome', offsetMin: 0, description: 'Drop bags, find your bunk, hug everyone.' },
       { name: 'Dinner', offsetMin: 90, description: 'The reservation that started this whole trip.' },
-      { name: 'Dancing', offsetMin: 210, description: 'Spot two on the list — let\'s go.' },
+      { name: 'Dancing', offsetMin: 210, description: 'Spot two on the list, let\'s go.' },
     ],
   },
   'baby-shower': {

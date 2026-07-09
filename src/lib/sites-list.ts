@@ -133,7 +133,7 @@ export async function listSitesForEmail(email: string): Promise<ListedSite[] | n
         );
         if (matches.length > 0) {
           console.warn(
-            `[sites-list] FILTER MISMATCH — ${matches.length} site(s) match in JS but not in SQL. Subdomains:`,
+            `[sites-list] FILTER MISMATCH, ${matches.length} site(s) match in JS but not in SQL. Subdomains:`,
             matches.map((m) => m.subdomain).join(','),
           );
           const { data: allRows } = await supabase

@@ -112,7 +112,7 @@ const INCLUDES_META: Record<
     icon: 'layout',
     title: () => 'Card style',
     subtitle: (p) => EXCLUSIVE_KITS.has(p.kit)
-      ? `${kitLabel(p.kit)} — only with this pack`
+      ? `${kitLabel(p.kit)}, only with this pack`
       : `${kitLabel(p.kit)} styling`,
   },
   texture: {
@@ -138,7 +138,7 @@ const INCLUDES_META: Record<
       p.motif === 'none'
         ? 'Clean, no motifs'
         : ['chandelier', 'bow', 'sparkler'].includes(p.motif)
-          ? `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork — only with this pack`
+          ? `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork, only with this pack`
           : `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork`,
   },
 };
@@ -212,7 +212,7 @@ export function QuickLookModal({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`${pack.name} — quick look`}
+      aria-label={`${pack.name}, quick look`}
       style={{
         position: 'fixed',
         inset: 0,

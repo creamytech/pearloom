@@ -97,7 +97,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
               <HintChip
                 storageKey="pl-hint-cadence"
                 hint="Pear suggests every send your event needs."
-                detail="Pear suggests every send your event needs — save-the-date, RSVP nudge, day-before reminder, thank-you — anchored to your event date. Approve, edit copy, or schedule each one."
+                detail="Pear suggests every send your event needs (save-the-date, RSVP nudge, day-before reminder, thank-you) anchored to your event date. Approve, edit copy, or schedule each one."
               />
             )
           }
@@ -109,7 +109,7 @@ export function CadenceClient({ siteSlug: urlSiteSlug }: { siteSlug: string | nu
         {postEvent && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--gold-line, #D0B070)', background: 'var(--card)', margin: '0 0 14px', fontSize: 12.5, color: 'var(--ink-soft)' }}>
             <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--gold, #C19A4B)', flexShrink: 0 }} />
-            The day has come and gone — the send ladder stands down. This is the record of what went out.
+            The day has come and gone, the send ladder stands down. This is the record of what went out.
           </div>
         )}
 

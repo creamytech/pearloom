@@ -393,7 +393,7 @@ function SeatIntroCard({
               }}
             >
               <strong>{m.name}</strong>
-              {m.blurb && <span style={{ color: '#6F6557' }}> — {m.blurb}</span>}
+              {m.blurb && <span style={{ color: '#6F6557' }}>, {m.blurb}</span>}
             </li>
           ))}
         </ul>
@@ -450,7 +450,7 @@ function MemoryPromptCard({
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="A paragraph — whatever comes to mind. Pear weaves the best lines into the toast."
+        placeholder="A paragraph, whatever comes to mind. Pear weaves the best lines into the toast."
         rows={5}
         style={{
           width: '100%',
@@ -534,7 +534,7 @@ function WhisperCard({
       <Title text="Leave a note" headingFont={headingFont} />
       <p style={{ fontSize: '0.92rem', lineHeight: 1.55, margin: '10px 0 12px', color: '#6F6557' }}>
         Only the {isSolemn ? 'family' : 'couple'} will read this. Pear delivers each whisper over the next two weeks
-        — a slow drip of warmth instead of a firehose.
+        , a slow drip of warmth instead of a firehose.
       </p>
       {state === 'saved' && !value ? (
         <div
@@ -547,7 +547,7 @@ function WhisperCard({
             border: `1px dashed ${accent}44`,
           }}
         >
-          Thank you — your whisper is on its way. You can leave another if you'd like.
+          Thank you, your whisper is on its way. You can leave another if you'd like.
           <div style={{ marginTop: 10 }}>
             <button
               type="button"

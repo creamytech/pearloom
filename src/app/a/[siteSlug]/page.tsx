@@ -92,7 +92,7 @@ export async function generateMetadata({
 
   const { suite } = site;
   const displayNames = suite.names.filter(Boolean).join(' & ') || 'your hosts';
-  const title = `Share your address — ${displayNames}`;
+  const title = `Share your address, ${displayNames}`;
   const solemn = suite.occasion === 'memorial' || suite.occasion === 'funeral';
   const description = solemn
     ? 'Share your mailing address so the family can reach you.'
@@ -189,13 +189,13 @@ export default async function ShareAddressPage({
     : `Help ${namesLine} reach your mailbox`;
   const lede = solemn
     ? 'Leave your mailing address below so anything sent by post finds you. Only the family ever sees it.'
-    : 'A real envelope may be headed your way. Leave your address below — only your hosts ever see it.';
+    : 'A real envelope may be headed your way. Leave your address below, only your hosts ever see it.';
   const successHeadline = solemn
-    ? 'Done — the family can find you now.'
-    : `Done — ${firstName} can find you now.`;
+    ? 'Done, the family can find you now.'
+    : `Done, ${firstName} can find you now.`;
   const successBody = solemn
     ? 'Your address is set. There is nothing more to do.'
-    : 'Your address is set. Nothing more to do — keep an eye on the mailbox.';
+    : 'Your address is set. Nothing more to do, keep an eye on the mailbox.';
 
   /* Motif — explicit host pick wins; theme-catalog motif is the
      fallback (same derivation RsvpCeremony uses). */

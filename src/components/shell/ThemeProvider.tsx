@@ -65,7 +65,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       } else {
         localStorage.setItem('pl-theme', p);
       }
-    } catch { /* ignore — Safari Private Mode etc. */ }
+    } catch { /* ignore, Safari Private Mode etc. */ }
     const resolved = resolveTheme(p);
     setTheme(resolved);
     document.documentElement.dataset.theme = resolved;

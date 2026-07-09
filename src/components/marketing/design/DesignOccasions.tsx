@@ -302,7 +302,7 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
             sticky nav pill at natural scroll stops. */}
         <div style={{ marginTop: 48, paddingTop: 48, textAlign: 'center' }}>
           <div style={{ ...MONO_STYLE, fontSize: 11, opacity: 0.6, marginBottom: 16 }}>
-            — AND {Math.max(0, EVENT_TYPES.length - OCCASIONS.length)} MORE, QUIETLY WAITING —
+            AND {Math.max(0, EVENT_TYPES.length - OCCASIONS.length)} MORE, QUIETLY WAITING
           </div>
           <PLButton variant="ink" size="md" onClick={onGetStarted}>
             See every occasion →

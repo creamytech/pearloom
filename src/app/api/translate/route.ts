@@ -85,7 +85,7 @@ ${JSON.stringify(segments)}`;
       const budgetA = budgetKey(null, getClientIp(req));
       if (await overBudget(budgetA)) {
         return Response.json(
-          { error: "You've reached today's AI limit — try again tomorrow." },
+          { error: "You've reached today's AI limit. Try again tomorrow." },
           { status: 429 }
         );
       }
@@ -108,7 +108,7 @@ ${JSON.stringify(segments)}`;
         const out = parsed.map((v) => (typeof v === 'string' ? v : String(v ?? '')));
         return Response.json({ segments: out });
       } catch {
-        return Response.json({ error: 'AI translation failed — try again' }, { status: 502 });
+        return Response.json({ error: 'AI translation failed. Try again' }, { status: 502 });
       }
     }
 
@@ -175,7 +175,7 @@ ${JSON.stringify(chaptersJson, null, 2)}`;
       translations = parsed;
     } catch {
       console.warn('[translate] Gemini parse failed');
-      return Response.json({ error: 'AI translation failed — try again' }, { status: 502 });
+      return Response.json({ error: 'AI translation failed. Try again' }, { status: 502 });
     }
 
     return Response.json({ translations });

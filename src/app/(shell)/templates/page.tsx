@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Templates · Pearloom',
   description:
-    'Start from a story that feels like yours. Browse 15 lovingly designed templates — weddings, milestones, gatherings, memorials, trips, and soft launches. Each one is a full site, ready to fill with your people, photos, and moments.',
+    'Start from a story that feels like yours. Browse 15 lovingly designed templates, weddings, milestones, gatherings, memorials, trips, and soft launches. Each one is a full site, ready to fill with your people, photos, and moments.',
 };
 
 export default function TemplatesPage() {

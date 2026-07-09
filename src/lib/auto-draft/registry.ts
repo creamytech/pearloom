@@ -30,14 +30,14 @@ function bucketsForOccasion(occasion: string): RegistryBucket[] {
     case 'baby-shower':
     case 'sip-and-see':
       return [
-        { label: 'The basics', url: '', description: 'Diapers, wipes, sleep sacks — the things we\'ll go through.' },
+        { label: 'The basics', url: '', description: 'Diapers, wipes, sleep sacks, the things we\'ll go through.' },
         { label: 'Books', url: '', description: 'Help us build a library.' },
         { label: 'College fund', url: '', description: 'A small start on the long road.' },
       ];
     case 'bridal-shower':
       return [
         { label: 'Home essentials', url: '', description: 'Linked from the wedding registry.' },
-        { label: 'A note for the bride', url: '', description: 'Skip a gift — write a piece of advice instead.' },
+        { label: 'A note for the bride', url: '', description: 'Skip a gift, write a piece of advice instead.' },
       ];
     case 'housewarming':
       return [
@@ -51,7 +51,7 @@ function bucketsForOccasion(occasion: string): RegistryBucket[] {
     case 'milestone-birthday':
       return [
         { label: 'Their favourite charity', url: '', description: 'A donation in their name.' },
-        { label: 'Experiences over things', url: '', description: 'A class, a dinner, a trip — link below.' },
+        { label: 'Experiences over things', url: '', description: 'A class, a dinner, a trip, link below.' },
       ];
     case 'memorial':
     case 'funeral':

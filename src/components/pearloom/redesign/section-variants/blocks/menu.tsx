@@ -103,7 +103,7 @@ export function MenuSection({ manifest, pad, editable, variant, onEditCopy }: Bl
               color: 'var(--t-ink-muted)',
             }}
           >
-            Sample menu — yours begins in the Menu panel
+            Sample menu, yours begins in the Menu panel
           </span>
         </div>
       )}

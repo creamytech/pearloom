@@ -279,7 +279,7 @@ export function MusicBoard({
               <EmptyState
                 eyebrow="The guest playlist"
                 title="Nothing yet. Begin a thread."
-                description="When guests suggest songs on your site, they land here — wave the ones you love onto the floor, and set the rest aside."
+                description="When guests suggest songs on your site, they land here, wave the ones you love onto the floor, and set the rest aside."
               />
             </section>
           ) : (
@@ -300,7 +300,7 @@ export function MusicBoard({
                   <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)' }}>Loading…</div>
                 ) : grouped.accepted.length === 0 ? (
                   <div style={{ padding: '18px 14px', textAlign: 'center', fontSize: 12.5, color: 'var(--ink-muted)', fontStyle: 'italic', background: 'var(--cream-2)', borderRadius: 10, border: '1px dashed var(--line-soft)' }}>
-                    Nothing on the floor yet — accept a request and it lands here.
+                    Nothing on the floor yet, accept a request and it lands here.
                   </div>
                 ) : (
                   <div>
@@ -356,7 +356,7 @@ export function MusicBoard({
                         </div>
                       </>
                     ) : (
-                      <>No playlist link yet — add one in the editor&rsquo;s Music block to embed a Spotify playlist.</>
+                      <>No playlist link yet, add one in the editor&rsquo;s Music block to embed a Spotify playlist.</>
                     )}
                   </div>
                 </div>

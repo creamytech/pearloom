@@ -90,7 +90,7 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
                 fxSection="adviceWall"
                 value={data.prompt ?? ''}
                 onCommit={(v) => patch({ prompt: v })}
-                context="advice-wall prompt — one warm line inviting guests to write"
+                context="advice-wall prompt, one warm line inviting guests to write"
               />
             </div>
           )}
@@ -98,7 +98,7 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label={`Seeded notes · ${entries.length}`}
-          hint="A few from you so the wall never opens empty. Seeds render first; approved guest posts follow — moderate those from Dashboard → Submissions."
+          hint="A few from you so the wall never opens empty. Seeds render first; approved guest posts follow, moderate those from Dashboard → Submissions."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {entries.map((e, i) => (
@@ -107,7 +107,7 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
                   <ReorderButtons index={i} count={entries.length} onMove={moveEntry} />
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <FTextArea value={e.body ?? ''} onChange={(v) => patchEntry(i, { body: v })} rows={2} placeholder="The note itself." />
-                    <FInput value={e.from ?? ''} onChange={(v) => patchEntry(i, { from: v })} icon="user" placeholder="From — “Aunt June”" />
+                    <FInput value={e.from ?? ''} onChange={(v) => patchEntry(i, { from: v })} icon="user" placeholder="From, “Aunt June”" />
                   </div>
                   <RemoveButton label="Remove note" onClick={() => patch({ entries: entries.filter((_, idx) => idx !== i) })} />
                 </div>

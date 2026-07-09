@@ -86,7 +86,7 @@ BODY:
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

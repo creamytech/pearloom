@@ -92,7 +92,7 @@ const WEEKEND_ADDS: WeekendAdd[] = [
   { label: 'Morning-after brunch', blurb: 'On the main site’s schedule, or its own.', href: '#' },
 ];
 const WEEKEND_ADDS_KEPT: WeekendAdd[] = [
-  { label: 'The anniversary edition', blurb: 'One year on — the story, one chapter longer.', href: '#' },
+  { label: 'The anniversary edition', blurb: 'One year on, the story, one chapter longer.', href: '#' },
 ];
 
 const NEEDS_PLAN: NeedRow[] = [
@@ -101,13 +101,13 @@ const NEEDS_PLAN: NeedRow[] = [
   { title: 'First-dance song is still open', sub: 'Studio', cta: 'Pick', href: '#', urgency: 'later' },
 ];
 const NEEDS_AFTERGLOW: NeedRow[] = [
-  { title: '12 photos await your nod', sub: 'Guests added to the reel — approve the keepers.', cta: 'Review', href: '#', urgency: 'now' },
-  { title: 'Thank-yous — 9 of 31 sent', sub: 'The gift ledger keeps score. Pear drafts each note.', cta: 'Open the ledger', href: '#', urgency: 'soon' },
+  { title: '12 photos await your nod', sub: 'Guests added to the reel, approve the keepers.', cta: 'Review', href: '#', urgency: 'now' },
+  { title: 'Thank-yous, 9 of 31 sent', sub: 'The gift ledger keeps score. Pear drafts each note.', cta: 'Open the ledger', href: '#', urgency: 'soon' },
   { title: 'The memory book is ready to share', sub: '31 notes from your people, already woven in.', cta: 'Open it', href: '#', urgency: 'later' },
 ];
 
 const LATELY: LatelyItem[] = [
-  { name: 'Amara', action: 'said yes — +1 Theo', when: '2h', tone: 'yes' },
+  { name: 'Amara', action: 'said yes, +1 Theo', when: '2h', tone: 'yes' },
   { name: 'Jun', action: 'confirmed the florist', when: '4h', tone: 'yes' },
   { name: 'Priya', action: 'declined', when: 'yesterday', tone: 'no' },
 ];
@@ -167,7 +167,7 @@ export function DevDashboardClient() {
           subtitle={`${dateShort} · Lark Hill Farm. ${phase === 'kept'
             ? 'The day, kept. Everything your people left is here whenever you want it.'
             : post
-              ? 'Everything from the day, gathered — and the few threads left to tie.'
+              ? 'Everything from the day, gathered, and the few threads left to tie.'
               : 'Everything Pear is holding for you, and the few things that want a moment this week.'}`}
         />
         <HeroBanner

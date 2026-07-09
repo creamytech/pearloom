@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { ok: false, error: 'We couldn’t read that submission — please try again.' },
+      { ok: false, error: 'We couldn’t read that submission. Please try again.' },
       { status: 400 },
     );
   }
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
   // ── Validate early, warmly ──
   if (!siteSlug) {
     return NextResponse.json(
-      { ok: false, error: 'This link isn’t pointing anywhere — ask your hosts for a fresh one.' },
+      { ok: false, error: 'This link isn’t pointing anywhere. Ask your hosts for a fresh one.' },
       { status: 400 },
     );
   }
@@ -102,13 +102,13 @@ export async function POST(req: NextRequest) {
   }
   if (!line1 || !city || !state || !zip) {
     return NextResponse.json(
-      { ok: false, error: 'Almost there — street, city, state, and ZIP are all needed for the envelope.' },
+      { ok: false, error: 'Almost there: street, city, state, and ZIP are all needed for the envelope.' },
       { status: 400 },
     );
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json(
-      { ok: false, error: 'That email doesn’t look quite right — it’s optional, feel free to leave it blank.' },
+      { ok: false, error: 'That email doesn’t look quite right. It’s optional, feel free to leave it blank.' },
       { status: 400 },
     );
   }
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (!siteRow) {
       return NextResponse.json(
-        { ok: false, error: 'This link isn’t tied to a celebration yet — ask your hosts for a fresh one.' },
+        { ok: false, error: 'This link isn’t tied to a celebration yet. Ask your hosts for a fresh one.' },
         { status: 404 },
       );
     }
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
       if (updateError) {
         console.error('[address-book] update failed:', updateError);
         return NextResponse.json(
-          { ok: false, error: 'We couldn’t set your address just now — try again in a moment.' },
+          { ok: false, error: 'We couldn’t set your address just now. Try again in a moment.' },
           { status: 500 },
         );
       }
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
         console.error('[address-book] insert failed:', insertError);
       }
       return NextResponse.json(
-        { ok: false, error: 'We couldn’t set your address just now — try again in a moment.' },
+        { ok: false, error: 'We couldn’t set your address just now. Try again in a moment.' },
         { status: 500 },
       );
     }
@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[address-book] error:', err);
     return NextResponse.json(
-      { ok: false, error: 'We couldn’t set your address just now — try again in a moment.' },
+      { ok: false, error: 'We couldn’t set your address just now. Try again in a moment.' },
       { status: 500 },
     );
   }

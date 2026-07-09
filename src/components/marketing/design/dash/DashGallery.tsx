@@ -902,7 +902,7 @@ function EmptyReel({ sitesCount }: { sitesCount: number }) {
       </div>
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 480, margin: '0 auto 20px', lineHeight: 1.55 }}>
         {sitesCount === 0
-          ? "Create your first site and upload some photos — they'll collect here."
+          ? "Create your first site and upload some photos, they'll collect here."
           : 'Your sites have no photos yet. Open any site to add a cover, hero, or chapter images.'}
       </p>
       <Link href="/dashboard" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
@@ -918,7 +918,7 @@ function NoSitesCard() {
       <EmptyState
         icon={<PearloomGlyph size={28} />}
         title="Nothing on the reel yet."
-        description="Create a site and upload a photo — your Reel fills up as you go."
+        description="Create a site and upload a photo, your Reel fills up as you go."
         actions={
           <Link href="/wizard/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
             Create your site <Icon name="sparkles" size={12} color="var(--cream)" />

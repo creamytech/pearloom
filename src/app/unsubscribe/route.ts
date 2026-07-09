@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 
   return page(
     'You’re unsubscribed',
-    `<p>Done — we’ve stopped ${target.siteId ? 'those celebration emails' : 'emails from Pearloom'} to <strong>${maskEmail(target.email)}</strong>.</p>
+    `<p>Done, we’ve stopped ${target.siteId ? 'those celebration emails' : 'emails from Pearloom'} to <strong>${maskEmail(target.email)}</strong>.</p>
      <p class="fine">Transactional notes you asked for (like an RSVP confirmation) may still reach you.</p>`,
   );
 }

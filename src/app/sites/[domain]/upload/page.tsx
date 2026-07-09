@@ -93,7 +93,7 @@ export default async function GuestUploadPage({
             Photo uploads are closed.
           </h1>
           <p style={{ fontSize: 14, opacity: 0.7, maxWidth: 380, margin: '0 auto' }}>
-            The hosts aren&rsquo;t collecting photos right now — but they&rsquo;d
+            The hosts aren&rsquo;t collecting photos right now, but they&rsquo;d
             still love to see you at the celebration.
           </p>
         </div>

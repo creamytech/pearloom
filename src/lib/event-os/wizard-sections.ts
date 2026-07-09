@@ -156,7 +156,7 @@ export const OPTIONAL_SECTION_META: readonly SectionMeta[] = [
   { id: 'map',          label: 'Map',           icon: 'map',            desc: 'Live embed · pin · static' },
   { id: 'music',        label: 'Music',         icon: 'music',          desc: 'Spotify · Apple · YouTube' },
   { id: 'itinerary',    label: 'Itinerary',     icon: 'calendar-check', desc: 'Multi-day plan, hour by hour' },
-  { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket',         desc: 'Who owes what — settled gently' },
+  { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket', desc: 'Who owes what, settled gently' },
   { id: 'activityVote', label: 'Group vote',    icon: 'check',          desc: 'Let the group pick' },
   { id: 'toastSignup',  label: 'Toast signup',  icon: 'mic',            desc: 'Claim a toast slot' },
   { id: 'adviceWall',   label: 'Advice wall',   icon: 'text',           desc: 'Words for the honoree' },

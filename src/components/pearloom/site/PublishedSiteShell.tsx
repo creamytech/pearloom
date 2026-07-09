@@ -65,7 +65,7 @@ function GuestCrashFallback() {
           The thread caught
         </h1>
         <p style={{ fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 20px' }}>
-          We hit a snag rendering this page. Refreshing usually clears it —
+          We hit a snag rendering this page. Refreshing usually clears it, 
           if not, the hosts have been notified.
         </p>
         {/* Raw <a> not next/link — full reload escapes any broken React state. */}
@@ -310,7 +310,7 @@ function SiteGate({
         />
         {error && (
           <p role="alert" style={{ fontSize: '0.76rem', color: '#A14A2C', margin: '0 0 10px' }}>
-            That&apos;s not it — check the invitation and try again.
+            That&apos;s not it, check the invitation and try again.
           </p>
         )}
         <button

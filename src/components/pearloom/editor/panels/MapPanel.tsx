@@ -51,7 +51,7 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             border: '1px solid rgba(198,112,61,0.18)',
             fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5,
           }}>
-            Set a venue in the Hero panel — the map needs an address to plot.
+            Set a venue in the Hero panel, the map needs an address to plot.
           </div>
         )}
 
@@ -73,20 +73,20 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
           )}
         </FGroup>
 
-        <FGroup label="Height" hint="Only applies to embed / static layouts — pin variant uses a card.">
+        <FGroup label="Height" hint="Only applies to embed / static layouts, pin variant uses a card.">
           <FSelect
             value={height}
             onChange={(v) => patch({ height: v as 'short' | 'tall' })}
             options={[
               { value: 'short', label: 'Short',  hint: '~320 px tall' },
-              { value: 'tall',  label: 'Tall',   hint: '~560 px tall — feels like a full map page' },
+              { value: 'tall', label: 'Tall', hint: '~560 px tall, feels like a full map page' },
             ]}
           />
         </FGroup>
 
         <FToggleStandalone
           label="Show directions button"
-          sub={showDirections ? 'Opens Google Maps directions in a new tab' : 'No CTA — just the map'}
+          sub={showDirections ? 'Opens Google Maps directions in a new tab' : 'No CTA, just the map'}
           def={showDirections}
           onChange={(v) => patch({ showDirections: v })}
         />

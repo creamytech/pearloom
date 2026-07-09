@@ -132,11 +132,11 @@ export function ShareAddressForm({
       return;
     }
     if (!fields.line1.trim() || !fields.city.trim() || !fields.state.trim() || !fields.zip.trim()) {
-      setErr('Almost there — street, city, state, and ZIP are all needed for the envelope.');
+      setErr('Almost there, street, city, state, and ZIP are all needed for the envelope.');
       return;
     }
     if (fields.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim())) {
-      setErr('That email doesn’t look quite right — it’s optional, feel free to leave it blank.');
+      setErr('That email doesn’t look quite right, it’s optional, feel free to leave it blank.');
       return;
     }
 
@@ -162,13 +162,13 @@ export function ShareAddressForm({
         setErr(
           typeof data?.error === 'string' && data.error
             ? data.error
-            : 'We couldn’t set your address just now — try again in a moment.',
+            : 'We couldn’t set your address just now, try again in a moment.',
         );
         return;
       }
       setDone(true);
     } catch {
-      setErr('We couldn’t set your address just now — try again in a moment.');
+      setErr('We couldn’t set your address just now, try again in a moment.');
     } finally {
       setBusy(false);
     }
@@ -512,7 +512,7 @@ export function ShareAddressForm({
                 }}
               >
                 Your address goes straight to{' '}
-                {displayNames.length > 0 ? displayNames.join(' & ') : 'your hosts'} — no one else.
+                {displayNames.length > 0 ? displayNames.join(' & ') : 'your hosts'}, no one else.
               </p>
             </form>
 

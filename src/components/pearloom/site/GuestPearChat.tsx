@@ -353,7 +353,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
                 lineHeight: 1.5,
               }}
             >
-              I&apos;ve read the whole site. Ask me anything — directions, dress code, who&apos;s
+              I&apos;ve read the whole site. Ask me anything, directions, dress code, who&apos;s
               speaking when. I&apos;ll keep it short.
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>

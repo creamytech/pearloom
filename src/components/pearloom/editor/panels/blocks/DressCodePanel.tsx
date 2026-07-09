@@ -53,12 +53,12 @@ export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
           />
         </FGroup>
 
-        <FGroup label="A note" hint="One sentence of guidance — terrain, weather, warmth.">
+        <FGroup label="A note" hint="One sentence of guidance, terrain, weather, warmth.">
           <FTextArea
             value={data.note ?? ''}
             onChange={(v) => write({ note: v })}
             rows={2}
-            placeholder="The ceremony is on a lawn — leave the stilettos home."
+            placeholder="The ceremony is on a lawn, leave the stilettos home."
           />
           {(data.note ?? '').trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
@@ -110,7 +110,7 @@ export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label={`Examples · ${examples.length}`}
-          hint={'Do / don’t chips — "Linen suits", "No white". Add a photo and the Wardrobe layout hangs it as a "Wear this" plate.'}
+          hint={'Do / don’t chips, "Linen suits", "No white". Add a photo and the Wardrobe layout hangs it as a "Wear this" plate.'}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {examples.map((ex, idx) => (

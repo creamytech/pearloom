@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -121,8 +121,8 @@ Return ONLY the plain text note (no JSON, no quotes, no formatting):`;
       }
     } catch {
       note = giftDescription
-        ? `Thank you so much for the ${giftDescription} — we absolutely love it! It was wonderful having you celebrate with us, and your thoughtfulness made the day even more special. We can't wait to see you again soon.`
-        : `Thank you so much for being there to celebrate with us — your presence truly made the day special. We loved every moment of having you there, and the memories we made together are ones we'll cherish forever. We can't wait to see you again soon.`;
+        ? `Thank you so much for the ${giftDescription}. We absolutely love it! It was wonderful having you celebrate with us, and your thoughtfulness made the day even more special. We can't wait to see you again soon.`
+        : `Thank you so much for being there to celebrate with us. Your presence truly made the day special. We loved every moment of having you there, and the memories we made together are ones we'll cherish forever. We can't wait to see you again soon.`;
     }
 
     return NextResponse.json(

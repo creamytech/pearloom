@@ -226,8 +226,8 @@ export function TwoTapThanks() {
           one-liner (DASHBOARD-LAYOUT-PLAN rule 4). */}
       <HintChip
         storageKey="pl-hint-two-tap-thanks"
-        hint="Tap a guest, tap Draft — Pear writes from what they did."
-        detail="Tap a guest to see what they did — a memory, a whisper, a song, their RSVP. Tap Draft and Pear writes a note grounded in that specific contribution. Copy, send, next."
+        hint="Tap a guest, tap Draft, Pear writes from what they did."
+        detail="Tap a guest to see what they did, a memory, a whisper, a song, their RSVP. Tap Draft and Pear writes a note grounded in that specific contribution. Copy, send, next."
       />
       {guests.length > 0 && (
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 12, color: 'var(--ink-soft)' }}>
@@ -312,7 +312,7 @@ export function TwoTapThanks() {
           </div>
           {top.length > 8 && (
             <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: -6 }}>
-              {visibleGuests.length} {visibleGuests.length === 1 ? 'guest' : 'guests'} in the list — scroll for more
+              {visibleGuests.length} {visibleGuests.length === 1 ? 'guest' : 'guests'} in the list, scroll for more
             </div>
           )}
 
@@ -327,7 +327,7 @@ export function TwoTapThanks() {
                 {current.songTitle && <div>· Added "{current.songTitle}" to the playlist</div>}
                 {current.status && <div>· RSVP: {current.status}</div>}
                 {!current.memoryResponse && !current.whisperBody && !current.songTitle && current.status !== 'attending' && (
-                  <div>Nothing specific — Pear will write a warm generic thanks.</div>
+                  <div>Nothing specific, Pear will write a warm generic thanks.</div>
                 )}
               </div>
 

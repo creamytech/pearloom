@@ -51,7 +51,7 @@ export default async function VerifyPage({
   const result = await confirm(token);
 
   const copy = result === 'ok'
-    ? { title: 'Tied off.', body: 'Your email is confirmed — the account is fully yours. Carry on weaving.' }
+    ? { title: 'Tied off.', body: 'Your email is confirmed, the account is fully yours. Carry on weaving.' }
     : result === 'stale'
       ? { title: 'Already done (or expired).', body: 'This link was used already, or the account was confirmed another way. Nothing more to do.' }
       : { title: 'A snag.', body: 'We couldn’t confirm just now. Try the link again in a moment.' };

@@ -59,7 +59,7 @@ const PRESS_STAGES: Stage[] = [
   {
     id: 'sections',
     label: 'Laying out the sections',
-    hint: 'Schedule, RSVP, travel — seeded from your answers.',
+    hint: 'Schedule, RSVP, travel, seeded from your answers.',
     matches: [/laying out the sections/i],
   },
   {

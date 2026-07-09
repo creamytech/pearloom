@@ -65,7 +65,7 @@ export function DecorGalleryClient() {
       <div style={label}>DEV · DECOR GALLERY</div>
       <h1 style={{ ...h2, fontSize: 40, margin: '8px 0 4px' }}>The decor library, on one sheet.</h1>
       <p style={{ maxWidth: 560, color: 'var(--pl-ink-soft, #3A332C)', fontSize: 14 }}>
-        Every motif, monogram frame, and divider — including the 2026-06-09 collection.
+        Every motif, monogram frame, and divider, including the 2026-06-09 collection.
         Colors bind to the theme tokens, so this sheet shows the brand-default olive/gold pass.
       </p>
 

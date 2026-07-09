@@ -120,11 +120,11 @@ export function CommandPalette({
        concept (EditionPicker is gone); manifest.edition survives only
        as an internal layout-defaults signal, not a host-facing pick. */
     for (const k of KITS) {
-      out.push({ id: `kit:${k.id}`, label: `Kit — ${k.label}`, hint: k.blurb, icon: 'sparkles', group: 'Kits', keywords: ['kit', 'component', k.id], run: () => onPatchManifest({ ...manifest, kitId: k.id } as StoryManifest) });
+      out.push({ id: `kit:${k.id}`, label: `Kit, ${k.label}`, hint: k.blurb, icon: 'sparkles', group: 'Kits', keywords: ['kit', 'component', k.id], run: () => onPatchManifest({ ...manifest, kitId: k.id } as StoryManifest) });
     }
     for (const et of EVENT_TYPES) {
       if (et.status === 'planned') continue;
-      out.push({ id: `event:${et.id}`, label: `Event — ${et.label}`, hint: et.tagline, icon: 'heart-icon', group: 'Events', keywords: ['event', 'occasion', et.id, et.category, et.voice], run: () => onPatchManifest({ ...manifest, occasion: et.id } as unknown as StoryManifest) });
+      out.push({ id: `event:${et.id}`, label: `Event, ${et.label}`, hint: et.tagline, icon: 'heart-icon', group: 'Events', keywords: ['event', 'occasion', et.id, et.category, et.voice], run: () => onPatchManifest({ ...manifest, occasion: et.id } as unknown as StoryManifest) });
     }
     if (onOpenThemeShop)    out.push({ id: 'flow:theme-shop', label: 'Open theme shop',     hint: 'Theme packs, palettes, templates',     icon: 'palette',   group: 'Flows', keywords: ['theme', 'shop'],         run: onOpenThemeShop });
     if (onOpenDecorLibrary) out.push({ id: 'flow:decor',      label: 'Open decor library',  hint: 'Dividers, stamps, motifs, stickers', icon: 'brush',     group: 'Flows', keywords: ['decor', 'library'],      run: onOpenDecorLibrary });

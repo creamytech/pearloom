@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
   });
   if (momentDays.length > 0 && !hasAnchorSite) {
     return NextResponse.json(
-      { error: 'Moments live on the main event’s schedule — include the main event to add them.' },
+      { error: 'Moments live on the main event’s schedule. Include the main event to add them.' },
       { status: 400 },
     );
   }

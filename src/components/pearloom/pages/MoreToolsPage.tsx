@@ -29,7 +29,7 @@ export function MoreToolsPage() {
           pre="Everything"
           title="More"
           italic="tools."
-          sub="Every Pearloom surface in one place — including the ones you usually reach with ⌘K."
+          sub="Every Pearloom surface in one place, including the ones you usually reach with ⌘K."
           style={{ marginBottom: 28 }}
         />
         <div

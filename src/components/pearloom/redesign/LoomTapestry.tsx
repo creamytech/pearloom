@@ -141,7 +141,7 @@ export function LoomTapestry({
 
   const solemn = getEventType(occasion)?.voice === 'solemn';
   const caption = isEmpty
-    ? 'The first threads are yours — every reply adds one.'
+    ? 'The first threads are yours, every reply adds one.'
     : solemn
       ? `${total} threads · each in memory`
       : `${total} threads woven · each reply adds one`;
@@ -168,8 +168,8 @@ export function LoomTapestry({
         role="img"
         aria-label={
           solemn
-            ? `A woven tapestry — ${total} threads, one in memory for each reply.`
-            : `A woven tapestry of RSVP threads — ${total} woven so far.`
+            ? `A woven tapestry, ${total} threads, one in memory for each reply.`
+            : `A woven tapestry of RSVP threads, ${total} woven so far.`
         }
         style={{ display: 'block', height: 'auto' }}
       >

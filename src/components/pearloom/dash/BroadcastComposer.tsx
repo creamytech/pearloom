@@ -29,11 +29,11 @@ interface Props {
 }
 
 const QUICK_PICKS: Array<{ type: string; message: string }> = [
-  { type: 'ceremony', message: 'Ceremony beginning now — please find your seats.' },
-  { type: 'cocktail', message: 'Cocktail hour — drinks on the patio, lawn games out back.' },
+  { type: 'ceremony', message: 'Ceremony beginning now, please find your seats.' },
+  { type: 'cocktail', message: 'Cocktail hour, drinks on the patio, lawn games out back.' },
   { type: 'reception', message: 'Dinner is served. Please head to your tables.' },
-  { type: 'misc', message: 'First dance starting now — gather around the floor.' },
-  { type: 'misc', message: 'Last call at the bar — last dance coming up.' },
+  { type: 'misc', message: 'First dance starting now, gather around the floor.' },
+  { type: 'misc', message: 'Last call at the bar, last dance coming up.' },
   { type: 'misc', message: 'Send-off in 10 minutes. Sparklers at the entrance.' },
 ];
 
@@ -129,12 +129,12 @@ export function BroadcastComposer({ subdomain }: Props) {
       const data = (await res.json()) as { emailedTo?: number | null; emailLimited?: boolean };
       if (alsoEmail) {
         if (data.emailLimited) {
-          setLastEmailSummary("Daily email cap reached (3/24h) — message posted, but no emails sent.");
+          setLastEmailSummary("Daily email cap reached (3/24h), message posted, but no emails sent.");
         } else if (typeof data.emailedTo === 'number') {
           setLastEmailSummary(
             data.emailedTo > 0
               ? `Emailed ${data.emailedTo} guest${data.emailedTo === 1 ? '' : 's'}.`
-              : "No attending guests with email — message posted on-site only."
+              : "No attending guests with email, message posted on-site only."
           );
         }
       }
@@ -218,7 +218,7 @@ export function BroadcastComposer({ subdomain }: Props) {
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Custom message — keep it short, guests scan in two seconds…"
+          placeholder="Custom message, keep it short, guests scan in two seconds…"
           rows={2}
           maxLength={200}
           style={{

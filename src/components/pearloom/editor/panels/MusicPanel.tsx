@@ -90,7 +90,7 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
           />
         </FGroup>
 
-        <FGroup label="Playlist URL" hint="Paste the playlist link from your provider — we auto-detect which service.">
+        <FGroup label="Playlist URL" hint="Paste the playlist link from your provider, we auto-detect which service.">
           <FInput
             value={url}
             onChange={onUrlChange}
@@ -105,7 +105,7 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
           )}
         </FGroup>
 
-        <FGroup label="Description" hint="Optional — a sentence or two above the player.">
+        <FGroup label="Description" hint="Optional, a sentence or two above the player.">
           <FInput
             value={description}
             onChange={(v) => patch({ description: v })}
@@ -123,7 +123,7 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
             ? (autoAdd
               ? 'Suggestions are woven straight into the guest playlist.'
               : 'Suggestions wait in your queue until you weave them in.')
-            : 'Off — no composer on the site, no song field on the RSVP form.'}
+            : 'Off, no composer on the site, no song field on the RSVP form.'}
           action={(
             <a
               href="/dashboard/music"

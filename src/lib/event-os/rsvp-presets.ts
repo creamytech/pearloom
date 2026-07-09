@@ -63,9 +63,9 @@ const SHOWER: RsvpFieldDef[] = [
 ];
 
 const BACHELOR: RsvpFieldDef[] = [
-  { kind: 'attending',        label: 'In?',                   required: true, hint: 'Only the people coming — no pressure.' },
+  { kind: 'attending', label: 'In?', required: true, hint: 'Only the people coming, no pressure.' },
   { kind: 'attending-days',   label: 'Which days can you make it?' },
-  { kind: 'cost-acknowledge', label: 'Cost share acknowledgement', required: true, hint: 'Estimated share shown on the site — flag anything you can\u2019t cover.' },
+  { kind: 'cost-acknowledge', label: 'Cost share acknowledgement', required: true, hint: 'Estimated share shown on the site, flag anything you can\u2019t cover.' },
   { kind: 'bed-preference',   label: 'Bed preference',        options: ['Any', 'Bed to myself', 'Don\u2019t mind sharing', 'Couch is fine'] },
   { kind: 'allergies-med',    label: 'Allergies, medications, or anything we should know' },
 ];

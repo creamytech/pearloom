@@ -53,12 +53,12 @@ export function useGooglePhotosPicker() {
       const res = await fetch('/api/photos?action=create-session');
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to create picker session — are you signed in?');
+        throw new Error(data.error || 'Failed to create picker session, are you signed in?');
       }
       const session = await res.json();
 
       if (!session.pickerUri) {
-        throw new Error('No picker URI returned — Google Photos may be unavailable');
+        throw new Error('No picker URI returned, Google Photos may be unavailable');
       }
 
       // NOTE: the old code appended '/autoclose' as a path. pickerUri
@@ -73,7 +73,7 @@ export function useGooglePhotosPicker() {
       if (!popup) {
         // Fallback: redirect in same tab if popup was blocked
         setState('error');
-        setError('Popup blocked — please allow popups for this site, or try on desktop');
+        setError('Popup blocked, please allow popups for this site, or try on desktop');
         return;
       }
 
@@ -97,7 +97,7 @@ export function useGooglePhotosPicker() {
         if (Date.now() - startRef.current > MAX_POLL_MS) {
           stopPolling();
           setState('error');
-          setError('Session expired — please try again');
+          setError('Session expired, please try again');
           return;
         }
 
@@ -109,7 +109,7 @@ export function useGooglePhotosPicker() {
               stopPolling();
               setState('error');
               const data = await pollRes.json().catch(() => ({}));
-              setError((data.error as string) || 'Your Google session expired — sign out and back in.');
+              setError((data.error as string) || 'Your Google session expired, sign out and back in.');
             }
             return;
           }
@@ -157,7 +157,7 @@ export function useGooglePhotosPicker() {
               // videos, etc).
               setState('error');
               const hint = rawPhotos.length
-                ? 'Pearloom can only use photos right now — videos were skipped.'
+                ? 'Pearloom can only use photos right now, videos were skipped.'
                 : 'Google returned no photos. If this keeps happening, sign out of Google and sign back in to refresh the Pearloom permission.';
               setError(hint);
               return;

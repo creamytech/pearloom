@@ -3,7 +3,7 @@ import { PassportCardsPage } from '@/components/pearloom/pages/PassportCardsPage
 
 export const metadata: Metadata = {
   title: 'Passport cards · Pearloom',
-  description: 'One printable card per guest — with their own QR to their Passport.',
+  description: 'One printable card per guest, with their own QR to their Passport.',
 };
 
 export default function Page() {

@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(userEmail, '');
   if (await overBudget(budget)) {
     return Response.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

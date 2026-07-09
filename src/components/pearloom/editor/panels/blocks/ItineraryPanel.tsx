@@ -91,7 +91,7 @@ export function ItineraryPanel({ manifest, onChange }: BlockPanelProps) {
           >
             <RowCard>
               <div style={{ display: 'flex', gap: 6 }}>
-                <FInput value={day.label ?? ''} onChange={(v) => patchDay(di, { label: v })} placeholder={`Day ${di + 1} — "Friday"`} />
+                <FInput value={day.label ?? ''} onChange={(v) => patchDay(di, { label: v })} placeholder={`Day ${di + 1}, "Friday"`} />
                 <FInput value={day.date ?? ''} onChange={(v) => patchDay(di, { date: v })} placeholder="July 18" icon="calendar" />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

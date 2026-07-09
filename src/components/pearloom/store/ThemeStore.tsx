@@ -123,7 +123,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
               maxWidth: 440,
             }}
           >
-            {PACKS.length} designer theme packs — each a full kit of palette, real material texture,
+            {PACKS.length} designer theme packs, each a full kit of palette, real material texture,
             type, motifs and matching components. One tap to own, one tap to dress your site.
           </p>
           <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap' }}>
@@ -757,7 +757,7 @@ function StoreInner() {
           >
             <Pear size={44} tone="sage" shadow={false} />
             <div style={{ marginTop: 12, fontSize: 14 }}>
-              Nothing matches — try another search.
+              Nothing matches, try another search.
             </div>
           </div>
         ) : (() => {
@@ -899,7 +899,7 @@ function StoreInner() {
                 margin: '0 0 18px',
               }}
             >
-              You have {sitePicker.sites.length} sites — pick the one to dress with this pack. You can change again later.
+              You have {sitePicker.sites.length} sites, pick the one to dress with this pack. You can change again later.
             </p>
             <div
               style={{

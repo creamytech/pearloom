@@ -57,7 +57,7 @@ export function HostYourOwnCard({
       </div>
       <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', margin: '0 0 18px', lineHeight: 1.55 }}>
         You&apos;ve seen how it&apos;s made
-        {hostFirstName ? ` — the way ${hostFirstName} wove this one` : ''}. When your
+        {hostFirstName ? `, the way ${hostFirstName} wove this one` : ''}. When your
         own celebration comes, Pearloom drafts it with you in a few minutes.
       </p>
       <a

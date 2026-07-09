@@ -145,7 +145,7 @@ export function ScriptLayout({ content, palette, font, nameA, nameB }: LayoutPro
         {content.scriptBody}
       </div>
       <div style={{ marginTop: 14, fontFamily: script, fontSize: 28, color: palette.accent }}>
-        — {nameB ? `${nameA} & ${nameB}` : nameA}
+        , {nameB ? `${nameA} & ${nameB}` : nameA}
       </div>
       <div style={{ marginTop: 'auto', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: palette.ink, opacity: 0.55, fontWeight: 600 }}>
         {content.line3}

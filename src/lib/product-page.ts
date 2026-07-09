@@ -123,7 +123,7 @@ function jsonLdPrice(html: string): number | null {
       const parsed: unknown = JSON.parse(inner.trim());
       const p = priceFromJsonLd(parsed);
       if (p != null) return p;
-    } catch { /* malformed JSON-LD is common — skip the block */ }
+    } catch { /* malformed JSON-LD is common, skip the block */ }
   }
   return null;
 }

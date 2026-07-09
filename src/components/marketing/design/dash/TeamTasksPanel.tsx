@@ -360,7 +360,7 @@ export function TeamTasksPanel({ siteId }: TeamTasksPanelProps) {
         ))}
         {roster.length <= 1 && (
           <span style={{ fontSize: 12.5, color: 'var(--ink-muted)', fontStyle: 'italic', alignSelf: 'center' }}>
-            Just you so far — invite co-hosts from the site&rsquo;s Share panel.
+            Just you so far, invite co-hosts from the site&rsquo;s Share panel.
           </span>
         )}
       </div>

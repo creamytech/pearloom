@@ -220,7 +220,7 @@ export function GuestPlaylist({ siteSlug, editable = false, suggestionsOn, compo
       setArtist('');
       setPicked(null);
       setSendState('sent');
-      setSentCopy(d.state === 'accepted' ? 'On the list — added.' : 'Suggested — the host will add it.');
+      setSentCopy(d.state === 'accepted' ? 'On the list, added.' : 'Suggested, the host will add it.');
       if (d.state === 'accepted') await refresh();
       setTimeout(() => { setSendState('idle'); setSentCopy(null); }, 4200);
     } catch (e) {

@@ -128,7 +128,7 @@ export async function fetchNotificationFeed(
         createdAt: n.created_at,
       });
     }
-  } catch { /* table may not exist on this deployment — silent skip */ }
+  } catch { /* table may not exist on this deployment, silent skip */ }
 
   // ── Whispers ───────────────────────────────────────────
   try {
@@ -181,7 +181,7 @@ export async function fetchNotificationFeed(
           id: `photo-${p.id}`,
           kind: 'photo',
           category: 'content',
-          label: p.status === 'pending' ? `${who} shared a photo — review it` : `${who} dropped a photo`,
+          label: p.status === 'pending' ? `${who} shared a photo, review it` : `${who} dropped a photo`,
           href: `/dashboard/gallery`,
           createdAt: p.created_at,
         });
@@ -200,7 +200,7 @@ export async function fetchNotificationFeed(
       .order('created_at', { ascending: false })
       .limit(20);
     for (const s of (songs ?? []) as Array<{ id: string; guest_name: string; song_title: string; artist: string | null; created_at: string }>) {
-      const songLabel = s.artist ? `${s.song_title} — ${s.artist}` : s.song_title;
+      const songLabel = s.artist ? `${s.song_title}, ${s.artist}` : s.song_title;
       items.push({
         id: `song-${s.id}`,
         kind: 'whisper',
@@ -234,7 +234,7 @@ export async function fetchNotificationFeed(
         createdAt: t.created_at,
       });
     }
-  } catch { /* table missing on this deployment — silent skip */ }
+  } catch { /* table missing on this deployment, silent skip */ }
 
   // ── Toast signups ──────────────────────────────────────
   try {
@@ -279,7 +279,7 @@ export async function fetchNotificationFeed(
         createdAt: c.created_at,
       });
     }
-  } catch { /* table missing or RLS blocked — silently skip */ }
+  } catch { /* table missing or RLS blocked, silently skip */ }
 
   // ── Vendor payments coming due ─────────────────────────
   // Derived reminders, not stored events: an unpaid deposit or
@@ -336,7 +336,7 @@ export async function fetchNotificationFeed(
         });
       }
     }
-  } catch { /* table missing on this deployment — silent skip */ }
+  } catch { /* table missing on this deployment, silent skip */ }
 
   // ── Shared split expenses ──────────────────────────────────
   // The collaborative split (participants / expenses,
@@ -393,7 +393,7 @@ export async function fetchNotificationFeed(
         });
       }
     }
-  } catch { /* table missing on this deployment — silent skip */ }
+  } catch { /* table missing on this deployment, silent skip */ }
 
   // Sort all sources together so the timeline reads naturally.
   items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -493,6 +493,6 @@ export async function fetchCircleFeed(
         createdAt: n.created_at,
       });
     }
-  } catch { /* tables missing on this deployment — silent skip */ }
+  } catch { /* tables missing on this deployment, silent skip */ }
   return items;
 }

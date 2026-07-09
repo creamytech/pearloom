@@ -84,7 +84,7 @@ export function RegistryItemsManager({ siteId }: Props) {
             Registry items
           </h2>
           <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 4 }}>
-            Items guests can reserve — or chip in on together — right from your site.
+            Items guests can reserve (or chip in on together) right from your site.
           </div>
         </div>
         <button
@@ -140,7 +140,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       }}
     >
       <div style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
-        Nothing here yet. Add an item — kitchenware, art, an experience —
+        Nothing here yet. Add an item, kitchenware, art, an experience, 
         and guests will be able to pay for it through your site.
       </div>
       <button type="button" onClick={onAdd} style={primaryButtonStyle}>+ Add your first item</button>
@@ -361,7 +361,7 @@ function ItemEditor({
             <span style={{ fontSize: 13, color: 'var(--ink)' }}>
               Let guests chip in together
               <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)' }}>
-                For the big one — several guests give what they like toward it.
+                For the big one, several guests give what they like toward it.
               </span>
             </span>
           </label>

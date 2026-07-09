@@ -31,7 +31,7 @@ export function NameVotePanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="The question" hint="Optional — one line above the ballot.">
+        <FGroup label="The question" hint="Optional, one line above the ballot.">
           <FInput
             value={data.question ?? ''}
             onChange={(v) => patch({ question: v })}
@@ -41,7 +41,7 @@ export function NameVotePanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label={`Names · ${options.length}`}
-          hint="Guests tap their favorite on the site. Live tallies key off the name text — renaming after guests vote resets that name's count (reordering is safe)."
+          hint="Guests tap their favorite on the site. Live tallies key off the name text, renaming after guests vote resets that name's count (reordering is safe)."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {options.map((name, i) => (
@@ -72,7 +72,7 @@ export function NameVotePanel({ manifest, onChange }: BlockPanelProps) {
 
         <FToggleStandalone
           label="Reveal tallies after voting"
-          sub="Guests see the counts only once they've cast their own vote — no bandwagon"
+          sub="Guests see the counts only once they've cast their own vote, no bandwagon"
           def={data.reveal === true}
           onChange={(v) => patch({ reveal: v })}
         />

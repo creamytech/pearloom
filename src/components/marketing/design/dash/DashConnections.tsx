@@ -246,14 +246,14 @@ export function DashConnections({ embedded = false }: { embedded?: boolean } = {
               hint="Celebrations group sibling sites into one story."
               detail={
                 <>
-                  Pearloom celebrations group sibling sites together — a wedding weekend with a
+                  Pearloom celebrations group sibling sites together, a wedding weekend with a
                   rehearsal dinner + brunch, a memorial with a family directory, a reunion split
                   across three days. Each site keeps its own host, guests, and voice, but they
                   link into one story.
                   {sites && sites.length > 0 && (
                     <>
                       {' '}Looking to add a co-host who can edit with you? That lives in the
-                      editor&rsquo;s Share panel —{' '}
+                      editor&rsquo;s Share panel, {' '}
                       <Link
                         href={`/editor/${(resolveStickySite(sites) ?? sites[0]).domain}?jump=share`}
                         style={{ color: PD.olive, fontWeight: 600 }}
@@ -744,8 +744,8 @@ function CelebrationGraph({
                     onClick={() => onToggleVisible(s.domain, !visible)}
                     title={
                       visible
-                        ? 'Shown on the other sites’ weekend strip — tap to hide'
-                        : 'Hidden from the other sites’ weekend strip — tap to show'
+                        ? 'Shown on the other sites’ weekend strip, tap to hide'
+                        : 'Hidden from the other sites’ weekend strip, tap to show'
                     }
                     style={{
                       fontSize: 10,
@@ -932,7 +932,7 @@ function StandaloneList({
                       const [a, b] = s.names ?? [];
                       const who = a && b ? `${a}–${b}` : a ?? 'Our';
                       const o = s.occasion;
-                      if (o === 'memorial' || o === 'funeral') return `e.g. ${who || 'Smith family'} — in memoriam`;
+                      if (o === 'memorial' || o === 'funeral') return `e.g. ${who || 'Smith family'}, in memoriam`;
                       if (o === 'wedding' || o === 'engagement') return `e.g. ${who} wedding weekend`;
                       if (o === 'reunion') return `e.g. ${who || 'Smith family'} reunion 2026`;
                       if (o === 'baby-shower' || o === 'gender-reveal' || o === 'sip-and-see') return `e.g. Baby ${a ?? 'Jamie'}`;

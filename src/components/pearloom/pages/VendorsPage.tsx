@@ -104,7 +104,7 @@ export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
           The people who'll <span className="display-italic">make it real.</span>
         </h1>
         <p style={{ fontSize: 16, color: 'var(--ink-soft)', maxWidth: 620, marginTop: 12, lineHeight: 1.55 }}>
-          Florists, photographers, DJs, planners — every vendor here was chosen for craft. Filter by what fits your day.
+          Florists, photographers, DJs, planners, every vendor here was chosen for craft. Filter by what fits your day.
         </p>
 
         {/* Filters */}
@@ -158,7 +158,7 @@ export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
               fontSize: 15,
             }}
           >
-            No vendors found yet — the directory is filling up. Check back soon.
+            No vendors found yet, the directory is filling up. Check back soon.
           </div>
         )}
         {!loading && vendors.length > 0 && (

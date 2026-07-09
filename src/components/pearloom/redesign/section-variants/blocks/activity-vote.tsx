@@ -116,7 +116,7 @@ export function useActivityVote(siteId: string, blockId: string, enabled: boolea
         // layer and wins.
         if (data.myVote) setMyVote(data.myVote);
       })
-      .catch(() => { /* offline — local wins */ });
+      .catch(() => { /* offline, local wins */ });
     return () => { cancelled = true; };
   }, [canSync, voterKey, fetchTallies]);
 
@@ -142,7 +142,7 @@ export function useActivityVote(siteId: string, blockId: string, enabled: boolea
           const data = await fetchTallies().catch(() => null);
           if (data) setServerTallies(data.tallies ?? {});
         }
-      } catch { /* offline — local only */ }
+      } catch { /* offline, local only */ }
     }
   };
 

@@ -132,7 +132,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Try the editor — restyle this site with your own colors and fonts"
+        aria-label="Try the editor, restyle this site with your own colors and fonts"
         style={{
           position: 'fixed',
           left: 'clamp(16px, 3vw, 28px)',
@@ -171,7 +171,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
 
   return (
     <aside
-      aria-label="Try the editor — restyle this demo site live"
+      aria-label="Try the editor, restyle this demo site live"
       style={{
         position: 'fixed',
         left: 'clamp(12px, 3vw, 28px)',
@@ -222,7 +222,7 @@ function DemoLookPanel({ look, setLook }: { look: DemoLook; setLook: (l: DemoLoo
         </button>
       </div>
       <p style={{ margin: '0 0 12px', fontSize: 11.5, lineHeight: 1.5, color: 'var(--pl-muted, #6F6557)' }}>
-        These are the real dials from the editor — restyle Elena &amp; Theo&apos;s site
+        These are the real dials from the editor, restyle Elena &amp; Theo&apos;s site
         and watch it re-weave underneath.
       </p>
 

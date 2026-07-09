@@ -120,5 +120,5 @@ export async function PATCH(req: NextRequest) {
   }
 
   console.error('[sites/budget] gave up after 3 optimistic-concurrency retries');
-  return NextResponse.json({ ok: false, error: 'The editor saved at the same moment — try again.' }, { status: 409 });
+  return NextResponse.json({ ok: false, error: 'The editor saved at the same moment. Try again.' }, { status: 409 });
 }

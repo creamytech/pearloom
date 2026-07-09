@@ -77,7 +77,7 @@ export function WizardMomentCard({
 
   return (
     <div
-      aria-label={`${occasionLabel} — woven so far`}
+      aria-label={`${occasionLabel}, woven so far`}
       style={{
         position: 'relative',
         overflow: 'hidden',

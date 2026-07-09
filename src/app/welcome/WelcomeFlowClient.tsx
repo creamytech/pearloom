@@ -92,7 +92,7 @@ const PRESSINGS: Record<string, { eyebrow: string; pre: string; ghost: string; a
 /* The promises — each one is product-verifiable, not marketing. */
 const PROMISES = [
   'Everything Pear drafts, you can edit. Your words win.',
-  'Your site stays online on every plan — guests are never cut off.',
+  'Your site stays online on every plan, guests are never cut off.',
   'Delete your account and your data goes with it.',
 ];
 
@@ -216,7 +216,7 @@ export function WelcomeFlowClient({
         setPhotoErr(d?.error ?? 'Could not save your photo.');
       }
     } catch {
-      setPhotoErr('Could not save — check your connection.');
+      setPhotoErr('Could not save, check your connection.');
     } finally {
       setUploading(false);
     }
@@ -253,7 +253,7 @@ export function WelcomeFlowClient({
       savedRef.current = true;
       advance();
     } catch {
-      setSaveError('Something went wrong — try once more?');
+      setSaveError('Something went wrong, try once more?');
     } finally {
       setSaving(false);
     }
@@ -378,7 +378,7 @@ export function WelcomeFlowClient({
                 </h1>
                 <ThreadRule reduced={reduced} />
                 <p style={{ fontSize: '0.95rem', color: INK_SOFT, lineHeight: 1.65, maxWidth: 460, margin: '0 auto' }}>
-                  Before we begin, a few small things — a name,
+                  Before we begin, a few small things, a name,
                   a mark, and what brings you here. Half a minute, no more.
                 </p>
                 {incoming.length > 0 && (
@@ -443,7 +443,7 @@ export function WelcomeFlowClient({
               <>
                 <h2 style={h2Style}>Your mark.</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 22px', maxWidth: 460, marginInline: 'auto' }}>
-                  Three ways to fill one frame — a photograph, a hand-drawn
+                  Three ways to fill one frame, a photograph, a hand-drawn
                   mark, or the seal already pressed from your name. Nobody
                   goes blank.
                 </p>
@@ -453,7 +453,7 @@ export function WelcomeFlowClient({
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                   <AccountMark photoUrl={photoUrl} markId={mark} name={name || sessionFirstName} size={84} />
                   <div style={{ fontFamily: MONO, fontSize: '0.55rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: MUTED }}>
-                    {photoUrl ? 'Your photograph' : mark ? 'Your mark' : `Your seal — pressed from “${monogramFrom(name || sessionFirstName)}”`}
+                    {photoUrl ? 'Your photograph' : mark ? 'Your mark' : `Your seal, pressed from “${monogramFrom(name || sessionFirstName)}”`}
                   </div>
                 </div>
 
@@ -527,8 +527,8 @@ export function WelcomeFlowClient({
                 <h2 style={h2Style}>Your people.</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px', maxWidth: 440, marginInline: 'auto' }}>
                   {incoming.length === 1
-                    ? 'Someone was waiting for you to arrive — a sealed note, first names only.'
-                    : 'Some people were waiting for you to arrive — sealed notes, first names only.'}
+                    ? 'Someone was waiting for you to arrive, a sealed note, first names only.'
+                    : 'Some people were waiting for you to arrive, sealed notes, first names only.'}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400, margin: '0 auto' }}>
                   {incoming.map((r, i) => {
@@ -640,7 +640,7 @@ export function WelcomeFlowClient({
               <>
                 <h2 style={h2Style}>What are you planning?</h2>
                 <p style={{ fontSize: '0.88rem', color: INK_SOFT, margin: '0 0 26px' }}>
-                  Pear sets the table differently for each — watch it update.
+                  Pear sets the table differently for each, watch it update.
                 </p>
                 <div className="pl-wf-occasion" style={{ display: 'flex', gap: 22, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, maxWidth: 360, flex: '1 1 300px', textAlign: 'left' }}>
@@ -779,7 +779,7 @@ export function WelcomeFlowClient({
                 <p style={{ fontSize: '0.92rem', color: INK_SOFT, lineHeight: 1.6, maxWidth: 420, margin: '0 auto 28px' }}>
                   {intent === 'memorial'
                     ? 'We’ll move gently. Begin whenever it feels right.'
-                    : 'Your account is ready. Whenever you’re ready, Pear can draft your first site in about twenty seconds — and every word is yours to change.'}
+                    : 'Your account is ready. Whenever you’re ready, Pear can draft your first site in about twenty seconds, and every word is yours to change.'}
                 </p>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button

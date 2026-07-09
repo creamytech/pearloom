@@ -9,14 +9,14 @@ import LandingPageWrapper from './LandingPageWrapper';
 /* The money page carries its own explicit metadata + canonical —
    everything else inherits the root defaults. */
 export const metadata: Metadata = {
-  title: 'Pearloom — beautiful sites for weddings & every day that matters',
+  title: 'Pearloom, beautiful sites for weddings & every day that matters',
   description:
-    'Make a beautiful wedding, birthday, reunion, or memorial website in minutes — then manage guests, RSVPs, the registry, and the whole day from one place.',
+    'Make a beautiful wedding, birthday, reunion, or memorial website in minutes, then manage guests, RSVPs, the registry, and the whole day from one place.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Pearloom — beautiful sites for the days that matter',
+    title: 'Pearloom, beautiful sites for the days that matter',
     description:
-      'Make a beautiful site for your celebration, invite your people, and keep every moment after — all in one place.',
+      'Make a beautiful site for your celebration, invite your people, and keep every moment after, all in one place.',
     url: '/',
   },
 };
@@ -50,7 +50,7 @@ const JSON_LD = {
       operatingSystem: 'Web',
       url: BASE,
       description:
-        'Make a wedding, birthday, reunion, or memorial website in minutes — then manage guests, RSVPs, the registry, and the day itself in one place.',
+        'Make a wedding, birthday, reunion, or memorial website in minutes, then manage guests, RSVPs, the registry, and the day itself in one place.',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
   ],

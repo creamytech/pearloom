@@ -30,7 +30,7 @@ const TIMEOUT_MS = 10_000;
 const MAX_REDIRECTS = 3;
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
-const CANT_READ = 'Couldn’t read that page — add it by hand.';
+const CANT_READ = 'Couldn’t read that page. Add it by hand.';
 
 /** Validate scheme + hostname, then resolve DNS and reject any
  *  private/reserved address. Returns the parsed URL or null. */
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
 
     const rl = checkRateLimit(`registry-from-url:${session.user.email.toLowerCase()}`, { max: 10, windowMs: 60 * 1000 });
     if (!rl.allowed) {
-      return NextResponse.json({ ok: false, error: 'Too many reads too fast — give it a minute.' }, { status: 429 });
+      return NextResponse.json({ ok: false, error: 'Too many reads too fast. Give it a minute.' }, { status: 429 });
     }
 
     let body: { url?: string } = {};

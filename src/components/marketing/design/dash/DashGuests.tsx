@@ -46,7 +46,7 @@ function guestCopy(occasion?: string | null) {
     case 'bachelor':
       return {
         topSubtitle: 'Who’s in, which days, bed prefs, and cost acks.',
-        emptyHint: 'Drop the link in the group chat — Pear tracks who’s in.',
+        emptyHint: 'Drop the link in the group chat, Pear tracks who’s in.',
         fifthColumn: 'Bed pref',
         fifthKey: 'note' as const,
         verbComing: 'in',
@@ -55,7 +55,7 @@ function guestCopy(occasion?: string | null) {
     case 'shower':
       return {
         topSubtitle: 'Who’s coming, who’s bringing what, and any advice shared.',
-        emptyHint: 'Share the link — guests can RSVP and leave a note for the guest of honor.',
+        emptyHint: 'Share the link, guests can RSVP and leave a note for the guest of honor.',
         fifthColumn: 'Gift',
         fifthKey: 'note' as const,
         verbComing: 'coming',
@@ -83,7 +83,7 @@ function guestCopy(occasion?: string | null) {
     case 'cultural':
       return {
         topSubtitle: 'Every RSVP, dietary note, and ceremony tradition tracked.',
-        emptyHint: 'Share the link — Pear tracks RSVPs and ceremony preferences.',
+        emptyHint: 'Share the link, Pear tracks RSVPs and ceremony preferences.',
         fifthColumn: 'Meal',
         fifthKey: 'meal' as const,
         verbComing: 'coming',
@@ -293,7 +293,7 @@ function CopyGuestsDialog({
             Copy guests from another event
           </h3>
           <p style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', margin: '6px 0 0', lineHeight: 1.5 }}>
-            Names, emails, and addresses come over. Replies don&apos;t — everyone starts pending here, because this is a different invitation.
+            Names, emails, and addresses come over. Replies don&apos;t, everyone starts pending here, because this is a different invitation.
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
@@ -738,7 +738,7 @@ function EmailTrackingStrip({
         }}
         title={`Bounced ${new Date(bouncedAt).toLocaleString()}`}
       >
-        ⚠ bounced — wrong address?
+        ⚠ bounced, wrong address?
       </div>
     );
   }
@@ -1227,17 +1227,17 @@ export function DashGuests() {
   };
   const copyAllLinks = async () => {
     const lines = (rows ?? [])
-      .map((g) => { const l = guestLink(g); return l ? `${g.n} — ${l}` : null; })
+      .map((g) => { const l = guestLink(g); return l ? `${g.n}, ${l}` : null; })
       .filter((x): x is string => !!x);
     if (lines.length === 0) {
-      setCopyAllNote('No personal links yet — add or import guests first.');
+      setCopyAllNote('No personal links yet, add or import guests first.');
       return;
     }
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
       setCopyAllNote(`✓ Copied ${lines.length} personal ${lines.length === 1 ? 'link' : 'links'}.`);
     } catch {
-      setCopyAllNote('Couldn’t copy — your browser blocked clipboard access.');
+      setCopyAllNote('Couldn’t copy, your browser blocked clipboard access.');
     }
     window.setTimeout(() => setCopyAllNote(null), 4000);
   };
@@ -1446,7 +1446,7 @@ export function DashGuests() {
               <span aria-hidden style={{ fontSize: 15, fontWeight: 700, color: 'var(--lavender-ink, #6E5E86)' }}>≈</span>
               <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: '1 1 220px', minWidth: 0 }}>
                 <strong style={{ fontWeight: 700 }}>{duplicateIds.size}</strong>{' '}
-                {duplicateIds.size === 1 ? 'guest looks' : 'guests look'} like possible duplicates — same email or a near-identical name.
+                {duplicateIds.size === 1 ? 'guest looks' : 'guests look'} like possible duplicates, same email or a near-identical name.
               </span>
               <button
                 type="button"
@@ -1832,7 +1832,7 @@ export function DashGuests() {
                         }}
                       >
                         {g.note ? <span>{g.note}</span> : !showPerEvent || g.eventIds.length === 0 || g.eventIds.length === events.length ? (
-                          <span style={{ opacity: 0.3 }}>—</span>
+                          <span style={{ opacity: 0.3 }}>, </span>
                         ) : null}
                         {/* Event chips — only when the guest opted INTO a
                             specific subset (skipped at least one event).
@@ -1957,7 +1957,7 @@ export function DashGuests() {
             >
               {counts.pending > 0
                 ? solemn
-                  ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Pear is leaving them be — no follow-ups unless you ask.`
+                  ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Pear is leaving them be, no follow-ups unless you ask.`
                   : `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
                 : counts.yes === 0
                 ? 'No RSVPs yet. Want me to send the invitation?'
@@ -1994,7 +1994,7 @@ export function DashGuests() {
           <RailCard title="Follow-ups">
             <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
               {site?.occasion === 'memorial' || site?.occasion === 'funeral'
-                ? 'Pear checks in quietly — no follow-ups unless you ask.'
+                ? 'Pear checks in quietly, no follow-ups unless you ask.'
                 : 'Pear is following up on the quiet ones once a week.'}
             </div>
           </RailCard>
@@ -2442,7 +2442,7 @@ function GuestRowActions({
         onClick={togglePlus}
         disabled={plusBusy}
         aria-pressed={plusAllowed}
-        title={plusAllowed ? 'This guest may bring a plus-one — tap to revoke' : 'Allow this guest to bring a plus-one'}
+        title={plusAllowed ? 'This guest may bring a plus-one, tap to revoke' : 'Allow this guest to bring a plus-one'}
         style={{
           ...pill,
           color: plusAllowed ? '#fff' : 'var(--ink-soft, #3A332C)',
@@ -2767,10 +2767,10 @@ function AddGuestDialog({
         setWoven((prev) => new Set(prev).add(personId));
         onAdded();
       } else {
-        setError('Could not weave them in — try again.');
+        setError('Could not weave them in, try again.');
       }
     } catch {
-      setError('Could not weave them in — check your connection.');
+      setError('Could not weave them in, check your connection.');
     } finally {
       setCircleBusy(null);
     }
@@ -2940,7 +2940,7 @@ function AddGuestDialog({
           <p style={{ margin: '6px 0 0', fontSize: 13, color: PD.inkSoft, lineHeight: 1.5 }}>
             {mode === 'couple'
               ? 'Each gets their own reply link, so they can each answer for themselves.'
-              : 'We’ll mark them as pending — Pear can email when you’re ready, or they can RSVP through the link.'}
+              : 'We’ll mark them as pending, Pear can email when you’re ready, or they can RSVP through the link.'}
           </p>
         </div>
 
@@ -3035,7 +3035,7 @@ function AddGuestDialog({
               />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Their email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional — can share one)</span></span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Their email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional, can share one)</span></span>
               <input
                 type="email"
                 value={email2}
@@ -3061,7 +3061,7 @@ function AddGuestDialog({
           >
             <span style={{ fontWeight: 700, color: PD.olive }}>✓ A familiar face.</span>{' '}
             {known.history.length > 0
-              ? `They've celebrated with you before — ${known.history
+              ? `They've celebrated with you before, ${known.history
                   .slice(0, 2)
                   .map((h) => h.names.filter(Boolean).join(' & ') || h.domain)
                   .join(', ')}${known.history.length > 2 ? ` +${known.history.length - 2} more` : ''}.`
@@ -3161,7 +3161,7 @@ function AddGuestDialog({
                 Also add to my Circle
                 <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
                   {anyEmail
-                    ? 'They stay in your circle after the event — they accept when they first sign in.'
+                    ? 'They stay in your circle after the event, they accept when they first sign in.'
                     : 'Add an email to enable.'}
                 </span>
               </span>
@@ -3223,7 +3223,7 @@ function InviteShareDialog({
   const qrRef = useRef<HTMLDivElement>(null);
   const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('');
   const celebration = siteName || 'our celebration';
-  const subject = `You're invited — ${celebration}`;
+  const subject = `You're invited, ${celebration}`;
   const body = `You're invited to ${celebration}! Everything's here, and you can RSVP from your personal link:\n\n${link}`;
   const mailto = `mailto:${email ?? ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   const sms = `sms:${(phone ?? '').replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(body)}`;
@@ -3239,7 +3239,7 @@ function InviteShareDialog({
       await navigator.clipboard.writeText(link);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-    } catch { /* clipboard blocked — the field is still selectable */ }
+    } catch { /* clipboard blocked, the field is still selectable */ }
   }
 
   // Serialize the on-screen QR <svg> to a PNG download. Colors are
@@ -3314,7 +3314,7 @@ function InviteShareDialog({
             Invite {name.split(' ')[0]}.
           </h2>
           <p style={{ margin: '6px 0 0', fontSize: 12.5, color: PD.inkSoft, lineHeight: 1.5 }}>
-            Their link opens the addressed envelope and lets them RSVP without searching — they&rsquo;re recognized instantly.
+            Their link opens the addressed envelope and lets them RSVP without searching, they&rsquo;re recognized instantly.
           </p>
         </div>
 
@@ -3496,17 +3496,17 @@ function WhoCanReplyPanel({
             <strong style={{ fontWeight: 700, color: PD.ink }}>
               {guestCount} {guestCount === 1 ? 'person is' : 'people are'} on your list.
             </strong>{' '}
-            Switch to <em>Invited only</em>{' '}so strangers with the link can&rsquo;t RSVP — only
+            Switch to <em>Invited only</em>{' '}so strangers with the link can&rsquo;t RSVP, only
             guests who find their name on your list get through.
           </>
         ) : value && guestCount === 0 ? (
           <>
             <strong style={{ fontWeight: 700, color: PD.terra }}>Your guest list is empty.</strong>{' '}
             With <em>Invited only</em>{' '}on and no guests, <strong>no one can reply yet</strong>. Add
-            guests (or import a list) so they can find their name — or switch back to <em>Anyone</em>.
+            guests (or import a list) so they can find their name, or switch back to <em>Anyone</em>.
           </>
         ) : value ? (
-          <>Only guests on your list can RSVP — they find and pick their name. Others see a gentle &ldquo;we couldn&rsquo;t find you&rdquo; note.</>
+          <>Only guests on your list can RSVP, they find and pick their name. Others see a gentle &ldquo;we couldn&rsquo;t find you&rdquo; note.</>
         ) : (
           <>Anyone with the link can RSVP. Good for casual or public events.</>
         )}

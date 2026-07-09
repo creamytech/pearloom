@@ -96,7 +96,7 @@ export function DesignPillars() {
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          From the first idea to the last thank-you, Pearloom holds the whole celebration — drafted, gathered, and kept.
+          From the first idea to the last thank-you, Pearloom holds the whole celebration: drafted, gathered, and kept.
         </p>
       </div>
 

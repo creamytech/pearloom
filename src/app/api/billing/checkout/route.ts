@@ -39,7 +39,7 @@ const PLAN_PRODUCTS: Record<string, { planId: 'pro' | 'premium'; name: string; d
   legacy: {
     planId: 'premium',
     name: 'Pearloom Legacy',
-    description: 'Every future celebration, covered for life — including the Signature shelf.',
+    description: 'Every future celebration, covered for life (including the Signature shelf).',
     priceCents: 12900,
   },
 };
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     });
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: 'Too many checkout attempts — try again later.' },
+        { error: 'Too many checkout attempts. Try again later.' },
         { status: 429 },
       );
     }
@@ -114,6 +114,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: checkoutSession.url, sessionId: checkoutSession.id });
   } catch (err) {
     console.error('[api/billing/checkout] error:', err);
-    return NextResponse.json({ error: 'Checkout failed — try again.' }, { status: 500 });
+    return NextResponse.json({ error: 'Checkout failed. Try again.' }, { status: 500 });
   }
 }

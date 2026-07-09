@@ -586,7 +586,7 @@ export function DashSettings() {
                   }}
                 >
                   {prefs.voice === 'gentle' &&
-                    '"Nothing pressing this morning. Just one small thing — the tent folks haven’t called back. I’ll try them at their quiet hour."'}
+                    '"Nothing pressing this morning. Just one small thing, the tent folks haven’t called back. I’ll try them at their quiet hour."'}
                   {prefs.voice === 'candid' &&
                     '"Tent’s not confirmed. I’ll call at 11:15. If they don’t respond by 3, we switch."'}
                   {prefs.voice === 'witty' &&
@@ -816,7 +816,7 @@ export function DashSettings() {
                   }}
                 >
                   {plan.plan === 'premium'
-                    ? 'Legacy covers every future event — every block, every theme pack on the premium shelf, the Signature shelf included, and the day-of room, for life.'
+                    ? 'Legacy covers every future event, every block, every theme pack on the premium shelf, the Signature shelf included, and the day-of room, for life.'
                     : plan.plan === 'pro'
                       ? 'Atelier unlocks every block, the premium theme shelf, and the day-of room for this celebration. Legacy ($129 lifetime) covers every future event and adds the Signature shelf.'
                       : 'Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to unlock every block + the day-of room. Legacy ($129 lifetime) covers every future event.'}
@@ -856,7 +856,7 @@ export function DashSettings() {
                   fontFamily: 'var(--pl-font-body)',
                 }}
               >
-                Every site, guest, RSVP, photo URL, registry item, and payment — exported as a single
+                Every site, guest, RSVP, photo URL, registry item, and payment, exported as a single
                 JSON document, yours to keep even if you cancel. Plain text, no lock-in.
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1244,7 +1244,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
   if (upgraded) {
     return (
       <p style={{ fontSize: 13.5, color: PD.olive, fontWeight: 600, margin: 0 }}>
-        Thank you — your {upgraded === 'legacy' ? 'Legacy' : 'Atelier'} upgrade is settling in.
+        Thank you, your {upgraded === 'legacy' ? 'Legacy' : 'Atelier'} upgrade is settling in.
         It can take a minute to appear here.
       </p>
     );
@@ -1261,7 +1261,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
             disabled={busy != null}
             className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
           >
-            {busy === 'atelier' ? 'One moment…' : 'Upgrade to Atelier — $19'}
+            {busy === 'atelier' ? 'One moment…' : 'Upgrade to Atelier, $19'}
           </button>
         )}
         <button
@@ -1270,7 +1270,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
           disabled={busy != null}
           className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
         >
-          {busy === 'legacy' ? 'One moment…' : 'Go Legacy — $129 for life'}
+          {busy === 'legacy' ? 'One moment…' : 'Go Legacy, $129 for life'}
         </button>
       </div>
       {err && <p style={{ fontSize: 12.5, color: 'var(--pl-plum, #7A2D2D)', margin: 0 }}>{err}</p>}

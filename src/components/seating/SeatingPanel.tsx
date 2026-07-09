@@ -289,7 +289,7 @@ function TableTab({
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>
-            Seats — {assignedSeats.length}/{seats.length}
+            Seats, {assignedSeats.length}/{seats.length}
           </label>
           {assignedSeats.length > 0 && (
             <button onClick={onUnassignAll} style={ghostBtnStyle}>

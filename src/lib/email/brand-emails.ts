@@ -107,22 +107,22 @@ function ctaBlock(label: string, href: string, t: EmailThemeColors): string {
 export function buildWelcomeEmail(opts: { name?: string | null; dashboardUrl: string }): { subject: string; html: string } {
   const t = BRAND_EMAIL_THEME;
   const first = (opts.name ?? '').trim().split(/\s+/)[0] || '';
-  const hello = first ? `${esc(first)} — welcome` : 'Welcome';
+  const hello = first ? `${esc(first)}, welcome` : 'Welcome';
   const html = emailLayout(frame(`
     ${eyebrow('Welcome to the craft house', t)}
     ${heading(`${hello} to Pearloom.`, t)}
-    ${para('You now have a loom of your own. Weddings, milestones, memorials, reunions — every site here is a single, made object: drafted with you, hand-edited by you, pressed when it&rsquo;s ready.', t)}
+    ${para('You now have a loom of your own. Weddings, milestones, memorials, reunions. Every site here is a single, made object: drafted with you, hand-edited by you, pressed when it&rsquo;s ready.', t)}
     ${goldRule()}
     ${para(`A few threads to pull first:`, t)}
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 6px">
       ${kvRow('Weave', 'Answer a few questions and a first draft of your site sets itself in front of you.', t)}
-      ${kvRow('Edit', 'Click any line on the canvas and write over it — the type is yours.', t)}
+      ${kvRow('Edit', 'Click any line on the canvas and write over it. The type is yours.', t)}
       ${kvRow('Share', 'One link, a QR for the paper goods, and co-hosts when you want company.', t)}
     </table>
     ${ctaBlock('Begin a thread', opts.dashboardUrl, t)}
     ${fine('You&rsquo;re receiving this once, because an account was just created with this address. If that wasn&rsquo;t you, reply and we&rsquo;ll unpick it.', t)}
   `, t), t);
-  return { subject: 'Welcome to Pearloom — the loom is yours', html };
+  return { subject: 'Welcome to Pearloom, the loom is yours', html };
 }
 
 /* ── 2 · Co-host invite — Share panel ───────────────────────── */
@@ -130,15 +130,15 @@ export function buildWelcomeEmail(opts: { name?: string | null; dashboardUrl: st
 const COHOST_ROLE_COPY: Record<string, { label: string; line: string }> = {
   'editor': {
     label: 'Co-editor',
-    line: 'You&rsquo;ll be able to edit everything on the site alongside them — words, photos, the look. Publishing stays with the owner.',
+    line: 'You&rsquo;ll be able to edit everything on the site alongside them: words, photos, the look. Publishing stays with the owner.',
   },
   'guest-manager': {
     label: 'Guest manager',
-    line: 'You&rsquo;ll be able to manage the guest list and RSVPs — the site design stays in the owner&rsquo;s hands.',
+    line: 'You&rsquo;ll be able to manage the guest list and RSVPs. The site design stays in the owner&rsquo;s hands.',
   },
   'viewer': {
     label: 'Viewer',
-    line: 'You&rsquo;ll be able to look around the site as it takes shape — no edit access, just a front-row seat.',
+    line: 'You&rsquo;ll be able to look around the site as it takes shape: no edit access, just a front-row seat.',
   },
 };
 
@@ -157,7 +157,7 @@ export function buildCoHostInviteEmail(opts: {
     ${para(`${opts.invitedBy ? esc(opts.invitedBy) : 'They'} invited you to help with their Pearloom site as a <strong>${role.label}</strong>.`, t)}
     ${para(role.line, t)}
     ${ctaBlock('Accept the invite', opts.acceptUrl, t)}
-    ${fine(`This invite expires in 14 days. If you weren&rsquo;t expecting it, you can safely ignore this email — nothing happens without the click.`, t)}
+    ${fine(`This invite expires in 14 days. If you weren&rsquo;t expecting it, you can safely ignore this email. Nothing happens without the click.`, t)}
   `, t), t);
   return { subject: `${opts.coupleDisplay} invited you to co-host`, html };
 }
@@ -176,11 +176,11 @@ export function buildGuestInviteEmail(opts: {
   const html = emailLayout(frame(`
     ${eyebrow('You’re invited', t)}
     ${heading(`${couple} would love for you to join them.`, t)}
-    ${para(`${first ? esc(first) + ', everything' : 'Everything'} about the celebration lives here — and you can RSVP right from your page.`, t)}
+    ${para(`${first ? esc(first) + ', everything' : 'Everything'} about the celebration lives here, and you can RSVP right from your page.`, t)}
     ${ctaBlock('View the invitation & RSVP', opts.personalUrl, t)}
-    ${fine('This link is yours — it opens your own page and remembers your reply.', t)}
+    ${fine('This link is yours, it opens your own page and remembers your reply.', t)}
   `, t), t);
-  return { subject: `You're invited — ${opts.coupleDisplay}`, html };
+  return { subject: `You're invited, ${opts.coupleDisplay}`, html };
 }
 
 /* ── 2b · Co-host welcome — sent right after they accept ────── */
@@ -188,7 +188,7 @@ export function buildGuestInviteEmail(opts: {
 const COHOST_WELCOME_ROLE_COPY: Record<string, { label: string; line: string }> = {
   'editor': {
     label: 'Co-editor',
-    line: 'You can edit everything on the site — words, photos, the look. Publishing and billing stay with the owner.',
+    line: 'You can edit everything on the site, words, photos, the look. Publishing and billing stay with the owner.',
   },
   'guest-manager': {
     label: 'Guest manager',
@@ -196,7 +196,7 @@ const COHOST_WELCOME_ROLE_COPY: Record<string, { label: string; line: string }> 
   },
   'viewer': {
     label: 'Viewer',
-    line: 'You can look around the site as it takes shape — view only, a front-row seat.',
+    line: 'You can look around the site as it takes shape, view only, a front-row seat.',
   },
 };
 
@@ -208,7 +208,7 @@ export function buildCoHostWelcomeEmail(opts: {
 }): { subject: string; html: string } {
   const t = BRAND_EMAIL_THEME;
   const first = (opts.name ?? '').trim().split(/\s+/)[0] || '';
-  const hello = first ? `${esc(first)} — you&rsquo;re in.` : 'You&rsquo;re in.';
+  const hello = first ? `${esc(first)}, you&rsquo;re in.` : 'You&rsquo;re in.';
   const role = COHOST_WELCOME_ROLE_COPY[opts.role] ?? COHOST_WELCOME_ROLE_COPY.editor;
   const couple = esc(opts.coupleDisplay);
   const html = emailLayout(frame(`
@@ -232,7 +232,7 @@ export function buildRegistryClaimThankYouEmail(opts: {
 }): { subject: string; html: string } {
   const t = BRAND_EMAIL_THEME;
   const first = (opts.guestName ?? '').trim().split(/\s+/)[0] || '';
-  const hello = first ? `${esc(first)} — thank you.` : 'Thank you.';
+  const hello = first ? `${esc(first)}, thank you.` : 'Thank you.';
   const couple = esc(opts.coupleDisplay);
   const item = (opts.itemName ?? '').trim();
   const itemLine = item
@@ -243,7 +243,7 @@ export function buildRegistryClaimThankYouEmail(opts: {
     ${heading(hello, t)}
     ${para(`Your claim is noted. ${itemLine}`, t)}
     ${goldRule()}
-    ${para('There&rsquo;s no rush — claim now, give when you&rsquo;re ready. Their site is always here when you want to leave a note or look back at the day.', t)}
+    ${para('There&rsquo;s no rush, claim now, give when you&rsquo;re ready. Their site is always here when you want to leave a note or look back at the day.', t)}
     ${ctaBlock('Back to their site', opts.siteUrl, t)}
     ${fine('Sent because you claimed a gift on their registry. Nothing else is needed from you.', t)}
   `, t), t);
@@ -257,9 +257,9 @@ export function buildPasswordResetEmail(opts: { resetUrl: string }): { subject: 
   const html = emailLayout(frame(`
     ${eyebrow('A fresh thread', t)}
     ${heading('Reset your password.', t)}
-    ${para('Someone asked to reset the password for this account. If that was you, pull the thread below — it works once and expires in an hour.', t)}
+    ${para('Someone asked to reset the password for this account. If that was you, pull the thread below, it works once and expires in an hour.', t)}
     ${ctaBlock('Reset your password', opts.resetUrl, t)}
-    ${fine('If you didn&rsquo;t request this, ignore this email and nothing changes — your password stays exactly as it was.', t)}
+    ${fine('If you didn&rsquo;t request this, ignore this email and nothing changes, your password stays exactly as it was.', t)}
   `, t), t);
   return { subject: 'Reset your Pearloom password', html };
 }
@@ -271,7 +271,7 @@ export function buildEmailVerificationEmail(opts: { verifyUrl: string }): { subj
   const html = emailLayout(frame(`
     ${eyebrow('One small knot', t)}
     ${heading('Confirm your email.', t)}
-    ${para('Confirm this is your email and your account is tied off properly. Nothing is blocked in the meantime — this just makes recovery and guest features work without a hitch.', t)}
+    ${para('Confirm this is your email and your account is tied off properly. Nothing is blocked in the meantime, this just makes recovery and guest features work without a hitch.', t)}
     ${ctaBlock('Confirm your email', opts.verifyUrl, t)}
     ${fine('If you didn&rsquo;t create a Pearloom account, you can safely ignore this email.', t)}
   `, t), t);
@@ -289,7 +289,7 @@ export function buildCoordinatorInviteEmail(opts: {
   const html = emailLayout(frame(`
     ${eyebrow('A seat at the planning table', t)}
     ${heading('You&rsquo;re invited to help with a celebration.', t)}
-    ${para(`${esc(opts.inviterName)} invited you as a <strong>${esc(opts.roleLabel)}</strong> on their Pearloom site — the workspace where the day comes together.`, t)}
+    ${para(`${esc(opts.inviterName)} invited you as a <strong>${esc(opts.roleLabel)}</strong> on their Pearloom site, the workspace where the day comes together.`, t)}
     ${ctaBlock('Accept the invitation', opts.acceptUrl, t)}
     ${fine('This invite expires in 7 days. If you weren&rsquo;t expecting it, you can safely ignore this email.', t)}
   `, t), t);
@@ -314,7 +314,7 @@ export function buildNudgeEmail(opts: {
     ${heading(greeting, t)}
     ${pull(bodyHtml, t)}
     ${ctaBlock('Reply on the site', opts.ctaUrl, t)}
-    ${fine('Your reply takes under a minute — and it helps them set the table.', t)}
+    ${fine('Your reply takes under a minute, and it helps them set the table.', t)}
   `, t), t);
   return { html };
 }
@@ -355,7 +355,7 @@ export function buildMemoryPromptEmail(opts: {
     ${para(`${esc(opts.names)} are weaving the story of their day, and one thread belongs to you. Here&rsquo;s the prompt waiting with your name on it:`, t)}
     ${pull(esc(opts.prompt), t)}
     ${ctaBlock('Write it down', opts.passportUrl, t)}
-    ${fine('A few sentences is plenty — it lands in their keepsake book exactly as you write it.', t)}
+    ${fine('A few sentences is plenty, it lands in their keepsake book exactly as you write it.', t)}
   `, t), t);
   return { html };
 }
@@ -374,13 +374,13 @@ export function buildAnniversaryEmail(opts: {
   const html = emailLayout(frame(`
     ${eyebrow('From the archive', t)}
     ${heading(`Today, ${yearWord} ago.`, t)}
-    ${para(`${esc(opts.couple)} — your day is in our records as one of the warmer ones we&rsquo;ve held. The site, the photos, the words your people left: all of it is still set in type, exactly where you left it.`, t)}
+    ${para(`${esc(opts.couple)}, your day is in our records as one of the warmer ones we&rsquo;ve held. The site, the photos, the words your people left: all of it is still set in type, exactly where you left it.`, t)}
     ${goldRule()}
     ${para('Leaf back through it. The guestbook reads differently with a little distance.', t)}
     ${ctaBlock('Revisit your day', opts.recapUrl, t)}
     ${fine(`Sent once a year on your anniversary. <a href="${esc(opts.unsubUrl)}" style="color:${t.muted}">Stop these</a> any time.`, t)}
   `, t), t);
-  return { subject: `Today, ${yearWord} ago — ${opts.couple}`, html };
+  return { subject: `Today, ${yearWord} ago, ${opts.couple}`, html };
 }
 
 /* ── 8 · Host notification — a guest replied ────────────────── */
@@ -404,8 +404,8 @@ export function buildHostRsvpNotificationEmail(opts: {
   `, t), t);
   return {
     subject: opts.attending
-      ? `${opts.guestName} is coming — ${opts.siteLabel}`
-      : `${opts.guestName} can’t make it — ${opts.siteLabel}`,
+      ? `${opts.guestName} is coming, ${opts.siteLabel}`
+      : `${opts.guestName} can’t make it, ${opts.siteLabel}`,
     html,
   };
 }
@@ -425,7 +425,7 @@ export function buildHostAlertEmail(opts: {
     ${heading(esc(opts.title), t)}
     ${opts.body ? pull(esc(opts.body), t) : ''}
     ${ctaBlock('Open the dashboard', opts.ctaUrl, t)}
-    ${fine('You can change which moments reach your inbox — instantly, in the daily note, or not at all — under Settings → Notifications.', t)}
+    ${fine('You can change which moments reach your inbox (instantly, in the daily note, or not at all) under Settings → Notifications.', t)}
   `, t), t);
   return { subject: opts.title, html };
 }
@@ -474,8 +474,8 @@ export function buildDailyDigestEmail(opts: {
   `, t), t);
   return {
     subject: countLine
-      ? `The loom today — ${countLine}`
-      : `The loom today — ${opts.siteLabel}`,
+      ? `The loom today, ${countLine}`
+      : `The loom today, ${opts.siteLabel}`,
     html,
   };
 }

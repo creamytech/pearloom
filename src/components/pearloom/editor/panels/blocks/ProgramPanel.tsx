@@ -52,7 +52,7 @@ export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label={`Order of service · ${program.length} moments`} hint="In the order guests will experience them — the Numbered layout prints these leaders as I · II · III.">
+        <FGroup label={`Order of service · ${program.length} moments`} hint="In the order guests will experience them, the Numbered layout prints these leaders as I · II · III.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {program.map((row, i) => (
               <div key={row.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
@@ -94,7 +94,7 @@ export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="memorial"
             label="Also in the Memorial workspace"
-            body="Obituary + tribute wall live there — same order of service, one store."
+            body="Obituary + tribute wall live there, same order of service, one store."
           />
         )}
 

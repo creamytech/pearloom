@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   }
   const rl = checkRateLimit(`studio-rewrite:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many rewrites — give it a minute.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many rewrites. Give it a minute.' }, { status: 429 });
   }
 
   let body: RewriteBody = {};
@@ -155,7 +155,7 @@ Return ONE single line of text — no quotes, no markdown, no explanation. Match
     .trim();
 
   if (!rewritten) {
-    return NextResponse.json({ error: 'Pear came up empty — try a different hint.' }, { status: 502 });
+    return NextResponse.json({ error: 'Pear came up empty. Try a different hint.' }, { status: 502 });
   }
 
   return NextResponse.json({ rewritten });

@@ -48,6 +48,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error('[admin/users] lookup failed:', err);
-    return NextResponse.json({ error: 'Lookup failed — is the database reachable?' }, { status: 500 });
+    return NextResponse.json({ error: 'Lookup failed. Is the database reachable?' }, { status: 500 });
   }
 }

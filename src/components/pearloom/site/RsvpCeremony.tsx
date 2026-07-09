@@ -113,7 +113,7 @@ export function RsvpCeremony({ manifest, attending, preset, onClose }: RsvpCerem
     ? isMemorial
       ? 'We’ll hold a seat for you.'
       : 'You’re woven in.'
-    : 'We’ll miss you — thank you for telling us.';
+    : 'We’ll miss you, thank you for telling us.';
   const body = attending
     ? 'Your reply is set. Any updates will land here first.'
     : 'The door stays open if plans change.';
@@ -128,7 +128,7 @@ export function RsvpCeremony({ manifest, attending, preset, onClose }: RsvpCerem
     const couple = namesLine(manifest);
     try {
       const ics = generateICS({
-        title: couple ? `${couple} — ${eventLabel}` : eventLabel,
+        title: couple ? `${couple}, ${eventLabel}` : eventLabel,
         date,
         time: manifest.logistics?.time || '12:00',
         venue: manifest.logistics?.venue ?? '',

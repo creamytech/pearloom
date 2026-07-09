@@ -93,7 +93,7 @@ export default async function LegacyVaultPage(
           {celebration?.name ?? 'A Pearloom celebration'}
         </h1>
         <p style={{ color: 'rgba(14,13,11,0.7)', fontSize: 15, lineHeight: 1.55, margin: '0 0 18px', maxWidth: 560, marginInline: 'auto' }}>
-          {entries.length} {entries.length === 1 ? 'event' : 'events'} stitched together — the way you actually lived through them.
+          {entries.length} {entries.length === 1 ? 'event' : 'events'} stitched together, the way you actually lived through them.
         </p>
         {!printMode && (
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>

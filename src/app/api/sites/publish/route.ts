@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
           const owns = await userOwnsPack(session.user.email, packId);
           if (!owns) {
             return NextResponse.json({
-              error: `This site is wearing ${pack.name} — unlock it to publish, or switch to a free look in the Theme panel.`,
+              error: `This site is wearing ${pack.name}. Unlock it to publish, or switch to a free look in the Theme panel.`,
               packGate: { id: pack.id, name: pack.name, priceCents: pack.priceCents },
             }, { status: 402 });
           }
@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
             <h1 style="font-size:32px;font-weight:400;font-style:italic;margin:0 0 10px;line-height:1.2">It&rsquo;s pressed.</h1>
             <p style="font-size:15px;line-height:1.7;margin:0 0 6px">
               ${escT(displayNames)} is live. Every guest link now opens the
-              real thing — sealed envelope, your look, your words.
+              real thing: sealed envelope, your look, your words.
             </p>
             <p style="font-size:13px;margin:0;opacity:0.8">${escT(finalUrl)}</p>
           </td></tr>
@@ -195,8 +195,8 @@ export async function POST(req: NextRequest) {
           </td></tr>
           <tr><td style="padding:0 36px 40px;text-align:center">
             <p style="font-size:13.5px;margin:0;opacity:0.8">
-              Next thread: <a href="${origin}/dashboard/rsvp" style="text-decoration:underline;color:inherit">invite your guests</a> —
-              each one gets an envelope with their name on it.
+              Next thread: <a href="${origin}/dashboard/rsvp" style="text-decoration:underline;color:inherit">invite your guests</a>.
+              Each one gets an envelope with their name on it.
             </p>
           </td></tr>
         `, theme);
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             from: fromEmail,
             to: [session?.user?.email ?? ''].filter(Boolean),
-            subject: `It’s pressed — ${displayNames} is live`,
+            subject: `It’s pressed. ${displayNames} is live`,
             html,
           }),
         }).catch((e) => console.warn('[publish] confirmation email failed (non-fatal):', e));

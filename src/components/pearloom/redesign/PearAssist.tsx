@@ -32,7 +32,7 @@ import { Icon } from '../motifs';
 const RAW_ERROR_NOISE = /failed to fetch|fetch failed|networkerror|load failed|aborted|unexpected token|not valid json|json\.parse|\bhttp\b|\b[45]\d\d\b/i;
 export function pearErrorMessage(
   e: unknown,
-  fallback = 'Pear couldn’t finish that one — try again?',
+  fallback = 'Pear couldn’t finish that one, try again?',
 ): string {
   const msg = e instanceof Error ? e.message.trim() : typeof e === 'string' ? e.trim() : '';
   if (!msg || RAW_ERROR_NOISE.test(msg)) return fallback;
@@ -244,7 +244,7 @@ export function PearInlineRewrite({
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[pear-rewrite] request failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t polish that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t polish that one, try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== value) {
@@ -261,7 +261,7 @@ export function PearInlineRewrite({
     } catch (e) {
       console.error('[pear-rewrite] failed:', e);
       pearWorking('error', fxSection);
-      const msg = pearErrorMessage(e, 'Pear couldn’t polish that one — try again?');
+      const msg = pearErrorMessage(e, 'Pear couldn’t polish that one, try again?');
       setErr(msg);
       onError?.(msg);
     } finally {
@@ -356,7 +356,7 @@ export function PearInlineRewrite({
         <input
           value={whisper}
           onChange={(e) => setWhisper(e.target.value)}
-          placeholder="or whisper a direction — “like a dinner party, not a gala”"
+          placeholder="or whisper a direction, “like a dinner party, not a gala”"
           aria-label="Tell Pear how to rewrite this"
           maxLength={280}
           style={{

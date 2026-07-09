@@ -74,8 +74,8 @@ function PairCard({ pair, index }: { pair: ThenAndNowPair; index: number }) {
       }}
     >
       <div style={{ display: 'flex', gap: 2, background: 'var(--t-line-soft)' }}>
-        <PairPhoto url={pair.then} label="Then" alt={pair.caption ? `${pair.caption} — then` : `Then, pair ${index + 1}`} />
-        <PairPhoto url={pair.now} label="Now" alt={pair.caption ? `${pair.caption} — now` : `Now, pair ${index + 1}`} />
+        <PairPhoto url={pair.then} label="Then" alt={pair.caption ? `${pair.caption}, then` : `Then, pair ${index + 1}`} />
+        <PairPhoto url={pair.now} label="Now" alt={pair.caption ? `${pair.caption}, now` : `Now, pair ${index + 1}`} />
       </div>
       {(pair.caption?.trim() || !hasBoth) && (
         <figcaption style={{ padding: '11px 14px 13px', textAlign: 'center' }}>
@@ -158,9 +158,9 @@ function StackCard({ pair, index }: { pair: ThenAndNowPair; index: number }) {
         boxShadow: 'var(--t-shadow-sm, none)',
       }}
     >
-      <StackPhoto url={pair.then} label="Then" alt={pair.caption ? `${pair.caption} — then` : `Then, pair ${index + 1}`} />
+      <StackPhoto url={pair.then} label="Then" alt={pair.caption ? `${pair.caption}, then` : `Then, pair ${index + 1}`} />
       <ThreadJoin />
-      <StackPhoto url={pair.now} label="Now" alt={pair.caption ? `${pair.caption} — now` : `Now, pair ${index + 1}`} />
+      <StackPhoto url={pair.now} label="Now" alt={pair.caption ? `${pair.caption}, now` : `Now, pair ${index + 1}`} />
       {pair.caption?.trim() && (
         <figcaption style={{ marginTop: 12, textAlign: 'center' }}>
           <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--t-ink-soft)' }}>

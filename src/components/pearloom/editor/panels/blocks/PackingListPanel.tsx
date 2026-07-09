@@ -61,7 +61,7 @@ export function PackingListPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`Items · ${packing.length}`}
-          hint="What everyone should bring. Guests tick items off privately on their own device — checks never sync between guests."
+          hint="What everyone should bring. Guests tick items off privately on their own device, checks never sync between guests."
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {groups.map((group) => (
@@ -119,7 +119,7 @@ export function PackingListPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="bachelor"
             label="Also in the Weekend planner"
-            body="Costs, polls, and rooms live there — same packing list, one store."
+            body="Costs, polls, and rooms live there, same packing list, one store."
           />
         )}
 

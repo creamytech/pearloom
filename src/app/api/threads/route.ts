@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         : result.error === 'members' ? 'Pick at least one friend.'
         : result.error === 'too_many' ? 'Crews cap at 16 people.'
         : result.error === 'not_connected' ? 'Everyone in a crew has to be in your circle first.'
-        : 'Could not start the crew — try again.';
+        : 'Could not start the crew, try again.';
       const status = result.error === 'not_connected' ? 403
         : result.error === 'title' || result.error === 'members' || result.error === 'too_many' ? 400 : 500;
       return NextResponse.json({ ok: false, error: msg }, { status });
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
     if (!result.ok) {
       const status = result.error === 'not_member' ? 403 : result.error === 'empty' ? 400 : 500;
       const msg = result.error === 'not_member' ? 'You’re not in that crew.'
-        : result.error === 'empty' ? 'Write something first.' : 'Could not send — try again.';
+        : result.error === 'empty' ? 'Write something first.' : 'Could not send, try again.';
       return NextResponse.json({ ok: false, error: msg }, { status });
     }
     return NextResponse.json({ ok: true }, { status: 201 });
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     const status = result.error === 'not_connected' ? 403 : result.error === 'empty' ? 400 : 500;
     const msg = result.error === 'not_connected'
       ? 'You can only write to people in your circle.'
-      : result.error === 'empty' ? 'Write something first.' : 'Could not send — try again.';
+      : result.error === 'empty' ? 'Write something first.' : 'Could not send, try again.';
     return NextResponse.json({ ok: false, error: msg }, { status });
   }
   return NextResponse.json({ ok: true }, { status: 201 });

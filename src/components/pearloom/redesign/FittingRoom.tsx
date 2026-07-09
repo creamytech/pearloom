@@ -98,7 +98,7 @@ export function FittingRoom({
     onApplyRef.current(drape.proposed);
     drape.onKeep?.();
     pearWorking('done', undefined, 'theme');
-    fireUndoable(`${drape.label} — set`, () => onApplyRef.current(previous));
+    fireUndoable(`${drape.label}, set`, () => onApplyRef.current(previous));
     setDrape(null);
   };
 
@@ -126,7 +126,7 @@ export function FittingRoom({
       {/* The thread to pull — fixed scrubber bar. */}
       <div
         role="dialog"
-        aria-label="Pear’s proposal — compare and decide"
+        aria-label="Pear’s proposal, compare and decide"
         style={{
           position: 'fixed',
           left: '50%',

@@ -251,8 +251,8 @@ export function CardBack(props: CardProps) {
             </div>
             <div style={{ fontFamily: script, fontSize: 22, color: palette.ink, opacity: 0.85, lineHeight: 1.45 }}>
               {solemn
-                ? 'Thank you for [being there / your kind words]. Your presence meant more than we can say, and we keep coming back to it. With heartfelt thanks —'
-                : 'Thank you for the [gift], and even more for being there. Every photo on the wall has you in it somewhere, and we keep coming back to that. With all our love —'}
+                ? 'Thank you for [being there / your kind words]. Your presence meant more than we can say, and we keep coming back to it. With heartfelt thanks, '
+                : 'Thank you for the [gift], and even more for being there. Every photo on the wall has you in it somewhere, and we keep coming back to that. With all our love, '}
             </div>
             <div style={{ fontFamily: script, fontSize: 28, color: palette.accent, marginTop: 4 }}>
               {solemn ? `the family of ${nameA}` : nameB ? `${nameA} & ${nameB}` : nameA}

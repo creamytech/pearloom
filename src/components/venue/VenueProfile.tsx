@@ -499,7 +499,7 @@ export function VenueProfile({
           <textarea
             value={venue.notes ?? ''}
             onChange={e => update({ notes: e.target.value })}
-            placeholder="Anything important — parking, catering restrictions, noise curfew, coordinator contact…"
+            placeholder="Anything important, parking, catering restrictions, noise curfew, coordinator contact…"
             rows={5}
             style={{
               width: '100%',

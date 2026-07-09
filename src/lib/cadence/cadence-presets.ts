@@ -55,7 +55,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'save-the-date',
     label: 'Save the date',
-    description: '6–8 months before — gives guests time to plan travel.',
+    description: '6–8 months before, gives guests time to plan travel.',
     daysBefore: -180,
     channels: ['mail', 'email'],
     product: 'save-the-date',
@@ -64,7 +64,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'invitation',
     label: 'Formal invitation',
-    description: '8–10 weeks before — formal invite with all the details.',
+    description: '8–10 weeks before, formal invite with all the details.',
     daysBefore: -70,
     channels: ['mail', 'email'],
     product: 'invitation',
@@ -73,7 +73,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'reminder',
     label: 'RSVP reminder',
-    description: '4 weeks before — gentle nudge for guests who haven\'t replied.',
+    description: '4 weeks before, gentle nudge for guests who haven\'t replied.',
     daysBefore: -28,
     channels: ['email', 'sms'],
     product: 'reminder',
@@ -83,7 +83,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'final-reminder',
     label: 'Final RSVP nudge',
-    description: '7 days before deadline — one last friendly bump.',
+    description: '7 days before deadline, one last friendly bump.',
     daysBefore: -10,
     channels: ['email', 'sms'],
     product: 'final-reminder',
@@ -93,7 +93,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'day-before',
     label: 'Day-before reminder',
-    description: '24 hours before — venue, time, parking, weather.',
+    description: '24 hours before, venue, time, parking, weather.',
     daysBefore: -1,
     channels: ['email', 'sms', 'push'],
     product: 'day-before',
@@ -103,7 +103,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'morning-of',
     label: 'Morning of',
-    description: 'Day-of — a thank-you in advance + final logistics.',
+    description: 'Day-of, a thank-you in advance + final logistics.',
     daysBefore: 0,
     channels: ['email', 'push'],
     product: 'morning-of',
@@ -113,7 +113,7 @@ const FULL_LEAD = (): CadencePhase[] => [
   {
     id: 'thank-you',
     label: 'Thank-you note',
-    description: '1 week after — a personal thank-you with a few photos.',
+    description: '1 week after, a personal thank-you with a few photos.',
     daysBefore: 7,
     channels: ['mail', 'email'],
     product: 'thank-you',
@@ -135,7 +135,7 @@ const COMPRESSED_LEAD = (): CadencePhase[] => [
   {
     id: 'reminder',
     label: 'RSVP reminder',
-    description: '3 days before — short and warm.',
+    description: '3 days before, short and warm.',
     daysBefore: -3,
     channels: ['email', 'sms'],
     product: 'reminder',
@@ -145,7 +145,7 @@ const COMPRESSED_LEAD = (): CadencePhase[] => [
   {
     id: 'day-before',
     label: 'Day-before reminder',
-    description: '24 hours before — venue + time + arrival note.',
+    description: '24 hours before, venue + time + arrival note.',
     daysBefore: -1,
     channels: ['email', 'sms'],
     product: 'day-before',
@@ -155,7 +155,7 @@ const COMPRESSED_LEAD = (): CadencePhase[] => [
   {
     id: 'thank-you',
     label: 'Thank-you',
-    description: '1 week after — gratitude and a couple of photos.',
+    description: '1 week after, gratitude and a couple of photos.',
     daysBefore: 7,
     channels: ['email'],
     product: 'thank-you',
@@ -187,7 +187,7 @@ const MEMORIAL_LEAD = (): CadencePhase[] => [
   {
     id: 'thank-you',
     label: 'Thank you',
-    description: '2 weeks after — thank guests + invite them to add memories.',
+    description: '2 weeks after, thank guests + invite them to add memories.',
     daysBefore: 14,
     channels: ['email'],
     product: 'thank-you',
@@ -199,7 +199,7 @@ const BACHELOR_LEAD = (): CadencePhase[] => [
   {
     id: 'save-the-weekend',
     label: 'Save the weekend',
-    description: '2 months out — get the dates locked.',
+    description: '2 months out, get the dates locked.',
     daysBefore: -60,
     channels: ['email'],
     product: 'save-the-date',
@@ -208,7 +208,7 @@ const BACHELOR_LEAD = (): CadencePhase[] => [
   {
     id: 'itinerary-share',
     label: 'Itinerary + cost share',
-    description: '2 weeks before — final itinerary, costs, packing list.',
+    description: '2 weeks before, final itinerary, costs, packing list.',
     daysBefore: -14,
     channels: ['email'],
     product: 'invitation',
@@ -230,7 +230,7 @@ const SHOWER_LEAD = (): CadencePhase[] => [
   {
     id: 'save-the-date',
     label: 'Save the date',
-    description: '6 weeks before — give guests time for the registry.',
+    description: '6 weeks before, give guests time for the registry.',
     daysBefore: -42,
     channels: ['mail', 'email'],
     product: 'save-the-date',
@@ -239,7 +239,7 @@ const SHOWER_LEAD = (): CadencePhase[] => [
   {
     id: 'invitation',
     label: 'Invitation',
-    description: '3 weeks before — full details + registry link.',
+    description: '3 weeks before, full details + registry link.',
     daysBefore: -21,
     channels: ['mail', 'email'],
     product: 'invitation',
@@ -248,7 +248,7 @@ const SHOWER_LEAD = (): CadencePhase[] => [
   {
     id: 'reminder',
     label: 'RSVP reminder',
-    description: '1 week before — last call.',
+    description: '1 week before, last call.',
     daysBefore: -7,
     channels: ['email'],
     product: 'reminder',
@@ -258,7 +258,7 @@ const SHOWER_LEAD = (): CadencePhase[] => [
   {
     id: 'thank-you',
     label: 'Thank-you',
-    description: '1 week after — personal thank-you for each guest.',
+    description: '1 week after, personal thank-you for each guest.',
     daysBefore: 7,
     channels: ['mail', 'email'],
     product: 'thank-you',

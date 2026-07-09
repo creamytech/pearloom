@@ -215,7 +215,7 @@ export function DashAskPear() {
       if (!r.ok || !r.body) {
         const data = await r.json().catch(() => null);
         console.error('[DashAskPear] request failed:', r.status);
-        throw new Error((data as { error?: string } | null)?.error ?? 'Pear couldn’t answer that one — try again in a moment.');
+        throw new Error((data as { error?: string } | null)?.error ?? 'Pear couldn’t answer that one, try again in a moment.');
       }
       const reader = r.body.getReader();
       const decoder = new TextDecoder();
@@ -244,7 +244,7 @@ export function DashAskPear() {
       }
     } catch (e) {
       console.error('[DashAskPear] failed:', e);
-      setError(pearErrorMessage(e, 'Pear couldn’t answer that one — try again in a moment.'));
+      setError(pearErrorMessage(e, 'Pear couldn’t answer that one, try again in a moment.'));
       setChat((c) => c.filter((m) => m.id !== pearId));
     } finally {
       setStreaming(false);
@@ -349,7 +349,7 @@ export function DashAskPear() {
         {chat.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-              Ask me anything — where your RSVPs stand, what to do next, or how a
+              Ask me anything, where your RSVPs stand, what to do next, or how a
               tool works. I&apos;ll keep it short.
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
@@ -427,7 +427,7 @@ export function DashAskPear() {
                       color: 'var(--ink-muted)',
                     }}
                   >
-                    Pear drafted an edit — open your site in the editor to apply
+                    Pear drafted an edit, open your site in the editor to apply
                     changes like this.
                   </div>
                 )}

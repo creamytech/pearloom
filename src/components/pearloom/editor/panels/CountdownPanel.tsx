@@ -44,7 +44,7 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
             border: '1px solid rgba(198,112,61,0.18)',
             fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5,
           }}>
-            Set the event date in the Hero panel — the countdown reads from there.
+            Set the event date in the Hero panel, the countdown reads from there.
           </div>
         )}
 
@@ -52,15 +52,15 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
           <FInput value={eyebrow} onChange={setEyebrow} placeholder="The big day" />
         </FGroup>
 
-        <FGroup label="Custom label" hint='Optional — e.g. "Until we say I do" or "Until we celebrate."'>
+        <FGroup label="Custom label" hint='Optional, e.g. "Until we say I do" or "Until we celebrate."'>
           <FInput value={label} onChange={(v) => patch({ label: v })} placeholder="Until we say I do" />
         </FGroup>
 
         <FGroup
           label="Count to a different date"
           hint={heroDate
-            ? 'Optional — count down to the welcome dinner instead of the main day. Leave empty to use the event date.'
-            : 'Optional — a target date just for this countdown.'}
+            ? 'Optional, count down to the welcome dinner instead of the main day. Leave empty to use the event date.'
+            : 'Optional, a target date just for this countdown.'}
         >
           <FInput
             value={data.date ?? ''}
@@ -70,7 +70,7 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
           />
           {(data.date ?? '').trim() !== '' && !Number.isFinite(Date.parse((data.date ?? '').trim())) && (
             <div style={{ marginTop: 6, padding: '5px 9px', borderRadius: 6, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
-              That date didn’t read — try “2026-06-12” or “June 12, 2026”.
+              That date didn’t read, try “2026-06-12” or “June 12, 2026”.
             </div>
           )}
         </FGroup>

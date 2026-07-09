@@ -116,7 +116,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             value={cards[0]?.[1] ?? ''}
             onChange={(v) => setCardValue(0, v)}
             icon="sparkles"
-            placeholder="Aegean formal — linen & light colors"
+            placeholder="Aegean formal, linen & light colors"
             options={dressSet.options}
             hint={dressSet.hint}
           />
@@ -153,14 +153,14 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                 fxSection="details"
                 value={cards[0]?.[1] ?? ''}
                 onCommit={(v) => setCardValue(0, v)}
-                context="details card value — dress code"
+                context="details card value, dress code"
               />
             </div>
           )}
         </FGroup>
         <FToggleStandalone
           label="Kids welcome"
-          sub={kidsWelcome ? 'Family-friendly — bring the little ones.' : 'No kids — grown-ups only.'}
+          sub={kidsWelcome ? 'Family-friendly, bring the little ones.' : 'No kids, grown-ups only.'}
           def={kidsWelcome}
           onChange={setKidsWelcome}
         />
@@ -170,7 +170,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
           def={plusOnesWelcome}
           onChange={setPlusOnesWelcome}
         />
-        <FGroup label={`Good-to-know cards · ${cards.length} of ${MAX_CARDS}`} hint="Up to six quick facts. The second line shows where the layout has room — and opens the Accordion rows.">
+        <FGroup label={`Good-to-know cards · ${cards.length} of ${MAX_CARDS}`} hint="Up to six quick facts. The second line shows where the layout has room, and opens the Accordion rows.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {cards.map(([l, v, s], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
@@ -195,7 +195,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                     />
                   )}
                   <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
-                  <FInput value={s ?? ''} onChange={(next) => setCardSub(i, next)} placeholder="Second line (optional — e.g. Enter from Vine St)" />
+                  <FInput value={s ?? ''} onChange={(next) => setCardSub(i, next)} placeholder="Second line (optional, e.g. Enter from Vine St)" />
                   <DraftedBadge
                     manifest={manifest}
                     onChange={onChange}
@@ -215,7 +215,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
               /* The cap, said out loud — it used to be invisible
                  (the Add button just vanished). */
               <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', padding: '4px 0' }}>
-                Six is the cap — the grid stays scannable.
+                Six is the cap, the grid stays scannable.
               </div>
             )}
           </div>
@@ -230,13 +230,13 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, contact a host
+            <Icon name="chev-down" size={12} /> More, eyebrow, contact a host
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
               <FInput value={detailsEyebrow} onChange={setDetailsEyebrow} placeholder="The fine print" />
             </FGroup>
-            <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details — guests tap it and their Messages opens with your number.">
+            <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details, guests tap it and their Messages opens with your number.">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <FInput
                   value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
@@ -244,7 +244,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                     ...(manifest as unknown as Record<string, unknown>),
                     hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
                   } as unknown as StoryManifest)}
-                  placeholder="Who answers — 'Emma', 'the best man'…"
+                  placeholder="Who answers, 'Emma', 'the best man'…"
                 />
                 <FInput
                   value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
@@ -253,7 +253,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                     hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
                   } as unknown as StoryManifest)}
                   type="tel"
-                  placeholder="(555) 010-1234 — leave empty to hide the button"
+                  placeholder="(555) 010-1234, leave empty to hide the button"
                 />
               </div>
             </FGroup>

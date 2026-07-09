@@ -166,9 +166,9 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      const subject = row.subject?.trim() || `${row.label} — ${couple}`;
+      const subject = row.subject?.trim() || `${row.label}: ${couple}`;
       const bodyText = row.body?.trim()
-        || `A note from ${couple} — everything you need for the day is on the site.`;
+        || `A note from ${couple}. Everything you need for the day is on the site.`;
       const ctaLabel = row.audience === 'pending-rsvp' ? 'Reply on the site' : 'Open the site';
 
       let sent = 0;

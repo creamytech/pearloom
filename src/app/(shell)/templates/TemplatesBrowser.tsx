@@ -132,7 +132,7 @@ const TEMPLATE_ROWS: readonly TemplateRow[] = [
   },
   {
     packId: 'citrus-grove',
-    name: 'Ceremony — 70s',
+    name: 'Ceremony, 70s',
     cat: 'wedding',
     vibes: ['Groovy', 'Playful'],
     description: 'Loopy type, warm tones, plenty of daisies.',
@@ -523,7 +523,7 @@ export function TemplatesBrowser() {
             that feels like <em style={italicEm}>yours.</em>
           </h1>
           <p style={heroParagraph}>
-            Every template is a full site — pages, flow, tone, and type — ready to fill with your own
+            Every template is a full site (pages, flow, tone, and type) ready to fill with your own
             people, photos, and moments.
           </p>
           <div style={heroActions}>
@@ -776,7 +776,7 @@ export function TemplatesBrowser() {
               </h3>
               <p style={pearOfferBody}>
                 Describe the event, the feeling, the people. Pear will sketch a template just for
-                you — layout, tone, palette, and all.
+                you, layout, tone, palette, and all.
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link href="/wizard/new" style={primaryBtn}>

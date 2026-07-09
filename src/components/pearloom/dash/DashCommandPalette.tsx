@@ -172,7 +172,7 @@ export function DashCommandPalette() {
       id: 'action-ask-pear',
       kind: 'action',
       label: 'Ask Pear a question',
-      hint: 'The help desk — advice on your event',
+      hint: 'The help desk, advice on your event',
       icon: 'sparkles',
       onSelect: () => {
         setOpen(false);

@@ -74,10 +74,10 @@ export const DEMO_MANIFEST = {
     // ── Hero ─────────────────────────────────────────────────
     coverPhoto: u('photo-1570077188670-e3a8d69ac5ff', 1600),
     tagline:
-      "Two summers ago, Theo asked at the edge of the caldera. This June we're going back — and we're bringing everyone we love.",
+      "Two summers ago, Theo asked at the edge of the caldera. This June we're going back, and we're bringing everyone we love.",
     poetry: {
       heroTagline:
-        "Two summers ago, Theo asked at the edge of the caldera. This June we're going back — and we're bringing everyone we love.",
+        "Two summers ago, Theo asked at the edge of the caldera. This June we're going back, and we're bringing everyone we love.",
     },
     copy: {
       heroLead: 'A wedding on the caldera',
@@ -98,7 +98,7 @@ export const DEMO_MANIFEST = {
       place: 'Oia, Santorini',
       venueAddress: 'Main Marble Street, Oia 847 02, Greece',
       rsvpDeadline: '2027-05-15',
-      dresscode: 'Summer formal — linen & light colors',
+      dresscode: 'Summer formal, linen & light colors',
       notes: 'Marble and cobblestone underfoot. Block heels or flats.',
     },
 
@@ -112,7 +112,7 @@ export const DEMO_MANIFEST = {
       url: 'https://open.spotify.com/playlist/61UhFOPck9ZN6G3c1GrbiH',
       title: 'Songs for a Greek summer',
       description:
-        'What we’ll be playing on the terrace — bouzouki at dinner, disco after dark. Add your requests in the RSVP.',
+        'What we’ll be playing on the terrace, bouzouki at dinner, disco after dark. Add your requests in the RSVP.',
     },
 
     // ── Story — three photo chapters (zigzag reads chapters[0..2]).
@@ -120,7 +120,7 @@ export const DEMO_MANIFEST = {
       headline: 'From Athens, to forever',
       body:
         'We met on a rooftop in Athens, kept choosing each other across eight island summers, and got engaged where the cliff meets the sky. Now we get to tell you the whole story in person.',
-      chips: ['Athens, 2019', 'Eight island summers', 'Yes — at the edge of the world'],
+      chips: ['Athens, 2019', 'Eight island summers', 'Yes, at the edge of the world'],
     },
     chapters: [
       {
@@ -142,7 +142,7 @@ export const DEMO_MANIFEST = {
         title: 'Eight island summers',
         subtitle: 'Naxos · Milos · Folegandros',
         description:
-          'Every August, a ferry to somewhere new. We learned each other on deck chairs and in port tavernas — and learned that Elena will swim in any water, any month, any hour.',
+          'Every August, a ferry to somewhere new. We learned each other on deck chairs and in port tavernas, and learned that Elena will swim in any water, any month, any hour.',
         mood: 'field',
         location: { lat: 0, lng: 0, label: 'The Cyclades' },
         images: [{ url: u('photo-1507525428034-b723cf961d3e') }],
@@ -168,15 +168,15 @@ export const DEMO_MANIFEST = {
       { id: 'e2', day: 1, time: '9:30 PM', name: 'Sunset raki', venue: 'The harbour rocks', description: 'One toast as the sun drops behind Thirasia.' },
       { id: 'e3', day: 2, time: '5:00 PM', name: 'Ceremony', venue: 'The Caldera House terrace', description: 'Short, sweet, and three hundred meters above the sea.' },
       { id: 'e4', day: 2, time: '6:00 PM', name: 'Cocktails at golden hour', venue: 'The cliff bar', description: 'Assyrtiko, mezze, and the best view in the Cyclades.' },
-      { id: 'e5', day: 2, time: '8:00 PM', name: 'Dinner under the vines', venue: 'Long table, upper terrace', description: 'Family-style Greek feast — come hungry, leave slowly.' },
+      { id: 'e5', day: 2, time: '8:00 PM', name: 'Dinner under the vines', venue: 'Long table, upper terrace', description: 'Family-style Greek feast, come hungry, leave slowly.' },
       { id: 'e6', day: 2, time: '10:30 PM', name: 'Dancing till the stars give up', venue: 'The courtyard', description: 'Starts with a zeibekiko. Ends when it ends.' },
     ],
 
     // ── Details — bento variant reads these three cards.
     detailsCards: [
-      ['Dress code', 'Summer formal in linen and light colors — the terrace is marble, so block heels or flats'],
+      ['Dress code', 'Summer formal in linen and light colors, the terrace is marble, so block heels or flats'],
       ['Adults-only evening', 'We love your little ones, but this one’s past their bedtime'],
-      ['Gifts', 'Your presence — and your dance moves — are more than enough'],
+      ['Gifts', 'Your presence (and your dance moves) are more than enough'],
     ],
     adultsOnly: true,
 
@@ -184,10 +184,10 @@ export const DEMO_MANIFEST = {
     //    `rows` variant renders photoUrl, rating, price, amenities.
     travelInfo: {
       directions:
-        'Fly into Santorini (JTR) — Oia is 25 minutes by taxi. Ferries run daily from Athens (Piraeus) if you’d rather arrive by sea. Say “Elena & Theo” when you book; all three hotels are holding rooms for us.',
+        'Fly into Santorini (JTR), Oia is 25 minutes by taxi. Ferries run daily from Athens (Piraeus) if you’d rather arrive by sea. Say “Elena & Theo” when you book; all three hotels are holding rooms for us.',
       shuttle: {
         enabled: true,
-        note: 'A shuttle loops between Fira hotels and the venue from 4 PM on the day — last run back at 2 AM.',
+        note: 'A shuttle loops between Fira hotels and the venue from 4 PM on the day, last run back at 2 AM.',
       },
       hotels: [
         {
@@ -210,7 +210,7 @@ export const DEMO_MANIFEST = {
           rating: 4.7,
           ratingCount: 894,
           amenities: 'Sea view · Pool · Family rooms',
-          description: 'The grand dame of Fira — easy tavernas, easy buses, easier prices.',
+          description: 'The grand dame of Fira, easy tavernas, easy buses, easier prices.',
           photoUrl: u('photo-1582719478250-c89cae4dc85b'),
           bookingUrl: 'https://example.com/atlantis',
         },
@@ -244,15 +244,15 @@ export const DEMO_MANIFEST = {
     galleryCaptions: {
       '0': 'Oia, the morning after the yes',
       '1': 'Practice round',
-      '4': 'Stin iyia mas — to our health',
+      '4': 'Stin iyia mas, to our health',
       '6': 'The zeibekiko lesson',
     },
 
     // ── Registry ─────────────────────────────────────────────
     registryIntro:
-      'You’re crossing an ocean for us — that is the gift. If you’d like to add to something anyway, this is what we’re building toward.',
+      'You’re crossing an ocean for us, that is the gift. If you’d like to add to something anyway, this is what we’re building toward.',
     registryStores: [
-      { name: 'Honeymoon fund — Aegean island hopping', url: 'https://example.com/honeymoon' },
+      { name: 'Honeymoon fund, Aegean island hopping', url: 'https://example.com/honeymoon' },
       { name: 'Our first kitchen', url: 'https://example.com/kitchen' },
       { name: 'Zola', url: 'https://zola.com/elena-theo' },
     ],
@@ -266,11 +266,11 @@ export const DEMO_MANIFEST = {
 
     // ── FAQ — twocol variant, six questions with answers.
     faqs: [
-      { id: 'f1', question: 'What should I wear?', answer: 'Summer formal in linen and light colors. The terrace is marble and cobblestone — block heels or flats will save your evening.' },
-      { id: 'f2', question: 'How do I get to Oia from the airport?', answer: 'A taxi takes about 25 minutes (€35–40). On the wedding day our shuttle covers all Fira hotels — see Travel above.' },
-      { id: 'f3', question: 'Can I bring a plus-one?', answer: 'If your invite says +1, absolutely — add their name to your RSVP so we can set a plate.' },
-      { id: 'f4', question: 'Is the ceremony outdoors?', answer: 'Yes — on the caldera terrace. June evenings are warm with a sea breeze; bring a light layer for after dark.' },
-      { id: 'f5', question: 'Will there be vegetarian food?', answer: 'Plenty — the feast is half garden anyway. Note anything else in your RSVP and the kitchen will take care of you.' },
+      { id: 'f1', question: 'What should I wear?', answer: 'Summer formal in linen and light colors. The terrace is marble and cobblestone, block heels or flats will save your evening.' },
+      { id: 'f2', question: 'How do I get to Oia from the airport?', answer: 'A taxi takes about 25 minutes (€35–40). On the wedding day our shuttle covers all Fira hotels, see Travel above.' },
+      { id: 'f3', question: 'Can I bring a plus-one?', answer: 'If your invite says +1, absolutely, add their name to your RSVP so we can set a plate.' },
+      { id: 'f4', question: 'Is the ceremony outdoors?', answer: 'Yes, on the caldera terrace. June evenings are warm with a sea breeze; bring a light layer for after dark.' },
+      { id: 'f5', question: 'Will there be vegetarian food?', answer: 'Plenty, the feast is half garden anyway. Note anything else in your RSVP and the kitchen will take care of you.' },
       { id: 'f6', question: 'What’s a zeibekiko?', answer: 'You’ll find out around 10:30 on Saturday. Your only job is to kneel in a circle and clap.' },
     ],
 

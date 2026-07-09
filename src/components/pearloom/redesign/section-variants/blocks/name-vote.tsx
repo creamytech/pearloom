@@ -267,7 +267,7 @@ export function NameVoteSection({ manifest, pad, editable, variant, onEditCopy }
         onEditTitle={onEditCopy ? (v) => onEditCopy('nameVoteTitle', v) : undefined}
       />
       {empty ? (
-        <BlockEmpty hint="Add the names in the Name vote panel — guests pick their favorite here." />
+        <BlockEmpty hint="Add the names in the Name vote panel, guests pick their favorite here." />
       ) : (
         <>
           <Layout

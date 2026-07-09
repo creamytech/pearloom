@@ -266,7 +266,7 @@ const LAYOUTS = [
   { id: 'timeline', name: 'Memory Thread', body: 'A vertical story, chapter by chapter.', icon: '⏳' },
   { id: 'magazine', name: 'Editorial Spread', body: 'Headlines, features, quiet pages.', icon: '▤' },
   { id: 'filmstrip', name: 'Filmstrip', body: 'Photos first, words second.', icon: '▥' },
-  { id: 'bento', name: 'Bento Stack', body: 'Card grid — schedule, people, gifts.', icon: '⊞' },
+  { id: 'bento', name: 'Bento Stack', body: 'Card grid, schedule, people, gifts.', icon: '⊞' },
 ];
 
 interface WizardPhoto {
@@ -463,7 +463,7 @@ function foldCookedDecorInto(manifest: Record<string, unknown>, decorRaw: unknow
 function humanizeUploadStatus(status: number): string {
   if (status === 401) return 'Please sign back in and try uploading again.';
   if (status === 413) return 'Those files are too large. Try smaller photos (under 12MB each).';
-  if (status === 429) return "You've uploaded a lot recently — take a breath and try again in a minute.";
+  if (status === 429) return "You've uploaded a lot recently, take a breath and try again in a minute.";
   if (status >= 500) return "Pearloom's servers are hiccuping. Try again in a moment.";
   return `Upload failed (${status}). Try again, or contact hello@pearloom.com.`;
 }
@@ -581,7 +581,7 @@ function WizardPhotoUpload({
     } catch (err) {
       // Keep the previews but mark them as errored so the user can retry,
       // with a friendly message they can actually act on.
-      const friendly = err instanceof Error ? err.message : 'Upload failed — try again';
+      const friendly = err instanceof Error ? err.message : 'Upload failed, try again';
       const stagedIds = new Set(staged.map((s) => s.id));
       onChange(photosRef.current.map((p) =>
         stagedIds.has(p.id) ? { ...p, uploading: false, error: friendly } : p,
@@ -948,7 +948,7 @@ function WizardPhotoUpload({
       )}
       <div style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-muted)' }}>
         {photos.length === 0
-          ? 'No photos yet — Pear will start with an empty canvas.'
+          ? 'No photos yet, Pear will start with an empty canvas.'
           : `${photos.length} photo${photos.length === 1 ? '' : 's'} ready. Pear clusters them into chapters.`}
       </div>
     </div>
@@ -1186,10 +1186,10 @@ function OccasionPicker({
           maxWidth: 540,
         }}
       >
-        Pick the closest — you can change it any time. Pearloom supports {OCCASIONS.length} event types.
+        Pick the closest, you can change it any time. Pearloom supports {OCCASIONS.length} event types.
         {intentOccasion && (
           <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: 'var(--peach-ink, #C6703D)', fontWeight: 600 }}>
-            You mentioned this one when you joined — Pear put it up front.
+            You mentioned this one when you joined, Pear put it up front.
           </span>
         )}
       </p>
@@ -1459,7 +1459,7 @@ function GuestsWillAsk({
             className="input"
             value={st.parkingNote ?? ''}
             onChange={(ev) => setSt((s) => ({ ...s, parkingNote: ev.target.value }))}
-            placeholder="Free lot behind the venue, or: street parking only — rideshare is easiest"
+            placeholder="Free lot behind the venue, or: street parking only, rideshare is easiest"
           />
         </div>
       </div>
@@ -1541,7 +1541,7 @@ function TheExtras({
         <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span> The extras
       </div>
       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
-        Each one becomes a living part of the site. Skip anything — you can add them all later.
+        Each one becomes a living part of the site. Skip anything, you can add them all later.
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
         {showCountdown && chip(
@@ -1583,7 +1583,7 @@ function TheExtras({
 
       {open === 'playlist' && (
         <div style={{ marginTop: 10 }}>
-          <label className="field-label">Playlist link — Spotify, Apple Music, or YouTube</label>
+          <label className="field-label">Playlist link, Spotify, Apple Music, or YouTube</label>
           <input
             className="input"
             inputMode="url"
@@ -1657,7 +1657,7 @@ function TheExtras({
 
       {open === 'party' && (
         <div style={{ marginTop: 10 }}>
-          <label className="field-label">{partyLabel} — first names are plenty</label>
+          <label className="field-label">{partyLabel}, first names are plenty</label>
           {(st.partyNames ?? []).length > 0 && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               {(st.partyNames ?? []).map((n) => (
@@ -1701,14 +1701,14 @@ function TheExtras({
             <button type="submit" className="btn btn-ghost" style={{ flexShrink: 0 }}>Add</button>
           </form>
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
-            They get their own section — add roles, photos, and bios in the editor.
+            They get their own section, add roles, photos, and bios in the editor.
           </div>
         </div>
       )}
 
       {open === 'registry' && (
         <div style={{ marginTop: 10 }}>
-          <label className="field-label">{solemn ? 'Donation link — a charity or fund in their name' : 'Registry link — Zola, Amazon, Babylist, anywhere'}</label>
+          <label className="field-label">{solemn ? 'Donation link, a charity or fund in their name' : 'Registry link, Zola, Amazon, Babylist, anywhere'}</label>
           <input
             className="input"
             inputMode="url"
@@ -1719,7 +1719,7 @@ function TheExtras({
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
             {solemn
               ? 'It appears as a gentle “in lieu of flowers” card.'
-              : 'It becomes your Registry section — add more links in the editor.'}
+              : 'It becomes your Registry section, add more links in the editor.'}
           </div>
         </div>
       )}
@@ -1829,7 +1829,7 @@ function PearsQuestions({
         </span>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12 }}>
-        Answer here or skip — everything can be added in the editor.
+        Answer here or skip, everything can be added in the editor.
       </div>
       <div style={{ display: 'grid', gap: 14 }}>{cards}</div>
     </div>
@@ -2158,28 +2158,28 @@ function stepTipFor(step: StepKey, st: WizardState, firstName?: string): string 
   switch (step) {
     case 'Occasion':
       return firstName
-        ? `Alright, ${firstName} — pick the closest. We can change it any time.`
-        : 'Not sure? Pick the closest — we can change it any time.';
+        ? `Alright, ${firstName}, pick the closest. We can change it any time.`
+        : 'Not sure? Pick the closest, we can change it any time.';
     case 'Basics':
       return 'Guests only see what you choose. First names work fine.';
     case 'Details':
       return nameLine
-        ? `Anything you give Pear here becomes ${nameLine}'s story — skip freely, edit later.`
-        : 'Skip any field — write it yourself later in the editor.';
+        ? `Anything you give Pear here becomes ${nameLine}'s story, skip freely, edit later.`
+        : 'Skip any field, write it yourself later in the editor.';
     case 'Day':
       return nameLine
-        ? `Everything here is optional — it pre-fills ${nameLine}'s sections.`
-        : 'Everything here is optional — it pre-fills your sections.';
+        ? `Everything here is optional, it pre-fills ${nameLine}'s sections.`
+        : 'Everything here is optional, it pre-fills your sections.';
     case 'Photos':
       return '6 to 20 photos is the sweet spot. More = more chapters.';
     case 'Sections':
       return firstName
-        ? `Pear pre-picked these for you, ${firstName} — glance, tweak, continue.`
-        : 'Everything is pre-picked — glance, tweak, continue.';
+        ? `Pear pre-picked these for you, ${firstName}, glance, tweak, continue.`
+        : 'Everything is pre-picked, glance, tweak, continue.';
     case 'Vibe':
-      return 'These shape the real site — layouts, type, spacing. Pick 2 to 4.';
+      return 'These shape the real site, layouts, type, spacing. Pick 2 to 4.';
     case 'Palette':
-      return 'Pick what you love — Pear builds matching gradients + accents.';
+      return 'Pick what you love, Pear builds matching gradients + accents.';
     case 'Review':
       return firstName
         ? `Nothing is public until you publish, ${firstName}. Keep editing as long as you like.`
@@ -3578,7 +3578,7 @@ export function WizardV8() {
         <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center', flexShrink: 0 }}>
           <Link
             href="/dashboard"
-            title="Your progress saves itself — this thread will be waiting on your dashboard."
+            title="Your progress saves itself, this thread will be waiting on your dashboard."
             style={{
               padding: '7px 12px',
               fontSize: 12.5,
@@ -3792,7 +3792,7 @@ export function WizardV8() {
                     )}
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Just the bones — you can make anything optional later.
+                    Just the bones, you can make anything optional later.
                   </p>
                   <div
                     className="pl8-basics-grid"
@@ -3903,7 +3903,7 @@ export function WizardV8() {
                         />
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 6 }}>
-                        We&apos;ll derive this from your names if you leave it empty —
+                        We&apos;ll derive this from your names if you leave it empty, 
                         and if a link is already taken, we&apos;ll use the next available one.
                       </div>
                     </div>
@@ -3957,7 +3957,7 @@ export function WizardV8() {
                       Tell me <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                      Like you&rsquo;d tell a friend — how it started, who&rsquo;s coming, the detail that makes it
+                      Like you&rsquo;d tell a friend, how it started, who&rsquo;s coming, the detail that makes it
                       yours. Pear listens for the specifics and weaves them into the site itself.
                     </p>
 
@@ -4096,7 +4096,7 @@ export function WizardV8() {
                       Sketch <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>the day.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                      Three taps builds your schedule — times are typical, nudge them in the editor.
+                      Three taps builds your schedule, times are typical, nudge them in the editor.
                       Skip anything you haven’t decided.
                     </p>
 
@@ -4138,7 +4138,7 @@ export function WizardV8() {
                     </div>
                     {picked.length > 0 && (
                       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 18 }}>
-                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — tap a time to change it. They’ll arrive in your Schedule section, in order.
+                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'}, tap a time to change it. They’ll arrive in your Schedule section, in order.
                       </div>
                     )}
 
@@ -4171,7 +4171,7 @@ export function WizardV8() {
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span>
                           RSVP deadline: <b style={{ color: 'var(--ink)' }}>{st.rsvpDeadline ?? suggestedDl}</b>
-                          {!st.rsvpDeadline && ' (five weeks out — our suggestion)'}
+                          {!st.rsvpDeadline && ' (five weeks out, our suggestion)'}
                         </span>
                         {/* Brand date picker — the native input was
                             the one OS-chrome control in the flow. */}
@@ -4195,7 +4195,7 @@ export function WizardV8() {
                     Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Add a few favourite photos — the first becomes your cover, the rest fill the gallery,
+                    Add a few favourite photos, the first becomes your cover, the rest fill the gallery,
                     and your palette can be pulled straight from them. Skip this if you&apos;d rather add them later.
                   </p>
                   <WizardPhotoUpload
@@ -4255,7 +4255,7 @@ export function WizardV8() {
                     }}
                   >
                     {st.vibes.length === 0
-                      ? 'Optional — 2–4 feels right, or let Pear choose'
+                      ? 'Optional, 2–4 feels right, or let Pear choose'
                       : `${st.vibes.length} of 4 selected`}
                   </p>
                   {/* Type-specimen cards — each vibe pressed at display
@@ -4386,8 +4386,8 @@ export function WizardV8() {
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     {pearPaletteLocked
-                      ? 'Each card below is a small pressing — tap one to dress your preview in it.'
-                      : 'Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.'}
+                      ? 'Each card below is a small pressing, tap one to dress your preview in it.'
+                      : 'Pear read your venue and vibes and mixed three color sets just for you, or pick a classic below.'}
                   </p>
                   {/* Ready signal (GRAND-PLAN Phase 2). A palette is
                       always resolved (occasion default or your photos),
@@ -4406,7 +4406,7 @@ export function WizardV8() {
                       margin: '0 0 18px',
                     }}
                   >
-                    Your palette is ready — continue whenever, or pick another
+                    Your palette is ready, continue whenever, or pick another
                   </p>
                   {/* The live save-the-date preview in the right rail
                       re-renders the moment a palette is tapped, so the
@@ -4469,7 +4469,7 @@ export function WizardV8() {
                         lineHeight: 1.6,
                       }}
                     >
-                      Pear mixes palettes from your story once you're signed in — after the press.
+                      Pear mixes palettes from your story once you're signed in, after the press.
                       The classics below work beautifully now.
                     </div>
                   )}
@@ -4884,7 +4884,7 @@ export function WizardV8() {
                     Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    This is the proof — the exact site Pear will press. Scroll it, then press the seal.
+                    This is the proof, the exact site Pear will press. Scroll it, then press the seal.
                   </p>
 
                   {/* THE PROOF (RADICAL §D, the inversion) — the real
@@ -5059,7 +5059,7 @@ export function WizardV8() {
                               Pear&apos;s first draft of your look
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
-                              Woven into your site from the start — reshape any of it with theme packs and layouts in the editor.
+                              Woven into your site from the start, reshape any of it with theme packs and layouts in the editor.
                             </div>
                           </div>
                         </div>
@@ -5129,7 +5129,7 @@ export function WizardV8() {
                       Planning this with someone?
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 10 }}>
-                      They&rsquo;ll get an invite to edit alongside you the moment the site presses. Optional — you can add co-hosts later in Settings.
+                      They&rsquo;ll get an invite to edit alongside you the moment the site presses. Optional, you can add co-hosts later in Settings.
                     </div>
                     <input
                       className="input"
@@ -5145,7 +5145,7 @@ export function WizardV8() {
                   {st.linkFromSlug && (
                     <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 12, background: 'var(--sage-tint, #E3E6C8)', border: '1px dashed var(--sage, #7A8A4F)', fontSize: 12, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span>
-                      Part of {st.linkCelebName ? <b style={{ color: 'var(--ink)' }}>{st.linkCelebName}&rsquo;s celebration</b> : 'your celebration'} — both sites will link to each other.
+                      Part of {st.linkCelebName ? <b style={{ color: 'var(--ink)' }}>{st.linkCelebName}&rsquo;s celebration</b> : 'your celebration'}, both sites will link to each other.
                     </div>
                   )}
 

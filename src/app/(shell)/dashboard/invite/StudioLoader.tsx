@@ -53,7 +53,7 @@ export function StudioLoader({ initialSlug, initialThanks }: Props) {
         const r = await fetch(`/api/sites/${encodeURIComponent(slug)}`, { cache: 'no-store' });
         if (!r.ok) {
           if (!cancelled) setErrorStatus(r.status);
-          if (r.status === 401) throw new Error('Your session ended — sign in again to keep editing.');
+          if (r.status === 401) throw new Error('Your session ended, sign in again to keep editing.');
           if (r.status === 403) throw new Error("You're not the owner of this site.");
           if (r.status === 404) throw new Error('That site no longer exists.');
           throw new Error('Could not load site.');
@@ -140,7 +140,7 @@ export function StudioLoader({ initialSlug, initialThanks }: Props) {
               size="page"
               eyebrow="Studio"
               title="Pear lost the thread"
-              body="The Studio hit an error rendering this site. The data is safe — refresh the page or open the editor to fix the underlying field."
+              body="The Studio hit an error rendering this site. The data is safe, refresh the page or open the editor to fix the underlying field."
               actions={[
                 { label: 'Refresh', href: typeof window !== 'undefined' ? window.location.pathname : '/dashboard/invite', primary: true },
                 { label: 'Open editor', href: slug ? `/editor/${slug}` : '/dashboard/event' },

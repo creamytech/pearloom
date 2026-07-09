@@ -179,7 +179,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         const pack = STORE_PACKS.find((p) => p.id === resume);
         if (pack && fresh.has(pack.id)) {
           setCol('owned');
-          setToast(`${pack.name} is yours — tap Apply`);
+          setToast(`${pack.name} is yours, tap Apply`);
         }
       } catch { /* stash is a nicety */ }
     }, 0);
@@ -218,7 +218,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
        put a paid look in front of guests), so those still unlock
        first. */
     if (isLocked && Boolean((manifest as unknown as { published?: boolean }).published)) {
-      setToast('This site is live — unlock the pack to wear it');
+      setToast('This site is live, unlock the pack to wear it');
       return;
     }
     const prior = openSnapshotRef.current ?? manifest;
@@ -227,8 +227,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     setTryingId(null);
     fireUndoable(
       isLocked
-        ? `Wearing ${pack.name} to try — unlock it when you publish`
-        : `${pack.name} applied — your old look is one tap away`,
+        ? `Wearing ${pack.name} to try, unlock it when you publish`
+        : `${pack.name} applied, your old look is one tap away`,
       () => onChange(prior),
     );
   };
@@ -263,7 +263,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         onApply(pack);
       } else {
         const res = await fetch('/api/store/checkout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ packIds: [pack.id] }) });
-        if (!res.ok) { setBusyId(null); setToast('Couldn’t start checkout — try again?'); return; }
+        if (!res.ok) { setBusyId(null); setToast('Couldn’t start checkout, try again?'); return; }
         const { url } = (await res.json()) as { url?: string };
         if (url) {
           /* THE FIX — take the preview OFF the manifest before we
@@ -280,7 +280,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         setBusyId(null); setToast('Checkout returned no URL');
       }
     } catch {
-      setBusyId(null); setToast('Unlock failed — try again?');
+      setBusyId(null); setToast('Unlock failed, try again?');
     }
   };
 
@@ -330,7 +330,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                 The Theme Shop
               </div>
               <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 4 }}>
-                Tap a pack to try it on your live site — nothing sticks until you apply.
+                Tap a pack to try it on your live site, nothing sticks until you apply.
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 160, maxWidth: 280, marginLeft: 'auto', position: 'relative' }}>
@@ -403,7 +403,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, minWidth: 0 }}>
                 <Icon name="eye" size={15} color={dark ? 'var(--gold)' : 'var(--lavender-ink)'} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Wearing <b>{tryingPack.name}</b> — yours for <b>${price}</b>, or step out of it.
+                  Wearing <b>{tryingPack.name}</b>, yours for <b>${price}</b>, or step out of it.
                 </span>
               </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexShrink: 0 }}>

@@ -61,7 +61,7 @@ export async function POST(
     const limit = checkRateLimit(`registry-claim:${ip}`, { max: 6, windowMs: 60 * 60 * 1000 });
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: 'Too many claims — try again in a few minutes.' },
+        { error: 'Too many claims. Try again in a few minutes.' },
         { status: 429 },
       );
     }
@@ -170,11 +170,11 @@ export async function POST(
 
       if (bumpError) {
         console.error('[api/registry-items/claim] reserve bump failed:', bumpError.message);
-        return NextResponse.json({ error: 'Could not reserve — try again.' }, { status: 500 });
+        return NextResponse.json({ error: 'Could not reserve. Try again.' }, { status: 500 });
       }
       if (!bumped || bumped.length === 0) {
         return NextResponse.json(
-          { error: 'Someone just spoke for this — refresh to see what’s left.' },
+          { error: 'Someone just spoke for this. Refresh to see what’s left.' },
           { status: 409 },
         );
       }

@@ -180,7 +180,7 @@ function SectionCard({
         type="button"
         onClick={pinned ? undefined : onToggle}
         aria-pressed={pinned ? undefined : on}
-        aria-label={`${offer.label}${pinned ? ' (always on)' : on ? ' — on' : ' — off'}`}
+        aria-label={`${offer.label}${pinned ? ' (always on)' : on ? ', on' : ', off'}`}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -475,7 +475,7 @@ export function WizardSectionChooser({
         </span>
       </h2>
       <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 6px', lineHeight: 1.5 }}>
-        Pear picked what fits {occasionLabel}. Tap to add or set aside — you can change everything later.
+        Pear picked what fits {occasionLabel}. Tap to add or set aside, you can change everything later.
       </p>
       <p style={{ color: 'var(--ink-muted)', fontSize: 12.5, margin: '0 0 22px' }}>
         Every essential is already picked. Just glance and continue.
@@ -494,7 +494,7 @@ export function WizardSectionChooser({
             lineHeight: 1.5,
           }}
         >
-          A quiet site — just your opening. Add a thread any time.
+          A quiet site, just your opening. Add a thread any time.
         </p>
       )}
 

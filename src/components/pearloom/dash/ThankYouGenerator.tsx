@@ -27,7 +27,7 @@ export function ThankYouGenerator() {
     const hostNames = (Array.isArray(site?.names) ? site?.names : []).filter(Boolean);
     const coupleNames = hostNames.length ? hostNames.join(' & ') : 'us';
     const vibe = tone === 'short'
-      ? 'short and sweet — two sentences at most'
+      ? 'short and sweet, two sentences at most'
       : tone === 'heartfelt'
         ? 'heartfelt and tender'
         : 'warm and easy';
@@ -47,7 +47,7 @@ export function ThankYouGenerator() {
       if (!res.ok) {
         throw new Error(
           drafted.length
-            ? `Pear couldn't draft past ${drafted.length} of ${guests.length} (${res.status}) — the drafted notes are kept below`
+            ? `Pear couldn't draft past ${drafted.length} of ${guests.length} (${res.status}), the drafted notes are kept below`
             : `Pear couldn't draft (${res.status})`,
         );
       }

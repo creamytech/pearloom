@@ -102,7 +102,7 @@ export default function GlobalError({
               fontStyle: 'italic',
             }}
           >
-            Something unexpected happened. Your work is safe — let&rsquo;s try that again.
+            Something unexpected happened. Your work is safe, let&rsquo;s try that again.
           </p>
           <button
             onClick={() => unstable_retry()}

@@ -131,7 +131,7 @@ function useAdviceWall(siteId: string, enabled: boolean) {
     let cancelled = false;
     fetchEntries()
       .then((entries) => { if (!cancelled && entries) setServerEntries(entries); })
-      .catch(() => { /* offline — seeds + local still render */ });
+      .catch(() => { /* offline, seeds + local still render */ });
     return () => { cancelled = true; };
   }, [canSync, fetchEntries]);
 
@@ -173,11 +173,11 @@ function useAdviceWall(siteId: string, enabled: boolean) {
             // Older deploy without the event-os routes — keep the
             // local-only behavior, no banner.
           } else {
-            setError(data?.error ?? 'Could not post your note just now — it’s held in this browser.');
+            setError(data?.error ?? 'Could not post your note just now, it’s held in this browser.');
           }
         }
       } catch {
-        setError('You look offline — your note is held in this browser and will show for you here.');
+        setError('You look offline, your note is held in this browser and will show for you here.');
       }
     }
     return true;
@@ -254,7 +254,7 @@ function AuthorLine({ entry }: { entry: WallEntry }) {
         color: 'var(--t-ink-muted)',
       }}
     >
-      — {entry.from || 'Anonymous'}
+      , {entry.from || 'Anonymous'}
       {date && <span style={{ marginLeft: 8, opacity: 0.75 }}>· {date}</span>}
     </div>
   );
@@ -353,7 +353,7 @@ function AdviceComposer({
             transition: reduced ? 'none' : 'background 160ms ease, color 160ms ease, opacity 160ms ease',
           }}
         >
-          {submitted ? 'Thanks — it’s on the wall' : 'Leave your words'}
+          {submitted ? 'Thanks, it’s on the wall' : 'Leave your words'}
         </button>
       </div>
     </form>
@@ -509,7 +509,7 @@ export function AdviceWallSection({ manifest, pad, editable, variant, onEditCopy
           />
           {entries.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--t-ink-muted)', fontStyle: 'italic', fontSize: 13.5 }}>
-              No notes yet — be the first to add one.
+              No notes yet, be the first to add one.
             </p>
           ) : v === 'wall' ? (
             <WallVariant entries={entries} />

@@ -201,7 +201,7 @@ export function SharePanel({
       const j = await res.json().catch(() => ({})) as { error?: string; acceptUrl?: string; sent?: boolean };
       if (!res.ok) {
         console.error('[share] co-host invite failed:', res.status);
-        throw new Error(j.error ?? 'Couldn’t send the invite — try again?');
+        throw new Error(j.error ?? 'Couldn’t send the invite, try again?');
       }
       if (bySms && j.acceptUrl) {
         setKeyCard({ acceptUrl: j.acceptUrl, phone: coHostPhone.trim(), sent: !!j.sent });
@@ -210,7 +210,7 @@ export function SharePanel({
         const who = coHostMatch?.exists && coHostMatch.displayName ? coHostMatch.displayName : coHostEmail.trim();
         setCoHostMsg(
           coHostMatch?.exists
-            ? `Invited ${who} — they’ll see it on their dashboard.`
+            ? `Invited ${who}, they’ll see it on their dashboard.`
             : `We emailed ${coHostEmail.trim()} an invite to join Pearloom.`,
         );
         setCoHostEmail('');
@@ -218,7 +218,7 @@ export function SharePanel({
       }
       void refreshRoster();
     } catch (e) {
-      setCoHostMsg(pearErrorMessage(e, 'Couldn’t send the invite — try again?'));
+      setCoHostMsg(pearErrorMessage(e, 'Couldn’t send the invite, try again?'));
     } finally {
       setCoHostBusy(false);
     }
@@ -226,7 +226,7 @@ export function SharePanel({
 
   /* The prewritten text — names the site, hands over the key. */
   const keySmsBody = keyCard
-    ? `You're invited to help shape ${headline}'s site on Pearloom — here's your key: ${keyCard.acceptUrl}`
+    ? `You're invited to help shape ${headline}'s site on Pearloom, here's your key: ${keyCard.acceptUrl}`
     : '';
 
   return (
@@ -237,7 +237,7 @@ export function SharePanel({
             Replaces the broken /api/og <img> from the previous
             version. Looks like the real link unfurl in iMessage /
             Slack but doesn't round-trip to the network. */}
-        <FGroup label="Share card preview" hint="What people see when you paste the link into iMessage, WhatsApp, Slack, email — anywhere a link unfurls.">
+        <FGroup label="Share card preview" hint="What people see when you paste the link into iMessage, WhatsApp, Slack, email, anywhere a link unfurls.">
           <ShareCardMock
             headline={headline}
             date={date}
@@ -250,7 +250,7 @@ export function SharePanel({
 
         {/* Custom share message — host can override the auto-derived
             blurb. Optional; falls back to a per-occasion default. */}
-        <FGroup label="Share message" hint="Optional — the blurb that appears alongside your link in chat apps and emails. Default is an auto-line based on your event.">
+        <FGroup label="Share message" hint="Optional, the blurb that appears alongside your link in chat apps and emails. Default is an auto-line based on your event.">
           <FInput
             value={loose.copy?.shareBlurb ?? ''}
             onChange={(v) => {
@@ -267,7 +267,7 @@ export function SharePanel({
         </FGroup>
 
         {/* Quick-share row — direct intents to chat / email / X. */}
-        <FGroup label="Send it" hint="Drop the link straight into your favorite app — message pre-filled.">
+        <FGroup label="Send it" hint="Drop the link straight into your favorite app, message pre-filled.">
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6,
           }}>
@@ -312,7 +312,7 @@ export function SharePanel({
             it (ArrivalReveal on the published site). */}
         <FGroup
           label="Arrival"
-          hint="The first time a guest opens your link, the site can arrive like mail — a sealed envelope they tap open (addressed to them when they use their personal link), or a quiet thread reveal. Once per guest; reduced-motion visitors always skip it."
+          hint="The first time a guest opens your link, the site can arrive like mail, a sealed envelope they tap open (addressed to them when they use their personal link), or a quiet thread reveal. Once per guest; reduced-motion visitors always skip it."
         >
           <ArrivalPicker manifest={manifest} onChange={onChange} />
         </FGroup>
@@ -321,7 +321,7 @@ export function SharePanel({
             the SuiteTheme contract (Suite Phase 5). No server hop. */}
         <FGroup
           label="Share kit"
-          hint="Three ready-to-post images in your site's exact theme — Story for Instagram, Square for the grid, Banner for group chats and emails. Drawn on your device; nothing uploads."
+          hint="Three ready-to-post images in your site's exact theme, Story for Instagram, Square for the grid, Banner for group chats and emails. Drawn on your device; nothing uploads."
         >
           <ShareKitStrip manifest={manifest} siteSlug={siteSlug} />
         </FGroup>
@@ -463,7 +463,7 @@ export function SharePanel({
         {/* Guestbook — opt-in section on the published site where
             guests leave a wish. Writes manifest.features.guestbook;
             the renderer mounts GuestbookSection before the footer. */}
-        <FGroup label="Guestbook" hint="Add a guestbook to your site — guests leave a wish, everyone reads the wall. You'll get a notification each time someone signs.">
+        <FGroup label="Guestbook" hint="Add a guestbook to your site, guests leave a wish, everyone reads the wall. You'll get a notification each time someone signs.">
           <FToggleStandalone
             label="Show a guestbook on the site"
             def={((manifest as unknown as { features?: { guestbook?: boolean } }).features?.guestbook) === true}
@@ -488,7 +488,7 @@ export function SharePanel({
         </FGroup>
 
         {/* Bulk invite handoff. */}
-        <FGroup label="Send the invite" hint="Use the Guests panel to add people first — then send.">
+        <FGroup label="Send the invite" hint="Use the Guests panel to add people first, then send.">
           <a
             href={`/dashboard/invite?site=${encodeURIComponent(siteSlug)}`}
             className="pl-pearl-accent"
@@ -510,7 +510,7 @@ export function SharePanel({
             own Messages with it prewritten. */}
         </>)}
         {focus === 'cohost' && (<>
-        <FGroup label="Invite a co-host" hint="Email sends them a magic link. Text mints the key and opens your Messages — you send it, they tap it.">
+        <FGroup label="Invite a co-host" hint="Email sends them a magic link. Text mints the key and opens your Messages, you send it, they tap it.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', gap: 5 }}>
               {([['email', 'By email'], ['sms', 'By text']] as const).map(([id, label]) => (
@@ -557,16 +557,16 @@ export function SharePanel({
                         <span style={{ fontWeight: 700, color: 'var(--sage-deep, #5C6B3F)' }}>
                           ✓ {coHostMatch.displayName || 'They’re'} on Pearloom.
                         </span>{' '}
-                        Invite them directly — they’ll get a notification and a banner on their dashboard.
+                        Invite them directly, they’ll get a notification and a banner on their dashboard.
                       </>
                     ) : (
-                      <>New to Pearloom — we’ll email them an invite to set up an account and join.</>
+                      <>New to Pearloom, we’ll email them an invite to set up an account and join.</>
                     )}
                   </div>
                 )}
                 {coHostMatch?.self && (
                   <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', padding: '2px 2px' }}>
-                    That’s your own address — invite a different email.
+                    That’s your own address, invite a different email.
                   </div>
                 )}
               </>
@@ -643,11 +643,11 @@ export function SharePanel({
                   The key · expires in 14 days
                 </div>
                 <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink)', margin: '4px 0 2px' }}>
-                  {keyCard.sent ? 'Sent — it’s in their messages.' : 'Ready to hand over.'}
+                  {keyCard.sent ? 'Sent, it’s in their messages.' : 'Ready to hand over.'}
                 </div>
                 {keyCard.sent && (
                   <div style={{ fontSize: 11.5, color: 'var(--sage-deep)', marginBottom: 2 }}>
-                    ✓ Texted to {keyCard.phone} — the buttons below are your backup.
+                    ✓ Texted to {keyCard.phone}, the buttons below are your backup.
                   </div>
                 )}
                 <div style={{ fontSize: 11, color: 'var(--ink-soft)', wordBreak: 'break-all', marginBottom: 10 }}>
@@ -955,7 +955,7 @@ function ShareCardMock({
           {prettyUrl.split('/')[0]}
         </div>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
-          {headline} — Pearloom
+          {headline}, Pearloom
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
           {blurb}
@@ -1004,12 +1004,12 @@ function defaultBlurb(occasion: string | undefined, headline: string, date: stri
     return `Gathering to remember ${headline.replace(/^Join /, '')}.${tail ? ` ${tail}.` : ''}`;
   }
   if (occasion === 'baby-shower' || occasion === 'gender-reveal') {
-    return `${head} — there's a baby on the way.${tail ? ` ${tail}.` : ''}`;
+    return `${head}, there's a baby on the way.${tail ? ` ${tail}.` : ''}`;
   }
   if (occasion === 'bachelor-party' || occasion === 'bachelorette-party') {
     return `${head} for one last hurrah.${tail ? ` ${tail}.` : ''}`;
   }
-  return `${head}${tail ? ` — ${tail}` : ''}.`;
+  return `${head}${tail ? `, ${tail}` : ''}.`;
 }
 
 /* Arrival picker — writes manifest.arrival. 'auto' is stored as
@@ -1017,7 +1017,7 @@ function defaultBlurb(occasion: string | undefined, headline: string, date: stri
    occasion-default changes for free. */
 const ARRIVAL_CHOICES: Array<{ id: ArrivalStyle; label: string; desc: string }> = [
   { id: 'auto',     label: 'Matched',  desc: 'Pear picks for the occasion' },
-  { id: 'envelope', label: 'Envelope', desc: 'Wax seal — tap to open' },
+  { id: 'envelope', label: 'Envelope', desc: 'Wax seal, tap to open' },
   { id: 'quiet',    label: 'Quiet',    desc: 'A single thread, a name' },
   { id: 'off',      label: 'Off',      desc: 'The site opens plain' },
 ];
@@ -1116,7 +1116,7 @@ function LanguagesSection({
           }),
         });
         const j = await res.json().catch(() => ({} as { error?: string; translations?: unknown }));
-        if (!res.ok) throw new Error((j as { error?: string }).error || 'Translation failed — try again');
+        if (!res.ok) throw new Error((j as { error?: string }).error || 'Translation failed, try again');
         const tr = Array.isArray((j as { translations?: unknown }).translations)
           ? (j as { translations: Array<{ title?: string; subtitle?: string; description?: string }> }).translations
           : [];
@@ -1168,7 +1168,7 @@ function LanguagesSection({
       }
 
       if (!entry.chapters?.length && !entry.poetry && !entry.events) {
-        throw new Error('Add your story or schedule first — there’s nothing to translate yet.');
+        throw new Error('Add your story or schedule first, there’s nothing to translate yet.');
       }
 
       onChange({
@@ -1176,7 +1176,7 @@ function LanguagesSection({
         translations: { ...(manifest.translations ?? {}), [locale]: entry },
       } as unknown as StoryManifest);
     } catch (e) {
-      setError(pearErrorMessage(e, 'Translation failed — try again'));
+      setError(pearErrorMessage(e, 'Translation failed, try again'));
     } finally {
       setBusy(null);
     }

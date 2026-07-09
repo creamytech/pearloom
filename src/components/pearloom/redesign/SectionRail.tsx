@@ -630,7 +630,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                   Your pages
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {row('all', 'All pages', 'The whole site on one canvas — everything editable', () => setCanvasPage(null), canvasPage === null)}
+                  {row('all', 'All pages', 'The whole site on one canvas, everything editable', () => setCanvasPage(null), canvasPage === null)}
                   {row('home', 'Home', `/ · ${homeCount} section${homeCount === 1 ? '' : 's'}`, () => setCanvasPage('home'), canvasPage === 'home')}
                   {ownPages.map((sec) =>
                     row(
@@ -738,7 +738,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 try {
                   const img = makeDragImage(s.label);
                   e.dataTransfer.setDragImage(img, 24, 18);
-                } catch { /* old browsers — fall through to default ghost */ }
+                } catch { /* old browsers, fall through to default ghost */ }
               }}
               onDragEnd={() => { setDraggingIdx(null); setHoverIdx(null); }}
               onDragOver={(e) => {

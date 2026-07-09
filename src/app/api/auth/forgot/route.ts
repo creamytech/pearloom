@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const ip = getClientIp(req);
     const rate = checkRateLimit(`forgot:${ip}`, { max: 4, windowMs: 900_000 });
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'Too many attempts — try again in a few minutes.' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many attempts. Try again in a few minutes.' }, { status: 429 });
     }
 
     let body: { email?: string };

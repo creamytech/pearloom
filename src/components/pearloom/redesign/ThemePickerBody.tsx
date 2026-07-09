@@ -94,7 +94,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
     pearWorking('done', undefined, 'theme');
     const prior = manifest;
     onChange(next);
-    fireUndoable('Pack applied — your old look is one tap away', () => onChange(prior));
+    fireUndoable('Pack applied, your old look is one tap away', () => onChange(prior));
   };
 
   /* ── The altitude ladder (reordered 2026-07-08) ─────────────────
@@ -332,7 +332,7 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[theme-picker] look-from-story failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t style that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t style that one, try again?');
       }
       const data = await res.json() as {
         occasion?: string;
@@ -364,12 +364,12 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
          undo-after treatment. */
       const prior = manifest;
       onChange(next as unknown as StoryManifest);
-      fireUndoable('Pear restyled your site — your old look is one tap away', () => onChange(prior));
+      fireUndoable('Pear restyled your site, your old look is one tap away', () => onChange(prior));
       announceDesignChange('theme', 'Drafted by Pear');
       setRationale(data.rationale ?? 'Pear styled your site.');
     } catch (e) {
       console.error('[theme-picker] look-from-story error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t style that one — try again?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t style that one, try again?'));
     } finally {
       setBusy(false);
     }
@@ -962,7 +962,7 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Atelier · Motion</div>
           <div className="display" style={{ fontSize: 20, color: '#FBF1DC', lineHeight: 1.1, marginBottom: 6 }}>{premium ? 'Your site is alive.' : 'Bring your site to life.'}</div>
           <div style={{ fontSize: 11.5, color: 'rgba(243,236,217,0.75)', lineHeight: 1.5, marginBottom: 13 }}>
-            {premium ? 'Every motion kit is unlocked for this site. Tap one to apply it.' : 'Eight living finishes — neon, foil, candlelight and more. One unlock, this site forever.'}
+            {premium ? 'Every motion kit is unlocked for this site. Tap one to apply it.' : 'Eight living finishes, neon, foil, candlelight and more. One unlock, this site forever.'}
           </div>
           {/* NOTE the $19 unlock is the pre-checkout stub phase theme
               packs shipped through — real checkout lands via the same
@@ -976,7 +976,7 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
             className="lift"
             style={{ padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: premium ? 'rgba(251,241,220,0.16)' : '#E6C877', color: premium ? '#FBF1DC' : '#241a08' }}
           >
-            {premium ? 'Turn motion off' : 'Unlock Atelier — $19'}
+            {premium ? 'Turn motion off' : 'Unlock Atelier, $19'}
           </button>
         </div>
       </div>
@@ -1158,9 +1158,9 @@ function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
   );
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
-      <div style={labelStyle}>Menu — desktop</div>
+      <div style={labelStyle}>Menu, desktop</div>
       {chipRow(NAV_DESKTOP, desktop, 'nav')}
-      <div style={{ ...labelStyle, marginTop: 14 }}>Menu — phone</div>
+      <div style={{ ...labelStyle, marginTop: 14 }}>Menu, phone</div>
       {chipRow(NAV_PHONE, phone, 'navMobile')}
     </div>
   );
@@ -1375,7 +1375,7 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
       announceDesignChange('colors', 'From your photo');
     } catch (e) {
       console.error('[theme-picker] photo palette error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t read that photo — try another?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t read that photo, try another?'));
     } finally {
       setBusy(false);
     }
@@ -1620,7 +1620,7 @@ function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Sto
         ))}
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-        Paper, ink and accent re-mix the washes, hairlines and buttons with them — the site stays readable.
+        Paper, ink and accent re-mix the washes, hairlines and buttons with them, the site stays readable.
       </div>
     </div>
   );
@@ -1739,7 +1739,7 @@ function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Stor
         })}
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-        Hover to try a pairing on your live site — click to keep it.
+        Hover to try a pairing on your live site, click to keep it.
       </div>
     </div>
   );
@@ -1860,7 +1860,7 @@ function Toggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
   );
 }
 
-function Slider({ value, setValue, onCommit, min, max, step }: { value: number; setValue: (v: number) => void; /** Fires once on release (pointer up / key up / blur) — lets callers preview during the drag and write the manifest a single time. */ onCommit?: (v: number) => void; min: number; max: number; step: number }) {
+function Slider({ value, setValue, onCommit, min, max, step }: { value: number; setValue: (v: number) => void; /** Fires once on release (pointer up / key up / blur), lets callers preview during the drag and write the manifest a single time. */ onCommit?: (v: number) => void; min: number; max: number; step: number }) {
   const pct = ((value - min) / (max - min)) * 100;
   const commit = onCommit
     ? (e: { currentTarget: HTMLInputElement }) => onCommit(parseFloat(e.currentTarget.value))

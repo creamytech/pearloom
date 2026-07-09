@@ -34,7 +34,7 @@ export async function generateMetadata(
     wedding: 'Wedding', anniversary: 'Anniversary',
     birthday: 'Birthday', engagement: 'Engagement', story: 'Story',
   };
-  const shortTitle = `${displayNames} — ${occasionLabel[occasion] || 'Celebration'}`;
+  const shortTitle = `${displayNames}, ${occasionLabel[occasion] || 'Celebration'}`;
   const fullTitle = `${shortTitle} · Pearloom`;
 
   // Build description — prefer heroTagline, then first chapter description, then vibeString
@@ -47,11 +47,11 @@ export async function generateMetadata(
     birthday: 'birthday celebration', engagement: 'engagement celebration', story: 'personal story site',
   };
   const description = heroTagline
-    ? `${displayNames} — ${heroTagline.slice(0, 150)}${heroTagline.length > 150 ? '...' : ''}`
+    ? `${displayNames}, ${heroTagline.slice(0, 150)}${heroTagline.length > 150 ? '...' : ''}`
     : firstChapterDesc
-    ? `${displayNames}'s story — ${firstChapterDesc.slice(0, 140)}${firstChapterDesc.length > 140 ? '...' : ''}`
+    ? `${displayNames}'s story, ${firstChapterDesc.slice(0, 140)}${firstChapterDesc.length > 140 ? '...' : ''}`
     : vibeString
-    ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
+    ? `${displayNames}'s love story, ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
     : `${displayNames}'s ${occasionDescLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
   // House-default OG colors. Sites with real theme data get their
@@ -151,7 +151,7 @@ export async function generateMetadata(
       url: siteUrl,
       siteName: 'Pearloom',
       type: 'website',
-      images: [{ url: ogUrl.toString(), width: 1200, height: 630, alt: `${displayNames}${dateStr ? ` — ${dateStr}` : ''}` }],
+      images: [{ url: ogUrl.toString(), width: 1200, height: 630, alt: `${displayNames}${dateStr ? `, ${dateStr}` : ''}` }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -319,7 +319,7 @@ export default async function SubdomainSite({
       return {
         '@context': 'https://schema.org',
         '@type': 'Event',
-        name: `${displayNames} — ${occLabel}`,
+        name: `${displayNames}, ${occLabel}`,
         startDate: date,
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         eventStatus: 'https://schema.org/EventScheduled',

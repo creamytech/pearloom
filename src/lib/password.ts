@@ -41,8 +41,8 @@ export function verifyPassword(password: string, stored: string | null | undefin
  *  symbol requirements just get appended '!'s. */
 export function passwordProblem(password: string): string | null {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
-    return `Use at least ${MIN_PASSWORD_LENGTH} characters — a few words you'll remember beat a short scramble.`;
+    return `Use at least ${MIN_PASSWORD_LENGTH} characters, a few words you'll remember beat a short scramble.`;
   }
-  if (password.length > 200) return 'That password is a novel — keep it under 200 characters.';
+  if (password.length > 200) return 'That password is a novel, keep it under 200 characters.';
   return null;
 }

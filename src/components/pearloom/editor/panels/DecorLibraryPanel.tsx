@@ -977,10 +977,10 @@ export function DecorLibraryPanel({
       };
       if (!res.ok) {
         console.error('[decor-library] generate failed:', res.status);
-        throw new Error(data.error ?? "Pear couldn't style that one — try again?");
+        throw new Error(data.error ?? "Pear couldn't style that one, try again?");
       }
       if (!data.patternId || !data.motifId || !data.dividerId || !data.accentColor) {
-        throw new Error('Pear returned a malformed preset — try again.');
+        throw new Error('Pear returned a malformed preset, try again.');
       }
 
       /* Map production's motifId (blob/stamp/squiggle/sparkle/heart/
@@ -1028,7 +1028,7 @@ export function DecorLibraryPanel({
       setGenFromPear(true);
     } catch (err) {
       console.error('[decor-library] generate error:', err);
-      setGenError(pearErrorMessage(err, "Pear couldn't style that one — try again?"));
+      setGenError(pearErrorMessage(err, "Pear couldn't style that one, try again?"));
     } finally {
       setBusy(false);
     }
@@ -1152,7 +1152,7 @@ export function DecorLibraryPanel({
         <div style={{ flex: 1, overflow: 'auto', padding: asDrawer ? '18px 18px calc(18px + env(safe-area-inset-bottom, 0px))' : 18 }}>
           {tab === 'motifs' && (
             <>
-              <GalleryLabel>Line ornaments — the Pearloom hand</GalleryLabel>
+              <GalleryLabel>Line ornaments, the Pearloom hand</GalleryLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 <ThemedTile color={color} active={decor.motif === 'none'} onClick={() => setDecor({ motif: 'none' })}>
                   <span style={{ fontSize: 11.5, color: 'var(--t-ink-muted, var(--ink-muted, #6F6557))', fontWeight: 600 }}>None</span>
@@ -1164,7 +1164,7 @@ export function DecorLibraryPanel({
                 ))}
               </div>
 
-              <GalleryLabel>Garden &amp; seasonal — botanical art</GalleryLabel>
+              <GalleryLabel>Garden &amp; seasonal, botanical art</GalleryLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 {DL_MOTIFS.map((m) => (
                   <ThemedTile key={m.id} color={color} active={decor.motif === m.id} onClick={() => setDecor({ motif: m.id })}>
@@ -1259,7 +1259,7 @@ export function DecorLibraryPanel({
 
           {tab === 'dividers' && (
             <>
-              <GalleryLabel>Fleurons — the Pearloom hand</GalleryLabel>
+              <GalleryLabel>Fleurons, the Pearloom hand</GalleryLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {DL_LINE_DIVIDERS.map((d) => (
                   <ThemedTile
@@ -1282,7 +1282,7 @@ export function DecorLibraryPanel({
                 ))}
               </div>
 
-              <GalleryLabel>Section dividers — tap to apply everywhere</GalleryLabel>
+              <GalleryLabel>Section dividers, tap to apply everywhere</GalleryLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   type="button"
@@ -1332,10 +1332,10 @@ export function DecorLibraryPanel({
             const printsShow = ['boxed', 'magazine', 'zine', 'gallery', 'postcard'].includes(siteLayout);
             return (
             <>
-              <GalleryLabel>Background prints — behind your pages</GalleryLabel>
+              <GalleryLabel>Background prints, behind your pages</GalleryLabel>
               {printsShow ? (
                 <div style={{ fontSize: 11.5, color: 'var(--pl-chrome-text-muted, #6F6557)', lineHeight: 1.45, margin: '-2px 0 10px' }}>
-                  Prints show in the paper around your pages — the {LAYOUT_LABEL[siteLayout] ?? siteLayout} layout leaves room for them.
+                  Prints show in the paper around your pages, the {LAYOUT_LABEL[siteLayout] ?? siteLayout} layout leaves room for them.
                 </div>
               ) : (
                 <div
@@ -1395,7 +1395,7 @@ export function DecorLibraryPanel({
 
           {tab === 'generate' && (
             <>
-              <GalleryLabel>Describe the feeling — Pear styles the decor</GalleryLabel>
+              <GalleryLabel>Describe the feeling, Pear styles the decor</GalleryLabel>
               <div style={{ borderRadius: 14, border: '1px solid var(--line-soft, rgba(14,13,11,0.10))', overflow: 'hidden' }}>
                 <div style={{ padding: 13, background: 'var(--card, var(--pl-cream-card, #FBF7EE))' }}>
                   <textarea
@@ -1499,7 +1499,7 @@ export function DecorLibraryPanel({
             </button>
           ) : (
             <span style={{ fontSize: 10.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 600, letterSpacing: '0.04em' }}>
-              Live-applied — your site updates as you tap.
+              Live-applied, your site updates as you tap.
             </span>
           )}
         </div>

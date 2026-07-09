@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -121,7 +121,7 @@ Only include dietaryTags that actually apply to each dish. Make descriptions war
         parsed = [
           { name: 'Herb-Crusted Chicken', description: 'Tender chicken breast with a golden herb crust, served alongside roasted seasonal vegetables and creamy mashed potatoes.', dietaryTags: ['gluten-free'] },
           { name: 'Pan-Seared Salmon', description: 'Fresh Atlantic salmon seared to perfection, resting on a bed of lemon-dill risotto with grilled asparagus.', dietaryTags: ['gluten-free'] },
-          { name: 'Garden Risotto', description: 'A creamy arborio rice risotto with roasted mushrooms, fresh herbs, and shaved parmesan — a celebration of seasonal produce.', dietaryTags: ['vegetarian', 'gluten-free'] },
+          { name: 'Garden Risotto', description: 'A creamy arborio rice risotto with roasted mushrooms, fresh herbs, and shaved parmesan, a celebration of seasonal produce.', dietaryTags: ['vegetarian', 'gluten-free'] },
         ];
       }
 

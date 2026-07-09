@@ -78,7 +78,7 @@ export function YourCelebrationsCard({
         The thread runs through more than one party.
       </div>
       <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', margin: '0 0 16px', lineHeight: 1.55 }}>
-        You&apos;re woven into {entries.length === 1 ? 'another celebration' : `${entries.length} other celebrations`} —
+        You&apos;re woven into {entries.length === 1 ? 'another celebration' : `${entries.length} other celebrations`}, 
         everything you need for each lives on its own site.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

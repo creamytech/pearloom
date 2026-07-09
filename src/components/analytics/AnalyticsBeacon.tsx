@@ -23,7 +23,7 @@ export function AnalyticsBeacon({ siteId }: AnalyticsBeaconProps) {
       const key = `pl:visit:${siteId}`;
       if (window.sessionStorage.getItem(key)) return;
       window.sessionStorage.setItem(key, '1');
-    } catch { /* private mode — still record the visit */ }
+    } catch { /* private mode, still record the visit */ }
     fetch('/api/analytics/visit', {
       method: 'POST',
       body: JSON.stringify({ siteId, referrer: document.referrer || null }),

@@ -48,7 +48,7 @@ export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="A line above the menu" hint="Optional — one welcoming sentence.">
+        <FGroup label="A line above the menu" hint="Optional, one welcoming sentence.">
           <FTextArea
             value={data.intro ?? ''}
             onChange={(v) => write({ intro: v })}
@@ -61,7 +61,7 @@ export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
                 fxSection="menu"
                 value={data.intro ?? ''}
                 onCommit={(v) => write({ intro: v })}
-                context="menu intro line — one welcoming sentence above the courses"
+                context="menu intro line, one welcoming sentence above the courses"
               />
             </div>
           )}

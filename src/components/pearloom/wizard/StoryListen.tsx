@@ -91,13 +91,13 @@ export function StoryListen<S extends StorySlice>({
       });
       const data = await res.json().catch(() => null) as (Caught & { ok?: boolean; error?: string }) | null;
       if (!res.ok) {
-        if (!auto) setNote(data?.error ?? 'Pear lost the thread — try again?');
+        if (!auto) setNote(data?.error ?? 'Pear lost the thread, try again?');
         return;
       }
       if (!data?.ok) {
         // Keyless / model-down — the story itself still grounds the
         // generation, so this is a soft note, not a failure.
-        if (!auto) setNote('Pear will read this while she weaves — every word of it counts.');
+        if (!auto) setNote('Pear will read this while she weaves, every word of it counts.');
         return;
       }
       setCaught(data);
@@ -122,7 +122,7 @@ export function StoryListen<S extends StorySlice>({
         return next;
       });
     } catch {
-      if (!auto) setNote('Pear lost the thread — try again?');
+      if (!auto) setNote('Pear lost the thread, try again?');
     } finally {
       setBusy(false);
     }
@@ -181,7 +181,7 @@ export function StoryListen<S extends StorySlice>({
         value={story}
         onChange={(ev) => setSt((s) => ({ ...s, storyText: ev.target.value }) as S)}
         placeholder={st.occasion === 'memorial' || st.occasion === 'funeral'
-          ? 'Tell Pear about them — who they were, what they loved, how you want the day to feel…'
+          ? 'Tell Pear about them, who they were, what they loved, how you want the day to feel…'
           : q.q1Placeholder}
         style={{ fontSize: 15, lineHeight: 1.6, resize: 'vertical' }}
       />
@@ -192,7 +192,7 @@ export function StoryListen<S extends StorySlice>({
         ) : (
           <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
             {story.trim().length >= 20
-              ? 'Pear listens as you write — pause and she’ll pick out the gold.'
+              ? 'Pear listens as you write, pause and she’ll pick out the gold.'
               : 'Type it like a text to a friend. (Your keyboard’s mic works great here.)'}
           </span>
         )}
@@ -242,7 +242,7 @@ export function StoryListen<S extends StorySlice>({
                 </div>
               ))}
               <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
-                Pear will weave these into the site itself — pull any thread you&rsquo;d rather keep private.
+                Pear will weave these into the site itself, pull any thread you&rsquo;d rather keep private.
               </div>
             </div>
           )}

@@ -89,7 +89,7 @@ Tab values:
 Use "warning" for missing critical info; "suggestion" for nice-to-haves.
 Return [] if the site is genuinely complete.`;
 
-const DEFAULT_TAGLINE = "We'd love you there. Come celebrate with us — the day will be better for it.";
+const DEFAULT_TAGLINE = "We'd love you there. Come celebrate with us. The day will be better for it.";
 const DEFAULT_TAGLINE_FRAGMENTS = [
   'celebrate with us',
   'the day will be better for it',
@@ -338,15 +338,15 @@ function fallbackSuggestionsFromStatuses(
       faq:       'Add a few FAQs',
     };
     const descriptions: Partial<Record<EditorTab, string>> = {
-      hero:      'Names, date, and venue should all be set — plus a tagline that isn’t the default placeholder.',
+      hero:      'Names, date, and venue should all be set, plus a tagline that isn’t the default placeholder.',
       details:   'Dress code, RSVP deadline, and a parking note help guests show up confident.',
       events:    'Even 2-3 short moments (Ceremony, Cocktails, Dinner) give guests the day’s shape.',
       story:     'A short story with chapter titles + a photo or two warms the whole site up.',
       chapters:  'A short story with chapter titles + a photo or two warms the whole site up.',
-      registry:  'A registry link or a fund URL — even just one — covers the most common guest question.',
+      registry:  'A registry link or a fund URL, even just one, covers the most common guest question.',
       travel:    'One nearby hotel with a quick note saves guests the search.',
       gallery:   'Add a few favorite photos so guests have something to scroll through.',
-      rsvp:      'A deadline matters most — without it, Pear can’t auto-nudge non-responders.',
+      rsvp:      'A deadline matters most. Without it, Pear can’t auto-nudge non-responders.',
       faq:       'Four short Q&A covers most of what guests will message you to ask.',
     };
     out.push({
@@ -402,7 +402,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(null, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

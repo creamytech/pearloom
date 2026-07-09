@@ -48,7 +48,7 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label="Stream link"
-          hint="Zoom, YouTube Live, Vimeo — wherever the camera points. Guests open it in a new tab."
+          hint="Zoom, YouTube Live, Vimeo, wherever the camera points. Guests open it in a new tab."
           action={url ? (
             /* Open the pasted URL exactly as a guest will — catches
                typos + permission walls before the day. */
@@ -78,7 +78,7 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label="Starts at"
-          hint='Shown as written. Include a full date — "June 14, 2026 2:00 PM" — and the site adds a live countdown, restates the time in each guest’s time zone, and flips to “Live now” at start time.'
+          hint='Shown as written. Include a full date, "June 14, 2026 2:00 PM", and the site adds a live countdown, restates the time in each guest’s time zone, and flips to “Live now” at start time.'
         >
           <FInput
             value={data.startsAt ?? ''}

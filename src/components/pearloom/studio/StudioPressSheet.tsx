@@ -198,7 +198,7 @@ export function StudioPressSheet(props: Props) {
           paddingLeft: 14,
         }}>
           {type === 'std' ? 'Save the date' : type === 'invite' ? 'Invitation' : 'Thank-you'}
-          {' · front, back & envelope at exact size — trim and bleed marked'}
+          {' · front, back & envelope at exact size, trim and bleed marked'}
         </span>
         <div style={{ flex: 1 }} />
         <button
@@ -266,7 +266,7 @@ export function StudioPressSheet(props: Props) {
           flexBasis: '100%', textAlign: 'center',
           fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', paddingBottom: 8,
         }}>
-          Pearloom presses the artwork — the paper is yours. Any print shop or home printer takes it from here.
+          Pearloom presses the artwork, the paper is yours. Any print shop or home printer takes it from here.
         </div>
       </div>
 

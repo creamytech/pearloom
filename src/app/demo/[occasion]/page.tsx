@@ -25,7 +25,7 @@ export async function generateMetadata({
   const label = (getEventType(occasion)?.label ?? occasion).split(' / ')[0].toLowerCase();
   return {
     title: `A ${label} site, fully woven · Pearloom demo`,
-    description: `Walk through a real Pearloom ${label} site — the arrival, the story, the schedule, the RSVP — exactly as guests would see it.`,
+    description: `Walk through a real Pearloom ${label} site (the arrival, the story, the schedule, the RSVP) exactly as guests would see it.`,
     alternates: { canonical: `/demo/${occasion}` },
   };
 }

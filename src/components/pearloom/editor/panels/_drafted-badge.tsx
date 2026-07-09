@@ -61,7 +61,7 @@ export function DraftedBadge({
     >
       <Pear size={12} tone="sage" shadow={false} />
       <span style={{ fontStyle: 'italic', fontFamily: 'var(--font-display, Fraunces, Georgia, serif)' }}>
-        Pear drafted this — make it yours
+        Pear drafted this, make it yours
       </span>
       <button
         type="button"

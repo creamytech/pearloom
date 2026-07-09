@@ -187,10 +187,10 @@ export function seedSectionsFromWizard(
           answer = picks.kidsPolicy.trim();
         } else if (picks.plusOnes !== undefined && /plus.?one|bring (a guest|someone)/.test(lower)) {
           answer = picks.plusOnes
-            ? 'Yes — the RSVP form will offer a spot for your guest.'
-            : 'We’re keeping it to invited guests only — thank you for understanding.';
+            ? 'Yes, the RSVP form will offer a spot for your guest.'
+            : 'We’re keeping it to invited guests only, thank you for understanding.';
         } else if (hostHotels.length > 0 && /stay|hotel/.test(lower)) {
-          answer = `We suggest ${hostHotels.map((h) => h.name.trim()).join(' or ')} — details in the Travel section.`;
+          answer = `We suggest ${hostHotels.map((h) => h.name.trim()).join(' or ')}, details in the Travel section.`;
         } else if (picks.parkingNote?.trim() && /park/.test(lower)) {
           answer = picks.parkingNote.trim();
         } else {

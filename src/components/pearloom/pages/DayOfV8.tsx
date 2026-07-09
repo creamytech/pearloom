@@ -158,7 +158,7 @@ function DayOfHero({
     ? (
         <>
           Right now: <strong style={{ color: HERO_CREAM, fontWeight: 600 }}>{nowLabel}</strong>.
-          {nextLabel ? <> Next up — {nextLabel}.</> : null}
+          {nextLabel ? <> Next up, {nextLabel}.</> : null}
         </>
       )
     : 'Add your run of show and the day will keep its own time here.';
@@ -274,10 +274,10 @@ function MomentTimeline({
   // as examples, not real data.
   const examples =
     occasion === 'memorial' || occasion === 'funeral'
-      ? ['2:00 — Gathering begins', '2:30 — Words & remembrances', '3:30 — Reception']
+      ? ['2:00, Gathering begins', '2:30, Words & remembrances', '3:30, Reception']
       : occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion'
-        ? ['Fri 6:00 — Welcome dinner', 'Sat 11:00 — Main activity', 'Sat 9:00 — Night out']
-        : ['5:00 — Doors open', '6:00 — Dinner served', '8:00 — Toasts', '9:00 — Music & dancing'];
+        ? ['Fri 6:00, Welcome dinner', 'Sat 11:00, Main activity', 'Sat 9:00, Night out']
+        : ['5:00, Doors open', '6:00, Dinner served', '8:00, Toasts', '9:00, Music & dancing'];
 
   if (items.length === 0) {
     return (
@@ -287,7 +287,7 @@ function MomentTimeline({
           <DashEmpty
             eyebrow={heading}
             title="No schedule yet."
-            body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
+            body="Add events in the editor, Pearloom will show them here in order on the day, with a live now-marker."
             examples={examples}
             actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
           />
@@ -462,7 +462,7 @@ function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId
         >
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Nothing yet.</div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 360, margin: '0 auto 12px' }}>
-            Turn on a guest photo wall in the editor — any photo uploaded lands here for quick moderation.
+            Turn on a guest photo wall in the editor, any photo uploaded lands here for quick moderation.
           </div>
           <Link href={editorDeepLink(siteDomain, 'gallery')} className="btn btn-outline btn-sm">
             <Icon name="brush" size={12} /> Set up photo wall
@@ -740,7 +740,7 @@ function GuestWall({ siteId, siteDomain, occasion }: { siteId?: string | null; s
           }}
         >
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
-            No notes yet. Add a guestbook block on your site — any message guests leave shows up here.
+            No notes yet. Add a guestbook block on your site, any message guests leave shows up here.
           </div>
           <Link href={editorDeepLink(siteDomain, 'faq')} className="btn btn-outline btn-sm">
             <Icon name="brush" size={12} /> Add guestbook
@@ -879,7 +879,7 @@ function SongQueue({ siteId }: { siteId?: string | null }) {
           }}
         >
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', maxWidth: 340, margin: '0 auto 12px' }}>
-            No song requests yet. Guests add songs from their Passport — they land here and in Music for triage.
+            No song requests yet. Guests add songs from their Passport, they land here and in Music for triage.
           </div>
           <Link href="/dashboard/music" className="btn btn-outline btn-sm">
             <Icon name="music" size={12} /> Open Music
@@ -1394,7 +1394,7 @@ function PointPerson({ manifest }: { manifest: unknown }) {
         <CardEyebrow color="var(--lavender-ink)">Point person</CardEyebrow>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.5 }}>
-        Guests reach <strong>{name}</strong> today, not you — so you&rsquo;re present for the day itself.
+        Guests reach <strong>{name}</strong> today, not you, so you&rsquo;re present for the day itself.
       </div>
       {phone ? (
         <a

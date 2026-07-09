@@ -85,7 +85,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[photo-upload] upload failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take — try again?');
+        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take, try again?');
       }
       const data = await res.json() as { photos?: { baseUrl?: string }[] };
       const baseUrl = data.photos?.[0]?.baseUrl;
@@ -95,7 +95,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       console.error('[photo-upload] upload error:', e);
       setErr(e instanceof ImageNormalizeError
         ? normalizeErrorMessage(e)
-        : pearErrorMessage(e, 'The upload didn’t take — try again?'));
+        : pearErrorMessage(e, 'The upload didn’t take, try again?'));
     } finally {
       setBusy(false);
     }
@@ -137,7 +137,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
         return;
       }
       if (normalizeFailures.length > 0) {
-        setErr(`${normalizeFailures.length} photo${normalizeFailures.length > 1 ? 's' : ''} skipped — ${normalizeFailures[0]}`);
+        setErr(`${normalizeFailures.length} photo${normalizeFailures.length > 1 ? 's' : ''} skipped, ${normalizeFailures[0]}`);
       }
       const res = await fetch('/api/photos/upload', {
         method: 'POST',
@@ -147,7 +147,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[photo-upload] batch upload failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take — try again?');
+        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take, try again?');
       }
       const data = await res.json() as { photos?: { baseUrl?: string }[] };
       const urls = (data.photos ?? []).map((p) => p.baseUrl).filter((u): u is string => !!u);
@@ -156,7 +156,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       else onChange(urls[0]);
     } catch (e) {
       console.error('[photo-upload] batch upload error:', e);
-      setErr(pearErrorMessage(e, 'The upload didn’t take — try again?'));
+      setErr(pearErrorMessage(e, 'The upload didn’t take, try again?'));
     } finally {
       setBusy(false);
     }
@@ -226,7 +226,7 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
                 picker (camera / library) opens on tap either way. */}
             <div>
               <div style={{ fontWeight: 600, marginBottom: 2 }}>{isSmall ? 'Add a photo' : 'Tap to add a photo'}</div>
-              {!isSmall && <div style={{ fontSize: 11.5 }}>from your device — or drop one here</div>}
+              {!isSmall && <div style={{ fontSize: 11.5 }}>from your device, or drop one here</div>}
             </div>
           </div>
         )}

@@ -1029,7 +1029,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
       <div style={cockpitCard}>
         <span className="eyebrow" style={{ margin: 0 }}>Budget</span>
         <div style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-          Track what you&rsquo;re spending against what you&rsquo;ve set aside — Pear keeps the running total.
+          Track what you&rsquo;re spending against what you&rsquo;ve set aside, Pear keeps the running total.
         </div>
         <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <button
@@ -1069,7 +1069,7 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         <button type="button" onClick={addLine} style={{ marginTop: 10, width: '100%', padding: 9, borderRadius: 9, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add category</button>
         {saveError && (
           <div role="alert" style={{ marginTop: 10, fontSize: 12, color: 'var(--pl-warning, #A14A2C)', lineHeight: 1.45 }}>
-            That didn&rsquo;t save — check your connection and try again. Your lines are still here.
+            That didn&rsquo;t save, check your connection and try again. Your lines are still here.
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
@@ -1167,7 +1167,7 @@ export function TheLongView({
         { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)' },
         { icon: 'image', when: 'That week', what: 'Tributes gather on the wall', color: 'var(--sage-deep)' },
         { icon: 'gift', when: 'One year on', what: 'Pear sends a remembrance note', color: 'var(--gold)' },
-        { icon: 'sparkles', when: 'Always', what: 'The page stays — a place to return', color: 'var(--peach-ink)' },
+        { icon: 'sparkles', when: 'Always', what: 'The page stays, a place to return', color: 'var(--peach-ink)' },
       ]
     : [
         { icon: 'heart-icon', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)' },
@@ -1176,11 +1176,11 @@ export function TheLongView({
         { icon: 'sparkles', when: 'Forever', what: 'The site becomes a keepsake page', color: 'var(--lavender-ink)' },
       ];
   const body = solemn
-    ? 'Pear keeps the weave going — the page becomes a place to return to, long after the day.'
+    ? 'Pear keeps the weave going, the page becomes a place to return to, long after the day.'
     : phase === 'kept'
-      ? 'The day is woven in for good. One year on, Pear sends the anniversary note — and the site stays, a keepsake page.'
+      ? 'The day is woven in for good. One year on, Pear sends the anniversary note, and the site stays, a keepsake page.'
       : post
-        ? 'The day is woven in. Pear keeps the weave going — the Reel, the book, and a first-anniversary note.'
+        ? 'The day is woven in. Pear keeps the weave going, the Reel, the book, and a first-anniversary note.'
         : 'A day today is a keepsake in forty years. Pear keeps the weave going long after the last dance.';
   return (
     <div style={{ ...cockpitCard, padding: 0, overflow: 'hidden' }}>

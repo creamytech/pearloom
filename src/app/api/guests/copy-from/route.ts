@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const rl = checkRateLimit(`guests-copy:${session.user.email}`, { max: 10, windowMs: 60 * 60 * 1000 });
     if (!rl.allowed) {
-      return NextResponse.json({ error: 'Too many copies — try again in an hour.' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many copies. Try again in an hour.' }, { status: 429 });
     }
 
     let body: { siteId?: string; fromSiteId?: string } = {};

@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
   }
   const rl = checkRateLimit(`studio-asset:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many generations — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many generations. Try again in an hour.' }, { status: 429 });
   }
 
   let body: Body = {};

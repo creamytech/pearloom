@@ -34,7 +34,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const WARM_502 =
-  'Pear set the type but the press jammed — give it a beat and press again.';
+  'Pear set the type but the press jammed. Give it a beat and press again.';
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   });
   if (!rate.allowed) {
     return NextResponse.json(
-      { error: 'Pear is taking a breath — try the press again in a minute.' },
+      { error: 'Pear is taking a breath. Try the press again in a minute.' },
       { status: 429 },
     );
   }

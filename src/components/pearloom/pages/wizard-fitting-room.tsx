@@ -389,7 +389,7 @@ export function WizardFittingRoom({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="The fitting room — try looks on your live site"
+      aria-label="The fitting room, try looks on your live site"
       style={{
         /* Portaled to <body>: the wizard root's containing-block
            quirk made this 'fixed' behave like absolute (the room
@@ -483,7 +483,7 @@ export function WizardFittingRoom({
             pointerEvents: 'none', whiteSpace: 'nowrap',
           }}
         >
-          scroll — the whole site is here
+          scroll, the whole site is here
         </div>
       </div>
 

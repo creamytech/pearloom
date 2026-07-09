@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
             const owns = await userOwnsPack(session.user.email, packId);
             if (!owns) {
               return NextResponse.json({
-                error: `This site is wearing ${pack.name} — unlock it to publish, or switch to a free look in the Theme panel.`,
+                error: `This site is wearing ${pack.name}. Unlock it to publish, or switch to a free look in the Theme panel.`,
                 packGate: { id: pack.id, name: pack.name, priceCents: pack.priceCents },
               }, { status: 402 });
             }

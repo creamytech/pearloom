@@ -51,7 +51,7 @@ const WELCOME = (description: string): WeekendEventDef => ({
 const BRUNCH: WeekendEventDef = {
   kind: 'brunch',
   label: 'Morning-after brunch',
-  description: 'The morning after, for everyone who stayed — coffee, bagels, long goodbyes.',
+  description: 'The morning after, for everyone who stayed, coffee, bagels, long goodbyes.',
   offsetDays: 1,
   sluffix: 'brunch',
   recommended: true,
@@ -61,16 +61,16 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
   {
     id: 'wedding',
     label: 'Wedding weekend',
-    blurb: 'The whole arc — shower to send-off brunch.',
+    blurb: 'The whole arc, shower to send-off brunch.',
     dateLabel: 'Wedding date',
     events: [
-      { kind: 'engagement', label: 'Engagement party', description: 'Months ahead — friends and family meet the news.', offsetDays: -180, sluffix: 'engagement' },
+      { kind: 'engagement', label: 'Engagement party', description: 'Months ahead, friends and family meet the news.', offsetDays: -180, sluffix: 'engagement' },
       { kind: 'bridal-shower', label: 'Bridal shower', description: 'An afternoon for her, usually hosted by the maid of honor.', offsetDays: -45, sluffix: 'shower' },
-      { kind: 'bachelor-party', label: 'Bachelor party', description: 'The trip with the groom’s people — own guest list, own site.', offsetDays: -30, sluffix: 'bach' },
-      { kind: 'bachelorette-party', label: 'Bachelorette party', description: 'The trip with the bride’s people — own guest list, own site.', offsetDays: -30, sluffix: 'bachelorette' },
-      { kind: 'rehearsal-dinner', label: 'Rehearsal dinner', description: 'The night before — family and wedding party only.', offsetDays: -1, sluffix: 'rehearsal', recommended: true },
+      { kind: 'bachelor-party', label: 'Bachelor party', description: 'The trip with the groom’s people, own guest list, own site.', offsetDays: -30, sluffix: 'bach' },
+      { kind: 'bachelorette-party', label: 'Bachelorette party', description: 'The trip with the bride’s people, own guest list, own site.', offsetDays: -30, sluffix: 'bachelorette' },
+      { kind: 'rehearsal-dinner', label: 'Rehearsal dinner', description: 'The night before, family and wedding party only.', offsetDays: -1, sluffix: 'rehearsal', recommended: true },
       WELCOME('Friday-night drinks for everyone who traveled in.'),
-      { kind: 'wedding', label: 'The wedding', description: 'The main event — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'wedding', label: 'The wedding', description: 'The main event, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -80,8 +80,8 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     blurb: 'Mass, reception, and the family around it.',
     dateLabel: 'Quinceañera date',
     events: [
-      WELCOME('Family dinner the night before — out-of-town relatives land here.'),
-      { kind: 'quinceanera', label: 'The quinceañera', description: 'Mass and reception — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      WELCOME('Family dinner the night before, out-of-town relatives land here.'),
+      { kind: 'quinceanera', label: 'The quinceañera', description: 'Mass and reception, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -92,7 +92,7 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     dateLabel: 'Bar mitzvah date',
     events: [
       WELCOME('Shabbat dinner for out-of-town family, the night before the service.'),
-      { kind: 'bar-mitzvah', label: 'The bar mitzvah', description: 'Service and celebration — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'bar-mitzvah', label: 'The bar mitzvah', description: 'Service and celebration, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -103,18 +103,18 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     dateLabel: 'Bat mitzvah date',
     events: [
       WELCOME('Shabbat dinner for out-of-town family, the night before the service.'),
-      { kind: 'bat-mitzvah', label: 'The bat mitzvah', description: 'Service and celebration — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'bat-mitzvah', label: 'The bat mitzvah', description: 'Service and celebration, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
   {
     id: 'milestone-birthday',
     label: 'Big birthday weekend',
-    blurb: 'A 30th, 50th, 75th — done properly.',
+    blurb: 'A 30th, 50th, 75th, done properly.',
     dateLabel: 'The birthday',
     events: [
       WELCOME('Kick-off drinks the night before, for early arrivals.'),
-      { kind: 'milestone-birthday', label: 'The party', description: 'The main event — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'milestone-birthday', label: 'The party', description: 'The main event, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -125,7 +125,7 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     dateLabel: 'Anniversary date',
     events: [
       WELCOME('Drinks the night before, for family who traveled.'),
-      { kind: 'anniversary', label: 'The celebration', description: 'The main event — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'anniversary', label: 'The celebration', description: 'The main event, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -136,7 +136,7 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     dateLabel: 'Graduation day',
     events: [
       WELCOME('Family dinner the night before the ceremony.'),
-      { kind: 'graduation', label: 'The graduation', description: 'Ceremony and open house — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'graduation', label: 'The graduation', description: 'Ceremony and open house, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -147,7 +147,7 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     dateLabel: 'Party date',
     events: [
       WELCOME('Early arrivals and old colleagues, the night before.'),
-      { kind: 'retirement', label: 'The send-off', description: 'The main event — this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'retirement', label: 'The send-off', description: 'The main event, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
       BRUNCH,
     ],
   },
@@ -157,9 +157,9 @@ export const WEEKEND_ANCHORS: WeekendAnchor[] = [
     blurb: 'Everyone back in one place for a few days.',
     dateLabel: 'Main day',
     events: [
-      WELCOME('Arrival night — casual, come as you land.'),
-      { kind: 'reunion', label: 'The reunion', description: 'The big day — cookout, group photo, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
-      { kind: 'brunch', label: 'Farewell brunch', description: 'The morning after — one more round of coffee before everyone drives home.', offsetDays: 1, sluffix: 'brunch', recommended: true },
+      WELCOME('Arrival night, casual, come as you land.'),
+      { kind: 'reunion', label: 'The reunion', description: 'The big day, cookout, group photo, this is your primary site.', offsetDays: 0, sluffix: '', recommended: true },
+      { kind: 'brunch', label: 'Farewell brunch', description: 'The morning after, one more round of coffee before everyone drives home.', offsetDays: 1, sluffix: 'brunch', recommended: true },
     ],
   },
 ];

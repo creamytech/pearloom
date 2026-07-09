@@ -206,7 +206,7 @@ export async function PATCH(req: NextRequest) {
     .eq('id', id);
   if (error) {
     console.error('[gift-pledges] PATCH thanked failed:', error);
-    return NextResponse.json({ error: 'Could not update — try again.' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not update. Try again.' }, { status: 500 });
   }
   return NextResponse.json({ ok: true, thankedAt });
 }
@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
   });
   if (error) {
     console.error('[gift-pledges] insert failed:', error);
-    return NextResponse.json({ ok: false, error: 'Could not save — try again.' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: 'Could not save. Try again.' }, { status: 500 });
   }
 
   /* The gift thread reaches the host (email audit 2026-07-08) —

@@ -78,9 +78,9 @@ export function PhotoFilterEditor({
       const data = (await r.json().catch(() => null)) as { photos?: Array<{ baseUrl: string }> } | null;
       const baked = data?.photos?.[0]?.baseUrl;
       if (r.ok && baked) onApplied(baked);
-      else { setNote('Could not save the edited photo — using the original.'); onApplied(url); }
+      else { setNote('Could not save the edited photo, using the original.'); onApplied(url); }
     } catch {
-      setNote('This photo can’t be re-saved with edits — using the original.');
+      setNote('This photo can’t be re-saved with edits, using the original.');
       onApplied(url);
     } finally {
       setBusy(false);

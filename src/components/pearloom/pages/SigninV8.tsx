@@ -95,7 +95,7 @@ export function SigninV8({
       return;
     }
     if (!password) {
-      setEmailError('Enter your password — or use Google above.');
+      setEmailError('Enter your password, or use Google above.');
       return;
     }
     setBusy('email');

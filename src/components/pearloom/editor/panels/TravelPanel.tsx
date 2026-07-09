@@ -187,14 +187,14 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[travel] place search failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'The search didn’t come back — try again?');
+        throw new Error((j as { error?: string }).error ?? 'The search didn’t come back, try again?');
       }
       const data = await res.json() as { results?: SearchResult[]; fallback?: boolean };
       setResults(Array.isArray(data.results) ? data.results : []);
       setOpen(true);
     } catch (e) {
       console.error('[travel] place search error:', e);
-      setErr(pearErrorMessage(e, 'The search didn’t come back — try again?'));
+      setErr(pearErrorMessage(e, 'The search didn’t come back, try again?'));
       setResults([]);
     } finally {
       setSearching(false);
@@ -213,7 +213,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[travel] place details failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Couldn’t add that hotel — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t add that hotel, try again?');
       }
       const data = await res.json() as { details?: PlaceDetails | null; fallback?: boolean };
       /* Fallback to the cheap search-result shape when details fails —
@@ -243,7 +243,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       setOpen(false);
     } catch (e) {
       console.error('[travel] add hotel error:', e);
-      setErr(pearErrorMessage(e, 'Couldn’t add that hotel — try again?'));
+      setErr(pearErrorMessage(e, 'Couldn’t add that hotel, try again?'));
     } finally {
       setAdding(null);
     }
@@ -463,18 +463,18 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         <FInput
                           value={h.bookingUrl ?? ''}
                           onChange={(v) => updateHotel(key, { bookingUrl: v || undefined })}
-                          placeholder="Booking link — adds a Book now button"
+                          placeholder="Booking link, adds a Book now button"
                           type="url"
                         />
                         <FInput
                           value={h.groupRate ?? ''}
                           onChange={(v) => updateHotel(key, { groupRate: v || undefined })}
-                          placeholder="Group code — e.g. SCOTT2026 (tap-to-copy chip)"
+                          placeholder="Group code, e.g. SCOTT2026 (tap-to-copy chip)"
                         />
                         <FInput
                           value={h.description ?? ''}
                           onChange={(v) => updateHotel(key, { description: v || undefined })}
-                          placeholder="A note for guests — '10 min walk, mention our block'"
+                          placeholder="A note for guests, '10 min walk, mention our block'"
                         />
                       </div>
                     </details>
@@ -511,7 +511,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow
+            <Icon name="chev-down" size={12} /> More, eyebrow
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">

@@ -128,7 +128,7 @@ export function WizardTimePicker({
       <button
         ref={triggerRef}
         type="button"
-        aria-label={`Time for ${label} — ${value}`}
+        aria-label={`Time for ${label}, ${value}`}
         aria-expanded={open}
         onClick={() => setPos((p) => (p ? null : measure()))}
         style={{

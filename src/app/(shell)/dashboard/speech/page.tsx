@@ -3,7 +3,7 @@ import { SpeechComposerPage } from '@/components/pearloom/pages/SpeechComposerPa
 
 export const metadata: Metadata = {
   title: 'Speech composer · Pearloom',
-  description: 'Paste a draft toast, vows, or welcome speech — Pear scores it and suggests surgical edits.',
+  description: 'Paste a draft toast, vows, or welcome speech, Pear scores it and suggests surgical edits.',
 };
 
 export default function Page() {

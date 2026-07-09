@@ -261,7 +261,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                   >
                     <span style={{ fontWeight: 600 }}>{o.packId}</span>
                     <span style={{ fontSize: 11, color: 'var(--pl-muted, #6F6557)' }}>
-                      {o.source?.startsWith('admin:') ? `comped — ${o.source.split(':')[1]}` : 'purchased'}
+                      {o.source?.startsWith('admin:') ? `comped, ${o.source.split(':')[1]}` : 'purchased'}
                       {o.purchasedAt ? ` · ${new Date(o.purchasedAt).toLocaleDateString()}` : ''}
                     </span>
                   </li>

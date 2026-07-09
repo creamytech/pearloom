@@ -126,7 +126,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
           }}
         >
           Every Pearloom site arrives fully drafted, then re-skins live. Pick a palette, a
-          component kit, a paper and a typeface, and watch the whole thing re-ink — real
+          component kit (a paper and a typeface) and watch the whole thing re-ink, real
           components on real paper.
         </p>
       </div>

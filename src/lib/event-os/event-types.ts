@@ -160,7 +160,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     id: 'engagement',
     label: 'Engagement party',
-    tagline: 'They said yes — tell the story',
+    tagline: 'They said yes, tell the story',
     category: 'wedding-arc',
     hostRole: 'couple or parents',
     voice: 'celebratory',
@@ -488,7 +488,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     id: 'milestone-birthday',
     label: 'Milestone birthday',
-    tagline: '30, 40, 50 — the years worth marking',
+    tagline: '30, 40, 50, the years worth marking',
     category: 'milestone',
     hostRole: 'birthday person or partner',
     voice: 'celebratory',

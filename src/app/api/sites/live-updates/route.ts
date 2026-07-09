@@ -334,7 +334,7 @@ async function emailBroadcastToGuests({
         await resend.emails.send({
           from: fromEmail,
           to: r.email,
-          subject: `${couple} — quick update`,
+          subject: `${couple}: quick update`,
           html,
           text: htmlToText(html),
           headers: listUnsubHeaders({ email: r.email, siteId, channel: 'broadcast' }),

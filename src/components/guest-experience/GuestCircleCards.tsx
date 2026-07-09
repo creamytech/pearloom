@@ -89,7 +89,7 @@ export function GuestThreadCard({
       setMessages(data.messages ?? []);
       setCanDm(Boolean(data.canDm));
       if (data.channel) setRtChannel(data.channel);
-    } catch { /* polling — next tick retries */ }
+    } catch { /* polling, next tick retries */ }
   }, [token]);
 
   useEffect(() => {
@@ -127,14 +127,14 @@ export function GuestThreadCard({
       });
       const data = (await r.json()) as { ok?: boolean; message?: ThreadMessage; error?: string };
       if (!r.ok || !data.ok || !data.message) {
-        setError(data.error ?? 'Could not send — try again?');
+        setError(data.error ?? 'Could not send, try again?');
         return;
       }
       setMessages((prev) => [...(prev ?? []), data.message!]);
       setGifOpen(false);
       ping();
     } catch {
-      setError('Could not send — try again?');
+      setError('Could not send, try again?');
     } finally {
       setSending(false);
     }
@@ -154,14 +154,14 @@ export function GuestThreadCard({
       });
       const data = (await r.json()) as { ok?: boolean; message?: ThreadMessage; error?: string };
       if (!r.ok || !data.ok || !data.message) {
-        setError(data.error ?? 'Could not send — try again?');
+        setError(data.error ?? 'Could not send, try again?');
         return;
       }
       setMessages((prev) => [...(prev ?? []), data.message!]);
       setDraft('');
       ping();
     } catch {
-      setError('Could not send — try again?');
+      setError('Could not send, try again?');
     } finally {
       setSending(false);
     }
@@ -214,7 +214,7 @@ export function GuestThreadCard({
         ) : messages.length === 0 ? (
           <div style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', padding: '14px 0' }}>
             {tab === 'dm'
-              ? 'A private line to your hosts — ask anything, only they see it.'
+              ? 'A private line to your hosts, ask anything, only they see it.'
               : 'No one here yet.'}
           </div>
         ) : (
@@ -374,7 +374,7 @@ export function CelebratedTogetherCard({
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 14px' }}>
             Turn this on and you&apos;ll see the first names of people you&apos;ve celebrated with
-            before who are part of this one too — and they&apos;ll see yours. Only first names,
+            before who are part of this one too, and they&apos;ll see yours. Only first names,
             only people who also opted in, off whenever you like.
           </p>
           <button
@@ -404,11 +404,11 @@ export function CelebratedTogetherCard({
             <p style={{ fontSize: '0.86rem', color: 'var(--ink, #0E0D0B)', lineHeight: 1.6, margin: '0 0 10px' }}>
               You&apos;ve celebrated with{' '}
               <strong>{state.faces.slice(0, 5).map((f) => f.firstName).join(', ')}</strong>
-              {state.faces.length > 5 ? ` and ${state.faces.length - 5} more` : ''} before — they&apos;re woven into this one too.
+              {state.faces.length > 5 ? ` and ${state.faces.length - 5} more` : ''} before, they&apos;re woven into this one too.
             </p>
           ) : (
             <p style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55, margin: '0 0 10px' }}>
-              No one you&apos;ve celebrated with has opted in here yet — when they do,
+              No one you&apos;ve celebrated with has opted in here yet, when they do,
               their first names will appear.
             </p>
           )}

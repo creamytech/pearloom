@@ -77,7 +77,7 @@ export function requestRsvp(): void {
   window.setTimeout(() => {
     if (!modalReady) {
       pendingOpen = false;
-      siteToast('RSVP isn’t open yet — check back once the hosts have finished setting up.');
+      siteToast('RSVP isn’t open yet, check back once the hosts have finished setting up.');
     }
   }, grace);
 }

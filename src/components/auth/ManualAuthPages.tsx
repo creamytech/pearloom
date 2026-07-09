@@ -235,7 +235,7 @@ function WizardClaimCard({ claim }: { claim: WizardClaim & { dateLabel?: string 
           <span key={i} style={{ width: 13, height: 13, borderRadius: 999, background: c, border: '1px solid var(--line-soft, var(--line))' }} />
         ))}
         <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
-          Saved — it will be here the moment you're in.
+          Saved. It will be here the moment you're in.
         </span>
       </div>
     </div>
@@ -277,7 +277,7 @@ export function SignupClient() {
       return;
     }
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Use at least ${MIN_PASSWORD_LENGTH} characters — a few words you'll remember beat a short scramble.`);
+      setError(`Use at least ${MIN_PASSWORD_LENGTH} characters. A few words you'll remember beat a short scramble.`);
       return;
     }
     setBusy('email');
@@ -314,14 +314,14 @@ export function SignupClient() {
           <Heading line1="Claim your" line2="site." />
           <WizardClaimCard claim={claim} />
           <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-            An account keeps it — the moment you're in, it's saved to you.
+            An account keeps it. The moment you're in, it's saved to you.
           </p>
         </>
       ) : (
         <>
           <Heading line1="Create your" line2="account." />
           <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-            An account keeps your sites, guests, and keepsakes in one place — no Google required.
+            An account keeps your sites, guests, and keepsakes in one place, no Google required.
           </p>
         </>
       )}
@@ -422,7 +422,7 @@ export function ForgotClient() {
       });
       if (res.status === 429) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? 'Too many attempts — try again shortly.');
+        setError(body.error ?? 'Too many attempts. Try again shortly.');
         return;
       }
       setSent(true);
@@ -437,7 +437,7 @@ export function ForgotClient() {
     <AuthShell>
       <Heading line1="Forgot your" line2="password?" />
       <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-        Tell us your email — if it has a Pearloom account, a one-hour reset link is on its way.
+        Tell us your email. If it has a Pearloom account, a one-hour reset link is on its way.
       </p>
 
       {sent ? (
@@ -521,13 +521,13 @@ export function ResetClient({ token }: { token: string }) {
         <div style={{ padding: '18px 16px', borderRadius: 14, background: 'var(--sage-tint)', border: '1px solid rgba(107,122,58,0.25)' }}>
           <div className="eyebrow" style={{ color: 'var(--sage-deep)', marginBottom: 6 }}>All set</div>
           <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: 'var(--ink)' }}>
-            Your password is saved — taking you to sign in.
+            Your password is saved, taking you to sign in.
           </p>
         </div>
       ) : (
         <>
           <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 26 }}>
-            Pick something with a little length to it — a few words you’ll remember.
+            Pick something with a little length to it: a few words you’ll remember.
           </p>
           {error && <ErrorNote>{error}</ErrorNote>}
           <form onSubmit={submit}>

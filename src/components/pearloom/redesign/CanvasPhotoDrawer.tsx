@@ -136,7 +136,7 @@ export function CanvasPhotoDrawer({
         setLibrary((prev) => (prev.includes(url) ? prev : [url, ...prev]));
         onPick(url);
       }
-    } catch { /* upload failed — silent; the drawer stays open */ }
+    } catch { /* upload failed, silent; the drawer stays open */ }
     finally { setUploading(false); }
   }
 

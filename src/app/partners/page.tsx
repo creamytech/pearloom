@@ -155,7 +155,7 @@ export default function PartnersPage() {
               Join hundreds of wedding professionals already earning with Pearloom.
             </p>
             <Button variant="primary" size="lg" onClick={() => setView('register')} icon={<ArrowRight size={15} />}>
-              Apply Now — It&rsquo;s Free
+              Apply Now, It&rsquo;s Free
             </Button>
           </div>
         </section>
@@ -325,7 +325,7 @@ export default function PartnersPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--ink-muted)]">Current Tier</h3>
-              <p className="text-[1.2rem] font-heading font-semibold text-[var(--ink)]">Basic — {PARTNER_TIERS.basic.commissionRate}% Commission</p>
+              <p className="text-[1.2rem] font-heading font-semibold text-[var(--ink)]">Basic, {PARTNER_TIERS.basic.commissionRate}% Commission</p>
               <p className="text-[0.78rem] text-[var(--ink-muted)]">Upgrade to Pro: get 10+ referrals and 4.0+ rating</p>
             </div>
             <Button variant="accent" size="sm">Upgrade</Button>

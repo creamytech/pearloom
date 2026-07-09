@@ -12,7 +12,7 @@ import { Ornament, Pearl, Pill, PD, DISPLAY_STYLE, pdInkMix } from './DesignAtom
 
 const NOTES = [
   {
-    t: 'The save-the-date opens like a letter, not a form — set in your two names, in your own colors, from your own photographs.',
+    t: 'The save-the-date opens like a letter, not a form. Set in your two names, in your own colors, from your own photographs.',
     n: 'The suite',
     role: 'Save-the-dates · drafted by Pear',
     bg: PD.paper2,
@@ -21,26 +21,26 @@ const NOTES = [
   {
     t: 'A memorial, drafted gently in their voice. You change four words, and it is ready for family. It will never cost anything.',
     n: 'Memorials',
-    role: 'Free on every tier — written into the code',
+    role: 'Free on every tier, written into the code',
     bg: PD.wash,
     rot: 1.5,
   },
   {
-    t: 'On the day, everyone knows what is next. The run of show, the seating, the live photo wall — one quiet room, threading itself.',
+    t: 'On the day, everyone knows what is next. The run of show, the seating, the live photo wall: one quiet room, threading itself.',
     n: 'The day-of room',
     role: 'Timeline · toasts · broadcasts',
     bg: PD.blush,
     rot: -1,
   },
   {
-    t: 'A year on, the site returns — rewoven with every photo, toast, and note your guests left behind. Yours to keep, always.',
+    t: 'A year on, the site returns, rewoven with every photo, toast, and note your guests left behind. Yours to keep, always.',
     n: 'The rebroadcast',
     role: 'Anniversaries · the memory book',
     bg: PD.sand,
     rot: 2,
   },
   {
-    t: 'Snap or pick a photo, add a filter, send. Every upload is checked before it ever reaches the wall — the warmth, never the wrong thing.',
+    t: 'Snap or pick a photo, add a filter, send. Every upload is checked before it ever reaches the wall: the warmth, never the wrong thing.',
     n: 'The photo wall',
     role: 'Filters · auto-screened uploads',
     bg: PD.mint,

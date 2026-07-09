@@ -462,8 +462,8 @@ export function MemoryBookPage() {
                 Nothing woven in yet.
               </p>
               <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--ink-muted)', marginTop: 8 }}>
-                As guests leave notes, photos, and memories on your {occLabel.toLowerCase()} site —
-                and as you add story chapters in the editor — they gather here into a printable
+                As guests leave notes, photos, and memories on your {occLabel.toLowerCase()} site, 
+                and as you add story chapters in the editor, they gather here into a printable
                 keepsake.
               </p>
               {site?.domain && (
@@ -682,7 +682,7 @@ export function MemoryBookPage() {
                 <SectionHead
                   kicker="Voices"
                   title="In their own voices"
-                  sub="Words recorded aloud — the audio lives on with your Pearloom celebration."
+                  sub="Words recorded aloud, the audio lives on with your Pearloom celebration."
                 />
                 <ul
                   className="pl8-mb-cols"
@@ -708,7 +708,7 @@ export function MemoryBookPage() {
                       <strong style={{ color: 'var(--ink)' }}>{v.guest_name}</strong>
                       {fmtToastDuration(v.duration_seconds) && (
                         <span style={{ color: 'var(--ink-soft)' }}>
-                          {' '}— {fmtToastDuration(v.duration_seconds)}
+                          {' '}, {fmtToastDuration(v.duration_seconds)}
                         </span>
                       )}
                       {v.created_at && (
@@ -756,7 +756,7 @@ export function MemoryBookPage() {
                     >
                       <strong style={{ color: 'var(--ink)' }}>{s.song_title}</strong>
                       {s.artist ? (
-                        <span style={{ color: 'var(--ink-soft)' }}> — {s.artist}</span>
+                        <span style={{ color: 'var(--ink-soft)' }}>, {s.artist}</span>
                       ) : null}
                       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2 }}>
                         requested by {s.guest_name}

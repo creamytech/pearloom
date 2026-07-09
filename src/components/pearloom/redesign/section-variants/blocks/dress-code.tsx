@@ -71,8 +71,8 @@ export function DressCodeSection({ manifest, pad, editable, variant, onEditCopy 
       {empty ? (
         <BlockEmpty
           hint={wardrobe
-            ? 'Name the code in the Dress code panel — add a photo to any example and it becomes a "Wear this" plate.'
-            : 'Name the code in the Dress code panel — tones and example chips are optional.'}
+            ? 'Name the code in the Dress code panel, add a photo to any example and it becomes a "Wear this" plate.'
+            : 'Name the code in the Dress code panel, tones and example chips are optional.'}
         />
       ) : (
         <div style={{ maxWidth: wardrobe ? 640 : 460, margin: '0 auto', textAlign: 'center' }}>

@@ -94,13 +94,13 @@ const WEDDING_PACK: VoicePack = {
   },
   registry: {
     sectionLabel: 'Registry',
-    introPlaceholder: 'Your presence is the gift — but if you insist…',
+    introPlaceholder: 'Your presence is the gift, but if you insist…',
     listLabel: 'Linked registries',
     addLabel: 'Link a registry',
   },
   story: {
     sectionLabel: 'Our story',
-    bodyPlaceholder: 'Start with how you met. A few sentences is plenty — Pear will help.',
+    bodyPlaceholder: 'Start with how you met. A few sentences is plenty, Pear will help.',
     chapterLabel: 'Chapter',
   },
   schedule: {
@@ -151,7 +151,7 @@ const INTIMATE_PACK: VoicePack = {
   story: {
     ...WEDDING_PACK.story,
     sectionLabel: 'A note from us',
-    bodyPlaceholder: 'A few sentences in your own voice — what this gathering means.',
+    bodyPlaceholder: 'A few sentences in your own voice, what this gathering means.',
   },
 };
 
@@ -185,7 +185,7 @@ const PLAYFUL_PACK: VoicePack = {
   rsvp: { sectionLabel: 'Are you in?', eyebrowPlaceholder: 'Let us know by April 1', replyByLabel: 'Reply by', buttonLabel: "I'm in", questionsLabel: 'Ask each person' },
   details: { sectionLabel: 'The plan', addCardLabel: 'Add to the plan' },
   registry: { sectionLabel: 'Group costs', introPlaceholder: "Here's the cost-split if you want to chip in early.", listLabel: 'Cost links', addLabel: 'Add a cost link' },
-  story: { sectionLabel: "Why we're doing this", bodyPlaceholder: 'Set the scene — who, where, why this weekend.', chapterLabel: 'Day' },
+  story: { sectionLabel: "Why we're doing this", bodyPlaceholder: 'Set the scene, who, where, why this weekend.', chapterLabel: 'Day' },
   schedule: { sectionLabel: 'Itinerary', rowAddLabel: 'Add to the itinerary' },
   gallery: { sectionLabel: 'Photo dump' },
   faq: { sectionLabel: 'What to ask', addLabel: 'Add a heads-up' },
@@ -198,7 +198,7 @@ const SOLEMN_PACK: VoicePack = {
     nameAPlaceholder: 'Their name',
     nameBPlaceholder: '',
     leadPlaceholder: 'In loving memory',
-    taglinePlaceholder: 'Born 1942 — passed 2026',
+    taglinePlaceholder: 'Born 1942, passed 2026',
     coverGroupHint: 'A favorite photograph. Drag an image here or pick from your device.',
     ctaPrimaryDefaultLabel: 'Attend the service',
     ctaSecondaryDefaultLabel: 'Read the obituary',

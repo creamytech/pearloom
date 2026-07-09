@@ -100,7 +100,7 @@ function SeatingPageInner() {
 
         {siteName && (
           <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', fontFamily: 'var(--pl-font-body)' }}>
-            — {siteName}
+            , {siteName}
           </span>
         )}
 
@@ -181,7 +181,7 @@ function SeatingPageInner() {
           <Sparkles size={16} color="var(--pl-olive, #5C6B3F)" />
           <div>
             <span style={{ fontWeight: 700, color: '#5C6B3F' }}>AI Arrange</span>
-            {' '}is coming soon — it will seat guests automatically based on your relationships and constraints.
+            {' '}is coming soon, it will seat guests automatically based on your relationships and constraints.
           </div>
         </div>
       )}

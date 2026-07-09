@@ -173,7 +173,7 @@ export function LivePhotoWall({ domain, manifest, names }: LivePhotoWallProps) {
             fontStyle: 'italic',
           }}
         >
-          Share your memories — scan to upload
+          Share your memories, scan to upload
         </p>
       </div>
 
@@ -255,7 +255,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
                 color: 'var(--pl-ink-soft)',
               }}
             >
-              — {photo.uploaderName}
+              , {photo.uploaderName}
             </p>
           )}
         </div>

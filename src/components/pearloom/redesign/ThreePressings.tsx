@@ -153,7 +153,7 @@ export function ThreePressings({ names }: { names: [string, string] }) {
             From Pear
           </div>
           <div style={{ fontFamily: 'var(--font-display, serif)', fontSize: 26, color: 'var(--cream, #F5EFE2)' }}>
-            Three pressings — <em style={{ fontStyle: 'italic' }}>pick the one that feels right.</em>
+            Three pressings, <em style={{ fontStyle: 'italic' }}>pick the one that feels right.</em>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', maxHeight: '70vh', overflowY: 'auto', padding: 4 }}>
@@ -180,7 +180,7 @@ export function ThreePressings({ names }: { names: [string, string] }) {
             cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
-          None of these — keep mine
+          None of these, keep mine
         </button>
       </div>
     </div>

@@ -61,7 +61,7 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
 
   function pick(source: 'camera' | 'library') {
     if (!name.trim()) {
-      setError('Add your name first — the couple wants to know who.');
+      setError('Add your name first, the couple wants to know who.');
       return;
     }
     setError(null);

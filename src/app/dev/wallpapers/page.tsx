@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { DevWallpapersClient } from './DevWallpapersClient';
 
-export const metadata = { title: 'Living backgrounds — dev' };
+export const metadata = { title: 'Living backgrounds, dev' };
 export const dynamic = 'force-dynamic';
 
 export default function DevWallpapersPage() {

@@ -45,7 +45,7 @@ export function readTaste(): TasteProfile {
 }
 
 function write(p: TasteProfile) {
-  try { window.localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* full/blocked — taste is a nicety */ }
+  try { window.localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* full/blocked, taste is a nicety */ }
 }
 
 /** Record a Keep or Discard. `label` is the direction ('warmer',
@@ -85,8 +85,8 @@ export function tasteHint(): string {
 /** The visible why — Pear says what she learned. '' until earned. */
 export function tasteLine(): string {
   const p = readTaste();
-  if (p.lengthBias >= 3) return 'Drafting shorter — you’ve trimmed my last few.';
+  if (p.lengthBias >= 3) return 'Drafting shorter, you’ve trimmed my last few.';
   const fav = Object.entries(p.kept).sort((a, b) => b[1] - a[1])[0];
-  if (fav && fav[1] >= 3 && fav[0] !== 'whisper') return `Leading with ${fav[0]} — you’ve kept it ${fav[1]} times.`;
+  if (fav && fav[1] >= 3 && fav[0] !== 'whisper') return `Leading with ${fav[0]}, you’ve kept it ${fav[1]} times.`;
   return '';
 }

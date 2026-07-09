@@ -125,7 +125,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
              one big inviting drop zone. Same drag-drop / click
              affordance, but communicates that the section starts
              EMPTY by design. */
-          <FGroup label="Photos" hint="Nothing yet. Begin with one — a favorite shot of the two of you, a venue, your dog.">
+          <FGroup label="Photos" hint="Nothing yet. Begin with one, a favorite shot of the two of you, a venue, your dog.">
             <PhotoUploadSlot
               url=""
               onChange={addPhoto}
@@ -134,7 +134,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
               aspectRatio="3/2"
               size="md"
               pool={photoPool}
-              hint="Drag photos in, or click to browse — pick a whole batch at once, up to 12 MB each. We'll line them up on the canvas."
+              hint="Drag photos in, or click to browse, pick a whole batch at once, up to 12 MB each. We'll line them up on the canvas."
             />
             {photoPool.length > 0 && (
               <div style={{ marginTop: 6, fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
@@ -143,7 +143,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
             )}
           </FGroup>
         ) : (
-          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in — several at once works — or click any slot to pick from your device. Captions show under each photo on the site.">
+          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in (several at once works) or click any slot to pick from your device. Captions show under each photo on the site.">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {Array.from({ length: renderCount }).map((_, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -197,8 +197,8 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
         <FToggleStandalone
           label="Guest photo uploads"
           sub={guestUploads
-            ? "On — a 'Share your photos' link under the gallery, plus your QR poster's upload page"
-            : 'Off — no share link on the site and the upload page is closed'}
+            ? "On, a 'Share your photos' link under the gallery, plus your QR poster's upload page"
+            : 'Off, no share link on the site and the upload page is closed'}
           def={guestUploads}
           onChange={setGuestUploads}
         />
@@ -212,7 +212,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow
+            <Icon name="chev-down" size={12} /> More, eyebrow
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">

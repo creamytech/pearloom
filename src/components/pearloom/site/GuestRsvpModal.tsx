@@ -323,7 +323,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         .then((d: { matches?: Array<{ id: string; name: string; party?: string | null }> } | null) => {
           if (d && Array.isArray(d.matches)) setNameMatches(d.matches);
         })
-        .catch(() => { /* lookup is best-effort — typing still works */ });
+        .catch(() => { /* lookup is best-effort, typing still works */ });
     }, 220);
     return () => { window.clearTimeout(t); ctl.abort(); };
   }, [open, step, query, siteSlug]);
@@ -577,7 +577,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       setSubmitting(false);
     } catch {
       setSubmitError('Couldn’t reach the server. Try again.');
-      siteToast('Couldn’t reach the server — please try again.');
+      siteToast('Couldn’t reach the server, please try again.');
       setSubmitting(false);
     }
   };
@@ -702,8 +702,8 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               }}
             >
               {guestListOnly
-                ? 'Replying by invitation — start typing your name and pick it from the list.'
-                : 'Tell us who’s coming — your name is all we need. If you’re on the list, we’ll find your invitation as you type.'}
+                ? 'Replying by invitation, start typing your name and pick it from the list.'
+                : 'Tell us who’s coming, your name is all we need. If you’re on the list, we’ll find your invitation as you type.'}
             </p>
             <div style={fieldStyle()}>
               <label style={labelStyle()}>Your name or party</label>
@@ -844,7 +844,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               }}
             >
               {guestListOnly
-                ? 'This celebration is replying by invitation. Try a different spelling of your name — if you still can’t find it, reach out to your hosts.'
+                ? 'This celebration is replying by invitation. Try a different spelling of your name, if you still can’t find it, reach out to your hosts.'
                 : 'Check the spelling, or continue with the name you entered.'}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -929,7 +929,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                   ✓
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--sage-deep, var(--pl-olive-deep, #363F22))', lineHeight: 1.35 }}>
-                  Found you — you&rsquo;re on the guest list.
+                  Found you, you&rsquo;re on the guest list.
                 </span>
               </div>
             )}
@@ -1114,7 +1114,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                     type="text"
                     value={song}
                     onChange={(e) => setSong(e.target.value)}
-                    placeholder="e.g. At Last — Etta James"
+                    placeholder="e.g. At Last, Etta James"
                     style={inputStyle()}
                   />
                 </div>
@@ -1125,7 +1125,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     rows={2}
-                    placeholder={anyYes ? 'Optional — say hello' : 'We\u2019ll miss you — send your love along (optional)'}
+                    placeholder={anyYes ? 'Optional, say hello' : 'We\u2019ll miss you, send your love along (optional)'}
                     style={{
                       ...inputStyle(),
                       padding: '11px 13px',

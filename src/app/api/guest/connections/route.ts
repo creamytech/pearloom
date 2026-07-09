@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const optIn = parsed.optIn === true;
     const ok = await setConnectionsOptIn(supabase, guest.personId, optIn);
-    if (!ok) return NextResponse.json({ error: 'Could not save — try again?' }, { status: 500 });
+    if (!ok) return NextResponse.json({ error: 'Could not save. Try again?' }, { status: 500 });
     return NextResponse.json({ ok: true, optedIn: optIn });
   } catch (err) {
     console.error('[guest/connections] POST failed:', err);

@@ -66,21 +66,21 @@ function copyFor(occasion?: string): OccasionCopy {
   if (occasion === 'quinceanera') {
     return {
       roleOptions: COURT_ROLE_OPTIONS,
-      hint: 'The court of honor — damas, chambelanes, and the family beside her.',
-      relationshipPlaceholder: 'Relationship — “Her cousin”',
+      hint: 'The court of honor, damas, chambelanes, and the family beside her.',
+      relationshipPlaceholder: 'Relationship, “Her cousin”',
     };
   }
   if (occasion === 'bar-mitzvah' || occasion === 'bat-mitzvah') {
     return {
       roleOptions: CANDLE_ROLE_OPTIONS,
-      hint: 'Candle lighters and honored family — they appear on the site in this order.',
-      relationshipPlaceholder: 'Relationship — “Grandmother”',
+      hint: 'Candle lighters and honored family, they appear on the site in this order.',
+      relationshipPlaceholder: 'Relationship, “Grandmother”',
     };
   }
   return {
     roleOptions: WEDDING_ROLE_OPTIONS,
-    hint: 'Wedding party, court of honor, candle-lighters — whoever stands beside the honoree. Bride-side + groom-side roles split into two columns on the site.',
-    relationshipPlaceholder: "Relationship — “Bride's sister”",
+    hint: 'Wedding party, court of honor, candle-lighters, whoever stands beside the honoree. Bride-side + groom-side roles split into two columns on the site.',
+    relationshipPlaceholder: "Relationship, “Bride's sister”",
   };
 }
 
@@ -164,12 +164,12 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
                 <FInput
                   value={m.customRole ?? ''}
                   onChange={(v) => patchMember(i, { customRole: v })}
-                  placeholder="Custom label — “Dama de honor” (shown instead of the role)"
+                  placeholder="Custom label, “Dama de honor” (shown instead of the role)"
                 />
                 <FInput
                   value={m.bio ?? ''}
                   onChange={(v) => patchMember(i, { bio: v })}
-                  placeholder="Short line — “Met at summer camp, 1998”"
+                  placeholder="Short line, “Met at summer camp, 1998”"
                 />
                 <FInput
                   value={m.relationship ?? ''}

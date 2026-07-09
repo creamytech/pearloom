@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const ip = getClientIp(req);
     const rate = checkRateLimit(`register:${ip}`, { max: 5, windowMs: 900_000 });
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'Too many attempts — try again in a few minutes.' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many attempts, try again in a few minutes.' }, { status: 429 });
     }
 
     let body: { email?: string; password?: string; name?: string };
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       // 23505 = unique violation — the account already exists.
       if (error.code === '23505') {
         return NextResponse.json(
-          { error: 'An account with this email already exists — try signing in instead.' },
+          { error: 'An account with this email already exists. Try signing in instead.' },
           { status: 409 },
         );
       }

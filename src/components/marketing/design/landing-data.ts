@@ -65,7 +65,7 @@ export const OCC: Record<OccasionKey, LandingOccasion> = {
     meta: ['Saturday · 14 September', 'Point Reyes, California'],
     accent: '#C6703D', accent2: '#C19A4B', ph: 'Mira & Jun',
     h1a: 'The days that ', em: 'matter', h1b: ', woven in an afternoon.',
-    sub: 'Type two names. Pear drafts the whole site in your voice — cover, story, RSVP, registry — and stays till the thank-you notes.',
+    sub: 'Type two names. Pear drafts the whole site in your voice (cover, story, RSVP, registry) and stays till the thank-you notes.',
     mesh: ['#3A4A28', '#5C6B3F', '#C6703D', '#C19A4B'],
   },
   milestone: {
@@ -81,7 +81,7 @@ export const OCC: Record<OccasionKey, LandingOccasion> = {
     meta: ['1946 · 2026', 'Tea, her records, her people'],
     accent: '#5C6B3F', accent2: '#C19A4B', ph: 'Amara Osei',
     h1a: 'Tea, her records, ', em: 'her people', h1b: '.',
-    sub: 'Come as you are. A quiet gathering page, drafted gently in her voice — the stories, the schedule, a place to remember. Always free.',
+    sub: 'Come as you are. A quiet gathering page, drafted gently in her voice: the stories, the schedule, a place to remember. Always free.',
     mesh: ['#1E2513', '#2C5E7A', '#5C6B3F', '#C19A4B'],
   },
   baby: {
@@ -89,7 +89,7 @@ export const OCC: Record<OccasionKey, LandingOccasion> = {
     meta: ['Sunday afternoon', 'The sunroom'],
     accent: '#D9A89E', accent2: '#C19A4B', ph: 'Baby Vale',
     h1a: 'A soft landing, ', em: 'warmly', h1b: ' planned.',
-    sub: 'An advice wall, a meal train, a registry that splits itself. Everything a shower needs — already drafted and gathered in one place.',
+    sub: 'An advice wall, a meal train, a registry that splits itself. Everything a shower needs, already drafted and gathered in one place.',
     mesh: ['#5C6B3F', '#D9A89E', '#E8C77A', '#C19A4B'],
   },
   reunion: {

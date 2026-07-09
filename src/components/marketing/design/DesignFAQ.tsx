@@ -20,7 +20,7 @@ const QS = [
   },
   {
     q: 'Can I use my own domain?',
-    a: 'Not yet. Every site lives at a clean pearloom.com address — pearloom.com/wedding/your-names — on every tier, with HTTPS automatic. Custom domains are in the works; when they ship, Atelier and Legacy hosts get them included.',
+    a: 'Not yet. Every site lives at a clean pearloom.com address (pearloom.com/wedding/your-names) on every tier, with HTTPS automatic. Custom domains are in the works; when they ship, Atelier and Legacy hosts get them included.',
   },
   {
     q: 'What happens on the day of the event?',
@@ -28,15 +28,15 @@ const QS = [
   },
   {
     q: 'What happens after?',
-    a: "Photos file themselves into The Reel, one gallery across every site you've made. On your anniversary, the site returns — rewoven with the photos, toasts, and notes your guests left behind. Your site is yours to keep.",
+    a: "Photos file themselves into The Reel, one gallery across every site you've made. On your anniversary, the site returns, rewoven with the photos, toasts, and notes your guests left behind. Your site is yours to keep.",
   },
   {
     q: 'Is memorial hosting really always free?',
-    a: "Always, on every tier. A memorial never counts against your plan's site limit, its guest list is never capped, and every memorial block — obituary, tribute wall, program, livestream — is included. Grief deserves no paywall. This is Pear's promise, and it's written into the code.",
+    a: "Always, on every tier. A memorial never counts against your plan's site limit, its guest list is never capped, and every memorial block (obituary, tribute wall, program, livestream) is included. Grief deserves no paywall. This is Pear's promise, and it's written into the code.",
   },
   {
     q: 'How is my data handled?',
-    a: 'GDPR and CCPA compliant, and nothing is ever sold. Export everything as a single JSON file anytime from Settings. Delete a site and it is gone. Your photos are yours — they are never used to train anything.',
+    a: 'GDPR and CCPA compliant, and nothing is ever sold. Export everything as a single JSON file anytime from Settings. Delete a site and it is gone. Your photos are yours. They are never used to train anything.',
   },
   {
     q: 'Can co-hosts edit?',

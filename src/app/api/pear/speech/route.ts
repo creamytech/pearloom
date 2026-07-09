@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     windowMs: 60 * 60 * 1000,
   });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many speech analyses — try again later.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many speech analyses. Try again later.' }, { status: 429 });
   }
 
   let body: { text?: string; kind?: Kind; siteId?: string } = {};
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   const text = (body.text ?? '').trim();
   if (!text) return NextResponse.json({ error: 'text required' }, { status: 400 });
   if (text.length > 12_000) {
-    return NextResponse.json({ error: 'Speech too long — paste up to 12,000 chars.' }, { status: 400 });
+    return NextResponse.json({ error: 'Speech too long. Paste up to 12,000 chars.' }, { status: 400 });
   }
 
   const kind: Kind = (['vows', 'toast', 'speech'] as Kind[]).includes(body.kind as Kind)
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { error: "You've reached today's AI limit — try again tomorrow." },
+      { error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

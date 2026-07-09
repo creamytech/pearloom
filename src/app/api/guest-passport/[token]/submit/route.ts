@@ -46,7 +46,7 @@ export async function POST(
 
   const rl = checkRateLimit(`passport-submit:${token}`, { max: 10, windowMs: 60_000 });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Slow down — try again in a minute.' }, { status: 429 });
+    return NextResponse.json({ error: 'Slow down. Try again in a minute.' }, { status: 429 });
   }
 
   const supabase = getSupabase();

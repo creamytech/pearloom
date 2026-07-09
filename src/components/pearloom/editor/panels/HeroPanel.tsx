@@ -268,7 +268,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, milestone, buttons
+            <Icon name="chev-down" size={12} /> More, eyebrow, milestone, buttons
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
             <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
@@ -286,7 +286,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               })()}
             </FGroup>
             <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
-            <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
+            <FGroup label="Primary button" hint="The first CTA, pick where it goes, then optionally rename it.">
               <CtaLinkEditor
                 href={heroCtaHref}
                 label={heroCta}
@@ -295,7 +295,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
                 onLabelChange={(val) => setCopy('heroCta', val)}
               />
             </FGroup>
-            <FGroup label="Secondary button" hint="Optional — the smaller outline button next to the primary.">
+            <FGroup label="Secondary button" hint="Optional, the smaller outline button next to the primary.">
               <CtaLinkEditor
                 href={heroCtaSecondaryHref}
                 label={heroCtaSecondary}
@@ -328,7 +328,7 @@ function MilestoneDisclosure({
   const hasMilestone = !!(milestone.kind && milestone.kind !== 'none');
   if (!hasMilestone) {
     return (
-      <FGroup label="Milestone" hint="Optional — a small marker above the name(s) like “Turning 40” or “Class of '95”.">
+      <FGroup label="Milestone" hint="Optional, a small marker above the name(s) like “Turning 40” or “Class of '95”.">
         <button
           type="button"
           onClick={() => setMilestone({ kind: 'turning', value: '' })}

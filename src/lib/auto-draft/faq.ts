@@ -25,22 +25,22 @@ const UNIVERSAL: FaqPair[] = [
   },
   {
     question: 'Can I bring a plus-one?',
-    answer: 'Check the RSVP form — your invitation note will say whether your invite includes a plus-one.',
+    answer: 'Check the RSVP form, your invitation note will say whether your invite includes a plus-one.',
   },
 ];
 
 const WEDDING_EXTRA: FaqPair[] = [
   {
     question: 'Are kids welcome?',
-    answer: 'We love your little ones — please mention them on the RSVP so we can plan seating + a high chair if needed.',
+    answer: 'We love your little ones, please mention them on the RSVP so we can plan seating + a high chair if needed.',
   },
   {
     question: 'Where should I stay?',
-    answer: 'The Travel section below has a few hotels near the venue with notes from us. Book early — wedding weekends fill up fast.',
+    answer: 'The Travel section below has a few hotels near the venue with notes from us. Book early, wedding weekends fill up fast.',
   },
   {
     question: 'Is there parking at the venue?',
-    answer: 'Yes — the venue has on-site parking and we\'ll have signage. Rideshare is also easy in/out.',
+    answer: 'Yes, the venue has on-site parking and we\'ll have signage. Rideshare is also easy in/out.',
   },
 ];
 
@@ -54,7 +54,7 @@ const SHOWER_EXTRA: FaqPair[] = [
 const BACHELOR_EXTRA: FaqPair[] = [
   {
     question: 'How much should I budget?',
-    answer: 'See the cost breakdown on the schedule — we\'ll have lodging + dinners pooled, and everything else is pay-as-you-go.',
+    answer: 'See the cost breakdown on the schedule, we\'ll have lodging + dinners pooled, and everything else is pay-as-you-go.',
   },
   {
     question: 'What should I pack?',

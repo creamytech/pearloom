@@ -215,7 +215,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
       setEmailMsg(
         d.sent > 0
           ? `Sent to ${d.sent}${d.skipped ? ` · ${d.skipped} missing email` : ''}`
-          : 'Nothing sent — make sure guests have email on file',
+          : 'Nothing sent, make sure guests have email on file',
       );
     } catch (e) {
       setEmailState('err');
@@ -233,7 +233,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
         hint="Pear reads your chapters + guest notes and writes a personal memory prompt for each guest. Responses feed the toast, the reel, and the keepsake book."
       />
       <AIHint>
-        Each guest sees their prompt on their Guest Passport page. Responses flow back here — you can mark the best
+        Each guest sees their prompt on their Guest Passport page. Responses flow back here, you can mark the best
         lines for the toast or the reel.
       </AIHint>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -264,7 +264,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
 
       {loading ? <PanelThreading /> : prompts.length === 0 ? (
         <div style={{ marginTop: 22, fontSize: 13, color: 'var(--ink-soft)' }}>
-          Nothing yet — click above to draft prompts for every guest on this site.
+          Nothing yet, click above to draft prompts for every guest on this site.
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(320px, 100%),1fr))', gap: 14, marginTop: 22 }}>
@@ -287,7 +287,7 @@ function MemoryWeavePanel({ siteId }: { siteId: string }) {
               {p.response ? (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--ink)' }}>{p.response}</div>
               ) : (
-                <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>— no response yet —</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>, no response yet, </div>
               )}
             </div>
           ))}
@@ -329,7 +329,7 @@ function WhispersPanel({ siteId }: { siteId: string }) {
     <div>
       <SectionHeader
         title="Whispers"
-        hint="Guests leave private notes from their Passport page. Pear delivers them over the next two weeks — a slow drip instead of a firehose."
+        hint="Guests leave private notes from their Passport page. Pear delivers them over the next two weeks, a slow drip instead of a firehose."
       />
       {loading ? <PanelThreading /> : items.length === 0 ? (
         <div style={{ padding: 22, background: 'var(--card)', border: '1px dashed var(--line)', borderRadius: 14, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>
@@ -439,7 +439,7 @@ function CapsulePanel({ siteId }: { siteId: string }) {
                       Opens {new Date(c.reveal_on).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 8, fontStyle: 'italic' }}>
-                      Sealed — Pear will reveal on the day.
+                      Sealed, Pear will reveal on the day.
                     </div>
                   </div>
                 ))}
@@ -566,10 +566,10 @@ function SmsPanel({ siteId }: { siteId: string }) {
     <div>
       <SectionHeader
         title="Pear SMS"
-        hint="One personal text per guest, day before. Copy and send from your phone — or paste the list into your texting app of choice."
+        hint="One personal text per guest, day before. Copy and send from your phone, or paste the list into your texting app of choice."
       />
       <AIHint>
-        Pearloom doesn't send the text for you — you tap Copy, paste into Messages. (Keeps it feeling like it came from
+        Pearloom doesn't send the text for you, you tap Copy, paste into Messages. (Keeps it feeling like it came from
         you, not a bulk service.)
       </AIHint>
       <AISuggestButton

@@ -64,7 +64,7 @@ export default function HelpClient() {
     <DashLayout
       active="help"
       title="Help & docs"
-      subtitle="Shortcuts, recipes, and answers — the way Pear explains them."
+      subtitle="Shortcuts, recipes, and answers, the way Pear explains them."
     >
       <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 40px', maxWidth: 980, margin: '0 auto', position: 'relative' }}>
         {/* ── The ask-Pear hero — dark olive, centered search ─────── */}
@@ -319,7 +319,7 @@ export default function HelpClient() {
                   Still stuck? Ask a person.
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 12 }}>
-                  Real humans, warm and quick — usually within a day.
+                  Real humans, warm and quick, usually within a day.
                 </div>
                 <a
                   href="mailto:hello@pearloom.com"

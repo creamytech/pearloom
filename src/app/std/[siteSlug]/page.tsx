@@ -105,7 +105,7 @@ export async function generateMetadata({
   const { suite } = site;
   const displayNames = suite.names.filter(Boolean).join(' & ') || 'A celebration';
   const solemn = suite.occasion === 'memorial' || suite.occasion === 'funeral';
-  const title = `${solemn ? 'Hold the date' : 'Save the date'} — ${displayNames}`;
+  const title = `${solemn ? 'Hold the date' : 'Save the date'}, ${displayNames}`;
   const std = (site.manifest as unknown as { saveTheDate?: SaveTheDateConfig }).saveTheDate ?? {};
   const dateDisplay = std.dateOverride || suite.eventDate || '';
 
@@ -128,7 +128,7 @@ export async function generateMetadata({
   if (sharePhoto) og.searchParams.set('photo', sharePhoto);
 
   const description = dateDisplay
-    ? `${displayNames} — ${solemn ? 'hold' : 'save'} the date for ${dateDisplay}.`
+    ? `${displayNames}, ${solemn ? 'hold' : 'save'} the date for ${dateDisplay}.`
     : `A note from ${displayNames}.`;
 
   return {
@@ -222,7 +222,7 @@ export default async function SaveTheDatePage({
     std.message?.trim() ||
     (suite.occasion === 'wedding'
       ? `${coupleDisplay} are getting married! Save the date${dateDisplay ? ` for ${dateDisplay}` : ''}.`
-      : `${coupleDisplay} would love you to ${solemn ? 'hold' : 'save'} the date${dateDisplay ? ` — ${dateDisplay}` : ''}.`);
+      : `${coupleDisplay} would love you to ${solemn ? 'hold' : 'save'} the date${dateDisplay ? `, ${dateDisplay}` : ''}.`);
 
   // Stylized art > host-picked save-the-date photo > site cover.
   const photoUrl =
@@ -237,7 +237,7 @@ export default async function SaveTheDatePage({
     ? buildIcsDataHref({
         date: logistics.date,
         time: logistics.time,
-        title: `${coupleDisplay} — ${kicker}`,
+        title: `${coupleDisplay}, ${kicker}`,
         venue: suite.venue,
         address: logistics.venueAddress,
         descriptionLines: [

@@ -79,7 +79,7 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
         mode: 'solo',
         primaryLabel: 'Parent-to-be',
         primaryPlaceholder: 'Jamie',
-        hint: 'The shower centers on them — Pear writes the rest around their name.',
+        hint: 'The shower centers on them, Pear writes the rest around their name.',
       };
     }
     if (occ === 'sip-and-see') {
@@ -95,7 +95,7 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
         mode: 'solo',
         primaryLabel: 'Guest of honor',
         primaryPlaceholder: 'Jess',
-        hint: 'Pear centers the day on her — the wedding gets its own site.',
+        hint: 'Pear centers the day on her, the wedding gets its own site.',
       };
     }
     if (occ === 'bachelorette-party') {
@@ -151,7 +151,7 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
         mode: 'solo',
         primaryLabel: 'Name of the young person',
         primaryPlaceholder: 'Noah',
-        hint: 'English name is fine — you can add the Hebrew name in the editor.',
+        hint: 'English name is fine, you can add the Hebrew name in the editor.',
       };
     }
     if (occ === 'quinceanera') {
@@ -166,7 +166,7 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
       mode: 'solo',
       primaryLabel: 'Whose day is it?',
       primaryPlaceholder: 'Sam',
-      hint: 'Just one name — this is their moment.',
+      hint: 'Just one name, this is their moment.',
     };
   }
 
@@ -184,7 +184,7 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
       mode: 'group',
       primaryLabel: 'New resident(s)',
       primaryPlaceholder: 'Alex & Jamie',
-      hint: 'One name or two — whoever moved in.',
+      hint: 'One name or two, whoever moved in.',
     };
   }
   return {

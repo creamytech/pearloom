@@ -85,7 +85,7 @@ export function BastedIn({
     }
     onApply(next);
     pearWorking('done', b.section);
-    fireUndoable(`${b.label} — added`, () => onApply(before));
+    fireUndoable(`${b.label}, added`, () => onApply(before));
     pullThread(siteSlug, b.id); // set stitches don't re-offer
     setItems((prev) => prev.filter((x) => x.id !== b.id));
   };
@@ -122,7 +122,7 @@ export function BastedIn({
             }}
           >
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 5 }}>
-              I wove your story in — look for these:
+              I wove your story in, look for these:
             </div>
             <div style={{ display: 'grid', gap: 4 }}>
               {receipts.map((r) => (

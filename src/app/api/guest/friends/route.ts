@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "That person isn't available to add." }, { status: 403 });
       }
       const res = await requestFriend(supabase, { fromPersonId: guest.personId, toPersonId: otherPersonId });
-      if (!res.ok) return NextResponse.json({ error: 'Could not send — try again?' }, { status: 500 });
+      if (!res.ok) return NextResponse.json({ error: 'Could not send. Try again?' }, { status: 500 });
       return NextResponse.json({ ok: true, status: res.status });
     }
 
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     });
     if (!res.ok) {
       const status = res.error === 'not_found' ? 404 : 500;
-      return NextResponse.json({ error: 'Could not save — try again?' }, { status });
+      return NextResponse.json({ error: 'Could not save. Try again?' }, { status });
     }
     return NextResponse.json({ ok: true, status: res.status });
   } catch (err) {

@@ -85,11 +85,11 @@ export function MemorialPanel({ manifest, onChange }: { manifest: StoryManifest;
         </div>
 
         {/* Obituary */}
-        <FGroup label="Obituary" hint="Dates and a short remembrance — what they leave behind.">
+        <FGroup label="Obituary" hint="Dates and a short remembrance, what they leave behind.">
           <FInput
             value={obituary.dates ?? ''}
             onChange={(v) => patchObit({ dates: v })}
-            placeholder="March 12, 1942 — April 8, 2026"
+            placeholder="March 12, 1942, April 8, 2026"
             icon="calendar"
           />
           <div style={{ height: 8 }} />
@@ -162,7 +162,7 @@ export function MemorialPanel({ manifest, onChange }: { manifest: StoryManifest;
         <FGroup label="Tribute wall" hint="A space for guests to submit stories and memories. You moderate before they appear.">
           <FToggleStandalone
             label="Accept tributes from guests"
-            sub={tributeWallOpen ? 'Submissions appear after you approve them' : 'Currently closed — no new tributes can be submitted'}
+            sub={tributeWallOpen ? 'Submissions appear after you approve them' : 'Currently closed, no new tributes can be submitted'}
             def={tributeWallOpen}
             onChange={(v) => patch({ tributeWallOpen: v })}
           />

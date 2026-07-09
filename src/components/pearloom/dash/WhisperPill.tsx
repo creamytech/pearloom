@@ -44,7 +44,7 @@ export function WhisperPill() {
         >
           {sent ? (
             <div style={{ fontSize: 13, color: 'var(--sage-deep, #5C6B3F)', fontWeight: 600, padding: '6px 2px' }}>
-              Woven in — thank you.
+              Woven in, thank you.
             </div>
           ) : (
             <>
@@ -57,7 +57,7 @@ export function WhisperPill() {
                 onChange={(e) => setText(e.target.value)}
                 rows={3}
                 maxLength={800}
-                placeholder="Confusing, broken, or just not right — say it plainly."
+                placeholder="Confusing, broken, or just not right, say it plainly."
                 style={{
                   width: '100%', resize: 'vertical', padding: '9px 11px', borderRadius: 10,
                   border: '1px solid var(--line)', background: 'var(--cream, #FDFAF0)',

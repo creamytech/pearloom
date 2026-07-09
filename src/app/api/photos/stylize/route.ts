@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
   });
   if (!rl.allowed) {
     return NextResponse.json(
-      { error: 'Too many style renders in a row — try again in a minute.' },
+      { error: 'Too many style renders in a row, try again in a minute.' },
       { status: 429 },
     );
   }

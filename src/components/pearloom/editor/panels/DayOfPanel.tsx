@@ -76,7 +76,7 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[day-of] broadcast failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Couldn’t send the broadcast — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t send the broadcast, try again?');
       }
       const data = await res.json() as { update?: LiveUpdate };
       if (data.update) {
@@ -84,7 +84,7 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
       }
       setMessage(''); setPhotoUrl(''); setEmailToo(false);
     } catch (e) {
-      setErr(pearErrorMessage(e, 'Couldn’t send the broadcast — try again?'));
+      setErr(pearErrorMessage(e, 'Couldn’t send the broadcast, try again?'));
     } finally {
       setBusy(false);
     }
@@ -104,12 +104,12 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
         </div>
 
         {/* Composer */}
-        <FGroup label="What's happening" hint="Keep it short — guests glance at this on the move.">
+        <FGroup label="What's happening" hint="Keep it short, guests glance at this on the move.">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
-            placeholder="Ceremony moved indoors — head to the pavilion when you arrive."
+            placeholder="Ceremony moved indoors, head to the pavilion when you arrive."
             style={{
               width: '100%', padding: 10, borderRadius: 10,
               border: '1px solid var(--line)', background: 'var(--cream-2)',

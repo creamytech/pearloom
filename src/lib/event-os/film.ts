@@ -199,7 +199,7 @@ async function writeScript(sources: FilmSources): Promise<FilmScript> {
     temperature: 0.8,
     maxTokens: 3200,
     system: cached(
-      `You are Pearloom's film director. You write narration for a 3-6 minute post-event film. The film is a gift to the couple — it revisits the day through specific people, specific moments, and the stories that connect them. Never generic. Never sappy. Always grounded in details you were given.`,
+      `You are Pearloom's film director. You write narration for a 3-6 minute post-event film. The film is a gift to the couple, it revisits the day through specific people, specific moments, and the stories that connect them. Never generic. Never sappy. Always grounded in details you were given.`,
       '1h'
     ) as unknown as string,
     messages: [
@@ -215,7 +215,7 @@ VOICE TOASTS (excerpts of what guests said):
 ${toastContext}
 
 Write a shooting script for a 4-minute post-event film. Aim for 8-14 scenes.
-- Each scene has 1-3 sentences of voiceover (calm, specific, cinematic — written for performance, not page)
+- Each scene has 1-3 sentences of voiceover (calm, specific, cinematic, written for performance, not page)
 - Each scene has photoGuidance: the kind of photo the renderer should pick (e.g. "wide shot of first dance", "close-up of Priya laughing")
 - Total durations should sum to ~240 seconds (=4 minutes)
 - Weave in 2-3 actual lines from the voice toasts verbatim, attributed in the voiceover text

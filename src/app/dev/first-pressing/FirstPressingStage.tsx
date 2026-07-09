@@ -29,13 +29,13 @@ export function FirstPressingStage() {
           onClick={() => setRun('couple')}
           style={{ padding: '10px 18px', borderRadius: 100, border: 'none', background: 'var(--pl-ink, #0E0D0B)', color: 'var(--pl-cream, #F5EFE2)', fontWeight: 600, cursor: 'pointer' }}
         >
-          Play — couple
+          Play, couple
         </button>
         <button
           onClick={() => setRun('solo')}
           style={{ padding: '10px 18px', borderRadius: 100, border: '1px solid var(--pl-divider, #D8CFB8)', background: 'var(--pl-cream-card, #FBF7EE)', color: 'var(--pl-ink, #0E0D0B)', fontWeight: 600, cursor: 'pointer' }}
         >
-          Play — solo honoree
+          Play, solo honoree
         </button>
       </div>
       {run === 'couple' && (

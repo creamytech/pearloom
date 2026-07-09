@@ -221,7 +221,7 @@ export function PlColorPicker({
       <button
         ref={triggerRef}
         type="button"
-        aria-label={`${label} color — ${value}`}
+        aria-label={`${label} color, ${value}`}
         aria-expanded={open}
         onClick={() => (open ? closePanel() : openPanel())}
         style={{

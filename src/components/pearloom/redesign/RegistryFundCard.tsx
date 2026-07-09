@@ -98,7 +98,7 @@ export function RegistryFundCard({ funds, siteSlug, editable = false, title, don
         count: typeof d.count === 'number' ? d.count : 0,
         recent: Array.isArray(d.recent) ? d.recent : [],
       });
-    } catch { /* card still renders — the handles matter most */ }
+    } catch { /* card still renders, the handles matter most */ }
   }, [siteSlug, editable]);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export function RegistryFundCard({ funds, siteSlug, editable = false, title, don
           </div>
           <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 7 }}>
             {total > 0
-              ? <>{formatCents(total)} of {formatCents(goal)} — <i>as shared by guests</i></>
+              ? <>{formatCents(total)} of {formatCents(goal)}, <i>as shared by guests</i></>
               : <>Toward {formatCents(goal)}</>}
           </div>
         </div>
@@ -241,7 +241,7 @@ function ZelleRow({ address, preview, onCopied }: { address: string; preview: bo
       setCopied(true);
       onCopied();
       setTimeout(() => setCopied(false), 1800);
-    }).catch(() => { /* clipboard blocked — address stays visible */ });
+    }).catch(() => { /* clipboard blocked, address stays visible */ });
   }
   return (
     <button
@@ -256,7 +256,7 @@ function ZelleRow({ address, preview, onCopied }: { address: string; preview: bo
         background: 'transparent',
       }}
     >
-      <span>{copied ? 'Copied — paste it in your bank app' : 'Give with Zelle'}</span>
+      <span>{copied ? 'Copied, paste it in your bank app' : 'Give with Zelle'}</span>
       <span style={handleSub}>{address} · tap to copy</span>
     </button>
   );
@@ -292,19 +292,19 @@ function PledgeComposer({ siteSlug, donation, onWoven }: {
         body: JSON.stringify({ subdomain: siteSlug, guestName: name.trim(), amountCents }),
       });
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Could not save — try again.');
+      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Could not save, try again.');
       setStage('done');
       void onWoven();
     } catch (e) {
       setStage('idle');
-      setError(e instanceof Error ? e.message : 'Could not save — try again.');
+      setError(e instanceof Error ? e.message : 'Could not save, try again.');
     }
   }
 
   if (stage === 'done') {
     return (
       <div style={{ marginTop: 16, fontSize: 13, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
-        Woven in — thank you.
+        Woven in, thank you.
       </div>
     );
   }
@@ -341,7 +341,7 @@ function PledgeComposer({ siteSlug, donation, onWoven }: {
         inputMode="decimal"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        placeholder={donation ? 'Amount (optional)' : 'Amount (optional) — e.g. 50'}
+        placeholder={donation ? 'Amount (optional)' : 'Amount (optional), e.g. 50'}
         maxLength={12}
         disabled={stage === 'sending'}
         style={cardInput}

@@ -30,11 +30,11 @@ import { occasionCopyFor } from '../../redesign/occasion-copy';
 type RegistryMode = 'gifts' | 'fund' | 'donation' | 'wishlist' | 'tip-jar';
 
 const MODE_LABELS: Record<RegistryMode, { section: string; intro: string; add: string; placeholder: string }> = {
-  gifts:    { section: 'Registry',          intro: 'Your presence is the gift — but if you insist…',           add: 'Link a registry',     placeholder: 'Pick a store' },
+  gifts: { section: 'Registry', intro: 'Your presence is the gift, but if you insist…', add: 'Link a registry', placeholder: 'Pick a store' },
   fund:     { section: 'Honeymoon fund',    intro: 'Pitching in toward the trip means the world.',             add: 'Add a fund link',     placeholder: 'Link to Honeyfund / Venmo / Zelle' },
   donation: { section: 'In lieu of flowers', intro: 'In lieu of flowers, donations may be made to the causes below.', add: 'Add a charity',       placeholder: 'Pick a cause' },
   wishlist: { section: 'Wishlist',          intro: 'No gifts needed, but if you want to spoil us…',            add: 'Add a wish',          placeholder: 'Link to your wishlist' },
-  'tip-jar':{ section: 'Tip the host',      intro: 'A coffee, a cocktail, a bag of chips — whatever you fancy.', add: 'Add a tip link',     placeholder: 'Venmo, Zelle, Cash App…' },
+  'tip-jar':{ section: 'Tip the host', intro: 'A coffee, a cocktail, a bag of chips, whatever you fancy.', add: 'Add a tip link', placeholder: 'Venmo, Zelle, Cash App…' },
 };
 
 const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'];
@@ -93,7 +93,7 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
       : mode === 'wishlist' ? 'e.g. A wishlist'
         : 'Registry name';
   const notePlaceholder = weddingArcCouple && (mode === 'gifts' || mode === 'fund')
-    ? "A note under it — 'for the honeymoon' (optional)"
+    ? "A note under it, 'for the honeymoon' (optional)"
     : 'A note under it (optional)';
 
   /* The old fundPct slider (a host-invented "64% funded" number)
@@ -261,7 +261,7 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — registry kind, eyebrow
+            <Icon name="chev-down" size={12} /> More, registry kind, eyebrow
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
@@ -301,7 +301,7 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
                     Put the fund front and center?
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                    The <strong>Fund</strong> layout leads with your Give-directly card — its progress fills in as guests share what they gave. Switch in the Layout tab.
+                    The <strong>Fund</strong> layout leads with your Give-directly card, its progress fills in as guests share what they gave. Switch in the Layout tab.
                   </div>
                 </div>
               </div>
@@ -348,8 +348,8 @@ function FundHandlesGroup({ manifest, onChange, donation }: {
     <FGroup
       label={donation ? 'Where donations go' : 'Where guests can give'}
       hint={donation
-        ? 'The receiving handles — donations go straight where you point them. Pearloom never touches the money.'
-        : 'Your own Venmo / PayPal / Cash App / Zelle — gifts go straight to you. Pearloom never touches the money.'}
+        ? 'The receiving handles, donations go straight where you point them. Pearloom never touches the money.'
+        : 'Your own Venmo / PayPal / Cash App / Zelle, gifts go straight to you. Pearloom never touches the money.'}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <FInput
@@ -371,7 +371,7 @@ function FundHandlesGroup({ manifest, onChange, donation }: {
         <FInput
           value={funds.zelle ?? ''}
           onChange={(v) => write({ zelle: v.trim() || undefined })}
-          placeholder="Zelle — email or phone"
+          placeholder="Zelle, email or phone"
         />
         <FInput
           value={funds.goalCents != null ? String(funds.goalCents / 100) : ''}
@@ -380,11 +380,11 @@ function FundHandlesGroup({ manifest, onChange, donation }: {
             write({ goalCents: Number.isFinite(n) && n > 0 ? Math.round(n * 100) : undefined });
           }}
           type="number"
-          placeholder={donation ? 'Goal in dollars (optional)' : 'Goal in dollars (optional) — e.g. 3000'}
+          placeholder={donation ? 'Goal in dollars (optional)' : 'Goal in dollars (optional), e.g. 3000'}
         />
         <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
           With a goal set, the site shows a progress thread from what guests
-          share after giving — &ldquo;as shared by guests&rdquo;, never invented.
+          share after giving, &ldquo;as shared by guests&rdquo;, never invented.
         </div>
       </div>
     </FGroup>
@@ -464,7 +464,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
       setItems(d.items ?? []);
     } catch {
       setItems((prev) => prev ?? []);
-      setError('Couldn’t load your items — reopen the panel to retry.');
+      setError('Couldn’t load your items, reopen the panel to retry.');
     }
   }, [siteSlug]);
 
@@ -494,7 +494,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
         ok?: boolean; title?: string | null; imageUrl?: string | null;
         price?: number | null; store?: string | null; error?: string;
       };
-      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Couldn’t read that page — add it by hand.');
+      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Couldn’t read that page, add it by hand.');
       // Prefill the add form — the host edits, then "Set it" saves
       // through the normal items API.
       setDraft({
@@ -510,7 +510,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
       setError(null);
       setPasteUrl('');
     } catch (e) {
-      setPasteError(e instanceof Error ? e.message : 'Couldn’t read that page — add it by hand.');
+      setPasteError(e instanceof Error ? e.message : 'Couldn’t read that page, add it by hand.');
     } finally {
       setReading(false);
     }
@@ -570,7 +570,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
         if (!r.ok) {
           const d = (await r.json().catch(() => ({}))) as { error?: string };
           void refetch();
-          throw new Error(d.error ?? 'Couldn’t save — restored the last version.');
+          throw new Error(d.error ?? 'Couldn’t save, restored the last version.');
         }
         pingCanvasItems();
       }
@@ -600,7 +600,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
   return (
     <FGroup
       label={count > 0 ? `Items · ${count}` : 'Items'}
-      hint="Real gifts guests reserve right on the site — they render above your linked stores."
+      hint="Real gifts guests reserve right on the site, they render above your linked stores."
     >
       {/* Paste a product link — Pear reads the page + prefills. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
@@ -611,7 +611,7 @@ function RegistryItemsGroup({ siteSlug }: { siteSlug: string }) {
               onChange={(v) => { setPasteUrl(v); if (pasteError) setPasteError(null); }}
               type="url"
               icon="link"
-              placeholder="Paste a product link — Pear reads the page"
+              placeholder="Paste a product link, Pear reads the page"
             />
           </div>
           <button
@@ -728,11 +728,11 @@ function ItemFields({
         <FInput value={draft.price} onChange={(v) => setDraft({ ...draft, price: v })} type="number" placeholder="Price (USD)" />
         <FInput value={draft.quantity} onChange={(v) => setDraft({ ...draft, quantity: v })} type="number" placeholder="Quantity" />
       </div>
-      <FInput value={draft.itemUrl} onChange={(v) => setDraft({ ...draft, itemUrl: v })} type="url" icon="link" placeholder="Product link (optional — the 'buy it' handoff)" />
+      <FInput value={draft.itemUrl} onChange={(v) => setDraft({ ...draft, itemUrl: v })} type="url" icon="link" placeholder="Product link (optional, the 'buy it' handoff)" />
       <FInput value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} placeholder="A quiet line under it (optional)" />
       <FToggle
         label="Let guests chip in together"
-        sub="For the big one — several guests give what they like toward it."
+        sub="For the big one, several guests give what they like toward it."
         on={draft.allowGroupGift}
         set={(v) => setDraft({ ...draft, allowGroupGift: v })}
       />

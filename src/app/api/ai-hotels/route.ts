@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const budgetK = budgetKey(session.user.email, '');
   if (await overBudget(budgetK)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -137,7 +137,7 @@ Make the descriptions warm and helpful, like a knowledgeable friend giving hotel
           distance: '5 min drive',
           priceTier: 'mid',
           description: 'A comfortable hotel near the venue, perfect for wedding guests.',
-          groupRateTip: 'Call ahead and ask about group rates for wedding blocks — most hotels offer 10-15% off for 10+ rooms.',
+          groupRateTip: 'Call ahead and ask about group rates for wedding blocks. Most hotels offer 10-15% off for 10+ rooms.',
           bookingUrl: 'https://www.booking.com',
           amenities: ['Free WiFi', 'Parking', 'Restaurant'],
         },

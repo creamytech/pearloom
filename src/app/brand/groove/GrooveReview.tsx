@@ -121,7 +121,7 @@ export function GrooveReview() {
               }}
             >
               Scroll to ripen the pear. The product UI feels alive; your
-              published site — untouched by this redesign — stays timeless.
+              published site (untouched by this redesign) stays timeless.
               Two brands, one codebase, one continuous story.
             </p>
 
@@ -236,8 +236,8 @@ export function GrooveReview() {
               color: 'color-mix(in oklab, var(--pl-groove-ink) 78%, transparent)',
             }}
           >
-            The product UI hums with warmth. The artifact you ship —
-            the wedding site, memorial page, bachelor-party microsite —
+            The product UI hums with warmth. The artifact you ship, 
+            the wedding site, memorial page, bachelor-party microsite, 
             stays in the editorial voice. Two honest things, not one
             confused one.
           </p>
@@ -351,7 +351,7 @@ export function GrooveReview() {
             marginBottom: 10,
           }}
         >
-          This page is unlisted — review only
+          This page is unlisted, review only
         </div>
         <p style={{ maxWidth: '52ch', margin: '0 auto', color: 'color-mix(in oklab, var(--pl-groove-ink) 78%, transparent)' }}>
           Once approved, the groove primitives migrate into marketing
@@ -441,13 +441,13 @@ function CardsShowcase() {
       <BubbleCard tone="butter" tilt={1} interactive>
         <strong>Butter · interactive</strong>
         <p style={{ margin: '6px 0 0', fontSize: '0.92rem', color: 'color-mix(in oklab, var(--pl-groove-ink) 72%, transparent)' }}>
-          Hover me — lifts + untilts.
+          Hover me, lifts + untilts.
         </p>
       </BubbleCard>
       <BubbleCard tone="sage">
         <strong>Sage</strong>
         <p style={{ margin: '6px 0 0', fontSize: '0.92rem', color: 'color-mix(in oklab, var(--pl-groove-ink) 72%, transparent)' }}>
-          For "you" moments — first-birthday, memorial, anniversary.
+          For "you" moments, first-birthday, memorial, anniversary.
         </p>
       </BubbleCard>
       <BubbleCard tone="rose" blobShape>

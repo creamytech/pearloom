@@ -66,7 +66,7 @@ export function SaveTheDatePanel({
         if (!res.ok) return;
         const data = await res.json() as { guests?: Array<{ email?: string | null }> };
         if (!cancelled) setRecipientCount((data.guests ?? []).filter((g) => g.email).length);
-      } catch { /* ignore — falls through to null */ }
+      } catch { /* ignore, falls through to null */ }
     })();
     return () => { cancelled = true; };
   }, [siteSlug]);
@@ -91,12 +91,12 @@ export function SaveTheDatePanel({
   const isWeddingArcCouple = occasion == null || occasion === 'wedding' || occasion === 'engagement' || occasion === 'vow-renewal';
   const eventLabel = (getEventType(occasion)?.label ?? 'celebration').toLowerCase();
   const defaultMessage = isWeddingArcCouple
-    ? `${subjectNames ? `${subjectNames} are` : 'We’re'} getting married! Save the date — ${when}`
+    ? `${subjectNames ? `${subjectNames} are` : 'We’re'} getting married! Save the date, ${when}`
     : solo && subjectNames
-      ? `Save the date — ${subjectNames}’s ${eventLabel}, ${when}`
+      ? `Save the date, ${subjectNames}’s ${eventLabel}, ${when}`
       : subjectNames
-        ? `${subjectNames} are celebrating — save the date: ${when}`
-        : `Save the date — ${when}`;
+        ? `${subjectNames} are celebrating, save the date: ${when}`
+        : `Save the date, ${when}`;
   const message = std.message ?? '';
 
   async function send() {
@@ -116,13 +116,13 @@ export function SaveTheDatePanel({
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[save-the-date] send failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Couldn’t send — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t send, try again?');
       }
       const data = await res.json() as { sent?: number };
       setSentCount(data.sent ?? 0);
       patchStd({ sentAt: new Date().toISOString() });
     } catch (e) {
-      setErr(pearErrorMessage(e, 'Couldn’t send — try again?'));
+      setErr(pearErrorMessage(e, 'Couldn’t send, try again?'));
     } finally {
       setBusy(false);
     }
@@ -209,7 +209,7 @@ export function SaveTheDatePanel({
         </FGroup>
 
         {/* Message */}
-        <FGroup label="Message" hint="Pear writes a friendly default — feel free to rewrite.">
+        <FGroup label="Message" hint="Pear writes a friendly default, feel free to rewrite.">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -260,7 +260,7 @@ export function SaveTheDatePanel({
             <Icon name="mail" size={12} color="var(--ink-muted)" />
             {recipientCount > 0
               ? `Sends to ${recipientCount} guest${recipientCount === 1 ? '' : 's'} with emails.`
-              : 'No guests with emails yet — add some in the Guests panel first.'}
+              : 'No guests with emails yet, add some in the Guests panel first.'}
           </div>
         )}
 

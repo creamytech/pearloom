@@ -67,7 +67,7 @@ export function AnniversaryPreview() {
       reason?: string;
     };
     if (data.skipped) {
-      throw new Error(data.reason ?? 'Skipped — add an event date first.');
+      throw new Error(data.reason ?? 'Skipped, add an event date first.');
     }
     if (!data.chapter) throw new Error('Empty response');
     setChapter(data.chapter);
@@ -146,20 +146,20 @@ export function AnniversaryPreview() {
                 ? anniversary.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
                 : countdown === 0
                   ? 'Today'
-                  : `${countdown} days away — ${anniversary.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
+                  : `${countdown} days away, ${anniversary.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
             </div>
           </div>
         </div>
       ) : (
         <AIHint>
           {weddingIso
-            ? 'After the day, Pear drafts a new chapter each year on the anniversary — your first will be ready then.'
+            ? 'After the day, Pear drafts a new chapter each year on the anniversary, your first will be ready then.'
             : 'Set your event date in the site editor to see your next anniversary here.'}
         </AIHint>
       )}
 
       <AIHint>
-        Pear drafts a new chapter each year on the anniversary, looking back and forward. Preview it now — it'll be saved to the site so you can polish before the day.
+        Pear drafts a new chapter each year on the anniversary, looking back and forward. Preview it now, it'll be saved to the site so you can polish before the day.
       </AIHint>
 
       <AISuggestButton

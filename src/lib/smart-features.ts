@@ -176,7 +176,7 @@ export function smartBlockOrder(
         } else {
           ordered.push(block);
         }
-        changes.push({ type, reason: `${type} demoted — wedding date has passed` });
+        changes.push({ type, reason: `${type} demoted, wedding date has passed` });
       }
     }
   }
@@ -190,7 +190,7 @@ export function smartBlockOrder(
       if (rsvpIdx > targetIdx) {
         const [rsvp] = ordered.splice(rsvpIdx, 1);
         ordered.splice(targetIdx, 0, rsvp);
-        changes.push({ type: 'rsvp', reason: 'RSVP promoted — deadline approaching' });
+        changes.push({ type: 'rsvp', reason: 'RSVP promoted, deadline approaching' });
       }
     }
   }
@@ -231,14 +231,14 @@ export function temperatureAdvice(photoColors: string[]): {
     return {
       avgTemp: avg,
       suggestion: 'warm',
-      description: 'Your photos have warm tones — golden hour, candlelight, or amber hues. A warm palette will complement them beautifully.',
+      description: 'Your photos have warm tones, golden hour, candlelight, or amber hues. A warm palette will complement them beautifully.',
     };
   }
   if (avg < -0.15) {
     return {
       avgTemp: avg,
       suggestion: 'cool',
-      description: 'Your photos lean cool — blue hour, ocean tones, or silver light. A cool-toned palette will feel cohesive.',
+      description: 'Your photos lean cool, blue hour, ocean tones, or silver light. A cool-toned palette will feel cohesive.',
     };
   }
   return {
@@ -295,7 +295,7 @@ export function validateTypography(
     issues.push({
       severity: 'warn',
       title: 'Script font for body text',
-      detail: `"${bodyFont}" is a decorative font — paragraphs and captions may be hard to read at 14-16px.`,
+      detail: `"${bodyFont}" is a decorative font, paragraphs and captions may be hard to read at 14-16px.`,
       suggestion: `Keep "${headingFont}" for headings but pair it with a readable body font like Inter or Lato.`,
     });
   }
@@ -355,7 +355,7 @@ export function detectContentNudges(manifest: {
     nudges.push({
       id: 'no-chapters', section: 'story', priority: 'high',
       title: 'Your story is empty',
-      description: 'Add chapters to tell your love story — guests want to know how you met!',
+      description: 'Add chapters to tell your love story, guests want to know how you met!',
       aiPrompt: `Generate 3 romantic story chapters for a ${occ}`,
     });
   } else if (chapters.length < 3) {
@@ -494,25 +494,25 @@ export function suggestChapterLayouts(chapters: Array<{
 
     if (photoCount === 0) {
       suggested = 'editorial';
-      reason = 'No photos — editorial layout lets the text shine';
+      reason = 'No photos, editorial layout lets the text shine';
     } else if (photoCount === 1 && hasLandscape) {
       suggested = 'fullbleed';
-      reason = 'Single landscape photo — fullbleed makes it cinematic';
+      reason = 'Single landscape photo, fullbleed makes it cinematic';
     } else if (photoCount === 1 && hasPortrait) {
       suggested = 'split';
-      reason = 'Single portrait photo — split layout balances text and image';
+      reason = 'Single portrait photo, split layout balances text and image';
     } else if (photoCount === 1) {
       suggested = textLen > 200 ? 'split' : 'cinematic';
-      reason = textLen > 200 ? 'Long text + one photo — split keeps both readable' : 'Short text + one photo — cinematic for impact';
+      reason = textLen > 200 ? 'Long text + one photo, split keeps both readable' : 'Short text + one photo, cinematic for impact';
     } else if (photoCount >= 2 && photoCount <= 3) {
       suggested = 'cinematic';
-      reason = `${photoCount} photos — cinematic creates a film-strip feel`;
+      reason = `${photoCount} photos, cinematic creates a film-strip feel`;
     } else if (photoCount >= 4 && photoCount <= 6) {
       suggested = 'gallery';
-      reason = `${photoCount} photos — gallery grid shows them all beautifully`;
+      reason = `${photoCount} photos, gallery grid shows them all beautifully`;
     } else {
       suggested = 'mosaic';
-      reason = `${photoCount} photos — mosaic creates a dynamic collage`;
+      reason = `${photoCount} photos, mosaic creates a dynamic collage`;
     }
 
     if (ch.layout !== suggested) {
@@ -542,24 +542,24 @@ export function suggestBlockSpacing(blocks: Array<{
   config?: Record<string, unknown>;
 }>): SpacingSuggestion[] {
   const spacingMap: Record<string, { padding: string; reason: string }> = {
-    hero:       { padding: '0',          reason: 'Hero is full-viewport — no extra padding needed' },
+    hero: { padding: '0', reason: 'Hero is full-viewport, no extra padding needed' },
     story:      { padding: '3rem 2rem',  reason: 'Story chapters need moderate breathing room' },
     event:      { padding: '4rem 2rem',  reason: 'Event cards need space for scanning' },
-    countdown:  { padding: '3rem 2rem',  reason: 'Countdown is compact — moderate padding' },
+    countdown: { padding: '3rem 2rem', reason: 'Countdown is compact, moderate padding' },
     rsvp:       { padding: '4rem 2rem',  reason: 'RSVP form needs comfortable spacing' },
     registry:   { padding: '4rem 2rem',  reason: 'Registry links need browse-friendly spacing' },
-    travel:     { padding: '3rem 2rem',  reason: 'Travel info is reference content — moderate spacing' },
-    faq:        { padding: '3rem 2rem',  reason: 'FAQ items are scannable — moderate spacing' },
+    travel: { padding: '3rem 2rem', reason: 'Travel info is reference content, moderate spacing' },
+    faq: { padding: '3rem 2rem', reason: 'FAQ items are scannable, moderate spacing' },
     photos:     { padding: '5rem 2rem',  reason: 'Photo sections deserve spacious breathing room' },
     gallery:    { padding: '5rem 2rem',  reason: 'Gallery grids look best with generous spacing' },
     photoWall:  { padding: '5rem 2rem',  reason: 'Photo walls need space to breathe' },
-    guestbook:  { padding: '4rem 2rem',  reason: 'Guestbook is interactive — comfortable spacing' },
-    text:       { padding: '3rem 2rem',  reason: 'Text blocks are compact — tighter spacing' },
+    guestbook: { padding: '4rem 2rem', reason: 'Guestbook is interactive, comfortable spacing' },
+    text: { padding: '3rem 2rem', reason: 'Text blocks are compact, tighter spacing' },
     quote:      { padding: '5rem 2rem',  reason: 'Quotes need whitespace for emphasis' },
     video:      { padding: '4rem 2rem',  reason: 'Video embeds need comfortable framing' },
-    map:        { padding: '3rem 2rem',  reason: 'Maps are utility — moderate spacing' },
+    map: { padding: '3rem 2rem', reason: 'Maps are utility, moderate spacing' },
     divider:    { padding: '0',          reason: 'Dividers are self-spacing' },
-    hashtag:    { padding: '3rem 2rem',  reason: 'Hashtags are quick-read — moderate spacing' },
+    hashtag: { padding: '3rem 2rem', reason: 'Hashtags are quick-read, moderate spacing' },
     weddingParty: { padding: '4rem 2rem', reason: 'Party grid needs browse-friendly spacing' },
   };
 

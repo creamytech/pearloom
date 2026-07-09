@@ -118,7 +118,7 @@ export function StudioSendOverlay({
       const noEmail = data.noEmail ?? 0;
       setSentSummary(
         `Sent to ${sent}` +
-        (noEmail ? ` · ${noEmail} had no email on file — add addresses in Guests` : '') +
+        (noEmail ? ` · ${noEmail} had no email on file, add addresses in Guests` : '') +
         (failed ? ` · ${failed} failed` : ''),
       );
       onSent?.(sent);
@@ -323,7 +323,7 @@ export function StudioSendOverlay({
               "Tomorrow at 9 AM" / "Custom" buttons and the
               "staggers by timezone" promise are gone until they
               are. One honest option. */}
-          <SendBlock title="Schedule" sub="Ships in the next few minutes — scheduled sends are coming soon">
+          <SendBlock title="Schedule" sub="Ships in the next few minutes, scheduled sends are coming soon">
             <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
               {[
                 { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },
@@ -360,7 +360,7 @@ export function StudioSendOverlay({
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
               {withEmail > 0
                 ? `${withEmail} digital send${withEmail === 1 ? '' : 's'} are free.`
-                : 'No guest emails on file yet — add some first.'}
+                : 'No guest emails on file yet, add some first.'}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button

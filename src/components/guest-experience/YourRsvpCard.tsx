@@ -105,7 +105,7 @@ export function YourRsvpCard({
   async function submit(nextStatus: Status, includeDetails = false) {
     if (busy) return;
     if (!guestEmail) {
-      setError('Your invite is missing an email — ask the host to send a fresh link.');
+      setError('Your invite is missing an email, ask the host to send a fresh link.');
       return;
     }
     const previous = status;

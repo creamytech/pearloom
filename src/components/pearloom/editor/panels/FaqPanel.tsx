@@ -70,14 +70,14 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: f.question,
-          context: `FAQ answer — the question is "${f.question}". Draft a warm, factual 1-2 sentence answer for a celebration-website FAQ. Don't restate the question — answer it directly.`,
+          context: `FAQ answer, the question is "${f.question}". Draft a warm, factual 1-2 sentence answer for a celebration-website FAQ. Don't restate the question, answer it directly.`,
           voiceProfile: voiceProfileFrom(manifest),
         }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[faq] draft-answer failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one, try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== f.question) {
@@ -87,7 +87,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
       return null;
     } catch (e) {
       console.error('[faq] draft-answer error:', e);
-      const msg = pearErrorMessage(e, 'Pear couldn’t draft that one — try again?');
+      const msg = pearErrorMessage(e, 'Pear couldn’t draft that one, try again?');
       setDraftErr(msg);
       return msg;
     } finally {
@@ -287,14 +287,14 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, quick-add, guest questions
+            <Icon name="chev-down" size={12} /> More, eyebrow, quick-add, guest questions
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
               <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
             </FGroup>
             {remainingQuickAdds.length > 0 && (
-              <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer — fill it in below.">
+              <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer, fill it in below.">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {remainingQuickAdds.slice(0, 8).map((q) => (
                     <button
@@ -315,10 +315,10 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                 </div>
               </FGroup>
             )}
-            <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard — guests never see each other's.">
+            <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard, guests never see each other's.">
               <FToggleStandalone
                 label="Let guests ask a question"
-                sub="Off by default — flip it on when you're ready"
+                sub="Off by default, flip it on when you're ready"
                 def={((manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true}
                 onChange={(v) => onChange({
                   ...(manifest as unknown as Record<string, unknown>),

@@ -287,7 +287,7 @@ export function VendorBookClient() {
       });
       const data = (await res.json().catch(() => null)) as { ok?: boolean; vendor?: BookVendor; error?: string } | null;
       if (!res.ok || !data?.ok || !data.vendor) {
-        setFormError(data?.error ?? 'That didn’t save — try again.');
+        setFormError(data?.error ?? 'That didn’t save, try again.');
         return;
       }
       const saved = data.vendor;
@@ -296,7 +296,7 @@ export function VendorBookClient() {
       );
       setForm(null);
     } catch {
-      setFormError('That didn’t save — check your connection and try again.');
+      setFormError('That didn’t save, check your connection and try again.');
     } finally {
       setSaving(false);
     }
@@ -316,7 +316,7 @@ export function VendorBookClient() {
         const saved = data.vendor;
         setVendors((prev) => prev.map((v) => (v.id === saved.id ? saved : v)));
       }
-    } catch { /* leave the row as-is — nothing was presented as saved */ }
+    } catch { /* leave the row as-is, nothing was presented as saved */ }
   }, [siteId, setVendors]);
 
   // ── The call sheet ──
@@ -408,7 +408,7 @@ export function VendorBookClient() {
       });
       const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
       if (!res.ok || !data?.ok) {
-        setBudgetError(data?.error ?? 'The budget didn’t save — try again.');
+        setBudgetError(data?.error ?? 'The budget didn’t save, try again.');
         return;
       }
       setLinkedVendorIds((prev) => {
@@ -417,7 +417,7 @@ export function VendorBookClient() {
         return next;
       });
     } catch {
-      setBudgetError('The budget didn’t save — check your connection and try again.');
+      setBudgetError('The budget didn’t save, check your connection and try again.');
     } finally {
       setBudgetBusy(null);
     }
@@ -528,14 +528,14 @@ export function VendorBookClient() {
           <EmptyShell
             inline
             cta={null}
-            message="Pick a celebration first — the switcher in the sidebar keeps its vendor book."
+            message="Pick a celebration first, the switcher in the sidebar keeps its vendor book."
           />
         ) : vendors.length === 0 && !form ? (
           /* ── Honest empty state — full width, no summary rail ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {loadError && (
               <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
-                The book didn&rsquo;t load — refresh to try again.
+                The book didn&rsquo;t load, refresh to try again.
               </div>
             )}
             <PLCard tone="paper" style={{ padding: '44px 24px', textAlign: 'center' }}>
@@ -575,7 +575,7 @@ export function VendorBookClient() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
               {loadError && (
                 <div role="alert" style={{ fontSize: 12.5, color: plum, lineHeight: 1.5 }}>
-                  The book didn&rsquo;t load — refresh to try again.
+                  The book didn&rsquo;t load, refresh to try again.
                 </div>
               )}
 
@@ -583,7 +583,7 @@ export function VendorBookClient() {
               {dues.length === 0 && hasSchedule && (
                 <PLCard tone="paper" title="Due next" icon="calendar">
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--sage-deep)' }}>
-                    <Icon name="check" size={13} /> All paid — nothing on the schedule.
+                    <Icon name="check" size={13} /> All paid, nothing on the schedule.
                   </div>
                 </PLCard>
               )}
@@ -746,7 +746,7 @@ export function VendorBookClient() {
                 ) : (
                   <section style={{ background: 'var(--cream-2)', border: '1px solid var(--line-soft)', borderRadius: 16, padding: '16px 18px' }}>
                     <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-                      Every figure here is yours — Pearloom keeps the ledger and never touches vendor money.
+                      Every figure here is yours, Pearloom keeps the ledger and never touches vendor money.
                     </div>
                   </section>
                 )}
@@ -992,9 +992,9 @@ function VendorCard({
                 }}
               >
                 {sheetState === 'copied'
-                  ? 'Copied — send it along'
+                  ? 'Copied, send it along'
                   : sheetState === 'error'
-                    ? 'Couldn’t copy — try again'
+                    ? 'Couldn’t copy, try again'
                     : sheetState === 'busy'
                       ? 'Saving…'
                       : 'Call sheet →'}
@@ -1060,7 +1060,7 @@ function PaymentLine({
         {label}
         {due && (
           <span style={{ color: overdue ? plum : 'var(--ink-muted)' }}>
-            {' '}· due {fmtDueDate(due)}{overdue ? ' — past due' : ''}
+            {' '}· due {fmtDueDate(due)}{overdue ? ', past due' : ''}
           </span>
         )}
       </span>

@@ -68,21 +68,21 @@ interface KindOption {
 }
 
 const WEDDING_KINDS: KindOption[] = [
-  { id: 'vows', apiKind: 'vows', label: 'Vows', range: '60–120s', hint: 'Spoken to your partner — short, specific, structured.' },
-  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent — one anecdote, land warm.' },
-  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+  { id: 'vows', apiKind: 'vows', label: 'Vows', range: '60–120s', hint: 'Spoken to your partner, short, specific, structured.' },
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent, one anecdote, land warm.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests, set tone for the night.' },
 ];
 
 const MEMORIAL_KINDS: KindOption[] = [
-  { id: 'eulogy', apiKind: 'speech', label: 'Eulogy', range: '2–5min', hint: 'Their life, in your words — one true story, told with care.' },
-  { id: 'remembrance', apiKind: 'toast', label: 'Words of remembrance', range: '90–180s', hint: 'A single memory, told well — land gentle.' },
-  { id: 'welcome', apiKind: 'speech', label: 'Welcome', range: '2–5min', hint: 'Receiving everyone who came — warm, steady, brief.' },
+  { id: 'eulogy', apiKind: 'speech', label: 'Eulogy', range: '2–5min', hint: 'Their life, in your words, one true story, told with care.' },
+  { id: 'remembrance', apiKind: 'toast', label: 'Words of remembrance', range: '90–180s', hint: 'A single memory, told well, land gentle.' },
+  { id: 'welcome', apiKind: 'speech', label: 'Welcome', range: '2–5min', hint: 'Receiving everyone who came, warm, steady, brief.' },
 ];
 
 const CELEBRATION_KINDS: KindOption[] = [
-  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Raise a glass to the guest of honor — one anecdote, land warm.' },
-  { id: 'tribute', apiKind: 'speech', label: 'Tribute', range: '2–5min', hint: 'The longer look back — what this person and this milestone mean.' },
-  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests — set tone for the night.' },
+  { id: 'toast', apiKind: 'toast', label: 'Toast', range: '90–180s', hint: 'Raise a glass to the guest of honor, one anecdote, land warm.' },
+  { id: 'tribute', apiKind: 'speech', label: 'Tribute', range: '2–5min', hint: 'The longer look back, what this person and this milestone mean.' },
+  { id: 'speech', apiKind: 'speech', label: 'Welcome speech', range: '2–5min', hint: 'Host welcoming guests, set tone for the night.' },
 ];
 
 /** Speech kinds follow the occasion: weddings write vows, memorials
@@ -144,7 +144,7 @@ export function SpeechComposerPage() {
   }, [site?.id]);
 
   function quote(insp: Inspiration) {
-    const attribution = insp.guest_name ? ` — ${insp.guest_name}` : '';
+    const attribution = insp.guest_name ? `, ${insp.guest_name}` : '';
     const block = `\n\n"${insp.body.trim()}"${attribution}\n\n`;
     setText((prev) => prev + block);
   }
@@ -190,7 +190,7 @@ export function SpeechComposerPage() {
             Say it, then <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>say it better.</span>
           </h1>
           <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 620, margin: '10px 0 0' }}>
-            Paste a real first draft — Pear reads it for length, specifics, and arc, then hands you the fixes. Your guests&rsquo; own words ride the rail, ready to weave in.
+            Paste a real first draft, Pear reads it for length, specifics, and arc, then hands you the fixes. Your guests&rsquo; own words ride the rail, ready to weave in.
           </p>
         </header>
 
@@ -246,7 +246,7 @@ export function SpeechComposerPage() {
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Paste your draft here. Pear works best with a real first attempt — even rough."
+                placeholder="Paste your draft here. Pear works best with a real first attempt, even rough."
                 rows={18}
                 style={{
                   width: '100%',

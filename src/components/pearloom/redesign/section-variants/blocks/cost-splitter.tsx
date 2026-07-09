@@ -206,9 +206,9 @@ function SettleLines({ math }: { math: CostMath }) {
           {payers.map((p) => {
             let settle = '';
             if (p.net != null) {
-              if (p.net > 0.005) settle = ` — is owed ${formatUsd(p.net)}`;
-              else if (p.net < -0.005) settle = ` — owes ${formatUsd(-p.net)}`;
-              else settle = ' — all square';
+              if (p.net > 0.005) settle = `, is owed ${formatUsd(p.net)}`;
+              else if (p.net < -0.005) settle = `, owes ${formatUsd(-p.net)}`;
+              else settle = ', all square';
             }
             return (
               <span key={p.name} style={tabular}>

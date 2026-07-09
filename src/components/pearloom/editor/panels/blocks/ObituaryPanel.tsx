@@ -41,7 +41,7 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
             value={obituary.dates ?? ''}
             onChange={(v) => patch({ dates: v })}
             icon="calendar"
-            placeholder="March 12, 1942 — April 8, 2026"
+            placeholder="March 12, 1942, April 8, 2026"
           />
         </FGroup>
 
@@ -61,11 +61,11 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
                 fxSection="obituary"
                 value={obituary.body ?? ''}
                 onCommit={(v) => patch({ body: v })}
-                context="obituary remembrance — solemn, gentle register; plain and true, never flowery"
+                context="obituary remembrance, solemn, gentle register; plain and true, never flowery"
                 tones={['shorten', 'warmer', 'poetic']}
               />
               <div style={{ marginTop: 5, fontSize: 10.5, lineHeight: 1.5, color: 'var(--ink-muted)' }}>
-                Pear only suggests — nothing changes until you keep it. Read every word before it reaches the family.
+                Pear only suggests, nothing changes until you keep it. Read every word before it reaches the family.
               </div>
             </div>
           )}
@@ -75,7 +75,7 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="memorial"
             label="Also in the Memorial workspace"
-            body="Order of service + tribute wall live there — same obituary, one store. Pear can help rewrite the remembrance there."
+            body="Order of service + tribute wall live there, same obituary, one store. Pear can help rewrite the remembrance there."
           />
         )}
 

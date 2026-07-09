@@ -499,7 +499,7 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const rl = checkRateLimit(`pear-chat:${ip}`, { max: 30, windowMs: 60_000 });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many messages — slow down a tick.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many messages. Slow down a tick.' }, { status: 429 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
@@ -531,7 +531,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(sessionEmail, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

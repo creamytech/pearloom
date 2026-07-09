@@ -161,10 +161,10 @@ function TributeComposer({
         }
       } else {
         const data = await res.json().catch(() => ({} as { error?: string }));
-        setError(data?.error ?? 'Your words didn’t go through just now — please try again in a moment.');
+        setError(data?.error ?? 'Your words didn’t go through just now, please try again in a moment.');
       }
     } catch {
-      setError('You look offline — your words didn’t go through. Please try again in a moment.');
+      setError('You look offline, your words didn’t go through. Please try again in a moment.');
     } finally {
       setSending(false);
     }
@@ -348,7 +348,7 @@ const DEMO_SOLEMN: TributeEntry[] = [
 const DEMO_CELEBRATORY: TributeEntry[] = [
   { from: 'Maya', body: 'Twenty years of desk-side pep talks and truly terrible puns. We were lucky to have every one of them.' },
   { from: 'Sam', body: 'You showed the rest of us what it looks like to do the work and love the people. Nobody did it better.' },
-  { from: 'Priya', body: 'Here’s to the years ahead — you’ve more than earned every one of them.' },
+  { from: 'Priya', body: 'Here’s to the years ahead, you’ve more than earned every one of them.' },
 ];
 
 /* ─── Section ────────────────────────────────────────────────── */
@@ -389,7 +389,7 @@ export function TributeWallSection({ manifest, pad, editable, variant, onEditCop
             }}
           >
             <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)', flexShrink: 0 }} />
-            Guests write here — you approve before it shows
+            Guests write here, you approve before it shows
           </span>
         </div>
       )}
@@ -402,7 +402,7 @@ export function TributeWallSection({ manifest, pad, editable, variant, onEditCop
         </p>
       ) : entries.length === 0 ? (
         <p style={{ textAlign: 'center', color: 'var(--t-ink-muted)', fontStyle: 'italic', fontSize: 13.5 }}>
-          {solemn ? 'No memories yet — the first one begins the wall.' : 'No memories yet — be the first to share one.'}
+          {solemn ? 'No memories yet, the first one begins the wall.' : 'No memories yet, be the first to share one.'}
         </p>
       ) : v === 'columns' ? (
         <ColumnsVariant entries={entries} />

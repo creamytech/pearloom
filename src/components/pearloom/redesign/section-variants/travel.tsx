@@ -155,7 +155,7 @@ export function StayActions({ h, compact }: { h: Hotel; compact?: boolean }) {
               void navigator.clipboard?.writeText(h.groupRate ?? '');
               setCopied(true);
               window.setTimeout(() => setCopied(false), 1600);
-            } catch { /* clipboard denied — the code is still readable */ }
+            } catch { /* clipboard denied, the code is still readable */ }
           }}
           title="Tap to copy the group code"
           style={{

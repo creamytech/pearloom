@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   const limit = checkRateLimit(`decor-upload:${session.user.email}:${ip}`, { max: 30, windowMs: 60_000 });
   if (!limit.allowed) {
     return NextResponse.json(
-      { error: 'Too many uploads — give it a moment, then try again.' },
+      { error: 'Too many uploads. Give it a moment, then try again.' },
       { status: 429 },
     );
   }

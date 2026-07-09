@@ -117,7 +117,7 @@ export function CostSplitterPanel({ manifest, onChange }: BlockPanelProps) {
 
         <FGroup
           label="Split between"
-          hint="How many people share the bill. Powers the per-person share and the settle-up line on the site — display only, no payments."
+          hint="How many people share the bill. Powers the per-person share and the settle-up line on the site, display only, no payments."
         >
           <div style={{ width: 130 }}>
             <FInput
@@ -134,7 +134,7 @@ export function CostSplitterPanel({ manifest, onChange }: BlockPanelProps) {
           <ToolPointerCard
             toolId="bachelor"
             label="Also in the Weekend planner"
-            body="Polls, packing, rooms, and the group chat link live there — same costs, one store."
+            body="Polls, packing, rooms, and the group chat link live there, same costs, one store."
           />
         )}
 

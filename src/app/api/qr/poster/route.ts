@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
        process.env.GOOGLE_API_KEY);
   if (!hasOpenAIImageKey() && !hasGeminiKey) {
     return NextResponse.json(
-      { error: 'Pear\'s painter is offline — image generation isn\'t configured on this server.' },
+      { error: 'Pear\'s painter is offline. Image generation isn\'t configured on this server.' },
       { status: 503 },
     );
   }
@@ -149,7 +149,7 @@ async function runRender(body: Body, theme: NonNullable<ReturnType<typeof getQrT
     throw new Error(
       upstream
         ? `Painter said: ${upstream}`
-        : 'The painter returned nothing — try a different theme.',
+        : 'The painter returned nothing. Try a different theme.',
     );
   }
 

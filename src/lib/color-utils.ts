@@ -322,13 +322,13 @@ export function detectPaletteIssues(colors: PaletteCheckInput): DesignIssue[] {
       issues.push({
         severity: 'error', code: 'fg-bg-contrast',
         title: 'Text is hard to read',
-        detail: `${fgBgRatio.toFixed(1)}:1 contrast — WCAG requires at least 4.5:1. Guests will struggle.`,
+        detail: `${fgBgRatio.toFixed(1)}:1 contrast, WCAG requires at least 4.5:1. Guests will struggle.`,
       });
     } else if (fgBgRatio < 4.5) {
       issues.push({
         severity: 'warn', code: 'fg-bg-contrast-aa',
         title: 'Text contrast is borderline',
-        detail: `${fgBgRatio.toFixed(1)}:1 — below the WCAG AA standard of 4.5:1 for body text.`,
+        detail: `${fgBgRatio.toFixed(1)}:1, below the WCAG AA standard of 4.5:1 for body text.`,
       });
     }
   }
@@ -339,7 +339,7 @@ export function detectPaletteIssues(colors: PaletteCheckInput): DesignIssue[] {
     issues.push({
       severity: 'warn', code: 'fg-card-contrast',
       title: 'Card text contrast low',
-      detail: `${fgCardRatio.toFixed(1)}:1 on card backgrounds — content in panels may be hard to read.`,
+      detail: `${fgCardRatio.toFixed(1)}:1 on card backgrounds, content in panels may be hard to read.`,
     });
   }
 
@@ -359,7 +359,7 @@ export function detectPaletteIssues(colors: PaletteCheckInput): DesignIssue[] {
     issues.push({
       severity: 'warn', code: 'bg-card-identical',
       title: 'Cards blend into background',
-      detail: 'Your background and card colors are nearly identical — sections lose their structure.',
+      detail: 'Your background and card colors are nearly identical, sections lose their structure.',
     });
   }
 
@@ -369,7 +369,7 @@ export function detectPaletteIssues(colors: PaletteCheckInput): DesignIssue[] {
     issues.push({
       severity: 'warn', code: 'accent-harmony',
       title: 'Accent color clashes with background',
-      detail: 'These hues sit in the "danger zone" on the color wheel — neither complementary nor analogous.',
+      detail: 'These hues sit in the "danger zone" on the color wheel, neither complementary nor analogous.',
     });
   }
 
@@ -396,7 +396,7 @@ export function detectPaletteIssues(colors: PaletteCheckInput): DesignIssue[] {
     issues.push({
       severity: 'warn', code: 'dark-on-dark',
       title: 'Dark accent on dark background',
-      detail: 'Both your background and accent are dark — buttons and highlights will disappear.',
+      detail: 'Both your background and accent are dark, buttons and highlights will disappear.',
     });
   }
 

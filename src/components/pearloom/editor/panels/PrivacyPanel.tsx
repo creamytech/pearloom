@@ -31,15 +31,15 @@ export function PrivacyPanel({
       <FGroup
         label="Password protection"
         hint={enabled
-          ? 'Guests see a locked page until they enter the password. Share it alongside the link — it isn’t in the invite automatically.'
-          : 'The site is public — anyone with the link can open it. Set a password to keep it between invited guests.'}
+          ? 'Guests see a locked page until they enter the password. Share it alongside the link, it isn’t in the invite automatically.'
+          : 'The site is public, anyone with the link can open it. Set a password to keep it between invited guests.'}
       >
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             type={show ? 'text' : 'password'}
             value={password}
             onChange={(e) => write(e.target.value || null)}
-            placeholder="No password — site is public"
+            placeholder="No password, site is public"
             autoComplete="off"
             style={{
               flex: 1, padding: '10px 12px', borderRadius: 10,
@@ -69,7 +69,7 @@ export function PrivacyPanel({
               cursor: 'pointer', fontFamily: 'inherit', alignSelf: 'flex-start',
             }}
           >
-            Remove the password — make the site public
+            Remove the password, make the site public
           </button>
         )}
       </FGroup>

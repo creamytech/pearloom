@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
   const rateCheck = checkRateLimit(`ask-couple:${ip}`, { max: 20, windowMs: 60 * 60 * 1000 });
   if (!rateCheck.allowed) {
     return NextResponse.json(
-      { error: 'Too many questions — please wait a while and try again.' },
+      { error: 'Too many questions. Please wait a while and try again.' },
       { status: 429 }
     );
   }
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
   const budgetK = budgetKey(null, ip);
   if (await overBudget(budgetK)) {
     return NextResponse.json(
-      { error: "You've reached today's AI limit — try again tomorrow." },
+      { error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }
@@ -295,6 +295,6 @@ ${name1} & ${name2}'s reply:`;
     return NextResponse.json({ answer, suggestions });
   } catch (err) {
     console.error('[ask-couple] Error:', err);
-    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning — ask us at the reception!" });
+    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning. Ask us at the reception!" });
   }
 }

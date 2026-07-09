@@ -53,7 +53,7 @@ async function pollQrPosterJob(jobId: string): Promise<{ url: string | null; qrD
       throw new Error(data.error ?? 'Pear couldn\'t finish that one.');
     }
   }
-  throw new Error('Pear is still painting — check back in a minute or try again.');
+  throw new Error('Pear is still painting, check back in a minute or try again.');
 }
 
 // The tabletop hint names the site — derive it from the occasion so
@@ -315,7 +315,7 @@ export function QrPosterPage() {
                     <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></>
                   ) : (
                     <>
-                      No site selected —{' '}
+                      No site selected, {' '}
                       <Link href="/dashboard/event" style={{ color: 'var(--ink)', fontWeight: 600 }}>
                         choose a celebration →
                       </Link>
@@ -324,8 +324,8 @@ export function QrPosterPage() {
                 </span>
                 <HintChip
                   storageKey="pl-hint-qr-poster"
-                  hint="Guests scan the poster to open the site — no typing."
-                  detail="A printable scan-to-site poster — drop it on the welcome table, the bar, or by the RSVP card so guests open the site without typing a link. Pick a size, a copy preset, and (optionally) let Pear paint a themed background."
+                  hint="Guests scan the poster to open the site, no typing."
+                  detail="A printable scan-to-site poster, drop it on the welcome table, the bar, or by the RSVP card so guests open the site without typing a link. Pick a size, a copy preset, and (optionally) let Pear paint a themed background."
                 />
               </div>
             }

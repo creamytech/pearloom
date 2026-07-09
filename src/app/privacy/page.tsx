@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <strong>Export your data:</strong> visit <a href="/dashboard/profile?section=export" style={{ color: 'var(--lavender-ink)' }}>Settings → Weave a backup</a> for a one-click JSON download of every site, guest, RSVP, photo URL, registry item, and payment record we hold on you.
       </p>
       <p>
-        <strong>Delete your account:</strong> visit <a href="/dashboard/profile?section=danger" style={{ color: 'var(--lavender-ink)' }}>Settings → Delicate actions</a>. Account deletion is irreversible — every site, guest, message, and photo is hard-deleted within seconds.
+        <strong>Delete your account:</strong> visit <a href="/dashboard/profile?section=danger" style={{ color: 'var(--lavender-ink)' }}>Settings → Delicate actions</a>. Account deletion is irreversible, every site, guest, message, and photo is hard-deleted within seconds.
       </p>
       <p>
         Need to correct something we got wrong, or have a question? Email <a href="mailto:hello@pearloom.com" style={{ color: 'var(--lavender-ink)' }}>hello@pearloom.com</a>.

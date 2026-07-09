@@ -68,7 +68,7 @@ export function DesignTogether({ onGetStarted }: Props) {
           >
             Hand the maid of honor the shower, the best man the bachelor weekend,
             the parents the rehearsal dinner. Give each a role. Then edit the same
-            site at the same time — you&rsquo;ll see their mark, and the very block
+            site at the same time, you&rsquo;ll see their mark, and the very block
             they&rsquo;re shaping, the moment they touch it.
           </p>
 
@@ -179,7 +179,7 @@ export function DesignTogether({ onGetStarted }: Props) {
               }}
             >
               <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: PD.olive }} />
-              Changes thread in live — no save button, no refresh.
+              Changes thread in live, no save button, no refresh.
             </div>
           </div>
         </div>

@@ -220,14 +220,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[story] draft failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one, try again?');
       }
       const data = await res.json() as { draft?: string };
       if (data.draft && data.draft.trim()) patch({ body: data.draft.trim() });
       else setErr('Pear didn’t return anything to draft from.');
     } catch (e) {
       console.error('[story] draft error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one, try again?'));
     } finally {
       setDraftBusy(false);
     }
@@ -266,18 +266,18 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: body, context: `story body — make it ${tone.toLowerCase()}`, voiceProfile: voiceProfileFrom(manifest) }),
+        body: JSON.stringify({ text: body, context: `story body, make it ${tone.toLowerCase()}`, voiceProfile: voiceProfileFrom(manifest) }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[story] rewrite failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one, try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== body) patch({ body: rewritten });
     } catch (e) {
       console.error('[story] rewrite error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one, try again?'));
     } finally {
       setBusy(null);
     }
@@ -321,13 +321,13 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         console.error('[story] chip suggest failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t think of chips just now — try again?');
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t think of chips just now, try again?');
       }
       const data = await res.json() as { chips?: string[] };
       setAiSuggestions(Array.isArray(data.chips) ? data.chips : []);
     } catch (e) {
       console.error('[story] chip suggest error:', e);
-      setErr(pearErrorMessage(e, 'Pear couldn’t think of chips just now — try again?'));
+      setErr(pearErrorMessage(e, 'Pear couldn’t think of chips just now, try again?'));
     } finally {
       setAiBusy(false);
     }
@@ -549,7 +549,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More — eyebrow, chapter cards
+            <Icon name="chev-down" size={12} /> More, eyebrow, chapter cards
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
             <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">

@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const rateCheck = checkRateLimit(`guest-photos:${ip}`, { max: 5, windowMs: 60 * 60 * 1000 });
   if (!rateCheck.allowed) {
     return NextResponse.json(
-      { error: 'Too many uploads — please wait a while and try again.' },
+      { error: 'Too many uploads. Please wait a while and try again.' },
       { status: 429 }
     );
   }
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
           if (!onList) {
             return NextResponse.json(
               {
-                error: 'This celebration is sharing photos by invitation — please open your personal invite link to add yours. If you can’t find it, reach out to your hosts.',
+                error: 'This celebration is sharing photos by invitation. Please open your personal invite link to add yours. If you can’t find it, reach out to your hosts.',
                 guestListOnly: true,
               },
               { status: 403 },
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
       // Fallback: Supabase Storage
       if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
         console.error('[guest-photos] No storage backend configured');
-        return NextResponse.json({ error: 'Storage not configured — contact support' }, { status: 503 });
+        return NextResponse.json({ error: 'Storage not configured. Contact support' }, { status: 503 });
       }
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(

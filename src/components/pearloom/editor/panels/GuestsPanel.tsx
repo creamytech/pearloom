@@ -65,12 +65,12 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
         const res = await fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
         if (!res.ok) {
           console.error('[guests] load failed:', res.status);
-          throw new Error('Couldn’t load guests — try again?');
+          throw new Error('Couldn’t load guests, try again?');
         }
         const data = await res.json() as { guests?: Guest[] };
         if (!cancelled) setGuests(data.guests ?? []);
       } catch (e) {
-        if (!cancelled) setErr(pearErrorMessage(e, 'Couldn’t load guests — try again?'));
+        if (!cancelled) setErr(pearErrorMessage(e, 'Couldn’t load guests, try again?'));
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -123,12 +123,12 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
       });
       if (!res.ok) {
         console.error('[guests] add failed:', res.status);
-        throw new Error('Couldn’t add the guest — try again?');
+        throw new Error('Couldn’t add the guest, try again?');
       }
       const data = await res.json() as { guest?: Guest };
       if (data.guest) setGuests((prev) => [...prev, data.guest!]);
     } catch (e) {
-      setErr(pearErrorMessage(e, 'Couldn’t add the guest — try again?'));
+      setErr(pearErrorMessage(e, 'Couldn’t add the guest, try again?'));
     } finally {
       setBusy(false);
     }
@@ -140,11 +140,11 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
       const res = await fetch(`/api/guests?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (!res.ok) {
         console.error('[guests] delete failed:', res.status);
-        throw new Error('Couldn’t remove the guest — try again?');
+        throw new Error('Couldn’t remove the guest, try again?');
       }
       setGuests((prev) => prev.filter((g) => g.id !== id));
     } catch (e) {
-      setErr(pearErrorMessage(e, 'Couldn’t remove the guest — try again?'));
+      setErr(pearErrorMessage(e, 'Couldn’t remove the guest, try again?'));
     } finally {
       setBusy(false);
     }
@@ -194,7 +194,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
       setImportText('');
       setImportPreview([]);
     } catch (e) {
-      setErr(pearErrorMessage(e, 'Some guests didn’t import — try again?'));
+      setErr(pearErrorMessage(e, 'Some guests didn’t import, try again?'));
     } finally {
       setBusy(false);
     }
@@ -267,7 +267,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
             </button>
           </div>
           <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
-            Guests fill in their own — they land right here.
+            Guests fill in their own, they land right here.
           </div>
         </div>
 
@@ -308,7 +308,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
         )}
 
         {/* List */}
-        <FGroup label="Guests" hint={busy ? 'Loading…' : err ? undefined : (filtered.length ? undefined : 'No guests yet — add the first one below.')}>
+        <FGroup label="Guests" hint={busy ? 'Loading…' : err ? undefined : (filtered.length ? undefined : 'No guests yet, add the first one below.')}>
           {err && (
             <div style={{ padding: '6px 10px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', fontSize: 11.5, marginBottom: 6 }}>
               {err}

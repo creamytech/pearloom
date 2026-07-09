@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     if (isUploadRateLimited(ip)) {
-      return NextResponse.json({ error: 'Too many uploads — please wait before uploading again' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many uploads. Please wait before uploading again' }, { status: 429 });
     }
 
     const formData = await req.formData();

@@ -519,7 +519,7 @@ export default function EditorRedesign({
         raw = window.localStorage.getItem(APPLIED_PACK_STASH_KEY);
         if (raw !== null) window.localStorage.removeItem(APPLIED_PACK_STASH_KEY);
       } catch {
-        return; /* private mode — nothing stashed */
+        return; /* private mode, nothing stashed */
       }
       const pack = readPackStash(raw, Date.now());
       if (!pack) return;
@@ -547,8 +547,8 @@ export default function EditorRedesign({
       setManifestRef.current(applyPackToManifest(pack, prior));
       fireUndoable(
         locked
-          ? `Wearing ${pack.name} to try — unlock it when you publish`
-          : `${pack.name} applied — your old look is one tap away`,
+          ? `Wearing ${pack.name} to try, unlock it when you publish`
+          : `${pack.name} applied, your old look is one tap away`,
         () => setManifestRef.current(prior),
       );
     }, 0);
@@ -1214,7 +1214,7 @@ function EditorCanvas({
             }}
           >
             <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />
-            Before — release to return
+            Before, release to return
           </div>
         )}
         <CanvasThemedSite
@@ -1302,7 +1302,7 @@ function EditorCanvas({
           }}
         >
           <Icon name="eye" size={11} color="var(--cream)" />
-          Preview — chrome hidden
+          Preview, chrome hidden
         </div>
       )}
     </div>

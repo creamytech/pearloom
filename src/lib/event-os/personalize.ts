@@ -67,7 +67,7 @@ export async function generateGuestPersonalization(opts: {
     temperature: 0.7,
     maxTokens: 1400,
     system: cached(
-      `You are Pearloom's personalization writer. For each guest you produce copy that feels like it was hand-written for them — never generic. You know the couple, the event, and the guest's details. You write with warmth, humor, and specificity. Never use emojis. Never reference information you were not given.`,
+      `You are Pearloom's personalization writer. For each guest you produce copy that feels like it was hand-written for them, never generic. You know the couple, the event, and the guest's details. You write with warmth, humor, and specificity. Never use emojis. Never reference information you were not given.`,
       '1h'
     ) as unknown as string,
     messages: [
@@ -89,10 +89,10 @@ ${JSON.stringify({
 })}
 
 VENUE CITY: ${venueCity || '(unknown)'}
-SEAT: ${seatLabel || '(not assigned yet)'}${tableNeighbors?.length ? ` — neighbors: ${tableNeighbors.join(', ')}` : ''}
+SEAT: ${seatLabel || '(not assigned yet)'}${tableNeighbors?.length ? `, neighbors: ${tableNeighbors.join(', ')}` : ''}
 
 Generate:
-- hero_copy: 1-2 sentences addressed to this guest by first name. Should reference their relationship to the couple or their home city. Example: "Priya — we can't believe it's been eleven years of you picking up the phone at 3am. Thank you for flying in from Bombay."
+- hero_copy: 1-2 sentences addressed to this guest by first name. Should reference their relationship to the couple or their home city. Example: "Priya, we can't believe it's been eleven years of you picking up the phone at 3am. Thank you for flying in from Bombay."
 - chapter_highlights: 1-3 chapters where this guest's context would make the chapter land harder (id + one sentence). Leave empty if nothing fits.
 - travel_tips: if home_city differs from venue city, recommend a nearest airport, approximate drive time, and 1-2 hotels. If they live locally, leave blank.
 - seat_summary: 1 sentence about their seat + neighbors if assigned, else a friendly placeholder.`,

@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
       if (pendingInvite) {
         return NextResponse.json(
-          { error: 'You’ve already invited that email — they have a pending invite.', already: 'pending' },
+          { error: 'You’ve already invited that email. They have a pending invite.', already: 'pending' },
           { status: 409 },
         );
       }
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       console.error('[co-host/invite] insert failed:', insertError);
       return NextResponse.json(
-        { error: 'Couldn’t create the invite — try again in a moment.' },
+        { error: 'Couldn’t create the invite. Try again in a moment.' },
         { status: 500 },
       );
     }
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
         const inviter = session.user.name?.split(/\s+/)[0] || 'Your co-host';
         const res = await sendSms({
           to: phoneDigits,
-          body: `${inviter} invited you to help shape ${coupleDisplay}'s site on Pearloom — here's your key (works for 14 days): ${acceptUrl}`,
+          body: `${inviter} invited you to help shape ${coupleDisplay}'s site on Pearloom. Here's your key (works for 14 days): ${acceptUrl}`,
         });
         if (res.ok) {
           return NextResponse.json({ ok: true, acceptUrl, channel: 'sms', sent: true });

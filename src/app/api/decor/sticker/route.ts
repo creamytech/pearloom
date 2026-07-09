@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
       isolated: cutout.isolated,
       prompt,
       customPrompt: hint && hint.trim() ? hint.trim() : null,
-      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the sticker — try a clearer prompt.' }),
+      ...(cutout.isolated ? {} : { warning: 'Couldn\'t fully isolate the sticker. Try a clearer prompt.' }),
     });
   } catch (err) {
     console.error('[decor/sticker] error:', err);

@@ -336,7 +336,7 @@ export function DashDirector() {
             }
             style={{ marginBottom: 20 }}
           />
-          <EmptyShell message="Create a site first — Pear needs something to plan." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
+          <EmptyShell message="Create a site first, Pear needs something to plan." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       </DashLayout>
     );
@@ -485,7 +485,7 @@ export function DashDirector() {
               )}
               {!loading && conversation.length === 0 && (
                 <div style={{ padding: '20px 4px', color: 'var(--ink-soft)', fontSize: 13.5, lineHeight: 1.55, textAlign: 'center' }}>
-                  Start with anything — your budget, your dream florist, your guest-list stress. Pear will pick up the thread.
+                  Start with anything, your budget, your dream florist, your guest-list stress. Pear will pick up the thread.
                 </div>
               )}
               {conversation.map((m, i) => (

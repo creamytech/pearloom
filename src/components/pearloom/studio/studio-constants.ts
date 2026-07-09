@@ -241,16 +241,16 @@ export function buildTypeContent(args: {
       scriptBody: solemn
         ? "We're setting aside a day to gather and remember together, and we'd be honored to have you with us."
         : coupleArc
-          ? "Save the date — we're getting married, and we'd love nothing more than to have you there."
-          : `Save the date — a ${noun} is coming, and we'd love nothing more than to have you there.`,
+          ? "Save the date, we're getting married, and we'd love nothing more than to have you there."
+          : `Save the date, a ${noun} is coming, and we'd love nothing more than to have you there.`,
       drafts: [
         { id: 'editorial', name: 'Editorial', tone: 'serif · centered · stamp', accent: 'lavender', layout: 'classic', motif: 'stamp' },
         { id: 'garden',    name: 'Garden',    tone: 'olive · vines · soft',     accent: 'sage',     layout: 'asym',    motif: 'leaves' },
         { id: 'polaroid',  name: 'Polaroid',  tone: 'photo-led · warm',         accent: 'peach',    layout: 'photo',   motif: 'tape' },
       ],
       pearNudges: [
-        'Try a serif headline — it lands warmer for save-the-dates.',
-        'Most hosts send 6–9 months out — earlier for a travel weekend.',
+        'Try a serif headline, it lands warmer for save-the-dates.',
+        'Most hosts send 6–9 months out, earlier for a travel weekend.',
         'Add a stamp with the date. Guests glance at one detail; make it that.',
       ],
     };
@@ -277,11 +277,11 @@ export function buildTypeContent(args: {
         { id: 'modern',    name: 'Modern',       tone: 'sans · asymmetric',        accent: 'lavender', layout: 'asym',    motif: 'stamp' },
       ],
       pearNudges: [
-        'Switch the date to spelled-out form — it reads more formal.',
+        'Switch the date to spelled-out form, it reads more formal.',
         'Add a meal preference question to the RSVP card on the back.',
         solemn
-          ? 'I can soften any line — gentle, formal, or spare.'
-          : 'I can rewrite the body in three tones — formal, warm, playful.',
+          ? 'I can soften any line, gentle, formal, or spare.'
+          : 'I can rewrite the body in three tones, formal, warm, playful.',
       ],
     };
   }
@@ -302,11 +302,11 @@ export function buildTypeContent(args: {
       { id: 'minimal', name: 'Minimal',     tone: 'sans · two lines',         accent: 'lavender', layout: 'minimal', motif: 'monogram' },
     ],
     pearNudges: [
-      "Write each one slightly different — guests notice when it's personal.",
+      "Write each one slightly different, guests notice when it's personal.",
       "I'll auto-fill 'thank you for the [gift]' from your registry log.",
       solemn
-        ? 'Send within a few weeks — a short note means a great deal.'
-        : `Schedule for the day after the ${noun} — they arrive while it’s still fresh.`,
+        ? 'Send within a few weeks, a short note means a great deal.'
+        : `Schedule for the day after the ${noun}, they arrive while it’s still fresh.`,
     ],
   };
 }

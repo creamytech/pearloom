@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       if (!invited) {
         return NextResponse.json(
           {
-            error: 'This celebration is replying by invitation — please find and pick your name on the guest list. If you can’t find it, reach out to your hosts.',
+            error: 'This celebration is replying by invitation. Please find and pick your name on the guest list. If you can’t find it, reach out to your hosts.',
             guestListOnly: true,
           },
           { status: 403 },

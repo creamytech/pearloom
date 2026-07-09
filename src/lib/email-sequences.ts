@@ -147,7 +147,7 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:36px 16px">
     <tr>
       <td align="center">
-        <!-- Masthead — the nav logo lockup (pear glyph + Pear/loom
+        <!-- Masthead, the nav logo lockup (pear glyph + Pear/loom
              wordmark), a hosted PNG so it renders identically in every
              client. -->
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px">
@@ -323,7 +323,7 @@ export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: stri
   const occasionTitle = opts.occasionTitle ?? 'Memorial';
 
   const subject =
-    cardType === 'std'    ? `Save the date — ${coupleDisplay}` :
+    cardType === 'std' ? `Save the date — ${coupleDisplay}` :
     cardType === 'thanks' ? (solemn ? `With thanks, from the family of ${coupleDisplay}` : `Thank you, from ${coupleDisplay}`) :
     solemn                ? `${occasionTitle} for ${coupleDisplay}` :
                             `You're invited to ${coupleDisplay}'s ${occasionLabel}`;
@@ -341,13 +341,13 @@ export function buildStationeryEmail(opts: StationeryEmailOpts): { subject: stri
   const bodyCopy =
     cardType === 'std' ? (solemn
       ? 'We’ve set a date to gather and remember together. Open the card for the details and the link to the site.'
-      : 'We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.') :
+      : 'We have a date (and a place) and we want you there. Open the card for the details and the link to our site, where everything is unfolding.') :
     cardType === 'thanks' ? (solemn
       ? 'Thank you for standing with us. Open the card for a note from the family.'
       : 'Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.') :
     solemn
       ? 'We’re gathering to honor a beautiful life. Open the card for the details, and let us know if you can be with us.'
-      : 'Your invitation is pressed and sealed — one envelope, with your name on it. Break the seal for the details, and tell us you’ll be there.';
+      : 'Your invitation is pressed and sealed, one envelope, with your name on it. Break the seal for the details, and tell us you’ll be there.';
   const ctaLabel =
     cardType === 'std'    ? 'Open the save-the-date' :
     cardType === 'thanks' ? 'Open your thank-you' :
@@ -495,7 +495,7 @@ export function buildWeeklyDigestEmail(opts: WeeklyDigestEmailOpts): { subject: 
     rows.push(digestRow(
       stats.newRsvps.declined,
       stats.newRsvps.declined === 1 ? 'guest sent regrets' : 'guests sent regrets',
-      'They took the time to reply — worth a warm note back.',
+      'They took the time to reply, worth a warm note back.',
       `${dash}/dashboard/rsvp`, t,
     ));
   }
@@ -554,7 +554,7 @@ export function buildWeeklyDigestEmail(opts: WeeklyDigestEmailOpts): { subject: 
     </td></tr>
     <tr><td style="padding:20px 36px 44px;text-align:center">
       ${button('Open your dashboard', `${dash}/dashboard`, t)}
-      <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">Sent once a week, only when something happened. — ${esc(opts.names)}'s loom, kept by Pearloom.</p>
+      <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">Sent once a week, only when something happened. ${esc(opts.names)}'s loom, kept by Pearloom.</p>
     </td></tr>
   `, t);
 

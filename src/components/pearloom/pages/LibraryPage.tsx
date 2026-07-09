@@ -169,7 +169,7 @@ export function LibraryPage() {
   async function onDelete(id: string) {
     const sure = await dialog.confirm({
       title: 'Remove this photo?',
-      message: 'It goes away from your library. Sites that already use it keep it — we only remove the library copy.',
+      message: 'It goes away from your library. Sites that already use it keep it, we only remove the library copy.',
       confirmLabel: 'Remove photo',
       cancelLabel: 'Keep it',
       variant: 'danger',

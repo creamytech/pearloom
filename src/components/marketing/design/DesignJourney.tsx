@@ -28,7 +28,7 @@ const STEPS = [
   },
   {
     title: 'Invite with heart',
-    desc: 'Share your story and collect replies — a letter, not a form.',
+    desc: 'Share your story and collect replies: a letter, not a form.',
     color: '#A896C9',
   },
   {

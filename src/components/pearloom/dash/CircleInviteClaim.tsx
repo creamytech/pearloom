@@ -73,7 +73,7 @@ export function CircleInviteClaim() {
           inviterPersonId: d.inviterPersonId,
           alreadyAccepted: d.status === 'accepted',
         });
-      } catch { /* claim is a nicety — the request still waits in Circle */ }
+      } catch { /* claim is a nicety, the request still waits in Circle */ }
     }, 400);
     return () => { cancelled = true; window.clearTimeout(t); };
   }, []);
@@ -141,7 +141,7 @@ export function CircleInviteClaim() {
         {done ? (
           <>You and <strong>{info.inviterFirstName}</strong> are in each other&rsquo;s circle now. <Link href="/dashboard/circle" style={{ color: 'var(--sage-deep, #5C6B3F)', fontWeight: 600 }}>Say hello →</Link></>
         ) : (
-          <><strong>{info.inviterFirstName}</strong> saved you a place in their circle — add them back?</>
+          <><strong>{info.inviterFirstName}</strong> saved you a place in their circle, add them back?</>
         )}
       </span>
       {!done && (

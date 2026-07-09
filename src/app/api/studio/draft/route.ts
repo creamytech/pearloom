@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
   const rl = checkRateLimit(`studio-draft:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many drafts — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many drafts. Try again in an hour.' }, { status: 429 });
   }
 
   let body: DraftBody = {};
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const rl = checkRateLimit(`newsletter:${ip}`, { max: 5, windowMs: 10 * 60 * 1000 });
   if (!rl.allowed) {
     return NextResponse.json(
-      { ok: false, error: 'Too many signups — try again in a few minutes.' },
+      { ok: false, error: 'Too many signups. Try again in a few minutes.' },
       { status: 429 },
     );
   }

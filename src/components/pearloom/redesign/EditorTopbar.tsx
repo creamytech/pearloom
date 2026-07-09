@@ -318,7 +318,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         {peers.length > 0 && (
           <div
             aria-label={`Editing together: ${peers.map((p) => p.name).join(', ')}`}
-            title={`Editing together: ${peers.map((p) => p.name).join(', ')} — changes sync live`}
+            title={`Editing together: ${peers.map((p) => p.name).join(', ')}, changes sync live`}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
               padding: '3px 9px 3px 7px', borderRadius: 999,
@@ -365,7 +365,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         )}
         <div
           aria-live="polite"
-          title={saveState === 'error' ? 'Last save attempt failed — next edit will retry.' : `Last saved at ${savedAt}`}
+          title={saveState === 'error' ? 'Last save attempt failed, next edit will retry.' : `Last saved at ${savedAt}`}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: saveActive ? '3px 9px' : '3px 0',
@@ -448,7 +448,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                   {dayOf && (
                     <MenuRow
                       icon="calendar-check"
-                      label={dayOf.isLive ? 'Go live — day-of' : `Day-of · ${dayOf.daysOut}d`}
+                      label={dayOf.isLive ? 'Go live, day-of' : `Day-of · ${dayOf.daysOut}d`}
                       onClick={() => {
                         setMenuOpen(false);
                         try { window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'dayof' } })); } catch { /* noop */ }
@@ -478,8 +478,8 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           type="button"
           className="btn btn-outline btn-sm"
           onClick={shareSite}
-          aria-label="Open the Share panel — link, QR, share kit, co-hosts"
-          title="Share — link, QR, share kit, co-host invites"
+          aria-label="Open the Share panel, link, QR, share kit, co-hosts"
+          title="Share, link, QR, share kit, co-host invites"
         >
           <Icon name="share" size={12} /> <span className="pl-rd-top-label">Share</span>
         </button>
@@ -496,7 +496,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           /* "Design" — the same word as the rail tab it opens, so
              the destination has ONE name (was "Theme" here,
              "Design" there, "Site look" in the eyebrow). */
-          title="Open the Design panel — theme, colors, fonts, layout"
+          title="Open the Design panel, theme, colors, fonts, layout"
         >
           <Icon name="palette" size={12} /> <span className="pl-rd-top-label">Design</span>
         </button>
@@ -504,7 +504,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           type="button"
           className="btn btn-outline btn-sm"
           onClick={openDecorLibrary}
-          title="Open decor library — motifs, dividers, patterns, monogram"
+          title="Open decor library, motifs, dividers, patterns, monogram"
         >
           <Icon name="sparkles" size={12} /> <span className="pl-rd-top-label">Decor</span>
         </button>
@@ -693,7 +693,7 @@ function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
       }}
       title={isLive
         ? 'Compose live broadcasts for guests on the day of your event'
-        : `${daysOut} day${daysOut === 1 ? '' : 's'} out — draft your day-of broadcasts now`}
+        : `${daysOut} day${daysOut === 1 ? '' : 's'} out, draft your day-of broadcasts now`}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '4px 10px',

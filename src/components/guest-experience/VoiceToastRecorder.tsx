@@ -32,7 +32,7 @@ function copyFor(occasion?: string | null) {
       headWord: 'words',
       blurb: 'Record up to two minutes. Your voice will be kept alongside their memories.',
       send: 'Send your words',
-      done: 'Thank you — your words were sent. The family will listen before sharing them.',
+      done: 'Thank you, your words were sent. The family will listen before sharing them.',
     };
   }
   const coupleShaped =
@@ -48,7 +48,7 @@ function copyFor(occasion?: string | null) {
       headWord: 'toast',
       blurb: 'Record up to two minutes. Your words could end up in the film they watch every anniversary.',
       send: 'Send to the couple',
-      done: 'Thank you — your toast was sent. The couple will review before adding it to the film.',
+      done: 'Thank you, your toast was sent. The couple will review before adding it to the film.',
     };
   }
   return {
@@ -57,7 +57,7 @@ function copyFor(occasion?: string | null) {
     headWord: 'toast',
     blurb: 'Record up to two minutes. Your words could end up in the keepsake film from the day.',
     send: 'Send your toast',
-    done: 'Thank you — your toast was sent. Your hosts will review before adding it to the film.',
+    done: 'Thank you, your toast was sent. Your hosts will review before adding it to the film.',
   };
 }
 

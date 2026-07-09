@@ -481,7 +481,7 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
               type="button"
               onClick={() => onPickDraft(d)}
               aria-pressed={on}
-              aria-label={`${d.name}${on ? ', currently picked' : ''} — ${d.tone}`}
+              aria-label={`${d.name}${on ? ', currently picked' : ''}, ${d.tone}`}
               style={{
                 textAlign: 'left',
                 padding: 0, borderRadius: 14,
@@ -912,7 +912,7 @@ function DesignTab({ state, setField, decorAssets, siteSwatch }: { state: Studio
       <RailGroup label="Decor library" sub="Flourishes from your site's decor">
         {(decorAssets?.length ?? 0) === 0 ? (
           <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
-            Nothing here yet — draft dividers and stamps in the site
+            Nothing here yet, draft dividers and stamps in the site
             editor&rsquo;s Decor panel (or upload your own) and they
             appear as card flourishes.
           </div>

@@ -479,7 +479,7 @@ export function RegistryManager({ siteId }: RegistryManagerProps) {
       >
         <span style={{ fontSize: '1.25rem' }}>✦</span>
         <p style={{ margin: 0, fontSize: '0.875rem', color: '#6B6660', lineHeight: 1.5 }}>
-          Add all your registries here — Pearloom will display them beautifully on your wedding
+          Add all your registries here, Pearloom will display them beautifully on your wedding
           site so guests can find everything in one place.
         </p>
       </div>

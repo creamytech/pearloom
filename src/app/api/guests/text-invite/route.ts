@@ -47,13 +47,13 @@ export async function POST(req: NextRequest) {
   }
   if (!isSmsConfigured()) {
     return NextResponse.json(
-      { error: 'Text sending isn’t set up on this server yet — use the per-guest Text invite buttons (they open your own Messages).', smsConfigured: false },
+      { error: 'Text sending isn’t set up on this server yet. Use the per-guest Text invite buttons (they open your own Messages).', smsConfigured: false },
       { status: 503 },
     );
   }
   const rl = checkRateLimit(`guests-sms:${session.user.email}`, RATE_LIMIT);
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many text batches — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Too many text batches. Try again in an hour.' }, { status: 429 });
   }
 
   let body: { siteId?: string; guestIds?: string[]; includeAlreadyTexted?: boolean } = {};
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     const personal = buildSiteUrl(String(site.subdomain), '', undefined, occasion)
       + (g.guest_token ? `?g=${encodeURIComponent(String(g.guest_token))}` : '');
     const first = String(g.name ?? '').split(/\s+/)[0] || 'Hi';
-    const text = `${first}, you're invited! ${siteLabel} — everything's here, RSVP included: ${personal}`;
+    const text = `${first}, you're invited! ${siteLabel}. Everything's here, RSVP included: ${personal}`;
     const res = await sendSms({ to: String(g.phone), body: text });
     if (res.ok) {
       sent += 1;

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
      N" must not fire N duplicate emails. */
   const rate = checkRateLimit(`studio-send:${session.user.email}`, { max: 3, windowMs: 60_000 });
   if (!rate.allowed) {
-    return NextResponse.json({ error: 'That batch just went out — give it a minute before sending again.' }, { status: 429 });
+    return NextResponse.json({ error: 'That batch just went out. Give it a minute before sending again.' }, { status: 429 });
   }
 
   try {

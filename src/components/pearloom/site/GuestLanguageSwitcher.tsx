@@ -192,7 +192,7 @@ export function GuestLanguageSwitcher({ manifest, theme }: Props) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Language — ${localeNativeName(current)}`}
+        aria-label={`Language, ${localeNativeName(current)}`}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

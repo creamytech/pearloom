@@ -111,7 +111,7 @@ export function PackSitePreview({
               pointerEvents: 'none', whiteSpace: 'nowrap',
             }}
           >
-            scroll — the whole site, wearing {pack.name}
+            scroll, the whole site, wearing {pack.name}
           </div>
         </>
       ) : (

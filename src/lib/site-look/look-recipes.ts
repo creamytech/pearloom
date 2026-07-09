@@ -44,7 +44,7 @@ const KIT_BLURB: Record<string, string> = {
 type RecipeSeed = Omit<LookRecipe, 'id'>;
 
 const SEEDS: Record<string, RecipeSeed> = {
-  classic:   { label: 'The Classic',    blurb: 'Calm cards on linen — the editorial standard.',            kitId: 'classic',   texture: 'linen',  textureIntensity: 1.0, motifLayout: 'dividers',  density: 'comfortable' },
+  classic: { label: 'The Classic', blurb: 'Calm cards on linen, the editorial standard.', kitId: 'classic', texture: 'linen', textureIntensity: 1.0, motifLayout: 'dividers', density: 'comfortable' },
   press:     { label: 'The Fine Press', blurb: 'Plated cards, gilded paper, marks at the corners.',        kitId: 'plate',     texture: 'gilded', textureIntensity: 0.9, motifLayout: 'corners',   density: 'comfortable' },
   pressQuiet:{ label: 'The Fine Press', blurb: 'Plated cards on linen, marks at the corners.',             kitId: 'plate',     texture: 'linen',  textureIntensity: 0.8, motifLayout: 'corners',   density: 'spacious' },
   keepsake:  { label: 'The Keepsake',   blurb: 'Scrapbook tape, kraft grain, ornaments scattered through.', kitId: 'scrapbook', texture: 'kraft',  textureIntensity: 1.2, motifLayout: 'scattered', density: 'cozy' },

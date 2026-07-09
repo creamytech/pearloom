@@ -66,9 +66,9 @@ async function fetchProofSheet(siteSlug: string, type: StationeryType): Promise<
     });
     if (!r.ok) {
       let message = 'Pear lost the thread mid-press. Give it a beat and try again.';
-      if (r.status === 429) message = 'Pear is taking a breath — try the press again in a minute.';
-      if (r.status === 401) message = 'Your session lapsed — sign in again and the press picks right back up.';
-      if (r.status === 403) message = 'This site belongs to another account — switch accounts to press its proofs.';
+      if (r.status === 429) message = 'Pear is taking a breath, try the press again in a minute.';
+      if (r.status === 401) message = 'Your session lapsed, sign in again and the press picks right back up.';
+      if (r.status === 403) message = 'This site belongs to another account, switch accounts to press its proofs.';
       if (r.status >= 500) message = 'The press jammed on our side. A retry usually clears it.';
       try {
         const data = (await r.json()) as { error?: string };
@@ -157,7 +157,7 @@ export function StudioProofSheet(props: Props) {
               {state.phase === 'ready' ? `Pear pressed ${count} proofs` : 'The proof sheet'}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
-              Whole designs in your site&apos;s look — tap one to make it the canvas, then fine-tune anything.
+              Whole designs in your site&apos;s look, tap one to make it the canvas, then fine-tune anything.
             </div>
           </div>
           <button
@@ -252,7 +252,7 @@ function ProofTile({
     <button
       type="button"
       onClick={() => onApply(proof, sheet)}
-      aria-label={`Pick the ${proof.name} proof — ${proof.note}`}
+      aria-label={`Pick the ${proof.name} proof, ${proof.note}`}
       style={{
         textAlign: 'left', padding: 0, borderRadius: 14,
         background: 'var(--card)', border: '1px solid var(--line-soft)',

@@ -138,7 +138,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
           onClick={() => setOpen(!open)}
           aria-haspopup="dialog"
           aria-expanded={open}
-          title="Your site is live — link, QR, and next steps"
+          title="Your site is live, link, QR, and next steps"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '4px 10px',
@@ -214,7 +214,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>
             {ready
               ? 'Every essential field is filled in. Ready to publish whenever you are.'
-              : 'These aren’t blocking — but they help guests have a complete experience.'}
+              : 'These aren’t blocking, but they help guests have a complete experience.'}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {checks.map((c) => {
@@ -488,7 +488,7 @@ export function MobilePublishChecklist({ manifest, onClose, onPublish }: {
           What&rsquo;s still missing
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-          These aren&rsquo;t blocking — but they help guests have a complete experience.
+          These aren&rsquo;t blocking, but they help guests have a complete experience.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {missing.map((c) => (

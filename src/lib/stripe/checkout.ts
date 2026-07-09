@@ -45,7 +45,7 @@ export async function createCheckoutSession(
 ): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   if (!stripe) {
-    throw new Error('Stripe is not configured — set STRIPE_SECRET_KEY');
+    throw new Error('Stripe is not configured, set STRIPE_SECRET_KEY');
   }
 
   // Build metadata as flat string-only record (Stripe requirement).

@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Pearloom',
     short_name: 'Pearloom',
-    description: 'Wedding sites, guests, vendors, and the post-event film — woven into one calm command center.',
+    description: 'Wedding sites, guests, vendors, and the post-event film, woven into one calm command center.',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

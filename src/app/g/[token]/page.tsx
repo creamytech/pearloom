@@ -105,7 +105,7 @@ export async function generateMetadata({
     const photo = String((manifest as unknown as { coverPhoto?: string }).coverPhoto ?? '').trim();
     if (photo.startsWith('https://')) og.searchParams.set('photo', photo);
 
-    const title = solemn ? `In loving memory — ${who}` : `You're invited — ${who}`;
+    const title = solemn ? `In loving memory, ${who}` : `You're invited, ${who}`;
     return {
       title: `${title} · Pearloom`,
       description: 'Your personalized celebration page.',
@@ -309,7 +309,7 @@ export default async function PersonalGuestPage({
     // Personalization is nice-to-have — fall through with defaults
     console.error('[guest-experience] personalize failed', err);
     personalization = {
-      hero_copy: `${guest.display_name.split(' ')[0]} — we can't wait to celebrate with you.`,
+      hero_copy: `${guest.display_name.split(' ')[0]}, we can't wait to celebrate with you.`,
       chapter_highlights: [],
       travel_tips: {},
       seat_summary: 'Your seat will appear here once assigned.',
@@ -615,7 +615,7 @@ export default async function PersonalGuestPage({
           ...songs.map((s) => ({
             id: s.id,
             kind: 'song' as const,
-            heading: s.artist ? `${s.song_title} — ${s.artist}` : s.song_title,
+            heading: s.artist ? `${s.song_title}, ${s.artist}` : s.song_title,
             body: s.note ?? '',
             createdAt: s.created_at,
           })),
@@ -938,7 +938,7 @@ export default async function PersonalGuestPage({
                       ) : (
                         <span style={{ fontWeight: 600 }}>{h.name}</span>
                       )}
-                      {h.note && <span style={{ color: inkMuted }}> — {h.note}</span>}
+                      {h.note && <span style={{ color: inkMuted }}>, {h.note}</span>}
                     </li>
                   ))}
                 </ul>

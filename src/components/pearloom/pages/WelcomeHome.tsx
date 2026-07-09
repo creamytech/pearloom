@@ -418,7 +418,7 @@ export function WelcomeHome() {
         : formatDaysAgo(-rawDaysUntil);
   const latelyItems: LatelyItem[] = recentActivity.map((g) => {
     const tone: LatelyItem['tone'] = g.status === 'no' || g.status === 'declined' ? 'no' : g.status === 'maybe' ? 'maybe' : 'yes';
-    const action = tone === 'no' ? 'declined' : tone === 'maybe' ? 'said maybe' : g.plusOneName ? `said yes — +1 ${g.plusOneName}` : 'said yes';
+    const action = tone === 'no' ? 'declined' : tone === 'maybe' ? 'said maybe' : g.plusOneName ? `said yes, +1 ${g.plusOneName}` : 'said yes';
     return { name: g.name, action, when: relativeTime(g.respondedAt), tone };
   });
 
@@ -559,13 +559,13 @@ export function WelcomeHome() {
        so the same door never prompts twice (AFTERGLOW-PLAN AG.4). */
     if (phase === 'kept') {
       if (occasion === 'reunion' && !have.has('anniversary')) {
-        return [{ label: 'The next reunion', blurb: 'Same people, next year — begin the thread.', href: `/wizard/new?occasion=reunion${linkParams}` }];
+        return [{ label: 'The next reunion', blurb: 'Same people, next year, begin the thread.', href: `/wizard/new?occasion=reunion${linkParams}` }];
       }
       const coupleArc = occasion === 'wedding' || occasion === 'vow-renewal' || occasion === 'anniversary';
       const inAnniversaryWindow = rawDaysUntil != null && rawDaysUntil <= -320 && rawDaysUntil >= -430;
       const hasAnniversarySibling = (sites ?? []).some((s) => s.occasion === 'anniversary' && s.domain !== site?.domain);
       if (coupleArc && !inAnniversaryWindow && !hasAnniversarySibling) {
-        return [{ label: 'The anniversary edition', blurb: 'One year on — the story, one chapter longer.', href: `/wizard/new?occasion=anniversary${linkParams}` }];
+        return [{ label: 'The anniversary edition', blurb: 'One year on, the story, one chapter longer.', href: `/wizard/new?occasion=anniversary${linkParams}` }];
       }
       return [];
     }
@@ -596,7 +596,7 @@ export function WelcomeHome() {
     + (phase === 'kept'
       ? 'The day, kept. Everything your people left is here whenever you want it.'
       : phase === 'afterglow'
-        ? 'Everything from the day, gathered — and the few threads left to tie.'
+        ? 'Everything from the day, gathered, and the few threads left to tie.'
         : 'Everything Pear is holding for you, and the few things that want a moment this week.');
   const headerTitle = phaseCopy.headerTitle;
   const headerItalic = phaseCopy.headerItalic;
@@ -848,7 +848,7 @@ function RsvpMomentumCard({ momentum }: { momentum: RsvpMomentum }) {
           lineHeight: 1.15,
         }}
       >
-        {momentum.pending} still pending — reply-by {dateLabel}
+        {momentum.pending} still pending, reply-by {dateLabel}
       </div>
       <div style={{ fontSize: 12.5, color: 'var(--peach-ink)', opacity: 0.85, marginTop: 4 }}>
         {windowLine} Pear has a gentle reminder drafted.
@@ -904,7 +904,7 @@ function usePearTodos({
       if (afterglow?.pendingPhotos != null && afterglow.pendingPhotos > 0) {
         out.push({
           title: `${afterglow.pendingPhotos} photo${afterglow.pendingPhotos === 1 ? '' : 's'} await your nod`,
-          sub: 'Guests added to the reel — approve the keepers.',
+          sub: 'Guests added to the reel, approve the keepers.',
           cta: 'Review',
           href: '/dashboard/gallery',
           urgency: 'now',
@@ -912,7 +912,7 @@ function usePearTodos({
       }
       if (afterglow?.giftsTotal != null && afterglow.giftsTotal > (afterglow.giftsThanked ?? 0)) {
         out.push({
-          title: `Thank-yous — ${afterglow.giftsThanked ?? 0} of ${afterglow.giftsTotal} sent`,
+          title: `Thank-yous, ${afterglow.giftsThanked ?? 0} of ${afterglow.giftsTotal} sent`,
           sub: 'The gift ledger keeps score. Pear drafts each note.',
           cta: 'Open the ledger',
           href: '/dashboard/registry',
@@ -935,7 +935,7 @@ function usePearTodos({
     if (phase === 'the-day') {
       return [{
         title: 'Run the day from one page',
-        sub: 'Vendors, run-of-show, broadcasts — Day-of HQ has it all.',
+        sub: 'Vendors, run-of-show, broadcasts, Day-of HQ has it all.',
         cta: 'Open Day-of',
         href: '/dashboard/day-of',
         urgency: 'now',
@@ -999,7 +999,7 @@ function usePearTodos({
       });
       if (out.length < 3) out.push({
         title: 'Confirm the schedule',
-        sub: 'Welcome dinner, ceremony, reception — all on one page.',
+        sub: 'Welcome dinner, ceremony, reception, all on one page.',
         cta: 'Open Schedule',
         href: '/editor',
         urgency: 'soon',
@@ -1098,7 +1098,7 @@ function RememberingCard({ domain, occasion, daysSince }: { domain: string; occa
     >
       <SectionHeader icon="bookmark">{solemn ? 'The remembering' : 'The remembering begins'}</SectionHeader>
       <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
-        {daysSince === 1 ? 'Yesterday' : `${daysSince} days ago`} — and the memory book is already weaving
+        {daysSince === 1 ? 'Yesterday' : `${daysSince} days ago`}, and the memory book is already weaving
         itself from your guests&rsquo; photos, signatures, and notes. It grows as more arrives.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1185,7 +1185,7 @@ function AnniversaryCard({
     >
       <SectionHeader icon="sparkles">One year, woven</SectionHeader>
       <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
-        Your first anniversary is {when}. Pear can weave an anniversary edition —
+        Your first anniversary is {when}. Pear can weave an anniversary edition, 
         the rebroadcast, a year of photographs, the story one chapter longer.
       </p>
       <Link
@@ -1213,8 +1213,8 @@ function AnniversaryCard({
 // ─────────────────────────────────────────────────────────────
 const SIBLING_EVENTS: Record<string, Array<{ occasion: string; label: string; blurb: string }>> = {
   engagement: [
-    { occasion: 'wedding', label: 'The wedding itself', blurb: 'When you’re ready — same names, new thread.' },
-    { occasion: 'bridal-shower', label: 'Bridal shower', blurb: 'Often someone else hosts — send them here.' },
+    { occasion: 'wedding', label: 'The wedding itself', blurb: 'When you’re ready, same names, new thread.' },
+    { occasion: 'bridal-shower', label: 'Bridal shower', blurb: 'Often someone else hosts, send them here.' },
   ],
 };
 

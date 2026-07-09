@@ -37,7 +37,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
   honorList: {
     weddingParty: [
       { id: 'p1', name: 'Maya Patel', role: 'other', relationship: 'Your cousin from Reno', order: 0 },
-      { id: 'p2', name: 'Sam Ortiz', role: 'other', relationship: 'Organizer — ask him anything', order: 1 },
+      { id: 'p2', name: 'Sam Ortiz', role: 'other', relationship: 'Organizer, ask him anything', order: 1 },
       { id: 'p3', name: 'June Bishop', role: 'other', relationship: 'The reason we all showed up', order: 2 },
     ],
   },
@@ -47,7 +47,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
   obituary: {
     memorial: {
       obituary: {
-        dates: 'March 12, 1942 — April 8, 2026',
+        dates: 'March 12, 1942, April 8, 2026',
         body: 'Eleanor kept every letter anyone ever sent her, and answered each one within the week. She taught two generations of nieces to bake, to argue kindly, and to write a proper thank-you note.\n\nShe is survived by the garden she planted, the recipes in everyone’s handwriting but her own, and a great many people who write the way she taught them to.',
       },
     },
@@ -56,7 +56,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
     livestream: {
       url: 'https://zoom.us/j/9999999999',
       title: 'Join us from anywhere',
-      note: 'For everyone who can’t be in the room — we saved you a seat.',
+      note: 'For everyone who can’t be in the room, we saved you a seat.',
       startsAt: 'Saturday, June 13 at 4:00 pm',
       buttonLabel: 'Join the livestream',
     },
@@ -70,7 +70,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
           { id: 's3', time: '9:00 pm', title: 'Bonfire', detail: 'Bring a layer' },
         ] },
         { id: 'd2', label: 'The big day', date: 'Sat June 13', slots: [
-          { id: 's4', time: '10:00 am', title: 'Hike to the point', detail: 'Optional — 3 miles' },
+          { id: 's4', time: '10:00 am', title: 'Hike to the point', detail: 'Optional, 3 miles' },
           { id: 's5', time: '5:00 pm', title: 'Dinner', location: 'Under the oaks' },
         ] },
       ],
@@ -97,7 +97,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
   dressCode: {
     dressCodeSection: {
       code: 'Garden formal',
-      note: 'The ceremony is on a lawn — leave the stilettos home.',
+      note: 'The ceremony is on a lawn, leave the stilettos home.',
       palette: ['#7A8A5C', '#C9BFA9', '#C19A4B'],
       examples: [
         { label: 'Linen suits', hint: 'light colors', photo: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600' },
@@ -114,7 +114,7 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
    5-per-line wrap. */
 const LONG_FAQS = Array.from({ length: 7 }, (_, i) => ({
   id: `f-long-${i}`,
-  question: `Stress question ${i + 1} — what about the thing nobody asked yet?`,
+  question: `Stress question ${i + 1}, what about the thing nobody asked yet?`,
   answer: 'A short, real answer so the grid fills with believable copy instead of lorem.',
   order: 100 + i,
 }));
@@ -167,7 +167,7 @@ export default async function SiteDevPreview({
     ...(sub === '1'
       ? {
           detailsCards: [
-            ['Dress code', 'Garden formal', 'Linen and light colors — the lawn is real grass.'],
+            ['Dress code', 'Garden formal', 'Linen and light colors, the lawn is real grass.'],
             ['Parking', 'Valet on-site', 'Enter from Vine St; the lot opens at 3 pm.'],
             ['Kids welcome', 'Ages 10 +'],
             ['Gifts', 'Your presence is plenty', 'If you insist, the registry has ideas.'],

@@ -135,7 +135,7 @@ export function PassportCardsPage() {
             meta={
               <HintChip
                 storageKey="pl-hint-passport-cards"
-                hint="One card per guest — their name, their QR, their view of the site."
+                hint="One card per guest, their name, their QR, their view of the site."
                 detail="Each card carries a QR that scans to that guest's private passport view of your site. Print 4-up on card stock for the welcome bag."
               />
             }
@@ -374,7 +374,7 @@ export function PassportCardsPage() {
                 Passport cards
               </div>
               <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '12px 0 14px' }}>
-                A personal card for every guest — their name, a fact or two, and a QR that greets them by name at the
+                A personal card for every guest, their name, a fact or two, and a QR that greets them by name at the
                 door.
               </div>
               {guests.length > 0 && (

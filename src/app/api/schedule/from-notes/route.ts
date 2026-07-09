@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const notes = (body.notes ?? '').trim();
     if (!notes) return NextResponse.json({ error: 'notes required' }, { status: 400 });
     if (notes.length > 2000) {
-      return NextResponse.json({ error: 'Notes too long — keep it under 2000 characters.' }, { status: 400 });
+      return NextResponse.json({ error: 'Notes too long. Keep it under 2000 characters.' }, { status: 400 });
     }
 
     // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const budget = budgetKey(session.user.email, '');
     if (await overBudget(budget)) {
       return NextResponse.json(
-        { error: "You've reached today's AI limit — try again tomorrow." },
+        { error: "You've reached today's AI limit. Try again tomorrow." },
         { status: 429 }
       );
     }

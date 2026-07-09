@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const limit = checkRateLimit(`cash-gift:${ip}`, { max: 6, windowMs: 60 * 60 * 1000 });
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: 'Too many gift attempts — try again later.' },
+        { error: 'Too many gift attempts, try again later.' },
         { status: 429 },
       );
     }

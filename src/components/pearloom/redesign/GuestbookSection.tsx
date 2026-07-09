@@ -177,7 +177,7 @@ export function GuestbookSection({ siteSlug, preview = false, eyebrow = 'Guestbo
                   “{w.message}”
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--t-ink-muted, var(--t-ink-soft))', marginTop: 8, fontWeight: 600 }}>
-                  — {w.guestName}
+                  , {w.guestName}
                 </div>
               </div>
             ))}

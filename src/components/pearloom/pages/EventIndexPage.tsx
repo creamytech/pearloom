@@ -345,7 +345,7 @@ function WeekendBanner() {
       <div style={{ flex: 1, minWidth: 220 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: 'var(--ink)' }}>Planning a whole weekend?</div>
         <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-          One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.
+          One date, one base name, Pear weaves a linked site for every event, rehearsal to brunch.
         </div>
       </div>
       <span className="btn btn-outline btn-sm" style={{ pointerEvents: 'none', flexShrink: 0 }}>
@@ -562,7 +562,7 @@ export function EventIndexPage() {
             tone="pear"
             eyebrow="No sites yet"
             title="No sites yet."
-            body="Pear will draft a complete site in about twenty seconds — you pick the occasion, the names, and the feeling. Edit anything afterwards."
+            body="Pear will draft a complete site in about twenty seconds, you pick the occasion, the names, and the feeling. Edit anything afterwards."
             examples={['Wedding · Scott & Shauna', 'Birthday · 30 in Lisbon', 'Memorial · In loving memory', 'Reunion · Class of 2010']}
             actions={[
               { label: 'Create your site', href: '/wizard/new', icon: 'sparkles', primary: true },

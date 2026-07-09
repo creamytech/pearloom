@@ -78,7 +78,7 @@ function JoinPill({ url, style, children = 'Join the thread' }: { url: string; s
   );
 }
 
-const PRIVACY_NOTE = 'Opens in the app — the thread stays private to the invite link.';
+const PRIVACY_NOTE = 'Opens in the app, the thread stays private to the invite link.';
 
 /* ─── card — centered pedestal ───────────────────────────────── */
 
@@ -229,7 +229,7 @@ export function GroupChatSection({ manifest, pad, editable, variant, onEditCopy 
   const note = blockCopy(
     manifest,
     'groupChatNote',
-    'Plans, rides, and the running joke — it all happens in the thread.',
+    'Plans, rides, and the running joke, it all happens in the thread.',
   );
 
   return (
@@ -242,7 +242,7 @@ export function GroupChatSection({ manifest, pad, editable, variant, onEditCopy 
         onEditTitle={onEditCopy ? (v) => onEditCopy('groupChatTitle', v) : undefined}
       />
       {empty ? (
-        <BlockEmpty hint="Paste the invite link in the Group chat panel — WhatsApp, Signal, GroupMe, wherever the crew already talks." />
+        <BlockEmpty hint="Paste the invite link in the Group chat panel, WhatsApp, Signal, GroupMe, wherever the crew already talks." />
       ) : variant === 'panel' ? (
         <GroupChatPanel platform={platform} named={named} note={note} url={url} />
       ) : (

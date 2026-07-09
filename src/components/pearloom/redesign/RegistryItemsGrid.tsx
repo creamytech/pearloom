@@ -227,7 +227,7 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
       });
       const d = (await r.json().catch(() => ({}))) as { reserved?: boolean; buyUrl?: string | null; error?: string };
       if (!r.ok || !d.reserved) {
-        throw new Error(d.error ?? 'Could not reserve — try again.');
+        throw new Error(d.error ?? 'Could not reserve, try again.');
       }
       setDoneName(name.trim().split(/\s+/)[0]);
       setBuyUrl(d.buyUrl ?? null);
@@ -235,7 +235,7 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
       void onReserved();
     } catch (e) {
       setStage('form');
-      setError(e instanceof Error ? e.message : 'Could not reserve — try again.');
+      setError(e instanceof Error ? e.message : 'Could not reserve, try again.');
     }
   }
 
@@ -326,7 +326,7 @@ function ItemCard({ item, preview, onReserved, siteSlug, chip }: {
         ) : spokenFor || stage === 'done' ? (
           <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
-              Spoken for{claimedName ? <> — claimed by {claimedName}</> : null}
+              Spoken for{claimedName ? <>, claimed by {claimedName}</> : null}
             </div>
             {stage === 'done' && effectiveBuyUrl && (
               <a
@@ -472,12 +472,12 @@ function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
         }),
       });
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Could not save — try again.');
+      if (!r.ok || !d.ok) throw new Error(d.error ?? 'Could not save, try again.');
       setStage('done');
       void onWoven();
     } catch (e) {
       setStage('form');
-      setError(e instanceof Error ? e.message : 'Could not save — try again.');
+      setError(e instanceof Error ? e.message : 'Could not save, try again.');
     }
   }
 
@@ -496,10 +496,10 @@ function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--t-ink-soft)', marginTop: 5, lineHeight: 1.45 }}>
             {fullyWoven
-              ? <>Fully woven — {chip.count} gave together</>
+              ? <>Fully woven, {chip.count} gave together</>
               : chip.totalCents > 0
-                ? <>{formatPrice(chip.totalCents / 100)} of {formatPrice(priceCents / 100)} — <i>as shared by guests</i></>
-                : <>Chip in toward {formatPrice(priceCents / 100)} — give what you like</>}
+                ? <>{formatPrice(chip.totalCents / 100)} of {formatPrice(priceCents / 100)}, <i>as shared by guests</i></>
+                : <>Chip in toward {formatPrice(priceCents / 100)}, give what you like</>}
           </div>
         </div>
       )}
@@ -511,7 +511,7 @@ function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
 
       {stage === 'done' ? (
         <div style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--t-ink-soft)' }}>
-          Woven in — thank you.
+          Woven in, thank you.
         </div>
       ) : stage === 'idle' ? (
         fullyWoven ? (
@@ -559,7 +559,7 @@ function ChipInBlock({ item, chip, siteSlug, preview, onWoven }: {
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Amount (optional) — e.g. 50"
+              placeholder="Amount (optional), e.g. 50"
               maxLength={12}
               disabled={stage === 'sending'}
               style={cardInput}

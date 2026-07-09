@@ -146,7 +146,7 @@ export function DashCircle() {
         setCrewErr(d?.error ?? 'Could not send.');
       }
     } catch {
-      setCrewErr('Could not send — check your connection.');
+      setCrewErr('Could not send, check your connection.');
     } finally {
       setBusy(null);
     }
@@ -175,7 +175,7 @@ export function DashCircle() {
         setCrewErr(d?.error ?? 'Could not start the crew.');
       }
     } catch {
-      setCrewErr('Could not start the crew — check your connection.');
+      setCrewErr('Could not start the crew, check your connection.');
     } finally {
       setBusy(null);
     }
@@ -229,7 +229,7 @@ export function DashCircle() {
         setSendErr(d?.error ?? 'Could not send.');
       }
     } catch {
-      setSendErr('Could not send — check your connection.');
+      setSendErr('Could not send, check your connection.');
     } finally {
       setBusy(null);
     }
@@ -294,10 +294,10 @@ export function DashCircle() {
       if (r.ok && d?.ok) {
         const first = invName.trim().split(/\s+/)[0];
         setInvNote(byText
-          ? `The text is on its way${first ? ` to ${first}` : ''} — they join your circle when they accept.`
+          ? `The text is on its way${first ? ` to ${first}` : ''}, they join your circle when they accept.`
           : first
-            ? `Woven in — ${first} will see your invitation when they first sign in.`
-            : 'Woven in — they’ll see your invitation when they first sign in.');
+            ? `Woven in, ${first} will see your invitation when they first sign in.`
+            : 'Woven in, they’ll see your invitation when they first sign in.');
         setInvName('');
         setInvEmail('');
         setInvPhone('');
@@ -306,7 +306,7 @@ export function DashCircle() {
         setInvNote(d?.error ?? 'Could not send the invitation.');
       }
     } catch {
-      setInvNote('Could not send — check your connection.');
+      setInvNote('Could not send, check your connection.');
     } finally {
       setBusy(null);
     }
@@ -344,10 +344,10 @@ export function DashCircle() {
       });
       const d = (await r.json().catch(() => null)) as { ok?: boolean; added?: boolean } | null;
       setNote(r.ok && d?.ok
-        ? (d.added === false ? 'Already on that guest list.' : `Woven into ${siteDisplayName(site)} — their invite is on its way.`)
-        : 'Could not add — check the event.');
+        ? (d.added === false ? 'Already on that guest list.' : `Woven into ${siteDisplayName(site)}, their invite is on its way.`)
+        : 'Could not add, check the event.');
     } catch {
-      setNote('Could not add — check your connection.');
+      setNote('Could not add, check your connection.');
     } finally {
       setBusy(null);
       setAddFor(null);
@@ -372,7 +372,7 @@ export function DashCircle() {
           style={{ marginBottom: 18 }}
         />
         <div style={{ fontSize: 12.5, color: PD.inkSoft, marginBottom: 4, maxWidth: 560, lineHeight: 1.55 }}>
-          First names only, and only when you both opt in — Pearloom&rsquo;s people graph, never a public feed.
+          First names only, and only when you both opt in, Pearloom&rsquo;s people graph, never a public feed.
         </div>
 
         {/* Opt-in gate */}
@@ -382,7 +382,7 @@ export function DashCircle() {
               Keep your circle?
             </div>
             <div style={{ fontSize: 13.5, color: PD.inkSoft, maxWidth: 460, margin: '0 auto 16px', lineHeight: 1.6 }}>
-              Turn this on to keep a quiet, first-names-only connection with people you&rsquo;ve celebrated with — and add
+              Turn this on to keep a quiet, first-names-only connection with people you&rsquo;ve celebrated with, and add
               them to your next event in a tap. Off by default; only mutual opt-ins ever see each other.
             </div>
             <button type="button" style={btnInk} disabled={busy === 'opt'} onClick={() => post({ action: 'opt-in', optIn: true }, 'opt')}>
@@ -419,7 +419,7 @@ export function DashCircle() {
                         <span style={{ fontSize: 11, color: PD.inkSoft, fontWeight: 500 }}>· invited</span>
                       </span>
                     ))}
-                    <span style={{ fontSize: 11.5, color: PD.inkSoft }}>— they&rsquo;ll see it when they first sign in</span>
+                    <span style={{ fontSize: 11.5, color: PD.inkSoft }}>, they&rsquo;ll see it when they first sign in</span>
                   </div>
                 )}
               </Panel>
@@ -432,7 +432,7 @@ export function DashCircle() {
                 <EmptyState
                   size="compact"
                   title="No one here yet."
-                  description="Accept a request, or weave someone in below — your circle keeps the people, not just the events."
+                  description="Accept a request, or weave someone in below, your circle keeps the people, not just the events."
                 />
               ) : (
                 <div
@@ -613,7 +613,7 @@ export function DashCircle() {
                           </div>
                         ) : (
                           <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic' }}>
-                            No shared celebrations yet — the next one starts the story.
+                            No shared celebrations yet, the next one starts the story.
                           </div>
                         )}
                         {card.dietary && (
@@ -665,7 +665,7 @@ export function DashCircle() {
                   </button>
                 </div>
                 <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 0', maxWidth: 520, lineHeight: 1.55 }}>
-                  A small named thread — the bach weekend, the planning committee — with people already in your circle.
+                  A small named thread (the bach weekend, the planning committee) with people already in your circle.
                 </div>
 
                 {crewComposer && (
@@ -674,7 +674,7 @@ export function DashCircle() {
                       type="text"
                       value={crewTitle}
                       onChange={(e) => setCrewTitle(e.target.value)}
-                      placeholder="Name the crew — “Bach weekend crew”"
+                      placeholder="Name the crew, “Bach weekend crew”"
                       maxLength={80}
                       style={{
                         width: '100%', padding: '9px 12px', borderRadius: 10, fontSize: 13,
@@ -857,8 +857,8 @@ export function DashCircle() {
                 </div>
                 <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '10px 0 12px', maxWidth: 480, lineHeight: 1.55 }}>
                   {invChannel === 'email'
-                    ? <>Someone you&rsquo;ll celebrate with — no event required yet. They join your circle when they accept.</>
-                    : <>They get a text with your personal link — signing up through it offers them a one-tap &ldquo;add you back.&rdquo;</>}
+                    ? <>Someone you&rsquo;ll celebrate with, no event required yet. They join your circle when they accept.</>
+                    : <>They get a text with your personal link, signing up through it offers them a one-tap &ldquo;add you back.&rdquo;</>}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input

@@ -115,9 +115,9 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
         window.location.assign(checkoutUrl);
         return;
       }
-      setError('Couldn’t start checkout — try again?');
+      setError('Couldn’t start checkout, try again?');
     } catch {
-      setError('Couldn’t start checkout — try again?');
+      setError('Couldn’t start checkout, try again?');
     } finally {
       setUnlockBusy(false);
     }
@@ -166,7 +166,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   const go = async () => {
     if (step === 'publishing' || wornPack) return;
     if (privacy === 'password' && !gatePw.trim()) {
-      setError('Set the password guests will use — or switch back to public.');
+      setError('Set the password guests will use, or switch back to public.');
       return;
     }
     /* Solemn guardrail (FIRST-PRESSING-PLAN §5): a memorial/funeral
@@ -224,7 +224,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                   Make it yours to go live.
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 12 }}>
-                  You&rsquo;ve been trying this pack on — it looks like it fits. Unlock it once and publish,
+                  You&rsquo;ve been trying this pack on, it looks like it fits. Unlock it once and publish,
                   or switch back to a free look in the Theme panel.
                 </div>
                 <button
@@ -285,7 +285,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
               </h2>
               <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 16 }}>
                 Pear drafted a first version from what you shared. Before this goes live,
-                please read it as the family — change anything that isn’t right.
+                please read it as the family, change anything that isn’t right.
               </p>
               {(headline || body) && (
                 <div
@@ -325,7 +325,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                   className="btn btn-primary"
                   style={{ flex: 1, justifyContent: 'center' }}
                 >
-                  I’ve read them — publish
+                  I’ve read them, publish
                 </button>
               </div>
             </div>
@@ -344,7 +344,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
           <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--sage-tint)', display: 'grid', placeItems: 'center', marginInline: 'auto' } as CSSProperties}><Pear size={32} tone="sage" sparkle shadow={false}/></div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>It{'’'}s pressed.</h2>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is live — guests can leaf through it now. Share this link; it unfurls into the card below.</p>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is live, guests can leaf through it now. Share this link; it unfurls into the card below.</p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line)', marginBottom: 14 }}>
               <Icon name="globe" size={15} color="var(--ink-soft)"/>

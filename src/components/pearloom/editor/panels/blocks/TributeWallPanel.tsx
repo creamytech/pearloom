@@ -52,7 +52,7 @@ export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
           />
         </FGroup>
 
-        <FGroup label="Prompt" hint="The line above the composer — it sets the tone for what guests write.">
+        <FGroup label="Prompt" hint="The line above the composer, it sets the tone for what guests write.">
           <FTextArea
             value={data.prompt ?? ''}
             onChange={(v) => patch({ prompt: v })}
@@ -66,8 +66,8 @@ export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
                 value={data.prompt ?? ''}
                 onCommit={(v) => patch({ prompt: v })}
                 context={solemn
-                  ? 'tribute-wall prompt on a memorial site — gentle, solemn register'
-                  : 'tribute-wall prompt — one warm line inviting guests to write'}
+                  ? 'tribute-wall prompt on a memorial site, gentle, solemn register'
+                  : 'tribute-wall prompt, one warm line inviting guests to write'}
                 tones={solemn ? ['shorten', 'warmer', 'poetic'] : undefined}
               />
             </div>
@@ -77,8 +77,8 @@ export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
         <FToggleStandalone
           label="Guests can write"
           sub={composerOpen
-            ? 'The composer is open — new tributes wait for your approval before they appear'
-            : 'Closed — the wall still shows what you’ve already approved'}
+            ? 'The composer is open, new tributes wait for your approval before they appear'
+            : 'Closed, the wall still shows what you’ve already approved'}
           def={composerOpen}
           onChange={(v) => patch({ composerOpen: v })}
         />

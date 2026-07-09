@@ -38,7 +38,7 @@ const STOPS: OrientStop[] = [
   {
     id: 'site',
     title: 'Your site lives here',
-    body: 'Every site you’ve woven — open one to edit, press, and share.',
+    body: 'Every site you’ve woven, open one to edit, press, and share.',
   },
   {
     id: 'guests',

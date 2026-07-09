@@ -90,7 +90,7 @@ export function FirstThreadCard({
     {
       key: 'yours',
       label: 'Make it yours',
-      sub: 'A cover photo or a first chapter — either counts.',
+      sub: 'A cover photo or a first chapter, either counts.',
       done: done.madeYours,
       cta: { label: 'Open the editor', href: `${editorBase}?jump=hero` },
     },
@@ -131,7 +131,7 @@ export function FirstThreadCard({
             Woven
           </span>
           <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-            — every step of the first thread, done.
+            , every step of the first thread, done.
           </span>
           <button
             type="button"

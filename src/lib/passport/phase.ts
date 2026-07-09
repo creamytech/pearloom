@@ -108,14 +108,14 @@ export function phaseCopy(
       return {
         eyebrow: `${daysUntil ?? 'soon'} days until`,
         headline: `Almost time, ${firstName}`,
-        body: `Final logistics will land here — venue, parking, dress code. Confirm your RSVP so the hosts can plan dinner.`,
+        body: `Final logistics will land here, venue, parking, dress code. Confirm your RSVP so the hosts can plan dinner.`,
         primaryCta: { label: 'Confirm RSVP', href: rsvpHref },
         secondaryCta: { label: 'See the site', href: sitePath },
       };
     case 'day-of-pre':
       return {
         eyebrow: 'Today',
-        headline: `${firstName} — see you in a few hours`,
+        headline: `${firstName}, see you in a few hours`,
         body: `${venue ? `${venue}.` : ''} Your seat, dress code, and arrival notes are pinned below.`,
         primaryCta: { label: 'Open in maps', href: '#' },
         secondaryCta: { label: 'See the timeline', href: '#timeline' },
@@ -132,7 +132,7 @@ export function phaseCopy(
       return {
         eyebrow: 'Tonight',
         headline: 'Thank you for being there',
-        body: 'Photos uploaded today are syncing now. Add anything you missed — the gallery is live for the hosts to see.',
+        body: 'Photos uploaded today are syncing now. Add anything you missed, the gallery is live for the hosts to see.',
         primaryCta: { label: 'Add more photos', href: '#photo-upload' },
         secondaryCta: { label: 'Leave a memory', href: '#guestbook' },
       };
@@ -140,7 +140,7 @@ export function phaseCopy(
       return {
         eyebrow: 'A few weeks ago',
         headline: 'How was the day, from your side?',
-        body: 'The hosts are stitching memories — a sentence, a favourite frame, anything you want to add lives forever in this passport.',
+        body: 'The hosts are stitching memories, a sentence, a favourite frame, anything you want to add lives forever in this passport.',
         primaryCta: { label: 'Leave a memory', href: '#guestbook' },
         secondaryCta: { label: 'See the gallery', href: `${sitePath}#gallery` },
       };
@@ -148,7 +148,7 @@ export function phaseCopy(
       return {
         eyebrow: yearsPassed === 1 ? 'One year ago today' : `${yearsPassed} years ago today`,
         headline: 'A small rewind',
-        body: `On this day in ${eventDateLabel.slice(-4)}. The hosts pinned a few memories — and your contributions are still here too.`,
+        body: `On this day in ${eventDateLabel.slice(-4)}. The hosts pinned a few memories, and your contributions are still here too.`,
         primaryCta: { label: 'Revisit the day', href: sitePath },
       };
     case 'archived':

@@ -25,13 +25,13 @@ import type { OccasionKey } from '../editor/panels/_suggestions';
 export type PicksKind = 'faq' | 'travel' | 'details' | 'schedule' | 'registry' | 'gallery' | 'story';
 
 const META: Record<PicksKind, { title: string; sub: string }> = {
-  faq: { title: 'The questions guests ask', sub: 'Answered in your voice, from your details — keep the ones that fit.' },
-  travel: { title: 'Stays near your venue', sub: 'Pear pulled these for your guests — tap Add and they drop into Travel as cards.' },
-  details: { title: 'The details guests need', sub: 'Dress code, kids, gifts — common starting points for your celebration.' },
-  schedule: { title: 'Your day, in moments', sub: 'A timeline Pear shaped for your celebration — Add the moments that fit.' },
-  registry: { title: 'A few registry ideas', sub: 'Funds and shops that suit your celebration — Add what fits, then drop in your links.' },
-  gallery: { title: 'Captions for your photos', sub: 'Pear writes a quiet line for each of your photos — Add the ones you like.' },
-  story: { title: 'A first draft of your story', sub: 'In your voice, from your details — use it as a start, then edit anything.' },
+  faq: { title: 'The questions guests ask', sub: 'Answered in your voice, from your details, keep the ones that fit.' },
+  travel: { title: 'Stays near your venue', sub: 'Pear pulled these for your guests, tap Add and they drop into Travel as cards.' },
+  details: { title: 'The details guests need', sub: 'Dress code, kids, gifts, common starting points for your celebration.' },
+  schedule: { title: 'Your day, in moments', sub: 'A timeline Pear shaped for your celebration, Add the moments that fit.' },
+  registry: { title: 'A few registry ideas', sub: 'Funds and shops that suit your celebration, Add what fits, then drop in your links.' },
+  gallery: { title: 'Captions for your photos', sub: 'Pear writes a quiet line for each of your photos, Add the ones you like.' },
+  story: { title: 'A first draft of your story', sub: 'In your voice, from your details, use it as a start, then edit anything.' },
 };
 
 interface FaqItem { kind: 'faq'; id?: string; question: string; answer: string; category?: string }
@@ -166,7 +166,7 @@ export function CanvasPearBlocks({
         const next = await fetchSuggestions(kind, manifest, ctrl.signal);
         if (!cancelled) setItems(next);
       } catch (e) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : 'Pear had trouble drafting that — try again.');
+        if (!cancelled) setErr(e instanceof Error ? e.message : 'Pear had trouble drafting that, try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -190,7 +190,7 @@ export function CanvasPearBlocks({
       const loose = manifest as unknown as Record<string, unknown>;
       const cards = Array.isArray(loose.detailsCards) ? loose.detailsCards : [];
       if (cards.length >= 3) {
-        setNotice('Details holds three cards — remove one in the panel first, then add this.');
+        setNotice('Details holds three cards, remove one in the panel first, then add this.');
         return;
       }
     }
@@ -260,7 +260,7 @@ export function CanvasPearBlocks({
 
           {!loading && !err && items.length === 0 && (
             <div style={{ padding: 16, borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line-soft, #ECE4D2)', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-              Pear couldn’t find suggestions this time — try Regenerate, or add your own in the panel.
+              Pear couldn’t find suggestions this time, try Regenerate, or add your own in the panel.
             </div>
           )}
 
@@ -425,7 +425,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
     const r = await fetch('/api/ai-faq', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest }), signal,
     });
-    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the FAQ — try again.'));
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the FAQ, try again.'));
     const d = await r.json();
     const faqs = Array.isArray(d?.faqs) ? d.faqs : [];
     return faqs
@@ -441,12 +441,12 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
     const venueCity = typeof logistics.venue === 'string' ? logistics.venue : undefined;
     const eventDate = typeof logistics.date === 'string' ? logistics.date : (typeof loose.eventDate === 'string' ? loose.eventDate : undefined);
     if (!venueAddress && !venueCity) {
-      throw new Error('Add your venue in the Hero section first — then Pear can suggest stays near it.');
+      throw new Error('Add your venue in the Hero section first, then Pear can suggest stays near it.');
     }
     const r = await fetch('/api/ai-hotels', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ venueAddress, venueCity, eventDate }), signal,
     });
-    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t find stays — try again.'));
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t find stays, try again.'));
     const d = await r.json();
     const hotels = Array.isArray(d?.hotels) ? d.hotels : [];
     return hotels
@@ -465,10 +465,10 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
     const r = await fetch('/api/auto-draft', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest, section: 'schedule' }), signal,
     });
-    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the timeline — try again.'));
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the timeline, try again.'));
     const d = await r.json();
     const events = Array.isArray((d?.manifest as { events?: unknown[] })?.events) ? (d.manifest.events as Array<Record<string, unknown>>) : [];
-    if (events.length === 0) throw new Error('Pear needs your occasion + date set first — then it can shape a timeline.');
+    if (events.length === 0) throw new Error('Pear needs your occasion + date set first, then it can shape a timeline.');
     return events
       .filter((ev) => typeof ev?.name === 'string')
       .map((ev): ScheduleItem => ({
@@ -486,7 +486,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
     const r = await fetch('/api/draft-registry', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names, occasion: occ }), signal,
     });
-    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft registry ideas — try again.'));
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft registry ideas, try again.'));
     const d = await r.json();
     const items = Array.isArray(d?.items) ? d.items : [];
     return items
@@ -517,10 +517,10 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
         existing: typeof storySection.body === 'string' ? storySection.body : undefined,
       }),
     });
-    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft your story — try again.'));
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft your story, try again.'));
     const d = await r.json();
     const draft = typeof d?.draft === 'string' ? d.draft.trim() : '';
-    if (!draft) throw new Error('Pear needs a few details first — add how you met (in the Story panel) and try again.');
+    if (!draft) throw new Error('Pear needs a few details first, add how you met (in the Story panel) and try again.');
     return [{ kind: 'story', body: draft }];
   }
 
@@ -530,7 +530,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
     // the wrong photos whenever the array carries holes.
     const raw = Array.isArray(loose.galleryImages) ? (loose.galleryImages as string[]) : [];
     const photos = raw.map((photoUrl, index) => ({ photoUrl, index })).filter((p) => !!p.photoUrl);
-    if (photos.length === 0) throw new Error('Add photos to your gallery first — then Pear can caption them.');
+    if (photos.length === 0) throw new Error('Add photos to your gallery first, then Pear can caption them.');
     const slice = photos.slice(0, 6);
     const results = await Promise.all(slice.map(async ({ photoUrl, index }): Promise<GalleryItem | null> => {
       try {
@@ -544,7 +544,7 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest, signal
       } catch { return null; }
     }));
     const items = results.filter((x): x is GalleryItem => x != null);
-    if (items.length === 0) throw new Error('Pear couldn’t caption those — try again.');
+    if (items.length === 0) throw new Error('Pear couldn’t caption those, try again.');
     return items;
   }
 

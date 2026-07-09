@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   const rate = checkRateLimit(`draft-registry:${session.user.email}`, RATE_LIMIT);
   if (!rate.allowed) {
-    return NextResponse.json({ error: 'Slow down a tick — try again in an hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Slow down a tick. Try again in an hour.' }, { status: 429 });
   }
 
   // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by account
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   const budget = budgetKey(session.user.email, '');
   if (await overBudget(budget)) {
     return NextResponse.json(
-      { ok: false, error: "You've reached today's AI limit — try again tomorrow." },
+      { ok: false, error: "You've reached today's AI limit. Try again tomorrow." },
       { status: 429 }
     );
   }

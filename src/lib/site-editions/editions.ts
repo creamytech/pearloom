@@ -31,7 +31,7 @@ export const EDITIONS: EditionDefinition[] = [
     label: 'Pressed Garden',
     tagline: 'Cotton paper, pressed wildflowers, the Pearloom warmth.',
     description:
-      "Postcard-style hero with a serif drop cap and a foliated date glyph. Chapter markers ('I — How we met') open every section. Generous body type, a single hairline thread between sections, paper grain underfoot. Built for sites whose center of gravity is the narrative.",
+      "Postcard-style hero with a serif drop cap and a foliated date glyph. Chapter markers ('I, How we met') open every section. Generous body type, a single hairline thread between sections, paper grain underfoot. Built for sites whose center of gravity is the narrative.",
     heroVariantId: 'postcard',
     /* Almanac → narrative-leaning per-section defaults. Story is a
        handwritten letter, schedule is numbered chapters down the
@@ -106,7 +106,7 @@ export const EDITIONS: EditionDefinition[] = [
   {
     id: 'cinema',
     label: 'Midnight Velvet',
-    tagline: 'Inky velvet, candlelight gold — made for evenings.',
+    tagline: 'Inky velvet, candlelight gold, made for evenings.',
     description:
       "Photo-first hero pushed to full viewport with a slow Ken Burns. Sans-serif uppercase kickers ('REEL ONE · WINTER 2026'). Black-bar slug lines open each section. Photos default to 21:9, divider is a single sprocket row. Pearl reserved for the one RSVP CTA. Built for cinematic destinations.",
     heroVariantId: 'photo-first',
@@ -182,7 +182,7 @@ export const EDITIONS: EditionDefinition[] = [
     label: 'Tuscan Watercolor',
     tagline: 'Soft washes, terracotta & sage, blooms and lemons.',
     description:
-      "A bundle of cards on a soft cream-deep gauze. Tilted polaroid hero, each section is its own card with a 6° rotated stamp and a typed handwritten kicker. Thread-stitch dividers, torn-paper bottom edges, no atmosphere shader — the cards ARE the chrome. Built for travel-flavored, multi-day, fun-leaning events.",
+      "A bundle of cards on a soft cream-deep gauze. Tilted polaroid hero, each section is its own card with a 6° rotated stamp and a typed handwritten kicker. Thread-stitch dividers, torn-paper bottom edges, no atmosphere shader, the cards ARE the chrome. Built for travel-flavored, multi-day, fun-leaning events.",
     heroVariantId: 'postcard',
     /* Postcard Box → casual, card-stacked rhythm. Story zigzags
        across the page, schedule + registry stay as scattered cards,
@@ -265,7 +265,7 @@ export const EDITIONS: EditionDefinition[] = [
     label: 'Santorini Linen',
     tagline: 'Sun-bleached linen, Aegean blue, whitewash & olive.',
     description:
-      "Split hero — 4:5 photo left, names right in Fraunces upright (not italic) with a gold hairline rule above and below the date. Mono-uppercased section labels with a leading gold dot ('. PROGRAMME'), centered gold hairline dividers, paper-only atmosphere. No emoji, no stickers. Built for formal events.",
+      "Split hero, 4:5 photo left, names right in Fraunces upright (not italic) with a gold hairline rule above and below the date. Mono-uppercased section labels with a leading gold dot ('. PROGRAMME'), centered gold hairline dividers, paper-only atmosphere. No emoji, no stickers. Built for formal events.",
     heroVariantId: 'split',
     /* Linen Folder → hotel-stationery formal. Story is a
        side-by-side editorial pairing, details as tiles, schedule

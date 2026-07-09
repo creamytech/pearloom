@@ -256,7 +256,7 @@ const REGISTRY_GENERIC = [
   'Amazon',
   'Target',
   'Donation to a cause',
-  'No gifts — just come',
+  'No gifts, just come',
 ];
 
 export function registryStoreSuggestions(occasion: OccasionKey | undefined): SuggestionSet {
@@ -338,7 +338,7 @@ export function faqQuestionSuggestions(occasion: OccasionKey | undefined): Sugge
 const MEAL_CLASSIC = ['Beef', 'Fish', 'Chicken', 'Vegetarian', 'Vegan'];
 const MEAL_SHORT   = ['Chicken', 'Vegetarian', 'Vegan'];
 const MEAL_FAMILY  = ['Family-style', 'Vegetarian', 'Kid’s plate'];
-const MEAL_BUFFET  = ['No selection — buffet', 'Vegetarian (notify staff)', 'Vegan (notify staff)'];
+const MEAL_BUFFET = ['No selection, buffet', 'Vegetarian (notify staff)', 'Vegan (notify staff)'];
 
 export function mealOptionSuggestions(_occasion: OccasionKey | undefined): SuggestionSet {
   return {
@@ -412,7 +412,7 @@ export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
     base.push('Save the date', 'A day to remember', 'A day worth gathering for');
   }
   if (at) base.push(`Meet us in ${at}`);
-  return { hint: 'The small line above the names — tap one or write your own.', options: base.slice(0, 5) };
+  return { hint: 'The small line above the names, tap one or write your own.', options: base.slice(0, 5) };
 }
 
 /** Travel “getting there” intro lines, interpolated with the
@@ -421,12 +421,12 @@ export function travelDirectionsSuggestions(ctx: SmartContext): SuggestionSet {
   const v = ctx.venue || 'the venue';
   const p = ctx.place;
   const options = [
-    `${v} is easiest by taxi or rideshare — parking nearby is limited.`,
+    `${v} is easiest by taxi or rideshare, parking nearby is limited.`,
     p
       ? `Fly into the nearest airport to ${p}; ${v} is a short ride from there. Mention the event when you book the hotels below.`
       : `${v} is a short ride from the airport. Mention the event when you book the hotels below.`,
-    `We’ve held room blocks at the hotels below — mention us for the group rate.`,
-    `A shuttle will loop between the hotels and ${v} — times to follow.`,
+    `We’ve held room blocks at the hotels below, mention us for the group rate.`,
+    `A shuttle will loop between the hotels and ${v}, times to follow.`,
   ];
   return { hint: 'A line guests read before the hotel list.', options };
 }
@@ -468,28 +468,28 @@ export function faqAnswerDraftFor(question: string, ctx: SmartContext, manifest?
   const v = ctx.venue || 'the venue';
   if (/dress|wear/.test(q)) {
     return dress
-      ? `${dress}. When in doubt, dress up a notch — you can never be too celebratory.`
-      : 'Dress to celebrate — we\u2019ll post the dress code here once it\u2019s settled.';
+      ? `${dress}. When in doubt, dress up a notch, you can never be too celebratory.`
+      : 'Dress to celebrate, we\u2019ll post the dress code here once it\u2019s settled.';
   }
   if (/plus.?one|bring a guest|bring someone|\+1/.test(q)) {
-    return 'Check your invitation — if it includes a guest, the RSVP form will offer a spot for them.';
+    return 'Check your invitation, if it includes a guest, the RSVP form will offer a spot for them.';
   }
   if (/kids|children/.test(q)) {
-    return 'We love your little ones — check your invitation for whether this one\u2019s adults-only.';
+    return 'We love your little ones, check your invitation for whether this one\u2019s adults-only.';
   }
   if (/park|get there|directions|airport|travel/.test(q)) {
     return ctx.place
-      ? `${v} is in ${ctx.place} — see the Travel section for hotels, directions and the shuttle.`
+      ? `${v} is in ${ctx.place}, see the Travel section for hotels, directions and the shuttle.`
       : `See the Travel section for hotels, directions and parking near ${v}.`;
   }
   if (/photo|phone|unplugged|camera/.test(q)) {
-    return 'Take all the photos you like at the reception — we just ask for screens away during the ceremony.';
+    return 'Take all the photos you like at the reception, we just ask for screens away during the ceremony.';
   }
   if (/gift|registry/.test(q)) {
     return 'Your presence is the gift. If you\u2019d like to do more, the Registry section has a few ideas.';
   }
   if (/outdoor|outside|weather|rain/.test(q)) {
-    return `Parts of the day are outdoors at ${v} — bring a light layer for after dark.`;
+    return `Parts of the day are outdoors at ${v}, bring a light layer for after dark.`;
   }
   return null;
 }

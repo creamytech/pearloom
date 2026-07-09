@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const ip = getClientIp(req);
     const rate = checkRateLimit(`reset:${ip}`, { max: 6, windowMs: 900_000 });
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'Too many attempts — try again in a few minutes.' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many attempts. Try again in a few minutes.' }, { status: 429 });
     }
 
     let body: { token?: string; password?: string };
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (!row || !row.reset_expires_at || new Date(String(row.reset_expires_at)).getTime() < Date.now()) {
       return NextResponse.json(
-        { error: 'This reset link has expired or was already used — request a fresh one.' },
+        { error: 'This reset link has expired or was already used. Request a fresh one.' },
         { status: 400 },
       );
     }

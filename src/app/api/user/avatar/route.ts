@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
   const ip = getClientIp(req);
   if (!checkRateLimit(`avatar:${email}:${ip}`, { max: 10, windowMs: 60 * 60_000 }).allowed) {
-    return NextResponse.json({ ok: false, error: 'Too many uploads — try again in an hour' }, { status: 429 });
+    return NextResponse.json({ ok: false, error: 'Too many uploads. Try again in an hour' }, { status: 429 });
   }
 
   let file: File | null = null;
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const saved = await saveAvatarUrl(email, url);
     if (!saved) {
       return NextResponse.json(
-        { ok: false, error: 'Could not save your photo — try again shortly' },
+        { ok: false, error: 'Could not save your photo. Try again shortly' },
         { status: 503 },
       );
     }

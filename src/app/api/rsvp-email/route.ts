@@ -157,7 +157,7 @@ Just write the body paragraph(s).`;
 
     let bodyText = solemn
       ? (status === 'attending'
-          ? `Thank you — it will mean a great deal to have you with us.`
+          ? `Thank you. It will mean a great deal to have you with us.`
           : `Thank you for letting us know. You'll be in our thoughts.`)
       : status === 'attending'
         ? `We're so excited you'll be there! It means the world to us.`
@@ -175,11 +175,11 @@ Just write the body paragraph(s).`;
     const resend = new Resend(resendKey);
     const subject = solemn
       ? (status === 'attending'
-          ? `Thank you — we look forward to gathering with you`
+          ? `Thank you, we look forward to gathering with you`
           : `Thank you for letting us know`)
       : status === 'attending'
-        ? `We can’t wait to celebrate with you — ${hostDisplay}`
-        : `Thank you for letting us know — ${hostDisplay}`;
+        ? `We can’t wait to celebrate with you, ${hostDisplay}`
+        : `Thank you for letting us know, ${hostDisplay}`;
 
     const suite = suiteThemeFromManifest(
       manifest as unknown as StoryManifest,

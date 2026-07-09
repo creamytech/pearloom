@@ -25,14 +25,14 @@ export function DesignGuests() {
       tone: PD.olive,
       eyebrow: 'THEIR OWN PAGE',
       title: 'A link addressed to them',
-      body: 'Every guest gets a private page — their name, their reply, the photos they sent. Not a form. A letter.',
+      body: 'Every guest gets a private page: their name, their reply, the photos they sent. Not a form. A letter.',
       visual: <EnvelopeMini />,
     },
     {
       tone: PD.terra,
       eyebrow: 'ONE TAP',
       title: 'Reply, plus a guest',
-      body: 'Going, maybe, or no — in one tap. Bringing someone? Add their name. Changed your mind? Edit it from the email.',
+      body: 'Going, maybe, or no, in one tap. Bringing someone? Add their name. Changed your mind? Edit it from the email.',
       visual: <RsvpMini />,
     },
     {
@@ -81,7 +81,7 @@ export function DesignGuests() {
               margin: 0,
             }}
           >
-            No apps, no logins. Your guests open one link and everything they need is already there —
+            No apps, no logins. Your guests open one link and everything they need is already there, 
             and everything they leave behind comes home to you.
           </p>
         </div>

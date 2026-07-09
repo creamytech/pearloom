@@ -108,7 +108,7 @@ export function DashMessages() {
       if (!r.ok) throw new Error(`Hide failed (${r.status})`);
       await refresh();
     } catch {
-      setHideError('That message couldn’t be hidden just now — it’s still visible to guests. Try again.');
+      setHideError('That message couldn’t be hidden just now, it’s still visible to guests. Try again.');
     }
   }
 
@@ -126,7 +126,7 @@ export function DashMessages() {
             <HintChip
               storageKey="pl-hint-messages"
               hint="The guest thread is shared; direct messages are private."
-              detail="The guest thread is the space everyone with an invite link shares — you can post and moderate. Direct messages are each guest's private logistics line to you."
+              detail="The guest thread is the space everyone with an invite link shares, you can post and moderate. Direct messages are each guest's private logistics line to you."
             />
           }
           style={{ marginBottom: 18 }}
@@ -135,7 +135,7 @@ export function DashMessages() {
 
       {!loading && !site ? (
         <div style={{ padding: '0 var(--pl-dash-pad) 60px', maxWidth: 'var(--pl-dash-maxw)', margin: '0 auto' }}>
-          <EmptyShell message="Create a site first — its guest thread starts the moment invites go out." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
+          <EmptyShell message="Create a site first, its guest thread starts the moment invites go out." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       ) : (
         <main
@@ -166,7 +166,7 @@ export function DashMessages() {
                 <DashSkeleton kind="list" count={3} label="Threading…" />
               ) : party.length === 0 ? (
                 <div style={{ fontSize: 13.5, color: PD.inkSoft, padding: '18px 0' }}>
-                  No messages yet — write the first one. Guests see it the next time they open their link.
+                  No messages yet, write the first one. Guests see it the next time they open their link.
                 </div>
               ) : (
                 party.map((m) => (
@@ -312,7 +312,7 @@ export function DashMessages() {
             )}
             {openThread === null && dms.length > 0 && (
               <div style={{ fontSize: 11, color: PD.inkSoft, marginTop: 12, opacity: 0.8 }}>
-                Replies reach guests on their passport page — and a bell ping lands here when they write back.
+                Replies reach guests on their passport page, and a bell ping lands here when they write back.
               </div>
             )}
           </RailCard>

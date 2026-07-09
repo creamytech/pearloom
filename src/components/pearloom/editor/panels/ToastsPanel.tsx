@@ -128,7 +128,7 @@ export function ToastsPanel({
          sees warm, code-free copy (BRAND.md §7). */
       console.error('[toasts] draft failed:', res.status);
       if (res.status === 429) throw new Error('Pear credits are used up for now');
-      throw new Error("Pear couldn't draft that one — try again?");
+      throw new Error("Pear couldn't draft that one, try again?");
     }
     const data = (await res.json()) as { text?: string; draft?: string; toast?: string; vows?: string };
     const text = (data.text ?? data.draft ?? data.toast ?? data.vows ?? '').trim();
@@ -190,7 +190,7 @@ export function ToastsPanel({
         </Field>
 
         <AIHint>
-          Drafts are a starting point — you'll want to add your own moments. Pear works with what you give in "notes" above.
+          Drafts are a starting point, you'll want to add your own moments. Pear works with what you give in "notes" above.
         </AIHint>
         <AISuggestButton
           label="Draft with Pear"
@@ -203,7 +203,7 @@ export function ToastsPanel({
             role="alert"
             style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11.5, color: 'var(--plum-ink, #7A2D2D)' }}
           >
-            <span>{error ?? "Pear couldn't draft that one — try again?"}</span>
+            <span>{error ?? "Pear couldn't draft that one, try again?"}</span>
             <button
               type="button"
               onClick={() => void run()}

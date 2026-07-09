@@ -167,14 +167,14 @@ export async function POST(req: NextRequest) {
        the email-keyed people row; text: the SMS carries a personal
        claim link that files the pending request when they sign up). */
     if (!checkRateLimit(`friends:i:${personId}`, { max: 10, windowMs: 60 * 60_000 }).allowed) {
-      return NextResponse.json({ ok: false, error: 'Too many invites — try again in an hour' }, { status: 429 });
+      return NextResponse.json({ ok: false, error: 'Too many invites. Try again in an hour' }, { status: 429 });
     }
     const name = typeof body.name === 'string' ? body.name.slice(0, 80) : undefined;
 
     // ── By text ─────────────────────────────────────────────
     if (typeof body.phone === 'string' && body.phone.trim()) {
       if (!isSmsConfigured()) {
-        return NextResponse.json({ ok: false, error: 'Text invites aren’t set up yet — invite by email for now' }, { status: 503 });
+        return NextResponse.json({ ok: false, error: 'Text invites aren’t set up yet. Invite by email for now' }, { status: 503 });
       }
       const phone = normalizePhone(body.phone);
       if (!phone) return NextResponse.json({ ok: false, error: 'That number doesn’t look dialable' }, { status: 400 });
@@ -185,11 +185,11 @@ export async function POST(req: NextRequest) {
       const inviterFirst = (session?.user?.name ?? '').trim().split(/\s+/)[0] || 'A friend';
       const link = `${getAppOrigin()}/signup?circle=${encodeURIComponent(minted.token)}`;
       const first = name?.trim().split(/\s+/)[0];
-      const text = `${first ? `${first}, ` : ''}${inviterFirst} wants to keep you in their circle on Pearloom — the people they celebrate with. Join them: ${link}`;
+      const text = `${first ? `${first}, ` : ''}${inviterFirst} wants to keep you in their circle on Pearloom, the people they celebrate with. Join them: ${link}`;
       const res = await sendSms({ to: phone, body: text });
       if (!res.ok) {
         console.warn('[friends] circle SMS send failed:', res.error);
-        return NextResponse.json({ ok: false, error: 'The text didn’t go through — try email instead' }, { status: 502 });
+        return NextResponse.json({ ok: false, error: 'The text didn’t go through. Try email instead' }, { status: 502 });
       }
       return NextResponse.json({ ok: true, channel: 'sms' });
     }
@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
             <h1 style="font-size:30px;font-weight:400;font-style:italic;margin:0 0 14px;line-height:1.2">${escT(inviterFirst)} keeps you in their circle.</h1>
             ${first ? `<p style="font-size:14.5px;margin:0 0 10px">Dear <em>${escT(first)}</em>,</p>` : ''}
             <p style="font-size:15px;line-height:1.7;margin:0">
-              On Pearloom, a circle is the people you celebrate with —
+              On Pearloom, a circle is the people you celebrate with,
               the ones who show up. ${escT(inviterFirst)} added you to
               theirs. One tap and you're woven in.
             </p>

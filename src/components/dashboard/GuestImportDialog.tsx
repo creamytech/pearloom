@@ -87,7 +87,7 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
       setResult(data);
       onImported?.();
     } catch (e) {
-      setError('Network error — try again.');
+      setError('Network error, try again.');
     } finally {
       setSubmitting(false);
     }

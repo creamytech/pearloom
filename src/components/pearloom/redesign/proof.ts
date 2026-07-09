@@ -50,26 +50,26 @@ function obituaryAuthored(manifest: StoryManifest): boolean {
 }
 
 const DEFAULT_NOTE =
-  'Pear drafts this with you in the editor — from your photos and the story you told me.';
+  'Pear drafts this with you in the editor, from your photos and the story you told me.';
 
 const NOTES: Record<string, string> = {
-  story: 'Pear drafts your story with you in the editor — from your photos and what you told me.',
-  gallery: 'Your photographs land here — add them any time in the editor.',
-  travel: 'Add stays and directions in the editor — Pear lays them out for your guests.',
-  registry: 'Link stores, funds, or causes in the editor — guests reserve, you never touch fees.',
-  schedule: 'Sketch the moments of the day in the editor — times stay flexible.',
+  story: 'Pear drafts your story with you in the editor, from your photos and what you told me.',
+  gallery: 'Your photographs land here, add them any time in the editor.',
+  travel: 'Add stays and directions in the editor, Pear lays them out for your guests.',
+  registry: 'Link stores, funds, or causes in the editor, guests reserve, you never touch fees.',
+  schedule: 'Sketch the moments of the day in the editor, times stay flexible.',
   faq: 'Pear drafts the answers with you in the editor, from the details you gave.',
-  details: 'The fine print writes itself in the editor — dress code, parking, the little things.',
-  tributeWall: 'Your guests write this part — their words appear once you approve them.',
-  adviceWall: 'Your guests write this part — their words appear once you approve them.',
-  obituary: 'Written in your words, at your pace — Pear helps, gently, in the editor.',
+  details: 'The fine print writes itself in the editor, dress code, parking, the little things.',
+  tributeWall: 'Your guests write this part, their words appear once you approve them.',
+  adviceWall: 'Your guests write this part, their words appear once you approve them.',
+  obituary: 'Written in your words, at your pace, Pear helps, gently, in the editor.',
 };
 
 const SOLEMN_NOTES: Record<string, string> = {
-  story: 'Their story is yours to tell — Pear helps you write it, gently, in the editor. Nothing is published without you.',
-  gallery: 'Their photographs land here — add them whenever you are ready.',
-  registry: 'Add the causes or funds the family suggests — in the editor, whenever you are ready.',
-  tributeWall: 'Guests share their memories here — each one waits for your approval before it appears.',
+  story: 'Their story is yours to tell, Pear helps you write it, gently, in the editor. Nothing is published without you.',
+  gallery: 'Their photographs land here, add them whenever you are ready.',
+  registry: 'Add the causes or funds the family suggests, in the editor, whenever you are ready.',
+  tributeWall: 'Guests share their memories here, each one waits for your approval before it appears.',
 };
 
 /** Decide the Review pressing's treatment for a section.

@@ -12,7 +12,7 @@ function dresscodeFor(occasion: string, voice: string): string {
   if (occasion === 'rehearsal-dinner') return 'Dressy casual.';
   if (occasion === 'memorial' || occasion === 'funeral') return 'What feels right. The family welcomes you in whatever you wear.';
   if (occasion === 'bar-mitzvah' || occasion === 'bat-mitzvah') return 'Cocktail attire. Bring comfortable shoes for dancing.';
-  if (occasion === 'quinceanera') return 'Cocktail or formal — it\'s a big night.';
+  if (occasion === 'quinceanera') return 'Cocktail or formal, it\'s a big night.';
   if (occasion === 'bachelor-party' || occasion === 'bachelorette-party') return 'Comfortable for the day, something nicer for the big dinner.';
   if (occasion === 'baby-shower' || occasion === 'bridal-shower' || occasion === 'sip-and-see') return 'Casual. Whatever you\'d wear to brunch.';
   if (occasion === 'milestone-birthday' || occasion === 'birthday' || occasion === 'sweet-sixteen') return 'Festive. Whatever makes you feel like dancing.';
@@ -25,7 +25,7 @@ function notesFor(occasion: string): string {
     return 'Please come as you are. The family will be greeting guests before the service.';
   }
   if (occasion === 'bachelor-party' || occasion === 'bachelorette-party') {
-    return 'Plan to be present — phones in the bag for the dinner.';
+    return 'Plan to be present, phones in the bag for the dinner.';
   }
   if (occasion === 'reunion') {
     return 'Drop in for any part of the weekend; the schedule below is loose by design.';

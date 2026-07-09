@@ -82,12 +82,12 @@ const BASE: OccasionCopy = {
   storyTitle: 'The story',
   storyItalic: 'so far',
   storyBodyDemo:
-    'Every celebration has a story behind it. Write yours here — how this day came to be, and why the people you love should be part of it.',
+    'Every celebration has a story behind it. Write yours here, how this day came to be, and why the people you love should be part of it.',
   navStory: 'The story',
   navRegistry: 'Registry',
   cta: 'RSVP',
   rsvpTitle: 'Save your seat',
-  rsvpBody: 'Twenty seconds and you’re done — no account needed.',
+  rsvpBody: 'Twenty seconds and you’re done, no account needed.',
   detailsDressDemo: 'Cocktail attire',
   detailsGiftsCard: ['Gifts', 'Your presence is enough'],
   registryTitleHead: 'Your presence is',
@@ -107,7 +107,7 @@ const BASE: OccasionCopy = {
     'Where should I park?',
   ],
   tributePrompt: 'Leave a few words',
-  tributeConfirm: 'Woven in — the hosts will read it before it joins the wall.',
+  tributeConfirm: 'Woven in, the hosts will read it before it joins the wall.',
   storyChips: ['The beginning', 'Along the way', 'This day'],
   countdownEyebrow: 'The big day',
   countdownLabel: 'Until we celebrate',
@@ -154,7 +154,7 @@ const WEDDING: OccasionCopy = {
   ...BASE,
   ...WEDDING_VOICES.classic,
   storyBodyDemo:
-    'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
+    'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry, there is no story we would rather tell, and no one we would rather tell it to.',
   navStory: 'Our story',
   detailsDressDemo: 'Garden formal',
   registryDemoStores: ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
@@ -190,7 +190,7 @@ const SOLEMN: OccasionCopy = {
   storyTitle: 'A life',
   storyItalic: 'remembered',
   storyBodyDemo:
-    'A place for their story — the years, the people they loved, the moments that keep coming up in every phone call. Written in your words, at your pace.',
+    'A place for their story, the years, the people they loved, the moments that keep coming up in every phone call. Written in your words, at your pace.',
   navStory: 'Their story',
   navRegistry: 'In lieu of flowers',
   cta: 'Reply',
@@ -214,7 +214,7 @@ const SOLEMN: OccasionCopy = {
     'Where should I park?',
   ],
   tributePrompt: 'Share a memory',
-  tributeConfirm: 'Woven in — the family will see it soon. It appears here once they’ve read it.',
+  tributeConfirm: 'Woven in, the family will see it soon. It appears here once they’ve read it.',
   storyChips: ['The early years', 'A life in full', 'Remembered'],
   countdownEyebrow: 'The day',
   countdownLabel: 'Until we gather',
@@ -233,14 +233,14 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Why we',
     storyItalic: 'still do',
     storyBodyDemo:
-      "The first time, we promised. This time, we know. Write about the years that proved the vows — and why you're saying them again.",
+      "The first time, we promised. This time, we know. Write about the years that proved the vows, and why you're saying them again.",
     registryDemoStores: ['A trip fund'],
   },
   engagement: {
     ...WEDDING,
     tagline: 'we said yes',
     storyBodyDemo:
-      "We met on an ordinary Tuesday and knew by Thursday. Now there's a ring, a date to find, and a party to throw — and we'd love for you to be there as it all begins.",
+      "We met on an ordinary Tuesday and knew by Thursday. Now there's a ring, a date to find, and a party to throw, and we'd love for you to be there as it all begins.",
     registryDemoStores: ['Zola'],
     scheduleDemo: [
       { t: '6:00 pm', l: 'Cocktails', s: 'Garden bar' },
@@ -256,7 +256,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The years',
     storyItalic: 'between',
     storyBodyDemo:
-      'Ten years, two cities, one very opinionated dog. Tell the story of the years between the vows and now — the chapters your guests were there for, and the ones they missed.',
+      'Ten years, two cities, one very opinionated dog. Tell the story of the years between the vows and now, the chapters your guests were there for, and the ones they missed.',
     navStory: 'Our story',
     registryDemoStores: ['A trip fund'],
     scheduleDemo: [
@@ -274,7 +274,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The last',
     storyItalic: 'hurrah',
     storyBodyDemo:
-      'One groom, one weekend, zero sleep planned. Lay out the plan — and what everyone needs to know before they book.',
+      'One groom, one weekend, zero sleep planned. Lay out the plan, and what everyone needs to know before they book.',
     navStory: 'The plan',
     cta: "I'm in",
     rsvpTitle: 'Lock it in',
@@ -298,7 +298,7 @@ const PACKS: Record<string, OccasionCopy> = {
       ...this['bachelor-party'],
       tagline: 'one last fling',
       storyBodyDemo:
-        'One bride, one weekend, a group chat already out of control. Lay out the plan — and what everyone needs to know before they book.',
+        'One bride, one weekend, a group chat already out of control. Lay out the plan, and what everyone needs to know before they book.',
     };
   },
   'bridal-shower': {
@@ -308,7 +308,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Before the',
     storyItalic: 'big day',
     storyBodyDemo:
-      'Before the aisle, an afternoon just for her. Share how you know the bride — and what the gathering will look like.',
+      'Before the aisle, an afternoon just for her. Share how you know the bride, and what the gathering will look like.',
     detailsGiftsCard: ['Gifts', 'Registry linked below'],
     registryDemoStores: ['Zola', 'Crate & Barrel'],
     scheduleDemo: [
@@ -341,7 +341,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The night',
     storyItalic: 'before',
     storyBodyDemo:
-      "Before the big day, a smaller table. A few words about tonight — who's hosting, who's toasting, and how the evening runs.",
+      "Before the big day, a smaller table. A few words about tonight, who's hosting, who's toasting, and how the evening runs.",
     scheduleDemo: [
       { t: '5:00 pm', l: 'Rehearsal', s: 'At the venue' },
       { t: '6:30 pm', l: 'Dinner', s: 'Seated' },
@@ -361,7 +361,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The weekend',
     storyItalic: 'begins',
     storyBodyDemo:
-      "Everyone's in town — start the weekend easy. Note where to land, what's on ice, and who to find for a welcome bag.",
+      "Everyone's in town, start the weekend easy. Note where to land, what's on ice, and who to find for a welcome bag.",
     scheduleDemo: [
       { t: '7:00 pm', l: 'Drinks', s: 'Casual' },
       { t: '8:00 pm', l: 'Light bites', s: 'Passed' },
@@ -388,7 +388,7 @@ const PACKS: Record<string, OccasionCopy> = {
     ...BASE,
     tagline: 'a year worth toasting',
     storyBodyDemo:
-      'Every year adds a chapter. Use this space for the highlights — the moves, the milestones, the running jokes — or hand the pen to someone who tells them better.',
+      'Every year adds a chapter. Use this space for the highlights (the moves, the milestones, the running jokes) or hand the pen to someone who tells them better.',
     scheduleDemo: [
       { t: '6:00 pm', l: 'Drinks', s: 'On arrival' },
       { t: '7:00 pm', l: 'Dinner', s: 'Family style' },
@@ -403,7 +403,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'A year of',
     storyItalic: 'firsts',
     storyBodyDemo:
-      "First smile, first steps, first cake. Jot the year's little milestones here — the ones the baby book almost kept up with.",
+      "First smile, first steps, first cake. Jot the year's little milestones here, the ones the baby book almost kept up with.",
     detailsDressDemo: 'Casual & comfy',
     registryDemoStores: ['A little wishlist'],
     scheduleDemo: [
@@ -425,7 +425,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Sixteen years',
     storyItalic: 'in the making',
     storyBodyDemo:
-      'Sixteen years of stories — the phases, the playlists, the friends who stayed. Write the short version here.',
+      'Sixteen years of stories, the phases, the playlists, the friends who stayed. Write the short version here.',
     scheduleDemo: [
       { t: '7:00 pm', l: 'Doors', s: 'Photo wall open' },
       { t: '8:00 pm', l: 'Dinner', s: 'Buffet' },
@@ -440,7 +440,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'A career',
     storyItalic: 'well spent',
     storyBodyDemo:
-      "Decades of early mornings, deadlines met, and colleagues turned friends. Write the career's greatest hits here — or collect them from the people who were there.",
+      "Decades of early mornings, deadlines met, and colleagues turned friends. Write the career's greatest hits here, or collect them from the people who were there.",
     scheduleDemo: [
       { t: '5:30 pm', l: 'Drinks', s: 'On arrival' },
       { t: '6:30 pm', l: 'Dinner', s: 'Long table' },
@@ -455,7 +455,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The road',
     storyItalic: 'here',
     storyBodyDemo:
-      "Four years, a few all-nighters, one diploma. Tell the story of the road here — and a line about what's next.",
+      "Four years, a few all-nighters, one diploma. Tell the story of the road here, and a line about what's next.",
     scheduleDemo: [
       { t: '10:00 am', l: 'Ceremony', s: 'Arrive early' },
       { t: '12:30 pm', l: 'Photos', s: 'On the quad' },
@@ -478,7 +478,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Before the',
     storyItalic: 'arrival',
     storyBodyDemo:
-      "The nursery's half-painted and the names are down to a shortlist. Share the story so far — and what you're most excited for.",
+      "The nursery's half-painted and the names are down to a shortlist. Share the story so far, and what you're most excited for.",
     detailsDressDemo: 'Casual & comfy',
     detailsGiftsCard: ['Gifts', 'Registry linked below'],
     registryDemoStores: ['Babylist', 'Target'],
@@ -502,7 +502,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Before we',
     storyItalic: 'know',
     storyBodyDemo:
-      "Team pink, team blue, team just-here-for-the-cake. Write how you'll reveal it — and take your guests' guesses at the door.",
+      "Team pink, team blue, team just-here-for-the-cake. Write how you'll reveal it, and take your guests' guesses at the door.",
     registryDemoStores: ['A little wishlist'],
     scheduleDemo: [
       { t: '3:00 pm', l: 'Snacks', s: 'And guesses' },
@@ -517,7 +517,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The newest',
     storyItalic: 'arrival',
     storyBodyDemo:
-      'Name, weight, and the first-week stories. Introduce the newest arrival — and the visiting hours that work around naps.',
+      'Name, weight, and the first-week stories. Introduce the newest arrival, and the visiting hours that work around naps.',
     registryDemoStores: ['A little wishlist'],
     scheduleDemo: [
       { t: '10:00 am', l: 'Open house', s: 'Come and go' },
@@ -537,7 +537,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The new',
     storyItalic: 'place',
     storyBodyDemo:
-      'New keys, new zip code, same open door. Tell the story of the move — and what you love most about the place.',
+      'New keys, new zip code, same open door. Tell the story of the move, and what you love most about the place.',
     detailsDressDemo: 'Come as you are',
     registryDemoStores: ['Home goods', 'A house fund'],
     scheduleDemo: [
@@ -554,7 +554,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Quince',
     storyItalic: 'años',
     storyBodyDemo:
-      'Fifteen years, one unforgettable night. Share the story of the quinceañera — the family, the traditions, the court of honor beside her.',
+      'Fifteen years, one unforgettable night. Share the story of the quinceañera, the family, the traditions, the court of honor beside her.',
     detailsDressDemo: 'Formal attire',
     scheduleDemo: [
       { t: '2:00 pm', l: 'Mass', s: 'With family' },
@@ -575,7 +575,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'Thirteen years',
     storyItalic: 'in the making',
     storyBodyDemo:
-      'Thirteen years to this Torah portion. Write about the road here — the study, the family, and what this day means.',
+      'Thirteen years to this Torah portion. Write about the road here, the study, the family, and what this day means.',
     detailsDressDemo: 'Dress for the service',
     scheduleDemo: [
       { t: '10:00 am', l: 'Service', s: 'At the synagogue' },
@@ -617,7 +617,7 @@ const PACKS: Record<string, OccasionCopy> = {
     storyTitle: 'The years',
     storyItalic: 'between',
     storyBodyDemo:
-      "It's been too long — catch everyone up. Where everyone's landed, who's new since last time, and what the weekend holds.",
+      "It's been too long, catch everyone up. Where everyone's landed, who's new since last time, and what the weekend holds.",
     detailsDressDemo: 'Come as you are',
     scheduleDemo: [
       { t: 'Fri 5:00 pm', l: 'Arrivals', s: 'Check in' },
