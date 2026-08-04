@@ -65,6 +65,9 @@ export default defineConfig({
     stderr: 'pipe',
     env: {
       PEARLOOM_E2E: '1',
+      // Lift the private-preview word wall so specs reach the app
+      // without solving /gate (site-gate.ts honours this switch).
+      SITE_GATE_ENABLED: 'false',
       E2E_TEST_USER_EMAIL: process.env.E2E_TEST_USER_EMAIL ?? 'e2e@pearloom.test',
       E2E_TEST_USER_PASSWORD: process.env.E2E_TEST_USER_PASSWORD ?? 'pearloom-e2e-secret',
       NEXTAUTH_URL: HOST,
@@ -80,6 +83,22 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 900 },
         // Studio specs sign in via global-setup.
+        storageState: 'e2e/.auth/user.json',
+      },
+      // The critical-path suite carries its own project so it can be
+      // run in isolation (`--project=critical-path`) in CI.
+      testIgnore: /critical-path\.spec\.ts/,
+    },
+    {
+      // Critical-path funnel guards (account deletion, …). Same
+      // signed-in storageState as studio; hermetic (mocks every
+      // /api call) so it needs no backend.
+      name: 'critical-path',
+      testDir: './e2e/specs',
+      testMatch: /critical-path\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
         storageState: 'e2e/.auth/user.json',
       },
     },
