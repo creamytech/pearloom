@@ -45,6 +45,10 @@ import {
   privateScopeReason,
   type RosterScope,
 } from '@/lib/celebration-privacy';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { checkGuestCapacity } from '@/lib/plan-gate';
+import { guestTokenColumns } from '@/lib/guest-tokens';
+import { linkGuestRowToPerson } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 15;
@@ -243,4 +247,186 @@ export async function GET(req: NextRequest) {
     },
     roster,
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/celebrations/roster — the write-back.
+//
+// The other half of the shared roster. GET surfaces the union
+// ("these 84 people are somewhere across your weekend"); this
+// puts one of them onto the sibling events they're missing from,
+// so a host enters a guest ONCE instead of copy-then-drift.
+//
+//   POST { celebrationId, person: { name, email? }, targets: [subdomain] }
+//     → { ok, results: [{ subdomain, outcome, guestId? }] }
+//
+//   outcome ∈ added | already-there | private | over-limit | failed
+//
+// Every guard the single-add path has, applied per target:
+//   • OWNERSHIP  — every target must be the caller's own site AND
+//     in this celebration. An unknown or foreign subdomain 403s the
+//     whole request rather than silently skipping (a caller asking
+//     for someone else's site is a bug or a probe, not a partial).
+//   • PRIVACY    — a private-scope event is NEVER a write-back
+//     target (lib/celebration-privacy). This is the write half of
+//     the shedding guard: you cannot push a wedding guest into the
+//     bachelorette list through the container.
+//   • CAPACITY   — checkGuestCapacity per target (plan-gate), so
+//     write-back can't route around the guest cap.
+//   • DEDUPE     — email first, then name, matching the importer.
+//
+// Partial success is normal and reported per target: one event may
+// be full while another accepts, and the host should see exactly
+// what happened rather than an all-or-nothing error.
+// ─────────────────────────────────────────────────────────────
+
+type WriteOutcome = 'added' | 'already-there' | 'private' | 'over-limit' | 'failed';
+
+interface WriteResult {
+  subdomain: string;
+  outcome: WriteOutcome;
+  guestId?: string;
+  /** Present on 'private' / 'over-limit' so the UI can explain. */
+  reason?: string;
+}
+
+interface PostBody {
+  celebrationId?: string;
+  person?: { name?: string; email?: string };
+  targets?: string[];
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email?.toLowerCase().trim();
+  if (!email) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+
+  if (!checkRateLimit(`celeb-roster-write:${email}`, { max: 60, windowMs: 60 * 60_000 }).allowed) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
+  }
+
+  let body: PostBody;
+  try {
+    body = (await req.json()) as PostBody;
+  } catch {
+    return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const celebrationId = body.celebrationId?.trim();
+  const personName = body.person?.name?.trim();
+  const personEmail = body.person?.email?.toLowerCase().trim() || null;
+  const targets = Array.isArray(body.targets)
+    ? [...new Set(body.targets.map((t) => String(t).trim()).filter(Boolean))]
+    : [];
+
+  if (!celebrationId || !personName || targets.length === 0) {
+    return NextResponse.json(
+      { ok: false, error: 'celebrationId, person.name and at least one target are required' },
+      { status: 400 },
+    );
+  }
+  if (targets.length > 20) {
+    return NextResponse.json({ ok: false, error: 'Too many events in one request' }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return NextResponse.json({ ok: false, error: 'Not configured' }, { status: 503 });
+  }
+
+  // The caller's own sites in this celebration — the same scoping the
+  // GET uses, so a target can never be a site they don't own.
+  const { data: rows, error } = await supabase
+    .from('sites')
+    .select('id, subdomain, ai_manifest')
+    .eq('creator_email', email);
+  if (error) {
+    console.error('[celebrations/roster] POST site read failed:', error.message);
+    return NextResponse.json({ ok: false, error: 'Could not load the celebration.' }, { status: 500 });
+  }
+
+  const mine = new Map<string, SiteRow & { id: string }>();
+  for (const r of ((rows ?? []) as Array<SiteRow & { id: string }>)) {
+    if (r.ai_manifest?.celebration?.id === celebrationId) mine.set(r.subdomain, r);
+  }
+
+  const unknown = targets.filter((t) => !mine.has(t));
+  if (unknown.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: 'One or more events are not part of this celebration.' },
+      { status: 403 },
+    );
+  }
+
+  const results: WriteResult[] = [];
+
+  for (const subdomain of targets) {
+    const site = mine.get(subdomain)!;
+    const m = site.ai_manifest ?? {};
+
+    // Shedding guard, write half.
+    if (rosterScopeFor({ occasion: m.occasion, celebration: m.celebration }) !== 'shared') {
+      results.push({
+        subdomain,
+        outcome: 'private',
+        reason: privateScopeReason(m.occasion),
+      });
+      continue;
+    }
+
+    try {
+      // Dedupe — email first (the stable identity), then name.
+      const existing = personEmail
+        ? await supabase.from('guests').select('id').eq('site_id', site.id).ilike('email', personEmail).maybeSingle()
+        : await supabase.from('guests').select('id').eq('site_id', site.id).ilike('name', personName).maybeSingle();
+      if (existing.data) {
+        results.push({ subdomain, outcome: 'already-there', guestId: String(existing.data.id) });
+        continue;
+      }
+
+      const capacity = await checkGuestCapacity(supabase, email, site.id, 1);
+      if (!capacity.ok) {
+        results.push({
+          subdomain,
+          outcome: 'over-limit',
+          reason: capacity.body.error,
+        });
+        continue;
+      }
+
+      const { data: inserted, error: insertError } = await supabase
+        .from('guests')
+        .insert({
+          site_id: site.id,
+          name: personName,
+          email: personEmail,
+          status: 'pending',
+          ...guestTokenColumns(),
+          created_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+      if (insertError || !inserted) {
+        console.error('[celebrations/roster] insert failed:', subdomain, insertError?.message);
+        results.push({ subdomain, outcome: 'failed' });
+        continue;
+      }
+
+      // Persistent identity — same fire-and-forget link every other
+      // guest writer does. Never blocks the add.
+      if (personEmail) {
+        void linkGuestRowToPerson(supabase, String(inserted.id), {
+          email: personEmail,
+          name: personName,
+        });
+      }
+
+      results.push({ subdomain, outcome: 'added', guestId: String(inserted.id) });
+    } catch (err) {
+      console.error('[celebrations/roster] write-back error:', subdomain, err);
+      results.push({ subdomain, outcome: 'failed' });
+    }
+  }
+
+  return NextResponse.json({ ok: true, results });
 }
