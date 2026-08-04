@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import type { StoryManifest } from '@/types';
 import type { DraftableSection } from '@/lib/auto-draft/types';
 import type { SiteOccasion } from '@/lib/site-urls';
@@ -62,6 +63,12 @@ function buildContext(manifest: StoryManifest) {
 }
 
 export async function POST(req: Request) {
+  // Compute-only (local template drafters, no DB, no AI spend) —
+  // anonymous by design, but rate-limited so it can't be farmed.
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`auto-draft:${ip}`, { max: 30, windowMs: 60_000 }).allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
   let body: { manifest?: StoryManifest; section?: unknown };
   try {
     body = await req.json();

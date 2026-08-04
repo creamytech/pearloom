@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GEMINI_FLASH, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 // ─────────────────────────────────────────────────────────────
@@ -39,15 +41,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Slow down a tick' }, { status: 429 });
   }
 
+  // Host-only: the sole consumer is the authed editor canvas
+  // (CanvasPearBlocks). Requiring the session attributes AI spend
+  // to the account instead of the caller's IP.
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email?.toLowerCase() ?? null;
+  if (!email) {
+    return NextResponse.json({ error: 'Sign in to use Pear.' }, { status: 401 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ caption: 'A quiet moment, kept.' });
   }
 
-  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP
-  // (guest-facing). Fails open — only blocks on a confirmed
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by the
+  // signed-in account. Fails open — only blocks on a confirmed
   // over-budget read.
-  const budget = budgetKey(null, ip);
+  const budget = budgetKey(email, ip);
   if (await overBudget(budget)) {
     return NextResponse.json(
       { error: "You've reached today's AI limit. Try again tomorrow." },

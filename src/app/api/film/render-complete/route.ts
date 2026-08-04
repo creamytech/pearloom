@@ -18,12 +18,20 @@ import { completeFilmRender, failFilmRender } from '@/lib/event-os/film';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  // Fail CLOSED: this webhook mutates render jobs (marks them
+  // complete with a caller-supplied outputUrl). Without the shared
+  // secret configured it used to accept any POST — now an unset
+  // secret disables the endpoint instead of opening it.
   const secret = env.FILM_RENDERER_WEBHOOK_SECRET;
-  if (secret) {
-    const auth = req.headers.get('authorization') || '';
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!secret) {
+    return NextResponse.json(
+      { error: 'Render webhook not configured' },
+      { status: 503 },
+    );
+  }
+  const auth = req.headers.get('authorization') || '';
+  if (auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   let body: {
