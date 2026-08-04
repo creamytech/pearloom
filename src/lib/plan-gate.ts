@@ -304,3 +304,82 @@ export async function isSiteGriefExempt(
     return false;
   }
 }
+
+// ─── Guest-capacity choke point ──────────────────────────────
+//
+// EVERY host-initiated guest creation goes through this one check:
+// /api/guests (single add), /api/guests/import (CSV batch),
+// /api/guests/copy-from (cross-site copy), /api/guests/from-person
+// (circle weave-in). Adding a new host-side guest writer? Call this
+// before inserting.
+//
+// Deliberately NOT gated — guest-initiated flows: /api/rsvp
+// (open-list RSVP may create the guest's own row), /api/rsvp/plus-one
+// (an attending guest's +1), /api/address-book (a guest submitting
+// their own address). A guest's reply is never blocked by the host's
+// plan — the same principle as "identity never blocks an RSVP"
+// (lib/people.ts).
+//
+// Posture: fails OPEN on any lookup error (a gate hiccup never
+// blocks adding a guest); grief-exempt sites are never capped.
+
+interface GuestCountClient {
+  from: (t: string) => {
+    select: (cols: string, opts: { count: 'exact'; head: true }) => {
+      eq: (col: string, v: string) => PromiseLike<{ count: number | null; error: unknown }>;
+    };
+  };
+}
+
+export type GuestCapacityResult =
+  | { ok: true }
+  | {
+      ok: false;
+      status: 402;
+      body: ReturnType<typeof planLimitResponseBody> & { allowed: number };
+    };
+
+export async function checkGuestCapacity(
+  /** Supabase client (loosely typed — see isSiteGriefExempt). */
+  db: unknown,
+  ownerEmail: string,
+  siteId: string,
+  /** How many guest rows the caller is about to insert. */
+  adding: number,
+  opts?: {
+    /** Pass when the caller already fetched the site's guest rows —
+     *  skips the count query. */
+    currentCount?: number;
+  },
+): Promise<GuestCapacityResult> {
+  try {
+    const { plan, limits } = await getPlanWithLimitsForEmail(ownerEmail);
+    if (!Number.isFinite(limits.maxGuests)) return { ok: true };
+    if (await isSiteGriefExempt(db, siteId)) return { ok: true };
+
+    let current = opts?.currentCount;
+    if (typeof current !== 'number') {
+      const { count, error } = await (db as GuestCountClient)
+        .from('guests')
+        .select('id', { count: 'exact', head: true })
+        .eq('site_id', siteId);
+      if (error || typeof count !== 'number') return { ok: true }; // fail open
+      current = count;
+    }
+
+    if (current + Math.max(1, adding) > limits.maxGuests) {
+      return {
+        ok: false,
+        status: 402,
+        body: {
+          ...planLimitResponseBody('guests', limits.maxGuests, plan),
+          allowed: Math.max(0, limits.maxGuests - current),
+        },
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.warn('[plan-gate] guest capacity check failed (failing open):', err);
+    return { ok: true };
+  }
+}

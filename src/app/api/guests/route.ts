@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
+import { checkGuestCapacity } from '@/lib/plan-gate';
 import { linkGuestRowToPerson } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
@@ -174,27 +174,13 @@ export async function POST(req: NextRequest) {
       siteId = siteRow.id;
     }
 
-    // Plan gate — maxGuests from PLAN_LIMITS (@/lib/plan-gate).
-    // Counts this site's guest rows; fails OPEN if the count query
-    // errors so a gate hiccup never blocks adding a guest.
-    // Memorial/funeral sites are exempt (the published "grief
-    // deserves no paywall" promise — see plan-gate.ts).
-    try {
-      const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
-      if (Number.isFinite(limits.maxGuests) && !(await isSiteGriefExempt(supabase, siteId))) {
-        const { count, error: countError } = await supabase
-          .from('guests')
-          .select('id', { count: 'exact', head: true })
-          .eq('site_id', siteId);
-        if (!countError && typeof count === 'number' && count >= limits.maxGuests) {
-          return NextResponse.json(
-            planLimitResponseBody('guests', limits.maxGuests, plan),
-            { status: 402 },
-          );
-        }
-      }
-    } catch (gateErr) {
-      console.warn('Guest plan gate check failed (failing open):', gateErr);
+    // Plan gate — the shared guest-capacity choke point
+    // (checkGuestCapacity in plan-gate.ts): grief exemption +
+    // fail-open + the 402 body, one implementation for every
+    // host-initiated guest writer.
+    const capacity = await checkGuestCapacity(supabase, session.user.email, siteId, 1);
+    if (!capacity.ok) {
+      return NextResponse.json(capacity.body, { status: capacity.status });
     }
 
     const { data, error } = await supabase

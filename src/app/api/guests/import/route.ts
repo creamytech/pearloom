@@ -31,7 +31,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
-import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
+import { checkGuestCapacity } from '@/lib/plan-gate';
 import { normalizePersonEmail } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 
@@ -120,21 +120,16 @@ export async function POST(req: NextRequest) {
     const toInsert = skipDuplicates ? deduped.filter((g) => !g.duplicateOf) : deduped;
     const skipped = deduped.length - toInsert.length;
 
-    // Plan gate — maxGuests from PLAN_LIMITS (@/lib/plan-gate). Reuses
-    // the `existing` rows fetched above as the current count (a failed
-    // fetch counts as 0 — fail open). Rejects the whole batch rather
-    // than partially importing silently; `allowed` tells the UI how
-    // many more rows would fit so it can offer a partial import.
-    // Memorial/funeral sites are exempt from the guest cap (the
-    // published "grief deserves no paywall" promise — plan-gate.ts).
-    const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
-    const currentGuests = (existing ?? []).length;
-    const griefExempt = await isSiteGriefExempt(supabase, siteId);
-    if (!griefExempt && Number.isFinite(limits.maxGuests) && currentGuests + toInsert.length > limits.maxGuests) {
-      return NextResponse.json({
-        ...planLimitResponseBody('guests', limits.maxGuests, plan),
-        allowed: Math.max(0, limits.maxGuests - currentGuests),
-      }, { status: 402 });
+    // Plan gate — the shared guest-capacity choke point (plan-gate.ts).
+    // Reuses the `existing` rows fetched above as the current count (a
+    // failed fetch counts as 0 — fail open). Rejects the whole batch
+    // rather than partially importing silently; `allowed` tells the UI
+    // how many more rows would fit so it can offer a partial import.
+    const capacity = await checkGuestCapacity(supabase, session.user.email, siteId, toInsert.length, {
+      currentCount: (existing ?? []).length,
+    });
+    if (!capacity.ok) {
+      return NextResponse.json(capacity.body, { status: capacity.status });
     }
 
     const batchId = crypto.randomUUID();

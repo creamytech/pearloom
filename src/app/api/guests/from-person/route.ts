@@ -19,6 +19,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { guestTokenColumns } from '@/lib/guest-tokens';
 import { sendGuestInviteEmail } from '@/lib/email/guest-invite';
+import { checkGuestCapacity } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +100,14 @@ export async function POST(req: NextRequest) {
   const existing = byPerson ?? byEmail;
   if (existing) {
     return NextResponse.json({ ok: true, added: false, guest: { id: String(existing.id), name: String(existing.name ?? name) } });
+  }
+
+  // Plan gate — the shared guest-capacity choke point (plan-gate.ts).
+  // This route inserted ungated before; every host-initiated guest
+  // writer goes through checkGuestCapacity now.
+  const capacity = await checkGuestCapacity(sb, callerEmail, siteId, 1);
+  if (!capacity.ok) {
+    return NextResponse.json(capacity.body, { status: capacity.status });
   }
 
   const { data, error } = await sb
