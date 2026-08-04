@@ -15,6 +15,7 @@ import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Pearl } from '@/components/brand/Pearl';
 import { letterpressShadow, FoilGradient } from '@/components/brand/pressed';
 import { useSession } from 'next-auth/react';
+import { captureReferral, storedReferral, clearReferral } from '@/lib/doorway/referral';
 import { applyVibeLook, vibeLookSummary, VIBE_LOOKS } from '@/lib/site-look/vibe-look';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -2578,6 +2579,12 @@ export function WizardV8() {
   // Debounced persistence — runs on every state change, but throttled
   // to one write per 400ms so we don't thrash localStorage on each
   // keystroke.
+  /* Guest→host attribution. A host arriving from a passport's
+     post-event recap carries `?ref=<site>`; capture it once on mount
+     so it survives the signup round-trip and reaches the create call.
+     First-wins, site-slug only, never a guest (lib/doorway/referral). */
+  useEffect(() => { captureReferral(); }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const t = setTimeout(() => {
@@ -3287,7 +3294,16 @@ export function WizardV8() {
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames, create: true }),
+        // `ref` — guest→host attribution (lib/doorway/referral). Set
+        // when this host arrived from a guest passport's post-event
+        // recap. A site slug, never a guest; the server re-sanitizes.
+        body: JSON.stringify({
+          subdomain: derivedSubdomain,
+          manifest,
+          names: submitNames,
+          create: true,
+          ref: storedReferral(),
+        }),
       });
       const resData = await res.json().catch(() => null);
       // ── Logged-out finish line ──────────────────────────────
@@ -3339,6 +3355,11 @@ export function WizardV8() {
       }
       const finalSubdomain: string =
         (typeof resData?.subdomain === 'string' && resData.subdomain) || derivedSubdomain;
+
+      // The referral marker has been spent — clear it so this host's
+      // SECOND site isn't credited to a referral they followed months
+      // ago (lib/doorway/referral).
+      clearReferral();
 
       // ── The weaving-in — the answers that connect this site to
       //    PEOPLE fire now, while the press choreography plays.

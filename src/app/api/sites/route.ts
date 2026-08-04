@@ -8,6 +8,7 @@ import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
 import { recordProductEvent } from '@/lib/analytics/product-events';
 import { listSitesForEmail } from '@/lib/sites-list';
 import { validateManifestForWrite } from '@/lib/manifest-schema';
+import { sanitizeReferral } from '@/lib/doorway/referral';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -335,10 +336,19 @@ export async function POST(req: NextRequest) {
     // moment — autosave / unload-beacon UPDATES to this same route
     // are not. Fire-and-forget; never blocks or fails the save.
     if (body.create === true) {
+      // `ref` — guest→host attribution when this host arrived from a
+      // guest passport's post-event recap. Re-sanitized server-side
+      // (a slug or nothing); it is a SITE, never a guest. This is the
+      // one growth metric all three external reviews asked to
+      // instrument: the rate at which guests become hosts.
+      const ref = sanitizeReferral((body as { ref?: unknown }).ref);
       void recordProductEvent('site_created', {
         email: session.user.email,
         siteId: subdomain,
-        props: { occasion: (manifest as { occasion?: string } | null)?.occasion ?? null },
+        props: {
+          occasion: (manifest as { occasion?: string } | null)?.occasion ?? null,
+          ...(ref ? { referredBy: ref } : {}),
+        },
       });
     }
 
