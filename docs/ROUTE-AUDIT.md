@@ -63,6 +63,12 @@ to create an account to respond to an invitation:
 - `POST /api/email-capture`, `POST /api/newsletter/subscribe` — marketing capture (own limiter / shared limiter).
 - `POST /api/gate` — the site password gate itself.
 - `POST /api/auto-draft` — anonymous pure compute (finding 3).
+- `POST /api/doorway/makeover` — the switching surface (2026-08-04).
+  Same posture and the same guards as `/extract` below: anonymous by
+  design, IP rate-limited (tighter — every call makes an outbound
+  fetch AND builds a manifest), the fetch routed exclusively through
+  `lib/safe-fetch`, and **no writes** — the manifest it returns is
+  marked preview/unpublished and exists only in the response.
 - `POST /api/doorway/extract` — the express door (2026-08-04). Anonymous
   BY DESIGN: a visitor must see a real preview of their own event before
   being asked to sign up. It is also the one route that fetches a

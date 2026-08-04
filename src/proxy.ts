@@ -136,7 +136,8 @@ export const AUTH_REQUIRED_PREFIXES = [
 /** Surfaces that must NEVER require a session to reach. Exported so
  *  the contract is testable rather than a comment. */
 export const MUST_STAY_OPEN_PREFIXES = [
-  '/start',   // the express door
+  '/start',      // the express door
+  '/makeover',   // the switching surface
   '/wizard',
   '/editor',
   '/demo',

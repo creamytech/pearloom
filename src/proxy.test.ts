@@ -32,6 +32,7 @@ describe('the doorway stays open', () => {
     // Spelled out separately from the loop so the intent survives a
     // careless edit to the constant.
     expect(isAuthRequired('/start')).toBe(false);
+    expect(isAuthRequired('/makeover')).toBe(false);
     expect(isAuthRequired('/wizard/new')).toBe(false);
     expect(isAuthRequired('/editor/emma-and-james')).toBe(false);
     expect(isAuthRequired('/api/doorway/extract')).toBe(false);
