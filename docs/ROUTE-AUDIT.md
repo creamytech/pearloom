@@ -63,6 +63,17 @@ to create an account to respond to an invitation:
 - `POST /api/email-capture`, `POST /api/newsletter/subscribe` — marketing capture (own limiter / shared limiter).
 - `POST /api/gate` — the site password gate itself.
 - `POST /api/auto-draft` — anonymous pure compute (finding 3).
+- `POST /api/doorway/extract` — the express door (2026-08-04). Anonymous
+  BY DESIGN: a visitor must see a real preview of their own event before
+  being asked to sign up. It is also the one route that fetches a
+  user-supplied URL without a session, so its guards are load-bearing:
+  IP rate limit, the fetch routed exclusively through `lib/safe-fetch`
+  (scheme allowlist, private-host + resolved-private-IP rejection,
+  re-vetted redirects, byte cap, deadline), an optional budget-capped AI
+  pass skipped when the free parse already answered, and **no writes of
+  any kind**. Pinned by `route.test.ts`, which asserts the route never
+  calls global `fetch` itself and that a refused URL yields a reason-free
+  422.
 - `POST /api/auth/{register,forgot,reset}` — pre-auth by nature; rate-limited.
 
 **Public reads** — `GET /api/og` (unfurlers can't auth; output is a
