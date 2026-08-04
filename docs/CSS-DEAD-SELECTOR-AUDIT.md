@@ -2,9 +2,14 @@
 
 > CLAUDE-DESIGN §16 item 1. Compiled 2026-08-04.
 >
-> **Status: audited, NOT executed.** The list below is verified;
-> the deletion is deliberately left for a session with a browser.
-> §4 explains why, and it is not a formality.
+> **Status: EXECUTED 2026-08-04.** The deletion ran via
+> `scripts/css-dead-audit.mjs` (postcss). §4 records why the first
+> pass stopped at the audit, §5 what actually happened, and §7 how
+> the numbers below differ from what this document predicted.
+>
+> Re-run the tool any time: `node scripts/css-dead-audit.mjs`
+> reports, `--write` applies, `--verify-against .next` cross-checks
+> the candidates against a built tree.
 
 ---
 
@@ -84,19 +89,58 @@ Not caution for its own sake — three specific reasons:
 The honest sequencing is: **audit now, execute with a browser and a
 postcss pass.** The audit is the hard part and it's done.
 
-## 5 · How to execute it safely
+## 5 · What was actually executed (2026-08-04)
 
-1. Use **postcss** to walk rules and drop any whose selector list is
-   entirely dead classes (per the §1 method, re-run fresh — the code
-   moves).
-2. Drop `@media` / `@supports` blocks left empty by step 1.
-3. Keep the textures (§3).
-4. Screenshot the dashboard, editor, day-of room, a published site,
-   and the passport before/after at desktop + 390px.
-5. Expect roughly **1,000–1,400 lines** removed (163 occurrences,
-   most multi-line), taking the file to ~8k.
+`scripts/css-dead-audit.mjs`, in three passes over one postcss AST:
 
-## 6 · Related debt found while here
+1. **Unreachable selectors.** A selector is dropped when any compound
+   in its chain requires a class no element ever carries — which is
+   what makes `.pl8-guest .pl8-gallery-grid` removable even though
+   the scope root is alive. Selectors containing `:not()` / `:is()` /
+   `:where()` / `:has()` are left alone unconditionally: a dead class
+   inside a negation makes a rule *broader*, not narrower, so the
+   reasoning would invert. A rule keeps its live selectors and loses
+   only the dead ones; it's removed only when nothing survives.
+2. **Orphaned `@keyframes`.** Removing the last consumer of an
+   animation leaves its keyframes as dead weight. Two were orphaned
+   by pass 1 (`pl8-stat-rise`, `pl-pearl-rotate`) and removed; the
+   search covers JS as well as CSS, since `animation-name` can be set
+   from script.
+3. **Empty at-rules** left holding nothing after pass 1.
+
+**Verification, in place of the browser baselines §4 wanted:** every
+candidate was cross-checked against the *built* tree
+(`--verify-against .next`, stylesheets excluded — the bundle contains
+`pearloom.css` itself, so counting it would make the check vacuous).
+Next inlines JSX class strings into its JS chunks, so a class absent
+from both source and every compiled chunk has no consumer anywhere.
+The check was confirmed non-vacuous by looking up known-live classes
+in the same corpus (`pl8-dashshell`, `pl8-btnfx`,
+`pl8-content-fade-in` — all present across 6–21 chunks). Production
+builds are green before and after; the tool re-parses its own output
+before writing, and a second run is a no-op.
+
+## 6 · The result, and where it differs from the prediction above
+
+| | Predicted | Actual |
+|---|---|---|
+| Lines removed | 1,000–1,400 | **172** (9,407 → 9,235) |
+| Classes removed | 81 | 70 |
+
+The line estimate was **wrong, and worth recording as wrong.** It
+came from multiplying 163 rule occurrences by an assumed rule size;
+in fact most dead occurrences are single-line entries in shared
+selector lists (`.pl8-split, .pl8-split-auth, .pl8-split-wizard { … }`),
+not standalone blocks. The class count is right; the file is simply
+denser than the estimate assumed. `pearloom.css` therefore stays a
+~9.2k-line file, and CLAUDE-DESIGN §16 item 1 should be read as
+"trimmed of provably dead selectors", not "shrunk".
+
+The 21 classes the tool still reports as consumer-less are kept on
+purpose: 7 textures by policy (§3), and the rest appear only inside
+`:not()` / `:is()` selectors where removal would change matching.
+
+## 7 · Related debt found while here
 
 - `pl8-lang-switcher` **and** `pl8-language-switcher` both exist and
   both are dead — a rename that never finished.

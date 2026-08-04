@@ -42,24 +42,16 @@ on, so it's clear what changes.
 
 Real work, none of it blocking, in the order I'd take it.
 
-1. **Execute the CSS dead-selector deletion.** The audit is DONE and
-   verified — `docs/CSS-DEAD-SELECTOR-AUDIT.md` lists 81 dead classes
-   across 163 rule occurrences (36% of the file), grouped by the
-   deleted surface each belongs to. It was deliberately not executed
-   here: the blast radius is silent and visual, the occurrences sit
-   inside nested `@media` blocks (postcss, not sed), and this
-   container has no baselines to verify against. Expect ~1,000–1,400
-   lines removed.
-2. **Wallet pass (Apple/Google)** — blocked on the Apple Pass Type ID
+1. **Wallet pass (Apple/Google)** — blocked on the Apple Pass Type ID
    certificate, which is an owner action; the generator is a session
    once that exists.
-3. **WhatsApp channel for the concierge.** SMS shipped (see below);
+2. **WhatsApp channel for the concierge.** SMS shipped (see below);
    per synthesis §2.5 the second channel is WhatsApp via the same
    Twilio account, for international and culturally diverse events.
    Needs WhatsApp Business templates and an owner-side sender
    approval — the decision layer (`lib/sms/concierge`) is
    channel-agnostic and already carries the rules.
-4. **Buy and wire the concierge numbers.** The inbound webhook is
+3. **Buy and wire the concierge numbers.** The inbound webhook is
    live and verified; what remains is provisioning numbers per
    celebration (or a shared number with the disambiguation reply
    already implemented), pointing them at
@@ -77,6 +69,12 @@ Real work, none of it blocking, in the order I'd take it.
   fail-closed Twilio signature check, phone→guest→celebration
   resolution, an allowlisted fact sheet, and escalation to the host
   rather than a guessed answer. See ROUTE-AUDIT §3.
+- **CSS dead-selector deletion** — executed via
+  `scripts/css-dead-audit.mjs`; 70 consumer-less classes removed and
+  verified against the built tree. It came to 172 lines, not the
+  ~1,200 the audit estimated: the estimate assumed standalone blocks
+  where most dead selectors are single entries in shared lists.
+  `pearloom.css` is now clean rather than small.
 - **Planner v1** — `/dashboard/planner`: a client book keyed off the
   existing co-host role (no new table), plus reusable shapes that
   carry structure and look but never a previous client's content.

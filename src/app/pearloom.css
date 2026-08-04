@@ -325,17 +325,13 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 /* Pearl rotate helper — slow infinite spin used by inline indicator
    dots (the pulse-while-thinking microdot). Distinct from
    pearloom-spin (which is a generic 360° utility). */
-@keyframes pl-pearl-rotate {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 
 
 /* Honour reduced motion for the unscoped animation helpers. The
    scoped .pl8 + .pl8-guest blocks below already cover their own
    reduced-motion fallbacks; this catches anything pasted bare. */
 @media (prefers-reduced-motion: reduce) {
-  .float, .drift, .pulse-dot, .bob, .pl-pearl-rotate {
+  .float, .drift, .pulse-dot, .bob {
     animation: none !important;
   }
   .lift:hover { transform: none; box-shadow: var(--shadow-sm); }
@@ -1072,9 +1068,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
      be visible without scroll. Targets the published hero
      wrappers used by every variant. */
   .pl8-guest [data-pl-hero],
-  .pl8-guest section[id="top"],
-  .pl8-guest .pl8-hero-postcard,
-  .pl8-guest .pl8-hero-photo-first {
+  .pl8-guest section[id="top"] {
     min-height: auto !important;
     max-height: none !important;
     padding-top: clamp(24px, 4vh, 56px) !important;
@@ -1317,12 +1311,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    future) or a generic padding cap on the main content column.
    For now, target the dash shell's main column directly. */
 @media (max-width: 640px) {
-  .pl8-dash main,
   .pl8-dash-main {
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
-  .pl8-dash main > section,
   .pl8-dash-main > section {
     padding-top: 24px !important;
     padding-bottom: 24px !important;
@@ -1348,9 +1340,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    cramped. Force single-column on the most common multi-column
    patterns. */
 @media (max-width: 374px) {
-  .pl8-cols-2,
-  .pl8-cols-3,
-  .pl8-cols-4 {
+  .pl8-cols-3 {
     grid-template-columns: 1fr !important;
   }
   
@@ -1360,13 +1350,6 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 /* Forms — labels often render at 11px. Bump to 13px on phone so
    form labels are scannable. Inputs already at 16px (iOS zoom
    prevention rule above). */
-@media (max-width: 640px) {
-  .pl8-marketing label,
-  .pl8-design-page label,
-  .pl8-dash label {
-    font-size: max(13px, 1em);
-  }
-}
 
 /* ── Editor mobile-preview container queries ──────────────────
    When the canvas device frame switches to phone/tablet, the
@@ -1378,26 +1361,14 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 @container pl-site (max-width: 960px) {
   .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
-  .pl8-guest .pl8-site-nav-links { display: none !important; }
-  .pl8-guest .pl8-timeline-thread { display: none !important; }
-  .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
-  .pl8-guest .pl8-timeline-row > div:empty { display: none; }
   /* Schedule row at tablet (641-960px): 90px time column (was 70px)
      so the formal "in words" time fits on 1-2 lines instead of 3.
      ≤640px collapses to single column — see dedicated rule below. */
   .pl8-guest .pl8-schedule-row { grid-template-columns: 90px 1fr !important; padding: 18px 22px !important; gap: 18px !important; }
   .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
   .pl8-guest .pl8-schedule-row > .display { font-size: 17px !important; line-height: 1.25 !important; }
-  .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
-  .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
-  .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
   .pl8-guest .pl8-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 140px !important; }
   .pl8-guest .pl8-gallery-grid > div { grid-column: auto !important; grid-row: auto !important; }
-  .pl8-guest .pl8-gallery-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
-  .pl8-guest .pl8-site-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
-  .pl8-guest .pl8-hide-mobile { display: none !important; }
-  .pl8-guest .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; }
 }
 
 @container pl-site (max-width: 640px) {
@@ -1410,7 +1381,6 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 /* Two-col layouts that stack on tablet */
 .pl8-split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 40px; align-items: start; }
-.pl8-split-auth { display: grid; grid-template-columns: 1fr 1.1fr; gap: 80px; align-items: center; }
 
 
 
@@ -1548,13 +1518,6 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 /* ── Stat number reveal ──────────────────────────────────────
    For tile values that should "fade up" rather than appear. */
-.pl8-stat-rise {
-  animation: pl8-stat-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes pl8-stat-rise {
-  from { opacity: 0; transform: translateY(8px); letter-spacing: 0.04em; }
-  to   { opacity: 1; transform: translateY(0); letter-spacing: 0; }
-}
 
 /* ── Pill / chip pop ─────────────────────────────────────────
    Tiny spring on hover so chips feel like physical objects. */
@@ -1684,12 +1647,17 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 @media (prefers-reduced-motion: reduce) {
   .pl8-dash-stagger > *,
-  .pl8-card-lift, .pl8-tile-lift,
-  .pl8-dash-page-enter, .pl8-dash-page-enter > *,
+  .pl8-card-lift,
+  .pl8-tile-lift,
+  .pl8-dash-page-enter,
+  .pl8-dash-page-enter > *,
   .pl8-tab-enter,
-  .pl8-stat-rise, .pl8-chip-pop,
-  .pl8-btn-press, .pl8-content-fade-in,
-  .pl8-pop-in, .pl8-menu-item, .pl8-btnfx, .pd-guests-row {
+  .pl8-chip-pop,
+  .pl8-content-fade-in,
+  .pl8-pop-in,
+  .pl8-menu-item,
+  .pl8-btnfx,
+  .pd-guests-row {
     animation: none !important;
     transition: none !important;
     transform: none !important;
@@ -1830,19 +1798,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    into a stacked column on tablet and mobile. The aside has rich
    per-element controls; on small screens it sits below the canvas
    instead of next to it. */
-
-
-.pl8-pulse-layout { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: center; }
-@media (max-width: 960px) {
-  .pl8-pulse-layout { grid-template-columns: 1fr !important; }
-}
 /* Day-of stat strip: 4-up overflows the dark hero card on phones —
    the "Registry clicks" column clipped past the right edge. Drop to
    2×2 below 520px. !important because the grid sets its columns
    inline. */
-@media (max-width: 520px) {
-  .pl8-pulse-stats { grid-template-columns: repeat(2, 1fr) !important; min-width: 0 !important; row-gap: 16px; }
-}
 
 
 
@@ -1854,19 +1813,11 @@ button.pl8-mobile-only { display: none !important; }
 
 /* Tablet breakpoint */
 @media (max-width: 960px) {
-  .pl8-split,
-  .pl8-split-auth,
-  .pl8-split-wizard,
-  .pl8-split-dash,
-  .pl8-dash-threecol,
-  .pl8-dash-threecol-b {
+  .pl8-split {
     grid-template-columns: 1fr !important;
     gap: 22px;
   }
   .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  
-  
-  .pl8-pulse-layout { grid-template-columns: 1fr !important; gap: 18px; }
   
   
   .pl8 .nav-links { display: none !important; }
@@ -2072,9 +2023,6 @@ button.pl8-mobile-only { display: none !important; }
     padding: 16px !important;
   }
   /* Stack action grids that were two-up on desktop. */
-  .pl8-dash-threecol,
-  .pl8-dash-threecol-b,
-  .pl8-kickoff,
   .pd-connections-main,
   .pd-director-main,
   .pd-settings-main,
@@ -2098,7 +2046,6 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-occasion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .pl8-basics-grid { grid-template-columns: 1fr !important; }
   .pl8-palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-layout-grid { grid-template-columns: 1fr !important; }
   /* Live save-the-date preview: collapse the Look-step two-column layout
      to one column and hide the preview on narrow screens. */
   .pl8-wizard-canvas.is-look { display: block !important; max-width: 760px !important; }
@@ -2129,20 +2076,11 @@ button.pl8-mobile-only { display: none !important; }
 @media (max-width: 960px) {
   /* Dashboard greeting row: stack + center on phones instead of
      splitting greeting-left / buttons-right when it wraps. */
-  .pl8-home-greet { justify-content: center !important; text-align: center; }
-  .pl8-home-greet > * { justify-content: center; }
-
-  .pl8-signin-collage { display: none !important; }
-  .pl8-signin-root { padding: 80px 22px 40px !important; min-height: auto !important; justify-items: center; text-align: center; }
   /* Center the form column on mobile (collage is hidden) so the page
      reads as a centered card, not a left-pinned column. Inputs/labels
      keep their own alignment inside the centered 420px box. */
-  .pl8-signin-form { margin-left: auto !important; margin-right: auto !important; width: 100%; }
   /* Headings / links / dividers center; the credential fields keep
      left-aligned labels for legibility. */
-  .pl8-signin-form form { text-align: left; }
-  .pl8-signin-logo { position: static !important; padding-bottom: 20px; text-align: center; }
-  .pl8-signin-meta { position: static !important; padding-top: 30px; flex-direction: column; gap: 12px !important; }
 }
 
 /* Home hero tweaks on mobile */
@@ -2165,9 +2103,6 @@ button.pl8-mobile-only { display: none !important; }
 /* Day-of tweaks */
 @media (max-width: 960px) {
   .pl8-dayof-wrap { padding: 20px !important; }
-  .pl8-dayof-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-  .pl8-dayof-pulse { padding: 16px 20px !important; }
-  .pl8-dayof-main { grid-template-columns: 1fr !important; gap: 18px !important; }
 }
 
 /* Builder responsive — outline + style collapse to drawers below tablet */
@@ -2237,10 +2172,8 @@ button.pl8-mobile-only { display: none !important; }
     border: 0 !important;
     border-bottom: 1px solid var(--line-soft) !important;
   }
-  .pl8-builder-preview,
-  .pl8-editor-canvas { padding: 16px !important; }
-  .pl8-builder-preview iframe,
-  .pl8-editor-canvas iframe { height: 600px !important; }
+  .pl8-builder-preview { padding: 16px !important; }
+  .pl8-builder-preview iframe { height: 600px !important; }
 }
 
 /* Editor v8 mobile — the full-height drawers slide up over the canvas. */
@@ -2691,7 +2624,6 @@ html { scroll-behavior: smooth; }
 /* Same suppression for the inset hover ring — when a child
    overlay is active, the section ring fades so only the child
    reads as "the thing you're touching." */
-[data-pl-block-sortable]:has(.pl8-photo-action-wrap:hover),
 [data-pl-block-sortable]:has([data-pl-decor-edit]:hover) {
   box-shadow: none !important;
 }
@@ -2748,21 +2680,6 @@ html { scroll-behavior: smooth; }
    sits in a parent (.pl8-glyph-host) and gains its anim on parent hover
    so the surrounding tile/button drives the motion, not the SVG itself.
    ========================================================================= */
-
-.pl8-glyph {
-  display: inline-grid;
-  place-items: center;
-  transform-origin: center;
-  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 220ms ease;
-}
-.pl8-glyph svg {
-  display: block;
-  overflow: visible;
-}
-.pl8-glyph-host:hover .pl8-glyph,
-.pl8-glyph:hover {
-  filter: drop-shadow(0 1px 0 rgba(14,13,11,0.06));
-}
 
 /* spin — slow rotation for rings + watch */
 
@@ -3095,24 +3012,11 @@ html { scroll-behavior: smooth; }
     print-color-adjust: exact !important;
   }
   /* Hide chrome that's actively unhelpful on paper. */
-  .pl8-reading-progress,
-  .pl8-broadcast-bar,
-  .pl8-day-of-broadcast,
-  .pl8-guest nav,
-  .pl8-site-nav,
-  .pl8-sticky-rsvp,
-  .pl8-confetti-burst,
-  .pl8-living-atmosphere,
-  .pl8-mascot,
-  .pl8-spotify-player,
-  .pl8-ambient-audio,
-  .pl8-language-switcher,
-  .pl8-decor-divider {
+  .pl8-guest nav {
     display: none !important;
   }
   /* Back-to-top pill + owner-edit pill. */
-  button[aria-label="Back to top"],
-  .pl8-owner-edit-pill {
+  button[aria-label="Back to top"] {
     display: none !important;
   }
   /* Map iframes + interactive embeds — print as a small note. */
@@ -3141,7 +3045,6 @@ html { scroll-behavior: smooth; }
   }
   /* Cards — white background + thin black border so they read
      as blocks on paper. */
-  .pl8-hotel-card,
   .pl8-card-lift,
   .pl8-guest section [data-pl-block-styled] {
     background: #FFFFFF !important;
@@ -3436,8 +3339,7 @@ html { scroll-behavior: smooth; }
    contact, language switcher, the "Read our story" link. */
 .pl8-guest[data-pl-edition="cinema"] section .btn-outline,
 .pl8-guest[data-pl-edition="cinema"] section a.btn-outline,
-.pl8-guest[data-pl-edition="cinema"] section button:not(.btn-primary):not(.pl-pearl-accent),
-.pl8-guest[data-pl-edition="cinema"] section .pl8-lang-switcher {
+.pl8-guest[data-pl-edition="cinema"] section button:not(.btn-primary):not(.pl-pearl-accent) {
   background: rgba(251,247,238,0.06) !important;
   color: #FBF7EE !important;
   border: 1px solid rgba(251,247,238,0.32) !important;
@@ -3487,8 +3389,7 @@ html { scroll-behavior: smooth; }
 }
 /* Cinema hotel/travel rows: read as a film-magazine destination
    listing — left gold rule, sharp corners, no card chrome. */
-.pl8-guest[data-pl-edition="cinema"] .pl8-hotel-row,
-.pl8-guest[data-pl-edition="cinema"] .pl8-hotel-card {
+.pl8-guest[data-pl-edition="cinema"] .pl8-hotel-row {
   background: rgba(251,247,238,0.04) !important;
   border-radius: 0 !important;
   border: none !important;
@@ -3541,8 +3442,7 @@ html { scroll-behavior: smooth; }
 
 /* Postcard Box hotel/travel rows: same tilted-postcard treatment
    as schedule + chapter. */
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row,
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card {
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row {
   background: #FBF7EE !important;
   border: 1px solid rgba(198,112,61,0.18) !important;
   border-radius: 14px !important;
@@ -3552,12 +3452,10 @@ html { scroll-behavior: smooth; }
   transform: rotate(-0.4deg);
   transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:nth-child(even),
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card:nth-child(even) {
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:nth-child(even) {
   transform: rotate(0.5deg);
 }
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:hover,
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card:hover {
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:hover {
   transform: rotate(0deg) translateY(-2px);
 }
 
@@ -3607,8 +3505,7 @@ html { scroll-behavior: smooth; }
 /* Linen Folder hotel/travel rows: same transparent-with-hairline
    treatment as schedule + chapter so the travel section reads as
    a continuation of the formal stationery folder. */
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row,
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-card {
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -3616,8 +3513,7 @@ html { scroll-behavior: smooth; }
   padding: 22px 28px !important;
   box-shadow: none !important;
 }
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row:last-child,
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-card:last-child {
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row:last-child {
   border-bottom: 1px solid rgba(184,146,68,0.30) !important;
 }
 /* Linen Folder FAQ: sharp corners + gold hairline + no fill so
@@ -3664,8 +3560,7 @@ html { scroll-behavior: smooth; }
 
 /* Quiet hotel/travel rows: stripped chrome, centered, hairline
    dividers only — same restraint posture as schedule + chapter. */
-.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row,
-.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-card {
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -3674,8 +3569,7 @@ html { scroll-behavior: smooth; }
   border-top: 1px solid rgba(14,13,11,0.06) !important;
   box-shadow: none !important;
 }
-.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row:last-child,
-.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-card:last-child {
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row:last-child {
   border-bottom: 1px solid rgba(14,13,11,0.06) !important;
 }
 /* Quiet FAQ: no card chrome at all — questions float on the page
@@ -3728,8 +3622,7 @@ html { scroll-behavior: smooth; }
 /* Almanac travel: same cream-card-with-hairline pattern as the
    schedule, so the travel section reads as a continuation of
    the almanac's running order. */
-.pl8-guest[data-pl-edition="almanac"] .pl8-hotel-row,
-.pl8-guest[data-pl-edition="almanac"] .pl8-hotel-card {
+.pl8-guest[data-pl-edition="almanac"] .pl8-hotel-row {
   background: #FBF7EE !important;
   border: 1px solid rgba(14,13,11,0.08) !important;
   border-radius: 8px !important;
@@ -4515,11 +4408,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="watercolor"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="watercolor"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-row,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-card,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-timeline-row,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-passport-card,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-bento-tile,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-mkt-tile {
+.pl8-guest[data-pl-texture="watercolor"] .pl8-passport-card {
   filter: url(#wc-card-edge);
   box-shadow:
     0 0 36px 8px rgba(196,112,61,0.22),
@@ -4935,8 +4824,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="ticket"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="ticket"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="ticket"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="ticket"] .pl8-map-card,
-.pl8-guest[data-pl-kit="ticket"] .pl8-music-card {
+.pl8-guest[data-pl-kit="ticket"] .pl8-map-card {
   border: 1.5px dashed var(--t-ink-soft, var(--pl-ink-soft, #3A332C)) !important;
   border-radius: 7px !important;
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
@@ -4959,8 +4847,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="plate"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="plate"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="plate"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="plate"] .pl8-map-card,
-.pl8-guest[data-pl-kit="plate"] .pl8-music-card {
+.pl8-guest[data-pl-kit="plate"] .pl8-map-card {
   border-radius: 1px !important;
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
   color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
@@ -4986,8 +4873,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-map-card,
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-music-card {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-map-card {
   background: #FFFDF7 !important;
   border: none !important;
   border-radius: 2px !important;
@@ -5048,8 +4934,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="index"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="index"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="index"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="index"] .pl8-map-card,
-.pl8-guest[data-pl-kit="index"] .pl8-music-card {
+.pl8-guest[data-pl-kit="index"] .pl8-map-card {
   background: #FBF7EE !important;
   border: none !important;
   border-left: 2px solid rgba(199,80,80,0.5) !important;
@@ -5075,8 +4960,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="minimal"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="minimal"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="minimal"] .pl8-map-card,
-.pl8-guest[data-pl-kit="minimal"] .pl8-music-card {
+.pl8-guest[data-pl-kit="minimal"] .pl8-map-card {
   background: transparent !important;
   border: none !important;
   border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
@@ -5089,8 +4973,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child,
 .pl8-guest[data-pl-kit="minimal"] .pl8-detail-card:last-child,
 .pl8-guest[data-pl-kit="minimal"] .pl8-countdown-cell:last-child,
-.pl8-guest[data-pl-kit="minimal"] .pl8-map-card:last-child,
-.pl8-guest[data-pl-kit="minimal"] .pl8-music-card:last-child {
+.pl8-guest[data-pl-kit="minimal"] .pl8-map-card:last-child {
   border-bottom: none !important;
 }
 /* Oversized numerals on schedule time pills */
@@ -5107,8 +4990,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="arch"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="arch"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="arch"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="arch"] .pl8-map-card,
-.pl8-guest[data-pl-kit="arch"] .pl8-music-card {
+.pl8-guest[data-pl-kit="arch"] .pl8-map-card {
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
   color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: 1px solid var(--t-line, var(--pl-divider, #D8CFB8)) !important;
@@ -5130,8 +5012,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="stamp"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="stamp"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="stamp"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="stamp"] .pl8-map-card,
-.pl8-guest[data-pl-kit="stamp"] .pl8-music-card {
+.pl8-guest[data-pl-kit="stamp"] .pl8-map-card {
   /* Postage stamp is a literal white-bordered artifact — keep the
      cream paper but re-scope ink tokens so dark themes still read
      dark text on the stamp face. */
@@ -5160,8 +5041,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="deco"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="deco"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="deco"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="deco"] .pl8-map-card,
-.pl8-guest[data-pl-kit="deco"] .pl8-music-card {
+.pl8-guest[data-pl-kit="deco"] .pl8-map-card {
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
   color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: none !important;
@@ -5192,8 +5072,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="gallery"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="gallery"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="gallery"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="gallery"] .pl8-map-card,
-.pl8-guest[data-pl-kit="gallery"] .pl8-music-card {
+.pl8-guest[data-pl-kit="gallery"] .pl8-map-card {
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
   color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: none !important;
@@ -5225,8 +5104,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="menu"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="menu"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="menu"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="menu"] .pl8-map-card,
-.pl8-guest[data-pl-kit="menu"] .pl8-music-card {
+.pl8-guest[data-pl-kit="menu"] .pl8-map-card {
   background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
   color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: none !important;
@@ -6594,10 +6472,8 @@ html { scroll-behavior: smooth; }
      CSS to create the card effect via a pseudo-element backdrop
      on the .pl8-guest itself + constrain every direct child to
      the card column. */
-  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
   .pl8-guest[data-pl-site-layout="boxed"] > section,
   .pl8-guest[data-pl-site-layout="boxed"] > footer,
-  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav,
   .pl8-guest.pl8-layout-boxed > section,
   .pl8-guest.pl8-layout-boxed > footer {
     max-width: 900px;
@@ -6661,16 +6537,12 @@ html { scroll-behavior: smooth; }
     padding: 0 !important;
     grid-template-columns: none !important;
   }
-  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
   .pl8-guest[data-pl-site-layout="boxed"] > section,
   .pl8-guest[data-pl-site-layout="boxed"] > footer,
-  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav,
   .pl8-guest[data-pl-site-layout="split"] > section,
   .pl8-guest[data-pl-site-layout="split"] > footer,
-  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav,
   .pl8-guest.pl8-layout-boxed > section,
   .pl8-guest.pl8-layout-boxed > footer,
-  .pl8-guest.pl8-layout-split > header.pl8-themed-nav,
   .pl8-guest.pl8-layout-split > section,
   .pl8-guest.pl8-layout-split > footer {
     max-width: none !important;
@@ -7126,7 +6998,6 @@ html { scroll-behavior: smooth; }
     line-height: 1 !important;
   }
   /* FAQ inline CTAs row (category chips above the rows) wraps. */
-  .pl8-guest section#faq .pl8-faq-cta-chip,
   .pl8-guest section#faq [class*="faq-cta"] {
     flex-wrap: wrap !important;
     justify-content: center !important;
@@ -7160,7 +7031,6 @@ html { scroll-behavior: smooth; }
 
 /* ── Phone-device editor preview (CSS container) ── */
 @container pl-site (max-width: 420px) {
-  .pl8-guest .pl8-themed-nav nav { display: none; }
   .pl8-guest section#top h1 { font-size: calc(42px * var(--pl-hero-scale, 1)); }
   .pl8-guest .pl8-chapter-row { grid-template-columns: 1fr; }
   .pl8-guest .pl8-chapter-row > div:nth-child(2) { display: none; }
@@ -7215,16 +7085,10 @@ html { scroll-behavior: smooth; }
   .pl8-guest section#registry > div[style*="grid-template-columns: repeat(4"] {
     grid-template-columns: 1fr;
   }
-  .pl8-gallery-grid,
   .pl8-guest section#gallery .pl8-gallery-grid {
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 90px;
   }
-  .pl8-gallery-wall,
-  .pl8-guest section#gallery .pl8-gallery-wall {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-  .pl8-gallery-strip-arrow { display: none; }
   .pl8-guest section#gallery [class*="polaroid"],
   .pl8-guest section#gallery > div[style*="rotate"] {
     transform: none;
@@ -7956,8 +7820,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="glass"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="glass"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="glass"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="glass"] .pl8-map-card,
-.pl8-guest[data-pl-kit="glass"] .pl8-music-card {
+.pl8-guest[data-pl-kit="glass"] .pl8-map-card {
   background-color: color-mix(in srgb, var(--t-paper, #F5EFE2) 40%, transparent) !important;
   background-image: linear-gradient(115deg,
     rgba(255,255,255,0.30) 0%,
@@ -8103,8 +7966,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="gilt"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="gilt"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="gilt"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="gilt"] .pl8-map-card,
-.pl8-guest[data-pl-kit="gilt"] .pl8-music-card {
+.pl8-guest[data-pl-kit="gilt"] .pl8-map-card {
   border: 1px solid color-mix(in srgb, var(--t-gold, #C19A4B) 65%, transparent) !important;
   border-radius: 2px !important;
   box-shadow:
@@ -8137,8 +7999,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="atelier"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="atelier"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="atelier"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="atelier"] .pl8-map-card,
-.pl8-guest[data-pl-kit="atelier"] .pl8-music-card {
+.pl8-guest[data-pl-kit="atelier"] .pl8-map-card {
   position: relative;
   border: 1px solid var(--t-line) !important;
   border-left: 4px solid var(--t-accent) !important;
@@ -8173,8 +8034,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="cabinet"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="cabinet"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="cabinet"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="cabinet"] .pl8-map-card,
-.pl8-guest[data-pl-kit="cabinet"] .pl8-music-card {
+.pl8-guest[data-pl-kit="cabinet"] .pl8-map-card {
   border: 2px solid color-mix(in srgb, var(--t-ink, #0E0D0B) 28%, transparent) !important;
   border-radius: 4px !important;
   box-shadow:
@@ -8207,8 +8067,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="scallop"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="scallop"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="scallop"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="scallop"] .pl8-map-card,
-.pl8-guest[data-pl-kit="scallop"] .pl8-music-card {
+.pl8-guest[data-pl-kit="scallop"] .pl8-map-card {
   position: relative;
   border: 1px solid var(--t-line) !important;
   border-top: none !important;
@@ -8216,7 +8075,7 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 3px 12px rgba(40,28,12,0.08) !important;
   margin-top: 8px;
 }
-.pl8-guest[data-pl-kit="scallop"] .pl8-schedule-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-chapter-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-hotel-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-faq-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-detail-card::before,.pl8-guest[data-pl-kit="scallop"] .pl8-countdown-cell::before,.pl8-guest[data-pl-kit="scallop"] .pl8-map-card::before,.pl8-guest[data-pl-kit="scallop"] .pl8-music-card::before {
+.pl8-guest[data-pl-kit="scallop"] .pl8-schedule-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-chapter-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-hotel-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-faq-row::before,.pl8-guest[data-pl-kit="scallop"] .pl8-detail-card::before,.pl8-guest[data-pl-kit="scallop"] .pl8-countdown-cell::before,.pl8-guest[data-pl-kit="scallop"] .pl8-map-card::before {
   content: '';
   position: absolute;
   top: -7px; left: 0; right: 0;
@@ -8242,8 +8101,7 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="noir"] .pl8-faq-row,
 .pl8-guest[data-pl-kit="noir"] .pl8-detail-card,
 .pl8-guest[data-pl-kit="noir"] .pl8-countdown-cell,
-.pl8-guest[data-pl-kit="noir"] .pl8-map-card,
-.pl8-guest[data-pl-kit="noir"] .pl8-music-card {
+.pl8-guest[data-pl-kit="noir"] .pl8-map-card {
   border-radius: 0 !important;
   border: none !important;
   border-top: 5px solid var(--t-ink, #0E0D0B) !important;
@@ -8963,18 +8821,14 @@ html { scroll-behavior: smooth; }
    style injection, same rationale as the work-zone grid).
    ═══════════════════════════════════════════════════════════════ */
 .pl8-cockpit-hero { display: grid; grid-template-columns: 1.5fr 1fr; }
-.pl8-cockpit-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .pl8-cockpit-timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-.pl8-cockpit-hero-slot { min-height: 200px; }
 @media (max-width: 860px) {
-  .pl8-cockpit-stats { grid-template-columns: repeat(2, 1fr); }
   .pl8-cockpit-timeline { grid-template-columns: repeat(2, 1fr); gap: 18px 0; }
 }
 @media (max-width: 760px) {
   .pl8-cockpit-hero { grid-template-columns: 1fr; }
   /* Collapsed hero: the cover/crest slot becomes a 96px strip under
      the CTA row instead of a ~340px dead band (plan-2 §1-F). */
-  .pl8-cockpit-hero-slot { min-height: 0; height: 96px; }
 }
 
 /* ── Home cards sized by their CONTAINER, not the window (plan-2
@@ -8983,32 +8837,6 @@ html { scroll-behavior: smooth; }
    tell those apart, which is how "Final menu" collided with its
    caterer note. The card is the container; rows re-stack when the
    CARD is narrow. */
-.pl8-home-milestones,
-.pl8-home-pulse { container-type: inline-size; }
-
-.pl8-milestone-row {
-  display: grid;
-  grid-template-columns: 76px 22px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-}
-.pl8-milestone-sub-inline { display: none; }
-@container (max-width: 480px) {
-  .pl8-milestone-row { grid-template-columns: 64px 22px minmax(0, 1fr); gap: 10px; }
-  .pl8-milestone-sub-col { display: none; }
-  .pl8-milestone-sub-inline { display: block; }
-}
-@container (max-width: 320px) {
-  .pl8-milestone-row { grid-template-columns: 48px 18px minmax(0, 1fr); gap: 8px; }
-}
-
-.pl8-pulse-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-@container (max-width: 480px) {
-  .pl8-pulse-legend { grid-template-columns: repeat(2, 1fr); }
-}
-@container (max-width: 320px) {
-  .pl8-pulse-legend { grid-template-columns: 1fr; }
-}
 
 /* ═══════════════════════════════════════════════════════════════
    ANIMATED MOTIFS (design-system v2) — ambient movement on the

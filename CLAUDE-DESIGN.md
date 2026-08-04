@@ -33,7 +33,7 @@
 | Event OS registry | `src/lib/event-os/event-types.ts` | 28 occasions: blocks, voice, RSVP preset, templates, look defaults. Plus `name-mode.ts`, `rsvp-presets.ts`, `wizard-questions.ts`, `solo-occasions.ts`, `weekend-arcs.ts` (Weekend Builder anchors + satellite events; shared by `/dashboard/weekend`, `/api/celebrations/weekend`, and WelcomeHome's "Around your day" card). |
 | Suggestion chips | `src/components/pearloom/editor/panels/_suggestions.ts` | Occasion-shape routed (wedding sets only for wedding-shaped events — de-wedding'd 2026-06-12). |
 | Occasion copy packs | `src/components/pearloom/redesign/occasion-copy.ts` | `occasionCopyFor(occasion, voice)` — the renderer's fallback + DEMO copy per occasion (story heading/body, schedule/registry/FAQ seeds, nav story label). buildCopy, the panel seeds (Faq/Registry/Schedule), FullSite, and the rails all read it; wedding-arc packs modulate by Pear voice. Demo fields never reach published sites (2026-07-01). Editor panel LABELS stay with `_voice-pack.ts`. |
-| CSS tokens + utilities | `src/app/globals.css` (2.4k lines) + `src/app/pearloom.css` (8.4k lines) | See §3. |
+| CSS tokens + utilities | `src/app/globals.css` (2.4k lines) + `src/app/pearloom.css` (9.2k lines) | See §3. |
 | Editor state helpers | `src/lib/editor-state.ts` | `stripArtForStorage` (chapter-image base64 strip). |
 | URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`, `normalizeOccasion`. **Never concatenate site URLs.** |
 | Claude client | `src/lib/claude/client.ts` | Opus 4.8 / Sonnet 4.6 / Haiku 4.5 with `withRetry` + `cached`. `structured.ts` forces tool_choice. |
@@ -290,7 +290,7 @@ Before resurrecting anything from git history, ask whether the redesign equivale
 
 ## 16 · Active debt (2026-07-08)
 
-1. **`pearloom.css` is 8.4k lines** — carries per-kit/texture/edition CSS plus sediment from deleted surfaces. Worth a dead-selector audit now that the V1/V8 trees are gone.
+1. **`pearloom.css` is 9.2k lines** — per-kit/texture/edition CSS. **The dead-selector sweep is DONE** (2026-08-04): 70 classes with no consumer anywhere are gone, verified against the built tree, via `scripts/css-dead-audit.mjs` (re-runnable; `--write` applies). It removed 172 lines, not the ~1,200 the audit predicted — most dead selectors were single entries in shared lists, not standalone blocks. So the file is *clean*, not *small*: what remains is live per-kit/texture/edition CSS, and shrinking it further means cutting features, not sediment. See `docs/CSS-DEAD-SELECTOR-AUDIT.md` §5–6.
 2. **Story drafting in the editor** — the wizard no longer drafts story content; the editor's "draft my story from these photos/facts" flow is the named successor (the factSheet + eventDetails already ride the manifest for it).
 3. **`user_preferences.intent`** (onboarding) prefills the wizard occasion, but nothing else reads it yet.
 
