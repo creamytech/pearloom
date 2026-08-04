@@ -655,6 +655,15 @@ export interface StoryManifest {
   celebration?: {
     id: string;    // opaque grouping key (UUID or host-defined)
     name: string;  // display name — "Emma & James's wedding weekend"
+    /** Per-sibling opt-out from the PUBLIC linked-events strip on
+     *  other sites in the celebration. Absent = visible. */
+    linkVisible?: boolean;
+    /** Whether this event's guest list participates in the
+     *  celebration's shared roster and can receive cross-event
+     *  write-back. Absent = the occasion default (sensitive
+     *  occasions are private). Resolved ONLY through
+     *  lib/celebration-privacy.rosterScopeFor — never read raw. */
+    rosterScope?: 'shared' | 'private';
   };
   // Page ids to hide from nav
   hiddenPages?: string[];

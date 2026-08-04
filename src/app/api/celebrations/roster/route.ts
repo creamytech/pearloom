@@ -10,7 +10,8 @@
 //       are counted (cross-owner aggregation is a later, membership-
 //       gated concern — never leak another host's guest counts).
 //       { ok,
-//         events: [{ subdomain, occasion, title, attending, invited }],
+//         events: [{ subdomain, occasion, title, attending, invited,
+//                    scope, privateReason? }],
 //         totals: { events, attending, invited, guests },
 //         roster: [{ firstName, status, events: [subdomain] }] }
 //
@@ -18,15 +19,20 @@
 // status), the same source the activation funnel uses.
 //
 // `roster` is the deduped union of guests across the caller's own
-// events in the celebration — one entry per person (deduped by
+// SHARED events in the celebration — one entry per person (deduped by
 // lower(email), falling back to lower(name)), carrying only their
 // FIRST name, which of the celebration's events they appear on, and
 // their overall status (attending wins over pending wins over
 // declined). It exists to KILL the "enter guests once, copy-then-
-// drift" pain by at least SHOWING the union; the heavier follow-up is
-// write-back ("add this person to these other events"), which would
-// insert guests rows on the sibling sites — deliberately out of scope
-// here (read-only surfacing first).
+// drift" pain.
+//
+// PRIVACY — the shedding guard. Each event carries a roster scope
+// (lib/celebration-privacy): a `private` event (bachelor/ette by
+// default, or any event the host marked private) keeps its guest
+// list to itself. Its guests are never fetched into the union, and
+// it is never a write-back target — so one event's roster cannot
+// shed into a sibling's. Its own headcount still appears: that's the
+// owner's data on the owner's dashboard.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -34,6 +40,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { normalizeOccasion } from '@/lib/site-urls';
+import {
+  rosterScopeFor,
+  privateScopeReason,
+  type RosterScope,
+} from '@/lib/celebration-privacy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 15;
@@ -51,6 +62,13 @@ interface EventRoster {
   title: string;
   attending: number;
   invited: number;
+  /** Whether this event's guests feed the shared roster below.
+   *  'private' events still show their own headcount to their owner
+   *  — it's their data — but never contribute names to the union. */
+  scope: RosterScope;
+  /** Plain-language reason, present only when scope is 'private',
+   *  so the UI can say why without inventing copy. */
+  privateReason?: string;
 }
 
 type OverallStatus = 'attending' | 'pending' | 'declined';
@@ -90,7 +108,7 @@ function firstNameOf(name: string | null, email: string | null): string {
 interface SiteRow {
   subdomain: string;
   ai_manifest: {
-    celebration?: { id?: string };
+    celebration?: { id?: string; rosterScope?: 'shared' | 'private'; linkVisible?: boolean };
     occasion?: string;
     names?: [string, string];
     seoTitle?: string;
@@ -143,15 +161,29 @@ export async function GET(req: NextRequest) {
   const union = new Map<string, { firstName: string; status: OverallStatus; events: Set<string> }>();
 
   for (const r of mine) {
+    const m = r.ai_manifest ?? {};
+    // THE SHEDDING GUARD (lib/celebration-privacy). A private event —
+    // a bachelor/ette by default, or anything the host marked private
+    // — keeps its guest list to itself: its names never enter the
+    // cross-event union, so the container can't leak one event's
+    // roster into another's. Its own headcount still shows: it's the
+    // owner's data on the owner's dashboard.
+    const scope = rosterScopeFor({ occasion: m.occasion, celebration: m.celebration });
+    const shared = scope === 'shared';
+
     // Exact counts scoped to this site's uuid (head:true → no rows
     // shipped) stay authoritative for the headcount even past the 1k
-    // default row cap; the row fetch below feeds only the union list.
+    // default row cap; the row fetch below feeds only the union list —
+    // and is skipped entirely for private events (never fetched, not
+    // merely filtered afterwards).
     const [attendingRes, invitedRes, guestRowsRes] = await Promise.all([
       supabase.from('guests').select('id', { count: 'exact', head: true })
         .eq('site_id', r.id).eq('status', 'attending'),
       supabase.from('guests').select('id', { count: 'exact', head: true })
         .eq('site_id', r.id),
-      supabase.from('guests').select('name, email, status').eq('site_id', r.id),
+      shared
+        ? supabase.from('guests').select('name, email, status').eq('site_id', r.id)
+        : Promise.resolve({ data: [] as GuestRow[] }),
     ]);
     const attending = attendingRes.count ?? 0;
     const invited = invitedRes.count ?? 0;
@@ -176,7 +208,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const m = r.ai_manifest ?? {};
     const names = m.names;
     const title = m.seoTitle
       ?? (names?.[1] ? `${names[0]} & ${names[1]}` : names?.[0] ?? r.subdomain);
@@ -186,6 +217,8 @@ export async function GET(req: NextRequest) {
       title,
       attending,
       invited,
+      scope,
+      ...(shared ? {} : { privateReason: privateScopeReason(m.occasion) }),
     });
   }
 

@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { normalizeOccasion } from '@/lib/site-urls';
+import { isSensitiveOccasion } from '@/lib/celebration-privacy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 15;
@@ -84,12 +85,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, celebration: anchorCeleb, siblings: [] });
   }
 
-  // Sensitive occasions are private by default (see CLAUDE-PRODUCT Q2):
-  // a bachelor/ette site must NEVER be advertised on a sibling's public
-  // strip, even when the host linked it into the celebration — the
-  // wedding site shouldn't out the bachelor party to every guest.
-  const SENSITIVE_OCCASIONS = new Set(['bachelor-party', 'bachelorette-party']);
-
   const siblings: SiblingSummary[] = ((rows ?? []) as SiteRow[])
     .filter((r) => {
       const c = r.ai_manifest?.celebration;
@@ -97,8 +92,12 @@ export async function GET(req: NextRequest) {
       // Per-sibling opt-out: a host can hide any one linked site from the
       // strip by setting celebration.linkVisible = false.
       if (c.linkVisible === false) return false;
-      // Sensitive-pair guard — unconditional, regardless of linking.
-      if (SENSITIVE_OCCASIONS.has(normalizeOccasion(r.ai_manifest?.occasion))) return false;
+      // Sensitive-pair guard — unconditional, regardless of linking:
+      // a bachelor/ette site must NEVER be advertised on a sibling's
+      // public strip (CLAUDE-PRODUCT §8 Q2). The rule lives in
+      // lib/celebration-privacy so this strip, the roster union, and
+      // write-back can't drift apart.
+      if (isSensitiveOccasion(r.ai_manifest?.occasion)) return false;
       return true;
     })
     .map((r) => {
