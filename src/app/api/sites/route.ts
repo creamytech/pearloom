@@ -7,6 +7,7 @@ import { getPlanWithLimitsForEmail, planLimitResponseBody, isGriefExempt } from 
 import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
 import { recordProductEvent } from '@/lib/analytics/product-events';
 import { listSitesForEmail } from '@/lib/sites-list';
+import { validateManifestForWrite } from '@/lib/manifest-schema';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -133,6 +134,22 @@ export async function POST(req: NextRequest) {
         ...manifestPatch,
       };
     }
+
+    // Write-boundary validation (lib/manifest-schema). A GUARDRAIL,
+    // not a strict schema: rejects only structurally-broken payloads
+    // that would corrupt the row or crash the renderer (not an
+    // object, a load-bearing field with the wrong type), and stamps
+    // the schema version. Covers BOTH the full-save and the merged
+    // patch manifest above, before the plan gate or any write.
+    const validation = validateManifestForWrite(manifest);
+    if (!validation.ok) {
+      console.warn('[api/sites] rejected malformed manifest:', validation.error);
+      return NextResponse.json(
+        { error: `Invalid manifest: ${validation.error}`, field: validation.field },
+        { status: 400 },
+      );
+    }
+    manifest = validation.manifest;
 
     // CREATE intent (wizard) — never land on a taken slug. Autosave
     // callers omit the flag and keep upsert-by-subdomain semantics.
