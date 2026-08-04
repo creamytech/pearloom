@@ -57,25 +57,42 @@ CLAUDE-PRODUCT §10 (2026-07-06) for the full ledger.
 - 🔴👤 **Email DNS**: publish SPF, DKIM, DMARC and a dedicated bulk sending
   subdomain (e.g. `mail.pearloom.com`) in Resend + DNS. Without it, invitations
   land in spam — the one email launch-gate the code can't close.
-- 🔴👤 **CAN-SPAM postal address**: replace the `[MAILING ADDRESS]` placeholder in
-  the email footer (`src/lib/email-sequences.ts`, the shared `emailLayout` + the
-  bulk colophon) with the real registered address.
+- 🔴👤 **CAN-SPAM postal address**: set `EMAIL_POSTAL_ADDRESS` to the real
+  registered address. The code is done — the footer renders the line only when
+  the env var is present, so today's emails simply omit it (compliant to send
+  transactional, not compliant for bulk marketing).
 - 👤 **Decision — free-tier site limit**: fixing the `manifest`→`ai_manifest`
   fail-open bug (`3e0f3cc`) means `maxSites=1` now actually *enforces* for free.
   Confirm that's wanted at launch, or bump `PLAN_LIMITS.FREE.maxSites` /
   soften while premium isn't wired.
 - 👤 **Set the new secrets in prod**: `RESEND_WEBHOOK_SECRET` (Svix `whsec_…`,
-  or bounce tracking rejects everything) and `EMAIL_UNSUB_SECRET` (else unsub
-  tokens fall back to `NEXTAUTH_SECRET` — fine, but be deliberate).
+  or bounce tracking rejects everything), `EMAIL_UNSUB_SECRET` (else unsub
+  tokens fall back to `NEXTAUTH_SECRET` — fine, but be deliberate), and
+  **`FILM_RENDERER_WEBHOOK_SECRET`**, which became load-bearing 2026-08-04:
+  `/api/film/render-complete` used to fail OPEN without it (any POST could mark
+  a render job complete with an attacker-supplied URL) and now returns 503
+  until it's set.
+- 👤 **Stripe products for the new price points** ($89 Pass / $199 Keepsake).
+  The checkout route reads `PLAN_PRICE_CENTS` from `plan-gate`, so no code
+  changes — but the till can't take money at the new numbers until the
+  products exist.
 
 ## B · Verify-before-launch (config + security audit session)
 
-- 🔴🧪 **Prove `PEARLOOM_E2E` auth bypass is inert in prod.** `lib/auth.ts` has an
-  E2E provider gated on an env flag that must never activate in production —
-  today it has *zero* tests. Add a test that asserts it's off without the gate.
-- 🧪 **Ownership / RLS harness**: a wrong-owner→403 test across every mutating
-  route (there's no systematic one). The new `/api/split/*` + `/api/sites/budget/lines`
-  gates are good models to pin.
+- ✅ **DONE 2026-08-04 — `PEARLOOM_E2E` auth bypass proven inert.**
+  `src/lib/auth-e2e-gate.test.ts` imports `lib/auth` fresh under each env
+  combination: absent in production even with the flag set, present outside
+  production with it (so the invariant can't pass on a dead gate), armed only
+  by the exact value `'1'`.
+- ✅ **DONE 2026-08-04 — ownership harness.**
+  `src/test/ownership-harness.test.ts` probes 12 mutating routes with no
+  session (→401) and a signed-in non-owner (→4xx, no writes). It caught a real
+  hole on its first run: `POST /api/guests` checked ownership only on the
+  `siteSlug` branch, so a stranger could add guests — and fire invite emails —
+  to any site via its raw `siteId`.
+- ✅ **DONE 2026-08-04 — CAN-SPAM postal line.** No placeholder ships: the
+  footer renders the line only when `EMAIL_POSTAL_ADDRESS` is set (§A is now
+  purely "set the env var", not a code fix).
 - **Confirm all prod env vars are set** (Stripe/Supabase/R2/Resend/Sentry) and
   that the 7 migrations applied 2026-07-06 match prod (they do as of this note —
   see `_pearloom_migrations`).

@@ -42,12 +42,14 @@ Everything in this file is in service of those three acts happening for **any ma
 
 ## 2 · Current event support (as of 2026-04-21)
 
-### 2.1 Supported occasions (5)
+### 2.1 Supported occasions
 
 Source of truth: `src/lib/site-urls.ts:36–73` (full SiteOccasion union) + `EVENT_TYPES` registry at `src/lib/event-os/event-types.ts`.
 
-**28 occasions supported.** 5 shipping, 23 in beta (all have
-templates + beta status in the registry as of 2026-04-22).
+**31 occasions supported.** 5 shipping, 26 in beta (all have
+templates + a non-'planned' status). Counted from the registry
+2026-08-04 — this file said 28 for months while the registry
+grew; if the two disagree again, the registry is right.
 Every occasion now passes through:
 - Category-filtered wizard step (A.2)
 - Occasion-specific RSVP preset (A.3)
@@ -1832,7 +1834,9 @@ union to the full `SiteOccasion` type.
 ### 2026-04-22 — All 28 event types graduated to beta
 
 Every event type in the catalog now has a template and a
-non-'planned' status. **28 of 28 shipping or beta.**
+non-'planned' status. **All shipping or beta.** (The registry
+carried 28 entries at the time of this note; it holds 31 as of
+2026-08-04.)
 
 Summary of what's shipped across the sequence of commits:
 

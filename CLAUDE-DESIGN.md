@@ -87,7 +87,7 @@ Typography classes: `.pl8 .display` (Fraunces), `.display-italic`, `.script` (Ca
 
 ### 3.3 `--t-*` theme bag — the per-site theme
 
-`src/components/pearloom/site/themes.ts` defines **6 themes** (`santorini`, `tuscan`, `garden`, `editorial`, `midnight`, `coastal`), each a complete `--t-*` var bag: `--t-paper/section/card`, `--t-ink{,-soft,-muted}`, `--t-accent{,-2,-bg,-ink}`, `--t-gold`, `--t-line{,-soft}`, `--t-rsvp{,-ink}`, `--t-display/body/script` font stacks, `--t-radius{,-lg}`, `--t-display-wght`, `--t-hero-scale`, `--t-eyebrow-ls`, `--t-shadow`.
+`src/components/pearloom/site/themes.ts` defines **10 themes** (`santorini`, `tuscan`, `garden`, `editorial`, `midnight`, `coastal`, `amalfi`, `first-light`, `deco-gilt`, `tide-coast`), each a complete `--t-*` var bag: `--t-paper/section/card`, `--t-ink{,-soft,-muted}`, `--t-accent{,-2,-bg,-ink}`, `--t-gold`, `--t-line{,-soft}`, `--t-rsvp{,-ink}`, `--t-display/body/script` font stacks, `--t-radius{,-lg}`, `--t-display-wght`, `--t-hero-scale`, `--t-eyebrow-ls`, `--t-shadow`.
 
 ThemedSite emits the full bag on the `.pl8-guest` root's style attribute, so every `var(--t-*)` inside the site resolves per-site. Resolution chain: `manifest.themeVars` (theme-pack or custom override) → `manifest.themeId` → nearest-accent match from legacy `theme.colors` (hydrate-manifest) → first theme.
 
@@ -113,6 +113,13 @@ A site's look = **theme** (§3.3 palette/type bag) + **kit** + **texture** (+ in
 | `motifLayout` | `src/lib/site-look/motif-layouts.ts` ids | `redesign/MotifLayer.tsx` |
 | `density` | cozy / comfortable / spacious | `--pl-density-scale` |
 | `edition` | `src/lib/site-editions/editions.ts` | read-time defaults only — `recommendEdition(occasion, voice)`; the resolver never writes back |
+
+Section **layout variants** live in `redesign/layouts.ts` (`LAYOUTS`):
+**116 variants across 32 section families** as of 2026-08-04 — hero,
+story, schedule, travel, registry, gallery, faq, rsvp, nav, navMobile,
+footer, countdown, map, music, plus every Event-OS block.
+`recommendedVariantFor` surfaces a per-occasion hint; it is never
+auto-applied.
 
 - **Wizard**: `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts) — the `'match'` recipe from `lookRecipesFor(occasion)` dresses the live pressing (and the "room wears the look" underlay on Palette/Review). Explicit kit/texture/motif/density picks come from the **fitting room** (`wizard-fitting-room.tsx`) and beat the defaults at generation. (The old three-look card picker — `wizard-looks.tsx` — was unreachable inside the dead-coded Layout step and was deleted 2026-07-01; the fitting room is its successor.)
 - **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (in-canvas pack preview/unlock, shares `pl-store-owned` localStorage with `/store`).
