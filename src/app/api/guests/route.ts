@@ -156,23 +156,26 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabase();
-    /* Resolve siteSlug to siteId + verify ownership. Same shape as
-       the GET handler so the editor can post with siteSlug only. */
-    let siteId = siteIdParam as string | undefined;
-    if (!siteId) {
-      type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
-      const { data: siteRow } = await supabase
-        .from('sites')
-        .select('id, site_config, creator_email')
-        .eq('subdomain', siteSlug)
-        .maybeSingle() as { data: SiteRow | null };
-      if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-      const ownerEmail = (siteRow.creator_email ?? siteRow.site_config?.creator_email ?? '').toLowerCase();
-      if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      siteId = siteRow.id;
+    /* Resolve the target site and verify ownership. The editor may
+       post EITHER siteSlug (subdomain) or siteId directly — both
+       paths must be owner-gated. Previously only the siteSlug branch
+       checked ownership, so a signed-in stranger could add guests
+       (and trigger invite emails) to any site by passing its raw
+       siteId. Now both resolve through the same lookup + gate. */
+    type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
+    const siteQuery = supabase
+      .from('sites')
+      .select('id, site_config, creator_email');
+    const { data: siteRow } = await (siteIdParam
+      ? siteQuery.eq('id', siteIdParam as string)
+      : siteQuery.eq('subdomain', siteSlug)
+    ).maybeSingle() as { data: SiteRow | null };
+    if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    const ownerEmail = (siteRow.creator_email ?? siteRow.site_config?.creator_email ?? '').toLowerCase();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+    const siteId = siteRow.id;
 
     // Plan gate — the shared guest-capacity choke point
     // (checkGuestCapacity in plan-gate.ts): grief exemption +
