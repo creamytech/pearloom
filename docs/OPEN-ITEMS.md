@@ -50,22 +50,36 @@ Real work, none of it blocking, in the order I'd take it.
    inside nested `@media` blocks (postcss, not sed), and this
    container has no baselines to verify against. Expect ~1,000–1,400
    lines removed.
-2. **Promote guest import into onboarding.** The parser now accepts
-   what people actually paste (headerless lists, `Name <email>`,
-   bare emails). What's missing is surfacing it as a first-class
-   step right after the first preview, instead of a dialog inside
-   the dashboard.
-3. **Wallet pass (Apple/Google)** — blocked on the Apple Pass Type ID
+2. **Wallet pass (Apple/Google)** — blocked on the Apple Pass Type ID
    certificate, which is an owner action; the generator is a session
    once that exists.
-4. **SMS concierge.** The web concierge is live and Twilio is
-   integrated for outbound; the new part is the inbound webhook,
-   scoping replies to a guest identity, and escalation to the host.
-   Sequenced after WhatsApp per synthesis §2.5.
-5. **Planner product v1** — the co-host system exists but has no
-   professional framing (client drafts, cross-client templates,
-   referral tracking). Ranked #2 distribution in the synthesis; the
-   only remaining item that changes acquisition *math*.
+3. **WhatsApp channel for the concierge.** SMS shipped (see below);
+   per synthesis §2.5 the second channel is WhatsApp via the same
+   Twilio account, for international and culturally diverse events.
+   Needs WhatsApp Business templates and an owner-side sender
+   approval — the decision layer (`lib/sms/concierge`) is
+   channel-agnostic and already carries the rules.
+4. **Buy and wire the concierge numbers.** The inbound webhook is
+   live and verified; what remains is provisioning numbers per
+   celebration (or a shared number with the disambiguation reply
+   already implemented), pointing them at
+   `POST /api/sms/inbound`, and telling guests the number exists —
+   an owner/ops action, not code.
+
+### Closed since this list was written (2026-08-04)
+
+- **Guest import into onboarding** — the tolerant paste is now the
+  guests empty state (`GuestListDoor`), with an honest pre-commit
+  count. Fixed a 404 found while wiring it: the publish moment's
+  "Invite your guests →" pointed at `/dashboard/guests`, which did
+  not exist.
+- **SMS concierge, inbound half** — `POST /api/sms/inbound` with a
+  fail-closed Twilio signature check, phone→guest→celebration
+  resolution, an allowlisted fact sheet, and escalation to the host
+  rather than a guessed answer. See ROUTE-AUDIT §3.
+- **Planner v1** — `/dashboard/planner`: a client book keyed off the
+  existing co-host role (no new table), plus reusable shapes that
+  carry structure and look but never a previous client's content.
 
 ## 4 · What is NOT open (so nobody re-litigates it)
 

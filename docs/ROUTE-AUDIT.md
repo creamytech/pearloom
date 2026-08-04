@@ -104,6 +104,20 @@ lookup — leaks nothing unpublished; bachelor/ette excluded upstream),
   The composer reduces table-mates to first names so the sheet is a
   seating aid, never a roster.
 
+### Added since this pass
+
+- `POST /api/sms/inbound` (2026-08-04) — **Webhook** class. The
+  concierge number's inbound half. Twilio signature verified against
+  the configured public URL, and `verifyTwilioSignature` fails CLOSED
+  including when `TWILIO_AUTH_TOKEN` is unset — the same posture the
+  §2.1 finding forced on the film webhook. Additionally rate-limited
+  per originating phone number (12 / 10 min) because a verified
+  webhook can still be a spend vector, and the AI answer runs under
+  the shared daily budget gate. What it may read is an allowlist
+  (`lib/sms/site-facts`): public logistics only, never money, other
+  guests, vendors or private host notes. An unrecognised number is
+  told nothing about any celebration.
+
 ## 4 · Coverage counts (2026-08-04, post-fix)
 
 - 237 route files (after the wedding-day deletion).
@@ -313,6 +327,7 @@ plus the §3 list; markers are grep-derived hints, not the contract.
 | `sites/rsvp-access` | PATCH | S----- |
 | `sites/rsvp` | POST | -R---- |
 | `sites/seating` | PATCH | S----- |
+| `sms/inbound` | GET,POST | -R--W- |
 | `song-requests` | GET,POST,PATCH | SR---- |
 | `split/expenses` | POST,DELETE | --T--- |
 | `split/participants/from-person` | POST | --T--- |
