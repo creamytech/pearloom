@@ -22,15 +22,21 @@ These are the real launch gates. None is blocked on engineering.
 | **`RESEND_WEBHOOK_SECRET`, `EMAIL_UNSUB_SECRET`** | Bounce tracking rejects everything without the first; unsub tokens silently fall back to `NEXTAUTH_SECRET` without the second. | Set both deliberately. |
 | **Staging environment** | The critical-path e2e specs are written and green, but hermetic (every API mocked) because this container has no backend. Staging is where they run against a real one. | Stand one up. |
 
-## 2 · Decisions only you can make
+## 2 · Decisions — DECIDED 2026-08-04
 
-| Decision | Why it's blocked | The shape of the answer |
+All five are now made, with reasoning, in
+**`docs/DECISIONS-2026-08-04.md`**. Summary:
+
+| Decision | Made | Status |
 |---|---|---|
-| **What a referral EARNS** | Attribution ships (`referredBy` on `site_created`), so the loop is measurable today. Granting a reward needs (a) a decision on what it is and (b) a table to track it. The reviews suggested an Edition credit for the new host and a Keepsake upgrade for the referrer. | Name the reward; the ledger is then a session's work. |
-| **Free-tier site limit** | `maxSites: 1` genuinely enforces for free accounts now (a fail-open bug was fixed earlier). Confirm that's wanted at launch. | Keep 1, or raise it. |
-| **The customer-facing container pivot** | You scoped Phase 1 to "data model + privacy scopes first" — done. Reframing the wizard, dashboard, and onboarding around one container as the unit a host creates is the remaining half. | Say go, and it's the next phase. |
-| **Willingness to pay** | $89 / $199 come from three-review consensus, not customer evidence. | Test two packages in market, per the synthesis's own advice. |
-| **Unit economics** | Nobody has priced the storage + bandwidth + AI tail of a decade-lived free or memorial site. The archive fee is a start, not an answer. | A spreadsheet, not code. |
+| **What a referral earns** | New host inherits the LOOK of the site they came from; referrer earns +1 archive year, capped at 3. The reviews' "Edition credit" is void under our own pricing — design is free now, so it would be worth nothing. | Policy + tests shipped; ledger migration written, awaiting MCP apply |
+| **Free-tier site limit** | **1 → 2.** One site closes our #1 growth loop: a maid of honour can't add the bachelorette, and a referred couple can't create their wedding. | Shipped |
+| **Container pivot** | **Yes — after ~50 celebrations of evidence.** The model is built (that was the point of sequencing it first); the reframe waits for real users so we're not designing for an imagined one. | Position — blocked on the §1 owner actions |
+| **Willingness to pay** | **Ship $89 / $199.** We're priced against stationery ($300–800), not free websites; $89 is 0.26% of an average wedding. Test conversion, not elasticity, until ~200 activated celebrations. | Position |
+| **Unit economics** | **Modelled: under $1 per site per decade.** R2 egress is free, photos cap at 2048px/~450KB. The archive fee is margin on the custom domain, NOT cost recovery — and the cost worth watching is AI, not storage. | Modelled |
+
+Overrule any of these and the doc explains what the reasoning depended
+on, so it's clear what changes.
 
 ## 3 · Code still open (ranked)
 

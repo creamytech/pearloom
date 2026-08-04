@@ -71,8 +71,19 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
   // Page — the free tier must be genuinely good, not a crippled
   // trial: it IS the acquisition loop (every published free site is
   // the marketing). Generous enough to run a real small celebration.
+  //
+  // maxSites is 2, not 1, DELIBERATELY (docs/DECISIONS-2026-08-04 §2).
+  // One site closes our best growth loop: bridal-party reverse-
+  // acquisition depends on a maid of honour building a shower site
+  // and the couple then creating their own from her link. At one
+  // site, she can't add the bachelorette and they can't create the
+  // wedding if they'd already made anything — we'd ship the loop and
+  // the gate that closes it in the same product. Two is the smallest
+  // number that lets someone host their own thing AND join someone
+  // else's arc; the Pass at 10 remains the answer for a whole weekend.
+  // (Memorials never count against this — the grief promise.)
   FREE: {
-    maxSites: 1,
+    maxSites: 2,
     maxGuests: 100,
     maxPhotos: 50,
     aiGenerations: 10,
