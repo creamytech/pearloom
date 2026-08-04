@@ -1,10 +1,15 @@
 // ──────────────────────────────────────────────────────────────
 // POST /api/guests/import
 //
-// Bulk-import guests for a site from a CSV string. Body shape:
+// Bulk-import guests for a site. Accepts EITHER a real CSV (with a
+// header row) or the messy list a host actually has — one guest per
+// line, "Name <email>" / "Name, email" / a bare name / a bare email.
+// lib/csv/parse-guest-list dispatches between the two, so a
+// headerless paste never loses its first guest to a phantom header.
+// Body shape:
 //   {
 //     siteId: string,
-//     csv: string,           // raw CSV text
+//     csv: string,           // CSV text OR a pasted list
 //     skipDuplicates?: bool, // default true — skip rows whose email
 //                              or name matches an existing guest
 //   }
@@ -30,7 +35,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
+import { dedupeAgainst } from '@/lib/csv/parse-guests';
+import { parseGuestList } from '@/lib/csv/parse-guest-list';
 import { checkGuestCapacity } from '@/lib/plan-gate';
 import { normalizePersonEmail } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
@@ -89,10 +95,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const parsed = parseGuestCsv(csv);
+    // parseGuestList dispatches: a real CSV (header row present) goes
+    // to the CSV parser unchanged; a headerless paste — what hosts
+    // actually have — is read line by line, so the first guest is
+    // never eaten as a header.
+    const parsed = parseGuestList(csv);
     if (parsed.guests.length === 0) {
       return NextResponse.json({
-        error: 'No valid rows found. Make sure the file has a header row with at least a "Name" column.',
+        error: 'We couldn’t read any guests from that. Paste one guest per line — a name, an email, or both.',
         rejected: parsed.rejected,
         headerMap: parsed.headerMap,
       }, { status: 400 });
