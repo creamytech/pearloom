@@ -3,7 +3,7 @@
 // Offline-capable editing for couples on planes & spotty wifi
 // ─────────────────────────────────────────────────────────────
 
-const VERSION = '1';
+const VERSION = '2';
 
 // Cache bucket names
 const CACHE_SHELL   = `pearloom-shell-v${VERSION}`;
@@ -14,8 +14,20 @@ const CACHE_API     = `pearloom-api-v${VERSION}`;
 const ALL_CACHES = [CACHE_SHELL, CACHE_STATIC, CACHE_IMAGES, CACHE_API];
 
 // ── Precache list ────────────────────────────────────────────
-// HTML shells that let the app boot even when offline
-const SHELL_URLS = ['/', '/dashboard', '/editor'];
+// HTML shells that let the app boot even when offline.
+// The day-of trio is here deliberately: a coordinator opening the
+// run of show, the seating chart, or "who to call" inside a stone
+// barn with no signal is the most expensive failure in the product
+// (lib/day-of/offline-warm warms their DATA; these are the shells
+// that let the pages render at all).
+const SHELL_URLS = [
+  '/',
+  '/dashboard',
+  '/editor',
+  '/dashboard/day-of',
+  '/dashboard/seating',
+  '/dashboard/vendors',
+];
 
 // Offline fallback served when nothing else matches
 const OFFLINE_FALLBACK = '/offline.html';

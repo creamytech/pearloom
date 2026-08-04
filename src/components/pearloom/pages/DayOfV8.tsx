@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { warmDayOfCache } from '@/lib/day-of/offline-warm';
 import { buildSitePath } from '@/lib/site-urls';
 import { Icon, PhotoPlaceholder, PearloomGlyph } from '../motifs';
 import { AmbientHour } from '../ambient';
@@ -1552,6 +1553,19 @@ function DayOfBand({ label }: { label: string }) {
 export function DayOfV8() {
   const { site } = useSelectedSite();
   const stats = useDashStats(site?.id, site?.domain);
+
+  /* THE BARN PROBLEM (lib/day-of/offline-warm). The day-of data is
+     needed exactly where signal is worst — a stone barn, a beach, a
+     basement ballroom. The service worker already network-first
+     caches API GETs, but nobody fetches this while signal is good if
+     the coordinator opens the app for the first time AT the venue.
+     Warming here, every time the room is opened beforehand, means
+     the run of show and the vendor numbers are already in cache when
+     the network goes. Fire-and-forget; never blocks the page. */
+  useEffect(() => {
+    if (!site?.id) return;
+    void warmDayOfCache(site.id);
+  }, [site?.id]);
   const siteName = site ? siteDisplayName(site) : 'Your celebration';
   const occasion = site?.occasion ?? null;
   const [shared, setShared] = useState(false);
