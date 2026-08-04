@@ -18,6 +18,11 @@ import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useUserSites, resolveStickySite, type SiteSummary } from './hooks';
 import { containerNounForSet } from '@/lib/celebration-naming';
 import { isSensitiveOccasion } from '@/lib/celebration-privacy';
+import {
+  celebrationInviteHref,
+  celebrationInviteMessage,
+  shouldOfferInvite,
+} from '@/lib/celebration-invite';
 import { parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 
 interface CelebrationRef {
@@ -481,6 +486,48 @@ export function DashConnections({ embedded = false }: { embedded?: boolean } = {
               </div>
             )}
           </Panel>
+
+          {/* REVERSE ACQUISITION (lib/celebration-invite). When one of
+              the caller's linked events is a satellite — a shower, a
+              bachelor/ette, a rehearsal — they are usually planning it
+              FOR someone who isn't on Pearloom yet. Hand them a link
+              to send. It grants nothing: the recipient creates and
+              owns their own site; the shedding guard still governs
+              guest lists. Ranked the #1 distribution channel in the
+              merged review synthesis. */}
+          {focusCeleb && (() => {
+            const satellite = focusCeleb.sites.find((site) =>
+              shouldOfferInvite({
+                occasion: site.occasion,
+                celebrationId: focusCeleb.celebration.id,
+              }));
+            if (!satellite) return null;
+            const href = celebrationInviteHref({
+              fromSlug: satellite.domain,
+              celebrationId: focusCeleb.celebration.id,
+              celebrationName: focusCeleb.celebration.name,
+              suggestOccasion: 'wedding',
+            });
+            const message = celebrationInviteMessage({
+              satelliteOccasion: satellite.occasion ?? '',
+              celebrationName: focusCeleb.celebration.name,
+              suggestOccasion: 'wedding',
+            });
+            return (
+              <Panel bg={PD.paperCard} style={{ padding: 22 }}>
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
+                  BRING THEM IN
+                </div>
+                <div style={{ ...DISPLAY_STYLE, fontSize: 18, fontWeight: 500, marginBottom: 8 }}>
+                  Are they on Pearloom yet?
+                </div>
+                <p style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.8, margin: '0 0 12px' }}>
+                  {message}
+                </p>
+                <InviteCopyRow href={href} />
+              </Panel>
+            );
+          })()}
 
           {/* Across the weekend — the deduped guest union (Phase 5).
               Owner-gated to the caller's own events; first names only. */}
@@ -1110,6 +1157,42 @@ function CelebrationTimeline({ sites }: { sites: SiteSummary[] }) {
 // API never fetches their guests (lib/celebration-privacy). The
 // note below says so out loud rather than letting a host wonder why
 // the bachelorette's guests aren't counted.
+/* The invite link + a copy button. Deliberately a LINK, not a
+   send: the satellite host knows how they talk to the couple
+   (text, WhatsApp, in person) far better than we do, and asking
+   for the couple's email here would be collecting a third party's
+   address to market to. */
+function InviteCopyRow({ href }: { href: string }) {
+  const [copied, setCopied] = useState(false);
+  const full = typeof window !== 'undefined' ? `${window.location.origin}${href}` : href;
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(full);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      <button
+        type="button"
+        onClick={() => { void copy(); }}
+        className="pl8-btnfx"
+        style={{ ...btnMini, cursor: 'pointer' }}
+      >
+        {copied ? 'Copied ✓' : 'Copy the link'}
+      </button>
+      <Link href={href} style={{ ...btnMiniGhost, textDecoration: 'none' }}>
+        See what they’ll get →
+      </Link>
+    </div>
+  );
+}
+
 function RosterSection({ roster }: { roster: RosterResponse }) {
   const guests = roster.roster ?? [];
   const eventMeta = useMemo(() => {
