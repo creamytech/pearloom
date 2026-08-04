@@ -13,12 +13,26 @@ import { DashLayout } from '../dash/DashShell';
 import { PLHead } from '../dash/PLChrome';
 import { Icon } from '../motifs';
 import { DEPROMOTED_DESTINATIONS } from '../dash/DashCommandPalette';
-import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { useSelectedSite, useUserSites } from '@/components/marketing/design/dash/hooks';
 import { isDashSurfaceApplicable, type DashSurfaceId } from '@/lib/event-os/dashboard-applicability';
 
 export function MoreToolsPage() {
   const { site } = useSelectedSite();
-  const tools = DEPROMOTED_DESTINATIONS.filter(
+  const { sites } = useUserSites();
+  // The client book shows only for accounts that co-host someone
+  // else's celebration — a planner. Same rule as ⌘K.
+  const isPlanner = (sites ?? []).some((s) => s.coHostRole && s.coHostRole !== 'owner');
+  const tools = [
+    ...DEPROMOTED_DESTINATIONS,
+    ...(isPlanner ? [{
+      id: 'tool-planner',
+      label: 'Your client book',
+      hint: 'Events you co-host, by what needs attention',
+      icon: 'check',
+      href: '/dashboard/planner',
+      gate: undefined as string | undefined,
+    }] : []),
+  ].filter(
     (t) => !t.gate || !site || isDashSurfaceApplicable(t.gate as DashSurfaceId, site.occasion),
   );
 

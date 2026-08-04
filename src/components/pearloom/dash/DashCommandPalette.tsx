@@ -173,6 +173,21 @@ export function DashCommandPalette() {
       if (d.gate && !isDashSurfaceApplicable(d.gate, selectedSite?.occasion)) continue;
       items.push({ id: d.id, kind: 'nav', group: 'Tools', label: d.label, hint: d.hint, icon: d.icon, href: d.href });
     }
+    /* The client book appears only for accounts that actually
+       co-host someone else's celebration — a planner, in other
+       words. A couple has no clients, and offering them a client
+       book is noise, not a feature. */
+    if ((allSites ?? []).some((s) => s.coHostRole && s.coHostRole !== 'owner')) {
+      items.push({
+        id: 'tool-planner',
+        kind: 'nav',
+        group: 'Tools',
+        label: 'Your client book',
+        hint: 'Events you co-host, by what needs attention',
+        icon: 'check',
+        href: '/dashboard/planner',
+      });
+    }
     // "Settings" always routes to the settings PAGE (one word, one
     // destination — the nav-settings entry above covers it). The
     // modal keeps only its clearly-named quick views: billing and

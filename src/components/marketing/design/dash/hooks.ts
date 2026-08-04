@@ -32,6 +32,11 @@ export interface SiteSummary {
   published?: boolean;
   updated_at?: string;
   created_at?: string;
+  /** Present only when the host does NOT own this site — they
+   *  co-host it (`editor` | `guest-manager` | `viewer`). Already on
+   *  the wire from `listSitesForEmail`; surfaced so the planner's
+   *  client book can tell a client's celebration from their own. */
+  coHostRole?: string;
 }
 
 export interface UserSitesState {
@@ -85,6 +90,7 @@ export interface ApiSiteRow {
   published?: boolean;
   updated_at?: string;
   created_at?: string;
+  coHostRole?: string;
 }
 
 interface ApiSitesResponse {
@@ -116,6 +122,7 @@ function shapeApiSites(rows: ApiSiteRow[]): SiteSummary[] {
       published: s.published,
       updated_at: s.updated_at,
       created_at: s.created_at,
+      ...(s.coHostRole ? { coHostRole: s.coHostRole } : {}),
     };
   });
 }

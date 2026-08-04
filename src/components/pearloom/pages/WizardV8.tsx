@@ -51,6 +51,11 @@ import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { draftFirstPressing, FIRST_PRESSING_ENABLED } from '@/lib/first-pressing/client';
 import { mergeDraft } from '@/lib/first-pressing/merge';
 import { applySectionPicks, essentialSectionsFor } from '@/lib/event-os/wizard-sections';
+import {
+  extractReusableStructure,
+  applyReusableStructure,
+  type ReusableStructure,
+} from '@/lib/planner/reusable-structure';
 import { WizardSectionChooser } from './wizard-sections';
 import { trackEvent } from '@/lib/analytics/beacon';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
@@ -2522,6 +2527,13 @@ export function WizardV8() {
   const linkFromParam = searchParams.get('from');
   const linkCidParam = searchParams.get('cid');
   const linkCnameParam = searchParams.get('cname');
+  /* ?shape=<slug> — a planner starting a client from a shape they
+     already proved (dashboard/planner). Carries STRUCTURE and LOOK
+     only; lib/planner/reusable-structure is an allowlist, so no
+     previous client's names, words, photos or guests can ride
+     along. Loaded async below because the manifest lives server-
+     side; every path degrades to a normal wizard run if it fails. */
+  const shapeParam = searchParams.get('shape');
   const dialog = useDialog();
   const [stepIndex, setStepIndex] = useState(0);
   // Persist wizard state across refreshes so users don't lose their
@@ -2646,6 +2658,49 @@ export function WizardV8() {
   // below reads through this ref to see fresh photo upload state.
   const stRef = useRef(st);
   stRef.current = st;
+
+  /* The planner's shape (?shape=<slug>). Fetched once; the wizard
+     runs identically when it's absent, fails, or names a site this
+     account can't read — /api/sites only ever returns their own. */
+  const [shape, setShape] = useState<ReusableStructure | null>(null);
+  useEffect(() => {
+    const slug = (shapeParam ?? '').trim();
+    if (!slug) return;
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/sites');
+        if (!res.ok) return;
+        const json = (await res.json()) as { sites?: Array<{ domain?: string; manifest?: unknown }> };
+        const row = (json.sites ?? []).find((s) => s.domain === slug);
+        if (!row || !alive) return;
+        const next = extractReusableStructure(
+          (row.manifest ?? {}) as Record<string, unknown>,
+          `${slug} shape`,
+        );
+        setShape(next);
+        /* Pre-tick the Sections step from the shape, so the host SEES
+           the structure they're starting from and can change it — a
+           shape that silently overrode their picks at finish would be
+           the worse design. Only when they haven't chosen yet. */
+        const order = (next.manifest as Record<string, unknown>).blockOrder;
+        const variants = (next.manifest as Record<string, unknown>).blockVariants;
+        if (Array.isArray(order) && order.length > 0) {
+          setSt((s) => (s.sectionPicks ? s : {
+            ...s,
+            sectionPicks: {
+              on: order.filter((x): x is string => typeof x === 'string'),
+              layouts: (variants && typeof variants === 'object' && !Array.isArray(variants)
+                ? variants : {}) as Record<string, string>,
+            },
+          }));
+        }
+      } catch {
+        /* A shape is a convenience, never a gate. */
+      }
+    })();
+    return () => { alive = false; };
+  }, [shapeParam]);
 
   // Palette colors that generation should honor. st.paletteColors
   // is only written when the host CLICKS a palette tile — a host
@@ -3130,6 +3185,18 @@ export function WizardV8() {
             cardBg: resolvedPaletteColors[0] ?? '#F5EFE2',
           },
         };
+      }
+
+      // ── The planner's shape (?shape=). Applied BEFORE
+      //    applyWizardLook so a proven look beats Pear's occasion
+      //    defaults, and before the explicit stamps further down so
+      //    anything the host picked in this run still wins. Fill-only
+      //    and allowlisted: it can carry no client content.
+      if (shape) {
+        manifest = applyReusableStructure(
+          manifest as unknown as StoryManifest,
+          shape,
+        ) as unknown as Record<string, unknown>;
       }
 
       // Canonical look wiring — themeVars / texture / kit / density
