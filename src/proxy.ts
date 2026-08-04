@@ -116,7 +116,8 @@ const OCCASION_SEGMENTS = new Set<string>(getAllOccasionIds());
 //
 // THE DOORWAY CONTRACT (docs/REVIEW-SYNTHESIS.md §1.5): auth belongs
 // at SAVE and PUBLISH, never at the door. The creation surfaces —
-// `/wizard`, `/editor`, `/demo`, and the express `/api/doorway/*` —
+// `/start` (the express door), `/wizard`, `/editor`, `/demo`, and
+// `/api/doorway/*` —
 // must stay reachable signed-out so a visitor sees a real preview of
 // their own event BEFORE being asked for an account. The wizard's
 // finish already handles the signed-out case properly: it persists
@@ -135,6 +136,7 @@ export const AUTH_REQUIRED_PREFIXES = [
 /** Surfaces that must NEVER require a session to reach. Exported so
  *  the contract is testable rather than a comment. */
 export const MUST_STAY_OPEN_PREFIXES = [
+  '/start',   // the express door
   '/wizard',
   '/editor',
   '/demo',
