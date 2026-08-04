@@ -49,12 +49,12 @@ export function applyLocale(manifest: StoryManifest, locale?: string | null): St
     };
   }
 
-  // FAQ
-  const faq = (manifest as unknown as { faq?: Array<{ id?: string; question?: string; answer?: string }> }).faq;
-  if (Array.isArray(faq) && tr.faq?.length) {
+  // FAQ — the manifest field is `faqs` (FaqItem[]); the translation
+  // entry keeps its historical `faq` key.
+  if (Array.isArray(manifest.faqs) && tr.faq?.length) {
     const faqMap = new Map<string, { question?: string; answer?: string }>();
     tr.faq.forEach((f, i) => { if (f.id) faqMap.set(f.id, f); else faqMap.set(`__idx_${i}`, f); });
-    (next as unknown as { faq: typeof faq }).faq = faq.map((f, i) => {
+    next.faqs = manifest.faqs.map((f, i) => {
       const t = (f.id && faqMap.get(f.id)) || faqMap.get(`__idx_${i}`);
       if (!t) return f;
       return { ...f, question: t.question ?? f.question, answer: t.answer ?? f.answer };

@@ -1130,7 +1130,11 @@ function LanguagesSection({
 
       // Hero lines + event names/descriptions — the route's segment
       // mode. Best-effort: if it fails, we still keep the chapters.
-      const plan: Array<{ t: 'poetry'; k: (typeof POETRY_KEYS)[number] } | { t: 'evName' | 'evDesc'; i: number }> = [];
+      const plan: Array<
+        | { t: 'poetry'; k: (typeof POETRY_KEYS)[number] }
+        | { t: 'evName' | 'evDesc'; i: number }
+        | { t: 'faqQ' | 'faqA'; i: number }
+      > = [];
       const segs: string[] = [];
       const poetry = (manifest.poetry ?? {}) as Record<string, unknown>;
       for (const k of POETRY_KEYS) {
@@ -1141,6 +1145,11 @@ function LanguagesSection({
       events.forEach((e, i) => {
         if (e.name && e.name.trim()) { plan.push({ t: 'evName', i }); segs.push(e.name); }
         if (e.description && e.description.trim()) { plan.push({ t: 'evDesc', i }); segs.push(e.description); }
+      });
+      const faqs = manifest.faqs ?? [];
+      faqs.forEach((f, i) => {
+        if (f.question && f.question.trim()) { plan.push({ t: 'faqQ', i }); segs.push(f.question); }
+        if (f.answer && f.answer.trim()) { plan.push({ t: 'faqA', i }); segs.push(f.answer); }
       });
       if (segs.length > 0) {
         try {
@@ -1154,20 +1163,24 @@ function LanguagesSection({
           if (res2.ok && Array.isArray(out) && out.length === segs.length) {
             const poetryTr: NonNullable<LocaleEntry['poetry']> = {};
             const eventsTr: NonNullable<LocaleEntry['events']> = events.map((e) => ({ id: e.id }));
+            const faqTr: NonNullable<LocaleEntry['faq']> = faqs.map((f) => ({ id: f.id }));
             plan.forEach((p, idx) => {
               const val = String(out[idx] ?? '');
               if (!val) return;
               if (p.t === 'poetry') poetryTr[p.k] = val;
               else if (p.t === 'evName') eventsTr[p.i].name = val;
-              else eventsTr[p.i].description = val;
+              else if (p.t === 'evDesc') eventsTr[p.i].description = val;
+              else if (p.t === 'faqQ') faqTr[p.i].question = val;
+              else faqTr[p.i].answer = val;
             });
             if (Object.keys(poetryTr).length > 0) entry.poetry = poetryTr;
             if (eventsTr.some((e) => e.name || e.description)) entry.events = eventsTr;
+            if (faqTr.some((f) => f.question || f.answer)) entry.faq = faqTr;
           }
         } catch { /* hero/details are a bonus; chapters carry the site */ }
       }
 
-      if (!entry.chapters?.length && !entry.poetry && !entry.events) {
+      if (!entry.chapters?.length && !entry.poetry && !entry.events && !entry.faq) {
         throw new Error('Add your story or schedule first, there’s nothing to translate yet.');
       }
 
