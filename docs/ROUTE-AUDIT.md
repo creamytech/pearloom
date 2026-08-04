@@ -95,6 +95,15 @@ lookup — leaks nothing unpublished; bachelor/ette excluded upstream),
 `email-prefs` (unsubscribe link — intentionally GET),
 `payments/success` (redirect landing).
 
+### Session-authed, added since the first pass
+
+- `GET /api/day-of/briefcase` (2026-08-04) — the printable sheet for
+  the guest who won't use a phone. Owner-gated because it composes a
+  NAMED guest's own details (their seat, their dietary note); a guest
+  cannot fetch their own, and the response is `private, no-store`.
+  The composer reduces table-mates to first names so the sheet is a
+  seating aid, never a roster.
+
 ## 4 · Coverage counts (2026-08-04, post-fix)
 
 - 237 route files (after the wedding-day deletion).
