@@ -18,6 +18,7 @@ import { parseLocalDate, daysBetweenCalendarDates } from '@/lib/date-utils';
 import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
+import { GuestListDoor } from '@/components/pearloom/dash/GuestListDoor';
 import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { findDuplicateGroups } from '@/lib/guest-dedupe';
 import { normaliseRsvpStatus } from '@/lib/rsvp-status';
@@ -74,7 +75,7 @@ function guestCopy(occasion?: string | null) {
     case 'casual':
       return {
         topSubtitle: 'Every RSVP and note, in one list.',
-        emptyHint: 'Share your link, add guests by hand, or import a CSV. Pear tracks everyone in one list.',
+        emptyHint: 'Start with the list you already have — Pear tracks everyone from there.',
         fifthColumn: 'Note',
         fifthKey: 'note' as const,
         verbComing: 'coming',
@@ -93,7 +94,7 @@ function guestCopy(occasion?: string | null) {
     default:
       return {
         topSubtitle: 'Every RSVP, meal note, and plus-one recorded.',
-        emptyHint: 'Share your invite link, add guests by hand, or import a CSV. Pear tracks RSVPs, meals, and accessibility notes as they come in.',
+        emptyHint: 'Start with the list you already have — Pear tracks RSVPs, meals, and accessibility notes as they come in.',
         fifthColumn: 'Meal',
         fifthKey: 'meal' as const,
         verbComing: 'coming',
@@ -1559,20 +1560,32 @@ export function DashGuests() {
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 >
-                  No guests yet.
+                  {solemn ? 'Nobody here yet.' : 'No guests yet.'}
                 </div>
                 <div
                   style={{
                     fontSize: 13.5,
                     color: PD.inkSoft,
                     maxWidth: 420,
-                    margin: '0 auto',
+                    margin: '0 auto 22px',
                     lineHeight: 1.5,
                     fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {copy.emptyHint}
                 </div>
+                {/* The empty state used to end at that sentence — a
+                    dead end at the exact moment the host is ready to
+                    act. The list is the asset that makes a
+                    celebration real, so the door is here, open, and
+                    takes whatever shape their list is already in. */}
+                {site?.id && (
+                  <GuestListDoor
+                    siteId={site.id}
+                    solemn={solemn}
+                    onImported={() => setRefreshKey((k) => k + 1)}
+                  />
+                )}
               </div>
             ) : (
               <div className="pl8-content-fade-in">

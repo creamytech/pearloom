@@ -369,7 +369,12 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                 guests is a stage with no audience; the door is right
                 here at the peak moment. */}
             <a
-              href="/dashboard/guests"
+              /* The roster is labelled "Guests" but lives at
+                 /dashboard/rsvp — this CTA guessed the natural URL
+                 and 404'd, at the highest-intent moment in the whole
+                 funnel. (A /dashboard/guests redirect now catches
+                 the same guess from anywhere else.) */
+              href="/dashboard/rsvp"
               onClick={() => trackEvent('publish_invite_guests')}
               className="btn btn-primary"
               style={{ marginTop: 12, width: '100%', justifyContent: 'center', textDecoration: 'none' }}

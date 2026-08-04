@@ -114,17 +114,17 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
         {!result ? (
           <>
             <h3 id={titleId} style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, margin: 0 }}>
-              Import guests from CSV
+              Add your guest list
             </h3>
             <p style={{ color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.55, marginTop: 6 }}>
-              Paste from Google Sheets / Excel, or upload a .csv file. We&rsquo;ll match
-              common column names (Name, Email, Address, Plus One, etc.) and skip
-              anyone who&rsquo;s already on your list.
+              Paste it however you already have it — one person per line, a name,
+              an email, or both. A spreadsheet export works too: we match the
+              usual column names and skip anyone already on your list.
             </p>
 
             <div style={{ display: 'flex', gap: 8, marginTop: 16, marginBottom: 8 }}>
               <button type="button" onClick={() => fileInput.current?.click()} style={smallButtonStyle}>
-                Upload .csv file
+                Upload a file
               </button>
               <input
                 ref={fileInput}
