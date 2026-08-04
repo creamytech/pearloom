@@ -27,6 +27,8 @@ import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
 import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
 import { HostYourOwnCard } from '@/components/guest-experience/HostYourOwnCard';
+import { GuestRecapCard } from '@/components/guest-experience/GuestRecapCard';
+import { buildRecap, referralHref, hasEventPassed } from '@/lib/passport/recap';
 import { GuestThreadCard, CelebratedTogetherCard, YourCircleCard } from '@/components/guest-experience/GuestCircleCards';
 import { buildSitePath, normalizeOccasion } from '@/lib/site-urls';
 import { isManifestPublished } from '@/lib/next-step';
@@ -43,6 +45,7 @@ import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { deriveInitials } from '@/lib/monogram';
+import { parseLocalDate } from '@/lib/date-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -237,6 +240,22 @@ export default async function PersonalGuestPage({
   const capsules = (capsuleRes.data ?? []) as CapsuleRow[];
   const guestbookEntries = (gbRes.data ?? []) as GuestbookRow[];
 
+  // ── The recap's one extra figure ──────────────────────────
+  // How many people were actually there. head:true ships no rows;
+  // this is a count of the site's own attending guests, which the
+  // guest is already part of — no other guest's identity is read.
+  // Best-effort: a failed count just drops that line from the recap.
+  let attendingCount = 0;
+  try {
+    const { count } = await sb()
+      .from('guests')
+      .select('id', { count: 'exact', head: true })
+      .eq('site_id', site.id)
+      .eq('status', 'attending');
+    attendingCount = count ?? 0;
+  } catch { /* the recap reads fine without it */ }
+
+
   // ── Your celebrations — the guest's own event graph ───────
   // Every OTHER published Pearloom site where this email is a
   // guest (persistent identity, migration 20260621). This is the
@@ -286,6 +305,11 @@ export default async function PersonalGuestPage({
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
+
+  /* The recap only looks back once the day is done. The clock read
+     lives in lib/passport/recap (with the logic it gates, and out of
+     this component body — React Compiler purity, CLAUDE-DESIGN §13). */
+  const eventHasPassed = hasEventPassed(manifest.logistics?.date ?? null);
 
   // Best-effort couple names from coupleId
   const [rawA, rawB] = (manifest.coupleId ?? '').split(/[-_]/);
@@ -711,10 +735,47 @@ export default async function PersonalGuestPage({
         </section>
       )}
 
-      {/* The guest → host growth loop — always here, for every visitor. */}
-      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
-        <HostYourOwnCard accent={accent} headingFont={headingFont} />
-      </section>
+      {/* THE TRANSFER MOMENT (lib/passport/recap). After the day, the
+          passport reflects what this guest was part of before it asks
+          anything of them — and on a memorial the "plan your own" door
+          is suppressed entirely, because a funeral is never a funnel.
+          When the recap carries its own invitation, HostYourOwnCard
+          stands down so the page never asks twice. */}
+      {(() => {
+        const isAfter = eventHasPassed;
+        const recap = buildRecap({
+          counts: {
+            peopleTogether: attendingCount,
+            photosSent: photos.length,
+            wordsWritten: whispers.length + capsules.length + guestbookEntries.length
+              + memories.filter((m) => (m.response ?? '').trim()).length,
+            songsSuggested: songs.length,
+            toastsRecorded: 0,
+          },
+          occasion: manifest.occasion ?? null,
+          firstName: guest.display_name?.trim().split(/\s+/)[0] ?? null,
+          isAfter,
+        });
+        return (
+          <>
+            {recap.show && (
+              <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+                <GuestRecapCard
+                  recap={recap}
+                  referralHref={referralHref(site.subdomain)}
+                  accent={accent}
+                  headingFont={headingFont}
+                />
+              </section>
+            )}
+            {!recap.inviteToHost && !isAfter && (
+              <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+                <HostYourOwnCard accent={accent} headingFont={headingFont} />
+              </section>
+            )}
+          </>
+        );
+      })()}
 
       <section style={{ padding: 'calc(48px * var(--pl-density-scale, 1)) 24px', maxWidth: 760, margin: '0 auto' }}>
         {personalization.chapter_highlights.length > 0 && (
