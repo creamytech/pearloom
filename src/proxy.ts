@@ -113,11 +113,37 @@ const OCCASION_SEGMENTS = new Set<string>(getAllOccasionIds());
 // (shell)/layout.tsx so the layout can drop force-dynamic and
 // children can be statically prerendered — eliminates the SSR
 // roundtrip per tab swap that was reading as a "fade".
-const AUTH_REQUIRED_PREFIXES = [
+//
+// THE DOORWAY CONTRACT (docs/REVIEW-SYNTHESIS.md §1.5): auth belongs
+// at SAVE and PUBLISH, never at the door. The creation surfaces —
+// `/wizard`, `/editor`, `/demo`, and the express `/api/doorway/*` —
+// must stay reachable signed-out so a visitor sees a real preview of
+// their own event BEFORE being asked for an account. The wizard's
+// finish already handles the signed-out case properly: it persists
+// the draft, writes the claim card, and forwards through
+// `/signup?next=` so the press resumes itself.
+//
+// Adding a creation surface here would silently reinstate the
+// signup wall this product deliberately removed. `proxy.test.ts`
+// pins that.
+export const AUTH_REQUIRED_PREFIXES = [
   '/dashboard',
   '/templates',
   '/vendors',
 ];
+
+/** Surfaces that must NEVER require a session to reach. Exported so
+ *  the contract is testable rather than a comment. */
+export const MUST_STAY_OPEN_PREFIXES = [
+  '/wizard',
+  '/editor',
+  '/demo',
+  '/api/doorway',
+  '/login',
+  '/signup',
+  '/g',   // guest passports — token-authed, never session-authed
+  '/a',   // guest address form
+] as const;
 
 export async function proxy(req: NextRequest) {
   const rawHost = req.headers.get('host') || '';
