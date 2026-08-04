@@ -36,11 +36,14 @@ These are the real launch gates. None is blocked on engineering.
 
 Real work, none of it blocking, in the order I'd take it.
 
-1. **The Makeover tool** — "paste your current wedding site, see it
-   reimagined." The extraction machinery and the safe fetcher now
-   exist; what's missing is the public page and a render/share
-   pipeline. All three reviews called it the strongest content
-   engine, and it's the last unbuilt piece of the doorway story.
+1. **Execute the CSS dead-selector deletion.** The audit is DONE and
+   verified — `docs/CSS-DEAD-SELECTOR-AUDIT.md` lists 81 dead classes
+   across 163 rule occurrences (36% of the file), grouped by the
+   deleted surface each belongs to. It was deliberately not executed
+   here: the blast radius is silent and visual, the occurrences sit
+   inside nested `@media` blocks (postcss, not sed), and this
+   container has no baselines to verify against. Expect ~1,000–1,400
+   lines removed.
 2. **Promote guest import into onboarding.** The parser now accepts
    what people actually paste (headerless lists, `Name <email>`,
    bare emails). What's missing is surfacing it as a first-class
@@ -53,8 +56,10 @@ Real work, none of it blocking, in the order I'd take it.
    integrated for outbound; the new part is the inbound webhook,
    scoping replies to a guest identity, and escalation to the host.
    Sequenced after WhatsApp per synthesis §2.5.
-5. **The `pearloom.css` dead-selector audit** — ~8.4k lines carrying
-   sediment from deleted surfaces (CLAUDE-DESIGN §16 item 1).
+5. **Planner product v1** — the co-host system exists but has no
+   professional framing (client drafts, cross-client templates,
+   referral tracking). Ranked #2 distribution in the synthesis; the
+   only remaining item that changes acquisition *math*.
 
 ## 4 · What is NOT open (so nobody re-litigates it)
 
@@ -71,3 +76,14 @@ Real work, none of it blocking, in the order I'd take it.
   `proxy.test.ts` fails CI if that regresses.
 - Doc drift — occasion/theme/variant counts corrected; `FOLLOW-UPS.md`
   no longer lists shipped work as pending.
+- **The doorway story, end to end** — `/start` (express entry),
+  `/makeover` (the switching surface, rendering a real manifest
+  through the real pipeline), tolerant guest-list parsing, and
+  referral attribution.
+- **Reverse acquisition** — the satellite→couple invite link, table
+  free, ranked #1 distribution by the merged synthesis.
+- **The barn problem** — day-of cache warming plus the day-of,
+  seating and vendor shells precached, so a coordinator with no
+  signal still has the run of show and the vendor numbers.
+- **The printable briefcase** — the sheet for the guest who won't use
+  a phone, with table-mates reduced to first names.
