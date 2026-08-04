@@ -16,6 +16,8 @@ import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhos
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PageIntro, HintChip } from '@/components/pearloom/dash/QuietDash';
 import { siteDisplayName, useUserSites, resolveStickySite, type SiteSummary } from './hooks';
+import { containerNounForSet } from '@/lib/celebration-naming';
+import { isSensitiveOccasion } from '@/lib/celebration-privacy';
 import { parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 
 interface CelebrationRef {
@@ -46,12 +48,22 @@ function linkVisibleFromSite(site: SiteSummary): boolean {
 // Occasions that are private-by-default (CLAUDE-PRODUCT Q2): the
 // siblings route NEVER advertises these on a public strip regardless
 // of linkVisible, so the toggle would be a lie — show a locked state
-// instead. Mirrors SENSITIVE_OCCASIONS in the siblings route.
-const STRIP_SENSITIVE_OCCASIONS = new Set(['bachelor-party', 'bachelorette-party']);
+// instead. The rule itself lives in lib/celebration-privacy so this
+// chrome, the public strip, and the roster can't drift apart.
 
 // The deduped cross-event roster returned by /api/celebrations/roster.
 interface RosterResponse {
-  events?: Array<{ subdomain: string; occasion: string; title: string; attending: number; invited: number }>;
+  events?: Array<{
+    subdomain: string;
+    occasion: string;
+    title: string;
+    attending: number;
+    invited: number;
+    /** 'private' events keep their guest list to themselves — the API
+     *  never puts their guests in the union (lib/celebration-privacy). */
+    scope?: 'shared' | 'private';
+    privateReason?: string;
+  }>;
   totals?: { events: number; attending: number; invited: number; guests: number };
   roster?: Array<{ firstName: string; status: 'attending' | 'pending' | 'declined'; events: string[] }>;
 }
@@ -435,7 +447,8 @@ export function DashConnections({ embedded = false }: { embedded?: boolean } = {
                   letterSpacing: '0.16em',
                 }}
               >
-                {roster.totals.attending} attending · {roster.totals.invited} invited across the weekend
+                {roster.totals.attending} attending · {roster.totals.invited} invited across this{' '}
+                {containerNounForSet((roster.events ?? []).map((e) => e.occasion))}
               </div>
             )}
             {focusCeleb && (
@@ -646,7 +659,7 @@ function CelebrationGraph({
         const color = occasionColor(s.occasion);
         const isSaving = saving === s.domain;
         const visible = linkVisibleFromSite(s);
-        const sensitive = STRIP_SENSITIVE_OCCASIONS.has(s.occasion ?? '');
+        const sensitive = isSensitiveOccasion(s.occasion ?? '');
         return (
           <div
             key={s.id}
@@ -1086,13 +1099,17 @@ function CelebrationTimeline({ sites }: { sites: SiteSummary[] }) {
   );
 }
 
-// ── Across the weekend (shared roster) ────────────────────────
+// ── Across the arc (shared roster) ────────────────────────────
 // The deduped guest union across the caller's OWN events in the
 // celebration (privacy: never another host's guests; the API returns
 // first names only). Shows who's on which events + their overall
-// status — the read-only half of "enter guests once, don't drift".
-// Write-back ("add this person to those other events") is the heavier
-// follow-up and is deliberately NOT here.
+// status — the read half of "enter guests once, don't drift"
+// (POST /api/celebrations/roster is the write-back half).
+//
+// PRIVATE EVENTS are absent from this union by construction — the
+// API never fetches their guests (lib/celebration-privacy). The
+// note below says so out loud rather than letting a host wonder why
+// the bachelorette's guests aren't counted.
 function RosterSection({ roster }: { roster: RosterResponse }) {
   const guests = roster.roster ?? [];
   const eventMeta = useMemo(() => {
@@ -1100,6 +1117,11 @@ function RosterSection({ roster }: { roster: RosterResponse }) {
     for (const e of roster.events ?? []) map[e.subdomain] = { title: e.title, occasion: e.occasion };
     return map;
   }, [roster.events]);
+
+  /* The container's register, derived from the arc's own occasions —
+     a memorial's roster is never labelled a "celebration". */
+  const noun = containerNounForSet((roster.events ?? []).map((e) => e.occasion));
+  const privateEvents = (roster.events ?? []).filter((e) => e.scope === 'private');
 
   const CAP = 60;
   const shown = guests.slice(0, CAP);
@@ -1114,10 +1136,19 @@ function RosterSection({ roster }: { roster: RosterResponse }) {
 
   return (
     <div>
-      <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 4 }}>ACROSS THE WEEKEND</div>
+      <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 4 }}>
+        ACROSS THIS {noun.toUpperCase()}
+      </div>
       <div style={{ ...DISPLAY_STYLE, fontSize: 18, fontWeight: 500, marginBottom: 12 }}>
         {total} {total === 1 ? 'guest' : 'guests'}
       </div>
+      {privateEvents.length > 0 && (
+        <div style={{ fontSize: 11.5, color: PD.inkSoft, marginBottom: 12, lineHeight: 1.5 }}>
+          {privateEvents.length === 1
+            ? `${privateEvents[0].title} keeps its own guest list — those guests aren’t counted here.`
+            : `${privateEvents.length} events keep their own guest lists — those guests aren’t counted here.`}
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9, maxHeight: 320, overflowY: 'auto' }}>
         {shown.map((g, i) => {
           const sm = statusMeta[g.status] ?? statusMeta.pending;

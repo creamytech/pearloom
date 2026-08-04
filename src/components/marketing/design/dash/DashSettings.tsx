@@ -816,10 +816,10 @@ export function DashSettings() {
                   }}
                 >
                   {plan.plan === 'premium'
-                    ? 'Legacy covers every future event, every block, every theme pack on the premium shelf, the Signature shelf included, and the day-of room, for life.'
+                    ? 'Keepsake keeps everything: unlimited celebrations, unlimited full-resolution photos and video, the memory book, and your archive to download any time.'
                     : plan.plan === 'pro'
-                      ? 'Atelier unlocks every block, the premium theme shelf, and the day-of room for this celebration. Legacy ($129 lifetime) covers every future event and adds the Signature shelf.'
-                      : 'Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to unlock every block + the day-of room. Legacy ($129 lifetime) covers every future event.'}
+                      ? 'The Pass covers this whole celebration, every linked event, co-hosts, your own domain, the full Studio, and the day-of room. Keepsake ($199) keeps the photos, the memory book, and the archive.'
+                      : 'Your first celebration is free forever, with the whole standard theme catalog. The Pass ($89 once) adds every linked event, co-hosts, your own domain, and the full Studio.'}
                 </p>
                 <PlanUpgradeButtons plan={plan.plan} />
               </Panel>
