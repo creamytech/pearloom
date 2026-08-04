@@ -127,9 +127,9 @@ interface PlanShape {
  *  showed an invented 'Bloom $12/mo' tier that never existed. */
 function planList(plan: 'free' | 'pro' | 'premium'): PlanShape[] {
   return [
-    { id: 'journal', name: 'Journal', price: '$0',   per: 'forever',  features: ['One site, yours to keep', 'The full drafting by Pear', 'Unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
-    { id: 'atelier', name: 'Atelier', price: '$19',  per: 'once',     features: ['Everything in Journal', 'Every block, template & theme pack', 'The Director (day-of room)'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
-    { id: 'legacy',  name: 'Legacy',  price: '$129', per: 'lifetime', features: ['Everything in Atelier', 'Up to ten sites, forever', 'Co-hosts + the signature theme shelf'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
+    { id: 'page',     name: 'Page',     price: '$0',   per: 'forever', features: ['One celebration, yours to keep', 'The whole standard theme catalog', 'Up to 100 guests, unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
+    { id: 'pass',     name: 'Pass',     price: '$89',  per: 'once',    features: ['Everything in Page', 'Every linked event + co-hosts', 'Your own domain, the full Studio'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
+    { id: 'keepsake', name: 'Keepsake', price: '$199', per: 'once',    features: ['Everything in the Pass', 'Unlimited celebrations + full-res media', 'The memory book, kept'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
   ];
 }
 

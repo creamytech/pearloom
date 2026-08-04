@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { peekPearUsage, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 import { getUserPlan } from '@/lib/db';
+import { isPlanSufficient } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,9 @@ export async function GET() {
   const userEmail = session.user.email;
   const planRow = await getUserPlan(userEmail).catch(() => null);
   const plan = (planRow?.plan ?? 'free').toLowerCase();
-  const isUnlimited = plan === 'pro' || plan === 'atelier' || plan === 'premium' || plan === 'legacy';
+  // Rank-based so every plan alias resolves (canonical, current
+  // marketing names, and the retired ones in older rows).
+  const isUnlimited = isPlanSufficient(plan, 'pro');
 
   if (isUnlimited) {
     return Response.json({

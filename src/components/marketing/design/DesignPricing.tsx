@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix, pdShadowMix } from './DesignAtoms';
 
-type TierName = 'Journal' | 'Atelier' | 'Legacy';
+type TierName = 'Page' | 'Pass' | 'Keepsake';
 type BtnVariant = 'ghost' | 'pearl' | 'ink';
 
 interface Tier {
@@ -24,18 +24,24 @@ interface Tier {
   featured?: boolean;
 }
 
+/* The ladder gates COORDINATION, COLLABORATION, COMMUNICATION and
+   PRESERVATION — never how good a site looks. The free tier carries
+   the whole standard theme catalog on purpose: every published free
+   site is the marketing, so a crippled one costs more than it earns.
+   (docs/REVIEW-SYNTHESIS.md §1.3–§1.4.) */
 const TIERS: Tier[] = [
   {
-    name: 'Journal',
+    name: 'Page',
     price: 0,
     cadence: 'forever',
-    blurb: 'Your first celebration, kept free always.',
+    blurb: 'Your celebration, beautiful from the first minute.',
     feats: [
-      'One site, yours to keep',
+      'One celebration, yours to keep',
+      'The whole standard theme catalog',
       'The full drafting by Pear',
-      'Unlimited RSVPs',
+      'Up to 100 guests, unlimited RSVPs',
       'All 31 occasions',
-      'The Reel (one event)',
+      'Guest passports + the photo wall',
       'Your pearloom.com address',
     ],
     bg: PD.paper3,
@@ -43,19 +49,20 @@ const TIERS: Tier[] = [
     btn: 'ghost',
   },
   {
-    name: 'Atelier',
-    price: 19,
+    name: 'Pass',
+    price: 89,
     cadence: 'once',
-    blurb: 'One celebration, every block unlocked.',
+    blurb: 'The whole celebration — every event, every host.',
     feats: [
-      'Everything in Journal',
-      'Every block, every template',
-      'Every premium theme pack included',
-      'Ten times the photo library',
-      'The Director (day-of room)',
-      'Live photo wall + toasts',
-      'Anniversary rebroadcast',
-      'Pear drafts: proofs, toasts, rewrites',
+      'Everything in Page',
+      'Every linked event: shower, bachelorette, rehearsal, brunch',
+      'Co-hosts with real permissions',
+      'Up to 500 guests',
+      'Your own domain',
+      'The full Studio: invitations, save-the-dates, thank-yous',
+      'The Director (day-of room) + live broadcasts',
+      'Seating, budget, and the vendor book',
+      'The signature theme shelf',
     ],
     bg: PD.ink,
     fg: PD.paper,
@@ -67,18 +74,18 @@ const TIERS: Tier[] = [
     featured: true,
   },
   {
-    name: 'Legacy',
-    price: 129,
-    cadence: 'lifetime',
-    blurb: 'Every future celebration, one price.',
+    name: 'Keepsake',
+    price: 199,
+    cadence: 'once',
+    blurb: 'Everything, kept — long after the day.',
     feats: [
-      'Everything in Atelier',
-      'Up to ten sites, forever',
-      'The full Theme Store, signature shelf included',
-      'Co-hosts on every site',
-      'Linked celebrations: one weekend, many sites',
-      'Heirloom memory book (print-ready)',
-      'Press-ready PDFs for every card',
+      'Everything in the Pass',
+      'Unlimited celebrations',
+      'Unlimited full-resolution photos and video',
+      'The heirloom memory book (print-ready)',
+      'Voice toasts + the time capsule, kept',
+      'Anniversary rebroadcast, every year',
+      'Download your whole archive, any time',
     ],
     bg: PD.paper2,
     accent: PD.gold,
@@ -344,7 +351,8 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          Memorials are always free on every tier.{' '}
+          One-time, never a subscription. Memorials are always free on
+          every tier.{' '}
           <a href="#journal" className="pl-link" style={{ color: PD.olive, fontWeight: 500 }}>
             Pear&rsquo;s promise →
           </a>

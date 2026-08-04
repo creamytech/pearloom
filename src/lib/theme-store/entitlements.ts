@@ -16,6 +16,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { FREE_PACK_IDS, PACKS, isPackFree } from './packs';
 import { getUserPlan } from '@/lib/db';
+import { isPlanSufficient } from '@/lib/plan-gate';
 
 // ─── Lazy Supabase client (service-role, server-side only) ───
 //
@@ -83,27 +84,42 @@ function syntheticFreeEntitlements(userEmail: string): Entitlement[] {
   }));
 }
 
-// ─── Plan-tier grants (finalized 2026-06-09) ─────────────────
+// ─── Plan-tier grants (restructured 2026-08-04) ──────────────
 //
-// The plan ladder includes the Theme Store, so upgrading is the
-// best deal in the shop:
-//   • Journal (free)   → free packs only; everything else à la carte.
-//   • Atelier ($19)    → every PREMIUM pack included (sub-$20 shelf).
-//   • Legacy  ($129)   → the entire catalog, signature shelf included.
+// DESIGN IS NOT THE PAYWALL. All three external reviews landed on
+// the same finding independently: gating the theme catalog
+// sabotages the acquisition loop, because every published free site
+// is the marketing. A mediocre free Pearloom site costs more in
+// word-of-mouth than the à-la-carte shelf ever earned. So the old
+// decoy economics (two premium packs cost more than the plan) are
+// retired — see docs/REVIEW-SYNTHESIS.md §1.3 + §2.2.
+//
+//   • Page (free) → the free shelf AND the whole premium shelf.
+//     55 of 75 packs, no upgrade, no purchase.
+//   • Pass ($89)  → adds the signature shelf (foil/dark treatments,
+//     exclusive kits, licensed display faces) — a small paid-tier
+//     shelf that keeps the Pass feeling rich without making the
+//     free tier look poor.
+//   • Keepsake    → the same full catalog (rank ≥ Pass).
+//
+// Signature packs remain individually purchasable, so a Page host
+// who wants exactly one can still buy it.
 //
 // Plan strings come from public.user_plans via getUserPlan and use
-// the canonical names in src/lib/plan-gate.ts (free/journal,
-// pro/atelier, premium/legacy).
+// the canonical names in src/lib/plan-gate.ts (free/pro/premium),
+// which also accept both the new (page/pass/keepsake) and retired
+// (journal/atelier/legacy) marketing aliases.
 
-const PREMIUM_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier === 'premium').map((p) => p.id);
-const PAID_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier !== 'free').map((p) => p.id);
+/** Everything below the signature shelf — free for every account. */
+const OPEN_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier !== 'signature').map((p) => p.id);
+/** The whole catalog — granted from Pass upward. */
+const ALL_PACK_IDS: readonly string[] = PACKS.map((p) => p.id);
 
 /** Pack ids granted by a plan, beyond the free shelf. */
 export function planGrantedPackIds(plan: string | null | undefined): readonly string[] {
-  const p = (plan ?? '').toLowerCase();
-  if (p === 'premium' || p === 'legacy') return PAID_PACK_IDS;
-  if (p === 'pro' || p === 'atelier') return PREMIUM_PACK_IDS;
-  return [];
+  // Rank-based so every alias (canonical, new, and retired) resolves.
+  if (isPlanSufficient(plan ?? 'free', 'pro')) return ALL_PACK_IDS;
+  return OPEN_PACK_IDS;
 }
 
 /**

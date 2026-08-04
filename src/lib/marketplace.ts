@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient } from '@supabase/supabase-js';
+import { isPlanSufficient } from '@/lib/plan-gate';
 
 // ─── Lazy Supabase client (server-side only) ─────────────────
 
@@ -160,15 +161,12 @@ export function isItemFree(item: MarketplaceItem, userPlan: string): boolean {
   // Always free if the item has no price
   if (item.price === 0) return true;
 
-  const plan = userPlan.toLowerCase();
-
-  // Premium / legacy users get everything for free
-  if (plan === 'premium' || plan === 'legacy') return true;
-
-  // Pro / atelier users get templates for free, but not asset packs
-  if (plan === 'pro' || plan === 'atelier') {
-    return item.type === 'template';
-  }
+  // Rank-based so every alias resolves — canonical (free/pro/premium),
+  // current marketing (page/pass/keepsake), and the retired
+  // journal/atelier/legacy names still sitting in older rows.
+  // Keepsake covers everything; the Pass covers templates.
+  if (isPlanSufficient(userPlan, 'premium')) return true;
+  if (isPlanSufficient(userPlan, 'pro')) return item.type === 'template';
 
   return false;
 }

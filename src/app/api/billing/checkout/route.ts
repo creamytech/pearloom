@@ -8,9 +8,10 @@
 // page's "Choose Atelier" went to signup and the dashboard's
 // plan card linked to the theme store.
 //
-// Body: { plan: 'atelier' | 'legacy' }.
-//   atelier → $19 one-time  → canonical plan 'pro'
-//   legacy  → $129 one-time → canonical plan 'premium'
+// Body: { plan: 'pass' | 'keepsake' } (the retired 'atelier' /
+// 'legacy' names still resolve, at current prices).
+//   pass     → $89 one-time  → canonical plan 'pro'
+//   keepsake → $199 one-time → canonical plan 'premium'
 //
 // Metadata.planId rides to /api/billing/webhook, whose
 // checkout.session.completed handler calls updateUserPlan —
@@ -23,25 +24,45 @@ import { authOptions } from '@/lib/auth';
 import { getStripe, hasStripe } from '@/lib/stripe/client';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getAppOrigin } from '@/lib/site-urls';
+import { PLAN_PRICE_CENTS } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
 /* Marketed names → canonical plan ids (plan-gate CANONICAL) +
    one-time prices. Matches the landing page's DesignPricing copy:
-   Atelier $19 once per celebration, Legacy $129 lifetime. */
-const PLAN_PRODUCTS: Record<string, { planId: 'pro' | 'premium'; name: string; description: string; priceCents: number }> = {
-  atelier: {
-    planId: 'pro',
-    name: 'Pearloom Atelier',
-    description: 'Every block, the premium theme shelf, and the day-of room for this celebration.',
-    priceCents: 1900,
-  },
-  legacy: {
-    planId: 'premium',
-    name: 'Pearloom Legacy',
-    description: 'Every future celebration, covered for life (including the Signature shelf).',
-    priceCents: 12900,
-  },
+   Pass $89 once per celebration, Keepsake $199 for the long view.
+   Prices come from plan-gate so the till and the gate can't drift.
+
+   The retired Journal/Atelier/Legacy names stay accepted as aliases
+   so an in-flight client (or a stale bookmark) never 400s — they
+   resolve to the same canonical plan at the current price. */
+interface PlanProduct {
+  planId: 'pro' | 'premium';
+  name: string;
+  description: string;
+  priceCents: number;
+}
+
+const PASS: PlanProduct = {
+  planId: 'pro',
+  name: 'Pearloom Pass',
+  description: 'The whole celebration: every linked event, co-hosts, 500 guests, your own domain, the full Studio.',
+  priceCents: PLAN_PRICE_CENTS.pro,
+};
+
+const KEEPSAKE: PlanProduct = {
+  planId: 'premium',
+  name: 'Pearloom Keepsake',
+  description: 'Everything in the Pass, kept: unlimited full-resolution media, the memory book, and the long view.',
+  priceCents: PLAN_PRICE_CENTS.premium,
+};
+
+const PLAN_PRODUCTS: Record<string, PlanProduct> = {
+  pass: PASS,
+  keepsake: KEEPSAKE,
+  // Retired marketing names — same canonical plans, current prices.
+  atelier: PASS,
+  legacy: KEEPSAKE,
 };
 
 export async function POST(request: NextRequest) {
@@ -71,7 +92,7 @@ export async function POST(request: NextRequest) {
     const plan = typeof body?.plan === 'string' ? body.plan.toLowerCase() : '';
     const product = PLAN_PRODUCTS[plan];
     if (!product) {
-      return NextResponse.json({ error: "plan must be 'atelier' or 'legacy'." }, { status: 400 });
+      return NextResponse.json({ error: "plan must be 'pass' or 'keepsake'." }, { status: 400 });
     }
 
     const stripe = getStripe();

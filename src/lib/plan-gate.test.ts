@@ -32,6 +32,10 @@ import { getUserPlan } from '@/lib/db';
 
 const mockGetUserPlan = vi.mocked(getUserPlan);
 
+/** Derived, never hardcoded — the ladder's numbers are a product
+ *  decision that moves; the CONTRACT these tests defend does not. */
+const FREE_GUESTS = PLAN_LIMITS.FREE.maxGuests;
+
 // ─── A minimal fake Supabase client for the two queries the gate
 //     runs: the sites occasion lookup + the guests head-count. ───
 
@@ -98,10 +102,21 @@ describe('plan resolution', () => {
   });
 
   it('marketing labels follow the pricing-page vocabulary', () => {
-    expect(planMarketingLabel('free')).toBe('Journal');
-    expect(planMarketingLabel('pro')).toBe('Atelier');
-    expect(planMarketingLabel('legacy')).toBe('Legacy');
+    expect(planMarketingLabel('free')).toBe('Page');
+    expect(planMarketingLabel('pro')).toBe('Pass');
+    expect(planMarketingLabel('premium')).toBe('Keepsake');
+    // New marketing aliases resolve…
+    expect(planMarketingLabel('page')).toBe('Page');
+    expect(planMarketingLabel('pass')).toBe('Pass');
+    expect(planMarketingLabel('keepsake')).toBe('Keepsake');
+    // …and so do the RETIRED ones still sitting in older user_plans
+    // rows — an existing paying account must never read as free.
+    expect(planMarketingLabel('journal')).toBe('Page');
+    expect(planMarketingLabel('atelier')).toBe('Pass');
+    expect(planMarketingLabel('legacy')).toBe('Keepsake');
     expect(canonicalPlan('atelier')).toBe('pro');
+    expect(canonicalPlan('pass')).toBe('pro');
+    expect(canonicalPlan('keepsake')).toBe('premium');
   });
 
   it('the 402 body carries the machine-readable PLAN_LIMIT code', () => {
@@ -131,7 +146,7 @@ describe('grief exemption', () => {
 describe('checkGuestCapacity', () => {
   it('rejects with 402 + allowed when the add would exceed the cap', async () => {
     mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
-    const db = fakeDb({ occasion: 'wedding', guestCount: 50 }); // free cap = 50
+    const db = fakeDb({ occasion: 'wedding', guestCount: FREE_GUESTS });
     const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 1);
     expect(res.ok).toBe(false);
     if (!res.ok) {
@@ -143,14 +158,16 @@ describe('checkGuestCapacity', () => {
 
   it('allows when under the cap', async () => {
     mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
-    const db = fakeDb({ occasion: 'wedding', guestCount: 49 });
+    const db = fakeDb({ occasion: 'wedding', guestCount: FREE_GUESTS - 1 });
     expect((await checkGuestCapacity(db, 'host@x.com', 'site-1', 1)).ok).toBe(true);
   });
 
   it('rejects a batch that would cross the cap, reporting the remaining room', async () => {
     mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
     const db = fakeDb({ occasion: 'wedding' });
-    const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 20, { currentCount: 40 });
+    const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 20, {
+      currentCount: FREE_GUESTS - 10,
+    });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.body.allowed).toBe(10);
   });
@@ -159,7 +176,7 @@ describe('checkGuestCapacity', () => {
     mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
     // countError would fail the query path — currentCount must win.
     const db = fakeDb({ occasion: 'wedding', countError: true });
-    const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 1, { currentCount: 50 });
+    const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 1, { currentCount: FREE_GUESTS });
     expect(res.ok).toBe(false);
   });
 

@@ -10,24 +10,51 @@ import { getServerSession } from 'next-auth';
 import { getUserPlan } from '@/lib/db';
 
 // ─── Plan hierarchy (lowest → highest) ──────────────────────
+//
+// PACKAGING (restructured 2026-08-04, from the three-review
+// synthesis — docs/REVIEW-SYNTHESIS.md §1.4):
+//
+//   Page      $0    — one celebration, genuinely beautiful. Design
+//                     is the marketing, so the theme catalog is NOT
+//                     the paywall (only the signature shelf sits
+//                     above it).
+//   Pass      $89   — the whole celebration: linked events, co-hosts,
+//                     500 guests, custom domain, full Studio.
+//   Keepsake  $199  — preservation: unlimited media + the long view.
+//
+// What's gated is OPERATIONAL POWER (coordination, collaboration,
+// communication volume, preservation) — never visual quality.
+//
+// The CANONICAL ids stay `free` / `pro` / `premium`: they are what
+// public.user_plans already stores, so every existing paid row keeps
+// working and no migration is required. Only the marketed names,
+// prices, limits, and pack grants changed. Both vocabularies — the
+// retired Journal/Atelier/Legacy names and the new Page/Pass/Keepsake
+// ones — resolve to the same three ranks.
 
 const TIER_RANK: Record<string, number> = {
   free:     0,
-  journal:  0, // journal === free tier
+  journal:  0, // retired marketing name
+  page:     0,
   pro:      1,
-  atelier:  1, // atelier === pro tier
+  atelier:  1, // retired marketing name
+  pass:     1,
   premium:  2,
-  legacy:   2, // legacy === premium tier
+  legacy:   2, // retired marketing name
+  keepsake: 2,
 };
 
 /** Canonical plan name for each alias. */
 const CANONICAL: Record<string, string> = {
-  free:    'free',
-  journal: 'free',
-  pro:     'pro',
-  atelier: 'pro',
-  premium: 'premium',
-  legacy:  'premium',
+  free:     'free',
+  journal:  'free',
+  page:     'free',
+  pro:      'pro',
+  atelier:  'pro',
+  pass:     'pro',
+  premium:  'premium',
+  legacy:   'premium',
+  keepsake: 'premium',
 };
 
 // ─── Plan limits ─────────────────────────────────────────────
@@ -41,22 +68,30 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
+  // Page — the free tier must be genuinely good, not a crippled
+  // trial: it IS the acquisition loop (every published free site is
+  // the marketing). Generous enough to run a real small celebration.
   FREE: {
     maxSites: 1,
-    maxGuests: 50,
-    maxPhotos: 20,
-    aiGenerations: 3,
+    maxGuests: 100,
+    maxPhotos: 50,
+    aiGenerations: 10,
     customDomain: false,
   },
+  // Pass — the whole celebration. maxSites covers a weekend arc's
+  // linked events (ceremony + shower + bachelor/ette + rehearsal +
+  // welcome + brunch, with room to spare).
   PRO: {
-    maxSites: 3,
+    maxSites: 10,
     maxGuests: 500,
-    maxPhotos: 200,
-    aiGenerations: 50,
+    maxPhotos: 500,
+    aiGenerations: 100,
     customDomain: true,
   },
+  // Keepsake — preservation. Unlimited by design: this is the tier
+  // whose whole promise is that nothing gets trimmed later.
   PREMIUM: {
-    maxSites: 10,
+    maxSites: Infinity,
     maxGuests: Infinity,
     maxPhotos: Infinity,
     aiGenerations: Infinity,
@@ -228,17 +263,34 @@ export function tierLabel(tier: string): string {
 }
 
 /**
- * Marketed plan name (the pricing-page vocabulary: Journal /
- * Atelier / Legacy) for any plan alias. Use this for host-facing
+ * Marketed plan name (the pricing-page vocabulary: Page / Pass /
+ * Keepsake) for any plan alias — including rows still storing the
+ * retired Journal/Atelier/Legacy names. Use this for host-facing
  * chrome (plan strips, settings badges); use `tierLabel` for
  * internal/diagnostic copy.
  */
-export function planMarketingLabel(plan: string): 'Journal' | 'Atelier' | 'Legacy' {
+export function planMarketingLabel(plan: string): 'Page' | 'Pass' | 'Keepsake' {
   const canonical = CANONICAL[plan.toLowerCase()] ?? 'free';
-  if (canonical === 'premium') return 'Legacy';
-  if (canonical === 'pro') return 'Atelier';
-  return 'Journal';
+  if (canonical === 'premium') return 'Keepsake';
+  if (canonical === 'pro') return 'Pass';
+  return 'Page';
 }
+
+// ─── Prices (one-time; the "not a subscription" promise) ─────
+//
+// The optional archive fee after the keep window is preservation,
+// not planning — it buys custom-domain renewal + full-resolution
+// media retention, and never gates access to a published site.
+
+export const PLAN_PRICE_CENTS = {
+  free: 0,
+  pro: 8900,      // Pass
+  premium: 19900, // Keepsake
+} as const;
+
+/** Optional post-event archive renewal (per year, after the keep
+ *  window). The site itself stays online free on its subdomain. */
+export const ARCHIVE_RENEWAL_CENTS = 2900;
 
 /** Canonical plan id (`free` / `pro` / `premium`) for any alias. */
 export function canonicalPlan(plan: string): 'free' | 'pro' | 'premium' {

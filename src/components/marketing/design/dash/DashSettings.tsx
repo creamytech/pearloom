@@ -1223,7 +1223,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
       ? new URLSearchParams(window.location.search).get('upgraded')
       : null;
 
-  async function buy(target: 'atelier' | 'legacy') {
+  async function buy(target: 'pass' | 'keepsake') {
     setBusy(target);
     setErr(null);
     try {
@@ -1244,7 +1244,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
   if (upgraded) {
     return (
       <p style={{ fontSize: 13.5, color: PD.olive, fontWeight: 600, margin: 0 }}>
-        Thank you, your {upgraded === 'legacy' ? 'Legacy' : 'Atelier'} upgrade is settling in.
+        Thank you, your {upgraded === 'keepsake' ? 'Keepsake' : 'Pass'} upgrade is settling in.
         It can take a minute to appear here.
       </p>
     );
@@ -1257,20 +1257,20 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
         {plan === 'free' && (
           <button
             type="button"
-            onClick={() => { void buy('atelier'); }}
+            onClick={() => { void buy('pass'); }}
             disabled={busy != null}
             className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
           >
-            {busy === 'atelier' ? 'One moment…' : 'Upgrade to Atelier, $19'}
+            {busy === 'pass' ? 'One moment…' : 'Get the Pass, $89'}
           </button>
         )}
         <button
           type="button"
-          onClick={() => { void buy('legacy'); }}
+          onClick={() => { void buy('keepsake'); }}
           disabled={busy != null}
           className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
         >
-          {busy === 'legacy' ? 'One moment…' : 'Go Legacy, $129 for life'}
+          {busy === 'keepsake' ? 'One moment…' : 'Keep everything, $199'}
         </button>
       </div>
       {err && <p style={{ fontSize: 12.5, color: 'var(--pl-plum, #7A2D2D)', margin: 0 }}>{err}</p>}

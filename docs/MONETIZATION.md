@@ -1,135 +1,143 @@
-# Pearloom monetization — finalized 2026-06-09
+# Pearloom monetization — restructured 2026-08-04
 
 > The single source of truth for how Pearloom makes money. If a
 > surface (pricing page, store, upgrade gate) contradicts this doc,
 > one of them is wrong — fix it or amend this.
+>
+> **Supersedes the 2026-06-09 model** (Journal $0 / Atelier $19 /
+> Legacy $129 with a 75-pack à-la-carte decoy store). That model was
+> retired after three independent external reviews converged on the
+> same finding — see `docs/REVIEW-SYNTHESIS.md` §1.3–§1.4.
 
 ---
 
 ## 1 · The model in one paragraph
 
-Pearloom sells **per-site plans, one-time** ("one-time, not a
-subscription" is a load-bearing marketing promise on the landing
-page) plus an **à-la-carte Theme Store**. The store and the plans
-are deliberately entangled: the Atelier plan includes the entire
-premium pack shelf, so a host who falls in love with two $14 packs
-is always one small step from "just take Atelier — it's everything,
-plus the custom domain." Signature packs stay out of Atelier to
-preserve a high-end shelf and a reason for Legacy.
+Pearloom sells **one-time passes per celebration** — never a
+subscription; that promise is load-bearing on the landing page. The
+free tier is deliberately generous and **carries the whole standard
+theme catalog**, because every published free site is the marketing.
+What the ladder gates is **operational power**: coordination across
+linked events, collaboration with co-hosts, communication volume,
+guest scale, and long-term preservation. It never gates how good a
+site looks.
 
-## 2 · The plan ladder
+## 2 · The ladder
 
-| | **Journal** | **Atelier** | **Legacy** |
+| | **Page** | **Pass** | **Keepsake** |
 |---|---|---|---|
-| Price | $0 | **$19** one-time | **$129** one-time |
-| Canonical plan id (`user_plans.plan`) | `free` / `journal` | `pro` / `atelier` | `premium` / `legacy` |
-| Sites | 1 | 3 | 10 |
-| Guests | 50 | 500 | Unlimited |
-| Photos | 20 | 200 | Unlimited |
-| AI generations | 3 | 50 | Unlimited |
+| Price | $0 | **$89** one-time | **$199** one-time |
+| Canonical plan id (`user_plans.plan`) | `free` | `pro` | `premium` |
+| Marketing aliases accepted | `page`, `journal`¹ | `pass`, `atelier`¹ | `keepsake`, `legacy`¹ |
+| Celebrations / sites | 1 | 10 | Unlimited |
+| Guests | 100 | 500 | Unlimited |
+| Photos | 50 | 500 | Unlimited |
+| AI generations | 10 | 100 | Unlimited |
 | Custom domain | — | ✓ | ✓ |
-| Theme Store | Free shelf | **+ every premium pack** | **+ the signature shelf (full catalog)** |
+| Theme catalog | **All standard packs** | + the signature shelf | + the signature shelf |
+| Linked events, co-hosts, full Studio, Director | — | ✓ | ✓ |
+| Unlimited full-res media, memory book, archive export | — | — | ✓ |
 | Memorials | Always free on every tier (Pear's promise) | | |
 
+¹ **Retired names, still honored.** `user_plans` was NOT migrated —
+existing rows store `pro` / `premium` (and older aliases). Every
+lookup is rank-based through `plan-gate.ts`, so an account that
+bought "Atelier" at $19 automatically holds today's Pass
+entitlements. Pinned by `entitlements-grants.test.ts`.
+
 Source of truth for limits: `src/lib/plan-gate.ts` (`PLAN_LIMITS`).
-Source of truth for the store grants:
+Source of truth for prices: `src/lib/plan-gate.ts`
+(`PLAN_PRICE_CENTS`, `ARCHIVE_RENEWAL_CENTS`) — the checkout route
+imports them so the till and the gate cannot drift.
+Source of truth for pack grants:
 `src/lib/theme-store/entitlements.ts` → `planGrantedPackIds()`.
 
-## 3 · Theme Store tiers
+## 3 · Why design is free now
 
-Pack tier is derived from price in `packs.ts` `mk()`:
+The old model made the theme shelf the paywall and used à-la-carte
+pack prices as a decoy (two premium packs cost more than the plan).
+All three external reviewers independently rejected it:
 
-| Tier | Price band | Role |
-|---|---|---|
-| `free` | $0 | The funnel. Good enough to publish proudly, generic enough to make a host browse the paid shelves. **First Thread** (the house cream/olive pack) anchors this shelf. |
-| `premium` | $10–$18 | The volume shelf. Distinct palettes + motifs + kits. Individually cheap, collectively the Atelier pitch ("all of these, $19"). |
-| `signature` | $20–$28 | The flagship shelf. Dark/foil treatments, exclusive kits (Gallery, Menu), the new display faces (Bodoni Moda, Prata, Gilda). Included only with Legacy — or bought one at a time. |
+> *"A mediocre free Pearloom site actively hurts you."*
 
-Pricing bands within shelves: premium at $12 / $14 / $16 / $18;
-signature at $20 / $22 / $24 / $28. Don't price between bands —
-the shelf should read as deliberate, not haggled.
+In a product whose growth loop runs through guests seeing a host's
+site, a crippled free tier costs more in word-of-mouth than the
+shelf ever earned. So:
 
-## 4 · Why this converts
+- **55 of 75 packs are free to everyone** (the free + premium tiers).
+- **20 signature packs** (foil/dark treatments, exclusive kits,
+  licensed display faces) ride with the Pass — a small paid shelf
+  that keeps the Pass feeling rich without making Page look poor.
+  They remain individually purchasable for a Page host who wants one.
 
-1. **The à-la-carte anchor.** A host eyeing two premium packs
-   ($14 + $16 = $30) sees Atelier at $19 with the whole shelf and
-   a custom domain. The packs are real products AND a decoy for
-   the plan.
-2. **Typography is now actually delivered.** Until 2026-06-09 the
-   catalog's display faces never loaded (only Fraunces/Caveat/Inter
-   were imported — every other pack font fell back to Georgia).
-   `<StoreFonts />` (`src/lib/theme-store/fonts.tsx`) fixes this on
-   the store, published sites, and the in-editor shop. People pay
-   for type they can now see.
-3. **Plan grants are server-enforced.** `getUserEntitlements` +
-   `userOwnsPack` fold in plan grants (fail-closed on DB errors),
-   so the editor, store, and apply route all agree about ownership
-   without client-side trust.
-4. **The signature shelf protects the top.** Legacy at $129 needs
-   a visible answer to "what do I get beyond limits?" — the answer
-   is the shelf Atelier can't touch, plus foil + exclusive kits.
+## 4 · The archive fee, and the "not a subscription" promise
+
+One-time pricing against perpetual hosting costs is the model's real
+tension (a memorial site may stay up for a decade). The answer:
+
+- A published site **stays online free on its `pearloom.com`
+  subdomain, indefinitely.** That is never withdrawn.
+- After the keep window, an optional **archive renewal
+  (`ARCHIVE_RENEWAL_CENTS`, $29/yr)** covers only the genuinely
+  ongoing costs: custom-domain renewal and full-resolution media
+  retention.
+- Framing is **"preservation, not planning."** Planning Pearloom is
+  one-time; keeping a full-resolution archive and a custom domain
+  alive is the only recurring thing, and it's opt-in.
+
+Memorials are exempt from every tier limit and from the archive fee.
 
 ## 5 · Where the money surfaces live
 
 | Surface | File |
 |---|---|
-| Marketing pricing tiers | `src/components/marketing/design/DesignPricing.tsx` (Journal $0 / Atelier $19 / Legacy $129) |
-| Plan limits + gating | `src/lib/plan-gate.ts` |
+| Marketing pricing tiers | `src/components/marketing/design/DesignPricing.tsx` |
+| Plan limits, ranks, prices, aliases | `src/lib/plan-gate.ts` |
+| Guest-capacity enforcement (the choke point) | `src/lib/plan-gate.ts` → `checkGuestCapacity` |
+| Site-count + pack-publish gates | `src/app/api/sites/route.ts` |
 | Pack catalog + tier derivation | `src/lib/theme-store/packs.ts` |
-| Plan → pack grants | `src/lib/theme-store/entitlements.ts` (`planGrantedPackIds`) |
+| Plan → pack grants | `src/lib/theme-store/entitlements.ts` |
 | Entitlements API | `src/app/api/store/entitlements/route.ts` |
-| Store UI | `src/components/pearloom/store/` |
-| In-editor shop | `src/components/pearloom/editor/EditorThemeShop.tsx` |
-| Catalog webfonts | `src/lib/theme-store/fonts.tsx` (`<StoreFonts />`) |
+| Plan checkout (the till) | `src/app/api/billing/checkout/route.ts` |
+| Plan grant on payment | `src/app/api/stripe/webhook/route.ts` |
+| Dashboard plan cards | `src/components/pearloom/dash/UserSettingsModal.tsx`, `src/components/marketing/design/dash/DashSettings.tsx` |
+| Catalog webfonts | `src/lib/theme-store/fonts.tsx` |
 
-## 6 · Pearloom Print (Suite Phase 6 — shipped 2026-06-09)
+## 6 · Other revenue
 
-Physical mail, payment-gated. The host pays RETAIL per card;
-Lob invoices us wholesale; the spread is the print margin.
-**Payment is always collected before any Lob submission** — the
-old free-submission path (`POST /api/print/orders`) is retired
-(410).
+- **Vendor marketplace** — an 8% platform fee on bookings
+  (`src/lib/event-os/pricing.ts`), with the application fee capped
+  below the deposit so Stripe never rejects the vendor transfer.
+  Supply acquisition is not built; this is a primitive, not a
+  business line yet.
+- **Registry** — Pearloom deliberately **never touches gift money**.
+  Guests reserve items and buy at the merchant's own link; cash gifts
+  are P2P deep-links to the host's own handles. This avoids
+  money-transmitter licensing entirely and is not a revenue line.
 
-### Retail per-card prices (founder-approved)
+## 7 · Retired
 
-| Product | Retail | Wholesale (Lob est.) | Margin |
-|---|---|---|---|
-| Postcard 4×6 | **$1.79** | $0.74 | $1.05 |
-| Postcard 6×9 | **$2.79** | $1.44 | $1.35 |
-| Postcard 6×11 | **$3.29** | $1.84 | $1.45 |
-| Letter (enveloped invitation) | **$2.99** | $1.20 | $1.79 |
+- **Pearloom Print** (physical print-and-mail via Lob, 2026-06-09 →
+  2026-07-08). Deleted end-to-end as a product decision; print-at-home
+  / press-ready PDF is the only print story, and
+  `src/lib/no-physical-promises.test.ts` is the fence that keeps the
+  copy from coming back. *(This section previously documented Print's
+  retail prices and margins as live — a doc drift caught in the
+  2026-08-04 platform audit.)*
+- **The à-la-carte decoy store** (§3).
 
-Source of truth: `src/lib/print-engine/pricing.ts`
-(`RETAIL_PRINT_PRICES`), pinned by `pricing.test.ts`. Wholesale
-estimates live in `lob-client.ts`.
+## 8 · Open
 
-### Legacy print credit
-
-Legacy-plan holders (`user_plans.plan` = `premium` / `legacy`)
-carry a **$50.00 lifetime print credit**, applied automatically at
-checkout and capped at the order total. The ledger is the
-`print_order_intents` table — remaining credit = $50.00 minus the
-sum of `credit_applied_cents` over the user's paid/fulfilled
-intents (`legacyCreditRemainingCents`, fail-closed on any lookup
-error). Orders fully covered by credit skip Stripe and fulfill
-inline.
-
-### The flow
-
-`/api/print/checkout` (auth + ownership) → render SVG → 300dpi PNG
-→ R2 → resolve recipients with complete mailing addresses → compute
-retail total + credit **server-side** (client numbers are never
-trusted) → Stripe Checkout session (`metadata.printIntentId`) →
-`/api/stripe/webhook` flips the intent `awaiting_payment → paid`
-(idempotent conditional transition) → `fulfillPrintIntent` submits
-per-recipient `print_jobs` + Lob postcards → intent `fulfilled`.
-
-## 7 · Open follow-ups
-
-- Stripe products for Atelier/Legacy exist (`STRIPE_PRO_PRICE_ID`);
-  signature-pack à-la-carte checkout reuses the pack purchase flow.
-- The pricing page should eventually name the store benefit
-  explicitly ("Every premium theme pack included").
-- CLAUDE-PRODUCT.md §8 Q3 ("per-site vs per-event-group pricing")
-  is resolved by this doc: **per-site, one-time**, bundling deferred
-  until multi-site celebrations are a measured behavior.
+- **Willingness-to-pay is unvalidated.** $89 / $199 come from the
+  three-review consensus, not from customer evidence. The synthesis's
+  own advice applies: test two packages in market, not a conclusion.
+- **Unit economics are unmodeled.** Nobody has priced the storage +
+  bandwidth + AI tail of a decade-lived free or memorial site. The
+  archive fee is a start, not an answer.
+- **The keep window** (currently 45 days, a constant in
+  `cockpit-phase.ts`) has no relationship to the archive fee yet.
+- **Per-celebration vs per-site.** CLAUDE-PRODUCT §8 Q3 is now
+  answered *per celebration* — the Pass covers a whole linked arc.
+  The container work that makes that literal (shared roster,
+  per-satellite privacy) is Phase 1; until it lands, `maxSites: 10`
+  is the practical expression of "the whole weekend."
