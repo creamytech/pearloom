@@ -29,7 +29,7 @@ All five are now made, with reasoning, in
 
 | Decision | Made | Status |
 |---|---|---|
-| **What a referral earns** | New host inherits the LOOK of the site they came from; referrer earns +1 archive year, capped at 3. The reviews' "Edition credit" is void under our own pricing — design is free now, so it would be worth nothing. | Policy + tests shipped; ledger migration written, awaiting MCP apply |
+| **What a referral earns** | New host inherits the LOOK of the site they came from; referrer earns +1 archive year, capped at 3. The reviews' "Edition credit" is void under our own pricing — design is free now, so it would be worth nothing. | **Shipped end to end.** Policy + tests, and the ledger migration applied to prod 2026-08-04 (guards verified live: duplicate grant, self-referral and >3 years all refused). |
 | **Free-tier site limit** | **1 → 2.** One site closes our #1 growth loop: a maid of honour can't add the bachelorette, and a referred couple can't create their wedding. | Shipped |
 | **Container pivot** | **Yes — after ~50 celebrations of evidence.** The model is built (that was the point of sequencing it first); the reframe waits for real users so we're not designing for an imagined one. | Position — blocked on the §1 owner actions |
 | **Willingness to pay** | **Ship $89 / $199.** We're priced against stationery ($300–800), not free websites; $89 is 0.26% of an average wedding. Test conversion, not elasticity, until ~200 activated celebrations. | Position |

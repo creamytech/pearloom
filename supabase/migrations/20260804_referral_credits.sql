@@ -20,10 +20,17 @@
 -- Belt-and-braces RLS: restrictive deny-anon; all reads/writes go
 -- through owner-gated service-role routes (CLAUDE-DESIGN §12).
 --
--- NOT YET APPLIED TO PROD — apply via Supabase MCP and record in
--- _pearloom_migrations. Every code path degrades gracefully while
--- the table is absent (grantReferralCredit no-ops and logs), so
--- shipping ahead of the apply is safe.
+-- APPLIED to prod (project vpwnpxowqflajvqpgvyb) 2026-08-04 and
+-- recorded in _pearloom_migrations. Both guards were exercised
+-- against the live table before it was left in place: a duplicate
+-- new_site_slug raises unique_violation, and both a self-referral
+-- and archive_years > 3 raise check_violation. Advisors clean —
+-- the only lint naming this table is "unused index", which is what
+-- a brand-new empty table looks like.
+--
+-- Code shipped ahead of the apply on purpose: grantReferralCredit
+-- no-ops and logs while the table is absent, so there was never a
+-- window where a missing table could fail a publish.
 -- ─────────────────────────────────────────────────────────────
 
 create table if not exists public.referral_credits (

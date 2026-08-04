@@ -213,7 +213,7 @@ the R2 bill.
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | New host inherits the style; referrer earns +1 archive year (max 3). Reviews' Edition-credit idea is void under our own pricing. | Policy implemented; ledger migration awaiting apply |
+| 1 | New host inherits the style; referrer earns +1 archive year (max 3). Reviews' Edition-credit idea is void under our own pricing. | Policy implemented; ledger migration APPLIED to prod 2026-08-04, guards verified live |
 | 2 | Free tier: **1 → 2 sites**. One site closes our #1 growth loop. | Implemented |
 | 3 | Container pivot: **yes, after ~50 celebrations of evidence**. Model is built; the reframe waits for real users. | Position |
 | 4 | **Ship $89 / $199.** Test conversion, not elasticity, until ~200 activated celebrations. | Position |
