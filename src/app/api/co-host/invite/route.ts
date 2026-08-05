@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { checkCoHostCapacity } from '@/lib/plan-gate';
 import { ownerEmailOf } from '@/lib/cohost-access';
 import { buildCoHostInviteEmail } from '@/lib/email/brand-emails';
 import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
@@ -70,6 +71,19 @@ export async function POST(req: NextRequest) {
     const ownerEmail = ownerEmailOf(siteRow);
     if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    /* Plan capacity (sign-off 2026-08-05). Free includes ONE
+       co-host, because for most celebrations that person is the
+       other half of the couple; the Pass is for the rest of the
+       people helping run it. Nobody already helping is ever
+       removed — this only refuses the NEXT invitation, and it fails
+       open on any counting error rather than blocking a host from
+       inviting their partner. Runs after the ownership check so a
+       stranger can't probe a site's co-host count. */
+    const capacity = await checkCoHostCapacity(supabase, ownerEmail, siteRow.id);
+    if (!capacity.ok) {
+      return NextResponse.json(capacity.body, { status: capacity.status ?? 402 });
     }
 
     /* One invite per email — don't let a host mint duplicate keys

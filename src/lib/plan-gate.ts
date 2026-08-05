@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { getUserPlan } from '@/lib/db';
 
 // ─── Plan hierarchy (lowest → highest) ──────────────────────
@@ -65,6 +66,12 @@ export interface PlanLimits {
   maxPhotos: number;
   aiGenerations: number;
   customDomain: boolean;
+  /** Co-hosts BESIDES the owner. Free gets one, because for most
+   *  celebrations that second person is the other half of the
+   *  couple — gating them out entirely would be hostile, not
+   *  commercial. The Pass is for the rest: the MOH, the best man,
+   *  both sets of parents, the planner. */
+  maxCoHosts: number;
 }
 
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
@@ -88,6 +95,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     maxPhotos: 50,
     aiGenerations: 10,
     customDomain: false,
+    maxCoHosts: 1,
   },
   // Pass — the whole celebration. maxSites covers a weekend arc's
   // linked events (ceremony + shower + bachelor/ette + rehearsal +
@@ -98,6 +106,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     maxPhotos: 500,
     aiGenerations: 100,
     customDomain: true,
+    maxCoHosts: Infinity,
   },
   // Keepsake — preservation. Unlimited by design: this is the tier
   // whose whole promise is that nothing gets trimmed later.
@@ -107,6 +116,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     maxPhotos: Infinity,
     aiGenerations: Infinity,
     customDomain: true,
+    maxCoHosts: Infinity,
   },
 } as const;
 
@@ -200,8 +210,15 @@ export async function checkPlanAccess(
 ): Promise<PlanAccessResult> {
   const upgradeUrl = '/dashboard?upgrade=true';
 
-  // 1. Get the authenticated session
-  const session = await getServerSession();
+  /* 1. The authenticated session.
+     `authOptions` is NOT optional here. This was the one call site
+     of 209 that omitted it, and with the JWT strategy that means
+     the session never resolves — so every caller, INCLUDING PAYING
+     ONES, read as 'anonymous' and got denied. It was harmless only
+     because requirePlan had no callers; the first gate wired to it
+     would have locked out the entire user base. Found on the way to
+     wiring exactly that. */
+  const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return {
       allowed: false,
@@ -443,6 +460,72 @@ export async function checkGuestCapacity(
     return { ok: true };
   } catch (err) {
     console.warn('[plan-gate] guest capacity check failed (failing open):', err);
+    return { ok: true };
+  }
+}
+
+// ─── Co-host capacity ────────────────────────────────────────
+
+export interface CoHostCapacityResult {
+  ok: boolean;
+  status?: number;
+  body?: Record<string, unknown>;
+}
+
+interface CoHostCountClient {
+  from(table: string): {
+    select(cols: string, opts?: { count?: 'exact'; head?: boolean }): {
+      eq(col: string, val: string): Promise<{ count: number | null; error: unknown }>;
+    };
+  };
+}
+
+/**
+ * May this site take another co-host?
+ *
+ * GRANDFATHERING IS THE POINT. Nobody loses a collaborator they
+ * already have: this is only ever consulted when ADDING one, it
+ * never removes a row, and a site already over the limit keeps
+ * everyone on it — the next invitation is simply refused. Turning
+ * on a gate must not evict people from a celebration they're
+ * already helping to run.
+ *
+ * Grief-exempt like every other limit, and FAILS OPEN: a counting
+ * error must never block a host from inviting their partner.
+ */
+export async function checkCoHostCapacity(
+  /** Supabase client (loosely typed — see isSiteGriefExempt). */
+  db: unknown,
+  ownerEmail: string,
+  siteId: string,
+): Promise<CoHostCapacityResult> {
+  try {
+    const { plan, limits } = await getPlanWithLimitsForEmail(ownerEmail);
+    if (!Number.isFinite(limits.maxCoHosts)) return { ok: true };
+    if (await isSiteGriefExempt(db, siteId)) return { ok: true };
+
+    const { count, error } = await (db as CoHostCountClient)
+      .from('cohosts')
+      .select('id', { count: 'exact', head: true })
+      .eq('site_id', siteId);
+    if (error || typeof count !== 'number') return { ok: true }; // fail open
+
+    if (count + 1 > limits.maxCoHosts) {
+      return {
+        ok: false,
+        status: 402,
+        body: {
+          ...planLimitResponseBody('co-hosts', limits.maxCoHosts, plan),
+          error:
+            `Your plan includes ${limits.maxCoHosts} co-host`
+            + `${limits.maxCoHosts === 1 ? '' : 's'}. `
+            + 'Upgrade to invite the rest of the people helping you run this.',
+        },
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.warn('[plan-gate] co-host capacity check failed (failing open):', err);
     return { ok: true };
   }
 }

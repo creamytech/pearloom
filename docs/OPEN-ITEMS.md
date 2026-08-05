@@ -82,6 +82,23 @@ Real work, none of it blocking, in the order I'd take it.
   existing co-host role (no new table), plus reusable shapes that
   carry structure and look but never a previous client's content.
 
+### Closed 2026-08-05 (owner sign-off on plan enforcement)
+
+- **`requirePlan` had a latent outage.** `checkPlanAccess` was the
+  one call site of 209 that omitted `authOptions`, so with the JWT
+  strategy the session never resolved and EVERY caller — paying
+  ones included — read as `anonymous` and got denied. Harmless only
+  because nothing called it; the first gate wired to it would have
+  locked out the whole user base. Fixed before any gate went live.
+- **Co-hosts are now enforced** (`checkCoHostCapacity`): free
+  includes one, paid unlimited. Turning it on evicts nobody — it is
+  consulted on ADD only, fails open on a counting error, and
+  memorials stay exempt.
+- **Custom domain is priced but UNBUILT** — `PLAN_LIMITS.customDomain`
+  and the Stripe copy sell it; no custom-domain feature exists
+  anywhere in the product. Build it or stop selling it. Recorded in
+  `docs/MONETIZATION.md`.
+
 ## 4 · What is NOT open (so nobody re-litigates it)
 
 - The launch-blocker list from `REVIEW-SYNTHESIS.md` §1.1 — all seven

@@ -141,3 +141,36 @@ Memorials are exempt from every tier limit and from the archive fee.
   The container work that makes that literal (shared roster,
   per-satellite privacy) is Phase 1; until it lands, `maxSites: 10`
   is the practical expression of "the whole weekend."
+
+## Enforcement status (2026-08-05, owner sign-off)
+
+What is actually gated in code, and what is only priced:
+
+| Sold capability | Status |
+|---|---|
+| Guest count (100 / 500 / ∞) | **Enforced** — `checkGuestCapacity`, the one choke point every host-initiated guest writer calls. |
+| Sites (2 / 10 / ∞) | **Enforced** — inline in `POST /api/sites` at creation (no shared helper; the count and the 402 live in the route). |
+| Co-hosts (1 / ∞ / ∞) | **Enforced 2026-08-05** — `checkCoHostCapacity` in `/api/co-host/invite`. |
+| Linked celebrations | **Bounded already** by the site limit; a separate gate would be redundant, so there isn't one. |
+| Custom domain | **PRICED BUT UNBUILT.** `customDomain` exists in `PLAN_LIMITS` and in the Stripe copy, and there is no custom-domain feature anywhere in the product to gate. It is a promise on the pricing page with nothing behind it — build it or stop selling it. |
+
+### The rules these gates follow
+
+1. **Turning on a gate never evicts anyone.** Every capacity check
+   is consulted on ADD only. A celebration already run by three
+   people keeps all three; the next invitation is what's refused.
+2. **Fail open on a counting error.** If we can't tell how many
+   exist, the host proceeds. A billing gate must never be the
+   reason someone can't invite their partner.
+3. **A plan-lookup outage degrades to FREE limits**, not to
+   unlimited — an inconvenience for a paid host, not a giveaway.
+   Deliberate, shared with the guest gate, and pinned by tests.
+4. **Grief outranks the ladder.** Memorials and funerals are exempt
+   from every limit, always.
+
+### Why free includes one co-host
+
+For most celebrations the second person is the other half of the
+couple. Gating them out would be hostile rather than commercial.
+The Pass is for the rest of the people who help run it — the MOH,
+the best man, both sets of parents, the planner.

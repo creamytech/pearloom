@@ -27,6 +27,7 @@ import {
   isGriefExempt,
   planLimitResponseBody,
   checkGuestCapacity,
+  checkCoHostCapacity,
 } from './plan-gate';
 import { getUserPlan } from '@/lib/db';
 
@@ -42,6 +43,7 @@ const FREE_GUESTS = PLAN_LIMITS.FREE.maxGuests;
 function fakeDb(opts: {
   occasion?: string | null;
   guestCount?: number | null;
+  coHostCount?: number | null;
   countError?: boolean;
   siteLookupThrows?: boolean;
 }) {
@@ -55,6 +57,16 @@ function fakeDb(opts: {
                 if (opts.siteLookupThrows) throw new Error('db down');
                 return { data: { occasion: opts.occasion ?? null, configOccasion: null } };
               },
+            }),
+          }),
+        };
+      }
+      if (table === 'cohosts') {
+        return {
+          select: () => ({
+            eq: async () => ({
+              count: opts.countError ? null : (opts.coHostCount ?? 0),
+              error: opts.countError ? new Error('count failed') : null,
             }),
           }),
         };
@@ -210,5 +222,90 @@ describe('checkGuestCapacity', () => {
     const res = await checkGuestCapacity(db, 'host@x.com', 'site-1', 1);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.body.currentPlan).toBe('free');
+  });
+});
+
+// ─── Co-host capacity ────────────────────────────────────────
+//
+// This gate went live on 2026-08-05 with explicit owner sign-off,
+// and the promise attached to it is the thing these tests defend:
+// TURNING ON A GATE MUST NOT EVICT ANYONE. A celebration already
+// being run by three people keeps all three. Only the NEXT
+// invitation is refused.
+
+const FREE_COHOSTS = PLAN_LIMITS.FREE.maxCoHosts;
+
+describe('checkCoHostCapacity', () => {
+  it('lets a free host invite their partner — the common case', async () => {
+    mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
+    const r = await checkCoHostCapacity(fakeDb({ coHostCount: 0 }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(true);
+  });
+
+  it('refuses the one past the limit, with a 402 and plain words', async () => {
+    mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
+    const r = await checkCoHostCapacity(fakeDb({ coHostCount: FREE_COHOSTS }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(false);
+    expect(r.status).toBe(402);
+    expect(String(r.body?.error)).toMatch(/co-host/i);
+    expect(String(r.body?.error)).not.toMatch(/limit for your plan \(/);  // the generic copy is overridden
+  });
+
+  it('NEVER evicts: a site already over the limit keeps everyone', async () => {
+    // The check is consulted only when ADDING. Being over the limit
+    // refuses the next invite and does nothing to the people already
+    // helping run the celebration.
+    mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
+    const r = await checkCoHostCapacity(fakeDb({ coHostCount: 5 }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(false);
+    expect(r.status).toBe(402);
+    // No removal instruction of any kind in the response.
+    expect(JSON.stringify(r.body ?? {})).not.toMatch(/remove|revoke|delete/i);
+  });
+
+  it('never limits a paid plan', async () => {
+    for (const plan of ['pro', 'pass', 'premium', 'keepsake', 'atelier', 'legacy']) {
+      mockGetUserPlan.mockResolvedValue({ plan } as never);
+      const r = await checkCoHostCapacity(fakeDb({ coHostCount: 99 }), 'a@b.com', 'site-1');
+      expect(r.ok, plan).toBe(true);
+    }
+  });
+
+  it('never limits a memorial — the grief promise outranks the ladder', async () => {
+    mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
+    for (const occasion of ['memorial', 'funeral']) {
+      const r = await checkCoHostCapacity(
+        fakeDb({ occasion, coHostCount: 99 }), 'a@b.com', 'site-1',
+      );
+      expect(r.ok, occasion).toBe(true);
+    }
+  });
+
+  it('FAILS OPEN when the count errors — never block inviting a partner', async () => {
+    mockGetUserPlan.mockResolvedValue({ plan: 'free' } as never);
+    const r = await checkCoHostCapacity(fakeDb({ countError: true }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(true);
+  });
+
+  it('treats an unreachable plan lookup as FREE, not as unlimited', async () => {
+    // Documenting real, pre-existing behaviour rather than the one I
+    // assumed: getPlanWithLimitsForEmail deliberately defaults to
+    // FREE on any lookup error, shared with the guest gate. So an
+    // outage degrades a paid host to free LIMITS — an inconvenience
+    // — instead of handing everyone unlimited entitlements. The
+    // fail-open path above covers the case that actually matters:
+    // the COUNT failing, where we can't tell how many exist.
+    mockGetUserPlan.mockRejectedValue(new Error('db down'));
+    const r = await checkCoHostCapacity(fakeDb({ coHostCount: 99 }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(false);
+    expect(r.status).toBe(402);
+  });
+
+  it('still lets a first co-host through during a plan-lookup outage', async () => {
+    // The degradation must not block the common case: a host adding
+    // their partner while our plan table is unreachable.
+    mockGetUserPlan.mockRejectedValue(new Error('db down'));
+    const r = await checkCoHostCapacity(fakeDb({ coHostCount: 0 }), 'a@b.com', 'site-1');
+    expect(r.ok).toBe(true);
   });
 });
