@@ -118,6 +118,15 @@ lookup — leaks nothing unpublished; bachelor/ette excluded upstream),
   guests, vendors or private host notes. An unrecognised number is
   told nothing about any celebration.
 
+- `GET /api/wallet/[token]` (2026-08-05) — **Guest-token** class.
+  The passport token is the whole authorization: it names one
+  person on one celebration, and the route reads no further. Drafts
+  404 (a pass for an unshared site would leak it) and a bad token
+  gets the same response shape as a missing one. Rate-limited
+  30/min/IP. Both platforms FAIL CLOSED: unconfigured returns 503,
+  never an unsigned .pkpass — which iOS rejects with a meaningless
+  error in front of a guest. See `docs/WALLET-PASSES.md`.
+
 ## 4 · Coverage counts (2026-08-04, post-fix)
 
 - 237 route files (after the wedding-day deletion).
@@ -329,6 +338,7 @@ plus the §3 list; markers are grep-derived hints, not the contract.
 | `sites/seating` | PATCH | S----- |
 | `sms/inbound` | GET,POST | -R--W- |
 | `song-requests` | GET,POST,PATCH | SR---- |
+| `wallet/[token]` | GET | -RT--- |
 | `split/expenses` | POST,DELETE | --T--- |
 | `split/participants/from-person` | POST | --T--- |
 | `split/participants` | POST,DELETE | --T--- |

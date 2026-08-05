@@ -42,9 +42,15 @@ on, so it's clear what changes.
 
 Real work, none of it blocking, in the order I'd take it.
 
-1. **Wallet pass (Apple/Google)** — blocked on the Apple Pass Type ID
-   certificate, which is an owner action; the generator is a session
-   once that exists.
+1. **Apple Pass Type ID certificate.** Everything else for wallet
+   passes is built and tested — the pass body, the ZIP writer, the
+   drawn icon, the route, the guest card. What's missing is the
+   certificate itself (Apple Developer → Certificates → Pass Type
+   IDs) plus `APPLE_PASS_CERT` / `APPLE_PASS_KEY` /
+   `APPLE_PASS_TYPE_ID` / `APPLE_TEAM_ID`. Implementing `PassSigner`
+   against it is a short job, not a session. **Google Wallet needs
+   no certificate** — set the three `GOOGLE_WALLET_*` vars and that
+   half is live today. See `docs/WALLET-PASSES.md`.
 2. **WhatsApp channel for the concierge.** SMS shipped (see below);
    per synthesis §2.5 the second channel is WhatsApp via the same
    Twilio account, for international and culturally diverse events.

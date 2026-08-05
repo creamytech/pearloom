@@ -25,6 +25,7 @@ import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHe
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
+import { WalletPassCard } from '@/components/guest-experience/WalletPassCard';
 import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
 import { HostYourOwnCard } from '@/components/guest-experience/HostYourOwnCard';
 import { GuestRecapCard } from '@/components/guest-experience/GuestRecapCard';
@@ -695,6 +696,17 @@ export default async function PersonalGuestPage({
           }
           accent={accent}
           headingFont={headingFont}
+        />
+      </section>
+
+      {/* The pass. Sits under the RSVP because it's the natural next
+          move once a guest has said yes — and it renders NOTHING
+          unless a wallet platform is actually configured, so a guest
+          never meets a door that isn't there. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <WalletPassCard
+          token={token}
+          solemn={manifest.occasion === 'memorial' || manifest.occasion === 'funeral'}
         />
       </section>
 
