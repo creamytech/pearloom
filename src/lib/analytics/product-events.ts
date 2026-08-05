@@ -77,3 +77,37 @@ export async function recordProductEvent(
     );
   }
 }
+
+/**
+ * Record an event AT MOST ONCE for a site.
+ *
+ * Milestone events ("their first RSVP arrived", "they made their
+ * keepsake") are fired from routes that run many times — a GET a
+ * host reloads, a reply every guest sends. Counting each one would
+ * turn a funnel step into a traffic metric.
+ *
+ * Extracted from the inline version in /api/rsvp so the second
+ * caller didn't copy it. Same contract as recordProductEvent:
+ * fire-and-forget, never throws, telemetry never affects a reply.
+ * On any read failure it stays SILENT rather than recording — a
+ * missed milestone is a smaller lie than a duplicated one.
+ */
+export async function recordProductEventOnce(
+  event: ProductEventName | string,
+  opts: RecordOptions & { siteId: string },
+): Promise<void> {
+  try {
+    const supabase = analyticsClient();
+    if (!supabase || !opts.siteId) return;
+    const { data, error } = await supabase
+      .from('product_events')
+      .select('id')
+      .eq('event', String(event))
+      .eq('site_id', opts.siteId)
+      .limit(1);
+    if (error || (data && data.length > 0)) return;
+    await recordProductEvent(event, opts);
+  } catch {
+    /* telemetry only */
+  }
+}

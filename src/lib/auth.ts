@@ -244,7 +244,18 @@ export const authOptions: NextAuthOptions = {
       if (!user?.email) return;
       try {
         const { sendWelcomeEmailOnce } = await import('@/lib/email/welcome');
-        await sendWelcomeEmailOnce(user.email, user.name);
+        const firstSignIn = await sendWelcomeEmailOnce(user.email, user.name);
+        /* `signed_up` was declared in ProductEventName but never
+           fired anywhere, so the funnel's first step was blank. It
+           belongs HERE rather than in /api/auth/register: the
+           welcome ledger is the app's only reliable new-account
+           signal (JWT strategy gives NextAuth no isNewUser), and
+           Google accounts never touch the register route, so a fire
+           point there would have missed every OAuth signup. */
+        if (firstSignIn) {
+          const { recordProductEvent } = await import('@/lib/analytics/product-events');
+          void recordProductEvent('signed_up', { email: user.email });
+        }
       } catch (err) {
         console.warn('[auth] welcome email hook failed (non-fatal):', err);
       }

@@ -53,56 +53,75 @@ export const DASH_NAV_GROUPS: DashNavGroup[] = [
       { id: 'home', label: 'Home', icon: 'home', href: '/dashboard' },
     ],
   },
+  /* ── THREE AREAS (2026-08-05, REVIEW-SYNTHESIS §1.9) ──────────
+     All three reviews independently reached the same shape: Create
+     / Guests / Plan & Remember over the phase spine, everything
+     else contextual. The sidebar carried six groups and eighteen
+     rows, which is a directory rather than a nav — a first-time
+     host reads it as a list of chores.
+
+     HIDE, DON'T DELETE is the rule, and it's enforced rather than
+     promised: nav-reachability.test.ts freezes the pre-collapse
+     destination list and fails if any of them stops being reachable
+     from the sidebar, a sub-nav tab, or the quiet shelf. Nothing
+     here was removed from the product; several things moved to
+     where they're found in context.
+
+     What left the sidebar and why:
+       Music, Circle, Analytics  → the quiet shelf (⌘K + More tools).
+       Passport cards, QR poster → the shelf, plus the Day-of room's
+                                   "Print for the day" row, which is
+                                   where a host actually wants them.
+       The Reel, Speeches        → the Studio sub-nav (they were
+                                   already tabs there).
+       Registry                  → the Guests sub-nav (§2.4: it's a
+                                   guest ledger, not a top-level).
+       Settings, Help            → still bottom-of-sidebar chrome;
+                                   nobody counts them as an "area". */
   {
-    id: 'loom',
-    label: 'Your events',
+    id: 'create',
+    label: 'Create',
     items: [
       { id: 'site',    label: 'My sites', icon: 'layout',   href: '/dashboard/event' },
+      { id: 'studio',  label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
       { id: 'weekend', label: 'Weekend',  icon: 'calendar', href: '/dashboard/weekend' },
     ],
   },
   {
-    id: 'event',
-    label: 'This event',
+    id: 'guests',
+    label: 'Guests',
     items: [
       { id: 'guests',   label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
-      { id: 'studio',   label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
-      { id: 'gallery',  label: 'The Reel', icon: 'image',    href: '/dashboard/gallery' },
-      { id: 'registry', label: 'Registry', icon: 'gift',     href: '/dashboard/registry' },
-      { id: 'day',      label: 'Day-of',   icon: 'clock',    href: '/dashboard/day-of' },
-      { id: 'music',    label: 'Music',    icon: 'music',    href: '/dashboard/music' },
-      { id: 'speech',   label: 'Speeches', icon: 'message',  href: '/dashboard/speech' },
     ],
   },
   {
-    id: 'vendors',
-    label: 'Money',
+    id: 'plan',
+    label: 'Plan & Remember',
     items: [
-      { id: 'budget',   label: 'Budget',   icon: 'bars',   href: '/dashboard/budget' },
-      { id: 'vendors',  label: 'Vendors',  icon: 'pin',    href: '/dashboard/vendors' },
-    ],
-  },
-  {
-    id: 'keepsakes',
-    label: 'Keepsakes',
-    items: [
+      { id: 'day',      label: 'Day-of',    icon: 'clock',      href: '/dashboard/day-of' },
+      { id: 'budget',   label: 'Budget',    icon: 'bars',       href: '/dashboard/budget' },
+      { id: 'vendors',  label: 'Vendors',   icon: 'pin',        href: '/dashboard/vendors' },
       /* Matches DASH_SECTIONS.memory's first tab ("Keepsakes") so
          the sidebar never lands on a differently-named tab. */
-      { id: 'memory',   label: 'Keepsakes',      icon: 'heart-icon', href: '/dashboard/keepsakes' },
-      { id: 'passport', label: 'Passport cards', icon: 'grid',       href: '/dashboard/passport-cards' },
-      { id: 'qr',       label: 'QR poster',      icon: 'image',      href: '/dashboard/qr-poster' },
+      { id: 'memory',   label: 'Keepsakes', icon: 'heart-icon', href: '/dashboard/keepsakes' },
     ],
   },
   {
     id: 'house',
     label: 'The house',
     items: [
-      { id: 'circle',   label: 'Circle',       icon: 'grid',     href: '/dashboard/circle' },
       /* The Director left the sidebar 2026-07-08 (ATELIER DR.3):
          Home is the phase-aware brief now; the Director stays as
          the conversational planning deep-dive on the quiet shelf
          (⌘K + More tools). Decision recorded in ATELIER-PLAN §8. */
-      { id: 'analytics', label: 'Analytics',   icon: 'bars',     href: '/dashboard/analytics' },
+      /* The shelf's own door. /dashboard/tools has existed since the
+         2026-07-08 rework and NOTHING linked to it — the More-tools
+         grid was reachable only by typing the URL, leaving ⌘K as the
+         sole way in, which on a phone is barely a way in at all.
+         Survivable while the shelf held four rarely-used tools;
+         not survivable now that the three-area collapse moved Music,
+         Circle, Analytics, Passport cards and QR poster onto it. */
+      { id: 'tools',    label: 'More tools',   icon: 'grid',     href: '/dashboard/tools' },
       { id: 'settings', label: 'Settings',     icon: 'settings', href: '/dashboard/profile' },
       { id: 'help',     label: 'Help',         icon: 'inbox',    href: '/dashboard/help' },
     ],

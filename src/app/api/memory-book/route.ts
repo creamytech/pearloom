@@ -21,6 +21,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig, getApprovedGuestPhotos } from '@/lib/db';
 import { resolveViewerRole } from '@/lib/cohost-access';
+import { recordProductEventOnce } from '@/lib/analytics/product-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -171,6 +172,17 @@ export async function GET(req: NextRequest) {
     chapterPhotos.push({ url: gp.url, caption: gp.caption ?? '' });
     if (chapterPhotos.length >= 60) break;
   }
+
+  /* `keepsake_generated` was declared in ProductEventName and never
+     fired, leaving the last step of the funnel blank. This route
+     composing the book IS the generation — but a host reloads the
+     page, so it's recorded once per site or it becomes a traffic
+     metric rather than a milestone. Fire-and-forget; the book never
+     waits on telemetry. */
+  void recordProductEventOnce('keepsake_generated', {
+    email: session.user.email,
+    siteId: access.siteId,
+  });
 
   return NextResponse.json({
     site: {

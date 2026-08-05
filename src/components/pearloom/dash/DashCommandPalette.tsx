@@ -71,6 +71,18 @@ export const DEPROMOTED_DESTINATIONS: Array<{
   href: string;
   gate?: string;
 }> = [
+  /* The 2026-08-05 three-area collapse (REVIEW-SYNTHESIS §1.9)
+     moved these off the sidebar. They are NOT gone — this shelf and
+     the More-tools grid are their discovery surfaces, and
+     nav-reachability.test.ts fails if any of them stops being
+     reachable. Passport cards and QR poster also keep their
+     contextual door: the Day-of room's "Print for the day" row,
+     which is where a host actually reaches for them. */
+  { id: 'tool-music',      label: 'Music',            hint: 'The playlist & guest songs', icon: 'music',   href: '/dashboard/music', gate: 'music' },
+  { id: 'tool-circle',     label: 'Circle',           hint: 'People you celebrate with',  icon: 'grid',    href: '/dashboard/circle' },
+  { id: 'tool-analytics',  label: 'Analytics',        hint: 'Visits, RSVPs, shares',      icon: 'bars',    href: '/dashboard/analytics' },
+  { id: 'tool-passport',   label: 'Passport cards',   hint: 'Print-at-home guest cards',  icon: 'grid',    href: '/dashboard/passport-cards' },
+  { id: 'tool-qr',         label: 'QR poster',        hint: 'A poster for the day',       icon: 'image',   href: '/dashboard/qr-poster' },
   { id: 'tool-cadence',    label: 'Send timeline',    hint: 'Save-the-dates & reminders', icon: 'bell',    href: '/dashboard/cadence', gate: 'cadence' },
   { id: 'tool-director',   label: 'The Director',     hint: 'Pear plans with you',       icon: 'sparkles', href: '/dashboard/director', gate: 'director' },
   { id: 'tool-review',     label: "Pear's review",    hint: 'Duplicates, VIPs, gaps',    icon: 'check',    href: '/dashboard/guest-review' },

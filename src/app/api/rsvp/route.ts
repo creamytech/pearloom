@@ -244,20 +244,16 @@ export async function POST(req: NextRequest) {
     if (effectiveStatus === 'attending' && !error && data) {
       void (async () => {
         try {
-          const { data: prior, error: priorErr } = await supabase
-            .from('product_events')
-            .select('id')
-            .eq('event', 'first_rsvp_received')
-            .eq('site_id', resolvedSiteId)
-            .limit(1);
-          if (priorErr || (prior && prior.length > 0)) return;
           const { data: ownerRow } = await supabase
             .from('sites')
             .select('creator_email')
             .eq('id', resolvedSiteId)
             .maybeSingle();
-          const { recordProductEvent } = await import('@/lib/analytics/product-events');
-          await recordProductEvent('first_rsvp_received', {
+          /* Once per site — the dedupe this used to do inline now
+             lives in recordProductEventOnce, shared with the
+             keepsake milestone. */
+          const { recordProductEventOnce } = await import('@/lib/analytics/product-events');
+          await recordProductEventOnce('first_rsvp_received', {
             email: (ownerRow as { creator_email?: string } | null)?.creator_email ?? null,
             siteId: resolvedSiteId,
           });

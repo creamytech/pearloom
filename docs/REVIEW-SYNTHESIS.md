@@ -112,6 +112,16 @@ forcing function (South Florida / NY tri-state named twice).
 
 ### 1.9 The de-promotion instinct is right (R1 + R2 + R3)
 
+> **SHIPPED 2026-08-05.** The sidebar now carries Create / Guests /
+> Plan & Remember (was six groups, eighteen rows). Music, Circle,
+> Analytics, Passport cards and QR poster moved to the quiet shelf;
+> Registry to the Guests sub-nav; The Reel and Speeches to the
+> Studio sub-nav. "Hide, don't delete" is enforced by
+> `nav-reachability.test.ts`, which freezes the pre-collapse
+> destination list. Found while doing it: `/dashboard/tools` — the
+> shelf's own grid — had no link anywhere in the product; it does
+> now.
+
 Three visible areas — **Create / Guests / Plan & Remember** — over the
 phase spine; everything else contextual. Circle, person threads, cost
 splitter, standalone voice-DNA/cadence/director, vendor marketplace, and

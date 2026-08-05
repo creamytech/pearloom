@@ -227,8 +227,13 @@ The backend is done + live (`participants`/`expenses`/`expense_shares`, the
 
 ## I · Analytics follow-ups (on top of the funnel now shipped)
 
-- Fire `signed_up` + `keepsake_generated` — both are in the `ProductEventName` union but
-  have no server fire point yet (no `isNewUser` hook; the keepsake-generate route).
+- ~~Fire `signed_up` + `keepsake_generated`~~ — DONE 2026-08-05. `signed_up` fires
+  from the NextAuth signIn event off the welcome-email ledger claim (the app's only
+  reliable new-account signal — JWT strategy has no `isNewUser`, and OAuth accounts
+  never touch `/api/auth/register`, so a fire point there would have missed every
+  Google signup). `keepsake_generated` fires once per site from `/api/memory-book`
+  via the new `recordProductEventOnce`. `product-events.test.ts` now fails if a name
+  is added to the union without a call site.
 - Consider PostHog for hosted funnels/cohorts/session replay vs. growing the first-party
   `product_events` table. The SQL `activation_funnel` view covers the core funnel today.
 
