@@ -152,7 +152,7 @@ What is actually gated in code, and what is only priced:
 | Sites (2 / 10 / ∞) | **Enforced** — inline in `POST /api/sites` at creation (no shared helper; the count and the 402 live in the route). |
 | Co-hosts (1 / ∞ / ∞) | **Enforced 2026-08-05** — `checkCoHostCapacity` in `/api/co-host/invite`. |
 | Linked celebrations | **Bounded already** by the site limit; a separate gate would be redundant, so there isn't one. |
-| Custom domain | **PRICED BUT UNBUILT.** `customDomain` exists in `PLAN_LIMITS` and in the Stripe copy, and there is no custom-domain feature anywhere in the product to gate. It is a promise on the pricing page with nothing behind it — build it or stop selling it. |
+| Custom domain | **NO LONGER SOLD (2026-08-05).** It was never built — no DNS provisioning, no TLS issuance, no verification screen — yet the Stripe description, the settings copy, and a help answer all promised it; the help answer sent hosts to "Dashboard → Profile → Domains", a screen that does not exist. Every claim removed. The `PLAN_LIMITS.customDomain` flag stays, marked RESERVED, so the ladder keeps its shape for whoever builds it. **Build it, then sell it.** |
 
 ### The rules these gates follow
 

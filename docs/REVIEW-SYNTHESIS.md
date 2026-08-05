@@ -243,13 +243,16 @@ Ideas appearing in only one review that survive contact with the code.
   theatre landed), `loom_seen` (with strand count — an empty loom and a
   full one are different experiences), and `press_sheet_opened` (with
   `via: toolbar | send-flow`). Measure before building more of them.
-- **A human-backed support path for memorials** — STILL OPEN, and
-  deliberately not built: the surface is ten minutes of work, but it
-  promises a human, and there is no support inbox or person to route
-  it to. Naming a real destination is an owner decision; shipping the
-  button first would be the custom-domain mistake again — a promise
-  with nothing behind it, on the one occasion where being let down is
-  least forgivable.
+- **A human-backed support path for memorials** — SHIPPED 2026-08-05
+  as `<SolemnSupportCard>`, first thing on the Help page for memorial
+  and funeral occasions, above the FAQ (someone arranging a funeral
+  has days, not weeks, and no appetite for a knowledge base). It
+  routes to `hello@pearloom.com` — the address the product already
+  uses everywhere, so no destination was invented — with a prefilled,
+  tagged subject so it lands identifiable and can be answered ahead
+  of the queue. It promises exactly what it delivers: a person will
+  read it. No response time, no phone line, no dedicated team, because
+  none of those exist.
 - **Unit-economics model** for decade-lived free/memorial sites — a
   spreadsheet, not code, but nobody has built it.
 

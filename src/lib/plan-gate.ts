@@ -20,7 +20,8 @@ import { getUserPlan } from '@/lib/db';
 //                     the paywall (only the signature shelf sits
 //                     above it).
 //   Pass      $89   — the whole celebration: linked events, co-hosts,
-//                     500 guests, custom domain, full Studio.
+//                     500 guests, full Studio. (Custom domain is
+//                     RESERVED — priced once, never built; see below.)
 //   Keepsake  $199  — preservation: unlimited media + the long view.
 //
 // What's gated is OPERATIONAL POWER (coordination, collaboration,
@@ -65,6 +66,14 @@ export interface PlanLimits {
   maxGuests: number;
   maxPhotos: number;
   aiGenerations: number;
+  /** RESERVED — NOT IMPLEMENTED. There is no custom-domain feature
+   *  in the product: no DNS provisioning, no TLS issuance, no
+   *  verification screen. The flag stays so the ladder's shape is
+   *  intact for when it's built, but NOTHING may sell it until then.
+   *  It was on the pricing copy, in the Stripe description, and in a
+   *  help answer that directed hosts to "Dashboard → Profile →
+   *  Domains" — a screen that does not exist. All removed 2026-08-05.
+   *  Build it, then sell it. */
   customDomain: boolean;
   /** Co-hosts BESIDES the owner. Free gets one, because for most
    *  celebrations that second person is the other half of the

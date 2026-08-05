@@ -128,7 +128,7 @@ interface PlanShape {
 function planList(plan: 'free' | 'pro' | 'premium'): PlanShape[] {
   return [
     { id: 'page',     name: 'Page',     price: '$0',   per: 'forever', features: ['One celebration, yours to keep', 'The whole standard theme catalog', 'Up to 100 guests, unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
-    { id: 'pass',     name: 'Pass',     price: '$89',  per: 'once',    features: ['Everything in Page', 'Every linked event + co-hosts', 'Your own domain, the full Studio'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
+    { id: 'pass',     name: 'Pass',     price: '$89',  per: 'once',    features: ['Everything in Page', 'Every linked event + co-hosts', '500 guests, the full Studio'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
     { id: 'keepsake', name: 'Keepsake', price: '$199', per: 'once',    features: ['Everything in the Pass', 'Unlimited celebrations + full-res media', 'The memory book, kept'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
   ];
 }

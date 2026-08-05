@@ -58,7 +58,6 @@ const TIERS: Tier[] = [
       'Every linked event: shower, bachelorette, rehearsal, brunch',
       'Co-hosts with real permissions',
       'Up to 500 guests',
-      'Your own domain',
       'The full Studio: invitations, save-the-dates, thank-yous',
       'The Director (day-of room) + live broadcasts',
       'Seating, budget, and the vendor book',

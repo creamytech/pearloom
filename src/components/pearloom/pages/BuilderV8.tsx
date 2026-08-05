@@ -860,7 +860,7 @@ function StylePanel({
                 fontSize: 13,
               }}
             >
-              Your celebration lives at <strong>pearloom.app</strong>. Add a custom domain from the dashboard.
+              Your celebration lives at <strong>pearloom.com</strong>, with HTTPS handled for you.
             </div>
           </Section>
           <Section label="VISIBILITY">

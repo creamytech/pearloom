@@ -818,8 +818,8 @@ export function DashSettings() {
                   {plan.plan === 'premium'
                     ? 'Keepsake keeps everything: unlimited celebrations, unlimited full-resolution photos and video, the memory book, and your archive to download any time.'
                     : plan.plan === 'pro'
-                      ? 'The Pass covers this whole celebration, every linked event, co-hosts, your own domain, the full Studio, and the day-of room. Keepsake ($199) keeps the photos, the memory book, and the archive.'
-                      : 'Your first celebration is free forever, with the whole standard theme catalog. The Pass ($89 once) adds every linked event, co-hosts, your own domain, and the full Studio.'}
+                      ? 'The Pass covers this whole celebration, every linked event, co-hosts, the full Studio, and the day-of room. Keepsake ($199) keeps the photos, the memory book, and the archive.'
+                      : 'Your first celebration is free forever, with the whole standard theme catalog. The Pass ($89 once) adds every linked event, co-hosts, 500 guests, and the full Studio.'}
                 </p>
                 <PlanUpgradeButtons plan={plan.plan} />
               </Panel>

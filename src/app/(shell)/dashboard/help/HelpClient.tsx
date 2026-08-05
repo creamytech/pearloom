@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { Icon, PearloomGlyph } from '@/components/pearloom/motifs';
 import { HELP_FAQ } from '@/lib/help-faq';
+import { SolemnSupportCard } from '@/components/pearloom/dash/SolemnSupportCard';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
 const DISPLAY = 'var(--font-display, "Fraunces", Georgia, serif)';
@@ -59,6 +61,10 @@ export default function HelpClient() {
         f.tags.some((t) => t.includes(q)),
     );
   }, [query]);
+
+  /* The selected celebration decides whether the solemn route
+     shows at all. */
+  const { site } = useSelectedSite();
 
   return (
     <DashLayout
@@ -163,6 +169,18 @@ export default function HelpClient() {
               </button>
             );
           })}
+        </div>
+
+        {/* A person, not a help centre (synthesis §3, R2). Someone
+            arranging a funeral has days, not weeks, and no appetite
+            for a knowledge base — so on a memorial the human route
+            comes FIRST, above the FAQ, not buried in a contact rail
+            beneath it. Renders nothing on every other occasion. */}
+        <div style={{ marginBottom: 28 }}>
+          <SolemnSupportCard
+            occasion={site?.occasion}
+            siteLabel={site?.names?.filter(Boolean).join(' & ') || site?.domain}
+          />
         </div>
 
         {/* ── FAQ accordion + shortcuts / contact rail ──────────────── */}

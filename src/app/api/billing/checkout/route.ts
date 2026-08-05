@@ -46,7 +46,7 @@ interface PlanProduct {
 const PASS: PlanProduct = {
   planId: 'pro',
   name: 'Pearloom Pass',
-  description: 'The whole celebration: every linked event, co-hosts, 500 guests, your own domain, the full Studio.',
+  description: 'The whole celebration: every linked event, co-hosts, 500 guests, the full Studio, and the day-of room.',
   priceCents: PLAN_PRICE_CENTS.pro,
 };
 
