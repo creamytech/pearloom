@@ -51,18 +51,15 @@ Real work, none of it blocking, in the order I'd take it.
    against it is a short job, not a session. **Google Wallet needs
    no certificate** — set the three `GOOGLE_WALLET_*` vars and that
    half is live today. See `docs/WALLET-PASSES.md`.
-2. **WhatsApp channel for the concierge.** SMS shipped (see below);
-   per synthesis §2.5 the second channel is WhatsApp via the same
-   Twilio account, for international and culturally diverse events.
-   Needs WhatsApp Business templates and an owner-side sender
-   approval — the decision layer (`lib/sms/concierge`) is
-   channel-agnostic and already carries the rules.
-3. **Buy and wire the concierge numbers.** The inbound webhook is
-   live and verified; what remains is provisioning numbers per
-   celebration (or a shared number with the disambiguation reply
-   already implemented), pointing them at
-   `POST /api/sms/inbound`, and telling guests the number exists —
-   an owner/ops action, not code.
+2. **Buy a number and point it at the webhook.** Everything else
+   for the concierge is built: SMS *and* WhatsApp inbound, shared
+   *and* dedicated-number routing, the fail-closed signature check.
+   Buy a Twilio number, set its "A MESSAGE COMES IN" webhook to
+   `POST /api/sms/inbound`, set `TWILIO_AUTH_TOKEN`, and tell guests
+   it exists. **WhatsApp needs no template approval for this** — a
+   reply inside the 24-hour window a guest's own message opens is
+   free-form, and the concierge only ever replies. See
+   `docs/CONCIERGE.md`.
 
 ### Closed since this list was written (2026-08-04)
 

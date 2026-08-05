@@ -38,7 +38,6 @@ import { normalizePhone } from '@/lib/sms';
 import { smsSiteFacts } from '@/lib/sms/site-facts';
 import {
   classifyMessage,
-  resolveCelebration,
   unknownNumberReply,
   disambiguationReply,
   escalationReply,
@@ -48,6 +47,8 @@ import {
   fitReply,
   type ConciergeMatch,
 } from '@/lib/sms/concierge';
+import { parseChannelAddress, channelLabel } from '@/lib/sms/channel';
+import { resolveWithNumber, normalizeNumberKey } from '@/lib/sms/number-routing';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generate, textFrom } from '@/lib/claude/client';
 import { overBudget, chargeAi, centsForUsage, approxTokens } from '@/lib/ai-budget';
@@ -142,6 +143,33 @@ async function matchesForPhone(
   return { matches, sites };
 }
 
+/**
+ * The celebration that owns the number this message came IN on, or
+ * null for the shared number.
+ *
+ * Never throws: a lookup failure degrades to the shared-number
+ * path, which asks rather than guesses. That's the right failure —
+ * a guest gets one extra question instead of silence.
+ */
+async function siteForConciergeNumber(
+  supabase: SupabaseClient,
+  to: string | null | undefined,
+): Promise<string | null> {
+  const key = normalizeNumberKey(parseChannelAddress(to)?.phone);
+  if (!key) return null;
+  try {
+    const { data } = await supabase
+      .from('sites')
+      .select('id')
+      .eq('concierge_number', key)
+      .maybeSingle();
+    return (data?.id as string | undefined) ?? null;
+  } catch (err) {
+    console.warn(TAG, 'concierge-number lookup failed (non-fatal):', err);
+    return null;
+  }
+}
+
 /** Ask Pear, grounded strictly in the fact sheet. */
 async function answerFromFacts(facts: string, question: string, budgetKeyStr: string): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
@@ -204,7 +232,15 @@ export async function POST(req: NextRequest) {
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  const from = normalizePhone(params.From ?? '');
+  /* SMS and WhatsApp arrive on this same webhook; WhatsApp just
+     prefixes the addresses. The prefix MUST come off before guest
+     lookup — guest rows hold bare numbers, so leaving it on would
+     make a real guest a stranger and hand them the
+     unknown-number reply. Twilio routes the response back on the
+     channel the request came in on, so replying is automatic. */
+  const inbound = parseChannelAddress(params.From);
+  const from = inbound ? normalizePhone(inbound.phone) : null;
+  const channel = inbound?.channel ?? 'sms';
   const bodyText = params.Body ?? '';
   if (!from) return twiml();
 
@@ -214,9 +250,11 @@ export async function POST(req: NextRequest) {
   if (kind === 'help') return twiml(helpReply());
   if (kind === 'empty') return twiml();
 
-  // Per-number limit. Generous enough for a real conversation,
-  // tight enough that the number can't be farmed for AI spend.
-  const rl = checkRateLimit(`sms-inbound:${from}`, { max: 12, windowMs: 10 * 60_000 });
+  // Per-number limit, keyed per channel so one person reaching us
+  // both ways isn't throttled by their own other conversation.
+  // Generous enough for a real exchange, tight enough that the
+  // number can't be farmed for AI spend.
+  const rl = checkRateLimit(`sms-inbound:${channel}:${from}`, { max: 12, windowMs: 10 * 60_000 });
   if (!rl.allowed) {
     return twiml('You’ve sent a few in a row — give me a minute and try again.');
   }
@@ -239,7 +277,16 @@ export async function POST(req: NextRequest) {
     return twiml();
   }
 
-  const resolution = resolveCelebration(matches);
+  /* Which number did they text? A celebration with its own
+     concierge number needs no disambiguation — the number names the
+     event. It NARROWS and never widens: a guest who isn't on that
+     celebration's list is told nothing, and is deliberately not
+     answered about some other celebration they do belong to. A
+     phone number is far more guessable than a passport token, so a
+     bought number must never become a probe against a guest list. */
+  const dedicatedSiteId = await siteForConciergeNumber(supabase, params.To);
+
+  const resolution = resolveWithNumber(matches, dedicatedSiteId);
   // An unrecognised number is told nothing about anyone.
   if (resolution.kind === 'none') return twiml(unknownNumberReply());
   if (resolution.kind === 'many') return twiml(disambiguationReply(resolution.matches));
@@ -265,12 +312,12 @@ export async function POST(req: NextRequest) {
       siteLabel: match.siteLabel,
       ownerEmail: site.creator_email,
       category: 'replies',
-      title: `${match.guestName || 'A guest'} texted a question`,
+      title: `${match.guestName || 'A guest'} asked a question by ${channelLabel(channel)}`,
       body: fitReply(bodyText, 240),
       href: '/dashboard/messages',
       // One notification per guest per message — Twilio retries a
       // webhook on timeout, and the host should not see doubles.
-      dedupeKey: `sms-q:${match.siteId}:${params.MessageSid || `${from}:${bodyText.slice(0, 40)}`}`,
+      dedupeKey: `sms-q:${match.siteId}:${params.MessageSid || `${channel}:${from}:${bodyText.slice(0, 40)}`}`,
       forceInstantEmail: true,
     });
   }
