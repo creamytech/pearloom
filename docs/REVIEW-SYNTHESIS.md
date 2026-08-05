@@ -227,9 +227,14 @@ Ideas appearing in only one review that survive contact with the code.
 
 **From R2 (Grok):**
 
-- **Voice-note / "text me the details" host intake** — pairs the existing
-  transcription route (`voice-dna/transcribe`) with wizard extraction;
-  directly serves the tested 60-year-old and quinceañera-dad personas.
+- **Voice-note host intake** — SHIPPED 2026-08-05 as `<VoiceIntake>` on
+  the wizard's Basics step. NO new API surface: a transcript is just
+  text, so it composes the existing `/api/voice-dna/transcribe` with
+  `lib/doorway/extract`, the same deterministic parser the paste
+  doorway uses. Fill-only (a misheard word must never eat an answer
+  already given), shows the transcript so nothing is filled in
+  silently, and hidden when signed out — the transcribe route needs a
+  session and a button that 401s is worse than no button.
 - **Venue partnerships** as a distribution channel neither other review
   named — venues already push couples toward websites.
 - **Instrument the wow moments** — SHIPPED 2026-08-05. `arrival_seen` /
@@ -238,9 +243,13 @@ Ideas appearing in only one review that survive contact with the code.
   theatre landed), `loom_seen` (with strand count — an empty loom and a
   full one are different experiences), and `press_sheet_opened` (with
   `via: toolbar | send-flow`). Measure before building more of them.
-- **A human-backed support path for memorials** — free tier + solemn
-  occasion + zero tolerance for automation failures implies a visible
-  human escalation route. Neither code nor docs have this today.
+- **A human-backed support path for memorials** — STILL OPEN, and
+  deliberately not built: the surface is ten minutes of work, but it
+  promises a human, and there is no support inbox or person to route
+  it to. Naming a real destination is an owner decision; shipping the
+  button first would be the custom-domain mistake again — a promise
+  with nothing behind it, on the one occasion where being let down is
+  least forgivable.
 - **Unit-economics model** for decade-lived free/memorial sites — a
   spreadsheet, not code, but nobody has built it.
 
@@ -269,8 +278,11 @@ Ideas appearing in only one review that survive contact with the code.
   cards, vendor call sheets, PDF export route) and it deepens the
   print-at-home story that replaced Pearloom Print. High fit, modest
   cost.
-- **Metered concierge units** in the paid tier (e.g. 500 interactions
-  included) — answers the audit's unmodeled-AI-tail concern concretely.
+- **Metered concierge units** — covered in substance by the per-account
+  daily AI dollar cap (`lib/ai-budget`, ~40 routes incl. the concierge),
+  which bounds the tail this was raised to address. Formalising it as a
+  per-plan interaction quota is premature until the concierge is in
+  real use and there's a number worth choosing.
 
 **From R1 (ChatGPT), still unique after two challenges:**
 

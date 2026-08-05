@@ -36,6 +36,7 @@ import { StoryListen } from '../wizard/StoryListen';
 import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
+import { VoiceIntake } from '../wizard/VoiceIntake';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import {
   normalizeImageFile,
@@ -2659,6 +2660,12 @@ export function WizardV8() {
   const stRef = useRef(st);
   stRef.current = st;
 
+  /* Sampled once per mount, not read during render — the React
+     Compiler rule this repo lints for. Passed into the extractor so
+     "September 12th" resolves to a year without the parser reaching
+     for a clock of its own. */
+  const [wizardNowYear] = useState(() => new Date().getFullYear());
+
   /* The planner's shape (?shape=<slug>). Fetched once; the wizard
      runs identically when it's absent, fails, or names a site this
      account can't read — /api/sites only ever returns their own. */
@@ -3954,6 +3961,30 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Just the bones, you can make anything optional later.
                   </p>
+                  {/* Say it instead of typing it (synthesis §3, R2).
+                      For the 60-year-old anniversary host and the
+                      quinceanera dad the persona work walked, a form
+                      on a phone IS the barrier. Fill-only: a misheard
+                      word must never eat an answer they already gave.
+                      Hidden when signed out — the transcribe route
+                      needs a session, and a button that 401s is worse
+                      than no button. */}
+                  <div style={{ margin: '0 0 20px' }}>
+                    <VoiceIntake
+                      enabled={authStatus === 'authenticated'}
+                      nowYear={wizardNowYear}
+                      onPrefill={(pre) => setSt((prev) => {
+                        const next = { ...prev };
+                        if (pre.names && !prev.names[0] && !prev.names[1]) next.names = pre.names;
+                        if (pre.eventDate && !prev.eventDate) next.eventDate = pre.eventDate;
+                        if (!prev.location) {
+                          const place = pre.venueName || pre.location;
+                          if (place) next.location = place;
+                        }
+                        return next;
+                      })}
+                    />
+                  </div>
                   <div
                     className="pl8-basics-grid"
                     style={{
