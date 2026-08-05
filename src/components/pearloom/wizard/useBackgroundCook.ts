@@ -46,6 +46,41 @@ export interface BackgroundCookStatus {
   error: string | null;
 }
 
+/**
+ * SPECULATIVE DECOR COOKING IS OFF (2026-08-05).
+ *
+ * The orphaned-field sweep followed this hook to its consumer and
+ * found there isn't one on the site. The chain:
+ *
+ *   occasion + palette resolve (step 1 — the palette has a default,
+ *   so this fires almost immediately)
+ *     → POST /api/decor/library with all four slots
+ *     → FOUR OpenAI image generations, the most expensive call in
+ *       the product
+ *     → sessionStorage → folded into `manifest.decorLibrary` at
+ *       finish
+ *     → ThemedSite reads `manifest.decorLibrary` … never. Zero
+ *       references across redesign/, site/ and app/sites/.
+ *
+ * The venue and vibe are part of the cache signature, so typing a
+ * different venue or picking different vibes re-keys it and cooks
+ * four more. A host trying three palettes pays for twelve images
+ * and sees none of them on their site.
+ *
+ * The assets are not entirely unused — the stationery Studio offers
+ * them as card flourishes — which is why this is a switch rather
+ * than a deletion. But paying for four images per wizard run on the
+ * chance the host later opens the Studio is the wrong shape: that
+ * spend should happen when a consumer actually exists. Hosts who
+ * want decor still generate it deliberately in the editor's Decor
+ * Library, which writes the same fields through the same routes.
+ *
+ * Flip this to `true` to restore the pre-warm — and if the site
+ * renderer ever learns to draw `decorLibrary`, flip it and delete
+ * this note.
+ */
+export const SPECULATIVE_DECOR_COOK = false;
+
 const DECOR_CACHE_PREFIX = 'pearloom:cook:decor:';
 
 /** Stable cache key for a given cook context. The signature must
@@ -92,7 +127,9 @@ export function useBackgroundCook(sig: CookSignature | null): BackgroundCookStat
      a real signature change or unmount. */
   const sigRef = useRef(sig);
   sigRef.current = sig;
-  const key = sig && sig.occasion && sig.paletteHex.length ? decorCacheKey(sig) : null;
+  const key = SPECULATIVE_DECOR_COOK && sig && sig.occasion && sig.paletteHex.length
+    ? decorCacheKey(sig)
+    : null;
 
   useEffect(() => {
     if (!key) return;
