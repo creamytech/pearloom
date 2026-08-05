@@ -36,6 +36,7 @@ import {
   weftFromStrand,
   type LoomStrand,
 } from './loom-weave';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
@@ -62,6 +63,8 @@ export function LoomTapestry({
   occasion?: string;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  /** One 'loom_seen' per mount, outside the setState updater. */
+  const seenSentRef = useRef(false);
   const [live, setLive] = useState<LoomFeed | null>(null);
   /** Strand count at first load — later arrivals skip the stagger. */
   const [initialCount, setInitialCount] = useState<number | null>(null);
@@ -83,6 +86,18 @@ export function LoomTapestry({
         if (cancelled || !data.ok || !Array.isArray(data.strands)) return;
         const feed: LoomFeed = { strands: data.strands, total: data.total ?? data.strands.length };
         setInitialCount((prev) => prev ?? feed.strands.length);
+        /* First real load only — measure that a guest SAW woven
+           cloth, and how much of it. An empty loom and a loom with
+           sixty strands are different experiences, and R2's point was
+           to find out which one guests actually meet before building
+           more moments like it.
+           Guarded by a ref, NOT by the setState updater: updaters
+           must stay pure (StrictMode calls them twice), and a beacon
+           in one would double-count every view. */
+        if (!seenSentRef.current) {
+          seenSentRef.current = true;
+          trackEvent('loom_seen', { strands: feed.total }, siteSlug);
+        }
         /* Never let a stale cached read unravel an optimistic
            strand the guest just watched join. */
         setLive((prev) => (prev && prev.total > feed.total ? prev : feed));

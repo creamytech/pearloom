@@ -53,6 +53,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { rsvpReplyBy } from '@/lib/next-step';
 import { Motif, type MotifKind } from './MotifScatter';
 import { deriveInitials } from '@/lib/monogram';
+import { trackEvent } from '@/lib/analytics/beacon';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -142,6 +143,11 @@ export function ArrivalReveal({ manifest, names, siteSlug, theme, rsvpLabel }: P
       try { seen = window.localStorage.getItem(seenKey(siteSlug)) === '1'; } catch { /* ignore */ }
       if (!seen) {
         setMode(style);
+        /* R2's note in the synthesis: the sealed envelope, the Loom
+           and the press sheet already exist — MEASURE whether they
+           land before building more of them. This is the "was it
+           seen at all" half. */
+        trackEvent('arrival_seen', { style }, siteSlug);
         return;
       }
       let flourished = true;
@@ -457,10 +463,16 @@ function EnvelopeArrival({
     return () => ctrl.abort();
   }, [siteSlug]);
 
-  function open() {
+  /* `via` is the whole point of measuring this: an envelope that
+     auto-opens on its 4.2s timer tells us nothing about whether the
+     theatre landed. A guest who TAPS the seal does. Counting both
+     as one number would make a moment nobody engages with look
+     identical to one everybody loves. */
+  function open(via: 'tap' | 'auto' | 'key' = 'tap') {
     if (openedRef.current) return;
     openedRef.current = true;
     try { window.localStorage.setItem(seenKey(siteSlug), '1'); } catch { /* ignore */ }
+    trackEvent('arrival_opened', { via }, siteSlug);
     setPhase('opening');
   }
 
@@ -468,11 +480,11 @@ function EnvelopeArrival({
   // never a gate.
   useEffect(() => {
     if (!ready || phase !== 'sealed') return;
-    const t = setTimeout(open, 4200);
+    const t = setTimeout(() => open('auto'), 4200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, phase]);
-  useEscapeTo(open, phase === 'sealed');
+  useEscapeTo(() => open('key'), phase === 'sealed');
 
   // Opening choreography: flap + seal (0–0.6s) → threads draw at the
   // seam (0.35–1.1s) → panels part (0.55–1.5s) → done. Then the RSVP
@@ -509,7 +521,7 @@ function EnvelopeArrival({
       {phase !== 'done' && (
         <div
           role="presentation"
-          onClick={open}
+          onClick={() => open('tap')}
           onPointerMove={onPointerMove}
           style={{ position: 'fixed', inset: 0, zIndex: 9990, cursor: 'pointer' }}
         >
@@ -785,7 +797,7 @@ function EnvelopeArrival({
           {/* Screen-reader affordance — the visual stage is decorative. */}
           <button
             type="button"
-            onClick={open}
+            onClick={() => open('tap')}
             style={{
               position: 'absolute', width: 1, height: 1, overflow: 'hidden',
               clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', border: 0, padding: 0,

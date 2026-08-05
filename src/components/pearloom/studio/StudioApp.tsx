@@ -45,6 +45,7 @@ import { MobileSheet } from '../redesign/MobileSheet';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { StudioPressSheet } from './StudioPressSheet';
+import { trackEvent } from '@/lib/analytics/beacon';
 import { StudioProofSheet } from './StudioProofSheet';
 import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -939,7 +940,14 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           <span aria-hidden="true" style={{ width: 1, height: 14, background: 'var(--line, rgba(14,13,11,0.16))' }} />
           <button
             type="button"
-            onClick={() => setShowPrintPair(true)}
+            onClick={() => {
+              /* The press sheet is the third "wow moment" the
+                 synthesis asked us to MEASURE before building more
+                 like it (R2). `via` separates a host who went looking
+                 for it from one handed it by the Send flow. */
+              trackEvent('press_sheet_opened', { via: 'toolbar', type: state.type });
+              setShowPrintPair(true);
+            }}
             style={{
               padding: '0 10px',
               height: 28,
@@ -1199,6 +1207,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
           onClose={() => setField('showSend', false)}
           onSent={() => setStatsTick((t) => t + 1)}
           onPressReadyPdf={() => {
+            trackEvent('press_sheet_opened', { via: 'send-flow', type: state.type });
             setField('showSend', false);
             setShowPrintPair(true);
           }}

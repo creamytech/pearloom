@@ -232,9 +232,12 @@ Ideas appearing in only one review that survive contact with the code.
   directly serves the tested 60-year-old and quinceañera-dad personas.
 - **Venue partnerships** as a distribution channel neither other review
   named — venues already push couples toward websites.
-- **Instrument the wow moments** — the sealed envelope, the tapestry, the
-  press sheet already exist; measure whether they're seen and shared
-  before building more of them.
+- **Instrument the wow moments** — SHIPPED 2026-08-05. `arrival_seen` /
+  `arrival_opened` (with `via: tap | auto | key`, because an envelope
+  that opens on its own 4.2s timer says nothing about whether the
+  theatre landed), `loom_seen` (with strand count — an empty loom and a
+  full one are different experiences), and `press_sheet_opened` (with
+  `via: toolbar | send-flow`). Measure before building more of them.
 - **A human-backed support path for memorials** — free tier + solemn
   occasion + zero tolerance for automation failures implies a visible
   human escalation route. Neither code nor docs have this today.
