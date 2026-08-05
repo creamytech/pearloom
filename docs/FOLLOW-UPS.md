@@ -97,7 +97,12 @@ CLAUDE-PRODUCT §10 (2026-07-06) for the full ledger.
   that the 7 migrations applied 2026-07-06 match prod (they do as of this note —
   see `_pearloom_migrations`).
 
-## C · Finish the keystone (Phase 1 remainder) — HIGH VALUE
+## C · Finish the keystone (Phase 1 remainder) — ✅ SHIPPED, section retained for history
+
+> **STALE as of 2026-08-05.** §0 above already records this as
+> "COMPLETE + live" — the costSplitter graduated to the live ledger,
+> the split bell kind exists, RSVP seeds participants. The list below
+> was never struck through when the work landed. Read §0, not this.
 
 The backend is done + live (`participants`/`expenses`/`expense_shares`, the
 `/api/split/*` routes, `lib/budget/split.ts`). What's left is the visible payoff:
@@ -120,7 +125,12 @@ The backend is done + live (`participants`/`expenses`/`expense_shares`, the
 - **Seed on first open**: wire `seedFromBachelorCosts` (already built + tested in
   `lib/budget/split-seed.ts`) behind a one-tap "bring in your weekend costs".
 
-## D · Remaining plan phases (each is 1–2 sessions — see GRAND-PLAN §6)
+## D · Remaining plan phases — ✅ SHIPPED, section retained for history
+
+> **STALE as of 2026-08-05.** §0 records "GRAND-PLAN executed end-to-end",
+> which covers Phases 2–6 below. Premium tiers were the one genuine
+> remainder and are now wired (see docs/MONETIZATION.md, enforcement
+> status). Read §0, not this.
 
 - **Phase 2 — Journey free-flow**: try-before-signup (reach a drafted site pre-account),
   land→`/welcome` intent actually firing, retire the `/gate` wall at launch,
@@ -165,10 +175,14 @@ The backend is done + live (`participants`/`expenses`/`expense_shares`, the
   (`delete-account` / `export-data`).
 - 🧪 **One true guest-facing e2e** (RSVP submit + registry claim). Today 43/64 e2e are
   on the stationery-studio chrome.
-- 🧪 **Flaky test to fix**: `src/lib/password.test.ts` "tampered/malformed hashes" is
-  non-deterministic — `hashPassword` uses a random salt, so ~1/256 runs the hash ends
-  in `ff` and `slice(-2)+'ff'` re-verifies. Make it deterministic (seed the salt or
-  assert on a fixed known hash).
+- ✅ **DONE 2026-08-05 — the flaky password test.** The tamper now flips
+  the final hex digit, which differs for every possible input, instead of
+  appending a fixed `ff` that collided with ~1 salt in 256. Pinned by an
+  EXHAUSTIVE check over all 16 final characters (the flakiness lived in the
+  string transform, not in scrypt, so it's proved where it costs nothing)
+  plus a small sample of real hashes. A first attempt at 500 real hashes
+  timed out — scrypt is deliberately slow — which is why the expensive half
+  is a sample and the cheap half is exhaustive.
 
 ## G · Architecture / tech-debt surfaced this build
 
