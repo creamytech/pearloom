@@ -200,31 +200,87 @@ RSVP durable → passport opens → no phantom-column errors in the log.
 **Goal:** one source of schema truth; the repo rebuilds prod; CI proves
 it forever. (H5b, L9, L90; REVIEW-SYNTHESIS §1.1 item 8 closed.)
 
-- **S.1 Baseline + reconcile.** Dump prod schema → a baseline
-  migration. Reconcile both directions: create-what-code-needs
-  (`user_plans`✓W.8, `section_analytics`✓W.8, `site_invites`,
-  `guestbook_messages`, `whispers.message/read_at`, `marketplace_
-  purchases`, plus decide-or-delete for `announcements`,
-  `email_captures`, `gallery_photos`, `invite_tokens`, `photos`,
-  `time_capsules`); port-what-prod-has (`guests_site_email_unique` and
-  every index/constraint the dump shows). Delete dead prod schema or
-  adopt it (`referrals` orphan — adopt: the referral ledger reads it,
-  L90/L91 reconciled).
-- **S.2 The staging CI gate.** A workflow job: build Postgres from
-  migrations (the audit harness — local PG + the PostgREST emulator —
-  is the working prototype; productize it under `scripts/staging/`),
-  boot the app against it, run `critical-journey.spec.ts` + the
-  webhook grant test. Red = no merge.
-- **S.3 Poll hygiene.** The bell's guestbook/whispers polls stop
-  erroring (tables now exist) — and fail loudly in dev if a query
-  errors, never silently empty (the masking pattern that hid L1).
-- **S.4 Migration discipline.** CLAUDE-DESIGN §12 amended: schema
-  changes land as migration + MCP apply + both trackers, with the S.2
-  gate as the enforcement.
+- **S.1 Baseline + reconcile. — SHIPPED 2026-08-12.** The full
+  three-way diff (prod 95 tables ↔ migrations-built ↔ working local)
+  ran both directions and closed clean:
+  · *Port-what-prod-has:* `guests_site_email_unique` +
+    `guests_passport_token_idx` were already in migrations
+    (`20260604_guests_and_security_fixes.sql`) — no port needed;
+    prod's `vendors.amount_cents/site_id/status` (an ad-hoc shape
+    predating `20260416_event_os`) ported via
+    `20260812_schema_parity.sql`.
+  · *Create-what-code-needs:* `marketplace_purchases` (read by
+    /api/marketplace/owned, written by /api/billing/webhook, existed
+    NOWHERE) created in `20260812_schema_parity.sql`;
+    `time_capsules` (the Love Letter capsule route + the live
+    /time-capsule/[token] page ran on an in-memory Map — every
+    sealed letter evaporated on deploy) created in
+    `20260812_time_capsules.sql`.
+  · *Decide-or-delete, all six decided:* `photos` DB reads →
+    repointed to `guest_photos` (companion feed + the post-event
+    film; the storage-bucket `photos` refs were never phantom);
+    `gallery_photos` → its whole chain repointed to `guest_photos`
+    (reel, recap page, day-after count) and the orphaned
+    /api/gallery route DELETED (its only caller was the unmounted
+    legacy GuestPassport); `announcements` → broadcast/push now
+    writes the real `day_of_announcements` (every push broadcast's
+    in-app copy had silently vanished); `invite_tokens` → the dead
+    legacy branches removed from /api/invite/ics and /i/[token]
+    (the table never existed anywhere, so no legacy row could ever
+    match; /i/ now resolves guest tokens directly), and the dead
+    /api/invite/rsvp + GuestPassport + InviteRsvpForm deleted;
+    `email_captures` → /api/email-capture DELETED (zero callers);
+    `referrals` → NOT adopted (the diff showed prod never had it —
+    the ledger reads `referral_credits`, which is real; the L90/L91
+    plan note was wrong about adoption).
+  · *Local purified:* hand-patch columns `sites.domain`/`user_id`,
+    the dup `guests_site_email_uniq` index, and the local
+    `referrals` table dropped; `_pearloom_migrations` recreated in
+    prod's exact shape. Fresh-from-migrations ≡ working local:
+    **identical**.
+  · **Pending prod applies (Supabase MCP re-auth needed):**
+    `20260529_registry_claims_idempotency.sql` and
+    `20260530_account_deletions_audit.sql` (both authored long ago,
+    never applied) + `20260812_schema_parity.sql` +
+    `20260812_time_capsules.sql`. Also pending: a prod
+    unique-index dump to diff against migrations (tables/columns
+    are verified clean; indexes were verified for the RSVP-critical
+    pair only).
+- **S.2 The staging CI gate. — SHIPPED 2026-08-12.** The emulator
+  productized at `scripts/staging/pearlrest.mjs` (env-driven config,
+  `.data/` scratch, README) with `scripts/staging/migrate.mjs` as
+  `npm run db:migrate` — bootstraps Supabase-isms (roles, auth.jwt
+  stub, pgcrypto) onto plain Postgres and applies all migrations in
+  lexical order with a deferral-retry pass (the one same-day
+  inversion, crew_threads→person_threads, retries clean). Verified
+  against a truly empty database: 82 migrations apply, and the whole
+  stack (empty PG → db:migrate → emulator → app) passes the fence
+  suite 7/7 including first-ever e2e-user sign-in on a zero-row DB.
+  `.github/workflows/staging-fence.yml` runs exactly that on every
+  PR (postgres:16 service, route pre-warm, doorway +
+  press-idempotency + publish-gate specs; the plan named
+  `critical-journey.spec.ts` before the fence specs existed — the
+  three W-sprint fences ARE the critical journey). Red = no merge.
+- **S.3 Poll hygiene. — SHIPPED 2026-08-12.** The bell's sources
+  stopped erroring when W.8/S.1 created their tables — and
+  `warnFeed()` now threads every source's supabase `error` (which
+  never throws, so the old try/catch caught nothing) into a loud
+  `[notifications]` server warning. A failing source still drops
+  only itself, but it can no longer impersonate "no news" — the
+  masking pattern that hid L1 is structurally gone in feed.ts.
+- **S.4 Migration discipline. — SHIPPED 2026-08-12.** CLAUDE-DESIGN
+  §12 amended with the four rules: the migration IS the schema
+  (db:migrate from empty must work, hand patches are missing
+  migrations), the staging fence enforces it on every PR, every
+  migration lands in prod same-day via MCP + `_pearloom_migrations`
+  (filename PK shape both ends), and new code never reads a column
+  no migration declares.
 
 **Counts as done:** `npm run db:migrate` against empty Postgres yields
-a DB where the full e2e passes; CI runs it on every PR; prod and
-migrations diff clean.
+a DB where the full e2e passes ✓ (7/7 on a zero-row build); CI runs it
+on every PR ✓ (staging-fence.yml); prod and migrations diff clean ✓ on
+tables/columns (the only deltas are the four pending prod applies
+listed above; the index-level diff awaits MCP re-auth).
 
 ---
 

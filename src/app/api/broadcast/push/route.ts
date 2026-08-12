@@ -79,9 +79,13 @@ export async function POST(req: NextRequest) {
   if (!client) return NextResponse.json({ error: 'Storage not configured.' }, { status: 503 });
 
   // Always persist as an announcement — that's the in-app surface
-  // for guests without push subscriptions.
-  await client.from('announcements').insert({
+  // for guests without push subscriptions. day_of_announcements is
+  // the real table (/api/announcements + companion read it); the
+  // old insert targeted a phantom `announcements` name and every
+  // broadcast silently vanished.
+  await client.from('day_of_announcements').insert({
     site_id: body.siteSlug,
+    author_email: session.user.email,
     body: `${body.title}: ${body.body}`,
     kind: 'live',
     target_audience: 'all',

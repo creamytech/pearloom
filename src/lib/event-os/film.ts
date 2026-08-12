@@ -129,10 +129,13 @@ async function gatherSources(siteId: string): Promise<FilmSources> {
       .select('*')
       .eq('site_id', siteId)
       .eq('moderation_status', 'approved'),
+    // guest_photos is the unified photo spine (there is no `photos`
+    // table — this read used to return nothing, ever).
     sb
-      .from('photos')
+      .from('guest_photos')
       .select('url')
       .eq('site_id', siteId)
+      .neq('status', 'rejected')
       .order('created_at', { ascending: true })
       .limit(120),
   ]);

@@ -59,7 +59,11 @@ export default defineConfig({
   webServer: {
     command: `cross-env PEARLOOM_E2E=1 NODE_ENV=development next dev -p ${PORT}`,
     url: HOST,
-    reuseExistingServer: !process.env.CI,
+    // Reuse in CI too: the staging-fence workflow pre-starts the dev
+    // server and curl-warms the heavy routes so cold Turbopack
+    // compiles don't eat the per-test navigation timeout. When no
+    // server is on the port, Playwright still boots its own.
+    reuseExistingServer: true,
     timeout: 180_000,
     stdout: 'pipe',
     stderr: 'pipe',

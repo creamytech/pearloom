@@ -66,10 +66,13 @@ export async function GET(
         .eq('site_id', guest.site_id)
         .eq('guest_id', guest.id)
         .maybeSingle(),
+      // guest_photos is the unified photo spine (there is no
+      // `photos` table — the old read here returned nothing, ever).
       client
-        .from('photos')
+        .from('guest_photos')
         .select('url, caption, created_at')
         .eq('site_id', guest.site_id)
+        .neq('status', 'rejected')
         .order('created_at', { ascending: false })
         .limit(30),
     ]);

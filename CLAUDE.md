@@ -5,25 +5,37 @@
 
 ## Active focus
 
-**Sprint W — THE WIRES** (`docs/REVAMP-EXECUTION-PLAN.md` §2).
-Goal: reconnect the ten severed wires from `docs/NEW-USER-REVAMP.md`
-§1 — every P0 from the 2026-08-12 full-simulation audit — each pinned
-by a cross-seam fence test.
+**Sprint G — THE GUEST SPINE** (`docs/REVAMP-EXECUTION-PLAN.md` §4).
+Sprints W (THE WIRES) and S (THE SCHEMA) shipped in full 2026-08-12 —
+all stamps in the plan doc. S landed: the three-way schema diff clean
+(fresh-from-migrations ≡ local; prod deltas = the four pending MCP
+applies listed in plan §3 S.1), `npm run db:migrate` builds a working
+DB from empty Postgres (82 migrations, deferral-retry ordering), the
+staging fence workflow (`.github/workflows/staging-fence.yml`) runs
+the full stack + fence suite on every PR (rehearsed locally on a
+zero-row DB: 7/7), all six phantom-table reads decided (repointed to
+guest_photos / day_of_announcements / guests tokens, dead routes
+deleted, time_capsules created), and warnFeed ended the bell's
+silent-empty masking.
 
-Open threads (stamp SHIPPED in the plan doc as each lands):
-W.1 doorway reopened · W.2 idempotent press · W.3 publish real ·
-W.4 guest-read contract · W.5 passport resolves · W.6 durable replies ·
-W.7 /store/success · W.8 grant storage · W.9 phantom columns ·
-W.10 reads-don't-write · W.11 story lands · W.12 health probe.
+Goal: one guest identity, occasion-true honest asks, a passport worth
+the name (the R2 revamp, first half).
 
-Counts as done: the scripted Maya walk (landing → signed-out wizard →
-one press one site → story present → publish gates → RSVP durable →
-passport opens) passes green; every block's fence in CI; tsc/eslint/
-vitest/build green; commits pushed to
-`claude/new-user-platform-experience-7rkzv6`.
+Open threads: G.1 collapse the guests/pearloom_guests fork behind one
+adapter (no `pearloom_guests` refs outside it; W.5 e2e keeps passing)
+· G.2 rsvpPreset drives GuestRsvpModal (memorial gets memorial
+fields) · G.3 conditioned asks (no menu → no meal question; nothing
+pre-selected or stored unasked) · G.4 passport phone-first at 390px,
+signed by the couple · G.5 registry honesty (empty → nothing, never
+"we've put a few things together") · G.6 .ics real times + hero
+anchors that exist · G.7 guest-surface contrast floor.
 
-Skip: anything from Sprints S–D that isn't required to land a W block;
-no new product surface.
+Counts as done: the four occasion worlds (wedding, memorial,
+bachelorette, baby shower) each pass a guest-side e2e — honest form,
+durable reply, working passport, working calendar, no false claims.
+
+Skip: Sprints T–D work not needed for a G block; the pending prod
+MCP applies (owner/Supabase re-auth — listed in plan §3).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**

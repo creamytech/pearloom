@@ -238,6 +238,13 @@ Unchanged contract: `getServerSession` → `checkRateLimit` → JSON parse in tr
 
 Supabase: migrations in `supabase/migrations/` AND applied to prod (project `vpwnpxowqflajvqpgvyb`) via MCP, tracked in `_pearloom_migrations`. RLS pattern is belt-and-braces restrictive `deny-anon` + service-role client in routes. Key recent tables: `people` (guest identity, lowercase-email keyed), `site_messages` (party thread + host↔guest DMs), `account_credentials` (scrypt), `user_preferences` (avatar, onboarding, intent). Realtime: content-free pings on `pl-msg-${siteId}` broadcast channels (`src/lib/messages-realtime.ts`); refetches stay token-authed.
 
+**Migration discipline (2026-08-12, Sprint S).** The first full prod ↔ migrations diff found five drifts (phantom `sites.domain`/`user_id` reads that 403'd owners; `marketplace_purchases` read by live routes but declared nowhere; two migrations authored but never applied to prod). The rules that keep it from recurring:
+
+1. **The migration IS the schema.** `npm run db:migrate` (`scripts/staging/migrate.mjs`) must build a working database from an empty Postgres — no hand patches, ever. If staging needs a manual `ALTER`, that's a missing migration; file it. `npm run db:migrate:remote` (`scripts/db-migrate.ts`) is the applier for a real Supabase DB.
+2. **The fence enforces it.** `.github/workflows/staging-fence.yml` rebuilds the whole staging stack (empty postgres:16 → db:migrate → the pearlrest emulator → the real app) and runs the fence e2e suite (`e2e/specs/doorway|press-idempotency|publish-gate`) on every PR. A migration that only works because prod already had the table goes red before merge. The stack itself is documented in `scripts/staging/README.md`.
+3. **Every migration lands in prod the same day** via MCP `apply_migration` + a row in `_pearloom_migrations` (`filename` PK, `applied_at` — this exact shape, both ends). Pending applies (blocked on MCP re-auth) are tracked in REVAMP-EXECUTION-PLAN §3: `20260529_registry_claims_idempotency`, `20260530_account_deletions_audit`, `20260812_schema_parity`.
+4. **New code never reads a column no migration declares.** The three `sites.domain`/`sites.user_id` readers were exactly this; the fence catches the next one because staging is migrations-built.
+
 ---
 
 ## 13 · Naming + conventions

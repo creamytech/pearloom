@@ -13,7 +13,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:visual": "playwright test tests/e2e/theme-packs.spec.ts --project=theme-packs-visual",
-    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:migrate": "node scripts/staging/migrate.mjs",
+    "db:migrate:remote": "tsx scripts/db-migrate.ts",
+    "staging:rest": "node scripts/staging/pearlrest.mjs",
     "assets:extract": "tsx scripts/extract-assets.ts",
     "backfill-theme-vars": "tsx scripts/backfill-theme-vars.ts"
   },

@@ -5,7 +5,7 @@
 // the signed-in user has across every site they own:
 //   · site manifest coverPhoto + heroSlideshow
 //   · chapter images from the manifest
-//   · guest-submitted photos from /api/gallery per site
+//   · guest-submitted photos (guest_photos, the unified spine)
 //
 // Returns them merged, de-duplicated, newest first.
 //
@@ -113,13 +113,17 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Guest-submitted gallery photos.
-    const siteIds = owned.map((s) => s.id);
-    if (siteIds.length) {
+    // Guest-submitted photos — guest_photos is the unified photo
+    // spine, keyed by SUBDOMAIN. (The old read here targeted
+    // `gallery_photos`, a table that never existed in any
+    // environment; Sprint S.1.)
+    const domains = owned.map((s) => s.domain).filter(Boolean);
+    if (domains.length) {
       const { data: galleryRows, error: gErr } = await supabase
-        .from('gallery_photos')
-        .select('id, url, site_id, uploaded_by, created_at')
-        .in('site_id', siteIds)
+        .from('guest_photos')
+        .select('id, url, site_id, uploader_name, created_at')
+        .in('site_id', domains)
+        .neq('status', 'rejected')
         .order('created_at', { ascending: false })
         .limit(limit);
       if (!gErr && galleryRows) {
@@ -127,10 +131,10 @@ export async function GET(req: NextRequest) {
           id: string;
           url: string;
           site_id: string;
-          uploaded_by: string | null;
+          uploader_name: string | null;
           created_at: string;
         }>) {
-          const s = owned.find((o) => o.id === g.site_id);
+          const s = owned.find((o) => o.domain === g.site_id);
           if (!s) continue;
           const m = (s.manifest ?? {}) as ManifestShape;
           const siteName =
@@ -143,7 +147,7 @@ export async function GET(req: NextRequest) {
             siteName,
             alt: null,
             source: 'guest',
-            uploadedBy: g.uploaded_by,
+            uploadedBy: g.uploader_name,
             uploadedAt: g.created_at,
           });
         }

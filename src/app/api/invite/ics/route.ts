@@ -119,25 +119,18 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = getSupabase();
-  /* Two token spaces: legacy invite_tokens rows (pre-INV.2 emails)
-     and the guests table's own passport/guest tokens (every email
-     since). Try legacy first, fall through to the passport. */
+  /* The guests table's own passport/guest tokens are the only token
+     space — every sent email links one. (An `invite_tokens` lookup
+     used to run first, but that table never existed in any
+     environment, so no legacy row could ever match; removed in
+     Sprint S.1.) */
   let tokenRow: { guest_id: string; site_id: string } | null = null;
-  const { data: legacyRow } = await supabase
-    .from('invite_tokens')
-    .select('guest_id, site_id')
-    .eq('token', token)
+  const { data: guestRow } = await supabase
+    .from('guests')
+    .select('id, site_id')
+    .or(`passport_token.eq.${token},guest_token.eq.${token}`)
     .maybeSingle();
-  if (legacyRow) {
-    tokenRow = legacyRow as { guest_id: string; site_id: string };
-  } else {
-    const { data: guestRow } = await supabase
-      .from('guests')
-      .select('id, site_id')
-      .or(`passport_token.eq.${token},guest_token.eq.${token}`)
-      .maybeSingle();
-    if (guestRow) tokenRow = { guest_id: guestRow.id as string, site_id: guestRow.site_id as string };
-  }
+  if (guestRow) tokenRow = { guest_id: guestRow.id as string, site_id: guestRow.site_id as string };
   if (!tokenRow) {
     return NextResponse.json({ error: 'invalid token' }, { status: 404 });
   }

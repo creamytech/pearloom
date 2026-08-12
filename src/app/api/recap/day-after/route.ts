@@ -133,18 +133,13 @@ async function runDayAfter(force?: string) {
     const names = (siteConfig.names as [string, string]) || ['', ''];
     const coupleDisplay = names.filter(Boolean).join(' & ') || 'You';
 
-    // Gather counts for the email copy. gallery_photos is keyed by
-    // the sites.id UUID; the guest photo wall (guest_photos) is keyed
-    // by subdomain — both feed the recap, so the "N photos" line must
-    // count both, otherwise a guest-only wall reads as an empty book.
-    // Only APPROVED guest photos count (pending/rejected never
-    // surface on the recap the email links to).
-    const [galleryCount, guestbookCount, guestPhotos] = await Promise.all([
-      supabase
-        .from('gallery_photos')
-        .select('id', { count: 'exact', head: true })
-        .eq('site_id', site.id as string)
-        .then((r) => r.count || 0),
+    // Gather counts for the email copy. guest_photos (the unified
+    // photo spine, keyed by subdomain) is the recap's photo source —
+    // only APPROVED guest photos count (pending/rejected never
+    // surface on the recap the email links to). A parallel
+    // `gallery_photos` count used to run here, but that table never
+    // existed in any environment (Sprint S.1).
+    const [guestbookCount, guestPhotos] = await Promise.all([
       supabase
         .from('guestbook_messages')
         .select('id', { count: 'exact', head: true })
@@ -152,7 +147,7 @@ async function runDayAfter(force?: string) {
         .then((r) => r.count || 0),
       getApprovedGuestPhotos(site.subdomain as string),
     ]);
-    const photoCount = galleryCount + guestPhotos.length;
+    const photoCount = guestPhotos.length;
 
     // Recipient list: creator + every co-host with editor / guest-manager role.
     const { data: hosts } = await supabase

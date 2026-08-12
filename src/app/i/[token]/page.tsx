@@ -39,17 +39,23 @@ export default async function InviteTokenPage({
   const { token } = await params;
   const supabase = getSupabase();
 
-  const { data: tokenRow } = await supabase
-    .from('invite_tokens')
-    .select('site_id, guests(id, passport_token, guest_token)')
-    .eq('token', token)
+  /* Resolve directly against the guests table's own tokens — the
+     only token space that has ever existed (the `invite_tokens`
+     table this route used to consult was never created in any
+     environment, so no /i/ link could resolve through it; Sprint
+     S.1). An old /i/ link that carried a real guest token still
+     lands in the themed arrival. */
+  const { data: guestRow } = await supabase
+    .from('guests')
+    .select('id, site_id, passport_token, guest_token')
+    .or(`passport_token.eq.${token},guest_token.eq.${token}`)
     .maybeSingle();
 
-  if (tokenRow) {
+  if (guestRow) {
     const { data: siteRow } = await supabase
       .from('sites')
       .select('subdomain, site_config, ai_manifest')
-      .eq('id', tokenRow.site_id as string)
+      .eq('id', guestRow.site_id as string)
       .maybeSingle();
 
     if (siteRow?.subdomain) {
@@ -57,16 +63,14 @@ export default async function InviteTokenPage({
       const config = siteRow.site_config as { occasion?: string } | null;
       const occasion = manifest?.occasion ?? config?.occasion;
 
-      const guest = tokenRow.guests as
-        | { id?: string; passport_token?: string | null; guest_token?: string | null }
-        | null;
-      let guestToken = String(guest?.passport_token ?? guest?.guest_token ?? '').trim() || null;
-      if (!guestToken && guest?.id) {
+      let guestToken =
+        String(guestRow.passport_token ?? guestRow.guest_token ?? '').trim() || null;
+      if (!guestToken) {
         // Pre-token guests get one minted so the arrival can
         // still address them. Best-effort — an anonymous arrival
         // is an acceptable fallback.
         const cols = guestTokenColumns();
-        const { error } = await supabase.from('guests').update(cols).eq('id', guest.id);
+        const { error } = await supabase.from('guests').update(cols).eq('id', guestRow.id);
         if (!error) guestToken = cols.passport_token;
       }
 

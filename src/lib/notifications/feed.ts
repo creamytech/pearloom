@@ -11,12 +11,23 @@
 // feed can never drift from the dashboards that render the same
 // rows. Each item carries both a `kind` (visual style in the
 // bell) and a `category` (the preference taxonomy in ./prefs).
-// Every source is individually try/caught — a missing table on
-// an older deployment silently drops that source, never the feed.
+// Every source is individually try/caught — a failing source
+// drops only itself, never the feed — but a query error is SAID
+// OUT LOUD via warnFeed below. The old fully-silent skip is how
+// the bell polled two nonexistent tables for a month without
+// anyone noticing (NEW-USER-REVAMP L1; Sprint S.3).
 // ─────────────────────────────────────────────────────────────
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { NotificationCategory } from './prefs';
+
+// A feed source that errors must not be indistinguishable from a
+// feed source with no news. Post-Sprint-S the schema is
+// migrations-complete, so any error here is a real bug — warn in
+// every environment (server logs only; the guest never sees it).
+function warnFeed(source: string, error: { message?: string } | null | undefined): void {
+  if (error) console.warn(`[notifications] ${source} source errored:`, error.message ?? error);
+}
 
 export interface FeedItem {
   id: string;
@@ -60,7 +71,7 @@ export async function fetchNotificationFeed(
 
   // ── RSVPs ──────────────────────────────────────────────
   try {
-    const { data: rsvps } = await supabase
+    const { data: rsvps, error: rsvpsErr } = await supabase
       .from('guests')
       .select('id, name, status, responded_at, created_at')
       .eq('site_id', siteId)
@@ -68,6 +79,7 @@ export async function fetchNotificationFeed(
       .gte('responded_at', since)
       .order('responded_at', { ascending: false })
       .limit(20);
+    warnFeed('guests', rsvpsErr);
     for (const r of (rsvps ?? []) as Array<{ id: string; name: string; status: string; responded_at: string }>) {
       const verb = r.status === 'attending' ? 'is in'
                  : r.status === 'declined' ? "can't make it"
@@ -90,13 +102,14 @@ export async function fetchNotificationFeed(
   // column `guest_name`; `guestbook_messages` is the older wedding
   // OS writer — pick up both so no note is lost.
   try {
-    const { data: notes } = await supabase
+    const { data: notes, error: notesErr } = await supabase
       .from('guestbook')
       .select('id, guest_name, message, created_at')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('guestbook', notesErr);
     for (const n of (notes ?? []) as Array<{ id: string; guest_name: string | null; message: string; created_at: string }>) {
       items.push({
         id: `note-${n.id}`,
@@ -110,13 +123,14 @@ export async function fetchNotificationFeed(
     }
   } catch { /* skip */ }
   try {
-    const { data: notes } = await supabase
+    const { data: notes, error: notesErr } = await supabase
       .from('guestbook_messages')
       .select('id, guest_name, message, created_at')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('guestbook_messages', notesErr);
     for (const n of (notes ?? []) as Array<{ id: string; guest_name: string | null; message: string; created_at: string }>) {
       items.push({
         id: `note2-${n.id}`,
@@ -132,13 +146,14 @@ export async function fetchNotificationFeed(
 
   // ── Whispers ───────────────────────────────────────────
   try {
-    const { data: whispers } = await supabase
+    const { data: whispers, error: whispersErr } = await supabase
       .from('whispers')
       .select('id, message, created_at, read_at')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('whispers', whispersErr);
     for (const w of (whispers ?? []) as Array<{ id: string; message: string; created_at: string }>) {
       items.push({
         id: `whisper-${w.id}`,
@@ -167,7 +182,7 @@ export async function fetchNotificationFeed(
       .maybeSingle();
     const subdomain = (siteRow as { subdomain?: string } | null)?.subdomain;
     if (subdomain) {
-      const { data: photos } = await supabase
+      const { data: photos, error: photosErr } = await supabase
         .from('guest_photos')
         .select('id, uploader_name, status, created_at')
         .eq('site_id', subdomain)
@@ -175,6 +190,7 @@ export async function fetchNotificationFeed(
         .gte('created_at', since)
         .order('created_at', { ascending: false })
         .limit(20);
+    warnFeed('guest_photos', photosErr);
       for (const p of (photos ?? []) as Array<{ id: string; uploader_name: string | null; status: string; created_at: string }>) {
         const who = p.uploader_name ?? 'A guest';
         items.push({
@@ -191,7 +207,7 @@ export async function fetchNotificationFeed(
 
   // ── Song requests (queued only — already-triaged rows are done) ──
   try {
-    const { data: songs } = await supabase
+    const { data: songs, error: songsErr } = await supabase
       .from('song_requests')
       .select('id, guest_name, song_title, artist, state, created_at')
       .eq('site_id', siteId)
@@ -199,6 +215,7 @@ export async function fetchNotificationFeed(
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('song_requests', songsErr);
     for (const s of (songs ?? []) as Array<{ id: string; guest_name: string; song_title: string; artist: string | null; created_at: string }>) {
       const songLabel = s.artist ? `${s.song_title}, ${s.artist}` : s.song_title;
       items.push({
@@ -215,13 +232,14 @@ export async function fetchNotificationFeed(
 
   // ── Tribute / advice wall submissions ─────────────────
   try {
-    const { data: tribs } = await supabase
+    const { data: tribs, error: tribsErr } = await supabase
       .from('tribute_submissions')
       .select('id, author_name, body, created_at, state')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('tribute_submissions', tribsErr);
     for (const t of (tribs ?? []) as Array<{ id: string; author_name: string; body: string; created_at: string; state: string }>) {
       if (t.state === 'hidden') continue;
       items.push({
@@ -238,13 +256,14 @@ export async function fetchNotificationFeed(
 
   // ── Toast signups ──────────────────────────────────────
   try {
-    const { data: toasts } = await supabase
+    const { data: toasts, error: toastsErr } = await supabase
       .from('toast_signups')
       .select('id, claimed_by, slot_index, created_at')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(10);
+    warnFeed('toast_signups', toastsErr);
     for (const t of (toasts ?? []) as Array<{ id: string; claimed_by: string; slot_index: number; created_at: string }>) {
       items.push({
         id: `toast-${t.id}`,
@@ -259,7 +278,7 @@ export async function fetchNotificationFeed(
 
   // ── Registry link claims ───────────────────────────────
   try {
-    const { data: claims } = await supabase
+    const { data: claims, error: claimsErr } = await supabase
       .from('registry_link_claims')
       .select('id, claimer_name, entry_url, message, created_at')
       .eq('site_id', siteId)
@@ -267,6 +286,7 @@ export async function fetchNotificationFeed(
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('registry_link_claims', claimsErr);
     for (const c of (claims ?? []) as Array<{ id: string; claimer_name: string | null; entry_url: string; message: string | null; created_at: string }>) {
       const who = c.claimer_name?.split(/\s+/)[0] || 'A guest';
       items.push({
@@ -293,12 +313,13 @@ export async function fetchNotificationFeed(
   // date up at most twice. Paid rows never surface; marking paid
   // removes the item on the next pull.
   try {
-    const { data: vendorRows } = await supabase
+    const { data: vendorRows, error: vendorRowsErr } = await supabase
       .from('site_vendors')
       .select('id, name, category, cost_cents, deposit_cents, deposit_due, balance_due, deposit_paid, balance_paid')
       .eq('site_id', siteId)
       .or('deposit_due.not.is.null,balance_due.not.is.null')
       .limit(120);
+    warnFeed('site_vendors', vendorRowsErr);
     const todayIso = new Date().toISOString().slice(0, 10);
     const horizonIso = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
     for (const v of (vendorRows ?? []) as Array<{
@@ -349,13 +370,14 @@ export async function fetchNotificationFeed(
   // synthesized timestamp needed. Paid / settle-up is derived in
   // lib/budget/split.ts; the bell only announces the new line.
   try {
-    const { data: expenses } = await supabase
+    const { data: expenses, error: expensesErr } = await supabase
       .from('expenses')
       .select('id, description, amount_cents, payer_id, created_at')
       .eq('site_id', siteId)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(20);
+    warnFeed('expenses', expensesErr);
     const rows = (expenses ?? []) as Array<{
       id: string; description: string; amount_cents: number;
       payer_id: string | null; created_at: string;

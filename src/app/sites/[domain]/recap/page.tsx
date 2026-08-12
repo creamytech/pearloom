@@ -43,19 +43,15 @@ async function fetchRecapData(subdomain: string) {
   const siteId = siteRow.id as string;
   const manifest = siteRow.ai_manifest as StoryManifest | null;
 
-  // guest_photos (the live photo wall) is keyed by SUBDOMAIN, while
-  // gallery_photos is keyed by the sites.id UUID — fetch both in
-  // parallel, then merge. getApprovedGuestPhotos only ever returns
-  // host-approved photos, so pending/rejected uploads never leak
-  // onto this public recap.
+  // guest_photos (the unified photo spine, keyed by SUBDOMAIN) is the
+  // recap's photo source. getApprovedGuestPhotos only ever returns
+  // host-approved photos, so pending/rejected uploads never leak onto
+  // this public recap. (A parallel `gallery_photos` read used to run
+  // here, but that table never existed in any environment and its
+  // writer route was deleted in Sprint S.1 — it only ever contributed
+  // an empty array.)
   const [settled, guestPhotos] = await Promise.all([
     Promise.allSettled([
-      supabase
-        .from('gallery_photos')
-        .select('url, uploaded_by, caption, created_at')
-        .eq('site_id', siteId)
-        .order('created_at', { ascending: false })
-        .limit(60),
       supabase
         .from('guestbook_messages')
         .select('name, message, created_at')
@@ -70,29 +66,16 @@ async function fetchRecapData(subdomain: string) {
     ]),
     getApprovedGuestPhotos(subdomain),
   ]);
-  const [galleryRes, guestbookRes, guestsRes] = settled;
+  const [guestbookRes, guestsRes] = settled;
 
-  const hostGallery =
-    galleryRes.status === 'fulfilled' ? (galleryRes.value.data as Array<{
-      url: string;
-      uploaded_by?: string;
-      caption?: string;
-      created_at: string;
-    }>) || [] : [];
-
-  // Merge the host gallery with the approved guest-wall photos,
-  // dedupe by URL, newest first. Without this the recap renders empty
-  // whenever guests uploaded but the host never used /api/gallery.
   const seenUrls = new Set<string>();
-  const gallery = [
-    ...guestPhotos.map((p) => ({
+  const gallery = guestPhotos
+    .map((p) => ({
       url: p.url,
       uploaded_by: p.uploaderName,
       caption: p.caption,
       created_at: p.createdAt,
-    })),
-    ...hostGallery,
-  ]
+    }))
     .filter((p) => {
       if (!p.url || seenUrls.has(p.url)) return false;
       seenUrls.add(p.url);

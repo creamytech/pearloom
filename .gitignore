@@ -37,6 +37,9 @@ yarn-error.log*
 /.data/
 /public/uploads/
 
+# staging stack scratch (storage objects + request log)
+/scripts/staging/.data/
+
 # vercel
 .vercel
 
