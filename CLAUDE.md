@@ -3,13 +3,27 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## Sprint paused — awaiting user direction
+## Active focus
 
-> The Stop hook in `.claude/settings.json` greps for the literal
-> heading that names the sprint focus; renaming this heading
-> here pauses the autoloop without touching settings. Restore
-> the sprint heading (and a goal / threads / done-criteria
-> block) to resume.
+**Sprint W — THE WIRES** (`docs/REVAMP-EXECUTION-PLAN.md` §2).
+Goal: reconnect the ten severed wires from `docs/NEW-USER-REVAMP.md`
+§1 — every P0 from the 2026-08-12 full-simulation audit — each pinned
+by a cross-seam fence test.
+
+Open threads (stamp SHIPPED in the plan doc as each lands):
+W.1 doorway reopened · W.2 idempotent press · W.3 publish real ·
+W.4 guest-read contract · W.5 passport resolves · W.6 durable replies ·
+W.7 /store/success · W.8 grant storage · W.9 phantom columns ·
+W.10 reads-don't-write · W.11 story lands · W.12 health probe.
+
+Counts as done: the scripted Maya walk (landing → signed-out wizard →
+one press one site → story present → publish gates → RSVP durable →
+passport opens) passes green; every block's fence in CI; tsc/eslint/
+vitest/build green; commits pushed to
+`claude/new-user-platform-experience-7rkzv6`.
+
+Skip: anything from Sprints S–D that isn't required to land a W block;
+no new product surface.
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**
