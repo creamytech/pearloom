@@ -295,16 +295,36 @@ worth the name. (The R2 revamp, first half.)
   wallet, dashboard links) and every resolver on the same spine.
   Fence: grep-test — no `pearloom_guests` references outside the
   adapter; the W.5 e2e keeps passing.
-- **G.2 rsvpPreset drives the form (L7).** `GuestRsvpModal` renders
-  the registry's preset schema (8 presets × 16 field kinds exist) —
-  memorial gets memorial fields; "Joyfully" never appears on one.
-  Fence: per-occasion e2e snapshots of the RSVP form.
-- **G.3 Conditioned asks (H4, L25, L47).** Preset fields render only
-  when host-configured: no menu → no meal question (dietary need
-  instead); nothing pre-selected, nothing stored the guest didn't
-  touch. Wizard meal-chips copy says what they are (RSVP choices) —
-  and stops republishing them as a menu.
-  Fence: RSVP on a menu-less site stores no meal_preference.
+- **G.2 rsvpPreset drives the form (L7). — SHIPPED 2026-08-12.**
+  `GuestRsvpModal` renders the preset schema: the attending toggle
+  wears the occasion's register (`ATTENDING_LABELS` — memorial says
+  "I'll attend / I can't attend", never "Joyfully"), and every
+  non-core preset field renders generically below the guest cards
+  (memory-share on memorials, cost-acknowledge + bed preference on
+  bachelor trips, rooms + shirt sizes on reunions), party-level,
+  straight into `rsvp_answers`. Named leftover: the `photo-upload`
+  kind is deliberately NOT rendered (no upload plumbing in the
+  modal — a fake field is worse than none; the passport's photo
+  card is the real path). The note field now shows on declines too
+  (a memorial's message-to-the-family matters most when a guest
+  can't come). Fence: `e2e/specs/rsvp-honesty.spec.ts` (in the
+  staging-fence workflow).
+- **G.3 Conditioned asks (H4, L25, L47). — SHIPPED 2026-08-12.**
+  Nothing is pre-selected (`emptyReply()` — attending starts
+  unanswered, Send waits for a real answer) and only answered
+  guests are stored (an untoggled family member stays pending). No
+  host menu → no meal question (`mealOptions` no longer invents
+  "Chicken/Fish"; the toggle needs BOTH the host switch AND a real
+  menu). **Bonus prod bug the fence caught:** `/api/rsvp`'s
+  `.upsert(onConflict: 'site_id,email')` could NEVER work — the
+  real unique index is the expression `(site_id, lower(email))
+  WHERE email IS NOT NULL`, which plain-column ON CONFLICT rejects
+  with 42P10 — so every first reply from an unmatched guest 500'd
+  in prod. Replaced with the existing-reply lookup (already there
+  from W.6) + plain insert + a 23505 race fallback. Fence: the
+  menu-less-site spec asserts the stored row carries no
+  meal_preference. (The wizard meal-chips copy note is folded into
+  T-sprint's wizard honesty pass.)
 - **G.4 Passport, phone-first (L28, L29).** 390px-first relayout (no
   horizontal scroll), signed by the couple's names, the guest's real
   state everywhere. The competitive bet's foundation.

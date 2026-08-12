@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
     } else if (email) {
       const { data: prior } = await supabase
         .from('guests')
-        .select('plus_one, plus_one_name, meal_preference, dietary_restrictions, song_request, message, mailing_address, rsvp_preset, rsvp_answers')
+        .select('id, plus_one, plus_one_name, meal_preference, dietary_restrictions, song_request, message, mailing_address, rsvp_preset, rsvp_answers')
         .eq('site_id', resolvedSiteId)
         .ilike('email', email)
         .maybeSingle();
@@ -203,37 +203,62 @@ export async function POST(req: NextRequest) {
       responded_at: new Date().toISOString(),
     };
 
-    // "Found you" path — UPDATE the matched row. The guest's
-    // stored email survives unless they typed a new one, so the
-    // host's list never gains a duplicate or loses an address.
-    // Otherwise: upsert by email+siteId so guests can update
-    // their RSVP on re-submit.
-    const { data, error } = matchedGuestRowId
+    // Known-row path — UPDATE the matched row (found via the guest
+    // list, the personal token, or the case-insensitive email
+    // lookup above). The guest's stored email survives unless they
+    // typed a new one, so the host's list never gains a duplicate
+    // or loses an address. First-time replies INSERT plainly.
+    //
+    // (This used to be `.upsert(..., { onConflict: 'site_id,email' })`
+    // — which can NEVER work: the real unique index is the
+    // expression `(site_id, lower(email)) WHERE email IS NOT NULL`,
+    // and Postgres rejects a plain-column ON CONFLICT against it
+    // with 42P10. Every first reply from an unmatched guest 500'd.
+    // The existingReply lookup already IS the dedup; the unique
+    // index stays as the last-resort race guard below.)
+    const priorRowId =
+      matchedGuestRowId ||
+      ((existingReply as { id?: string } | null)?.id ? String((existingReply as { id: string }).id) : null);
+    let { data, error } = priorRowId
       ? await supabase
           .from('guests')
           .update({
             ...replyFields,
             ...(email ? { email } : {}),
           })
-          .eq('id', matchedGuestRowId)
+          .eq('id', priorRowId)
           .select()
           .single()
       : await supabase
           .from('guests')
-          .upsert(
-            {
-              ...replyFields,
-              site_id: resolvedSiteId,
-              email: email || null,
-              created_at: new Date().toISOString(),
-            },
-            {
-              onConflict: 'site_id,email',
-              ignoreDuplicates: false,
-            }
-          )
+          .insert({
+            ...replyFields,
+            site_id: resolvedSiteId,
+            email: email || null,
+            created_at: new Date().toISOString(),
+          })
           .select()
           .single();
+
+    // Unique-index race (two first replies with the same email at
+    // once, or a case-variant the ilike lookup matched but a
+    // concurrent insert beat us to): land on the winner's row.
+    if (error?.code === '23505' && email) {
+      const { data: winner } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('site_id', resolvedSiteId)
+        .ilike('email', email)
+        .maybeSingle();
+      if (winner?.id) {
+        ({ data, error } = await supabase
+          .from('guests')
+          .update({ ...replyFields, email })
+          .eq('id', String(winner.id))
+          .select()
+          .single());
+      }
+    }
 
     if (error) {
       console.error('[RSVP] Upsert failed:', {

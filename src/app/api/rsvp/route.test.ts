@@ -198,7 +198,7 @@ describe('POST /api/rsvp', () => {
     expect(json.message).toMatch(/celebrate/i);
 
     // Upsert payload includes every field the form might send.
-    const upsertCall = h.calls.find((c) => c.method === 'upsert');
+    const upsertCall = h.calls.find((c) => c.method === 'insert');
     expect(upsertCall).toBeDefined();
     const payload = upsertCall!.args[0] as Record<string, unknown>;
     expect(payload).toMatchObject({
@@ -214,8 +214,11 @@ describe('POST /api/rsvp', () => {
 
     // onConflict is what enables guests to update their RSVP — if
     // anyone changes this, double-submissions create duplicate rows.
-    const upsertOptions = upsertCall!.args[1] as { onConflict?: string };
-    expect(upsertOptions.onConflict).toBe('site_id,email');
+    // No ON CONFLICT any more — the expression unique index
+    // (site_id, lower(email)) can't be targeted by plain columns
+    // (42P10), so dedup happens via the existing-reply lookup and
+    // first replies insert plainly.
+    expect(upsertCall!.args[1]).toBeUndefined();
   });
 
   it('writes the guests.selected_events column (not event_ids)', async () => {
@@ -232,7 +235,7 @@ describe('POST /api/rsvp', () => {
       plusOne: true,
       plusOneName: 'Sam',
     }));
-    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as Record<string, unknown>;
+    const payload = h.calls.find((c) => c.method === 'insert')!.args[0] as Record<string, unknown>;
     expect(payload).not.toHaveProperty('event_ids');
     expect(payload.selected_events).toEqual(['ceremony', 'reception']);
     expect(payload.plus_one).toBe(true);
@@ -259,7 +262,7 @@ describe('POST /api/rsvp', () => {
       guestName: 'Alice',
     }));
     expect(res.status).toBe(200);
-    const upsertCall = h.calls.find((c) => c.method === 'upsert');
+    const upsertCall = h.calls.find((c) => c.method === 'insert');
     expect((upsertCall!.args[0] as { status: string }).status).toBe('attending');
   });
 
@@ -278,7 +281,7 @@ describe('POST /api/rsvp', () => {
       },
     }));
     expect(res.status).toBe(200);
-    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as Record<string, unknown>;
+    const payload = h.calls.find((c) => c.method === 'insert')!.args[0] as Record<string, unknown>;
     expect(payload.rsvp_preset).toBe('memorial');
     expect(payload.rsvp_answers).toEqual({
       memoryToShare: 'She always wore yellow on Sundays.',
@@ -294,7 +297,7 @@ describe('POST /api/rsvp', () => {
       preset: 'bachelor-party',
       // answers omitted
     }));
-    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as Record<string, unknown>;
+    const payload = h.calls.find((c) => c.method === 'insert')!.args[0] as Record<string, unknown>;
     expect(payload.rsvp_answers).toEqual({});
   });
 
@@ -375,6 +378,7 @@ describe('POST /api/rsvp', () => {
     expect(json.error).toMatch(/invitation/i);
     // Crucially: NO row was written.
     expect(h.calls.find((c) => c.method === 'upsert')).toBeUndefined();
+    expect(h.calls.find((c) => c.method === 'insert')).toBeUndefined();
   });
 
   it('403s when guestListOnly is on and no email or token was given', async () => {
@@ -414,7 +418,7 @@ describe('POST /api/rsvp', () => {
     h.queue('guests.single', { id: 'g1' });
     const res = await POST(makePost({ siteId: 'emma-and-james', guestName: 'Alice' }));
     expect(res.status).toBe(200);
-    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as { site_id: string };
+    const payload = h.calls.find((c) => c.method === 'insert')!.args[0] as { site_id: string };
     expect(payload.site_id).toBe('11111111-2222-4333-8444-555555555555');
   });
 
@@ -439,7 +443,7 @@ describe('POST /api/rsvp', () => {
     }));
     expect(res.status).toBe(200);
     expect(h.calls.find((c) => c.method === 'update')).toBeDefined();
-    expect(h.calls.find((c) => c.method === 'upsert')).toBeUndefined();
+    expect(h.calls.find((c) => c.method === 'insert')).toBeUndefined();
     // No email typed → the stored email must not be clobbered.
     const payload = h.calls.find((c) => c.method === 'update')!.args[0] as Record<string, unknown>;
     expect('email' in payload).toBe(false);
@@ -457,7 +461,7 @@ describe('POST /api/rsvp', () => {
     expect(res.status).toBe(200);
   });
 
-  it('a forged guestId from another site falls back to upsert (and fails the gate)', async () => {
+  it('a forged guestId from another site falls back to a fresh reply (and fails the gate)', async () => {
     h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
     // Row check finds nothing for this site.
     h.queue('guests.maybeSingle', null);

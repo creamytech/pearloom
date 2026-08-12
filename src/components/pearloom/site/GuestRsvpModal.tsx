@@ -34,11 +34,10 @@ import { trackGuestFunnel } from '@/lib/guest-track';
 import { useFocusTrap } from '@/lib/use-focus-trap';
 import type { StoryManifest } from '@/types';
 import { getEventType, type RsvpPreset } from '@/lib/event-os/event-types';
+import { getRsvpFields, type RsvpFieldDef } from '@/lib/event-os/rsvp-presets';
 import { RsvpCeremony } from './RsvpCeremony';
 import { getTheme, themeRootStyle } from './themes';
 import { markRsvpReady, markRsvpUnready, siteToast } from './rsvp-bus';
-
-const DEFAULT_MEAL_OPTIONS = ['Chicken', 'Fish', 'Vegetarian', 'Kids meal'];
 
 interface ManifestGuest {
   /** Stable id (passport token or generated). */
@@ -57,7 +56,10 @@ interface GuestRsvpModalProps {
 type Step = 'find' | 'respond' | 'notfound' | 'done';
 
 interface GuestReply {
-  attending: 'yes' | 'no';
+  /** '' = not answered yet. NOTHING is pre-selected for the guest —
+   *  a reply the guest never touched must never be stored
+   *  (NEW-USER-REVAMP G.3). */
+  attending: 'yes' | 'no' | '';
   meal: string;
   dietary: string;
   /** Guest is bringing a plus-one (only when the host allows it). */
@@ -65,6 +67,36 @@ interface GuestReply {
   /** The plus-one's name, captured when plusOne is on. */
   plusOneName?: string;
 }
+
+/** A fresh, unanswered reply — the only legal initial state. */
+function emptyReply(): GuestReply {
+  return { attending: '', meal: '', dietary: '' };
+}
+
+/* The attending toggle wears the occasion's register — "Joyfully /
+   Regretfully" is wedding language and must never appear on a
+   memorial (G.2). Plain words for everything else (BRAND §7). */
+const ATTENDING_LABELS: Record<RsvpPreset, [yes: string, no: string]> = {
+  wedding:   ['Joyfully', 'Regretfully'],
+  cultural:  ['Joyfully', 'Regretfully'],
+  shower:    ['I’ll be there', 'Can’t make it'],
+  bachelor:  ['I’m in', 'Can’t make it'],
+  memorial:  ['I’ll attend', 'I can’t attend'],
+  reunion:   ['I’ll be there', 'Can’t make it'],
+  milestone: ['I’ll be there', 'Can’t make it'],
+  casual:    ['I’m in', 'Can’t make it'],
+};
+
+/* Preset field kinds the respond step already renders as core UI
+   (per-guest cards + the song/note block). Everything else from the
+   preset schema renders generically below the guest cards. The
+   photo-upload kind is deliberately NOT rendered here — the modal
+   has no upload plumbing, and a field that pretends to accept a
+   photo is worse than no field (the passport's photo card is the
+   real path). */
+const CORE_FIELD_KINDS: ReadonlySet<string> = new Set([
+  'attending', 'meal', 'dietary', 'plus-one', 'song-request', 'comments', 'photo-upload',
+]);
 
 /* Reads a coarse guest list off the manifest. The prototype hard-codes
    three sample parties; production reads optional `manifest.passport.guests`
@@ -216,20 +248,33 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
      rather than "the hosts". */
   const solemnVoice = eventType?.voice === 'solemn';
 
-  // Custom meal options surface from the host's catered-menu config when
-  // present. We re-use the same field name that ThemedSiteRenderer's
-  // PresetRsvpForm reads so a host who has named their menu sees those
-  // names here.
+  // Meal options come from the host's OWN configured menu
+  // (rsvpConfig.mealOptions) and nowhere else. No host menu → no
+  // meal question at all — a guest must never pick from a menu the
+  // host didn't write ("Chicken/Fish" on a site with no catering was
+  // a fabricated ask, NEW-USER-REVAMP H4/G.3). The dietary field
+  // stays as the honest fallback.
   const mealOptions = useMemo<string[]>(() => {
     const opts = (manifest as unknown as {
       rsvpConfig?: { mealOptions?: Array<{ name?: string }> };
     }).rsvpConfig?.mealOptions;
     if (Array.isArray(opts) && opts.length > 0) {
-      const names = opts.map((o) => String(o?.name ?? '').trim()).filter(Boolean);
-      if (names.length > 0) return names;
+      return opts.map((o) => String(o?.name ?? '').trim()).filter(Boolean);
     }
-    return DEFAULT_MEAL_OPTIONS;
+    return [];
   }, [manifest]);
+
+  /* The preset's extra questions (G.2) — everything the occasion's
+     RSVP schema declares beyond the core fields the modal already
+     renders. Memorial gets memory-share; bachelor gets days + cost
+     acknowledgement + bed preference; reunion gets rooms + shirt
+     sizes. Answers collect party-level into `extras` and ride the
+     rsvp_answers JSONB the dashboard already renders. */
+  const presetExtraFields = useMemo<RsvpFieldDef[]>(
+    () => getRsvpFields(rsvpPreset).filter((f) => !CORE_FIELD_KINDS.has(f.kind)),
+    [rsvpPreset],
+  );
+  const [extras, setExtras] = useState<Record<string, string>>({});
 
   /* Question toggles from RsvpPanel — manifest.rsvpConfig.{mealChoice,
      dietary, songRequest, plusOne}. When the host turns one off in the
@@ -250,12 +295,15 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       rsvpConfig?: { mealChoice?: boolean; dietary?: boolean; songRequest?: boolean; plusOne?: boolean; plusOnes?: boolean };
     }).rsvpConfig;
     return {
-      mealChoice: cfg?.mealChoice ?? true,
+      // A meal question needs BOTH the host's toggle AND a real
+      // host-written menu — with no configured mealOptions there is
+      // nothing honest to ask (G.3).
+      mealChoice: (cfg?.mealChoice ?? true) && mealOptions.length > 0,
       dietary: cfg?.dietary ?? true,
       songRequest: cfg?.songRequest ?? !solemnVoice,
       plusOne: cfg?.plusOne ?? cfg?.plusOnes ?? false,
     };
-  }, [manifest, solemnVoice]);
+  }, [manifest, solemnVoice, mealOptions]);
 
   /* The "Bringing a guest?" field shows when the host allows plus-
      ones site-wide OR granted this specific guest one. */
@@ -299,6 +347,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     setEmail('');
     setParty(null);
     setResp({});
+    setExtras({});
     setSong('');
     setNote('');
     setSubmitError(null);
@@ -353,13 +402,13 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           setMatchedFromList(true);
           setMatchedAllowsPlus(!!d?.guest?.plusOneAllowed);
           setParty(ad);
-          setResp({ [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' } });
+          setResp({ [ad.guests[0]]: emptyReply() });
           setStep('respond');
         }
       })
       .catch(() => { /* fall back to the manual find step */ });
     return () => ctl.abort();
-  }, [open, step, party, siteSlug, mealOptions]);
+  }, [open, step, party, siteSlug]);
 
   // Listen for the open event globally. Also register with the
   // RSVP bus so the sticky pill / nav links can route here even
@@ -411,6 +460,23 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         : false,
     [party, resp],
   );
+  /* Nothing is pre-answered (G.3), so the Send button waits for at
+     least one real answer — and only answered guests are stored. */
+  const anyAnswered = useMemo(
+    () =>
+      party
+        ? party.guests.some((g) => resp[g]?.attending === 'yes' || resp[g]?.attending === 'no')
+        : false,
+    [party, resp],
+  );
+  /* Required preset extras (e.g. the bachelor cost acknowledgement)
+     must be answered before an attending reply can send. */
+  const missingRequiredExtra = useMemo(
+    () =>
+      anyYes &&
+      presetExtraFields.some((f) => f.required && !(extras[f.kind] ?? '').trim()),
+    [anyYes, presetExtraFields, extras],
+  );
 
   if (!render) return null;
 
@@ -435,7 +501,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       setParty(found);
       const initial: Record<string, GuestReply> = {};
       for (const g of found.guests) {
-        initial[g] = { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' };
+        initial[g] = emptyReply();
       }
       setResp(initial);
       setStep('respond');
@@ -470,7 +536,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     const ad = makeAdHocParty(q);
     setParty(ad);
     setResp({
-      [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' },
+      [ad.guests[0]]: emptyReply(),
     });
     setStep('respond');
   };
@@ -480,7 +546,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     const ad = makeAdHocParty(query);
     setParty(ad);
     setResp({
-      [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' },
+      [ad.guests[0]]: emptyReply(),
     });
     setStep('respond');
   };
@@ -491,7 +557,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const close = () => setOpen(false);
 
   const save = async () => {
-    if (!party || submitting) return;
+    if (!party || submitting || !anyAnswered || missingRequiredExtra) return;
     setSubmitError(null);
     setSubmitting(true);
     try {
@@ -499,10 +565,12 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       // (site_id, email) so re-runs are safe; we synthesize a
       // per-guest email when only the party owner gave one.
       const overallStatus = anyYes ? 'attending' : 'declined';
-      const replies = party.guests.map((g) => ({
-        guestName: g,
-        reply: resp[g] ?? { attending: 'no', meal: '', dietary: '' },
-      }));
+      /* Only answered guests are stored — a family member the guest
+         never toggled stays pending on the host's list rather than
+         being silently marked either way (G.3). */
+      const replies = party.guests
+        .filter((g) => resp[g]?.attending === 'yes' || resp[g]?.attending === 'no')
+        .map((g) => ({ guestName: g, reply: resp[g] }));
       const errs: string[] = [];
       for (let i = 0; i < replies.length; i++) {
         const { guestName, reply } = replies[i];
@@ -536,12 +604,21 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           message: i === 0 ? note.trim() || null : null,
           preset: rsvpPreset,
           answers: {
-            meal: reply.attending === 'yes' ? reply.meal : undefined,
-            dietary: reply.attending === 'yes' ? reply.dietary : undefined,
+            meal: reply.attending === 'yes' ? reply.meal || undefined : undefined,
+            dietary: reply.attending === 'yes' ? reply.dietary || undefined : undefined,
             ...(reply.attending === 'yes' && plusOneVisible && reply.plusOne
               ? { 'plus-one': (reply.plusOneName ?? '').trim() || 'Yes' }
               : {}),
             ...(i === 0 ? { 'song-request': song.trim() || undefined, comments: note.trim() || undefined } : {}),
+            /* The preset's own questions (G.2) — party-level, sent
+               once on the first reply. Only touched answers ride. */
+            ...(i === 0
+              ? Object.fromEntries(
+                  Object.entries(extras)
+                    .map(([k, v]) => [k, v.trim()])
+                    .filter(([, v]) => v),
+                )
+              : {}),
           },
         };
         const res = await fetch('/api/rsvp', {
@@ -957,7 +1034,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {party.guests.map((g) => {
-                const r = resp[g] ?? { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' };
+                const r = resp[g] ?? emptyReply();
                 return (
                   <div
                     key={g}
@@ -990,7 +1067,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                       >
                         {(['yes', 'no'] as const).map((v) => {
                           const active = r.attending === v;
-                          const label = v === 'yes' ? 'Joyfully' : 'Regretfully';
+                          const label = ATTENDING_LABELS[rsvpPreset][v === 'yes' ? 0 : 1];
                           return (
                             <button
                               key={v}
@@ -1105,9 +1182,122 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               })}
             </div>
 
-            {anyYes && (
+            {/* The occasion's own questions (G.2) — rendered from the
+                preset schema, party-level, straight into rsvp_answers.
+                Attendee-only kinds (days, rooms, sizes, cost, trip
+                safety) hide on an all-declined reply; memory-share
+                stays — "can't attend, but here's a memory" is real. */}
+            {anyAnswered && presetExtraFields.length > 0 && (
               <div style={{ marginTop: 14 }}>
-                {questionGates.songRequest && (
+                {presetExtraFields.map((f) => {
+                  const attendeeOnly = [
+                    'attending-days', 'room-preference', 'bed-preference',
+                    'tshirt-size', 'cost-acknowledge', 'allergies-med', 'gift-status',
+                  ].includes(f.kind);
+                  if (attendeeOnly && !anyYes) return null;
+                  const value = extras[f.kind] ?? '';
+                  const setValue = (v: string) =>
+                    setExtras((e) => ({ ...e, [f.kind]: v }));
+                  const hint = f.hint ? (
+                    <span style={{ fontSize: 12, color: 'var(--ink-muted, var(--pl-muted, #6F6557))' }}>
+                      {f.hint}
+                    </span>
+                  ) : null;
+                  if (f.kind === 'cost-acknowledge') {
+                    return (
+                      <div key={f.kind} style={fieldStyle()}>
+                        <label
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 9,
+                            fontSize: 13, fontWeight: 600,
+                            color: 'var(--ink-soft, var(--pl-ink-soft, #3A332C))',
+                            cursor: 'pointer', userSelect: 'none',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={value === 'Acknowledged'}
+                            onChange={(e) => setValue(e.target.checked ? 'Acknowledged' : '')}
+                          />
+                          {f.label}
+                        </label>
+                        {hint}
+                      </div>
+                    );
+                  }
+                  if (Array.isArray(f.options) && f.options.length > 0) {
+                    return (
+                      <div key={f.kind} style={fieldStyle()}>
+                        <label style={labelStyle()}>{f.label}</label>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {f.options.map((opt) => {
+                            const active = value === opt;
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setValue(active ? '' : opt)}
+                                style={{
+                                  padding: '6px 11px',
+                                  borderRadius: 999,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  border: '1px solid',
+                                  borderColor: active
+                                    ? 'var(--sage-deep, var(--pl-olive-deep, #363F22))'
+                                    : 'var(--line, rgba(14,13,11,0.14))',
+                                  background: active
+                                    ? 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 14%, transparent))'
+                                    : 'var(--card, var(--pl-cream-card, #FBF7EE))',
+                                  color: active
+                                    ? 'var(--sage-deep, var(--pl-olive-deep, #363F22))'
+                                    : 'var(--ink-soft, var(--pl-ink-soft, #3A332C))',
+                                  cursor: 'pointer',
+                                  fontFamily: 'inherit',
+                                }}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {hint}
+                      </div>
+                    );
+                  }
+                  const long = f.kind === 'memory-share' || f.kind === 'advice' || f.kind === 'allergies-med';
+                  return (
+                    <div key={f.kind} style={fieldStyle()}>
+                      <label style={labelStyle()}>{f.label}</label>
+                      {long ? (
+                        <textarea
+                          value={value}
+                          onChange={(e) => setValue(e.target.value)}
+                          rows={2}
+                          style={{ ...inputStyle(), padding: '11px 13px', fontSize: 13.5, resize: 'vertical' }}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={value}
+                          onChange={(e) => setValue(e.target.value)}
+                          style={{ ...inputStyle(), padding: '9px 11px', fontSize: 13 }}
+                        />
+                      )}
+                      {hint}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* The note field shows for declines too — "we'll miss
+                you, send your love along" is half the point, and on a
+                memorial the message to the family matters MOST when a
+                guest can't attend. Only the song ask is yes-gated. */}
+            {anyAnswered && (
+              <div style={{ marginTop: 14 }}>
+                {anyYes && questionGates.songRequest && (
                 <div style={fieldStyle()}>
                   <label style={labelStyle()}>A song to get you dancing</label>
                   <input
@@ -1174,7 +1364,14 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               </button>
               <button
                 onClick={save}
-                disabled={submitting}
+                disabled={submitting || !anyAnswered || missingRequiredExtra}
+                title={
+                  !anyAnswered
+                    ? 'Choose an answer first'
+                    : missingRequiredExtra
+                      ? 'One required question is still blank'
+                      : undefined
+                }
                 style={{
                   flex: 1,
                   padding: '12px 18px',
@@ -1184,8 +1381,8 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                   fontSize: 13,
                   fontWeight: 700,
                   border: 'none',
-                  cursor: submitting ? 'default' : 'pointer',
-                  opacity: submitting ? 0.65 : 1,
+                  cursor: submitting || !anyAnswered || missingRequiredExtra ? 'default' : 'pointer',
+                  opacity: submitting || !anyAnswered || missingRequiredExtra ? 0.65 : 1,
                   letterSpacing: '0.04em',
                   display: 'inline-flex',
                   alignItems: 'center',
