@@ -32,15 +32,19 @@ resolver — the first-visit mint race 404'd real passports). Four new
 fences in the staging-fence workflow: rsvp-honesty (2) +
 passport-phone (1) alongside doorway/press/publish.
 
-Open threads: **G.1 only** — collapse the guests/pearloom_guests
-fork behind one adapter (keep `guests` canonical; lib/event-os/db.ts
-getGuestByToken is the adapter seed; ~28 files reference the fork —
-a survey map may already be in the plan doc §4 or scratchpad
-fork-survey.md; mind the site_id convention split: pearloom_guests
-keys by SUBDOMAIN, guests by sites.id uuid; FK targets on
-pearloom_guests(id): guest_photos, memory_prompts, whispers,
-song_requests, time_capsule at least). Fence: no pearloom_guests
-refs outside the adapter; passport-phone + doorway e2e keep passing.
+Open threads: **G.1b only** — the fork retirement. G.1a SHIPPED
+2026-08-12 (plan §4 stamp): the site_id convention converged on
+uuid-as-text via `20260812_pearloom_guests_site_key.sql` (backfill +
+RLS rewrite + passthrough tables), the GDPR purge/export now sweep
+both keys, and `resolveSiteRef` in lib/event-os/db.ts repaired the
+five uuid-into-getSiteConfig routes (they 404'd at baseline). G.1b =
+merge pearloom_guests into `guests` and retire: add the 9 profile
+columns (or side table) + unique guest_token index, backfill by
+(site uuid, lower(email)), rekey the 13 FKs +
+guest_push_subscriptions, swap all consumers through the adapter,
+regenerate database.types.ts. THE MAP IS IN docs/FORK-SURVEY.md —
+read it first. Fence: grep-test (no `from('pearloom_guests')`
+outside the adapter) + all 12 fence e2e keep passing.
 
 Counts as done: the four occasion worlds (wedding, memorial,
 bachelorette, baby shower) each pass a guest-side e2e — honest form,

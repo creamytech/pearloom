@@ -209,9 +209,18 @@ export async function POST(req: NextRequest) {
     `(uuids: ${siteUuids.length}, subdomains: ${siteSubdomains.length})`,
   );
 
-  // ── 2. Children of those sites — by subdomain ──
+  // ── 2. Children of those sites — text site_id tables ──
+  // These tables carried BOTH conventions historically: subdomain
+  // (the 20260416-era import world) and uuid-as-text (the passport
+  // mint + its passthrough submissions). The uuid is canonical
+  // since 20260812_pearloom_guests_site_key, but the purge sweeps
+  // BOTH keys so no era's rows survive an account deletion — the
+  // subdomain-only sweep silently skipped every minted identity
+  // row and its whispers/capsules/songs (G.1a, the GDPR gap the
+  // fork survey found).
   for (const table of SITE_KEYED_DELETES_BY_SUBDOMAIN) {
     await safeDeleteIn(supabase, table, 'site_id', siteSubdomains);
+    await safeDeleteIn(supabase, table, 'site_id', siteUuids);
   }
 
   // ── 3. Children of those sites — by uuid ──

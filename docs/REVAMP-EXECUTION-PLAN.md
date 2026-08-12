@@ -295,6 +295,30 @@ worth the name. (The R2 revamp, first half.)
   wallet, dashboard links) and every resolver on the same spine.
   Fence: grep-test — no `pearloom_guests` references outside the
   adapter; the W.5 e2e keeps passing.
+  - **G.1a — SHIPPED 2026-08-12.** The full consumer survey
+    (docs/FORK-SURVEY.md) found the fork's core disease:
+    `pearloom_guests.site_id` had NO single convention — the RLS
+    policy + purge/export routes assumed the SUBDOMAIN while the
+    only live writer (the passport mint) and eight readers used the
+    sites uuid. Auto-minted rows were invisible to owner-scoped RLS
+    and SKIPPED by delete-account's purge (a live GDPR gap). Fixed
+    by converging on uuid-as-text (the live data's shape):
+    `20260812_pearloom_guests_site_key.sql` backfills legacy
+    subdomain rows (pearloom_guests + the four passthrough tables
+    whispers/time_capsule/song_requests/memory_prompts) and
+    rewrites the RLS policy; delete-account + export-data sweep
+    BOTH keys; `resolveSiteRef` (the adapter's site-key resolver in
+    lib/event-os/db.ts) repairs the five routes that passed a uuid
+    into subdomain-only getSiteConfig — guest-passport/[token],
+    passport-cards, pear-sms, memory-weave (all returned null/404
+    at baseline), and film.ts's guest_photos read now keys by
+    subdomain as that table requires. All 12 fence e2e green.
+  - **G.1b — OPEN.** The retirement: merge into `guests` (add the
+    9 profile columns or a side table + unique guest_token index),
+    backfill by (site uuid, lower(email)), rekey the 13 FKs +
+    guest_push_subscriptions, swap all consumers through the
+    adapter, regenerate database.types.ts, then the grep fence.
+    Full execution sketch + consumer table: docs/FORK-SURVEY.md.
 - **G.2 rsvpPreset drives the form (L7). — SHIPPED 2026-08-12.**
   `GuestRsvpModal` renders the preset schema: the attending toggle
   wears the occasion's register (`ATTENDING_LABELS` — memorial says

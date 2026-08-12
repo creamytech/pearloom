@@ -72,6 +72,12 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => h.supabaseMock,
 }));
 
+// resolveSiteRef (G.1a) resolves the guest row's site key to
+// { id, subdomain } before getSiteConfig — echo the fixture's
+// subdomain-shaped site_id straight through.
+vi.mock('@/lib/event-os/db', () => ({
+  resolveSiteRef: vi.fn(async (key: string) => ({ id: 'site-uuid-1', subdomain: key })),
+}));
 vi.mock('@/lib/db', () => ({
   getSiteConfig: h.getSiteConfigMock,
 }));

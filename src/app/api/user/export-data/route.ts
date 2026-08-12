@@ -168,12 +168,34 @@ export async function POST() {
   }
 
   // ── Site-keyed tables (fan-out per ownership shape) ──
+  // Text-keyed ('subdomain') tables are swept with BOTH keys: the
+  // uuid-as-text is canonical since 20260812_pearloom_guests_site_key
+  // (the passport mint + its passthrough submissions always wrote
+  // it), while older import-era rows carried the subdomain. A
+  // subdomain-only export silently omitted every minted identity
+  // row and its whispers/capsules/songs (G.1a).
   const siteOwned: Record<string, unknown[]> = {};
   for (const { table, siteIdShape } of SITE_OWNED_TABLES) {
-    const values = siteIdShape === 'uuid' ? siteUuids : siteSubdomains;
-    const { rows, error } = await safeSelectIn(supabase, table, 'site_id', values);
-    siteOwned[table] = rows;
-    if (error) warnings.push(`${table}: ${error}`);
+    if (siteIdShape === 'uuid') {
+      const { rows, error } = await safeSelectIn(supabase, table, 'site_id', siteUuids);
+      siteOwned[table] = rows;
+      if (error) warnings.push(`${table}: ${error}`);
+    } else {
+      const [bySub, byUuid] = await Promise.all([
+        safeSelectIn(supabase, table, 'site_id', siteSubdomains),
+        safeSelectIn(supabase, table, 'site_id', siteUuids),
+      ]);
+      const seen = new Set<string>();
+      siteOwned[table] = [...bySub.rows, ...byUuid.rows].filter((r) => {
+        const id = String((r as { id?: unknown })?.id ?? '');
+        if (!id) return true;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+      const err = bySub.error || byUuid.error;
+      if (err) warnings.push(`${table}: ${err}`);
+    }
   }
 
   const dump = {

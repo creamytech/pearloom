@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
+import { resolveSiteRef } from '@/lib/event-os/db';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
@@ -99,7 +100,11 @@ export async function POST(req: NextRequest) {
   const siteId: string | null = body?.siteId ?? null;
   if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
-  const cfg = await getSiteConfig(siteId).catch(() => null);
+  /* Dashboard pages pass sites.id (uuid); getSiteConfig needs the
+     subdomain — the old direct call always came back null and this
+     route 404'd (G.1a). Resolve once, tolerant of either shape. */
+  const siteRef = await resolveSiteRef(siteId).catch(() => null);
+  const cfg = siteRef ? await getSiteConfig(siteRef.subdomain).catch(() => null) : null;
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 
   const { data: guestsRaw } = await supabase

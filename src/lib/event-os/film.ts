@@ -120,6 +120,12 @@ export interface FilmSources {
 async function gatherSources(siteId: string): Promise<FilmSources> {
   const sb = admin();
 
+  /* guest_photos is keyed by SUBDOMAIN (20260614 migration) while
+     everything else here keys by the site uuid — resolve it first
+     so the film actually sees the guest wall (G.1a). */
+  const { data: siteKeyRow } = await sb.from('sites').select('subdomain').eq('id', siteId).maybeSingle();
+  const subdomain = String((siteKeyRow as { subdomain?: string } | null)?.subdomain ?? '');
+
   const [siteRes, guestsRes, edgesRes, toastsRes, photosRes] = await Promise.all([
     sb.from('sites').select('site_config').eq('id', siteId).maybeSingle(),
     sb.from('pearloom_guests').select('*').eq('site_id', siteId),
@@ -134,7 +140,7 @@ async function gatherSources(siteId: string): Promise<FilmSources> {
     sb
       .from('guest_photos')
       .select('url')
-      .eq('site_id', siteId)
+      .eq('site_id', subdomain || siteId)
       .neq('status', 'rejected')
       .order('created_at', { ascending: true })
       .limit(120),

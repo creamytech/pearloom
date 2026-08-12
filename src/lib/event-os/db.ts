@@ -83,6 +83,28 @@ export interface PearloomGuest {
   metadata: Record<string, unknown>;
 }
 
+/* ── Site-key resolution (G.1a) ───────────────────────────────
+   pearloom_guests.site_id is sites.id AS TEXT (canonical since
+   20260812_pearloom_guests_site_key — the only live writer, the
+   mint below, always wrote it; legacy subdomain rows are
+   backfilled). Surfaces that need the subdomain (getSiteConfig,
+   guest_photos) resolve through here, tolerant of either shape so
+   a straggler row or a caller passing a subdomain still lands. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export interface SiteRef { id: string; subdomain: string }
+
+export async function resolveSiteRef(key: string): Promise<SiteRef | null> {
+  const k = (key ?? '').trim();
+  if (!k) return null;
+  const q = admin().from('sites').select('id, subdomain');
+  const { data } = UUID_RE.test(k)
+    ? await q.eq('id', k).maybeSingle()
+    : await q.eq('subdomain', k).maybeSingle();
+  if (!data) return null;
+  return { id: String((data as { id: unknown }).id), subdomain: String((data as { subdomain: unknown }).subdomain) };
+}
+
 export async function getGuestByToken(token: string): Promise<PearloomGuest | null> {
   const { data, error } = await admin()
     .from('pearloom_guests')
@@ -108,6 +130,10 @@ export async function getGuestByToken(token: string): Promise<PearloomGuest | nu
     .maybeSingle();
   if (rosterErr || !rosterGuest) return null;
 
+  // guests.site_id is the sites uuid — and uuid-as-text is ALSO
+  // pearloom_guests.site_id's canonical value (G.1a, the
+  // 20260812_pearloom_guests_site_key migration), so the mint
+  // below copies it verbatim on purpose.
   const siteId = String(rosterGuest.site_id ?? '');
   const email = (rosterGuest.email as string | null)?.toLowerCase().trim() || null;
   if (!siteId) return null;

@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSiteConfig } from '@/lib/db';
+import { resolveSiteRef } from '@/lib/event-os/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,8 +51,12 @@ export async function GET(
   }
 
   // Fetch the site config so we can render names, venue, story, etc.
-  // guest.site_id on pearloom_guests is a text domain/subdomain.
-  const siteCfg = await getSiteConfig(guest.site_id).catch(() => null);
+  // guest.site_id is sites.id as text (canonical since G.1a) —
+  // resolve the subdomain getSiteConfig needs; tolerant of legacy
+  // subdomain-keyed rows. The old direct call passed the uuid into
+  // a subdomain-only lookup and always came back null.
+  const siteRef = await resolveSiteRef(guest.site_id).catch(() => null);
+  const siteCfg = siteRef ? await getSiteConfig(siteRef.subdomain).catch(() => null) : null;
 
   // Fetch this guest's memory prompt (if any).
   const { data: memoryRow } = await supabase
@@ -108,11 +113,11 @@ export async function GET(
     },
     site: siteCfg
       ? {
-          domain: siteCfg.slug ?? guest.site_id,
+          domain: siteCfg.slug ?? siteRef?.subdomain ?? guest.site_id,
           names: siteCfg.names ?? [],
           manifest: siteCfg.manifest ?? null,
         }
-      : { domain: guest.site_id, names: [], manifest: null },
+      : { domain: siteRef?.subdomain ?? guest.site_id, names: [], manifest: null },
     memoryPrompt: memoryRow
       ? {
           id: memoryRow.id,

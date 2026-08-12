@@ -12,6 +12,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
+import { resolveSiteRef } from '@/lib/event-os/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +36,17 @@ export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get('siteId');
   if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
+  /* Dashboard pages pass sites.id (uuid); getSiteConfig needs the
+     subdomain — the old direct call always came back null and this
+     page rendered nothing (G.1a). Resolve once, tolerant of either
+     shape, and key the guest read by the canonical uuid. */
+  const siteRef = await resolveSiteRef(siteId).catch(() => null);
   const [cfg, guestsRes] = await Promise.all([
-    getSiteConfig(siteId).catch(() => null),
+    siteRef ? getSiteConfig(siteRef.subdomain).catch(() => null) : Promise.resolve(null),
     supabase
       .from('pearloom_guests')
       .select('id, display_name, guest_token, home_city, relationship_to_host, side')
-      .eq('site_id', siteId)
+      .eq('site_id', siteRef?.id ?? siteId)
       .order('display_name', { ascending: true }),
   ]);
 
