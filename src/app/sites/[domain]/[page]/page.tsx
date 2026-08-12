@@ -113,6 +113,23 @@ export default async function SiteSubPage(
   const siteConfig = await getSiteConfig(domain);
   if (!siteConfig || !siteConfig.manifest) return notFound();
 
+  // The publish gate — same contract as the home route (H7):
+  // unpublished sub-pages render only for the site's owner.
+  {
+    const { isManifestPublished } = await import('@/lib/next-step');
+    if (!isManifestPublished(siteConfig.manifest)) {
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions).catch(() => null);
+      const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
+      const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
+        .toLowerCase().trim();
+      if (!viewer || !draftOwner || viewer !== draftOwner) {
+        return notFound();
+      }
+    }
+  }
+
   const requestedLocale = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? siteConfig.manifest.activeLocale;
   const { applyLocale } = await import('@/lib/i18n/apply-locale');
   const manifest = applyLocale(siteConfig.manifest, requestedLocale ?? null);

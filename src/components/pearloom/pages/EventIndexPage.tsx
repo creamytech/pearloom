@@ -233,16 +233,30 @@ function SiteCard({
               <Icon name="layout" size={13} /> Open editor
             </Link>
           )}
-          <a
-            href={`https://${url}`}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-outline btn-sm"
-            aria-label={`Preview ${siteTitle(site)}`}
-            title="Preview"
-          >
-            Preview
-          </a>
+          {site.published ? (
+            <a
+              href={`https://${url}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-outline btn-sm"
+              aria-label={`Preview ${siteTitle(site)}`}
+              title="Preview"
+            >
+              Preview
+            </a>
+          ) : (
+            /* A draft's public URL is gated now (W.3) — its preview
+               lives in the editor, not on a link that 404s for
+               everyone but the owner (NEW-USER-REVAMP L58). */
+            <Link
+              href={`/editor/${encodeURIComponent(site.domain)}?preview=1`}
+              className="btn btn-outline btn-sm"
+              aria-label={`Preview ${siteTitle(site)} in the editor`}
+              title="Preview in the editor"
+            >
+              Preview
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -480,17 +494,19 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
           >
             <Icon name="brush" size={13} /> Edit site
           </Link>
-          <a
-            href={`https://${formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion))}`}
-            target="_blank"
-            rel="noreferrer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="pl8-menu-item"
-            style={menuItemStyle}
-          >
-            <Icon name="arrow-ur" size={13} /> View live
-          </a>
+          {site.published && (
+            <a
+              href={`https://${formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion))}`}
+              target="_blank"
+              rel="noreferrer"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="pl8-menu-item"
+              style={menuItemStyle}
+            >
+              <Icon name="arrow-ur" size={13} /> View live
+            </a>
+          )}
           <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
           <button
             type="button"

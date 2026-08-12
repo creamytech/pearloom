@@ -306,6 +306,12 @@ export async function publishSite(
         .update({
           ai_manifest: manifest,
           creator_email: normalizedUserId,
+          // The column five features filter on (.eq('published', true):
+          // sibling strip, celebration timeline, anniversary cron,
+          // weekly digest, day-after recap) and the public route's
+          // gate. Nothing wrote it before 2026-08-12 — the whole
+          // "Remember" pillar had never fired (NEW-USER-REVAMP H6).
+          published: true,
           site_config: {
             ...existingConfig,
             slug: subdomain,
@@ -337,6 +343,7 @@ export async function publishSite(
         subdomain: subdomain.toLowerCase(),
         ai_manifest: manifest,
         creator_email: normalizedUserId,
+        published: true,
         site_config: {
           slug: subdomain,
           creator_email: normalizedUserId,

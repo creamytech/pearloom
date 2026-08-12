@@ -17,6 +17,28 @@ export async function generateMetadata(
 
   if (!siteConfig) return { title: 'Pearloom' };
 
+  // The publish gate, metadata half (H7): a draft's names, date, and
+  // venue must not leak through <title>/OG tags — and calling
+  // notFound() HERE, before the streaming shell flushes, is what
+  // gives anonymous visitors a genuine 404 status instead of a
+  // 200-with-404-body. The owner keeps their seamless draft preview
+  // (same bypass as the page body's gate below).
+  {
+    const { isManifestPublished } = await import('@/lib/next-step');
+    if (!siteConfig.manifest || !isManifestPublished(siteConfig.manifest)) {
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions).catch(() => null);
+      const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
+      const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
+        .toLowerCase().trim();
+      if (!viewer || !draftOwner || viewer !== draftOwner) {
+        notFound();
+      }
+      return { title: 'Pearloom', robots: { index: false } };
+    }
+  }
+
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
   const displayNames = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).filter(Boolean).join(' & ');
 
@@ -205,6 +227,28 @@ export default async function SubdomainSite({
   // If no subdomain matches in the SaaS database, render 404
   if (!siteConfig || !siteConfig.manifest) {
     return notFound();
+  }
+
+  // ── The publish gate ─────────────────────────────────────────
+  // "Nothing is public until you publish" — the wizard's promise,
+  // made true (NEW-USER-REVAMP H7: drafts were world-readable at
+  // their guessable URL, comingSoon gated nothing). An unpublished
+  // site renders only for its owner (their preview stays seamless);
+  // everyone else gets a 404 — indistinguishable from a slug that
+  // was never pressed, so drafts don't leak their existence either.
+  {
+    const { isManifestPublished } = await import('@/lib/next-step');
+    if (!isManifestPublished(siteConfig.manifest)) {
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions).catch(() => null);
+      const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
+      const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
+        .toLowerCase().trim();
+      if (!viewer || !draftOwner || viewer !== draftOwner) {
+        return notFound();
+      }
+    }
   }
 
   // Apply per-locale translations from manifest.translations[locale]

@@ -73,6 +73,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ doma
   if (!config?.manifest) {
     return NextResponse.json({ error: 'Site not found' }, { status: 404 });
   }
+  // The publish gate (H7) — a draft's names/date/venue must not leak
+  // through its calendar file either.
+  {
+    const { isManifestPublished } = await import('@/lib/next-step');
+    if (!isManifestPublished(config.manifest)) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+  }
   const manifest = config.manifest;
 
   // Resolve the target event. If ?event= is set, use that one;
