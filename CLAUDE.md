@@ -44,9 +44,11 @@ refs outside the adapter; passport-phone + doorway e2e keep passing.
 
 Counts as done: the four occasion worlds (wedding, memorial,
 bachelorette, baby shower) each pass a guest-side e2e — honest form,
-durable reply, working passport, working calendar, no false claims
-(rsvp-honesty covers wedding+memorial; bachelorette + baby-shower
-walks still to add).
+durable reply, working passport, working calendar, no false claims.
+**DONE for the form dimension** (rsvp-honesty 4/4, commit c17a94e:
+wedding menu-less walk, memorial register, bachelorette required
+cost-gate, baby-shower gifts/advice); passport + calendar ride
+passport-phone + the wedding walk. G.1 is the sprint's last block.
 
 Skip: Sprints T–D work not needed for a G block; the pending prod
 MCP applies (owner/Supabase re-auth — listed in plan §3).
