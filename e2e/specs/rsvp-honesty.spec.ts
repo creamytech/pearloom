@@ -87,6 +87,59 @@ test.describe('the honest RSVP form', () => {
     }
   });
 
+  test('a bachelorette asks its own questions — days, cost, beds — and gates Send on the required ones', async ({ request, browser }) => {
+    test.setTimeout(180_000);
+    const stamp = Date.now().toString(36);
+    const slug = await pressAndPublish(request, `fence-bach-${stamp}`, 'bachelorette-party', ['Maya', '']);
+    try {
+      const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+      const page = await anon.newPage();
+      await page.goto(`/sites/${slug}`, { waitUntil: 'domcontentloaded' });
+      await openReplyForm(page, 'Trip Friend');
+
+      const text = await page.evaluate(() => document.body.innerText);
+      expect(text).not.toContain('Joyfully');
+      expect(text).toContain('I’m in');
+
+      await page.getByRole('button', { name: 'I’m in' }).click();
+      // The bachelor preset's own asks appear…
+      await expect(page.getByText('Which days can you make it?')).toBeVisible();
+      await expect(page.getByText('Bed preference')).toBeVisible();
+      // …and the REQUIRED cost acknowledgement gates Send.
+      const send = page.getByRole('button', { name: /Send our reply/ });
+      await expect(send).toBeDisabled();
+      await page.getByText('Cost share acknowledgement').click();
+      await expect(send).toBeEnabled();
+      await anon.close();
+    } finally {
+      await deleteSite(request, slug);
+    }
+  });
+
+  test('a baby shower asks about gifts and advice, in plain words', async ({ request, browser }) => {
+    test.setTimeout(180_000);
+    const stamp = Date.now().toString(36);
+    const slug = await pressAndPublish(request, `fence-baby-${stamp}`, 'baby-shower', ['June', '']);
+    try {
+      const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+      const page = await anon.newPage();
+      await page.goto(`/sites/${slug}`, { waitUntil: 'domcontentloaded' });
+      await openReplyForm(page, 'Auntie Rose');
+
+      expect(await page.evaluate(() => document.body.innerText)).not.toContain('Joyfully');
+      await page.getByRole('button', { name: 'I’ll be there' }).click();
+      await expect(page.getByText('Bringing a gift?')).toBeVisible();
+      await expect(page.getByText('A piece of advice to share')).toBeVisible();
+      // Chip answers are one tap and Send is live (no required extras
+      // on the shower preset).
+      await page.getByRole('button', { name: 'Shipped ahead' }).click();
+      await expect(page.getByRole('button', { name: /Send our reply/ })).toBeEnabled();
+      await anon.close();
+    } finally {
+      await deleteSite(request, slug);
+    }
+  });
+
   test('a menu-less wedding asks no meal question and stores no meal', async ({ request, browser }) => {
     test.setTimeout(180_000);
     const stamp = Date.now().toString(36);

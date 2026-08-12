@@ -21,18 +21,32 @@ silent-empty masking.
 Goal: one guest identity, occasion-true honest asks, a passport worth
 the name (the R2 revamp, first half).
 
-Open threads: G.1 collapse the guests/pearloom_guests fork behind one
-adapter (no `pearloom_guests` refs outside it; W.5 e2e keeps passing)
-· G.2 rsvpPreset drives GuestRsvpModal (memorial gets memorial
-fields) · G.3 conditioned asks (no menu → no meal question; nothing
-pre-selected or stored unasked) · G.4 passport phone-first at 390px,
-signed by the couple · G.5 registry honesty (empty → nothing, never
-"we've put a few things together") · G.6 .ics real times + hero
-anchors that exist · G.7 guest-surface contrast floor.
+**G.2–G.7 all SHIPPED 2026-08-12** (stamps + details in plan §4;
+commits 1d1df9a, b73dc3a, 7661b4b): preset-driven honest RSVP form +
+the 42P10 first-reply prod bug fixed; registry honesty gate; .ics
+real-times/all-day; gate-aware hero anchor; RSVP contrast floor (+
+amalfi/first-light catalog fixes); passport phone-first (minWidth:0
+pair, manifest.names signing, token-first + ilike reply lookup,
+passport_token in POST /api/guests response, cache()-deduped
+resolver — the first-visit mint race 404'd real passports). Four new
+fences in the staging-fence workflow: rsvp-honesty (2) +
+passport-phone (1) alongside doorway/press/publish.
+
+Open threads: **G.1 only** — collapse the guests/pearloom_guests
+fork behind one adapter (keep `guests` canonical; lib/event-os/db.ts
+getGuestByToken is the adapter seed; ~28 files reference the fork —
+a survey map may already be in the plan doc §4 or scratchpad
+fork-survey.md; mind the site_id convention split: pearloom_guests
+keys by SUBDOMAIN, guests by sites.id uuid; FK targets on
+pearloom_guests(id): guest_photos, memory_prompts, whispers,
+song_requests, time_capsule at least). Fence: no pearloom_guests
+refs outside the adapter; passport-phone + doorway e2e keep passing.
 
 Counts as done: the four occasion worlds (wedding, memorial,
 bachelorette, baby shower) each pass a guest-side e2e — honest form,
-durable reply, working passport, working calendar, no false claims.
+durable reply, working passport, working calendar, no false claims
+(rsvp-honesty covers wedding+memorial; bachelorette + baby-shower
+walks still to add).
 
 Skip: Sprints T–D work not needed for a G block; the pending prod
 MCP applies (owner/Supabase re-auth — listed in plan §3).
