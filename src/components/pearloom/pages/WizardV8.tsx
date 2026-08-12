@@ -489,6 +489,12 @@ interface WizardState {
    *  401 branch (persisted with the draft), consumed once by the
    *  resume-press effect when the host returns authenticated. */
   pendingPress?: boolean;
+  /** Idempotency key for THIS press session, minted on the first
+   *  handleFinish and persisted with the draft. Every create POST
+   *  carries it so a double-fired seal, a network retry, or the
+   *  resumed post-auth press converges on ONE site row instead of
+   *  minting a `-2` sibling (NEW-USER-REVAMP H2). */
+  pressKey?: string;
 }
 
 const defaultState: WizardState = {
@@ -2889,6 +2895,8 @@ export function WizardV8() {
   // here, the mount restore rehydrates the draft, and this effect
   // honors the click the host already made. Fires at most once.
   const resumedPressRef = useRef(false);
+  // One finish per press session (see handleFinish's guard).
+  const pressInFlightRef = useRef(false);
   useEffect(() => {
     if (resumedPressRef.current) return;
     if (!st.pendingPress) return;
@@ -3043,6 +3051,23 @@ export function WizardV8() {
   }
 
   async function handleFinish() {
+    // Re-entrancy guard — a ref, not React state: `busy` hasn't
+    // rendered yet when a double-tap's second event arrives, and the
+    // resume-press effect can race a manual press. One press session,
+    // one finish. Reset only on failure paths so retry stays possible.
+    if (pressInFlightRef.current) return;
+    pressInFlightRef.current = true;
+    // The per-press idempotency key: reuse the persisted one (a
+    // resumed press is the SAME press), mint otherwise.
+    const pressKey =
+      stRef.current.pressKey ?? (crypto.randomUUID ? crypto.randomUUID() : `pk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
+    if (!stRef.current.pressKey) {
+      // Mirror-first: the 401 branch reads stRef synchronously below,
+      // before React has flushed the setSt — the key must already be
+      // on the mirror so the persisted draft carries it.
+      stRef.current = { ...stRef.current, pressKey };
+      setSt((s) => ({ ...s, pressKey }));
+    }
     trackEvent('wizard_weave_clicked', { occasion: stRef.current.occasion });
     setBusy(true);
     setErr(null);
@@ -3376,6 +3401,7 @@ export function WizardV8() {
           manifest,
           names: submitNames,
           create: true,
+          pressKey,
           ref: storedReferral(),
         }),
       });
@@ -3391,6 +3417,10 @@ export function WizardV8() {
       // resumes them where they left off — no error, nothing lost.
       if (res.status === 401) {
         scriptTimers.forEach(clearTimeout);
+        // The press is deferred, not failed — release the guard so
+        // the post-auth resume (a fresh mount in practice) is never
+        // blocked by a stale ref.
+        pressInFlightRef.current = false;
         if (typeof window !== 'undefined') {
           try {
             const { photos: _photos, ...persisted } = stRef.current;
@@ -3510,6 +3540,9 @@ export function WizardV8() {
       // error state.
       scriptTimers.forEach(clearTimeout);
       setErr(e instanceof Error ? e.message : 'Something went wrong');
+      // Failure releases the press guard so the host can retry —
+      // the persisted pressKey makes that retry idempotent.
+      pressInFlightRef.current = false;
     } finally {
       setBusy(false);
     }

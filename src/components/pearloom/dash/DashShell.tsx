@@ -927,6 +927,10 @@ function CelebrationCard() {
                       const d = parseLocalDate(s.eventDate);
                       return d ? ` · ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
                     })()}
+                    {/* The slug tells twin rows apart — two sites with
+                        the same names and date are otherwise literally
+                        identical here (NEW-USER-REVAMP L13). */}
+                    {` · /${s.domain}`}
                   </span>
                 </span>
                 {on && (

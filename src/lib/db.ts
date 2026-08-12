@@ -161,7 +161,12 @@ export async function saveSiteDraft(
   userId: string,
   subdomain: string,
   manifest: unknown,
-  names: [string, string] = ['', '']
+  names: [string, string] = ['', ''],
+  /** Wizard-create idempotency: the per-press key stamped onto
+   *  site_config so a replayed create converges on this row
+   *  (see findAvailableSubdomain in api/sites). Absent on
+   *  autosave/update callers — never cleared once set. */
+  opts?: { pressKey?: string | null }
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   // Normalize the user id so future case-mismatches don't cause the
@@ -203,6 +208,7 @@ export async function saveSiteDraft(
             slug: subdomain,
             creator_email: normalizedUserId,
             names: namesToStore,
+            ...(opts?.pressKey ? { pressKey: opts.pressKey } : {}),
           },
         })
         .eq('subdomain', subdomain);
@@ -224,6 +230,7 @@ export async function saveSiteDraft(
             ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
             ?? ['', ''],
           createdAt: new Date().toISOString(),
+          ...(opts?.pressKey ? { pressKey: opts.pressKey } : {}),
         },
       });
     if (error) return { success: false, error: error.message };

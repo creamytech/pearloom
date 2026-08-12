@@ -159,10 +159,14 @@ function SiteCard({
           <span style={{ width: 7, height: 7, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--pl-gold)' }} />
           {site.published ? 'Live' : 'Draft'}
         </span>
-        {/* Quick actions (•••) — real edit / view / delete. Always
-            rendered so the actions are reachable on touch too. */}
-        <SiteCardMenu site={site} onDeleted={() => onDeleted(site.domain)} />
       </div>
+
+      {/* Quick actions (•••) — real edit / view / delete. Always
+          rendered so the actions are reachable on touch too. Mounted
+          on the CARD (not inside the cover, whose overflow:hidden was
+          clipping the open menu at 'Delete site' — NEW-USER-REVAMP
+          L57); same visual corner, popover free to extend. */}
+      <SiteCardMenu site={site} onDeleted={() => onDeleted(site.domain)} />
 
       <div style={{ padding: '15px 18px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         {/* Title + date baseline row. */}
@@ -178,6 +182,12 @@ function SiteCard({
         {/* Occasion · theme — a colored italic keyed to the occasion. */}
         <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13.5, color: tint.fg, marginTop: 3 }}>
           {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
+        </div>
+        {/* The address — the one line that tells twin cards apart
+            (a duplicate draft and its live sibling share every other
+            label; NEW-USER-REVAMP L13). */}
+        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.02em', color: 'var(--ink-muted)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {url}
         </div>
         {/* Stat row — real coming/invited + lifetime visits. The frame
             renders immediately with an em dash (the "still threading"

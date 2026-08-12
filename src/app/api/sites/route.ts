@@ -38,17 +38,29 @@ function getSupabase() {
 async function findAvailableSubdomain(
   db: NonNullable<ReturnType<typeof getSupabase>>,
   requested: string,
+  pressKey: string | null = null,
 ): Promise<string> {
   const { data, error } = await db
     .from('sites')
-    .select('subdomain')
+    .select('subdomain, pressKey:site_config->>pressKey')
     .like('subdomain', `${requested}%`)
     .limit(500);
   if (error || !data) {
     console.warn('[api/sites] subdomain availability query failed (using requested):', error);
     return requested;
   }
-  const taken = new Set(data.map((r) => (r as { subdomain: string }).subdomain));
+  const rows = data as Array<{ subdomain: string; pressKey?: string | null }>;
+  // Idempotent replay: a row stamped with THIS press's key is not
+  // "taken" — it is this press's own earlier write (a double-fired
+  // seal, a retried request). Converge on it instead of minting a
+  // suffixed sibling; the same-owner upsert in saveSiteDraft then
+  // updates it in place. (NEW-USER-REVAMP H2 — the duplicate that
+  // burned the couple's URL and both free-tier slots.)
+  if (pressKey) {
+    const own = rows.find((r) => r.pressKey === pressKey);
+    if (own) return own.subdomain;
+  }
+  const taken = new Set(rows.map((r) => r.subdomain));
   if (!taken.has(requested)) return requested;
   for (let i = 2; i <= 60; i++) {
     const candidate = `${requested}-${i}`;
@@ -156,11 +168,21 @@ export async function POST(req: NextRequest) {
     // callers omit the flag and keep upsert-by-subdomain semantics.
     // The final subdomain is returned in the response so the wizard
     // can route to the editor it actually created.
+    //
+    // `pressKey` — the wizard mints one key per press session and
+    // persists it with the draft. A replayed create (double-fired
+    // seal, network retry, resumed press) carries the same key and
+    // MUST converge on the same row: never a `-2` sibling, never a
+    // burned slug, never a second free-tier slot consumed.
+    const pressKey =
+      typeof body.pressKey === 'string' && /^[A-Za-z0-9-]{8,64}$/.test(body.pressKey)
+        ? body.pressKey
+        : null;
     let subdomain = requestedSubdomain;
     if (body.create === true) {
       const createDb = getSupabase();
       if (createDb) {
-        subdomain = await findAvailableSubdomain(createDb, requestedSubdomain);
+        subdomain = await findAvailableSubdomain(createDb, requestedSubdomain, pressKey);
         if (subdomain !== requestedSubdomain) {
           console.log(`[api/sites] create: '${requestedSubdomain}' taken — using '${subdomain}'`);
         }
@@ -324,7 +346,8 @@ export async function POST(req: NextRequest) {
       actingAs,
       subdomain,
       manifestToSave,
-      names || ['', '']
+      names || ['', ''],
+      body.create === true && pressKey ? { pressKey } : undefined
     );
 
     if (!result.success) {
