@@ -249,6 +249,11 @@ export async function POST(req: NextRequest) {
       guest: {
         id: data.id, name: data.name, email: data.email,
         status: data.status, plusOne: data.plus_one,
+        // The personal-link token just minted for this guest — the
+        // owner-gated GET already exposes it (share/QR/envelope
+        // links), so the create response returns it too instead of
+        // forcing a second fetch.
+        passport_token: data.passport_token ?? null,
       }
     });
   } catch (err) {

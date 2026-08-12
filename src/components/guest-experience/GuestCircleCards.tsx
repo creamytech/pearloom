@@ -288,7 +288,10 @@ export function GuestThreadCard({
           placeholder={tab === 'dm' ? 'Message your hosts…' : solemn ? 'Share a few words…' : 'Add to the thread…'}
           maxLength={2000}
           style={{
-            flex: 1, padding: '10px 14px', borderRadius: 999,
+            /* minWidth: 0 — flexbox's min-width:auto lets the input's
+               intrinsic floor shove the Send button off a 390px
+               screen (G.4/L28). */
+            flex: 1, minWidth: 0, padding: '10px 14px', borderRadius: 999,
             border: '1px solid var(--line, rgba(14,13,11,0.12))',
             background: 'var(--cream-2, rgba(14,13,11,0.03))',
             fontSize: '0.86rem', fontFamily: 'inherit', color: 'var(--ink, #0E0D0B)',

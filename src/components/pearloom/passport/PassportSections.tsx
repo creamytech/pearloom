@@ -785,6 +785,9 @@ function SongCard({
         A song that would make you dance. Yours joins the crowd's mix for cocktail hour.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 10 }}>
+        {/* minWidth: 0 — an input's intrinsic ~180px floor otherwise
+            wins over the grid track and shoves the card past a 390px
+            viewport (G.4/L28). */}
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -796,6 +799,8 @@ function SongCard({
             fontFamily: 'inherit',
             fontSize: '0.95rem',
             background: '#fff',
+            minWidth: 0,
+            width: '100%',
           }}
         />
         <input
@@ -809,6 +814,8 @@ function SongCard({
             fontFamily: 'inherit',
             fontSize: '0.95rem',
             background: '#fff',
+            minWidth: 0,
+            width: '100%',
           }}
         />
       </div>

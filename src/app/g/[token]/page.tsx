@@ -18,7 +18,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 import { getGuestByToken } from '@/lib/event-os/db';
+
 import { getOrGeneratePersonalization } from '@/lib/event-os/personalize';
 import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
@@ -48,6 +50,13 @@ import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { deriveInitials } from '@/lib/monogram';
 import { parseLocalDate } from '@/lib/date-utils';
 
+/* One token resolution per request, shared by generateMetadata and
+   the page body. Without this the two resolve in PARALLEL, and on a
+   roster token's very first visit both race the identity mint —
+   the loser could come up empty and 404 the guest's first-ever tap
+   on their invitation (G.4; the classic Next dedupe pattern). */
+const resolveGuest = cache(getGuestByToken);
+
 export const dynamic = 'force-dynamic';
 
 function sb() {
@@ -75,7 +84,7 @@ export async function generateMetadata({
   try {
     const { token } = await params;
     if (!token) return fallback;
-    const guest = await getGuestByToken(token);
+    const guest = await resolveGuest(token);
     if (!guest) return fallback;
     const { data: site } = await sb()
       .from('sites')
@@ -134,7 +143,7 @@ export default async function PersonalGuestPage({
   const { token } = await params;
   if (!token) notFound();
 
-  const guest = await getGuestByToken(token);
+  const guest = await resolveGuest(token);
   if (!guest) notFound();
 
   const { data: site } = await sb()
@@ -161,15 +170,31 @@ export default async function PersonalGuestPage({
     selected_events: string[] | null;
   };
   let rsvp: GuestRsvp | null = null;
-  if (guest.email) {
+  // `selected_events` — NOT `event_ids`, which exists in no schema
+  // (prod included); selecting it errored this fetch and 404'd the
+  // whole passport (NEW-USER-REVAMP H8, second stacked bug).
+  const RSVP_COLS = 'status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at, selected_events';
+  // The guest's own token is the strongest link to their RSVP row —
+  // try it first (shape-validated; it rides inside a filter string).
+  if (/^[\w-]{6,80}$/.test(token)) {
+    const { data: byToken } = await sb()
+      .from('guests')
+      .select(RSVP_COLS)
+      .eq('site_id', site.id)
+      .or(`passport_token.eq.${token},guest_token.eq.${token}`)
+      .maybeSingle<GuestRsvp>();
+    rsvp = byToken ?? null;
+  }
+  if (!rsvp && guest.email) {
+    // Case-INSENSITIVE — the tables link via (site_id, lower(email)),
+    // but this lookup used `.eq`, so "Priya@…" vs "priya@…" read as
+    // never-replied and the card asked an attending guest to "pick
+    // one to RSVP" (G.4/L29).
     const { data: rsvpRow } = await sb()
       .from('guests')
-      // `selected_events` — NOT `event_ids`, which exists in no schema
-      // (prod included); selecting it errored this fetch and 404'd the
-      // whole passport (NEW-USER-REVAMP H8, second stacked bug).
-      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at, selected_events')
+      .select(RSVP_COLS)
       .eq('site_id', site.id)
-      .eq('email', guest.email)
+      .ilike('email', guest.email)
       .maybeSingle<GuestRsvp>();
     rsvp = rsvpRow ?? null;
   }
@@ -320,12 +345,25 @@ export default async function PersonalGuestPage({
      this component body — React Compiler purity, CLAUDE-DESIGN §13). */
   const eventHasPassed = hasEventPassed(manifest.logistics?.date ?? null);
 
-  // Best-effort couple names from coupleId
-  const [rawA, rawB] = (manifest.coupleId ?? '').split(/[-_]/);
-  const coupleNames: [string, string] = [
-    rawA ? rawA.charAt(0).toUpperCase() + rawA.slice(1) : 'Us',
-    rawB ? rawB.charAt(0).toUpperCase() + rawB.slice(1) : '',
-  ];
+  // The hosts' REAL names, from where every modern site keeps them
+  // (manifest.names — the wizard writes it, the renderer reads it).
+  // The old derivation here split legacy `coupleId` only, which no
+  // modern manifest sets — so every passport letter was addressed
+  // from "Us" with a "U S" monogram (G.4/L29). coupleId stays as
+  // the legacy fallback; "Us" is the last resort for a manifest
+  // with no names anywhere.
+  const coupleNames: [string, string] = (() => {
+    const names = (manifest as unknown as { names?: unknown }).names;
+    if (Array.isArray(names)) {
+      const [a, b] = names.map((n) => String(n ?? '').trim());
+      if (a) return [a, b ?? ''];
+    }
+    const [rawA, rawB] = (manifest.coupleId ?? '').split(/[-_]/);
+    return [
+      rawA ? rawA.charAt(0).toUpperCase() + rawA.slice(1) : 'Us',
+      rawB ? rawB.charAt(0).toUpperCase() + rawB.slice(1) : '',
+    ];
+  })();
 
   const venueCity =
     manifest.logistics?.venueAddress?.split(',').slice(-2, -1)[0]?.trim();

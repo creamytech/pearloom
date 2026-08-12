@@ -95,7 +95,8 @@ jobs:
             e2e/specs/doorway.spec.ts \
             e2e/specs/press-idempotency.spec.ts \
             e2e/specs/publish-gate.spec.ts \
-            e2e/specs/rsvp-honesty.spec.ts
+            e2e/specs/rsvp-honesty.spec.ts \
+            e2e/specs/passport-phone.spec.ts
 
       - name: Surface logs on failure
         if: failure()

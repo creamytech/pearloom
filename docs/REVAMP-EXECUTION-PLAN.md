@@ -325,9 +325,24 @@ worth the name. (The R2 revamp, first half.)
   menu-less-site spec asserts the stored row carries no
   meal_preference. (The wizard meal-chips copy note is folded into
   T-sprint's wizard honesty pass.)
-- **G.4 Passport, phone-first (L28, L29).** 390px-first relayout (no
-  horizontal scroll), signed by the couple's names, the guest's real
-  state everywhere. The competitive bet's foundation.
+- **G.4 Passport, phone-first (L28, L29). — SHIPPED 2026-08-12.**
+  The 390px overflow was two `minWidth: 0` omissions (the playlist
+  inputs' intrinsic ~180px floor beat their grid tracks; the thread
+  composer's flex input shoved Send off-screen) — both fixed, page
+  no longer scrolls sideways. The "Us"/"U S" letter: coupleNames
+  derived only from legacy `coupleId`, never `manifest.names` where
+  every modern site's real names live — fixed, letters sign as the
+  couple. The "pick one to RSVP" lie: the passport's reply lookup
+  was a case-SENSITIVE email `.eq` (everything else joins on
+  lower(email)) — now token-first then `ilike`. Two bonus fixes the
+  fence surfaced: `/api/guests` POST now returns the passport_token
+  it just minted, and the passport's first-ever visit no longer
+  races generateMetadata against the page body for the identity
+  mint (`cache(getGuestByToken)` — the loser used to 404 the
+  guest's first tap on their invitation). Fence:
+  `e2e/specs/passport-phone.spec.ts` (in the staging-fence
+  workflow): scrollWidth ≤ 392 at 390px, real names, no "U S", the
+  guest's real reply state, case-variant email exercised.
 - **G.5 Registry honesty (L27). — SHIPPED 2026-08-12.** The registry
   gets the story section's honesty gate: published sites render it
   only when the host gave it something (stores, an intro note, P2P
