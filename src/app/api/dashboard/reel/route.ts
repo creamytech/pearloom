@@ -61,9 +61,9 @@ export async function GET(req: NextRequest) {
     const supabase = sb();
     let query = supabase
       .from('sites')
-      .select('id, domain, names, manifest:ai_manifest, site_config, updated_at')
+      .select('id, domain:subdomain, names, manifest:ai_manifest, site_config, updated_at')
       .order('updated_at', { ascending: false });
-    if (siteFilter) query = query.eq('domain', siteFilter);
+    if (siteFilter) query = query.eq('subdomain', siteFilter);
     const { data: rows, error } = await query;
     if (error) throw error;
 

@@ -3,7 +3,7 @@
 /* ════════════════════════════════════════════════════════════════
    BASTINGS — Pear's while-you-were-away work.
 
-   BRAND.md §7: drafts are *basted in*, not generated. On editor
+   BRAND.md §7 (2026-07-08): "basted in" is RETIRED user-facing vocabulary — say added or drafted. The internal module name stays. On editor
    open, Pear derives a few small, concrete improvements from the
    site as it stands and offers them stitched-in — the host SETS
    the stitch (keep, undoable) or PULLS the thread (it unravels
@@ -99,7 +99,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'story-from-facts',
       label: 'Your story, drafted from your words',
-      detail: 'You told me how it started in the wizard, I can baste a first draft of the story section in from exactly what you said.',
+      detail: 'You told me how it started in the wizard — I can add a first draft of the story section from exactly what you said.',
       section: 'story',
       apply: (m) => m,
       applyAsync: async (m) => {
@@ -143,7 +143,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     out.push({
       id: 'countdown',
       label: 'A countdown to the day',
-      detail: 'Your date is set, I can baste in a countdown so guests feel it approaching.',
+      detail: 'Your date is set — I can add a countdown so guests feel it approaching.',
       section: 'countdown',
       apply: (m) => blockOrderWith(m, 'countdown'),
     });
@@ -168,7 +168,7 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
     const starters = starterFaqs(occasion);
     out.push({
       id: 'faq-starters',
-      label: 'Two FAQ starters, basted in',
+      label: 'Two FAQ starters, drafted',
       detail: 'Guests always ask the same first questions, I drafted two you can edit or pull out.',
       section: 'faq',
       apply: (m) => {

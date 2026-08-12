@@ -396,7 +396,7 @@ function ComposeStage({ accent }: { accent: string }) {
         </div>
       </div>
 
-      <div style={{ ...MONO_STYLE, fontSize: 10, marginBottom: 8 }}>BLOCKS · BASTED IN</div>
+      <div style={{ ...MONO_STYLE, fontSize: 10, marginBottom: 8 }}>BLOCKS · DRAFTED IN</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {['Cover', 'Story', 'RSVP', 'Travel', 'Registry', 'Toasts', 'FAQ', 'Run of show'].map((b, i) => {
           const on = i < 5;

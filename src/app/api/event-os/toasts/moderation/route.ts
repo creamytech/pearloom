@@ -29,7 +29,11 @@ async function userOwnsSite(
   const { data, error } = await supabase
     .from('sites')
     .select('site_config')
-    .eq('domain', siteDomain)
+    // The column is `subdomain` — `domain` exists in no schema (prod
+    // included); the errored query made this ownership check fail
+    // CLOSED, 403ing owners out of their own moderation queue
+    // (NEW-USER-REVAMP L11).
+    .eq('subdomain', siteDomain)
     .maybeSingle();
   if (error || !data) return false;
   // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].

@@ -8,7 +8,7 @@
 // ABOVE the linked-store pills inside the registry section. The
 // claim flow is reserve-and-link (launch mode, no payment):
 // "I'll get this" → name + optional note → POST reserve → the card
-// flips to "Spoken for — basted in by {first name}" with a
+// flips to "Spoken for — added by {first name}" with a
 // "Buy it at {store} →" link when the item carries a product URL.
 //
 // Same contract as GuestbookSection / GuestPlaylist:

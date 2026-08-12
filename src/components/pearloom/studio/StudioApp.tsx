@@ -143,7 +143,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
      reply options, sign-offs, the Caveat flourish. */
   const solemn = getEventType(occasion)?.voice === 'solemn';
 
-  const { state, setField, setMany, savedAt, saving, saveError, retrySave } = useStudioState({ siteSlug, manifest });
+  const { state, setField, setMany, savedAt, saving, saveError, retrySave, markInteracted } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
 
   /* ── ?thankTo= deep link — one-shot prefill. Switches to the
@@ -709,7 +709,9 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   }
 
   return (
-    <div className="pl-studio-root" style={{
+    // markInteracted — the autosave interaction gate (W.10): nothing
+    // persists from this surface until the host actually touches it.
+    <div className="pl-studio-root" onPointerDownCapture={markInteracted} onKeyDownCapture={markInteracted} style={{
       display: 'grid',
       gridTemplateColumns: viewportMobile ? '1fr' : '296px 1fr 312px',
       gridTemplateRows: viewportMobile ? '102px 1fr' : '64px 1fr',

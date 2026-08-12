@@ -402,6 +402,16 @@ export function useStudioState(args: {
    *  before the host's first edit, capturing the default
    *  manifest slice instead of the edited one. */
   const hasMounted = useRef<boolean>(false);
+  /** Interaction gate. The first-render skip above is not enough:
+   *  post-mount EFFECTS (look inheritance, state normalization)
+   *  re-run the autosave effect and were writing manifest.studio —
+   *  bumping updated_at and mutating the live site's identity — on
+   *  a purely read-only visit (NEW-USER-REVAMP L12, a regression of
+   *  ad77fbb0 which only gated the first run). Nothing persists
+   *  until the host actually touches the Studio; StudioApp arms
+   *  this on the first pointer/key event inside the surface. */
+  const interacted = useRef<boolean>(false);
+  const markInteracted = useCallback(() => { interacted.current = true; }, []);
 
   const setField: SetStudioField = useCallback((key, value) => {
     setState(prev => ({ ...prev, [key]: value }));
@@ -493,6 +503,8 @@ export function useStudioState(args: {
       hasMounted.current = true;
       return;
     }
+    // Read-only visits never write — see the interaction gate above.
+    if (!interacted.current) return;
     dirty.current = true;
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(() => { void flushNow(); }, 1500);
@@ -552,7 +564,7 @@ export function useStudioState(args: {
   }, []);
 
   return useMemo(
-    () => ({ state, setField, setMany, savedAt, saving, saveError, retrySave: flushNow }),
-    [state, setField, setMany, savedAt, saving, saveError, flushNow],
+    () => ({ state, setField, setMany, savedAt, saving, saveError, retrySave: flushNow, markInteracted }),
+    [state, setField, setMany, savedAt, saving, saveError, flushNow, markInteracted],
   );
 }

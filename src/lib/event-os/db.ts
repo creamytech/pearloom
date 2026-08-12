@@ -90,7 +90,58 @@ export async function getGuestByToken(token: string): Promise<PearloomGuest | nu
     .eq('guest_token', token)
     .maybeSingle();
   if (error) throw error;
-  return (data ?? null) as PearloomGuest | null;
+  if (data) return data as PearloomGuest;
+
+  // ── The other half of the guest world ────────────────────────
+  // Every token the product actually mints for hosts' guests lives
+  // on public.guests.passport_token (RSVP emails, dashboard links,
+  // nudges, QR cards) — while this resolver historically read only
+  // pearloom_guests.guest_token, so every such passport 404'd
+  // (NEW-USER-REVAMP H8: "the growth engine is a 404"). Resolve the
+  // roster token and bridge it to a pearloom_guests identity row —
+  // find by token, then by (site_id, email), else mint one carrying
+  // THIS token so the next visit resolves on the fast path above.
+  const { data: rosterGuest, error: rosterErr } = await admin()
+    .from('guests')
+    .select('site_id, name, email, passport_token')
+    .eq('passport_token', token)
+    .maybeSingle();
+  if (rosterErr || !rosterGuest) return null;
+
+  const siteId = String(rosterGuest.site_id ?? '');
+  const email = (rosterGuest.email as string | null)?.toLowerCase().trim() || null;
+  if (!siteId) return null;
+
+  if (email) {
+    const { data: byEmail } = await admin()
+      .from('pearloom_guests')
+      .select('*')
+      .eq('site_id', siteId)
+      .ilike('email', email)
+      .maybeSingle();
+    if (byEmail) return byEmail as PearloomGuest;
+  }
+
+  const { data: minted, error: mintErr } = await admin()
+    .from('pearloom_guests')
+    .insert({
+      site_id: siteId,
+      display_name: (rosterGuest.name as string | null) || email || 'Guest',
+      email,
+      guest_token: token,
+    })
+    .select()
+    .single();
+  if (mintErr) {
+    // A concurrent visit may have minted it — one retry by token.
+    const { data: retry } = await admin()
+      .from('pearloom_guests')
+      .select('*')
+      .eq('guest_token', token)
+      .maybeSingle();
+    return (retry ?? null) as PearloomGuest | null;
+  }
+  return minted as PearloomGuest;
 }
 
 export async function listGuests(siteId: string): Promise<PearloomGuest[]> {

@@ -31,8 +31,17 @@ export async function GET(req: NextRequest) {
     }
 
     type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
-    const siteIdParam = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
-    const siteSlug = req.nextUrl.searchParams.get('siteSlug') || req.nextUrl.searchParams.get('subdomain');
+    // ?site= accepts EITHER an id or a slug — the dashboard Home was
+    // passing the domain here while the route read it as a uuid, so
+    // every host's guest summary 404'd into a masked empty state
+    // ("you have no guests" beside a full roster — NEW-USER-REVAMP
+    // L1). One param, both shapes, decided by the uuid grammar.
+    const rawSite = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
+    const isUuid = !!rawSite && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawSite);
+    const siteIdParam = isUuid ? rawSite : null;
+    const siteSlug = req.nextUrl.searchParams.get('siteSlug')
+      || req.nextUrl.searchParams.get('subdomain')
+      || (!isUuid ? rawSite : null);
     if (!siteIdParam && !siteSlug) {
       return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
     }

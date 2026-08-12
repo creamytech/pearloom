@@ -5,7 +5,7 @@
 // Renders below the playlist embed (every MusicBlock variant):
 //   • "The guest playlist" — accepted rows from the public
 //     /api/song-requests GET as an editorial tracklist (mono
-//     index, display-type title, quiet artist, "basted in by
+//     index, display-type title, quiet artist, "added by
 //     {first name}" attribution, album art, 30s preview, Open
 //     in Spotify link).
 //   • A suggest-a-song composer POSTing to /api/song-requests,

@@ -3288,6 +3288,31 @@ export function WizardV8() {
           : 'Wedding party',
       }) as unknown as Record<string, unknown>;
 
+      // ── "Your words land" (NEW-USER-REVAMP H3) ────────────────
+      // The story the host typed at "Tell me about it" used to ride
+      // ONLY factSheet.story — the published site shipped with no
+      // story section at all, and the sole bridge (the editor's
+      // Pear-suggests card) could fail silently. Seed the story
+      // section with the host's own words VERBATIM: no model, no
+      // fabrication, published-honest by construction. Pear's
+      // rewrite stays an upgrade offered in the editor.
+      {
+        const hostStory = (st.storyText || st.howWeMet || '').trim();
+        const existingChapters = (manifest as { chapters?: unknown[] }).chapters;
+        if (hostStory && (!existingChapters || existingChapters.length === 0)) {
+          (manifest as Record<string, unknown>).chapters = [{
+            id: 'in-your-words',
+            date: st.eventDate || '',
+            title: 'In your words',
+            subtitle: '',
+            description: hostStory,
+            images: [],
+            location: null,
+            mood: '',
+          }];
+        }
+      }
+
       // ── Section picks (§3.3) — write an explicit blockOrder (which
       //    sections, in the canonical order), plus hiddenSections for
       //    any essential the host set aside and manifest.layouts for

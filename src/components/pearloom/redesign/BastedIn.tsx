@@ -45,6 +45,11 @@ export function BastedIn({
      in flight so its button can read "Threading…" instead of
      freezing silently. */
   const [busyId, setBusyId] = useState<string | null>(null);
+  /** A failed apply must say so. The old behavior — return
+   *  silently and "leave the card up so the host can retry" —
+   *  read as a dead button: "Adding…" then nothing, no error, no
+   *  hint (NEW-USER-REVAMP H3/L20). */
+  const [failedId, setFailedId] = useState<string | null>(null);
 
   /* THE RECEIPTS — first open after generation, Pear shows what she
      wove in from the host's own story (factSheet.anchors, stamped
@@ -70,6 +75,7 @@ export function BastedIn({
     let next: StoryManifest | null;
     if (b.applyAsync) {
       setBusyId(b.id);
+      setFailedId(null);
       try {
         next = await b.applyAsync(manifest);
       } finally {
@@ -77,12 +83,16 @@ export function BastedIn({
       }
       if (!next) {
         /* Draft came back empty (keyless deploy / model hiccup) —
-           leave the card up so the host can retry or pull it. */
+           SAY SO. The card stays so the host can retry or pull it,
+           and the error line below the buttons explains what
+           happened in host language. */
+        setFailedId(b.id);
         return;
       }
     } else {
       next = b.apply(manifest);
     }
+    setFailedId(null);
     onApply(next);
     pearWorking('done', b.section);
     fireUndoable(`${b.label}, added`, () => onApply(before));
@@ -173,6 +183,20 @@ export function BastedIn({
                 No thanks
               </button>
             </div>
+            {failedId === b.id && (
+              <div
+                role="alert"
+                style={{
+                  marginTop: 7,
+                  fontSize: 11,
+                  lineHeight: 1.45,
+                  color: 'var(--pl-plum, #7A2D2D)',
+                }}
+              >
+                That draft didn’t come through — nothing was changed.
+                Give it another try in a moment.
+              </div>
+            )}
           </div>
         ))}
       </div>

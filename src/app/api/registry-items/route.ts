@@ -86,7 +86,7 @@ function publicView(row: ItemRow) {
     purchased: row.purchased || false,
     sortOrder: row.sort_order ?? 0,
     allowGroupGift: row.allow_group_gift || false,
-    /* First name only — powers "Spoken for — basted in by June" on
+    /* First name only — powers "Spoken for — added by June" on
        the published card. Full names / emails stay owner-only. */
     claimedByFirstName:
       (row.quantity_claimed ?? 0) > 0 && row.claimed_by_name
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
     if (ownerEmail) {
       const { data: site } = await supabase
         .from('sites')
-        .select('user_id, creator_email')
+        .select('creator_email')
         .eq('id', siteUuid)
         .maybeSingle();
       // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].

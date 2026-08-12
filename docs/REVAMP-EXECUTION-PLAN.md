@@ -69,7 +69,7 @@ each pinned by a cross-seam test. After this sprint, the Maya walk
 (landing → signed-out wizard → press → publish → guest RSVP → passport
 → return visit) completes with zero defects.
 
-### W.1 · Reopen the doorway (H1)
+### W.1 · Reopen the doorway (H1) — SHIPPED 2026-08-12
 Delete the session gate in `src/app/wizard/layout.tsx` (the file's only
 job; remove the file or reduce it to a passthrough). Verify the S3
 signed-out machinery still works end-to-end: wizard signed out → press
@@ -80,7 +80,7 @@ paste → continue → wizard; direct `/wizard/new` → 200. Runs in CI.
 **Counts as done:** all three signed-out paths reach the wizard; the
 claim-card press-resume walk passes.
 
-### W.2 · An idempotent, recoverable press (H2, L45, L13)
+### W.2 · An idempotent, recoverable press (H2, L45, L13) — SHIPPED 2026-08-12
 - Re-entrancy: a `useRef` guard inside `handleFinish` (state `busy` is
   not a guard) + disable the seal the instant the press starts.
 - Idempotency: the wizard mints a per-session press key; `POST
@@ -97,7 +97,7 @@ e2e — double-click the seal → exactly one site exists.
 **Counts as done:** no sequence of seal clicks can produce two rows;
 an existing duplicate is deletable from My sites.
 
-### W.3 · Publish becomes real (H6+L2, H7+L6+L14, L58)
+### W.3 · Publish becomes real (H6+L2, H7+L6+L14, L58) — SHIPPED 2026-08-12
 - One line: `publishSite` writes `published: true` (and un-publish
   clears it). Backfill prod: `update sites set published = true where
   ai_manifest->>'published' = 'true'`.
@@ -115,7 +115,7 @@ published sibling.
 `select count(*) from sites where published=true` is nonzero in prod
 after the next real publish.
 
-### W.4 · One guest-read contract (L1)
+### W.4 · One guest-read contract (L1) — SHIPPED 2026-08-12
 `WelcomeHome` and every other `/api/guests` caller use one param
 (`siteSlug`); the route 400s loudly on unknown params instead of
 silently empty-listing. Home's guest summary, NEEDS-YOU-NOW, RSVP
@@ -123,7 +123,7 @@ momentum, and guest-review all show Priya-class data.
 **Fence:** contract test — Home's guest summary count === roster count
 for the same fixture site.
 
-### W.5 · The passport resolves (H8, L5, L4)
+### W.5 · The passport resolves (H8, L5, L4) — SHIPPED 2026-08-12
 - `/g/[token]` resolves through `resolveGuestToken` (lib/people.ts) —
   BOTH token columns, email-bridged — so every token the product mints
   (RSVP emails, dashboard links, nudges, QR cards, wallet passes)
@@ -134,28 +134,28 @@ for the same fixture site.
 minted token from the DB → `/g/<token>` renders that guest's passport
 for that site, with their RSVP state shown.
 
-### W.6 · Replies are durable (L3, L29)
+### W.6 · Replies are durable (L3, L29) — SHIPPED 2026-08-12
 Recognized guest → load their reply; form prefilled (status, meal,
 song, note); submit merges (never blank-overwrites); the passport's
 RSVP card shows current state with an explicit "Update your reply".
 **Fence:** e2e — RSVP with song+note, re-open, change meal only →
 song+note survive in the DB.
 
-### W.7 · The purchase completes (H5-part, L8)
+### W.7 · The purchase completes (H5-part, L8) — SHIPPED 2026-08-12
 - Ship `/store/success` (and verify the plan-checkout return surface)
   — a pressed "It's yours" moment listing what was bought, linking
   back to where the buyer was.
 **Fence:** route test: success_url targets resolve 200 for both store
 and plan checkouts.
 
-### W.8 · The grant has storage (H5)
+### W.8 · The grant has storage (H5) — SHIPPED 2026-08-12
 Migration `user_plans` (+ apply to prod via MCP, both trackers). A
 webhook integration test grants `pro` against a migrations-built DB
 and `getPlanWithLimitsForEmail` returns Pass limits. Same migration
 wave: `section_analytics` (analytics stops 500ing).
 **Fence:** the webhook grant test in CI against the S.2 staging build.
 
-### W.9 · Owners can see their own data (L11 + registry-items)
+### W.9 · Owners can see their own data (L11 + registry-items) — SHIPPED 2026-08-12
 Fix the phantom-column queries: `sites.domain` → `subdomain`
 (submissions + toasts moderation, The Reel), `sites.user_id` →
 `creator_email` (registry-items). Audit for the rest mechanically:
@@ -171,7 +171,7 @@ regressed) — no POST until the host edits.
 unchanged and no `manifest.studio` was stamped. (The test the first
 fix never got.)
 
-### W.11 · The story lands, or fails loudly (H3, L20, L46)
+### W.11 · The story lands, or fails loudly (H3, L20, L46) — SHIPPED 2026-08-12
 Minimal, pre-C.4: (a) at press time, seed the story section from
 `factSheet.story` VERBATIM as the host's own words ("In your words" —
 no AI needed, no fabrication; Pear's rewrite is an upgrade offered in
@@ -182,7 +182,7 @@ the copy off "baste" (D.2 fences it).
 site whose story section contains that text; unit — a null draft
 renders the error state.
 
-### W.12 · The dependency health probe (new)
+### W.12 · The dependency health probe (new) — SHIPPED 2026-08-12
 A `/api/health/deps` (admin-gated) reporting: DB reachable, each
 phantom-table present, ANTHROPIC/RESEND/R2 keys present+valid, Stripe
 mode. The O.3 owner check and every future deploy reads it.

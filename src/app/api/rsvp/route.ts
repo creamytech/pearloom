@@ -145,21 +145,61 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── Merge-on-write (NEW-USER-REVAMP L3) ─────────────────────
+    // A returning guest's re-submit used to REPLACE their row
+    // wholesale — the recognized-guest form opens blank (the lookup
+    // is names-only by privacy design), so re-replying silently
+    // destroyed their meal, song, and note. Now: attendance always
+    // updates (that's what a re-reply is), but an optional field the
+    // guest left empty this time keeps its stored value. Read the
+    // existing reply first, then overlay only what was given.
+    let existingReply: Record<string, unknown> | null = null;
+    if (matchedGuestRowId) {
+      const { data: prior } = await supabase
+        .from('guests')
+        .select('plus_one, plus_one_name, meal_preference, dietary_restrictions, song_request, message, mailing_address, rsvp_preset, rsvp_answers')
+        .eq('id', matchedGuestRowId)
+        .maybeSingle();
+      existingReply = (prior as Record<string, unknown> | null) ?? null;
+    } else if (email) {
+      const { data: prior } = await supabase
+        .from('guests')
+        .select('plus_one, plus_one_name, meal_preference, dietary_restrictions, song_request, message, mailing_address, rsvp_preset, rsvp_answers')
+        .eq('site_id', resolvedSiteId)
+        .ilike('email', email)
+        .maybeSingle();
+      existingReply = (prior as Record<string, unknown> | null) ?? null;
+    }
+    const keep = <T,>(given: T | null | undefined, stored: unknown): T | null =>
+      given !== undefined && given !== null && given !== ('' as unknown as T)
+        ? given
+        : ((stored as T | null | undefined) ?? null);
+
     // The reply payload — shared by both write paths below.
     const replyFields = {
       name: guestName,
       status: status || 'attending',
-      plus_one: plusOne || false,
-      plus_one_name: plusOne ? plusOneName : null,
-      meal_preference: mealPreference || null,
-      dietary_restrictions: dietaryRestrictions || null,
-      song_request: songRequest || null,
-      message: message || null,
+      plus_one: plusOne !== undefined ? Boolean(plusOne) : Boolean(existingReply?.plus_one),
+      plus_one_name: plusOne
+        ? (plusOneName || (existingReply?.plus_one_name as string | null) || null)
+        : plusOne === undefined
+          ? ((existingReply?.plus_one_name as string | null) ?? null)
+          : null,
+      meal_preference: keep(mealPreference, existingReply?.meal_preference),
+      dietary_restrictions: keep(dietaryRestrictions, existingReply?.dietary_restrictions),
+      song_request: keep(songRequest, existingReply?.song_request),
+      message: keep(message, existingReply?.message),
       selected_events: selectedEvents || [],
-      mailing_address: mailingAddress || null,
+      mailing_address: keep(mailingAddress, existingReply?.mailing_address),
       // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
-      rsvp_preset: preset || null,
-      rsvp_answers: answers && typeof answers === 'object' ? answers : {},
+      rsvp_preset: preset || (existingReply?.rsvp_preset as string | null) || null,
+      rsvp_answers: {
+        ...((existingReply?.rsvp_answers as Record<string, unknown> | null) ?? {}),
+        ...(answers && typeof answers === 'object'
+          ? Object.fromEntries(Object.entries(answers as Record<string, unknown>)
+              .filter(([, v]) => v !== '' && v !== null && v !== undefined))
+          : {}),
+      },
       responded_at: new Date().toISOString(),
     };
 

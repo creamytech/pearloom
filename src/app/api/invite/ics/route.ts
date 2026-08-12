@@ -4,7 +4,7 @@
 // GET ?token=xxx  — returns an RFC 5545 .ics calendar file for
 // the guest to add the events they're RSVPd attending to their
 // phone's calendar. Pulls the guest's invite_tokens row, joins
-// to guests.event_ids, joins to sites.ai_manifest.events, and
+// to guests.selected_events, joins to sites.ai_manifest.events, and
 // emits one VEVENT per attended event.
 //
 // Supports webcal:// links so iOS adds it with a single tap.
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
   const [{ data: guest }, { data: siteRow }] = await Promise.all([
     supabase
       .from('guests')
-      .select('name, event_ids, status')
+      .select('name, selected_events, status')
       .eq('id', tokenRow.guest_id as string)
       .maybeSingle(),
     supabase
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
 
   const manifest = siteRow.ai_manifest as StoryManifest | null;
   const allEvents = manifest?.events || [];
-  const attendedIds = (guest?.event_ids as string[]) || [];
+  const attendedIds = (guest?.selected_events as string[]) || [];
   const selected = attendedIds.length > 0
     ? allEvents.filter((e) => attendedIds.includes(e.id))
     : allEvents;

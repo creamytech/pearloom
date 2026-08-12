@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
             dietaryRestrictions: guest.dietary_restrictions,
             songRequest: guest.song_request,
             message: guest.message,
-            selectedEvents: guest.event_ids || [],
+            selectedEvents: guest.selected_events || [],
             mailingAddress: guest.mailing_address,
             respondedAt: guest.responded_at,
           }

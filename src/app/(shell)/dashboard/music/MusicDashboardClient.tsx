@@ -8,7 +8,7 @@
 //   • ON THE FLOOR (left) — the accepted set, the songs that
 //     play. Editorial track rows: mono index, needle-drop album
 //     art (real art_url, spins on a 30s preview), display-type
-//     title, "basted in by {first name}", Open in Spotify, and a
+//     title, "added by {first name}", Open in Spotify, and a
 //     quiet "Set aside". A curated-playlist footer surfaces the
 //     Spotify URL the public Soundtrack section embeds.
 //   • GUEST REQUESTS (right) — the queued lane. Each request
@@ -323,7 +323,7 @@ export function MusicBoard({
                               </div>
                               <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {s.artist ? <>{s.artist} <span aria-hidden>·</span> </> : null}
-                                <span style={{ fontStyle: 'italic' }}>basted in by {firstName(s.guest_name)}</span>
+                                <span style={{ fontStyle: 'italic' }}>added by {firstName(s.guest_name)}</span>
                               </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>

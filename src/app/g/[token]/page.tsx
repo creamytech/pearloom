@@ -139,7 +139,7 @@ export default async function PersonalGuestPage({
 
   const { data: site } = await sb()
     .from('sites')
-    .select('id, subdomain, site_config, creator_email')
+    .select('id, subdomain, site_config, ai_manifest, creator_email')
     .eq('id', guest.site_id)
     .maybeSingle();
 
@@ -158,13 +158,16 @@ export default async function PersonalGuestPage({
     dietary_restrictions: string | null;
     message: string | null;
     responded_at: string | null;
-    event_ids: string[] | null;
+    selected_events: string[] | null;
   };
   let rsvp: GuestRsvp | null = null;
   if (guest.email) {
     const { data: rsvpRow } = await sb()
       .from('guests')
-      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at, event_ids')
+      // `selected_events` — NOT `event_ids`, which exists in no schema
+      // (prod included); selecting it errored this fetch and 404'd the
+      // whole passport (NEW-USER-REVAMP H8, second stacked bug).
+      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at, selected_events')
       .eq('site_id', site.id)
       .eq('email', guest.email)
       .maybeSingle<GuestRsvp>();
@@ -304,7 +307,12 @@ export default async function PersonalGuestPage({
     }
   }
 
-  const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
+  // The manifest lives on ai_manifest for every modern row — the old
+  // read here expected it EMBEDDED in site_config, a legacy shape no
+  // current site has, which 404'd every modern passport even once the
+  // token resolved (NEW-USER-REVAMP H8, the second stacked bug).
+  const manifest = ((site as { ai_manifest?: StoryManifest }).ai_manifest
+    ?? (site.site_config as { manifest?: StoryManifest }).manifest);
   if (!manifest) notFound();
 
   /* The recap only looks back once the day is done. The clock read
@@ -684,7 +692,7 @@ export default async function PersonalGuestPage({
             mealPreference: rsvp?.meal_preference ?? null,
             dietaryRestrictions: rsvp?.dietary_restrictions ?? null,
             message: rsvp?.message ?? null,
-            selectedEventIds: rsvp?.event_ids ?? [],
+            selectedEventIds: rsvp?.selected_events ?? [],
           }}
           respondedAt={rsvp?.responded_at ?? null}
           events={
@@ -1130,7 +1138,7 @@ export default async function PersonalGuestPage({
             : null,
           dietary: Array.isArray(guest.dietary) ? guest.dietary : null,
           selectedEventNames: (() => {
-            const ids = rsvp?.event_ids ?? [];
+            const ids = rsvp?.selected_events ?? [];
             if (!ids.length) return null;
             const events = manifest.events ?? [];
             return ids
