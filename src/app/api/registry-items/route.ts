@@ -215,6 +215,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    /* Stamp manifest.registryHasItems so the published renderer's
+       registry honesty gate (G.5) can see dashboard-only registries
+       — items live in this table, invisible to the manifest the
+       server renders from. Best-effort: a stamp miss only means the
+       section waits for the next item to appear. */
+    void (async () => {
+      try {
+        const { data: siteRow } = await supabase
+          .from('sites')
+          .select('site_config, ai_manifest')
+          .eq('id', siteUuid)
+          .maybeSingle();
+        if (!siteRow) return;
+        const cfg = (siteRow.site_config as { manifest?: Record<string, unknown> } | null) ?? {};
+        const aiManifest = siteRow.ai_manifest as Record<string, unknown> | null;
+        if (cfg.manifest?.registryHasItems === true && (!aiManifest || aiManifest.registryHasItems === true)) return;
+        const patch: Record<string, unknown> = {
+          site_config: cfg.manifest
+            ? { ...cfg, manifest: { ...cfg.manifest, registryHasItems: true } }
+            : cfg,
+        };
+        if (aiManifest) patch.ai_manifest = { ...aiManifest, registryHasItems: true };
+        await supabase.from('sites').update(patch).eq('id', siteUuid);
+      } catch {
+        /* stamp is a nicety, never blocks the item */
+      }
+    })();
+
     return NextResponse.json({ item: ownerView(data as ItemRow) }, { status: 201 });
   } catch (err) {
     console.error('[api/registry-items] POST unhandled:', err);

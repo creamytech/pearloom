@@ -178,7 +178,9 @@ export const THEMES: Theme[] = [
       '--t-ink': '#1A2A33', '--t-ink-soft': '#3C5560', '--t-ink-muted': '#7E8E96',
       '--t-accent': '#2E6B8A', '--t-accent-2': '#5E94AD', '--t-accent-bg': '#E2EAEF', '--t-accent-ink': '#235874',
       '--t-gold': '#D9B44A', '--t-line': 'rgba(26,42,51,0.16)', '--t-line-soft': 'rgba(26,42,51,0.08)',
-      '--t-rsvp': '#C6703D', '--t-rsvp-ink': '#FBF6EA',
+      /* Deepened from #C6703D (3.37:1 on this cream — sub-AA for
+         the site's one primary guest action; G.7/L26). */
+      '--t-rsvp': '#A8552A', '--t-rsvp-ink': '#FBF6EA',
       '--t-display': "'Fraunces', Georgia, serif", '--t-body': "'Inter', sans-serif", '--t-script': "'Caveat', cursive",
       '--t-radius': '14px', '--t-radius-lg': '22px',
       '--t-display-wght': '500', '--t-hero-scale': '1.06', '--t-eyebrow-ls': '0.16em',
@@ -198,7 +200,9 @@ export const THEMES: Theme[] = [
       '--t-ink': '#3A2A2A', '--t-ink-soft': '#5E4742', '--t-ink-muted': '#9C8780',
       '--t-accent': '#C6563D', '--t-accent-2': '#D9897A', '--t-accent-bg': '#F6DDD4', '--t-accent-ink': '#A63F2A',
       '--t-gold': '#C19A4B', '--t-line': 'rgba(58,42,42,0.14)', '--t-line-soft': 'rgba(58,42,42,0.07)',
-      '--t-rsvp': '#C6563D', '--t-rsvp-ink': '#FCF4EE',
+      /* Deepened from #C6563D (4.02:1 on this cream — sub-AA;
+         G.7/L26). */
+      '--t-rsvp': '#A8402C', '--t-rsvp-ink': '#FCF4EE',
       '--t-display': "'Fraunces', Georgia, serif", '--t-body': "'Inter', sans-serif", '--t-script': "'Caveat', cursive",
       '--t-radius': '14px', '--t-radius-lg': '22px',
       '--t-display-wght': '600', '--t-hero-scale': '1', '--t-eyebrow-ls': '0.14em',
@@ -269,8 +273,55 @@ const PAD_BY_DENSITY: Record<Density, number> = {
    published-site root (.pl8-guest).
 
    Literal port of handoff/shared/themes.jsx L164-177. */
+/* ── RSVP contrast floor (G.7 / NEW-USER-REVAMP L26) ───────────
+   A derived or pack-supplied --t-rsvp / --t-rsvp-ink pair can land
+   nearly invisible (the audit found 1.46:1 — text rgb(44,85,113)
+   on rgb(63,110,146) for the site's ONE primary guest action).
+   Enforcing WCAG at the render root covers every derivation path
+   at once: keep the host's background, swap the ink for whichever
+   of the theme's own paper/ink (or plain white/black) reads best,
+   only when the given pair fails 4.5:1. Non-hex values (oklch,
+   var() chains) are left untouched — we can't measure them here. */
+function hexChannel(hex: string): [number, number, number] | null {
+  const m = hex.trim().match(/^#?([0-9a-f]{6})$/i);
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function relLuminance(rgb: [number, number, number]): number {
+  const [r, g, b] = rgb.map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function contrastRatio(aHex: string, bHex: string): number | null {
+  const a = hexChannel(aHex);
+  const b = hexChannel(bHex);
+  if (!a || !b) return null;
+  const la = relLuminance(a);
+  const lb = relLuminance(b);
+  const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+function enforceRsvpContrast(v: Record<string, string>): Record<string, string> {
+  const bg = v['--t-rsvp'];
+  const ink = v['--t-rsvp-ink'];
+  if (!bg || !ink) return v;
+  const given = contrastRatio(bg, ink);
+  if (given === null || given >= 4.5) return v;
+  const candidates = [v['--t-paper'], v['--t-ink'], '#FFFFFF', '#0E0D0B'].filter(Boolean) as string[];
+  let best: { hex: string; ratio: number } | null = null;
+  for (const c of candidates) {
+    const r = contrastRatio(bg, c);
+    if (r !== null && (!best || r > best.ratio)) best = { hex: c, ratio: r };
+  }
+  if (!best || best.ratio <= given) return v;
+  return { ...v, '--t-rsvp-ink': best.hex };
+}
+
 export function themeRootStyle(theme: Theme, density: Density = 'comfortable', override: ThemeVars | null = null): CSSProperties {
-  const v = override ? { ...theme.vars, ...override } : theme.vars;
+  const v = enforceRsvpContrast(override ? { ...theme.vars, ...override } : { ...theme.vars });
   const pad = PAD_BY_DENSITY[density] ?? 1;
   return {
     ...(v as unknown as CSSProperties),

@@ -23,29 +23,32 @@ function escIcs(s: string): string {
     .replace(/;/g, '\\;');
 }
 
-function dateStamp(date: string, time?: string | null): string {
-  // Build YYYYMMDDTHHMMSS in local time. Calendar apps interpret
-  // floating-time correctly when paired with TZID=UTC if provided.
-  // For simplicity we emit floating local time — works on every
-  // major calendar app.
+/** Parses '4:00pm' / '16:00' / '4pm' into a YYYYMMDDTHHMMSS stamp.
+ *  Returns null when there is no parseable time — the caller emits
+ *  an honest all-day event instead of pretending the celebration
+ *  starts at midnight (NEW-USER-REVAMP G.6/L31). */
+function dateStamp(date: string, time?: string | null): string | null {
   const [y, m, d] = date.split('-');
-  let hh = '00';
-  let mm = '00';
-  if (time) {
-    // Accept '4:00pm', '16:00', '4pm', etc.
-    const lower = time.toLowerCase().trim();
-    const match = lower.match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?$/);
-    if (match) {
-      let h = parseInt(match[1] ?? '0', 10);
-      const min = parseInt(match[2] ?? '0', 10);
-      const ampm = match[3];
-      if (ampm === 'pm' && h < 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
-      hh = String(h).padStart(2, '0');
-      mm = String(min).padStart(2, '0');
-    }
-  }
+  if (!time) return null;
+  const lower = time.toLowerCase().trim();
+  const match = lower.match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?$/);
+  if (!match) return null;
+  let h = parseInt(match[1] ?? '0', 10);
+  const min = parseInt(match[2] ?? '0', 10);
+  const ampm = match[3];
+  if (ampm === 'pm' && h < 12) h += 12;
+  if (ampm === 'am' && h === 12) h = 0;
+  const hh = String(h).padStart(2, '0');
+  const mm = String(min).padStart(2, '0');
   return `${y}${m}${d}T${hh}${mm}00`;
+}
+
+/** YYYY-MM-DD → the following day's YYYYMMDD (all-day DTEND is
+ *  exclusive per RFC 5545). */
+function nextDayYmd(date: string): string {
+  const d = new Date(`${date}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
 }
 
 function addHours(stamp: string, hours: number): string {
@@ -108,10 +111,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ doma
     `${names ? names + "'s " : ''}${occasion} via Pearloom.`
   );
 
-  const dtStart = dateStamp(baseDate, target?.time ?? manifest.logistics?.time);
+  /* The best real time we have: the targeted event's own time, the
+     site-wide logistics time, or the first timed schedule event on
+     the same date. NEVER an invented one — with no time anywhere,
+     the file becomes an honest all-day event instead of a
+     midnight-to-4am block (G.6). */
+  const scheduleTime = (() => {
+    if (target?.time || manifest.logistics?.time) return target?.time ?? manifest.logistics?.time;
+    const onDate = events.filter((e) => e.date === baseDate && e.time);
+    return onDate[0]?.time ?? null;
+  })();
+  const dtStart = dateStamp(baseDate, scheduleTime);
   // 4-hour default block — long enough to cover a ceremony + reception
   // when the host hasn't set a separate end time.
-  const dtEnd = addHours(dtStart, 4);
+  const dtEnd = dtStart ? addHours(dtStart, 4) : null;
+  const allDayStart = baseDate.replace(/-/g, '');
+  const allDayEnd = nextDayYmd(baseDate);
 
   const dtStamp =
     new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -128,8 +143,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ doma
     'BEGIN:VEVENT',
     `UID:pearloom-${domain}-${target?.id ?? 'main'}@pearloom.com`,
     `DTSTAMP:${dtStamp}`,
-    `DTSTART:${dtStart}`,
-    `DTEND:${dtEnd}`,
+    dtStart ? `DTSTART:${dtStart}` : `DTSTART;VALUE=DATE:${allDayStart}`,
+    dtEnd ? `DTEND:${dtEnd}` : `DTEND;VALUE=DATE:${allDayEnd}`,
     `SUMMARY:${escIcs(summary)}`,
     `DESCRIPTION:${escIcs(description)}\\n\\nMore: ${url}`,
     location ? `LOCATION:${escIcs(location)}` : '',

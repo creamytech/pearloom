@@ -328,14 +328,34 @@ worth the name. (The R2 revamp, first half.)
 - **G.4 Passport, phone-first (L28, L29).** 390px-first relayout (no
   horizontal scroll), signed by the couple's names, the guest's real
   state everywhere. The competitive bet's foundation.
-- **G.5 Registry honesty (L27).** Empty registry → section renders
-  nothing (or the host's own note), never "we've put a few things
-  together."
-- **G.6 Calendar + anchors (L31, L30).** `.ics` uses the schedule's
-  real times (or VALUE=DATE all-day); hero "Learn more" anchors to a
-  section that exists (or hides).
-- **G.7 Guest-surface contrast (L26).** The RSVP button/pill contrast
-  floor (ties into A.3's formatter).
+- **G.5 Registry honesty (L27). — SHIPPED 2026-08-12.** The registry
+  gets the story section's honesty gate: published sites render it
+  only when the host gave it something (stores, an intro note, P2P
+  fund handles, or dashboard items — `/api/registry-items` POST now
+  stamps `manifest.registryHasItems` so DB-only registries stay
+  visible to the server gate). The stock "we've put a few things
+  together" body is demo-gated — hosts' own intro or nothing. Named
+  edge: a host who adds items then deletes ALL of them keeps the
+  stamp (unstamping on last delete is a nicety, not wired).
+- **G.6 Calendar + anchors (L31, L30). — SHIPPED 2026-08-12.**
+  `event.ics` uses the best REAL time (targeted event → logistics →
+  first timed schedule event on the same date) and with no time
+  anywhere emits an honest all-day `VALUE=DATE` event instead of the
+  midnight-to-4am block. The hero's "Learn more" default anchor is
+  gate-aware: `#story` only when a story is authored (the honesty
+  gate hides unauthored stories), else `#schedule` which always
+  renders; host overrides untouched.
+- **G.7 Guest-surface contrast (L26). — SHIPPED 2026-08-12.** A
+  WCAG floor at the render root: `themeRootStyle` measures the
+  `--t-rsvp`/`--t-rsvp-ink` pair and, under 4.5:1, swaps the ink for
+  whichever of the theme's own paper/ink (or plain white/black)
+  reads best — covering every derivation path (packs, hydrate,
+  custom vars) in one place; non-hex values are left alone. The
+  floor's own test then caught two CATALOG themes failing AA on
+  their own RSVP block — amalfi (3.37:1) and first-light (4.02:1) —
+  both deepened in place. `themes.contrast.test.ts` pins the
+  audit's exact 1.46:1 pair repairing to ≥4.5:1 and all ten catalog
+  themes passing unmodified.
 
 **Counts as done:** the four occasion worlds (wedding, memorial,
 bachelorette, baby shower) each pass a guest-side e2e: honest form,

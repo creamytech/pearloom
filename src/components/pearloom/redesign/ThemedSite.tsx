@@ -698,9 +698,29 @@ function ThemedSiteInner({
       || !!l.storySection?.body?.trim()
       || !!l.storySection?.headline?.trim();
   })();
+  /* Same honesty gate for the registry (G.5) — an empty registry
+     told guests "we've put a few things together" when the host
+     had put NOTHING together. Renders for guests only when the
+     host gave it something: stores, an intro note, P2P fund
+     handles, or dashboard registry items (the items API stamps
+     manifest.registryHasItems so the server gate can see them). */
+  const registryAuthored = (() => {
+    const l = manifest as unknown as {
+      registryStores?: unknown[];
+      registryIntro?: string;
+      registryHasItems?: boolean;
+      registryFunds?: { venmo?: string; paypal?: string; cashapp?: string; zelle?: string };
+    };
+    if ((l.registryStores ?? []).length > 0) return true;
+    if (l.registryIntro?.trim()) return true;
+    if (l.registryHasItems === true) return true;
+    const f = l.registryFunds;
+    return Boolean(f && (f.venmo?.trim() || f.paypal?.trim() || f.cashapp?.trim() || f.zelle?.trim()));
+  })();
   const allSections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s))
     .filter((s) => s !== 'story' || editable || demoCopy || proof || storyAuthored)
+    .filter((s) => s !== 'registry' || editable || demoCopy || proof || registryAuthored)
     .filter((s) =>
       !coreKinds.includes(s)
       || isCoreSectionApplicable(s, occasionId)
@@ -6606,7 +6626,23 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     cta: co('heroCta', V.cta),
     ctaHref: co('heroCtaHref', '#rsvp'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
-    ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
+    /* "Learn more" must land somewhere real (G.6/L30): the story
+       anchor only exists on published sites when the host actually
+       wrote a story (the honesty gate hides it otherwise), so an
+       unauthored story falls back to the schedule — a core section
+       that always renders. The editor keeps #story (the demo story
+       renders there, inviting writing). */
+    ctaSecondaryHref: co(
+      'heroCtaSecondaryHref',
+      (() => {
+        if (demo) return '#story';
+        const l = loose as { chapters?: unknown[]; storySection?: { headline?: string; body?: string } };
+        const authored = (Array.isArray(l.chapters) && l.chapters.length > 0)
+          || !!l.storySection?.body?.trim()
+          || !!l.storySection?.headline?.trim();
+        return authored ? '#story' : '#schedule';
+      })(),
+    ),
     isPostEvent: (() => {
       /* Parse the manifest date and compare to today. Accepts ISO
          or any string Date.parse handles. Returns false on invalid
@@ -6822,7 +6858,10 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       eyebrow: co('registryEyebrow', V.navRegistry),
       title: t.head,
       italic: t.italic,
-      body: registryIntro || V.registryBody,
+      /* The stock "we've put a few things together" line is DEMO
+         copy — published sites show the host's own intro or
+         nothing (G.5). */
+      body: registryIntro || (demo ? V.registryBody : ''),
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
         : !demo ? [] : V.registryDemoStores.map((name) => ({ name })),
