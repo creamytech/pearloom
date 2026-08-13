@@ -3,51 +3,37 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## Active focus
+## The revamp is complete — 2026-08-13 (owner handoff)
 
-**Sprint D — DOCS TRUTH** (`docs/REVAMP-EXECUTION-PLAN.md` §11).
-Sprints W, S, G, T, M, V, A, C, and P are ALL stamped SHIPPED in
-the plan doc (2026-08-12/13) — P closed 2026-08-13 with the P.3
-wizard batch (entry-time plan limits via /api/store/entitlements
-sites headroom, occasion-ordered vibe chips, honoree-shaped
-Opening panel, the Studio's own monogram in the mark tray) and
-the P.4 plate press (public/plates/plate-01..12.jpg replace all
-36 Unsplash hotlinks; lib/photo-plates.ts; the unsplash
-remotePattern deleted; no-stock-hotlinks.test.ts is the fence).
-C.5's 100% rollout stays flagged by design (funnel metrics).
+**`docs/REVAMP-EXECUTION-PLAN.md` is fully executed.** All ten
+sprints — W (wires), S (schema truth), G (guest loop), T (honest
+states), M (the money path), V (visibility spine), A (phone +
+access), C (one pressing), P (polish ledger), D (docs truth) — are
+stamped SHIPPED in the plan doc, every block with its fence. The
+§13 exit state is stamped: vitest 1860/1861 (the one failure is
+the pre-existing weekend-route B.2 baseline), tsc/eslint/build
+clean, and the scripted Maya walk + all nine fence e2e suites
+re-ran green (24/24) on the local stack the day of the stamp.
 
-Goal: the docs stop teaching drift — every correction anchored to
-what the code actually does today.
+**What only the owner can close (plan §1 + §3):**
+- **O.1** email DNS (SPF/DKIM/DMARC) — unlocks real invitation
+  delivery and the funnel's invite-delivery stage.
+- **O.2** Stripe keys — turns the already-wired till live
+  (checkout → webhook → plan grant are coded and fence-tested
+  keyless).
+- **O.3** prod env check via `/api/health/deps` (admin-gated).
+- **Nine pending prod MCP applies** (Supabase MCP re-auth; exact
+  list in plan §3 S.1 — includes the C.2 published_manifest
+  snapshot, C.6 site_redirects, and D.4's activation north-star
+  view). New code must not assume those exist in prod until then.
+- C.5 (one pressing) stays behind `?press=one` by design until
+  funnel data accrues; its remaining increments are listed in the
+  plan §9 stamp.
 
-Open threads: D.1 CLAUDE-DESIGN.md corrected (§5 stops teaching
-the retired "Nothing yet. Begin a thread." key — L44; the §1-vs-
-§3.3 theme-count contradiction fixed against themes.ts; §12
-verified to carry the S.4 migration discipline; §16 debt list
-refreshed against the revamp) · D.3 doc reconciliation
-(MONETIZATION §2 ladder vs its own Enforcement table vs
-PLAN_LIMITS on free sites + AI generations — L87; MONETIZATION §8
-vs DECISIONS-2026-08-04 on unit economics + price-testing — L88;
-DECISIONS §1 "written but not applied" vs its own summary
-"APPLIED" on the referral ledger — L91; SUITE-STRATEGY §7 print +
-FOLLOW-UPS §H stamped RETIRED — L89) · D.4 the activation funnel
-upgraded to the agreed north star (published + guest threshold +
-≥1 invitation sent + ≥1 response; the shipped view computes only
-published AND ≥1 attending RSVP — L48; the invite-delivery stage
-lands with O.1) · D.5 PERSONA-PLAN §5 readiness gate refreshed
-(staging item → S.2; the mass-testing protocol re-armed on G).
-
-Already done: D.2 — `src/lib/brand-retired-copy.test.ts` shipped
-inside P.1 with the sweep; stamp it in §11 and move on.
-
-Counts as done: every named contradiction fixed IN the doc it
-lives in, with the code (not another doc) as the cited authority;
-D.4's view migration authored + applied locally + queued for prod
-like every other pending apply.
-
-Skip: L90 (dead prod `referrals` table — owner/prod action, can't
-drop from here; record it in §3 instead); L92 (the surface census
-is a §12 market bet, not a D row); the eight pending prod MCP
-applies (owner re-auth — plan §3 S.1).
+**To start the next sprint:** rename the heading on line 6 back
+to the literal sprint-focus heading that the Stop hook greps
+for, and fill in goal / direction / open threads /
+counts-as-done / what-to-skip in the same shape as before.
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**
@@ -59,11 +45,6 @@ landed 2026-05-31:**
   theme-pack card), `ad77fbb0` (Studio: skip the spurious
   mount-time autosave — closed the flaky AI-asset round-trip
   test). User push pending.
-
-**To start the next sprint:** rename the heading on line 6 back
-to the literal sprint-focus heading that the Stop hook greps
-for, and fill in goal / direction / open threads /
-counts-as-done / what-to-skip in the same shape as before.
 
 **Both prior sprint queues are fully executed** (2026-07-08):
 `docs/PERSONA-PLAN.md` S1–S9 and `docs/GRAND-PLAN-2.md` A.1–A.2 /

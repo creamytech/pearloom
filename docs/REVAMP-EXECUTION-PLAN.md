@@ -1036,6 +1036,23 @@ Executed only after the wires hold; each has its trigger written down.
 7. vitest / tsc / eslint / build green; the Maya walk re-run by a
    fresh session finds no P0s.
 
+**Exit state, stamped 2026-08-13 — everything a session can close is
+closed.** (1) ✅ all ten sprints stamped SHIPPED above, every fence in
+CI. (2) ✅ the staging gate runs on every PR; prod schema diff clean
+except the nine §3 pending applies (owner re-auth). (3) the KEYLESS
+journey is green end-to-end (money-door.spec proves price → choose →
+honest degrade); the paid half blocks on O.2 by definition. (4) ✅ T
+fences green. (5) ✅ Appendix A maps all 110 + H1–H8 + walk extras.
+(6) ⏳ owner — O.1 (email DNS), O.2 (Stripe keys), O.3 (env/health
+check via /api/health/deps), plus the nine MCP applies. (7) ✅ vitest
+1860/1861 (the one failure is the pre-existing weekend-route
+baseline, recorded in §10's P.3 stamp), tsc/eslint/build clean, and
+the scripted Maya walk (critical-path.spec.ts) + all fence suites
+re-run green on the local stack the day of this stamp (24/24 across
+critical-path, doorway, press-idempotency, publish-gate,
+rsvp-honesty, passport-phone, money-door, visibility-matrix,
+phone-access, one-pressing).
+
 ---
 
 ## Appendix A · Complete finding → block index
