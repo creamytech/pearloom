@@ -354,6 +354,11 @@ export function buildChecklist(
   },
 ): ChecklistItem[] {
   if (phase === 'kept') return [];
+  /* Months out, a "Confirm vendor arrival times — High" list is a
+     fabricated urgency (T.2/L59). The prep list belongs to the
+     final stretch + the day itself; during planning the road card
+     carries the real milestones and this card stays quiet. */
+  if (phase === 'planning') return [];
   if (phase === 'afterglow') {
     if (solemn) {
       return [

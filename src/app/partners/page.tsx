@@ -2,8 +2,8 @@
 // Pearloom / app/partners/page.tsx
 //
 // The honest version (T.5/T.6 — NEW-USER-REVAMP L40). The old
-// page promised commission tiers to "hundreds of wedding
-// professionals already earning" with a registration form wired
+// page promised commission tiers to hundreds of supposedly
+// active earners with a registration form wired
 // to nothing — the program does not exist yet, and fabricated
 // social proof on a money surface is the fastest way to lose the
 // exact professionals it courts. Until the program is real, this

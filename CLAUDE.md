@@ -5,44 +5,35 @@
 
 ## Active focus
 
-**Sprint T — HONEST STATES** (`docs/REVAMP-EXECUTION-PLAN.md` §5).
-Sprints W, S, and G all shipped in full 2026-08-12/13 — every stamp
-in the plan doc. G closed with the fork collapse (G.1b, commit
-pending push): `guests` is the ONE canonical guest row, the
-20260812_guest_spine_merge migration merged + rekeyed everything,
-the adapter in lib/event-os/db.ts is the only guest resolver, and
-`no-guest-fork.test.ts` greps the fork from ever growing back.
-pearloom_guests is frozen-deprecated (drop after a quiet cycle).
+**Sprint M — THE MONEY PATH** (`docs/REVAMP-EXECUTION-PLAN.md` §6).
+Sprints W, S, G, and T all shipped in full 2026-08-12/13 — every
+block stamped in the plan doc; the fabrications fence
+(welcome-home-copy.test dead-claims block + no-fabricated-proof +
+no-guest-fork + rsvp-honesty/passport-phone e2e) guards it all.
 
-Goal: rule §0.2 (never fabricate) applied everywhere the audit
-found a fabrication.
+Goal: a customer can discover the price, pay it, and receive it —
+and every money surface tells one true story. (R7; end-to-end needs
+owner action O.2 Stripe keys — code-side blocks proceed regardless.)
 
-**T.4, T.5, T.6, T.8 SHIPPED 2026-08-13** (stamps in plan §5):
-store fabrications deleted + no-fabricated-proof fence; /partners
-honest (mailto hello@); registry loop-link cut, countdown label
-calendar-aligned, one "Sign out" label; the Guests follow-ups card
-states the real manifest.reminderCadence instead of claiming
-phantom weekly activity.
+Open threads: M.1 one vocabulary (Page/Pass/Keepsake everywhere;
+kill "subscription"; DesignFAQ remount-or-delete) · M.2 doors reach
+the till (plan intent through auth to checkout; one /upgrade route;
+the 402's upgradeUrl goes there) · M.3 cards describe the real
+product (wire requirePlan through one choke point — zero callers
+today — or cut the line item; pricing page === enforcement table)
+· M.4 store re-merchandised (plan-granted packs stop wearing price
+tags beside "Owned"; free-theme/store-pack name collision) · M.5
+archive fee makes sense (per O.5 decision; default: full-res
+retention only, priced honestly) · M.6 the growth loop links ("MADE
+WITH PEARLOOM" becomes a real ?ref= link; passport "host your own"
+carries it) · M.7 the agreement fence (one test: PLAN_LIMITS ===
+pricing page === MONETIZATION.md).
 
-Open threads: T.1 day-of wears a REHEARSAL frame pre-event
-(cockpit-phase knows; L15: no wall-clock "Right now", no checked-off
-moments pre-day) · T.2 progress counts only host-real milestones
-(Pear's un-accepted suggestions → a "Pear suggests" strip, not the
-host's numbers; L16/L59) + the Day-of checklist persists (manifest
-or table — never useState) and appears in day-of week · T.3 funnel
-stages render only from real tracking events ("not tracked", never
-100%; L60 — /dashboard/analytics) · T.7 weekend planner prefills
-from the host's existing site (L63 — /dashboard/weekend opens blank
-beside a real dated site).
+Counts as done: plan §6's counts-as-done + fences per block; M.2/M.3
+verified with hasStripe() false (keyless deploys degrade honestly).
 
-Counts as done: the fabrications fence — the forbidden-strings
-suite extended so the specific dead claims can't return, plus a
-grep that flags any sold/rating literal in store data.
-
-Skip: Sprints M–D work not needed for a T block; the pending prod
-MCP applies (owner/Supabase re-auth — plan §3 S.1 lists five now:
-20260529, 20260530, 20260812_schema_parity, 20260812_time_capsules,
-20260812_pearloom_guests_site_key + 20260812_guest_spine_merge).
+Skip: Sprints V–D work not needed for an M block; the six pending
+prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**

@@ -465,6 +465,33 @@ export function WelcomeHome() {
     [phase, solemn, afterglow?.vendorOpenBalances],
   );
 
+  /* T.2 — checkmarks PERSIST on manifest.dayOfChecklist (keyed by
+     item text) instead of evaporating with component state. Writes
+     are optimistic + fire-and-forget through the same draft-save
+     door the editor uses; a lost write costs one checkmark, never
+     the page. Resyncs on site switch (render-time adjustment). */
+  const manifestChecklist = ((site?.manifest as { dayOfChecklist?: Record<string, boolean> } | null)?.dayOfChecklist) ?? {};
+  const [checklistDone, setChecklistDone] = useState<Record<string, boolean>>(manifestChecklist);
+  const [checklistSite, setChecklistSite] = useState(site?.domain ?? null);
+  if (checklistSite !== (site?.domain ?? null)) {
+    setChecklistSite(site?.domain ?? null);
+    setChecklistDone(manifestChecklist);
+  }
+  const toggleChecklist = (item: string, done: boolean) => {
+    const next = { ...checklistDone, [item]: done };
+    setChecklistDone(next);
+    if (site?.domain && site.manifest) {
+      void fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subdomain: site.domain,
+          manifest: { ...(site.manifest as Record<string, unknown>), dayOfChecklist: next },
+        }),
+      }).catch(() => { /* optimistic state stands; next visit re-reads */ });
+    }
+  };
+
   // Memory tiles — the manifest's real gallery (cover as fallback);
   // missing slots become warm gradient tiles inside the card. In
   // the afterglow the book's APPROVED guest photos join in and the
@@ -709,6 +736,8 @@ export function WelcomeHome() {
           <div className="pl8-homestack" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <ChecklistCard
               items={checklistItems}
+              checked={checklistDone}
+              onToggle={toggleChecklist}
               href={phase === 'afterglow'
                 ? (solemn ? '/dashboard/memory-book' : '/dashboard/registry')
                 : '/dashboard/day-of'}

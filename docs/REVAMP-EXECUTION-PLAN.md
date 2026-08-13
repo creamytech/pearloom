@@ -421,15 +421,23 @@ durable reply, working passport, working calendar, no false claims.
 
 **Goal:** rule §0.2 applied everywhere a fabrication was found.
 
-- **T.1 Day-of is a rehearsal until the day (L15).** Pre-event the
-  room wears an explicit REHEARSAL frame: no wall-clock "Right now",
-  no checked-off moments; it flips live on the day (cockpit-phase
-  already knows).
-- **T.2 Progress tells the truth (L16, L59 + walk).** Planning
-  progress counts only host-real milestones (Pear's un-accepted
-  suggestions move to a "Pear suggests" strip, not the host's
-  numbers); the Day-of checklist persists (manifest or table — not
-  `useState`) and appears in day-of week, derived where possible.
+- **T.1 Day-of is a rehearsal until the day (L15). — SHIPPED
+  2026-08-13.** deriveStatuses knows the day state: before the day
+  every moment is 'later' and the hero frames the schedule as "a
+  rehearsal of your run of show — it keeps real time when the day
+  arrives"; ON the day the wall clock speaks; after it, moments
+  rest done and "the day has run its course." No more green-checked
+  4:30 Ceremony beside "304 DAYS TO GO".
+- **T.2 Progress tells the truth (L16, L59 + walk). — SHIPPED
+  2026-08-13.** Cadence-preset rows carry `pearSuggested`, render as
+  "Pear suggests: …" with take-it-or-leave-it framing, and are
+  EXCLUDED from the done/in-progress/to-do numbers — progress
+  measures what the host did. The prep checklist is phase-gated
+  (planning → empty; the list belongs to the final stretch + the
+  day — L59's "Confirm vendor arrival times, High" ten months early
+  is gone) and its checkmarks PERSIST on manifest.dayOfChecklist
+  through the draft-save door (ChecklistCard gained a controlled
+  mode; local-state fallback for other callers).
 - **T.3 Analytics don't invent stages (L60). — SHIPPED 2026-08-13.**
   Opened/Started count only real pings (invite_opened_at /
   reply_started_at) — the old code back-filled them from the
@@ -472,9 +480,12 @@ durable reply, working passport, working calendar, no false claims.
   303-vs-304 on one screen. The shell's three exits wear one
   label: "Sign out".
 
-**Fence for the sprint:** extend the forbidden-strings suite with a
-"fabrications" fence — the specific dead claims can't return; plus a
-CI grep that any `sold`/`rating` literal in store data is flagged.
+**Fence for the sprint: SHIPPED 2026-08-13.** welcome-home-copy.test
+gained the fabrications describe-block (the L61/L38/L40 dead claims
+grepped out of their source files forever) + the checklist's
+planning-phase-empty contract; `no-fabricated-proof.test.ts` covers
+the store data (no rating/sales keys, no sold/Bestseller renders).
+**Sprint T is complete — all eight blocks stamped.**
 
 ---
 

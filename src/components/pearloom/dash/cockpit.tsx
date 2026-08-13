@@ -498,9 +498,12 @@ export function RoadCard({
 }
 
 // ── ChecklistCard ────────────────────────────────────────────
-// A tappable day-of checklist with priority tags. Local check
-// state only (a light prep aid, like the milestone ladder). The
-// caller supplies the items; empty → the card renders nothing.
+// A tappable day-of checklist with priority tags. The caller can
+// supply `checked` + `onToggle` to make the check state PERSIST
+// (WelcomeHome stores it on manifest.dayOfChecklist — T.2: a
+// checklist that forgets its checkmarks on reload wasn't a
+// checklist). Without those props the old local state remains as
+// a fallback. Empty items → the card renders nothing.
 
 export interface ChecklistItem { t: string; p: 'High' | 'Medium' | 'Low' }
 // Medium wears --gold-ink, the READABLE text gold (raw --pl-gold is a
@@ -513,9 +516,15 @@ export function ChecklistCard({
   eyebrow = 'Day-of checklist',
   headline,
   linkLabel = 'Open the full day-of timeline',
+  checked,
+  onToggle,
 }: {
   items: ChecklistItem[];
   href?: string;
+  /** Persisted check state keyed by item text (controlled mode). */
+  checked?: Record<string, boolean>;
+  /** Toggle handler for controlled mode — the caller persists. */
+  onToggle?: (item: string, done: boolean) => void;
   /** Post-event the same card carries the afterglow list — the
    *  caller reskins the header ("After the day") + footer link. */
   eyebrow?: string;
@@ -530,6 +539,7 @@ export function ChecklistCard({
     setPrevLen(items.length);
     setDone(items.map(() => false));
   }
+  const isDone = (i: number) => (checked ? !!checked[items[i]?.t ?? ''] : done[i]);
   if (items.length === 0) return null;
   /* A glance card, not the working list — cap what renders so this
      card can't tower over its row siblings (the full list lives at
@@ -546,13 +556,16 @@ export function ChecklistCard({
           <button
             key={c.t}
             type="button"
-            onClick={() => setDone((d) => d.map((v, j) => (j === i ? !v : v)))}
+            onClick={() => {
+              if (onToggle) onToggle(c.t, !isDone(i));
+              else setDone((d) => d.map((v, j) => (j === i ? !v : v)));
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 0', borderBottom: i < shown.length - 1 || more > 0 ? '1px solid var(--line-soft)' : 'none', background: 'transparent', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', textAlign: 'left' }}
           >
-            <span style={{ width: 19, height: 19, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', border: `1.5px solid ${done[i] ? 'var(--sage)' : 'var(--line)'}`, background: done[i] ? 'var(--sage)' : 'transparent' }}>
-              {done[i] ? <Icon name="check" size={11} strokeWidth={3} color="var(--cream)" /> : null}
+            <span style={{ width: 19, height: 19, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', border: `1.5px solid ${isDone(i) ? 'var(--sage)' : 'var(--line)'}`, background: isDone(i) ? 'var(--sage)' : 'transparent' }}>
+              {isDone(i) ? <Icon name="check" size={11} strokeWidth={3} color="var(--cream)" /> : null}
             </span>
-            <span style={{ flex: 1, fontSize: 13.5, color: done[i] ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: done[i] ? 'line-through' : 'none' }}>{c.t}</span>
+            <span style={{ flex: 1, fontSize: 13.5, color: isDone(i) ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: isDone(i) ? 'line-through' : 'none' }}>{c.t}</span>
             <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', color: PRI[c.p] }}>{c.p}</span>
           </button>
         ))}

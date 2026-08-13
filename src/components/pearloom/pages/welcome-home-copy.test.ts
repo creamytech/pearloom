@@ -107,15 +107,45 @@ describe('pre-day output did not move (+90 days — zero regressions)', () => {
     expect(copy.blessing).toBe("You're doing something wonderful.");
   });
 
-  it('keeps the planning ladder and prep checklist', () => {
+  it('keeps the planning ladder — and the prep checklist stays QUIET until the final stretch', () => {
     const flat = JSON.stringify(milestones);
     expect(flat).toContain('days out');
     expect(milestones[milestones.length - 1].label).toBe('The big day');
-    expect(checklist.map((c) => c.t)).toContain('Confirm vendor arrival times');
+    // T.2/L59: "Confirm vendor arrival times — High" three months out
+    // was fabricated urgency. Planning-phase checklist is empty; the
+    // prep list belongs to the final stretch + the day.
+    expect(checklist).toEqual([]);
+    expect(buildChecklist('final', false).map((c) => c.t)).toContain('Confirm vendor arrival times');
+    expect(buildChecklist('the-day', false).map((c) => c.t)).toContain('Confirm vendor arrival times');
   });
 
   it('30 days out is the final stretch — 31 is not', () => {
     expect(phaseCopyFor(cockpitPhaseFor(30), 'celebratory').label).toBe('Final stretch');
     expect(phaseCopyFor(cockpitPhaseFor(31), 'celebratory', 'mid').label).toBe('Mid-planning');
+  });
+});
+
+describe('the fabrications fence (Sprint T) — dead claims can never return', () => {
+  // The specific fabricated sentences the 2026-08-12 audit caught,
+  // now retired with a fence each (REVAMP-EXECUTION-PLAN §5). This
+  // sweep greps the SOURCE of every surface that carried one — a
+  // returning literal fails here before it reaches a host.
+  const DEAD_CLAIMS: Array<[file: string, claim: string]> = [
+    // L61 — a hardcoded assertion of automated weekly activity.
+    ['src/components/marketing/design/dash/DashGuests.tsx', 'following up on the quiet ones once a week'],
+    // L38 — bestseller ribbons with an empty sales ledger.
+    ['src/components/pearloom/store/PackCard.tsx', 'Bestseller'],
+    ['src/components/pearloom/store/QuickLookModal.tsx', 'Bestseller'],
+    // L40 — /partners' invented traction.
+    ['src/app/partners/page.tsx', 'already earning'],
+  ];
+
+  it('none of the dead claims are back in their source files', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    for (const [file, claim] of DEAD_CLAIMS) {
+      const body = readFileSync(join(process.cwd(), file), 'utf8');
+      expect(body.includes(claim), `${file} carries "${claim}" again`).toBe(false);
+    }
   });
 });
