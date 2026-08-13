@@ -55,7 +55,7 @@ export async function GET() {
       packIds: FREE_PACK_IDS,
       freePackIds: FREE_PACK_IDS,
       plan: 'free',
-      planLabel: 'Journal',
+      planLabel: 'Page',
       degraded: true,
     });
   }

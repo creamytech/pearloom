@@ -857,7 +857,7 @@ export function DashSettings() {
                 }}
               >
                 Every site, guest, RSVP, photo URL, registry item, and payment, exported as a single
-                JSON document, yours to keep even if you cancel. Plain text, no lock-in.
+                JSON document, yours to keep even if you leave. Plain text, no lock-in.
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button

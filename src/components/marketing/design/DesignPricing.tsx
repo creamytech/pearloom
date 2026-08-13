@@ -350,11 +350,11 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
             fontFamily: 'var(--pl-font-body)',
           }}
         >
+          {/* The old "Pear's promise →" link anchored to #journal — the
+              id of DesignFAQ, mounted nowhere (M.1/L86). The promise
+              stands better said plainly than linked to a void. */}
           One-time, never a subscription. Memorials are always free on
-          every tier.{' '}
-          <a href="#journal" className="pl-link" style={{ color: PD.olive, fontWeight: 500 }}>
-            Pear&rsquo;s promise →
-          </a>
+          every tier.
         </div>
       </div>
 

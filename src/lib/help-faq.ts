@@ -24,7 +24,7 @@ export const HELP_FAQ: FaqEntry[] = [
   { q: 'How do I publish and share my site?', a: 'In the editor, hit Publish. Your site goes live at pearloom.com/{occasion}/{yourname} (e.g. /wedding/alex-and-jamie) instantly. Custom domains aren’t available yet — every site lives at its pearloom.com address, with HTTPS handled for you.', tags: ['publish', 'domain'] },
   { q: 'What happens after the event?', a: 'Your site stays online forever on every plan, including the free tier. Guests can keep leaving memories, and you can download everything as a keepsake film or zip.', tags: ['after', 'keepsake'] },
   { q: 'Can I collaborate with a partner or planner?', a: 'Yes. Open your site in the editor and press Share, invite a co-host by email. They get a magic link; editors can change everything except Publish, viewers can only look around.', tags: ['team', 'collab'] },
-  { q: 'How do I cancel or change my plan?', a: "Dashboard → Profile → Billing. You keep everything you've created on any tier, no lock-in.", tags: ['billing'] },
+  { q: 'Do plans renew? How do I change mine?', a: "Nothing renews — every plan is a one-time purchase, not a subscription. To move up a tier, open Settings → Plan. You keep everything you've created on any tier, no lock-in.", tags: ['billing'] },
 ];
 
 /** Condense the FAQ into a prompt-sized block. Every entry keeps

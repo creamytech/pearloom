@@ -51,7 +51,6 @@ const SELLING_PHRASES = [
 const ALLOWED = [
   'src/lib/plan-gate.ts',
   'src/lib/site-urls.ts',
-  'src/components/marketing/design/DesignFAQ.tsx',
   'src/lib/help-faq.ts',
 ];
 
@@ -81,10 +80,8 @@ describe('custom domains are not sold until they exist', () => {
   });
 
   it('the allowed mentions really are the honest ones', () => {
-    // If DesignFAQ ever stops saying "not yet", it has become a
-    // promise and belongs in the scan above.
-    const faq = fs.readFileSync(path.join(ROOT, 'src/components/marketing/design/DesignFAQ.tsx'), 'utf8');
-    expect(faq).toMatch(/Custom domains are in the works|Not yet/i);
+    // (DesignFAQ was deleted in M.1 — it was mounted nowhere and
+    // still sold the retired Journal/Atelier/Legacy ladder, L86/L96.)
     const help = fs.readFileSync(path.join(ROOT, 'src/lib/help-faq.ts'), 'utf8');
     expect(help).toMatch(/aren’t available yet|are in the works/i);
   });

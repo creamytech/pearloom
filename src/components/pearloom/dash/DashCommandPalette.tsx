@@ -235,7 +235,7 @@ export function DashCommandPalette() {
       id: 'action-settings-subscription',
       kind: 'action',
       group: 'Pear & account',
-      label: 'Subscription & billing',
+      label: 'Plan & billing',
       hint: 'Manage your plan',
       icon: 'star',
       onSelect: () => {

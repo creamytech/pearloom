@@ -494,10 +494,20 @@ the store data (no rating/sales keys, no sold/Bestseller renders).
 **Goal:** a customer can discover the price, pay it, and receive it —
 and every money surface tells one true story. (R7 complete; needs O.2.)
 
-- **M.1 One vocabulary (L35, L85, L86, L96).** Page/Pass/Keepsake
-  everywhere: `usePlan` labels, sidebar chip, settings modal (kill the
-  "subscription" wording), the orphaned DesignFAQ either remounted
-  with new copy or deleted (its fence-test whitelist removed).
+- **M.1 One vocabulary (L35, L85, L86, L96). — SHIPPED 2026-08-13.**
+  The L35 break point was the CLIENT: /api/store/entitlements
+  already returned Page/Pass/Keepsake, but usePlan's validation
+  accepted only the retired Atelier/Legacy names and fell back to
+  "Journal" — so every host, paid ones included, wore the free
+  tier's dead name. usePlan + the route fallback now speak the
+  marketed vocabulary; the settings modal is "Your plan · One-time
+  plans — no subscription, nothing renews" (tab: Plan; ⌘K: Plan &
+  billing); help-faq answers "Do plans renew?" with the truth; the
+  export copy says "even if you leave" not "cancel"; DesignFAQ
+  (mounted nowhere, still selling Journal/Atelier/Legacy) is
+  DELETED with its fence whitelist removed; the pricing grid's dead
+  "Pear's promise →" #journal anchor is gone — the promise is said
+  plainly.
 - **M.2 Doors reach the till (L37).** Landing plan buttons carry plan
   intent through auth to checkout; `?upgrade=true` lands on a real
   upgrade surface; the 402's upgradeUrl goes there; one `/upgrade`

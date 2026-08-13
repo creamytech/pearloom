@@ -428,7 +428,7 @@ function UsageTab({ usage, planLabel, onUpgrade }: { usage: UsageData; planLabel
 function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
   return (
     <div>
-      <SettingsHead title="Subscription" sub="Manage your plan and billing." />
+      <SettingsHead title="Your plan" sub="One-time plans — no subscription, nothing renews." />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 16 }}>
         {plans.map((p) => (
           <div key={p.id} style={{ position: 'relative', borderRadius: 16, padding: 16, background: p.current ? 'linear-gradient(165deg, var(--sage-tint), var(--card))' : 'var(--card)', border: p.current ? '2px solid var(--sage-deep)' : '1px solid var(--line)' }}>
@@ -554,7 +554,7 @@ export function UserSettingsModal({
   const tabs: { id: SettingsTab; label: string; icon: string }[] = [
     { id: 'account', label: 'Account', icon: 'user' },
     { id: 'usage', label: 'Usage & credits', icon: 'sparkles' },
-    { id: 'subscription', label: 'Subscription', icon: 'star' },
+    { id: 'subscription', label: 'Plan', icon: 'star' },
     { id: 'notifications', label: 'Notifications', icon: 'bell' },
     { id: 'preferences', label: 'Preferences', icon: 'settings' },
   ];
