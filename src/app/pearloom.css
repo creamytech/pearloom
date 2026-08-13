@@ -2038,11 +2038,14 @@ button.pl8-mobile-only { display: none !important; }
   }
 }
 
-/* Editor rail keyboard stops (A.4/L103) — the section rows and the
-   between-row insert points are divs with role=button; give their
+/* Editor rail keyboard stops (A.4/L103 · E.4) — each section row's
+   label area is a real <button> (the row div keeps drag + nested
+   controls), the tool rows are buttons outright, and the
+   between-row insert points stay role=button divs; give their
    keyboard focus a visible ring (pointer focus stays quiet via
    :focus-visible). */
 .pl-rd-section-row:focus-visible,
+.pl-rd-section-row-btn:focus-visible,
 .pl-rd-insert-point:focus-visible {
   outline: 2px solid var(--gold, #A8862D);
   outline-offset: 1px;
@@ -9223,10 +9226,6 @@ html { scroll-behavior: smooth; }
      phantom second-card peek on panels with one group. */
   [data-pl-mobile-sheet] .pl-panel-shell > :first-child > :only-child {
     flex: 1 0 100%;
-  }
-  /* The "More" disclosure keeps its identity as a quiet card. */
-  [data-pl-mobile-sheet] .pl-panel-shell > :first-child > details.pl-panel-more {
-    background: var(--cream-2);
   }
 }
 

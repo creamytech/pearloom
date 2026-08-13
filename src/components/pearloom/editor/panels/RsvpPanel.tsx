@@ -103,9 +103,10 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* ── Zip RsvpEditor layout (section-fields.jsx L286-304):
               Reply by · Questions to ask · After they reply. The
-              production-only extras (button label, who-can-reply,
-              meal-option editor, show-who's-going) live tucked
-              under "More" below so the default view is 1:1. */}
+              production extras (button label, who-can-reply, the
+              meal-option editor, show-who's-going) follow as
+              ordinary groups — the "More" disclosure retired
+              (EDITOR-CALM-PLAN E.4, depth ≤ 2). */}
         <FGroup label="Reply by">
           <FDate value={replyBy} onChange={setReplyBy} placeholder="Pick a deadline" />
         </FGroup>
@@ -137,83 +138,69 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
           />
         </FGroup>
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, button, meals, who can reply
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-            {/* No Eyebrow field — the canvas inline-edit is the one
-                home (EDITOR-CALM-PLAN E.2). */}
-            <FGroup label="Button label" hint="Shown on the RSVP CTA.">
-              <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
-            </FGroup>
-            <FGroup label="Who can reply" hint="Off: anyone with the link can RSVP. On: only emails already on your guest list (or personal invite links) get through.">
-              <FToggleStandalone
-                label="Guest list only"
-                sub="Replies must match an invited email"
-                def={!!config.guestListOnly}
-                onChange={(v) => setToggle('guestListOnly', v)}
-              />
-            </FGroup>
-            {config.mealChoice && (
-              <FGroup label={`Meal options · ${mealOptions.length}`} hint="These show up as pills on the guest RSVP form.">
-                <MealCounts siteSlug={siteSlug} mealOptions={mealOptions.map((o) => o.name)} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {mealOptions.map((o, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <FSuggest
-                          value={o.name}
-                          onChange={(v) => setMealOption(i, v)}
-                          placeholder="Beef"
-                          options={mealSet.options.filter((opt) => !mealOptions.some((existing, idx) => idx !== i && existing.name.trim().toLowerCase() === opt.toLowerCase()))}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeMealOption(i)}
-                        aria-label={`Remove ${o.name}`}
-                        style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)' }}
-                      >
-                        <Icon name="close" size={12} />
-                      </button>
-                    </div>
-                  ))}
-                  <AddCard label="Add a meal option" onClick={() => addMealOption('')} />
-                  {remainingMealQuickAdds.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 2 }}>
-                      {remainingMealQuickAdds.slice(0, 8).map((q) => (
-                        <button
-                          key={q}
-                          type="button"
-                          onClick={() => addMealOption(q)}
-                          style={{
-                            fontSize: 11.5, fontWeight: 600,
-                            padding: '4px 9px', borderRadius: 999,
-                            background: 'var(--cream-2)', color: 'var(--ink-soft)',
-                            border: '1px solid var(--line)', cursor: 'pointer',
-                          }}
-                        >
-                          + {q}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+        {/* No Eyebrow field — the canvas inline-edit is the one
+            home (EDITOR-CALM-PLAN E.2). */}
+        <FGroup label="Button label" hint="Shown on the RSVP CTA.">
+          <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
+        </FGroup>
+        <FGroup label="Who can reply" hint="Off: anyone with the link can RSVP. On: only emails already on your guest list (or personal invite links) get through.">
+          <FToggleStandalone
+            label="Guest list only"
+            sub="Replies must match an invited email"
+            def={!!config.guestListOnly}
+            onChange={(v) => setToggle('guestListOnly', v)}
+          />
+        </FGroup>
+        {config.mealChoice && (
+          <FGroup label={`Meal options · ${mealOptions.length}`} hint="These show up as pills on the guest RSVP form.">
+            <MealCounts siteSlug={siteSlug} mealOptions={mealOptions.map((o) => o.name)} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {mealOptions.map((o, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <FSuggest
+                      value={o.name}
+                      onChange={(v) => setMealOption(i, v)}
+                      placeholder="Beef"
+                      options={mealSet.options.filter((opt) => !mealOptions.some((existing, idx) => idx !== i && existing.name.trim().toLowerCase() === opt.toLowerCase()))}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeMealOption(i)}
+                    aria-label={`Remove ${o.name}`}
+                    style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)' }}
+                  >
+                    <Icon name="close" size={12} />
+                  </button>
                 </div>
-              </FGroup>
-            )}
-            <FGroup label="Show who's going" hint="A small avatar pile + count of attending guests under the RSVP button. Defaults on for casual events (birthdays, reunions, bachelor parties), off for weddings + memorials.">
-              <ShowGoingToggle manifest={manifest} onChange={onChange} />
-            </FGroup>
-          </div>
-        </details>
+              ))}
+              <AddCard label="Add a meal option" onClick={() => addMealOption('')} />
+              {remainingMealQuickAdds.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 2 }}>
+                  {remainingMealQuickAdds.slice(0, 8).map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => addMealOption(q)}
+                      style={{
+                        fontSize: 11.5, fontWeight: 600,
+                        padding: '4px 9px', borderRadius: 999,
+                        background: 'var(--cream-2)', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', cursor: 'pointer',
+                      }}
+                    >
+                      + {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </FGroup>
+        )}
+        <FGroup label="Show who's going" hint="A small avatar pile + count of attending guests under the RSVP button. Defaults on for casual events (birthdays, reunions, bachelor parties), off for weddings + memorials.">
+          <ShowGoingToggle manifest={manifest} onChange={onChange} />
+        </FGroup>
       </div>
     </SectionPanelShell>
   );

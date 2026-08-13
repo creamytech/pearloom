@@ -752,22 +752,13 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               {dropAfter  && <DropLine position="bottom" />}
             <div
               draggable={!isHero}
-              /* Keyboard parity (A.4/L103): the rows were mouse-only —
-                 Tab skipped from the rail tabs straight past every
-                 section to "Add section", so a keyboard user couldn't
-                 open a section's panel at all. A div (not <button>)
-                 because rows nest real buttons (the move arrows) and
-                 carry drag-and-drop. */
-              role="button"
-              tabIndex={0}
-              aria-label={`${s.label} section`}
-              aria-pressed={on}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setActive(s.id);
-                }
-              }}
+              /* The row DIV carries drag-and-drop + the mouse hit
+                 area only — it can't be a <button> itself because it
+                 nests real buttons (the mobile move arrows). The
+                 keyboard/SR entry is the REAL <button> on the label
+                 area below (EDITOR-CALM-PLAN E.4 — it replaced the
+                 A.4 role="button" div pattern); its click bubbles
+                 here, so mouse and keyboard share one handler. */
               onDragStart={(e) => {
                 if (isHero) { e.preventDefault(); return; }
                 setDraggingIdx(i);
@@ -817,8 +808,30 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 <GripDots color={on ? 'var(--cream)' : 'var(--ink-muted)'} />
               </span>
               <Icon name={s.icon} size={13} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* The label area is a REAL button — the row's keyboard
+                  + screen-reader activation (its click bubbles to the
+                  row div's onClick). Resets keep the visual layout
+                  byte-for-byte; the focus ring lives in pearloom.css
+                  (.pl-rd-section-row-btn:focus-visible). */}
+              <button
+                type="button"
+                className="pl-rd-section-row-btn"
+                aria-label={`${s.label} section`}
+                aria-pressed={on}
+                style={{
+                  minWidth: 0,
+                  display: 'block',
+                  textAlign: 'left',
+                  padding: 0,
+                  margin: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  font: 'inherit',
+                  color: 'inherit',
+                  cursor: 'inherit',
+                }}
+              >
+                <span style={{ fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {s.label}
                   {/* Co-editor presence — a small colored avatar when a
                       peer currently has THIS section open. */}
@@ -860,9 +873,10 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                       }}
                     />
                   )}
-                </div>
-                <div
+                </span>
+                <span
                   style={{
+                    display: 'block',
                     fontSize: 10.5,
                     opacity: on ? 0.7 : 0.55,
                     marginTop: 1,
@@ -882,8 +896,8 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                       {' · own page'}
                     </span>
                   )}
-                </div>
-              </div>
+                </span>
+              </button>
               {s.required && (
                 <Icon name="lock" size={10} color={on ? 'var(--cream)' : 'var(--ink-muted)'} />
               )}
@@ -998,11 +1012,17 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
             {applicableTools.map((s) => {
               const on = s.id === active;
               return (
-                <div
+                /* A REAL button — tool rows nest no other controls,
+                   so the whole row can be one (the page-section rows
+                   above put the button on the label area instead).
+                   Resets keep the visual layout byte-for-byte. */
+                <button
                   key={s.id}
+                  type="button"
                   onClick={() => setActive(s.id)}
                   className="pl-rd-section-row"
                   data-active={on}
+                  aria-pressed={on}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '22px 1fr',
@@ -1013,12 +1033,17 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                     background: on ? 'var(--ink)' : 'transparent',
                     color: on ? 'var(--cream)' : 'var(--ink)',
                     cursor: 'pointer',
+                    border: 'none',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    width: '100%',
                   }}
                 >
                   <Icon name={s.icon} size={13} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
-                    <div style={{
+                  <span style={{ minWidth: 0, display: 'block' }}>
+                    <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600 }}>{s.label}</span>
+                    <span style={{
+                      display: 'block',
                       fontSize: 10.5,
                       opacity: on ? 0.7 : 0.55,
                       marginTop: 1,
@@ -1027,9 +1052,9 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                       textOverflow: 'ellipsis',
                     }}>
                       {s.desc}
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                </button>
               );
             })}
           </div>

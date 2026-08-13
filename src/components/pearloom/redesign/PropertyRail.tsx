@@ -597,9 +597,9 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           header already names the section, so the eyebrow / title /
           blurb stand down and ONE compact row carries the tabs plus
           the section controls — ~90px returned to the controls. Tool
-          panels own the whole rail; on phones their header renders
-          nothing, so it unmounts. */}
-      {!(isMobileViewport && isToolPanel) && (
+          panels hide the tabs (they own the rail) but keep a compact
+          title row on phones — the wholesale header unmount was the
+          bug (EDITOR-CALM-PLAN E.4). */}
       <div style={{ padding: isMobileViewport ? '10px 14px 8px' : '16px 20px 10px', borderBottom: '1px solid var(--line-soft)' }}>
         {!isMobileViewport && (<>
         <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
@@ -619,6 +619,21 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
         </div>
         <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{headDesc}</div>
         </>)}
+
+        {/* Compact phone header for tool panels — the workspace's
+            name + tagline (the same headTitle/headDesc the desktop
+            shows), one row. No tabs (tools own the rail) and no
+            section actions (tools aren't canvas sections). */}
+        {isMobileViewport && isToolPanel && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 17, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {headTitle}
+            </h3>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {headDesc}
+            </span>
+          </div>
+        )}
 
         {/* Tabs — Content · Design · ✦ Motion (the v2 inspector).
             Hidden on tool panels (Guests / Share / Day-of / etc.)
@@ -673,7 +688,6 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
         </div>
         )}
       </div>
-      )}
 
       {/* Body — prototype L718-790. minHeight: 0 is critical for the
           flex:1 + overflow:auto pattern to actually scroll inside a

@@ -373,5 +373,31 @@ eslint / vitest / build / the editor e2e + a live walk).
   on SSR-text assertions). Future live walks: build + `next start
   -p 3002` with PEARLOOM_E2E=1 and NEXTAUTH_URL overridden, auth
   via `next-auth/jwt` encode.
-- E.4 —
+- E.4 — **SHIPPED 2026-08-13** (content depth ≤ 2). The universal
+  "More…" disclosure is retired from all seven remaining panels —
+  every hidden cluster PROMOTED as its own top-level group (none
+  died; the deaths were E.2's eyebrows): Hero (Milestone + the two
+  CTA buttons), Rsvp (Button label / Who can reply / Meal options /
+  Show who's going — four clusters, labels preserved), Details
+  (Contact a host), Faq (Quick-add + Guest questions), Story
+  (Chapter cards), Schedule (the multi-day toggle card), Registry
+  (What kind of registry). Each promoted cluster is one top-level
+  child of the panel shell, so on phones it is one deck card —
+  which is itself the PanelDeckDots fix (a `<details>` was one
+  opaque child hiding several groups). TravelPanel's nested
+  per-hotel `<details>` flattened to always-visible booking fields.
+  `pl-panel-more` deleted from code AND css. PropertyRail's
+  wholesale phone unmount for tool panels replaced with a compact
+  title header (tabs/section-actions stay correctly hidden by
+  their existing gates; desktop byte-identical). SectionRail rows
+  are keyboard-real: the label area of every page-section row is a
+  true `<button>` (aria-pressed, focus ring via the A.4 rule,
+  bubbling to the row's shared handler) and TOOLS rows converted
+  outright — zero nested-interactive HTML. `<details>` count
+  across editor/ + redesign/: ZERO. Net −61 LOC. Validated twice
+  (author + independent): tsc/eslint clean · vitest
+  src/components/pearloom 207/207 (incl. the new door pin) ·
+  build passes · a 10-assertion live walk on the production stack
+  (flat hero/rsvp/travel, real rail buttons with no nested
+  interactives, keyboard focus, the phone tool-panel header).
 - E.5 —

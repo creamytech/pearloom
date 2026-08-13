@@ -292,10 +292,10 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               lead — they're the section's identity and the first
               thing a host looks for; the tagline supports them.
               (The zip's HeroEditor put Tagline first; deliberately
-              diverged 2026-07-08.) The production-only extras
-              (milestone, CTAs) live tucked under "More" below; the
-              eyebrow line is edited on the canvas (EDITOR-CALM-PLAN
-              E.2). */}
+              diverged 2026-07-08.) Milestone + the two CTAs follow
+              as ordinary groups — the "More" disclosure retired
+              (EDITOR-CALM-PLAN E.4, depth ≤ 2); the eyebrow line is
+              edited on the canvas (E.2). */}
         <FGroup label={v.hero.subjectGroupLabel} hint={v.hero.subjectHint}>
           {isSolo ? (
             <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
@@ -342,41 +342,27 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
         </FGroup>
         <OpeningPhotosStrip manifest={manifest} onChange={onChange} hint={v.hero.coverGroupHint} />
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, milestone, buttons
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
-            {/* No Lead/eyebrow field — the canvas inline-edit is the
-                one home for the eyebrow line (EDITOR-CALM-PLAN E.2). */}
-            <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
-            <FGroup label="Primary button" hint="The first CTA, pick where it goes, then optionally rename it.">
-              <CtaLinkEditor
-                href={heroCtaHref}
-                label={heroCta}
-                defaultHref="#rsvp"
-                onHrefChange={(val) => setCopy('heroCtaHref', val)}
-                onLabelChange={(val) => setCopy('heroCta', val)}
-              />
-            </FGroup>
-            <FGroup label="Secondary button" hint="Optional, the smaller outline button next to the primary.">
-              <CtaLinkEditor
-                href={heroCtaSecondaryHref}
-                label={heroCtaSecondary}
-                defaultHref="#story"
-                onHrefChange={(val) => setCopy('heroCtaSecondaryHref', val)}
-                onLabelChange={(val) => setCopy('heroCtaSecondary', val)}
-              />
-            </FGroup>
-          </div>
-        </details>
+        {/* No Lead/eyebrow field — the canvas inline-edit is the
+            one home for the eyebrow line (EDITOR-CALM-PLAN E.2). */}
+        <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
+        <FGroup label="Primary button" hint="The first CTA, pick where it goes, then optionally rename it.">
+          <CtaLinkEditor
+            href={heroCtaHref}
+            label={heroCta}
+            defaultHref="#rsvp"
+            onHrefChange={(val) => setCopy('heroCtaHref', val)}
+            onLabelChange={(val) => setCopy('heroCta', val)}
+          />
+        </FGroup>
+        <FGroup label="Secondary button" hint="Optional, the smaller outline button next to the primary.">
+          <CtaLinkEditor
+            href={heroCtaSecondaryHref}
+            label={heroCtaSecondary}
+            defaultHref="#story"
+            onHrefChange={(val) => setCopy('heroCtaSecondaryHref', val)}
+            onLabelChange={(val) => setCopy('heroCtaSecondary', val)}
+          />
+        </FGroup>
       </div>
     </SectionPanelShell>
   );

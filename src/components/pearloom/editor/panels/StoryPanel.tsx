@@ -544,79 +544,66 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
           )}
         </FGroup>
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, chapter cards
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
-            {/* No Eyebrow field — the canvas inline-edit is the one
-                home (EDITOR-CALM-PLAN E.2). */}
-            <FGroup
-              label="Chapter cards"
-              hint="Each card on the canvas pulls its photo, headline, and body from one of these three slots. Empty fields fall back to the shared story above."
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      borderRadius: 11, border: '1px solid var(--line)',
-                      background: 'var(--card)', padding: 10,
-                      display: 'flex', gap: 10, alignItems: 'flex-start',
-                    }}
-                  >
-                    {/* Left column — photo slot. */}
-                    <div style={{ flex: '0 0 88px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                        <span style={{
-                          width: 16, height: 16, borderRadius: 999,
-                          background: (chapterImage(i) || chapterTitle(i) || chapterBody(i)) ? 'var(--lavender-bg)' : 'var(--cream-2)',
-                          color: 'var(--lavender-ink)',
-                          display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700,
-                        }}>{i + 1}</span>
-                        Card
-                      </div>
-                      <PhotoUploadSlot
-                        url={chapterImage(i)}
-                        onChange={(url) => setChapterImage(i, url)}
-                        aspectRatio="4/5"
-                        size="sm"
-                        pool={photoPool}
-                      />
-                    </div>
-                    {/* Right column — title + body. */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-                      <FInput
-                        value={chapterTitle(i)}
-                        onChange={(next) => setChapterTitle(i, next)}
-                        placeholder={`Chapter ${i + 1} title`}
-                      />
-                      <textarea
-                        value={chapterBody(i)}
-                        onChange={(e) => setChapterBody(i, e.target.value)}
-                        rows={3}
-                        placeholder={i === 0 ? 'How it began…' : i === 1 ? 'Then…' : 'And then…'}
-                        style={{
-                          width: '100%', padding: '9px 11px', borderRadius: 10,
-                          border: '1px solid var(--line)', background: 'var(--cream-2)',
-                          fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)',
-                          resize: 'vertical', fontFamily: 'inherit', outline: 'none',
-                        }}
-                      />
-                    </div>
+        {/* No Eyebrow field — the canvas inline-edit is the one
+            home (EDITOR-CALM-PLAN E.2). The "More" disclosure that
+            hid this group retired (E.4, depth ≤ 2). */}
+        <FGroup
+          label="Chapter cards"
+          hint="Each card on the canvas pulls its photo, headline, and body from one of these three slots. Empty fields fall back to the shared story above."
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                style={{
+                  borderRadius: 11, border: '1px solid var(--line)',
+                  background: 'var(--card)', padding: 10,
+                  display: 'flex', gap: 10, alignItems: 'flex-start',
+                }}
+              >
+                {/* Left column — photo slot. */}
+                <div style={{ flex: '0 0 88px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{
+                      width: 16, height: 16, borderRadius: 999,
+                      background: (chapterImage(i) || chapterTitle(i) || chapterBody(i)) ? 'var(--lavender-bg)' : 'var(--cream-2)',
+                      color: 'var(--lavender-ink)',
+                      display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700,
+                    }}>{i + 1}</span>
+                    Card
                   </div>
-                ))}
+                  <PhotoUploadSlot
+                    url={chapterImage(i)}
+                    onChange={(url) => setChapterImage(i, url)}
+                    aspectRatio="4/5"
+                    size="sm"
+                    pool={photoPool}
+                  />
+                </div>
+                {/* Right column — title + body. */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                  <FInput
+                    value={chapterTitle(i)}
+                    onChange={(next) => setChapterTitle(i, next)}
+                    placeholder={`Chapter ${i + 1} title`}
+                  />
+                  <textarea
+                    value={chapterBody(i)}
+                    onChange={(e) => setChapterBody(i, e.target.value)}
+                    rows={3}
+                    placeholder={i === 0 ? 'How it began…' : i === 1 ? 'Then…' : 'And then…'}
+                    style={{
+                      width: '100%', padding: '9px 11px', borderRadius: 10,
+                      border: '1px solid var(--line)', background: 'var(--cream-2)',
+                      fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)',
+                      resize: 'vertical', fontFamily: 'inherit', outline: 'none',
+                    }}
+                  />
+                </div>
               </div>
-            </FGroup>
+            ))}
           </div>
-        </details>
+        </FGroup>
 
         {/* No visibility footer — the rail row's eye button + options
             popover are the one home for hide/show (EDITOR-CALM-PLAN

@@ -141,9 +141,9 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* ── Zip RegistryEditor layout (section-fields.jsx L252-271):
               Intro line · Linked registries · N (store rows + AddCard).
-              The production-only extras (registry mode and the
-              layout-driven progress controls) live tucked under
-              "More" below so the default view is 1:1. */}
+              The production extras (registry mode + its Fund-layout
+              hint) follow as an ordinary group — the "More"
+              disclosure retired (EDITOR-CALM-PLAN E.4, depth ≤ 2). */}
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
           <div style={{ marginTop: 7 }}>
@@ -251,61 +251,48 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
           </div>
         </FGroup>
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, registry kind
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-            <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
-              <FSelect
-                value={mode}
-                onChange={(v) => setMode(v as RegistryMode)}
-                options={[
-                  { value: 'gifts',    label: 'Gift registry',     hint: 'Store-linked physical gifts' },
-                  { value: 'fund',     label: 'Honeymoon / event fund', hint: 'Pool money toward something' },
-                  { value: 'donation', label: 'In lieu of flowers / donations', hint: 'Charitable causes' },
-                  { value: 'wishlist', label: 'Wishlist',          hint: 'Personal-wishlist links' },
-                  { value: 'tip-jar',  label: 'Tip jar',           hint: 'Venmo / Zelle / Cash App' },
-                ]}
-                icon="gift"
-              />
-            </FGroup>
-            {/* No Eyebrow field — the canvas inline-edit is the one
-                home (EDITOR-CALM-PLAN E.2). */}
-
-            {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
-              /* Discoverability hint for the Fund layout. Hosts on
-                 cards/chips/logo-wall layouts don't realize the fund
-                 modes have a dedicated fund-forward visual. Only
-                 surfaced for fund/tip-jar modes since it makes no
-                 sense for gifts/wishlist. */
-              <div
-                style={{
-                  display: 'flex', gap: 10, alignItems: 'flex-start',
-                  padding: 10, borderRadius: 10,
-                  background: 'var(--peach-bg)',
-                  border: '1px solid rgba(198,112,61,0.18)',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
-                    Put the fund front and center?
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                    The <strong>Fund</strong> layout leads with your Give-directly card, its progress fills in as guests share what they gave. Switch in the Layout tab.
-                  </div>
+        {/* No Eyebrow field — the canvas inline-edit is the one
+            home (EDITOR-CALM-PLAN E.2). */}
+        <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
+          <FSelect
+            value={mode}
+            onChange={(v) => setMode(v as RegistryMode)}
+            options={[
+              { value: 'gifts',    label: 'Gift registry',     hint: 'Store-linked physical gifts' },
+              { value: 'fund',     label: 'Honeymoon / event fund', hint: 'Pool money toward something' },
+              { value: 'donation', label: 'In lieu of flowers / donations', hint: 'Charitable causes' },
+              { value: 'wishlist', label: 'Wishlist',          hint: 'Personal-wishlist links' },
+              { value: 'tip-jar',  label: 'Tip jar',           hint: 'Venmo / Zelle / Cash App' },
+            ]}
+            icon="gift"
+          />
+          {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
+            /* Discoverability hint for the Fund layout. Hosts on
+               cards/chips/logo-wall layouts don't realize the fund
+               modes have a dedicated fund-forward visual. Only
+               surfaced for fund/tip-jar modes since it makes no
+               sense for gifts/wishlist. Lives inside this group —
+               it annotates the mode pick. */
+            <div
+              style={{
+                display: 'flex', gap: 10, alignItems: 'flex-start',
+                marginTop: 6,
+                padding: 10, borderRadius: 10,
+                background: 'var(--peach-bg)',
+                border: '1px solid rgba(198,112,61,0.18)',
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
+                  Put the fund front and center?
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                  The <strong>Fund</strong> layout leads with your Give-directly card, its progress fills in as guests share what they gave. Switch in the Layout tab.
                 </div>
               </div>
-            )}
-          </div>
-        </details>
+            </div>
+          )}
+        </FGroup>
       </div>
     </SectionPanelShell>
   );

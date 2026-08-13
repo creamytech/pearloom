@@ -462,15 +462,13 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
                     {/* Stay details — the fields guests actually need
                         (host request 2026-06-13): a real Book-now
                         button, the room-block code, a note in the
-                        host's words. Open by default when the host
-                        already filled something in. */}
-                    <details
-                      open={Boolean(h.bookingUrl || h.groupRate)}
-                      style={{ borderTop: '1px solid var(--line-soft)' }}
-                    >
-                      <summary style={{ padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', cursor: 'pointer', userSelect: 'none', listStyle: 'none' }}>
-                        Booking & details {h.bookingUrl || h.groupRate ? '· set' : ''}
-                      </summary>
+                        host's words. Always visible, one level deep
+                        — the nested per-hotel disclosure retired
+                        (EDITOR-CALM-PLAN E.4, depth ≤ 2). */}
+                    <div style={{ borderTop: '1px solid var(--line-soft)' }}>
+                      <div style={{ padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>
+                        Booking & details
+                      </div>
                       <div style={{ padding: '0 10px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <FInput
                           value={h.bookingUrl ?? ''}
@@ -489,7 +487,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
                           placeholder="A note for guests, '10 min walk, mention our block'"
                         />
                       </div>
-                    </details>
+                    </div>
                   </div>
                 );
               })}

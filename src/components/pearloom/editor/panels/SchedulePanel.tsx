@@ -269,9 +269,10 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
               clock-tone row with "time · sublocation", an "Add a
               moment" card, and the Pear action in the group header.
               Multi-day grouping is the production superset; when the
-              host turns it on (in "More" below) the same machinery
-              swaps the flat list for per-day sections. The multi-day
-              toggle is production-only, tucked under "More". */}
+              host turns it on (the toggle card below the timeline —
+              the "More" disclosure retired, EDITOR-CALM-PLAN E.4)
+              the same machinery swaps the flat list for per-day
+              sections. */}
         {!multiDay && showTemplates && (
           <TemplateStrip occasion={occasion} onPick={applyTemplate} />
         )}
@@ -380,61 +381,43 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
           </button>
         )}
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, multi-day
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-            {/* No Eyebrow field — the canvas inline-edit is the one
-                home (EDITOR-CALM-PLAN E.2). */}
-            {/* Multi-day toggle */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '8px 12px', borderRadius: 10,
-              background: 'var(--cream-2)', border: '1px solid var(--line-soft)',
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
-                  Multi-day event
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
-                  {multiDay ? `${maxDay} days set up` : 'Groups your timeline by day, for weekends and trips.'}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => multiDay ? flipMultiDayOff() : addNewDay()}
-                aria-pressed={multiDay}
-                style={{
-                  width: 38, height: 22, borderRadius: 999,
-                  background: multiDay ? 'var(--sage-deep)' : 'var(--cream-3)',
-                  position: 'relative', flexShrink: 0,
-                  transition: 'background 160ms ease', cursor: 'pointer', border: 'none',
-                }}
-              >
-                <span style={{
-                  position: 'absolute', top: 2.5,
-                  left: multiDay ? 18.5 : 2.5,
-                  width: 17, height: 17, borderRadius: '50%',
-                  background: '#fff',
-                  transition: 'left 160ms cubic-bezier(0.16,1,0.3,1)',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                }} />
-              </button>
+        {/* No Eyebrow field — the canvas inline-edit is the one
+            home (EDITOR-CALM-PLAN E.2). */}
+        {/* Multi-day toggle */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '8px 12px', borderRadius: 10,
+          background: 'var(--cream-2)', border: '1px solid var(--line-soft)',
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+              Multi-day event
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
+              {multiDay ? `${maxDay} days set up` : 'Groups your timeline by day, for weekends and trips.'}
             </div>
           </div>
-        </details>
-
-        {/* Outside the More disclosure — the other seven section
-            panels keep the hide-this-section affordance always
-            visible; burying it here made Schedule the odd one out. */}
+          <button
+            type="button"
+            onClick={() => multiDay ? flipMultiDayOff() : addNewDay()}
+            aria-pressed={multiDay}
+            style={{
+              width: 38, height: 22, borderRadius: 999,
+              background: multiDay ? 'var(--sage-deep)' : 'var(--cream-3)',
+              position: 'relative', flexShrink: 0,
+              transition: 'background 160ms ease', cursor: 'pointer', border: 'none',
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: 2.5,
+              left: multiDay ? 18.5 : 2.5,
+              width: 17, height: 17, borderRadius: '50%',
+              background: '#fff',
+              transition: 'left 160ms cubic-bezier(0.16,1,0.3,1)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+            }} />
+          </button>
+        </div>
       </div>
     </SectionPanelShell>
   );

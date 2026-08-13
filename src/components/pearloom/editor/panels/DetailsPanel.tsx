@@ -105,8 +105,9 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
               Good-to-know cards. The dedicated Dress-code field was
               removed (EDITOR-CALM-PLAN E.2 — blocks/DressCodePanel
               is the one home; sites without the section add it via
-              the Add-section picker). Contact-a-host lives tucked
-              under "More" below. */}
+              the Add-section picker). Contact-a-host follows as an
+              ordinary group — the "More" disclosure retired
+              (EDITOR-CALM-PLAN E.4, depth ≤ 2). */}
         <FToggleStandalone
           label="Kids welcome"
           sub={kidsWelcome ? 'Family-friendly, bring the little ones.' : 'No kids, grown-ups only.'}
@@ -163,43 +164,29 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
           </div>
         </FGroup>
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, contact a host
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-            {/* No Eyebrow field — the canvas inline-edit is the one
-                home (EDITOR-CALM-PLAN E.2). */}
-            <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details, guests tap it and their Messages opens with your number.">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <FInput
-                  value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
-                  onChange={(v) => onChange({
-                    ...(manifest as unknown as Record<string, unknown>),
-                    hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
-                  } as unknown as StoryManifest)}
-                  placeholder="Who answers, 'Emma', 'the best man'…"
-                />
-                <FInput
-                  value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
-                  onChange={(v) => onChange({
-                    ...(manifest as unknown as Record<string, unknown>),
-                    hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
-                  } as unknown as StoryManifest)}
-                  type="tel"
-                  placeholder="(555) 010-1234, leave empty to hide the button"
-                />
-              </div>
-            </FGroup>
+        {/* No Eyebrow field — the canvas inline-edit is the one
+            home (EDITOR-CALM-PLAN E.2). */}
+        <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details, guests tap it and their Messages opens with your number.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <FInput
+              value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
+              onChange={(v) => onChange({
+                ...(manifest as unknown as Record<string, unknown>),
+                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
+              } as unknown as StoryManifest)}
+              placeholder="Who answers, 'Emma', 'the best man'…"
+            />
+            <FInput
+              value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
+              onChange={(v) => onChange({
+                ...(manifest as unknown as Record<string, unknown>),
+                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
+              } as unknown as StoryManifest)}
+              type="tel"
+              placeholder="(555) 010-1234, leave empty to hide the button"
+            />
           </div>
-        </details>
+        </FGroup>
       </div>
     </SectionPanelShell>
   );
