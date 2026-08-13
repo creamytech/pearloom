@@ -22,10 +22,11 @@ re-ran green (24/24) on the local stack the day of the stamp.
   (checkout → webhook → plan grant are coded and fence-tested
   keyless).
 - **O.3** prod env check via `/api/health/deps` (admin-gated).
-- **Nine pending prod MCP applies** (Supabase MCP re-auth; exact
-  list in plan §3 S.1 — includes the C.2 published_manifest
-  snapshot, C.6 site_redirects, and D.4's activation north-star
-  view). New code must not assume those exist in prod until then.
+- ~~Nine pending prod MCP applies~~ — **DONE 2026-08-13**: all nine
+  applied to prod via MCP and recorded in `_pearloom_migrations`
+  (list + verification in plan §3 S.1). Prod schema and the
+  migration set are diff-clean; advisors show only the two known
+  INFO notices on internal bookkeeping tables.
 - C.5 (one pressing) stays behind `?press=one` by design until
   funnel data accrues; its remaining increments are listed in the
   plan §9 stamp.

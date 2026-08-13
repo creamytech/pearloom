@@ -238,19 +238,25 @@ it forever. (H5b, L9, L90; REVIEW-SYNTHESIS §1.1 item 8 closed.)
     `referrals` table dropped; `_pearloom_migrations` recreated in
     prod's exact shape. Fresh-from-migrations ≡ working local:
     **identical**.
-  · **Pending prod applies (Supabase MCP re-auth needed):**
-    `20260529_registry_claims_idempotency.sql` and
-    `20260530_account_deletions_audit.sql` (both authored long ago,
-    never applied) + `20260812_schema_parity.sql` +
-    `20260812_time_capsules.sql` +
-    `20260812_pearloom_guests_site_key.sql` +
-    `20260812_guest_spine_merge.sql` +
-    `20260813_published_snapshot.sql` (the C.2 staged-editing
-    snapshot column) + `20260813_site_redirects.sql` (the C.6
-    address-forwarding table) +
-    `20260813_activation_north_star.sql` (the D.4 funnel view
-    upgrade — nine now). Also pending: a prod unique-index dump to
-    diff against migrations (tables/columns are verified clean;
+  · **Prod applies — ALL NINE APPLIED 2026-08-13** (MCP re-auth
+    landed; applied in lexical order via `apply_migration` +
+    recorded in `_pearloom_migrations`):
+    `20260529_registry_claims_idempotency.sql`,
+    `20260530_account_deletions_audit.sql` (both were already in
+    the ledger — the re-apply was an idempotent no-op),
+    `20260812_schema_parity.sql`, `20260812_time_capsules.sql`,
+    `20260812_pearloom_guests_site_key.sql`,
+    `20260812_guest_spine_merge.sql` (prod's pearloom_guests held
+    zero rows, so the merge map is empty by construction),
+    `20260813_published_snapshot.sql`,
+    `20260813_site_redirects.sql`,
+    `20260813_activation_north_star.sql`. Verified after: the
+    snapshot column, redirects/capsules/marketplace tables, and
+    the north-star view columns all present; activation_funnel
+    returns live rows; security advisors show only the two
+    known INFO notices on the internal bookkeeping tables
+    (deny-all by design). Still pending: a prod unique-index dump
+    to diff against migrations (tables/columns are verified clean;
     indexes were verified for the RSVP-critical pair only).
 - **S.2 The staging CI gate. — SHIPPED 2026-08-12.** The emulator
   productized at `scripts/staging/pearlrest.mjs` (env-driven config,
