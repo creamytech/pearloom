@@ -998,3 +998,32 @@ export async function getPublishedSites(): Promise<Array<{ domain: string; creat
     return [];
   }
 }
+
+/* ── Managed site addresses (C.6/L22) ─────────────────────────── */
+
+/** Follow a renamed site's old address one hop (chains are collapsed
+ *  at rename time). Returns the new subdomain + occasion for the
+ *  301's pretty path, or null when the old slug never existed. */
+export async function getRedirectTarget(
+  oldSubdomain: string,
+): Promise<{ subdomain: string; occasion?: string } | null> {
+  const supabase = getSupabase();
+  try {
+    const { data } = await supabase
+      .from('site_redirects')
+      .select('new_subdomain')
+      .eq('old_subdomain', oldSubdomain)
+      .maybeSingle();
+    const next = (data as { new_subdomain?: string } | null)?.new_subdomain;
+    if (!next) return null;
+    const { data: site } = await supabase
+      .from('sites')
+      .select('ai_manifest')
+      .eq('subdomain', next)
+      .maybeSingle();
+    const occasion = ((site as { ai_manifest?: { occasion?: string } } | null)?.ai_manifest?.occasion);
+    return { subdomain: next, occasion };
+  } catch {
+    return null;
+  }
+}

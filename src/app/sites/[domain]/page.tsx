@@ -238,6 +238,15 @@ export default async function SubdomainSite({
 
   // If no subdomain matches in the SaaS database, render 404
   if (!siteConfig || !siteConfig.manifest) {
+    // Renamed site? The old address forwards forever (C.6/L22) so
+    // printed cards and shared links keep working.
+    const { getRedirectTarget } = await import('@/lib/db');
+    const target = await getRedirectTarget(domain);
+    if (target) {
+      const { buildSitePath, normalizeOccasion } = await import('@/lib/site-urls');
+      const { permanentRedirect } = await import('next/navigation');
+      permanentRedirect(buildSitePath(target.subdomain, '', normalizeOccasion(target.occasion)));
+    }
     return notFound();
   }
 

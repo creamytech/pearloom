@@ -141,7 +141,16 @@ export default async function SiteSubPage(
   const sp = await searchParams;
 
   const siteConfig = await getSiteConfig(domain);
-  if (!siteConfig || !siteConfig.manifest) return notFound();
+  if (!siteConfig || !siteConfig.manifest) {
+    // Renamed site — forward the old sub-page link too (C.6/L22).
+    const { getRedirectTarget } = await import('@/lib/db');
+    const target = await getRedirectTarget(domain);
+    if (target) {
+      const { permanentRedirect } = await import('next/navigation');
+      permanentRedirect(buildSiteUrl(target.subdomain, `/${page}`, undefined, target.occasion));
+    }
+    return notFound();
+  }
 
   // The visibility gate — same contract as the home route (V.1/H7):
   // draft sub-pages render only for the site's owner. (The other

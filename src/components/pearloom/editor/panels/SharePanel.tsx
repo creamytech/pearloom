@@ -354,6 +354,7 @@ export function SharePanel({
               {copied === 'url' ? '✓ Copied' : 'Copy'}
             </span>
           </button>
+          <SiteAddressEditor siteSlug={siteSlug} occasion={occasion} />
         </FGroup>
 
         {/* Branded QR + tone + shape + monogram toggle. */}
@@ -1272,6 +1273,142 @@ function LanguagesSection({
           {error}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── SiteAddressEditor — change the site's address (C.6/L22) ────
+   Before this, there was NO way to change a slug anywhere in the
+   product. Renames go through /api/sites/rename: availability is
+   checked as the host types, the old address forwards forever, and
+   the copy says exactly what changes. After a successful rename
+   the editor navigates itself to the new address. */
+function SiteAddressEditor({ siteSlug, occasion }: { siteSlug: string; occasion?: SiteOccasion }) {
+  const [open, setOpen] = useState(false);
+  const [next, setNext] = useState(siteSlug);
+  const [check, setCheck] = useState<{ state: 'idle' | 'checking' | 'ok' | 'no'; reason?: string }>({ state: 'idle' });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const v = next.trim().toLowerCase();
+    const ctrl = new AbortController();
+    /* All state sets live inside the debounce timer — the compiler
+       lint (rightly) bans synchronous setState in effects. */
+    const t = setTimeout(() => {
+      if (!v || v === siteSlug) { setCheck({ state: 'idle' }); return; }
+      setCheck({ state: 'checking' });
+      fetch(`/api/sites/rename?check=${encodeURIComponent(v)}`, { signal: ctrl.signal })
+        .then((r) => r.json())
+        .then((j: { available?: boolean; reason?: string }) => {
+          setCheck(j.available ? { state: 'ok' } : { state: 'no', reason: j.reason });
+        })
+        .catch(() => { /* aborted or offline — stay quiet */ });
+    }, 350);
+    return () => { ctrl.abort(); clearTimeout(t); };
+  }, [next, open, siteSlug]);
+
+  const rename = async () => {
+    const v = next.trim().toLowerCase();
+    if (!v || v === siteSlug || check.state !== 'ok' || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/sites/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: siteSlug, next: v }),
+      });
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (!res.ok || !data?.ok) {
+        setError(data?.error ?? 'Rename failed — nothing changed. Try again in a minute.');
+        setBusy(false);
+        return;
+      }
+      // The editor lives at the slug — move with the site.
+      window.location.assign(`/editor/${encodeURIComponent(v)}?jump=share`);
+    } catch {
+      setError('Rename failed — nothing changed. Try again in a minute.');
+      setBusy(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => { setOpen(true); setNext(siteSlug); }}
+        style={{
+          marginTop: 8, padding: 0, border: 'none', background: 'transparent',
+          fontSize: 11.5, color: 'var(--ink-muted)', textDecoration: 'underline',
+          cursor: 'pointer', fontFamily: 'inherit', alignSelf: 'flex-start',
+        }}
+      >
+        Change the address
+      </button>
+    );
+  }
+
+  const statusLine =
+    check.state === 'checking' ? 'Checking…'
+    : check.state === 'ok' ? '✓ Available'
+    : check.state === 'no' ? (check.reason ?? 'That address is taken.')
+    : '';
+
+  return (
+    <div style={{ marginTop: 10, padding: '10px 11px', borderRadius: 10, border: '1px dashed var(--line)', background: 'var(--cream-2)' }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>New address</div>
+      <input
+        value={next}
+        onChange={(e) => setNext(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+        autoComplete="off"
+        spellCheck={false}
+        style={{
+          width: '100%', padding: '9px 11px', borderRadius: 9,
+          border: '1px solid var(--line)', background: 'var(--card)',
+          fontSize: 13, color: 'var(--ink)', fontFamily: 'inherit', outline: 'none',
+        }}
+      />
+      {statusLine && (
+        <div style={{ marginTop: 5, fontSize: 11, color: check.state === 'no' ? 'var(--pl-plum, #7A2D2D)' : 'var(--ink-muted)' }}>
+          {statusLine}
+        </div>
+      )}
+      <p style={{ margin: '7px 0 9px', fontSize: 11, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+        Your old link keeps working — it forwards here, so anything
+        already printed or sent stays good. Guest passports and QR
+        codes follow along.
+      </p>
+      {error && <div role="alert" style={{ marginBottom: 8, fontSize: 11, color: 'var(--pl-plum, #7A2D2D)' }}>{error}</div>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          onClick={() => { void rename(); }}
+          disabled={busy || check.state !== 'ok'}
+          style={{
+            padding: '6px 14px', borderRadius: 999, border: 'none',
+            background: 'var(--ink)', color: 'var(--cream)',
+            fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
+            cursor: busy || check.state !== 'ok' ? 'default' : 'pointer',
+            opacity: busy || check.state !== 'ok' ? 0.55 : 1,
+          }}
+        >
+          {busy ? 'One moment…' : 'Change it'}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setOpen(false); setError(null); }}
+          style={{
+            padding: '6px 12px', borderRadius: 999,
+            border: '1px solid var(--line)', background: 'transparent',
+            color: 'var(--ink-muted)', fontSize: 11.5, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          Keep {occasion ? `${occasion}/` : ''}{siteSlug}
+        </button>
+      </div>
     </div>
   );
 }

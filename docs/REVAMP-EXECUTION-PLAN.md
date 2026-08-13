@@ -246,7 +246,8 @@ it forever. (H5b, L9, L90; REVIEW-SYNTHESIS §1.1 item 8 closed.)
     `20260812_pearloom_guests_site_key.sql` +
     `20260812_guest_spine_merge.sql` +
     `20260813_published_snapshot.sql` (the C.2 staged-editing
-    snapshot column — seven now). Also pending: a prod
+    snapshot column) + `20260813_site_redirects.sql` (the C.6
+    address-forwarding table — eight now). Also pending: a prod
     unique-index dump to diff against migrations (tables/columns
     are verified clean; indexes were verified for the RSVP-critical
     pair only).
@@ -821,9 +822,22 @@ then.
   becomes an in-place transition (no route seam → no double-create
   class, no handoff cliff). Feature-flagged; the old wizard remains
   the fallback until the funnel metrics beat it.
-- **C.6 Site addresses, managed (L22).** Slug rename with redirect
-  from the old address, availability check, and clear copy about what
-  changes; surfaced in Share/Settings.
+- **C.6 Site addresses, managed (L22). — SHIPPED 2026-08-13.**
+  `/api/sites/rename` (owner-gated, rate-limited): GET ?check=
+  availability (format + taken + reserved-by-a-renamed-site), POST
+  renames subdomain + site_config.slug, collapses redirect chains,
+  and records the old address in `site_redirects`
+  (20260813_site_redirects.sql — local-applied, queued for prod).
+  The public routes (home + sub-pages) 301 old addresses to the new
+  home forever, so printed cards and shared links keep working —
+  child tables ride along untouched (they key by the sites row id).
+  Surfaced in the Share panel: `SiteAddressEditor` under the Site
+  URL — debounced availability as the host types, plain-words copy
+  ("Your old link keeps working — it forwards here"), and the
+  editor navigates itself to the new address on success. Verified
+  live: check taken/free/reserved, rename 200, new address serves,
+  old address lands on the new one with content intact, the old
+  slug refuses reuse.
 
 **Counts as done:** the flag ships to 100% only when the staging
 funnel e2e + the wow-moment metrics (already instrumented) match or
