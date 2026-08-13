@@ -107,7 +107,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
     pearWorking('done', undefined, 'theme');
     const prior = manifest;
     onChange(next);
-    fireUndoable('Pack applied, your old look is one tap away', () => onChange(prior));
+    fireUndoable('Theme applied, your old look is one tap away', () => onChange(prior));
   };
 
   /* One door only (DK.3) — the body behind a phone Design door.

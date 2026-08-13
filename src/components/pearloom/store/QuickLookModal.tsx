@@ -504,11 +504,12 @@ export function QuickLookModal({
                   fontWeight: 700,
                 }}
               >
-                {priceLabel(pack.priceCents)}
+                {owned ? 'Owned' : priceLabel(pack.priceCents)}
               </span>
-              {/* Plan-grant hint — the store's quiet upsell. Premium
-                  packs come with Atelier; signature with Legacy.
-                  (Grants enforced server-side in entitlements.ts.) */}
+              {/* Plan-grant hint — the store's quiet upsell, in the
+                  MARKETED vocabulary (M.1/M.4): premium packs come
+                  with the Pass; signature with the Keepsake. (Grants
+                  enforced server-side in entitlements.ts.) */}
               {!owned && pack.tier !== 'free' && (
                 <span
                   style={{
@@ -519,8 +520,8 @@ export function QuickLookModal({
                   }}
                 >
                   {pack.tier === 'premium'
-                    ? 'Included with the Atelier plan'
-                    : 'Included with the Legacy plan'}
+                    ? 'Included with the Pass'
+                    : 'Included with the Keepsake'}
                 </span>
               )}
             </span>

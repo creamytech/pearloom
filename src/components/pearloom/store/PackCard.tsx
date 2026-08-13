@@ -259,7 +259,10 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
               color: 'var(--ink, #0E0D0B)',
             }}
           >
-            {priceLabel(pack.priceCents)}
+            {/* An owned pack never wears a price — 47 plan-granted
+                packs showed "$16" beside "✓ Owned", a price no host
+                could ever pay (M.4/L84). */}
+            {owned ? '' : priceLabel(pack.priceCents)}
           </span>
           {owned ? (
             <button
