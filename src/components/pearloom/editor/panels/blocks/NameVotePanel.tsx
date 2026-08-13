@@ -12,14 +12,13 @@
    its live tally. Reordering is safe — ids travel with the label. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, FToggleStandalone, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
 import { RemoveButton, type BlockPanelProps } from './_shared';
 
 interface NameVoteData { question?: string; options?: string[]; reveal?: boolean }
 
 export function NameVotePanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'nameVote');
   const data: NameVoteData = manifest.nameVote ?? {};
   const options = Array.isArray(data.options) ? data.options : [];
 
@@ -76,8 +75,6 @@ export function NameVotePanel({ manifest, onChange }: BlockPanelProps) {
           def={data.reveal === true}
           onChange={(v) => patch({ reveal: v })}
         />
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Name vote" />
       </div>
     </SectionPanelShell>
   );

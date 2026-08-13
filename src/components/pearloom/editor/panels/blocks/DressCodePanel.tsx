@@ -9,7 +9,7 @@
    custom PlColorPicker well; examples are do/don't chips. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FSuggest, AddCard, SectionPanelShell, SectionVisibilityFooter, useSectionHidden, FInput } from '../_section-atoms';
+import { FGroup, FSuggest, AddCard, SectionPanelShell, FInput } from '../_section-atoms';
 import { dressCodeSuggestions } from '../_suggestions';
 import { PlColorPicker } from '../../../redesign/PlColorPicker';
 import { PhotoUploadSlot } from '../_photo-upload';
@@ -26,7 +26,6 @@ interface DressData { code?: string; note?: string; palette?: string[]; examples
 const NEW_TONE = '#C9BFA9';
 
 export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'dressCode');
   const loose = manifest as unknown as { dressCodeSection?: DressData };
   const data: DressData = loose.dressCodeSection ?? {};
   const palette = Array.isArray(data.palette) ? data.palette : [];
@@ -148,8 +147,6 @@ export function DressCodePanel({ manifest, onChange }: BlockPanelProps) {
             />
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Dress code" />
       </div>
     </SectionPanelShell>
   );

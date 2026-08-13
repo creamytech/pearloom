@@ -14,7 +14,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell } from './_section-atoms';
 import { moveItem, ReorderHandle, swapItems } from './_reorder';
 import { scheduleEventSuggestions, typicalTimeFor } from './_suggestions';
 import { DraftedBadge } from './_drafted-badge';
@@ -145,7 +145,6 @@ function mintEventId(existing: WeddingEvent[]): string {
 }
 
 export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'schedule');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const eventNameSet = scheduleEventSuggestions(occasion);
   /* Memoized — occasionCopyFor reads getter-backed packs, which
@@ -153,7 +152,6 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
      useMemo keeps the seed stable and the component compilable. */
   const defaultEvents = useMemo(() => defaultEventsFor(occasion), [occasion]);
   const events = manifest.events && manifest.events.length > 0 ? manifest.events : defaultEvents;
-  const [scheduleEyebrow, setScheduleEyebrow] = useCopyOverride(manifest, onChange, 'scheduleEyebrow');
 
   /* Multi-day mode flips on automatically when any event has
      day > 1. Toggling it on assigns every existing event to day 1
@@ -272,9 +270,8 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
               moment" card, and the Pear action in the group header.
               Multi-day grouping is the production superset; when the
               host turns it on (in "More" below) the same machinery
-              swaps the flat list for per-day sections. The eyebrow,
-              the multi-day toggle, and the visibility footer are all
-              production-only, tucked under "More". */}
+              swaps the flat list for per-day sections. The multi-day
+              toggle is production-only, tucked under "More". */}
         {!multiDay && showTemplates && (
           <TemplateStrip occasion={occasion} onPick={applyTemplate} />
         )}
@@ -392,13 +389,11 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, multi-day, visibility
+            <Icon name="chev-down" size={12} /> More, multi-day
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={scheduleEyebrow} onChange={setScheduleEyebrow} placeholder="The day" />
-            </FGroup>
-
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
             {/* Multi-day toggle */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -440,7 +435,6 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
         {/* Outside the More disclosure — the other seven section
             panels keep the hide-this-section affordance always
             visible; burying it here made Schedule the odd one out. */}
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Schedule" />
       </div>
     </SectionPanelShell>
   );

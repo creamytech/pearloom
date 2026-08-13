@@ -3,10 +3,11 @@
 /* Program section — the order of the ceremony.
 
    Data: manifest.memorial.program[]  — the SAME field the Memorial
-   tool (MemorialPanel "Order of service" group) edits. The field
+   launchpad doors into (ProgramPanel is the one panel home —
+   EDITOR-CALM-PLAN E.2). The field
    name is historical: it's the canonical order-of-service store
    for EVERY ceremonial occasion (memorial, bar/bat mitzvah,
-   quinceañera, baptism). ProgramPanel is a thin editor over it.
+   quinceañera, baptism).
      { id, name, detail? }
 
    Variants (layouts.ts):

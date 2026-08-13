@@ -3,8 +3,8 @@
 /* Activity vote section — let the group pick.
 
    Data: manifest.bachelor.votes[]  — the SAME field the Weekend
-   planner tool (BachelorPanel) edits. ActivityVotePanel is a thin
-   editor over it.
+   planner launchpad doors into. ActivityVotePanel is the one
+   panel home (EDITOR-CALM-PLAN E.2).
      { id, question, options: string[] }
 
    GUEST INTERACTIVITY (published only) — ported from the legacy

@@ -5,9 +5,9 @@
    EVENT_TYPES registry).
 
    Data: manifest.bachelor.groupChatUrl — the SAME field the
-   Weekend planner tool (BachelorPanel) writes; GroupChatPanel
-   (editor/panels/blocks/GroupChatPanel.tsx) is the thin editor
-   over it. A copy override (manifest.copy.groupChatNote) carries
+   Weekend planner launchpad doors into; GroupChatPanel
+   (editor/panels/blocks/GroupChatPanel.tsx) is the one panel
+   home (EDITOR-CALM-PLAN E.2). A copy override (manifest.copy.groupChatNote) carries
    the host's one-line invitation.
 
    LINK OUT, NEVER EMBED (livestream is the template for the

@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 import { FDate } from './_form-atoms';
 import { mealOptionSuggestions } from './_suggestions';
@@ -66,10 +66,8 @@ interface RsvpConfig {
 }
 
 export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; siteSlug?: string }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'rsvp');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const mealSet = mealOptionSuggestions(occasion);
-  const [rsvpEyebrow, setRsvpEyebrow] = useCopyOverride(manifest, onChange, 'rsvpEyebrow');
   const [rsvpCta, setRsvpCta] = useCopyOverride(manifest, onChange, 'rsvpCta');
   const loose = manifest as unknown as { rsvpDeadline?: string; rsvpConfig?: RsvpConfig };
   const replyBy = loose.rsvpDeadline ?? defaultReplyBy(manifest.logistics?.date);
@@ -105,8 +103,8 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* ── Zip RsvpEditor layout (section-fields.jsx L286-304):
               Reply by · Questions to ask · After they reply. The
-              production-only extras (eyebrow, button label, who-can-
-              reply, meal-option editor, show-who's-going) live tucked
+              production-only extras (button label, who-can-reply,
+              meal-option editor, show-who's-going) live tucked
               under "More" below so the default view is 1:1. */}
         <FGroup label="Reply by">
           <FDate value={replyBy} onChange={setReplyBy} placeholder="Pick a deadline" />
@@ -148,12 +146,11 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, button, meals, who can reply
+            <Icon name="chev-down" size={12} /> More, button, meals, who can reply
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={rsvpEyebrow} onChange={setRsvpEyebrow} placeholder="RSVP by April 28" />
-            </FGroup>
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
             <FGroup label="Button label" hint="Shown on the RSVP CTA.">
               <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
             </FGroup>
@@ -217,8 +214,6 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
             </FGroup>
           </div>
         </details>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="RSVP" />
       </div>
     </SectionPanelShell>
   );

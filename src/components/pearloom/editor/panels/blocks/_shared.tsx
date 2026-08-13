@@ -7,10 +7,11 @@
    renderSectionEditor dispatch — one per Event-OS canvas section
    (itinerary / costSplitter / activityVote / toastSignup /
    adviceWall / program / livestream / obituary / packingList /
-   honorList). Where the Memorial workspace or Weekend planner tool
-   already owns the data (manifest.memorial.* / manifest.bachelor.*),
-   the block panel is a THIN editor over the SAME field plus a
-   ToolPointerCard linking to the richer tool. */
+   honorList). Each block panel is THE one home for its section's
+   data (EDITOR-CALM-PLAN E.2) — the Memorial / Weekend-planner
+   tool panels are launchpads that door INTO these panels; the old
+   pointer-card apology (a card pointing back at the duplicate
+   workspace editor) is deleted with the duplication. */
 
 import type { ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
@@ -30,50 +31,16 @@ export function readOccasion(manifest: StoryManifest): string | undefined {
   return (manifest as unknown as { occasion?: string }).occasion;
 }
 
-/* Occasion lists mirror isToolPanelApplicable in
+/* Occasion list mirrors isToolPanelApplicable in
    redesign/EditorRedesign.tsx — duplicated here (instead of
    imported) so the shared editor/panels tree never pulls the
-   redesign shell into its module graph. */
+   redesign shell into its module graph. (isBachelorOccasion left
+   with the pointer-card apologies — EDITOR-CALM-PLAN E.2.) */
 export function isMemorialOccasion(occasion?: string): boolean {
   return occasion === 'memorial' || occasion === 'funeral';
 }
-export function isBachelorOccasion(occasion?: string): boolean {
-  return occasion === 'bachelor-party' || occasion === 'bachelorette-party'
-      || occasion === 'bridal-shower' || occasion === 'reunion'
-      || occasion === 'sip-and-see';
-}
 
-/** Soft card pointing the host at the tool panel that co-owns this
- *  section's data. Clicking fires pearloom:design-jump (the same
- *  event PublishChecklist uses) so the PropertyRail flips panels. */
-export function ToolPointerCard({ toolId, label, body }: { toolId: string; label: string; body: string }) {
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        if (typeof window === 'undefined') return;
-        window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: toolId } }));
-      }}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '10px 12px', borderRadius: 10,
-        background: 'var(--lavender-bg, var(--cream-2))',
-        border: '1px solid var(--line-soft)',
-        cursor: 'pointer', textAlign: 'left', width: '100%',
-        fontFamily: 'var(--font-ui)',
-      }}
-    >
-      <Icon name="arrow-ur" size={13} color="var(--lavender-ink, var(--ink-soft))" />
-      <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{label}</span>
-        <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)', marginTop: 1, lineHeight: 1.4 }}>{body}</span>
-      </span>
-    </button>
-  );
-}
-
-/** Textarea matching the panel input language (mirrors the inline
- *  textareas in MemorialPanel). */
+/** Textarea matching the panel input language. */
 export function FTextArea({
   value, onChange, placeholder, rows = 4,
 }: {

@@ -10,13 +10,11 @@
    of the gradient placeholders. */
 
 import type { StoryManifest } from '@/types';
-import { Icon } from '../../motifs';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { moveIndexKeyed, moveItem, ReorderHandle } from './_reorder';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'gallery');
   const photos: string[] = ((manifest as unknown as { galleryImages?: string[] }).galleryImages) ?? [];
   /* ONE guest-photos toggle (2026-07-02) — the panel used to carry
      two: "Guest photo uploads" (guestUploads — the QR poster's
@@ -26,7 +24,6 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
      reads OFF when a legacy manifest turned either off. */
   const looseUp = manifest as unknown as { guestUploads?: boolean; galleryUploads?: boolean };
   const guestUploads = (looseUp.guestUploads ?? true) && (looseUp.galleryUploads !== false);
-  const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
 
   /* Captions live in manifest.galleryCaptions — an index-keyed
      sidecar record (see the StoryManifest field doc for why index
@@ -116,10 +113,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* ── Zip GalleryEditor layout (section-fields.jsx L272-285):
               a "Photos · N" group (3-col thumbnail grid + dashed add
-              tile) followed by the "Guest photo uploads" toggle. The
-              eyebrow override, the second guest-photo invite, and the
-              visibility footer are production-only — tucked under
-              "More" below so the default view is 1:1 with the zip. */}
+              tile) followed by the "Guest photo uploads" toggle. */}
         {photos.length === 0 ? (
           /* Empty state — instead of 6 visually-broken empty slots,
              one big inviting drop zone. Same drag-drop / click
@@ -203,28 +197,9 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
           onChange={setGuestUploads}
         />
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, eyebrow
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
-            </FGroup>
-          </div>
-        </details>
-
-        {/* Outside the More disclosure — the other seven section
-            panels keep the hide-this-section affordance always
-            visible; burying it here made Gallery the odd one out. */}
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
+        {/* No "More" disclosure — its only field was the eyebrow
+            override, and the canvas inline-edit is the one home
+            (EDITOR-CALM-PLAN E.2). */}
       </div>
     </SectionPanelShell>
   );

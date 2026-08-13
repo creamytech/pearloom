@@ -16,9 +16,9 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { PearInlineRewrite } from '../../../redesign/PearAssist';
-import { FTextArea, isMemorialOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { FTextArea, mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface AdviceEntryRow { id: string; from?: string; body?: string }
 interface AdviceWallData { prompt?: string; entries?: AdviceEntryRow[] }
@@ -52,7 +52,6 @@ function ReorderButtons({ index, count, onMove }: { index: number; count: number
 }
 
 export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'adviceWall');
   const loose = manifest as unknown as { adviceWall?: AdviceWallData; memorial?: { tributePrompt?: string } };
   const data = loose.adviceWall ?? {};
   const entries = Array.isArray(data.entries) ? data.entries : [];
@@ -147,15 +146,6 @@ export function AdviceWallPanel({ manifest, onChange }: BlockPanelProps) {
           </span>
         </a>
 
-        {isMemorialOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="memorial"
-            label="Tribute wall lives in the Memorial workspace"
-            body="Guest tribute settings + the tribute prompt are managed there; this section displays them."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Advice wall" />
       </div>
     </SectionPanelShell>
   );

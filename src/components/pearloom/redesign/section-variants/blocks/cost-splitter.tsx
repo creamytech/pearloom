@@ -3,8 +3,8 @@
 /* Cost splitter section — who owes what, settled gently.
 
    Data: manifest.bachelor.costs[]  — the SAME field the Weekend
-   planner tool (BachelorPanel) edits. CostSplitterPanel is a thin
-   editor over it; neither duplicates the store.
+   planner launchpad doors into. CostSplitterPanel is the one
+   panel home (EDITOR-CALM-PLAN E.2); nothing duplicates the store.
      { id, label, amount, paidBy? }   (amount = free-form dollar
                                        string; paidBy = display name)
    Optional: manifest.bachelor.splitCount — how many people share the

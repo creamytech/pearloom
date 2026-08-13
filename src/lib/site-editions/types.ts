@@ -170,10 +170,11 @@ export interface EditionDefinition {
    *  resolver's recommendEdition() function picks from this list. */
   recommendedFor: SiteOccasion[];
 
-  /** Desktop nav layout this Edition recommends. NavPanel reads this
-   *  to badge the matching tile "★ Recommended" when the host hasn't
-   *  picked one explicitly. Maps to the StoryManifest['nav']['style']
-   *  union. */
+  /** Desktop nav layout this Edition recommends — badge the matching
+   *  tile "★ Recommended" when the host hasn't picked one explicitly.
+   *  (The menu picker's one home is the Design tab's Menu & footer
+   *  rung — EDITOR-CALM-PLAN E.2.) Maps to the
+   *  StoryManifest['nav']['style'] union. */
   recommendedNavStyle?:
     | 'classic'
     | 'centered'

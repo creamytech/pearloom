@@ -185,7 +185,7 @@ export function sectionOrderFor(manifest: StoryManifest): SectionOrder {
  *  sections, or tool panels — with the story row's occasion voice
  *  applied. Null for ids the rail doesn't list (nav / navMobile). */
 export function sectionDisplayLabel(id: string, occasion?: string): string | null {
-  const def = SECTION_LOOKUP.get(id) ?? TOOLS.find((t) => t.id === id);
+  const def = SECTION_LOOKUP.get(id) ?? TOOLS.find((t) => t.id === id) ?? DELISTED_TOOLS.find((t) => t.id === id);
   if (!def) return null;
   return resolveSectionDef(def, occasion).label;
 }
@@ -198,12 +198,23 @@ const TOOLS: SectionDef[] = [
   { id: 'guests',      label: 'Guests',           icon: 'user',       desc: 'Your guest list' },
   { id: 'savetheDate', label: 'Save the date',    icon: 'calendar',   desc: 'Pre-invite teaser' },
   { id: 'share',       label: 'Share',            icon: 'link',       desc: 'Link, QR, preview' },
-  { id: 'cohost',      label: 'Co-hosts',         icon: 'users',      desc: 'Invite a partner to edit' },
+  /* No 'cohost' row (EDITOR-CALM-PLAN E.2) — SharePanel covers
+     co-hosts; the ?jump=share deep link and the topbar's invite
+     button keep working (PropertyRail keeps the 'cohost' dispatch
+     case for deep-link compat — DELISTED_TOOLS below carries its
+     label). */
   { id: 'privacy',     label: 'Privacy',          icon: 'lock',       desc: 'Password / public' },
   { id: 'dayof',       label: 'Day-of',           icon: 'sparkles',   desc: 'Live broadcasts' },
   { id: 'toasts',      label: 'Toasts & speeches', icon: 'mic',       desc: 'Drafted with Pear' },
   { id: 'memorial',    label: 'Memorial',         icon: 'heart-icon', desc: 'Obituary + program' },
   { id: 'bachelor',    label: 'Weekend planner',  icon: 'sparkles',   desc: 'Costs + polls + rooms' },
+];
+
+/* Tool panels reachable ONLY by deep link / topbar / ⌘K — no rail
+   row, but sectionDisplayLabel still needs their names (the phone
+   props sheet titles itself with them). */
+const DELISTED_TOOLS: SectionDef[] = [
+  { id: 'cohost', label: 'Co-hosts', icon: 'users', desc: 'Invite a partner to edit' },
 ];
 
 interface Props {

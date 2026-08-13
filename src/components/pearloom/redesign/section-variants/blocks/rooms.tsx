@@ -3,8 +3,8 @@
 /* Rooms section — who sleeps where.
 
    Data: manifest.bachelor.rooms[] — the SAME field the Weekend
-   planner tool (BachelorPanel "Rooms" group) owns; RoomsPanel is a
-   thin editor over it. Each row:
+   planner launchpad doors into; RoomsPanel is the one panel home
+   (EDITOR-CALM-PLAN E.2). Each row:
      { id, name, guests }  — guests is a comma-separated string
    ("Jane, Maya"), split into chips here.
 

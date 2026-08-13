@@ -10,7 +10,7 @@
    (editor-only) until the host adds a real course. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
 import { PearInlineRewrite } from '../../../redesign/PearAssist';
 import { FTextArea, mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
@@ -22,7 +22,6 @@ interface MenuCourse { id: string; name: string; items: MenuDish[] }
 interface MenuData { intro?: string; courses?: MenuCourse[] }
 
 export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'menu');
   const loose = manifest as unknown as { menuSection?: MenuData };
   const data: MenuData = loose.menuSection ?? {};
   const courses = Array.isArray(data.courses) ? data.courses : [];
@@ -155,8 +154,6 @@ export function MenuPanel({ manifest, onChange }: BlockPanelProps) {
             />
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Menu" />
       </div>
     </SectionPanelShell>
   );

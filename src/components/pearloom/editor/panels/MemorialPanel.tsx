@@ -1,193 +1,100 @@
 'use client';
 
 /* eslint-disable no-restricted-syntax */
-/* MemorialPanel — memorial-specific authoring surface. Reuses the
-   "tool" slot in the editor rail (mounts as block='memorial'),
-   visible only when manifest.occasion is 'memorial' or 'funeral'.
+/* MemorialPanel — the memorial LAUNCHPAD. Mounts as the 'memorial'
+   tool in the editor rail, visible only when manifest.occasion is
+   'memorial' or 'funeral'.
 
-   Three groups:
-     - Obituary: long-form remembrance (dates + body)
-     - Service program: ordered list of ceremony moments
-     - Tribute wall: prompt for guest submissions + moderation
-
-   Writes:
-     manifest.memorial = {
-       obituary: { dates, body },
-       program: [{ order, name, detail }],
-       tributePrompt,
-       tributeWallOpen,
-     } */
+   EDITOR-CALM-PLAN E.2 (one home per decision): this panel no
+   longer edits anything. Its three editing groups (obituary, order
+   of service, tribute wall) duplicated the block panels that own
+   those sections' data — blocks/ObituaryPanel + ProgramPanel
+   (manifest.memorial.*) and blocks/TributeWallPanel
+   (manifest.tributeWall, with a legacy read-time fallback to
+   manifest.memorial.tributePrompt / tributeWallOpen). Sections own
+   their data; this workspace is a launchpad: a glance at each
+   area's state + one door per area that SELECTS the section in the
+   editor (the same pearloom:design-jump event the deleted
+   pointer-card apology used, in the other direction). */
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
-import { PearInlineRewrite } from '../../redesign/PearAssist';
-
-interface MemorialProgramRow {
-  id: string;
-  name: string;
-  detail?: string;
-}
+import { SectionPanelShell } from './_section-atoms';
 
 interface MemorialData {
-  obituary?: {
-    dates?: string;     // "1942 — 2026" or "Born March 12, 1942"
-    body?: string;
-  };
-  program?: MemorialProgramRow[];
+  obituary?: { dates?: string; body?: string };
+  program?: unknown[];
   tributePrompt?: string;
   tributeWallOpen?: boolean;
 }
 
-const DEFAULT_PROGRAM: MemorialProgramRow[] = [
-  { id: 'p-welcome',   name: 'Welcome',          detail: '' },
-  { id: 'p-reading',   name: 'Reading',          detail: '' },
-  { id: 'p-eulogy',    name: 'Eulogy',           detail: '' },
-  { id: 'p-music',     name: 'Musical tribute',  detail: '' },
-  { id: 'p-recessional', name: 'Recessional',    detail: '' },
-];
+/* One door row — selects the target section in the editor via the
+   same design-jump event PublishChecklist and the topbar use, so
+   the PropertyRail flips to that section's ONE panel home. */
+function SectionDoorRow({ sectionId, label, state }: { sectionId: string; label: string; state: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (typeof window === 'undefined') return;
+        window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: sectionId } }));
+      }}
+      className="lift"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '11px 13px', borderRadius: 11, width: '100%',
+        background: 'var(--card)', border: '1px solid var(--line)',
+        cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-ui)',
+      }}
+    >
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{label}</span>
+        <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-muted)', marginTop: 1, lineHeight: 1.4 }}>{state}</span>
+      </span>
+      <Icon name="arrow-right" size={13} color="var(--ink-soft)" />
+    </button>
+  );
+}
 
-export function MemorialPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const loose = manifest as unknown as { memorial?: MemorialData };
+export function MemorialPanel({ manifest }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const loose = manifest as unknown as {
+    memorial?: MemorialData;
+    tributeWall?: { composerOpen?: boolean };
+  };
   const data: MemorialData = loose.memorial ?? {};
-  const obituary = data.obituary ?? {};
-  const program = (data.program && data.program.length > 0) ? data.program : DEFAULT_PROGRAM;
-  const tributePrompt = data.tributePrompt ?? 'Share a memory, a story, or a moment that captures who they were.';
-  const tributeWallOpen = data.tributeWallOpen ?? true;
-
-  const patch = (next: Partial<MemorialData>) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    memorial: { ...data, ...next },
-  } as unknown as StoryManifest);
-
-  const patchObit = (next: Partial<typeof obituary>) => patch({ obituary: { ...obituary, ...next } });
-
-  const writeProgram = (next: MemorialProgramRow[]) => patch({ program: next });
-  const patchProgramRow = (i: number, p: Partial<MemorialProgramRow>) =>
-    writeProgram(program.map((row, idx) => idx === i ? { ...row, ...p } : row));
-  const removeProgramRow = (i: number) => writeProgram(program.filter((_, idx) => idx !== i));
-  const addProgramRow = () => writeProgram([
-    ...program,
-    { id: `p-${Date.now().toString(36)}`, name: 'New moment', detail: '' },
-  ]);
+  const obituaryWritten = !!(data.obituary?.body ?? '').trim();
+  const program = data.program ?? [];
+  /* Same fallback chain the canvas + TributeWallPanel read. */
+  const tributeOpen = loose.tributeWall?.composerOpen ?? data.tributeWallOpen ?? true;
 
   return (
     <SectionPanelShell>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Header explanation */}
         <div style={{ padding: 12, borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line-soft)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
             Memorial workspace
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-            The site’s default Story / Schedule sections are replaced for memorial occasions. Write the obituary, build the order of service, and invite tributes from guests.
+            The memorial at a glance. The obituary, the order of service, and the tribute wall are each edited in their own section — open one below.
           </div>
         </div>
 
-        {/* Obituary */}
-        <FGroup label="Obituary" hint="Dates and a short remembrance, what they leave behind.">
-          <FInput
-            value={obituary.dates ?? ''}
-            onChange={(v) => patchObit({ dates: v })}
-            placeholder="March 12, 1942, April 8, 2026"
-            icon="calendar"
-          />
-          <div style={{ height: 8 }} />
-          <textarea
-            value={obituary.body ?? ''}
-            onChange={(e) => patchObit({ body: e.target.value })}
-            rows={6}
-            placeholder="A short remembrance. Family details, what they loved, what they leave behind."
-            style={{
-              width: '100%', padding: 10, borderRadius: 10,
-              border: '1px solid var(--line)', background: 'var(--cream-2)',
-              fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--font-ui)',
-              outline: 'none', resize: 'vertical', lineHeight: 1.6,
-            }}
-          />
-          {(obituary.body ?? '').trim().length >= 30 && (
-            <div style={{ marginTop: 7 }}>
-              <PearInlineRewrite
-                fxSection="obituary"
-                value={obituary.body ?? ''}
-                onCommit={(v) => patchObit({ body: v })}
-                context="obituary remembrance"
-              />
-            </div>
-          )}
-        </FGroup>
-
-        {/* Service program */}
-        <FGroup label={`Order of service · ${program.length} moments`} hint="Drag in the order guests will experience the service.">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {program.map((row, i) => (
-              <div key={row.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
-                <span style={{
-                  width: 28, height: 28, borderRadius: 8,
-                  background: 'var(--lavender-bg)',
-                  color: 'var(--lavender-ink)',
-                  display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 4,
-                  fontSize: 11, fontWeight: 700,
-                  fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {i + 1}
-                </span>
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <FInput
-                    value={row.name}
-                    onChange={(v) => patchProgramRow(i, { name: v })}
-                    placeholder="Eulogy"
-                  />
-                  <FInput
-                    value={row.detail ?? ''}
-                    onChange={(v) => patchProgramRow(i, { detail: v })}
-                    placeholder="Delivered by their eldest grandchild"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeProgramRow(i)}
-                  aria-label={`Remove ${row.name}`}
-                  style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', marginTop: 8 }}
-                >
-                  <Icon name="close" size={12} />
-                </button>
-              </div>
-            ))}
-            <AddCard label="Add a moment" onClick={addProgramRow} />
-          </div>
-        </FGroup>
-
-        {/* Tribute wall */}
-        <FGroup label="Tribute wall" hint="A space for guests to submit stories and memories. You moderate before they appear.">
-          <FToggleStandalone
-            label="Accept tributes from guests"
-            sub={tributeWallOpen ? 'Submissions appear after you approve them' : 'Currently closed, no new tributes can be submitted'}
-            def={tributeWallOpen}
-            onChange={(v) => patch({ tributeWallOpen: v })}
-          />
-          {tributeWallOpen && (
-            <>
-              <div style={{ height: 8 }} />
-              <textarea
-                value={tributePrompt}
-                onChange={(e) => patch({ tributePrompt: e.target.value })}
-                rows={2}
-                placeholder="Share a memory, a story, or a moment that captures who they were."
-                style={{
-                  width: '100%', padding: 10, borderRadius: 10,
-                  border: '1px solid var(--line)', background: 'var(--cream-2)',
-                  fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui)',
-                  outline: 'none', resize: 'vertical', lineHeight: 1.5,
-                }}
-              />
-              <div style={{ marginTop: 8, fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="user" size={11} color="var(--ink-muted)" />
-                Moderate incoming tributes from the Guests panel.
-              </div>
-            </>
-          )}
-        </FGroup>
+        <SectionDoorRow
+          sectionId="obituary"
+          label="Obituary"
+          state={obituaryWritten ? 'Written · open to read or edit' : 'Not written yet'}
+        />
+        <SectionDoorRow
+          sectionId="program"
+          label="Order of service"
+          state={program.length > 0 ? `${program.length} moment${program.length === 1 ? '' : 's'}` : 'No moments yet'}
+        />
+        <SectionDoorRow
+          sectionId="tributeWall"
+          label="Tribute wall"
+          state={tributeOpen ? 'Open — guests can write, you approve' : 'Closed to new tributes'}
+        />
       </div>
     </SectionPanelShell>
   );

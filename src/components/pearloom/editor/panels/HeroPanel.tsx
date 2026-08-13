@@ -9,8 +9,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from './_section-atoms';
-import { heroLeadSuggestions, smartContext } from './_suggestions';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { DraftedBadge } from './_drafted-badge';
@@ -269,7 +268,6 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
       copy: next,
     } as unknown as StoryManifest);
   };
-  const heroLead = copy.heroLead ?? '';
   /* Milestone counter — surfaces above the names when set. Stored
      as { kind, value } so the renderer can format it differently
      per kind ("Turning 40" vs "10 years" vs "Class of 1995"). */
@@ -295,8 +293,9 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               thing a host looks for; the tagline supports them.
               (The zip's HeroEditor put Tagline first; deliberately
               diverged 2026-07-08.) The production-only extras
-              (eyebrow, milestone, CTAs) live tucked under "More"
-              below. */}
+              (milestone, CTAs) live tucked under "More" below; the
+              eyebrow line is edited on the canvas (EDITOR-CALM-PLAN
+              E.2). */}
         <FGroup label={v.hero.subjectGroupLabel} hint={v.hero.subjectHint}>
           {isSolo ? (
             <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
@@ -352,23 +351,11 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, milestone, buttons
+            <Icon name="chev-down" size={12} /> More, milestone, buttons
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
-            <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
-              {(() => {
-                const sug = heroLeadSuggestions(smartContext(manifest));
-                return (
-                  <FSuggest
-                    value={heroLead}
-                    onChange={(val) => setCopy('heroLead', val)}
-                    placeholder={v.hero.leadPlaceholder}
-                    options={sug.options}
-                    hint={sug.hint}
-                  />
-                );
-              })()}
-            </FGroup>
+            {/* No Lead/eyebrow field — the canvas inline-edit is the
+                one home for the eyebrow line (EDITOR-CALM-PLAN E.2). */}
             <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
             <FGroup label="Primary button" hint="The first CTA, pick where it goes, then optionally rename it.">
               <CtaLinkEditor

@@ -9,14 +9,13 @@
    its empty state. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
-import { isBachelorOccasion, mkId, readOccasion, RemoveButton, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { mkId, RemoveButton, type BlockPanelProps } from './_shared';
 
 interface RoomRow { id: string; name: string; guests: string }
 
 export function RoomsPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'rooms');
   const loose = manifest as unknown as { bachelor?: { rooms?: RoomRow[] } & Record<string, unknown> };
   const rooms = Array.isArray(loose.bachelor?.rooms) ? loose.bachelor.rooms : [];
 
@@ -58,15 +57,6 @@ export function RoomsPanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
-        {isBachelorOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="bachelor"
-            label="Also in the Weekend planner"
-            body="Costs, polls, and packing live there, same rooms, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Rooms" />
       </div>
     </SectionPanelShell>
   );

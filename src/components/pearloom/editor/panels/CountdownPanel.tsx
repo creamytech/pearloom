@@ -7,7 +7,7 @@
    panel only handles presentation. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
 
 /* CountdownPanel — Content tab fields only. The layout variant
    (cards / stripe / minimal / hero / ribbon / flip) is picked
@@ -21,7 +21,6 @@ interface CountdownData {
 }
 
 export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'countdown');
   const loose = manifest as unknown as { countdown?: CountdownData };
   const data: CountdownData = loose.countdown ?? {};
   const label = data.label ?? '';
@@ -78,7 +77,6 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
         {/* The "Also show under the hero" toggle is gone — it wrote
             countdown.showOnHero, which no renderer ever read. Restore
             only alongside a real hero-stripe implementation. */}
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Countdown" />
       </div>
     </SectionPanelShell>
   );

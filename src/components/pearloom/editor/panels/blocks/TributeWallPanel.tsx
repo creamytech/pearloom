@@ -17,14 +17,13 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from '../_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from '../_section-atoms';
 import { PearInlineRewrite } from '../../../redesign/PearAssist';
-import { FTextArea, isMemorialOccasion, readOccasion, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { FTextArea, isMemorialOccasion, readOccasion, type BlockPanelProps } from './_shared';
 
 interface TributeWallData { prompt?: string; composerOpen?: boolean }
 
 export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'tributeWall');
   const [title, setTitle] = useCopyOverride(manifest, onChange, 'tributeWallTitle');
   const loose = manifest as unknown as {
     tributeWall?: TributeWallData;
@@ -107,15 +106,6 @@ export function TributeWallPanel({ manifest, onChange }: BlockPanelProps) {
           </span>
         </a>
 
-        {solemn && (
-          <ToolPointerCard
-            toolId="memorial"
-            label="The Memorial workspace feeds this wall"
-            body="Its tribute prompt + open/closed setting apply here until you override them above."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Tribute wall" />
       </div>
     </SectionPanelShell>
   );

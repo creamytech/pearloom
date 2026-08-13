@@ -10,7 +10,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface SlotRow { id: string; time?: string; title?: string; detail?: string; location?: string }
@@ -52,7 +52,6 @@ function readDays(manifest: StoryManifest): DayRow[] {
 }
 
 export function ItineraryPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'itinerary');
   const days = readDays(manifest);
 
   const write = (next: DayRow[]) => onChange({
@@ -130,7 +129,6 @@ export function ItineraryPanel({ manifest, onChange }: BlockPanelProps) {
           label={days.length === 0 ? 'Add the first day' : 'Add a day'}
           onClick={() => write([...days, { id: mkId('day'), label: '', date: '', slots: [{ id: mkId('slot') }] }])}
         />
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Itinerary" />
       </div>
     </SectionPanelShell>
   );

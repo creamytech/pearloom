@@ -293,7 +293,50 @@ eslint / vitest / build / the editor e2e + a live walk).
   tab, the All-themes sheet, and /store render zero pay language;
   vitest 1852/1853 (the one failure is the pre-existing weekend
   baseline); tsc/eslint/build clean.
-- E.2 —
+- E.2 — **SHIPPED 2026-08-13** (one home per decision).
+  What landed: NavPanel/FooterPanel/GuestbookPanel deleted — the
+  nav/navMobile/footer dispatch cases render a door card
+  (DesignHomeDoorCard in PropertyRail: one line of orientation +
+  "Open Menu & footer", dispatched via the same
+  pearloom:open-theme-rail event the topbar uses, with a
+  best-effort scroll to #pl-dz-menu); 'guestbook' renders
+  `SharePanel focus="guestbook"` (the focus prop grew a
+  'guestbook' arm mirroring 'cohost'; the toggle group gained the
+  moderation door the deleted panel carried). The rail layout row
+  died (canvas Layout chip is the home); the options-popover Move
+  rows died (reorder ×4→×3: rail drag + Alt+↑/↓ + mobile arrows);
+  the 'cohost' rail row died (SharePanel covers it; the dispatch
+  case + a DELISTED_TOOLS label entry keep ?jump=share/topbar/⌘K
+  deep links whole). The 9 core-panel eyebrow fields died (canvas
+  inline-edit is the home; Travel + Gallery lost their now-empty
+  "More" disclosures entirely; heroLeadSuggestions retired with
+  its only consumer). The per-panel visibility footer died from
+  _section-atoms AND all 28 call sites (+ the panels' orphaned
+  useSectionHidden hooks; the rail's eye + popover are the home).
+  The Design tab's do-nothing Event-type chip died. Sections own
+  their data: BachelorPanel + MemorialPanel rewrote as launchpads
+  (glance state + SectionDoorRow doors firing design-jump into
+  costSplitter/activityVote/packingList/rooms/groupChat and
+  obituary/program/tributeWall); the pointer-card apology left
+  blocks/_shared with its 9 call sites (isBachelorOccasion retired
+  with it); DetailsPanel's dress-code field removed
+  (blocks/DressCodePanel is the home; the detailsCards row stays
+  editable as an ordinary good-to-know card). Net −921 LOC across
+  50 files. Validated: tsc clean · eslint clean on every touched
+  file · vitest src/components/pearloom 203/203 · build passes ·
+  grep zero references to the seven deleted homes. Independently
+  re-verified (separate context): tsc/eslint clean · FULL vitest
+  1852/1853 (the one failure is the pre-existing weekend
+  baseline) · the zero-reference greps again · an 11-assertion
+  live editor walk on the local stack (nav + footer render the
+  door card and the door opens the Design surface; guestbook is
+  SharePanel's focused group with the moderation door; ?jump=cohost
+  still works while the rail shows no Co-hosts row; the open hero
+  panel contains no Eyebrow field; the options popover has no Move
+  rows; the story panel has no visibility footer). One accepted
+  deviation from the block text: reorder is ×4→×3, not ×2 — the
+  mobile arrows stay because touch has no Alt+↑/↓ and rail drag is
+  hostile at 390px; the popover Move rows died as planned.
 - E.3 —
 - E.4 —
 - E.5 —

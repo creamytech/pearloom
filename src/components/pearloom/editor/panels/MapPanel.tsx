@@ -11,7 +11,7 @@
    (works without a billing-enabled API key). */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
 /* MapPanel — Content tab fields only. The layout variant
@@ -27,7 +27,6 @@ interface MapData {
 }
 
 export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'map');
   const loose = manifest as unknown as { mapBlock?: MapData };
   const data: MapData = loose.mapBlock ?? {};
   const height = data.height ?? 'short';
@@ -92,8 +91,6 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
           def={showDirections}
           onChange={(v) => patch({ showDirections: v })}
         />
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Map" />
       </div>
     </SectionPanelShell>
   );

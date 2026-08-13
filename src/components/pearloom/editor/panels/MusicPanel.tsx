@@ -6,7 +6,7 @@
    description }. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
 type MusicProvider = 'spotify' | 'apple' | 'youtube' | 'custom';
@@ -30,7 +30,6 @@ interface MusicData {
 }
 
 export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'music');
   const loose = manifest as unknown as { music?: MusicData };
   const data: MusicData = loose.music ?? {};
   const provider = data.provider ?? 'spotify';
@@ -160,8 +159,6 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
             )}
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Music" />
       </div>
     </SectionPanelShell>
   );

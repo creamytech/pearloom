@@ -10,7 +10,7 @@
    is a valid working state while the host hunts the old print. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
 import { PhotoUploadSlot, collectPhotoPool } from '../_photo-upload';
 import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
@@ -26,7 +26,6 @@ function SlotLabel({ children }: { children: string }) {
 }
 
 export function ThenAndNowPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'thenAndNow');
   const pairs: Pair[] = Array.isArray(manifest.thenAndNow) ? manifest.thenAndNow : [];
   const pool = collectPhotoPool(manifest);
 
@@ -95,8 +94,6 @@ export function ThenAndNowPanel({ manifest, onChange }: BlockPanelProps) {
             />
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Then & now" />
       </div>
     </SectionPanelShell>
   );

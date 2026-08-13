@@ -387,33 +387,9 @@ export function smartContext(manifest: unknown): SmartContext {
   };
 }
 
-/** Hero kicker / lead lines — the tiny editorial line above the
- *  names. Occasion-keyed with a couple of venue-aware entries. */
-export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
-  const occ = (ctx.occasion ?? '').toLowerCase();
-  const at = ctx.place || ctx.venue;
-  const base: string[] = [];
-  if (occ === 'memorial' || occ === 'funeral') {
-    base.push('In loving memory', 'A life well loved', 'Gathering to remember');
-  } else if (occ.includes('birthday') || occ === 'sweet-sixteen' || occ === 'quinceanera') {
-    base.push('Save the date', 'A milestone worth a party', `${ctx.firstName ? `${ctx.firstName}’s big day` : 'The big day'}`);
-  } else if (occ === 'baby-shower' || occ === 'gender-reveal' || occ === 'sip-and-see') {
-    base.push('Someone small is on the way', 'Save the date', 'A shower of love');
-  } else if (occ.includes('bachelor')) {
-    base.push('One last fling', 'The send-off weekend', 'Pack your bags');
-  } else if (occ === 'wedding' || occ === 'engagement' || occ === 'vow-renewal') {
-    base.push('Save the date', 'Together, at last', 'We’re getting married');
-  } else if (occ === 'anniversary') {
-    base.push('Save the date', 'Together, at last', 'Still, after all these years');
-  } else {
-    /* Catch-all for unmapped occasions (graduation, retirement,
-       reunion, housewarming, bar/bat mitzvah…) — couple lines like
-       'Together, at last' don't belong here. */
-    base.push('Save the date', 'A day to remember', 'A day worth gathering for');
-  }
-  if (at) base.push(`Meet us in ${at}`);
-  return { hint: 'The small line above the names, tap one or write your own.', options: base.slice(0, 5) };
-}
+/* No hero lead/eyebrow suggestion set anymore — the Opening panel's
+   eyebrow field died with the eyebrow cull (EDITOR-CALM-PLAN E.2);
+   the canvas inline-edit is the one home for that line. */
 
 /** Travel “getting there” intro lines, interpolated with the
  *  saved venue + place so the draft reads specific. */

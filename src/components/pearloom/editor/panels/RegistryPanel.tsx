@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
-import { AddCard, FGroup, FInput, FToggle, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FToggle, SectionPanelShell } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 import { moveItem, ReorderHandle } from './_reorder';
 import { PhotoUploadSlot } from './_photo-upload';
@@ -64,7 +64,6 @@ function presetIdForName(name: string): string {
 }
 
 export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; siteSlug?: string }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'registry');
   /* Voice pack — currently consumed only for future re-skins;
      mode picker above is the primary driver. */
   void useVoicePack(manifest);
@@ -110,7 +109,6 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
   const stores: StoreEntry[] = Array.isArray(storesRaw) && storesRaw.length > 0
     ? storesRaw.map((s): StoreEntry => typeof s === 'string' ? { name: s } : { name: s.name ?? '', url: s.url })
     : defaultStoresFor(occasion);
-  const [registryEyebrow, setRegistryEyebrow] = useCopyOverride(manifest, onChange, 'registryEyebrow');
 
   const setIntro = (v: string) => onChange(clearDraftedPath({
     ...(manifest as unknown as Record<string, unknown>),
@@ -143,8 +141,8 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* ── Zip RegistryEditor layout (section-fields.jsx L252-271):
               Intro line · Linked registries · N (store rows + AddCard).
-              The production-only extras (registry mode, eyebrow, and
-              the layout-driven progress controls) live tucked under
+              The production-only extras (registry mode and the
+              layout-driven progress controls) live tucked under
               "More" below so the default view is 1:1. */}
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
@@ -262,7 +260,7 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, registry kind, eyebrow
+            <Icon name="chev-down" size={12} /> More, registry kind
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
             <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
@@ -279,9 +277,8 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
                 icon="gift"
               />
             </FGroup>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder={modeCopy.section} />
-            </FGroup>
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
 
             {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
               /* Discoverability hint for the Fund layout. Hosts on
@@ -309,8 +306,6 @@ export function RegistryPanel({ manifest, onChange, siteSlug }: { manifest: Stor
             )}
           </div>
         </details>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
     </SectionPanelShell>
   );

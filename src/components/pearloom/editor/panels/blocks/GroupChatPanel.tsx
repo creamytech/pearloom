@@ -9,12 +9,11 @@
    override (manifest.copy.groupChatNote). */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from '../_section-atoms';
-import { isBachelorOccasion, readOccasion, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { FGroup, FInput, SectionPanelShell, useCopyOverride } from '../_section-atoms';
+import { type BlockPanelProps } from './_shared';
 import { chatPlatformFor } from '../../../redesign/section-variants/blocks/group-chat';
 
 export function GroupChatPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'groupChat');
   const loose = manifest as unknown as { bachelor?: { groupChatUrl?: string } & Record<string, unknown> };
   const url = loose.bachelor?.groupChatUrl ?? '';
   const [note, setNote] = useCopyOverride(manifest, onChange, 'groupChatNote');
@@ -55,15 +54,6 @@ export function GroupChatPanel({ manifest, onChange }: BlockPanelProps) {
           />
         </FGroup>
 
-        {isBachelorOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="bachelor"
-            label="Also in the Weekend planner"
-            body="Costs, polls, packing, and rooms live there, same group-chat link, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Group chat" />
       </div>
     </SectionPanelShell>
   );

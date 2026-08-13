@@ -13,8 +13,8 @@
    section-variants/blocks/packing-list.tsx) — the hint says so. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
-import { isBachelorOccasion, mkId, readOccasion, RemoveButton, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
+import { mkId, RemoveButton, type BlockPanelProps } from './_shared';
 
 interface PackingRow { id: string; item: string; category?: string }
 
@@ -36,7 +36,6 @@ function groupRows(packing: PackingRow[]): PanelGroup[] {
 }
 
 export function PackingListPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'packingList');
   const loose = manifest as unknown as { bachelor?: { packing?: PackingRow[] } & Record<string, unknown> };
   const packing = Array.isArray(loose.bachelor?.packing) ? loose.bachelor.packing : [];
 
@@ -115,15 +114,6 @@ export function PackingListPanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
-        {isBachelorOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="bachelor"
-            label="Also in the Weekend planner"
-            body="Costs, polls, and rooms live there, same packing list, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Packing list" />
       </div>
     </SectionPanelShell>
   );

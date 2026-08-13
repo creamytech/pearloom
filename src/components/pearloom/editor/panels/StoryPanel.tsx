@@ -18,7 +18,7 @@
 import { useMemo, useState } from 'react';
 import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, SectionPanelShell, useCopyOverride, useSectionHidden, SectionVisibilityFooter } from './_section-atoms';
+import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { PearAiChip, pearErrorMessage } from '../../redesign/PearAssist';
 import { DraftedBadge } from './_drafted-badge';
@@ -102,7 +102,6 @@ function deriveLocalChips(manifest: StoryManifest, existing: string[]): string[]
 }
 
 export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'story');
   /* Occasion-voiced labels + placeholders — 'Our story / How we
      met' is wedding copy; a memorial reads 'Their story', a
      bachelor weekend 'The plan'. Same packs the canvas reads. */
@@ -125,7 +124,6 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const [aiBusy, setAiBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [storyEyebrow, setStoryEyebrow] = useCopyOverride(manifest, onChange, 'storyEyebrow');
 
   /* Chapter photos — 3 slots that mirror the 3 chip slots. Each
      writes to manifest.chapters[i].images[0]. The canvas reads
@@ -344,7 +342,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* ── Zip StoryEditor layout (section-fields.jsx L188-207):
               Headline · Your story · Highlight chips. The
-              production-only extras (eyebrow, chapter cards) live
+              production-only extras (chapter cards) live
               tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Headline">
           <FInput value={headline} onChange={(next) => patch({ headline: next })} placeholder={`${oc.storyTitle} ${oc.storyItalic}`} />
@@ -555,12 +553,11 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, chapter cards
+            <Icon name="chev-down" size={12} /> More, chapter cards
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder={oc.storyEyebrow} />
-            </FGroup>
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
             <FGroup
               label="Chapter cards"
               hint="Each card on the canvas pulls its photo, headline, and body from one of these three slots. Empty fields fall back to the shared story above."
@@ -621,11 +618,9 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
           </div>
         </details>
 
-        <SectionVisibilityFooter
-          isHidden={isHidden}
-          setHidden={setHidden}
-          sectionLabel={v.story.sectionLabel}
-        />
+        {/* No visibility footer — the rail row's eye button + options
+            popover are the one home for hide/show (EDITOR-CALM-PLAN
+            E.2). */}
       </div>
     </SectionPanelShell>
   );

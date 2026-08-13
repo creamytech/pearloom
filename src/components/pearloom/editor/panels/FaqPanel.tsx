@@ -8,7 +8,7 @@
 import { useRef, useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell } from './_section-atoms';
 import { moveItem, ReorderHandle } from './_reorder';
 import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
@@ -28,12 +28,10 @@ function defaultFaqsFor(occasion?: string): FaqItem[] {
 }
 
 export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'faq');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const questionSet = faqQuestionSuggestions(occasion);
   const defaultFaqs = defaultFaqsFor(occasion);
   const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : defaultFaqs;
-  const [faqEyebrow, setFaqEyebrow] = useCopyOverride(manifest, onChange, 'faqEyebrow');
   const [openId, setOpenId] = useState<string | null>(null);
   /* Tracks per-row "Draft answer from Pear" busy state. Keyed by
      faq id so multiple rows can stage independently. */
@@ -155,9 +153,9 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
         {/* ── Zip FaqEditor layout (section-fields.jsx L305-323):
               Questions · N (drag + text + chevron rows, "Add a
               question", "Suggest from data" PearChip). The
-              production-only extras (eyebrow, quick-add common
-              questions, guest questions) live tucked under "More"
-              below so the default view is 1:1. */}
+              production-only extras (quick-add common questions,
+              guest questions) live tucked under "More" below so the
+              default view is 1:1. */}
         <FGroup label={`Questions · ${faqs.length}`} action={<PearChip>Suggest from data</PearChip>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* Bulk drafter — only worth surfacing when 2+ rows are
@@ -287,12 +285,11 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, quick-add, guest questions
+            <Icon name="chev-down" size={12} /> More, quick-add, guest questions
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
-            </FGroup>
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
             {remainingQuickAdds.length > 0 && (
               <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer, fill it in below.">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -328,8 +325,6 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             </FGroup>
           </div>
         </details>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="FAQ" />
       </div>
     </SectionPanelShell>
   );

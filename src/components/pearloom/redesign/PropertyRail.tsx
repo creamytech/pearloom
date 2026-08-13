@@ -20,15 +20,12 @@ import { ThemePickerBody } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
 import { DesignDoorDeck } from './DesignDoorDeck';
 import { SectionPanelShell } from '../editor/panels/_section-atoms';
-import { LAYOUTS, readVariant, recommendedVariantFor } from './layouts';
-import { VariantThumb } from './variant-thumb';
-import { getTheme } from '../site/themes';
 import { occasionCopyFor } from './occasion-copy';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
-   inside the rail. Mirrors the same hook in _section-atoms.tsx
-   so the canvas + rail + panel footer all agree on a single
-   source of truth. */
+   inside the rail. The rail's eye button + options popover are the
+   ONE hide/show home (EDITOR-CALM-PLAN E.2 — the per-panel
+   visibility footers and the _section-atoms hook are deleted). */
 function useSectionHidden(
   manifest: StoryManifest,
   onChange: (m: StoryManifest) => void,
@@ -117,9 +114,9 @@ import { CountdownPanel } from '../editor/panels/CountdownPanel';
 import { MapPanel } from '../editor/panels/MapPanel';
 import { MusicPanel } from '../editor/panels/MusicPanel';
 /* Event-OS block panels — one per occasion-gated canvas section.
-   Where the Memorial / Weekend-planner tools already own the data
-   (manifest.memorial.* / manifest.bachelor.*), these are thin
-   editors over the SAME fields. */
+   These are THE one home for their section's data (EDITOR-CALM-PLAN
+   E.2); the Memorial / Weekend-planner tool panels are launchpads
+   that door into them, never duplicate editors. */
 import { ItineraryPanel } from '../editor/panels/blocks/ItineraryPanel';
 import { CostSplitterPanel } from '../editor/panels/blocks/CostSplitterPanel';
 import { ActivityVotePanel } from '../editor/panels/blocks/ActivityVotePanel';
@@ -137,9 +134,6 @@ import { NameVotePanel } from '../editor/panels/blocks/NameVotePanel';
 import { RoomsPanel } from '../editor/panels/blocks/RoomsPanel';
 import { ThenAndNowPanel } from '../editor/panels/blocks/ThenAndNowPanel';
 import { GroupChatPanel } from '../editor/panels/blocks/GroupChatPanel';
-import { NavPanel } from '../editor/panels/NavPanel';
-import { FooterPanel } from '../editor/panels/FooterPanel';
-import { GuestbookPanel } from '../editor/panels/GuestbookPanel';
 import { voiceProfileFrom } from '@/lib/pear/editor-voice';
 
 /* Live header sub-lines — the prototype shipped hardcoded counts
@@ -337,8 +331,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
   }, [optionsOpen]);
 
   /* Section reorder helpers — operate on manifest.blockOrder which
-     the editor + canvas both read. The options popover surfaces
-     "Move up" / "Move down" using these. */
+     the editor + canvas both read. Driven by Alt+↑/↓ below (the
+     options-popover Move rows were removed — EDITOR-CALM-PLAN E.2
+     reorder ×4→×3: rail drag, Alt+↑/↓, and the mobile arrows are
+     the homes). */
   function moveSection(direction: -1 | 1) {
     if (active == null) return;
     const loose = manifest as unknown as Record<string, unknown>;
@@ -559,19 +555,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
                   flexDirection: 'column',
                 }}
               >
-                <OptionRow
-                  icon="arrow-up"
-                  label="Move up"
-                  onClick={() => moveSection(-1)}
-                  disabled={!canHide}
-                />
-                <OptionRow
-                  icon="arrow-down"
-                  label="Move down"
-                  onClick={() => moveSection(+1)}
-                  disabled={!canHide}
-                />
-                <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+                {/* No "Move up / Move down" rows — deliberately
+                    (EDITOR-CALM-PLAN E.2, reorder ×4→×3): rail drag,
+                    Alt+↑/↓, and the mobile arrows are the reorder
+                    homes; a fourth copy in this popover was noise. */}
                 {/* No "Duplicate section" row — deliberately. Every
                     redesign section reads ONE manifest store
                     (chapters / events / faqs / galleryImages /
@@ -735,14 +722,9 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           </button>
         )}
 
-        {/* Layout in BOTH places (LAY.1): the canvas chip stays the
-            first touch; this row is the rail's copy so a host who
-            lives in the panel never hunts for where layouts moved.
-            Skipped for nav/footer — their panels ARE the picker. */}
-        {effectiveTab === 'content' && active && !isToolPanel && active !== 'nav' && active !== 'navMobile' && active !== 'footer' && (
-          <RailLayoutRow active={active} manifest={manifest} onChange={onChange} />
-        )}
-
+        {/* No rail layout row — the canvas Layout chip (ThemedSite)
+            is the ONE home for a section's layout (EDITOR-CALM-PLAN
+            E.2; the old rail layout-row duplicate is deleted). */}
         {effectiveTab === 'content' && active && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
         {/* Pear can populate this — rich AI suggestion cards (the v2
@@ -916,83 +898,52 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
   }
 }
 
-/* ─── RailLayoutRow — LAY.1: the section's layout chooser in the
-   rail, same schematics + gold pearl as the canvas chip. A quiet
-   disclosure row, not a floating popover — the rail scrolls. */
-function RailLayoutRow({
-  active, manifest, onChange,
-}: {
-  active: Exclude<SectionId, null>;
-  manifest: StoryManifest;
-  onChange: (m: StoryManifest) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const variants = LAYOUTS[active];
-  if (!Array.isArray(variants) || variants.length < 2) return null;
-  const current = readVariant(manifest, active);
-  const rec = recommendedVariantFor(active, (manifest as unknown as { occasion?: string }).occasion);
-  const pick = (vid: string) => {
-    onChange({
-      ...(manifest as unknown as Record<string, unknown>),
-      layouts: {
-        ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
-        [active]: vid,
-      },
-    } as unknown as StoryManifest);
+/* ─── DesignHomeDoorCard — EDITOR-CALM-PLAN E.2 (one home per
+   decision). The menu + footer design decisions live in ONE panel
+   home: the Design tab's "Menu & footer" rung (ThemePickerBody's
+   NavPick / FooterPick). The deleted Menu / Footer rail panels used
+   to re-render the same pickers here as a second rail home. Pressing
+   the menu or footer on the canvas now lands on this calm door: one
+   line of orientation + one button that opens the home via the SAME
+   pearloom:open-theme-rail event the topbar's Design button
+   dispatches. The event carries no target, so after the Design tab
+   paints we make a best-effort scroll to the rung's #pl-dz-menu
+   anchor (misses harmlessly on the phone door deck). */
+function DesignHomeDoorCard({ section }: { section: 'nav' | 'navMobile' | 'footer' }) {
+  const isFooter = section === 'footer';
+  const openHome = () => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
+    window.setTimeout(() => {
+      const el = document.getElementById('pl-dz-menu');
+      if (!el) return;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }, 80);
   };
   return (
-    <div style={{ margin: '0 14px', border: '1px solid var(--line-soft)', borderRadius: 10, background: 'var(--cream-2)' }}>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="pl-hit44"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-          padding: '9px 12px', border: 'none', background: 'transparent',
-          cursor: 'pointer', textAlign: 'left',
-        }}
-      >
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
-          Layout
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
-          {variants.find((v) => v.id === current)?.label ?? 'Default'}
-        </span>
-        <Icon name={open ? 'arrow-up' : 'arrow-down'} size={11} color="var(--ink-muted)" />
-        <span style={{ marginLeft: 'auto', fontSize: 10.5, color: 'var(--ink-muted)' }}>
-          {variants.length} styles
-        </span>
-      </button>
-      {open && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, padding: '0 8px 8px' }}>
-          {variants.map((v) => {
-            const on = v.id === current;
-            const isRec = v.id === rec;
-            return (
-              <button
-                key={v.id}
-                type="button"
-                title={isRec ? `${v.label} · Recommended for this occasion` : (v.sub ? `${v.label}, ${v.sub}` : v.label)}
-                onClick={() => pick(v.id)}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                  padding: '8px 4px 6px', borderRadius: 9, cursor: 'pointer',
-                  border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid transparent',
-                  background: on ? 'var(--sage-tint)' : 'transparent',
-                }}
-              >
-                <VariantThumb section={active} variant={v.id} size="chip" />
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, lineHeight: 1.15, color: 'var(--ink-soft)', textAlign: 'center' }}>
-                  {v.label}
-                  {isRec && <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)', flexShrink: 0 }} />}
-                </span>
-              </button>
-            );
-          })}
+    <SectionPanelShell>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: 14, borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--ink)', marginBottom: 4 }}>
+            {isFooter ? 'The footer is part of your site’s look' : 'The menu is part of your site’s look'}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+            {isFooter
+              ? 'Its style lives in the Design tab, under Menu & footer. It carries your names, date, and place from the Opening section.'
+              : 'Its style lives in the Design tab, under Menu & footer. Its name comes from your names in the Opening section, and its links follow the sections on your site.'}
+          </div>
         </div>
-      )}
-    </div>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          style={{ justifyContent: 'center' }}
+          onClick={openHome}
+        >
+          Open Menu &amp; footer <Icon name="arrow-right" size={12} />
+        </button>
+      </div>
+    </SectionPanelShell>
   );
 }
 
@@ -1046,12 +997,17 @@ function renderSectionEditor(
     case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;
     case 'memorial':    return <MemorialPanel {...props} />;
     case 'bachelor':    return <BachelorPanel {...props} />;
-    /* Chrome sections — pressing the menu or the footer gets their
-       options (SEL.1/SEL.2); navMobile rides inside NavPanel. */
+    /* Chrome sections — the menu & footer design has ONE home, the
+       Design tab's "Menu & footer" rung (EDITOR-CALM-PLAN E.2:
+       the Menu + Footer rail panels deleted; the canvas chip stays).
+       Pressing them on the canvas opens a door to that home. */
     case 'nav':
-    case 'navMobile':   return <NavPanel {...props} />;
-    case 'footer':      return <FooterPanel {...props} />;
-    case 'guestbook':   return <GuestbookPanel {...props} />;
+    case 'navMobile':
+    case 'footer':      return <DesignHomeDoorCard section={active} />;
+    /* Guestbook — SharePanel owns the toggle (EDITOR-CALM-PLAN E.2:
+       its panel duplicate deleted); focus="guestbook" renders just that
+       group. */
+    case 'guestbook':   return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} focus="guestbook" /> : null;
     /* Safety net (SEL.3): a selected thing must never meet silence.
        If a new section lands without a panel, say so out loud
        instead of rendering a bare header over nothing. */

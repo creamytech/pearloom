@@ -18,9 +18,9 @@
 
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { FSelect } from '../_form-atoms';
-import { isBachelorOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface CostRow { id: string; label: string; amount: string; paidBy?: string }
 
@@ -60,7 +60,6 @@ function WhoPaidField({ value, payers, onChange }: { value: string; payers: stri
 }
 
 export function CostSplitterPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'costSplitter');
   const loose = manifest as unknown as { bachelor?: { costs?: CostRow[]; splitCount?: string | number } & Record<string, unknown> };
   const costs = Array.isArray(loose.bachelor?.costs) ? loose.bachelor.costs : [];
   const splitCount = String(loose.bachelor?.splitCount ?? '');
@@ -130,15 +129,6 @@ export function CostSplitterPanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
-        {isBachelorOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="bachelor"
-            label="Also in the Weekend planner"
-            body="Polls, packing, rooms, and the group chat link live there, same costs, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Cost splitter" />
       </div>
     </SectionPanelShell>
   );

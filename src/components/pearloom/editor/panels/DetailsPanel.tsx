@@ -3,19 +3,16 @@
 /* eslint-disable no-restricted-syntax */
 /* LITERAL PORT of ClaudeDesign/pages/section-fields.jsx DetailsEditor.
    Writes the canonical manifest.detailsCards array that ThemedSite
-   reads (each entry is [label, value]). The dressCode toggle now
-   writes to detailsCards[0] so the Dress Code card on the canvas
-   actually updates. */
+   reads (each entry is [label, value]). The dedicated Dress-code
+   field is gone (EDITOR-CALM-PLAN E.2) — blocks/DressCodePanel is
+   the ONE home for dress code; a dress-code detailsCards row stays
+   editable like any other good-to-know card. */
 
 import type { StoryManifest } from '@/types';
 import { occasionCopyFor } from '../../redesign/occasion-copy';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
-import {
-  dressCodeSuggestions,
-  detailsCardLabelSuggestions,
-} from './_suggestions';
-import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import { detailsCardLabelSuggestions } from './_suggestions';
 import { DraftedBadge } from './_drafted-badge';
 import { clearDraftedPath } from '@/lib/first-pressing/clear-on-edit';
 import { detailsIconFor } from '../../redesign/details-icons';
@@ -31,11 +28,8 @@ type Card = [string, string, string?];
 const MAX_CARDS = 6;
 
 export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'details');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
-  const dressSet = dressCodeSuggestions(occasion);
   const labelSet = detailsCardLabelSuggestions(occasion);
-  const [detailsEyebrow, setDetailsEyebrow] = useCopyOverride(manifest, onChange, 'detailsEyebrow');
   /* Slice to MAX_CARDS on read so legacy manifests that accumulated
      extra rows don't bleed into the rail. The canvas slices to the
      same max — both sides agree. */
@@ -107,57 +101,12 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* ── Zip DetailsEditor layout (section-fields.jsx L231-251):
-              Dress code · Kids-welcome toggle · second welcome toggle
-              · Good-to-know cards. The production-only extras
-              (eyebrow, contact-a-host) live tucked under "More"
-              below so the default view is 1:1. */}
-        <FGroup label="Dress code">
-          <FSuggest
-            value={cards[0]?.[1] ?? ''}
-            onChange={(v) => setCardValue(0, v)}
-            icon="sparkles"
-            placeholder="Aegean formal, linen & light colors"
-            options={dressSet.options}
-            hint={dressSet.hint}
-          />
-          {/* One-tap presets — FSuggest only shows its chip row while
-              the field is EMPTY, but the default card ships with a
-              value, so most hosts never see the suggestions. Surface
-              the top 4 as preset pills (same write path as typing);
-              styling matches the RSVP panel's meal-option quick-adds. */}
-          {(cards[0]?.[1] ?? '').trim().length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 7 }}>
-              {dressSet.options
-                .filter((o) => o.trim().toLowerCase() !== (cards[0]?.[1] ?? '').trim().toLowerCase())
-                .slice(0, 4)
-                .map((o) => (
-                  <button
-                    key={o}
-                    type="button"
-                    onClick={() => setCardValue(0, o)}
-                    style={{
-                      fontSize: 11.5, fontWeight: 600,
-                      padding: '4px 9px', borderRadius: 999,
-                      background: 'var(--cream-2)', color: 'var(--ink-soft)',
-                      border: '1px solid var(--line)', cursor: 'pointer',
-                    }}
-                  >
-                    {o}
-                  </button>
-                ))}
-            </div>
-          )}
-          {(cards[0]?.[1] ?? '').trim().length >= 2 && (
-            <div style={{ marginTop: 7 }}>
-              <PearInlineRewrite
-                fxSection="details"
-                value={cards[0]?.[1] ?? ''}
-                onCommit={(v) => setCardValue(0, v)}
-                context="details card value, dress code"
-              />
-            </div>
-          )}
-        </FGroup>
+              Kids-welcome toggle · second welcome toggle ·
+              Good-to-know cards. The dedicated Dress-code field was
+              removed (EDITOR-CALM-PLAN E.2 — blocks/DressCodePanel
+              is the one home; sites without the section add it via
+              the Add-section picker). Contact-a-host lives tucked
+              under "More" below. */}
         <FToggleStandalone
           label="Kids welcome"
           sub={kidsWelcome ? 'Family-friendly, bring the little ones.' : 'No kids, grown-ups only.'}
@@ -181,19 +130,12 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                   <Icon name={detailsIconFor(l, i)} size={13} color="var(--ink-soft)" />
                 </span>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {/* Show curated label suggestions only on cards 2+
-                      (i >= 1) — card 0 is the dedicated "Dress code" card
-                      whose label shouldn't be re-pickable. */}
-                  {i === 0 ? (
-                    <FInput value={l} onChange={(next) => setCardLabel(i, next)} placeholder="Label (e.g. Parking)" />
-                  ) : (
-                    <FSuggest
-                      value={l}
-                      onChange={(next) => setCardLabel(i, next)}
-                      placeholder="Label (e.g. Parking)"
-                      options={labelSet.options}
-                    />
-                  )}
+                  <FSuggest
+                    value={l}
+                    onChange={(next) => setCardLabel(i, next)}
+                    placeholder="Label (e.g. Parking)"
+                    options={labelSet.options}
+                  />
                   <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
                   <FInput value={s ?? ''} onChange={(next) => setCardSub(i, next)} placeholder="Second line (optional, e.g. Enter from Vine St)" />
                   <DraftedBadge
@@ -230,12 +172,11 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
               textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <Icon name="chev-down" size={12} /> More, eyebrow, contact a host
+            <Icon name="chev-down" size={12} /> More, contact a host
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={detailsEyebrow} onChange={setDetailsEyebrow} placeholder="The fine print" />
-            </FGroup>
+            {/* No Eyebrow field — the canvas inline-edit is the one
+                home (EDITOR-CALM-PLAN E.2). */}
             <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details, guests tap it and their Messages opens with your number.">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <FInput
@@ -259,8 +200,6 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             </FGroup>
           </div>
         </details>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Details" />
       </div>
     </SectionPanelShell>
   );

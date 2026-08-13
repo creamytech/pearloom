@@ -3,8 +3,8 @@
 /* Packing list section — what to bring.
 
    Data: manifest.bachelor.packing[]  — the SAME field the Weekend
-   planner tool (BachelorPanel) edits. PackingListPanel is a thin
-   editor over it.
+   planner launchpad doors into. PackingListPanel is the one
+   panel home (EDITOR-CALM-PLAN E.2).
      { id, item, category? }   (category groups; blank → "Essentials")
 
    Per-guest check-offs are PORTED from the legacy PackingListBlock

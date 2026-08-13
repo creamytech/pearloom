@@ -14,14 +14,13 @@
    here). */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { PearInlineRewrite } from '../../../redesign/PearAssist';
-import { FTextArea, isMemorialOccasion, readOccasion, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { FTextArea, type BlockPanelProps } from './_shared';
 
 interface ObituaryData { dates?: string; body?: string }
 
 export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'obituary');
   const loose = manifest as unknown as { memorial?: { obituary?: ObituaryData } & Record<string, unknown> };
   const obituary = loose.memorial?.obituary ?? {};
 
@@ -71,15 +70,6 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
           )}
         </FGroup>
 
-        {isMemorialOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="memorial"
-            label="Also in the Memorial workspace"
-            body="Order of service + tribute wall live there, same obituary, one store. Pear can help rewrite the remembrance there."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Obituary" />
       </div>
     </SectionPanelShell>
   );

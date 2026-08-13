@@ -14,7 +14,7 @@
    two-column grouping. */
 
 import type { StoryManifest, WeddingPartyMember } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { FSelect } from '../_form-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
 import { PhotoUploadSlot, collectPhotoPool } from '../_photo-upload';
@@ -108,7 +108,6 @@ function RoleSelect({ value, onChange, options }: {
 }
 
 export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'honorList');
   const copy = copyFor(readOccasion(manifest));
   const members: WeddingPartyMember[] = Array.isArray(manifest.weddingParty)
     ? [...manifest.weddingParty].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -187,8 +186,6 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
             />
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Honor list" />
       </div>
     </SectionPanelShell>
   );

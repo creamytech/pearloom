@@ -22,10 +22,7 @@ import {
   FSuggest,
   FToggleStandalone,
   SectionPanelShell,
-  SectionVisibilityFooter,
   Stars,
-  useCopyOverride,
-  useSectionHidden,
 } from './_section-atoms';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { moveItem, ReorderHandle } from './_reorder';
@@ -122,10 +119,8 @@ function hotelKey(h: HotelBlock, fallbackIndex: number): string {
 }
 
 export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'travel');
   const hotels: HotelBlock[] = manifest.travelInfo?.hotels ?? [];
   const directions = manifest.travelInfo?.directions ?? '';
-  const [travelEyebrow, setTravelEyebrow] = useCopyOverride(manifest, onChange, 'travelEyebrow');
   const venueAddress = manifest.logistics?.venue ?? '';
 
   const [q, setQ] = useState('');
@@ -293,9 +288,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
         {/* ── Zip VenueSearch layout (section-fields.jsx L76-160):
               map-style search · Your hotel block · N · Getting there.
               Production keeps the REAL Google Places search in the
-              search slot (never the faux map). The production-only
-              eyebrow override lives tucked under "More" below so the
-              default order is 1:1. */}
+              search slot (never the faux map). */}
         {/* Real Places search */}
         <FGroup label="Find hotels & venues">
           {showHotelFinder && (
@@ -521,25 +514,9 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
           <ShuttleToggle manifest={manifest} onChange={onChange} />
         </FGroup>
 
-        <details className="pl-panel-more">
-          <summary
-            style={{
-              cursor: 'pointer', listStyle: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', color: 'var(--ink-muted)',
-            }}
-          >
-            <Icon name="chev-down" size={12} /> More, eyebrow
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-              <FInput value={travelEyebrow} onChange={setTravelEyebrow} placeholder="Getting there" />
-            </FGroup>
-          </div>
-        </details>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Travel" />
+        {/* No "More" disclosure — its only field was the eyebrow
+            override, and the canvas inline-edit is the one home
+            (EDITOR-CALM-PLAN E.2). */}
       </div>
     </SectionPanelShell>
   );

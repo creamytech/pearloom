@@ -14,6 +14,7 @@
      - Co-host invite (unchanged from before). */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useSoftRouter } from '@/components/shell/soft-navigation';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
@@ -50,9 +51,12 @@ export function SharePanel({
   manifest: StoryManifest;
   siteSlug: string;
   /** 'cohost' renders ONLY the co-host manager (its own rail tool);
+   *  'guestbook' renders ONLY the guestbook group — the dispatch
+   *  target for the canvas guestbook section (EDITOR-CALM-PLAN E.2:
+   *  this panel is the toggle's one home; its panel duplicate died);
    *  undefined renders the share workspace WITHOUT co-host (it lives
    *  in its own tool now). */
-  focus?: 'cohost';
+  focus?: 'cohost' | 'guestbook';
 }) {
   const occasion = ((manifest as unknown as { occasion?: SiteOccasion }).occasion);
   /* buildSiteUrl's 3rd param is ORIGIN, occasion is 4th — passing
@@ -233,7 +237,7 @@ export function SharePanel({
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {focus !== 'cohost' && (<>
+        {!focus && (<>
         {/* Share card preview — inline mock that always renders.
             Replaces the broken /api/og <img> from the previous
             version. Looks like the real link unfurl in iMessage /
@@ -461,10 +465,16 @@ export function SharePanel({
             {downloading ? 'Exporting…' : 'Download as PNG'}
           </button>
         </FGroup>
+        </>)}
 
         {/* Guestbook — opt-in section on the published site where
             guests leave a wish. Writes manifest.features.guestbook;
-            the renderer mounts GuestbookSection before the footer. */}
+            the renderer mounts GuestbookSection before the footer.
+            THE one home for the toggle (EDITOR-CALM-PLAN E.2 — the
+            duplicate guestbook panel is deleted); pressing the
+            guestbook on the canvas lands here via focus="guestbook",
+            which renders just this group. */}
+        {focus !== 'cohost' && (
         <FGroup label="Guestbook" hint="Add a guestbook to your site, guests leave a wish, everyone reads the wall. You'll get a notification each time someone signs.">
           <FToggleStandalone
             label="Show a guestbook on the site"
@@ -477,8 +487,17 @@ export function SharePanel({
               } as unknown as StoryManifest);
             }}
           />
+          <Link
+            href="/dashboard/submissions"
+            className="btn btn-outline btn-sm"
+            style={{ justifyContent: 'center', textDecoration: 'none', marginTop: 8 }}
+          >
+            <Icon name="eye" size={12} /> Review what guests wrote
+          </Link>
         </FGroup>
+        )}
 
+        {!focus && (<>
         {/* Languages — offer the whole site in another language. Pear
             translates the story + details; guests pick their language
             from a switcher on the published site. */}

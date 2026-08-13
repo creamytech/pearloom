@@ -15,7 +15,7 @@
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { Icon } from '../../../motifs';
-import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { FTextArea, readOccasion, type BlockPanelProps } from './_shared';
 
 interface LivestreamData { url?: string; startsAt?: string; note?: string; buttonLabel?: string }
@@ -31,7 +31,6 @@ function notePlaceholderFor(occasion?: string): string {
 }
 
 export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'livestream');
   const notePlaceholder = notePlaceholderFor(readOccasion(manifest));
   const loose = manifest as unknown as { livestream?: LivestreamData };
   const data = loose.livestream ?? {};
@@ -104,8 +103,6 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
             placeholder="Join the livestream"
           />
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Livestream" />
       </div>
     </SectionPanelShell>
   );

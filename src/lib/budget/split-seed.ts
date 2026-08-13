@@ -2,8 +2,9 @@
 // Pearloom / lib/budget/split-seed.ts — back-compat seeding
 // (GRAND-PLAN Phase 1).
 //
-// The Weekend planner (BachelorPanel) has long stored a back-of-
-// napkin cost list at manifest.bachelor.costs[] — a flat list of
+// The Weekend planner has long stored a back-of-napkin cost list
+// at manifest.bachelor.costs[] (CostSplitterPanel is its one panel
+// home since EDITOR-CALM-PLAN E.2) — a flat list of
 // { label, amount (a free-form dollar STRING), paidBy (a display
 // name) }. When a host first opens the real split ledger, we offer
 // to seed it from that list.
@@ -19,7 +20,7 @@
 
 import type { SplitMode } from '@/lib/budget/split';
 
-/** The legacy row shape (BachelorPanel / CostSplitterSection). */
+/** The legacy row shape (manifest.bachelor.costs / CostSplitterSection). */
 interface LegacyCost {
   id?: string;
   label?: string;

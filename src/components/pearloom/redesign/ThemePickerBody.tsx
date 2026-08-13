@@ -32,7 +32,6 @@ import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
 import { WALLPAPERS } from '@/lib/site-look/wallpapers';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
-import { COMMAND_PALETTE_OPEN_EVENT } from '../editor/CommandPalette';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
@@ -188,7 +187,9 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <JumpChips />
-      <EventTypeChip manifest={manifest} onChange={onChange} />
+      {/* No Event-type chip here (EDITOR-CALM-PLAN E.2) — it was a
+          button whose onChange was voided; it only opened ⌘K. The
+          occasion is a wizard decision, not a Design-tab control. */}
       {/* "Let Pear pick" — both hands-off entries side by side:
           describe the look in words, or hand her a photo. */}
       <GenerateCard manifest={manifest} onChange={onChange} />
@@ -336,44 +337,6 @@ function JumpChips() {
           {label}
         </button>
       ))}
-    </div>
-  );
-}
-
-/* ─── Event-type chip — prototype L1078-1090 condensed. ─────────── */
-
-function EventTypeChip({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  void onChange;
-  const occasion = ((manifest as unknown as { occasion?: string }).occasion) ?? 'wedding';
-  const label = occasion.charAt(0).toUpperCase() + occasion.slice(1);
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 7 }}>
-        Event type
-      </div>
-      <button
-        type="button"
-        className="lift"
-        onClick={() => {
-          if (typeof window === 'undefined') return;
-          window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
-        }}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-          padding: '11px 13px', borderRadius: 11,
-          background: 'var(--cream-2)', border: '1px solid var(--line)',
-          cursor: 'pointer', textAlign: 'left',
-        }}
-      >
-        <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--card)', border: '1px solid var(--line-soft)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <Icon name="heart-icon" size={15} color="var(--ink-soft)" />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{label}</div>
-          <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>Weddings &amp; love</div>
-        </div>
-        <Icon name="chev-down" size={14} color="var(--ink-muted)" />
-      </button>
     </div>
   );
 }
@@ -1130,9 +1093,10 @@ function LivingBackgroundPick({ manifest, onChange }: { manifest: StoryManifest;
 }
 
 /* ─── FooterPick — the v2 site-renderer Footer treatment
-   (signature / columns / minimal). SEL.2: writes
-   manifest.layouts.footer (the canvas chip + FooterPanel's field);
-   readVariant honors legacy manifest.footerVariant rows. ────────── */
+   (signature / columns / minimal). THE one home for the footer
+   style (EDITOR-CALM-PLAN E.2); writes manifest.layouts.footer
+   (same field the canvas chip writes); readVariant honors legacy
+   manifest.footerVariant rows. ─────────────────────────────────── */
 
 const FOOTERS = [
   { id: 'signature', label: 'Signature', blurb: 'Sprig · names · date · place' },

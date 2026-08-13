@@ -9,8 +9,8 @@
    no chips. The display face does the honoring.
 
    Data: manifest.memorial.obituary  — the SAME field the Memorial
-   tool (MemorialPanel "Obituary" group) edits. ObituaryPanel is a
-   thin editor over it.
+   launchpad doors into. ObituaryPanel is the one panel home
+   (EDITOR-CALM-PLAN E.2).
      { dates?, body? }
 
    Inline editing: BlockSectionProps only threads onEditCopy

@@ -11,9 +11,9 @@
    an empty list keeps the canvas in its empty state. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
-import { isMemorialOccasion, mkId, readOccasion, RemoveButton, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { mkId, RemoveButton, type BlockPanelProps } from './_shared';
 
 interface ProgramRow { id: string; name: string; detail?: string }
 
@@ -37,7 +37,6 @@ function toRoman(n: number): string {
 }
 
 export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'program');
   const loose = manifest as unknown as { memorial?: { program?: ProgramRow[] } & Record<string, unknown> };
   const program = Array.isArray(loose.memorial?.program) ? loose.memorial.program : [];
 
@@ -90,15 +89,6 @@ export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
-        {isMemorialOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="memorial"
-            label="Also in the Memorial workspace"
-            body="Obituary + tribute wall live there, same order of service, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Program" />
       </div>
     </SectionPanelShell>
   );

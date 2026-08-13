@@ -5,7 +5,7 @@
    Data: manifest.adviceWall  (written by AdviceWallPanel)
      { prompt?, entries?: [{ id, from, body }] }
    Prompt falls back to manifest.memorial.tributePrompt on memorial
-   sites (MemorialPanel's Tribute wall group owns that field) so a
+   sites (TributeWallPanel is that field's panel home — E.2) so a
    memorial host who configured the tribute prompt there sees it
    here without re-typing. Host-seeded entries always render first.
 

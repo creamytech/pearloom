@@ -14,7 +14,7 @@
    live — surfaced as a hint below. */
 
 import type { StoryManifest } from '@/types';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { isMemorialOccasion, mkId, readOccasion, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface ToastSlotRow { id: string; label: string; assigned?: string; note?: string }
@@ -31,7 +31,6 @@ function slotPlaceholderFor(occasion?: string): string {
 }
 
 export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'toastSignup');
   const slotPlaceholder = slotPlaceholderFor(readOccasion(manifest));
   const loose = manifest as unknown as { toastSlots?: ToastSlotRow[] };
   const slots = Array.isArray(loose.toastSlots) ? loose.toastSlots : [];
@@ -93,8 +92,6 @@ export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
             />
           </div>
         </FGroup>
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Toast signup" />
       </div>
     </SectionPanelShell>
   );

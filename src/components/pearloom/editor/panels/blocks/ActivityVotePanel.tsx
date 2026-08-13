@@ -13,14 +13,13 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';
-import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell } from '../_section-atoms';
 import { moveItem, ReorderHandle } from '../_reorder';
-import { isBachelorOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
+import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface VotePoll { id: string; question: string; options: string[] }
 
 export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'activityVote');
   const loose = manifest as unknown as { bachelor?: { votes?: VotePoll[] } & Record<string, unknown> };
   const votes = Array.isArray(loose.bachelor?.votes) ? loose.bachelor.votes : [];
 
@@ -105,15 +104,6 @@ export function ActivityVotePanel({ manifest, onChange }: BlockPanelProps) {
           </div>
         </FGroup>
 
-        {isBachelorOccasion(readOccasion(manifest)) && (
-          <ToolPointerCard
-            toolId="bachelor"
-            label="Also in the Weekend planner"
-            body="Costs, packing, and rooms live there, same polls, one store."
-          />
-        )}
-
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Group vote" />
       </div>
     </SectionPanelShell>
   );
