@@ -278,7 +278,7 @@ export function MusicBoard({
             <section style={{ background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 16 }}>
               <EmptyState
                 eyebrow="The guest playlist"
-                title="Nothing yet. Begin a thread."
+                title="No songs yet — your guests add them."
                 description="When guests suggest songs on your site, they land here, wave the ones you love onto the floor, and set the rest aside."
               />
             </section>

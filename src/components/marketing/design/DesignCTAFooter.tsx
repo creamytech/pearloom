@@ -4,7 +4,7 @@
 // bundle's footer.jsx. Three stacked sections:
 //   1. Pear's promise (memorials always free) with heart
 //      inside a slow-spinning plum swirl
-//   2. Giant "Begin a thread" CTA with thread atoms above/below
+//   2. Giant get-started CTA with thread atoms above/below
 //   3. Dark footer with 5-column nav + massive pearloom
 //      wordmark at the bottom
 

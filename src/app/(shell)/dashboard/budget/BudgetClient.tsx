@@ -555,7 +555,8 @@ const iconBtn: React.CSSProperties = {
   color: 'var(--ink-soft)', cursor: 'pointer',
 };
 
-// ── Empty ledger — the "Nothing yet. Begin a thread." key ─────
+// ── Empty ledger — names the gap and the next step (BRAND §7;
+//    the retired empty-state key shipped here verbatim, L56) ──
 
 function EmptyLedger({
   categories,
@@ -580,7 +581,7 @@ function EmptyLedger({
           color: 'var(--ink)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1', marginBottom: 10,
         }}
       >
-        Nothing yet. Begin a thread.
+        Nothing here yet — add your first cost.
       </div>
       <Thread variant="weave" width="64px" height={12} weight={1} style={{ margin: '0 auto 14px' }} />
       <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.55 }}>

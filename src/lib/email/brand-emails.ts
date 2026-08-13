@@ -119,7 +119,7 @@ export function buildWelcomeEmail(opts: { name?: string | null; dashboardUrl: st
       ${kvRow('Edit', 'Click any line on the canvas and write over it. The type is yours.', t)}
       ${kvRow('Share', 'One link, a QR for the paper goods, and co-hosts when you want company.', t)}
     </table>
-    ${ctaBlock('Begin a thread', opts.dashboardUrl, t)}
+    ${ctaBlock('Open your dashboard', opts.dashboardUrl, t)}
     ${fine('You&rsquo;re receiving this once, because an account was just created with this address. If that wasn&rsquo;t you, reply and we&rsquo;ll unpick it.', t)}
   `, t), t);
   return { subject: 'Welcome to Pearloom, the loom is yours', html };

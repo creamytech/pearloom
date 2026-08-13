@@ -25,7 +25,9 @@ describe('brand emails', () => {
     expect(html).toContain('<!DOCTYPE html>');
     expect(html).toContain('Shauna');
     expect(html).toContain('https://pearloom.com/dashboard');
-    expect(html).toContain('Begin a thread');
+    // BRAND §7: buttons say what they do in plain words — the retired
+    // craft CTA is fenced out by brand-retired-copy.test.ts.
+    expect(html).toContain('Open your dashboard');
   });
 
   it('co-host invite — role copy per role, expiry note', () => {

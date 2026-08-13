@@ -748,7 +748,7 @@ export function DashCircle() {
                           <span style={{ ...DISPLAY_STYLE, fontSize: 17, lineHeight: 1.2, color: PD.ink }}>{cr.title}</span>
                           <span style={{ fontSize: 11.5, color: PD.inkSoft }}>{cr.members.join(' · ')}</span>
                           <span style={{ fontSize: 12, color: PD.inkSoft, fontStyle: cr.lastBody ? 'normal' : 'italic' }}>
-                            {cr.lastBody ?? 'Nothing yet. Begin a thread.'}
+                            {cr.lastBody ?? 'No messages yet — say hello.'}
                           </span>
                         </button>
                       );
@@ -762,7 +762,7 @@ export function DashCircle() {
                   <div style={{ marginTop: 14, padding: '16px 18px', borderRadius: 'var(--r-md, 20px)', background: PD.paper2, border: '1px solid rgba(31,36,24,0.10)' }}>
                     {crewMsgs.length === 0 ? (
                       <div style={{ fontSize: 12, color: PD.inkSoft, fontStyle: 'italic', marginBottom: 8 }}>
-                        Nothing yet. Begin a thread.
+                        No messages yet — say hello.
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 280, overflowY: 'auto', marginBottom: 8 }}>

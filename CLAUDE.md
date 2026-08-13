@@ -30,26 +30,39 @@ section", fenced in wizard-seed.test.ts); managed addresses
 (/api/sites/rename + site_redirects 301 forwarding +
 SiteAddressEditor in the Share panel, verified live).
 
-Open thread — ONLY C.5 remains, the sprint's whole reason: **the
-merge**. The pressing IS the surface: wizard steps become the
-empty-state prompts of the editor canvas; chrome fades in as
-content lands; phone-first working steps (RADICAL-DESIGN §D); the
-press becomes an in-place transition (no route seam → no
-double-create class, no handoff cliff). FEATURE-FLAGGED (name the
-flag `onePressing`, read from an env/localStorage gate) — the old
-wizard remains the default and the fallback until the staging
-funnel e2e + the wow-moment metrics (already instrumented) match
-or beat it. Start by scaffolding the flag + the merged entry
-(/wizard/new?press=one or a dev route), reusing the editor's
-canvas + the wizard's step state; ship increments behind the flag
-with the funnel e2e green at every step.
+**C.5 increments 1–2 SHIPPED 2026-08-13** (recorded in plan §9):
+the `onePressing` flag (lib/one-pressing.ts, resolution order
+pinned) and the merged surface's first working cut
+(pages/OnePressing.tsx behind ?press=one — ThemedSite proof mode
+pressing live behind a floating glass prompt card, same idempotent
+pressKey path, same 401/402 contracts; one-pressing.spec.ts in the
+staging fence). C.5's 100% rollout gates on funnel metrics that
+need real traffic — BY DESIGN it stays flagged and open while
+Sprint P runs; its named next increments (in-place editor mount,
+photos/palette as canvas prompts, chrome fade-in, the metrics
+comparison) are in the plan stamp.
 
-Counts as done: plan §9's counts-as-done — the flag ships to 100%
-only when the staging funnel e2e + wow-moment metrics beat the old
-wizard. Until then C.5 increments land behind the flag with the
-fence suite green.
+Now running: **Sprint P — THE POLISH LEDGER** (plan §10; each row
+small and evidence-anchored). Open threads: P.1 dashboard batch
+(L56 budget empty-state uses the retired "Nothing yet. Begin a
+thread." — fix + fence with D.2; L62–L64 weekend/registry/link
+nits) · P.2 editor batch (L67 "Class of 2027" chip routed by
+occasion; L69 ⌘K synonyms + platform-aware shortcut glyph; L72
+Sealed Arrival addressee position; L74 Pear degraded-mode guest
+copy in host language) · P.3 wizard batch (L76 RSVP-deadline
+suggestion copy matches the clamped date; L78 seeded-sections vs
+"unusual" agreement; L79 occasion search catch-all; L80 memorial
+Opening honoree-shaped fields; L81 plan-limit at wizard ENTRY; L82
+vibe chips occasion-ordered; walk F5 Studio monogram) · P.4
+landing batch (L95 "Pear's promise" said in place; Unsplash
+hotlinks → self-hosted).
 
-Skip: Sprints P/D work not needed for a C block; the eight pending
+Counts as done: every ledger row fixed with its evidence re-checked
+(the finding's exact repro no longer reproduces), retired-copy
+fixes fenced per ground rule 3.
+
+Skip: Sprint D rows not touched by a P fix; C.5's remaining
+increments (return when funnel data accrues); the eight pending
 prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)

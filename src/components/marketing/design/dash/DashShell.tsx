@@ -364,7 +364,7 @@ function Sidebar() {
             textDecoration: 'none',
           }}
         >
-          {sitesCount === 0 ? 'Begin a thread →' : 'New site →'}
+          {sitesCount === 0 ? 'Create your site →' : 'New site →'}
         </Link>
       </div>
     </aside>
