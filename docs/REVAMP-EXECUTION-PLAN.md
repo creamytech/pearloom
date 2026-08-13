@@ -516,10 +516,17 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   Pass line item: gate it (wire `requirePlan` through the one choke
   point — it has zero callers today) or remove it from the card.
   Outcome: pricing page === enforcement table === MONETIZATION.md.
-- **M.4 Store re-merchandised (L84, L68).** Plan-granted packs stop
-  wearing price tags beside "Owned"; the signature shelf cross-sells
-  the Pass; the free-theme/store-pack name collision resolved; toast
-  says "Theme applied."
+- **M.4 Store re-merchandised (L84, L68). — SHIPPED 2026-08-13.**
+  Owned packs never wear a price (card + quick-look — 47
+  plan-granted packs showed "$16" beside "Owned"); the quick-look's
+  plan-grant hint speaks the marketed names ("Included with the
+  Pass / the Keepsake" — it still sold Atelier/Legacy); the apply
+  toast says "Theme applied" (true for built-ins AND packs — L68's
+  PICK card toasted "Pack applied" for a free theme); the $18 pack
+  renamed 'Santorini Linen' -> 'Aegean Linen' (it shared its exact
+  display name with the FREE built-in theme; entitlement id
+  unchanged). Named leftover: theme-packs-visual baselines for
+  santorini-linen re-seed on next run.
 - **M.5 The archive fee makes sense (L42 + O.5).** If domains build:
   fee = domain + full-res retention as documented. If not: fee is
   full-res retention only, priced honestly, MONETIZATION.md amended.
