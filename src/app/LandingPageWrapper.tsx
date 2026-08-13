@@ -107,6 +107,25 @@ export default function LandingPageWrapper() {
     router.push(href);
   }, [router]);
 
+  /* The paid cards keep their intent (M.2/L37): "Choose Pass" goes
+     to the one upgrade door, which carries ?plan= through login to
+     checkout — it used to fall into the same /wizard/new as the
+     free CTA and the choice evaporated. */
+  const onChoosePlan = useCallback((plan: 'pass' | 'keepsake') => {
+    const href = `/upgrade?plan=${plan}`;
+    const motion = (window as Window & {
+      PearloomMotion?: {
+        weave?: (onPeak: () => void, opts?: { duration?: number }) => void;
+        reduced?: boolean;
+      };
+    }).PearloomMotion;
+    if (motion?.weave && !motion.reduced) {
+      motion.weave(() => router.push(href), { duration: 520 });
+      return;
+    }
+    router.push(href);
+  }, [router]);
+
   // The re-press (RADICAL-DESIGN-DIRECTIONS §C): an EXPLICIT occasion
   // pick doesn't just swap an accent — the whole page re-presses into
   // the new occasion through the weave wipe, with the swap at the
@@ -198,7 +217,7 @@ export default function LandingPageWrapper() {
         </div>
 
         <div id="pricing" style={{ scrollMarginTop: 96 }}>
-          <DesignPricing onGetStarted={onGetStarted} />
+          <DesignPricing onGetStarted={onGetStarted} onChoosePlan={onChoosePlan} />
         </div>
 
         <div data-rv>

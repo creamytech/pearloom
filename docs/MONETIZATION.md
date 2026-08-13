@@ -99,12 +99,19 @@ tension (a memorial site may stay up for a decade). The answer:
 - A published site **stays online free on its `pearloom.com`
   subdomain, indefinitely.** That is never withdrawn.
 - After the keep window, an optional **archive renewal
-  (`ARCHIVE_RENEWAL_CENTS`, $29/yr)** covers only the genuinely
-  ongoing costs: custom-domain renewal and full-resolution media
-  retention.
+  (`ARCHIVE_RENEWAL_CENTS`, $29/yr)** covers the one genuinely
+  ongoing cost: **full-resolution media retention.** *(Restructured
+  2026-08-13, M.5/L42: the original rationale bundled custom-domain
+  renewal, but custom domains were never built and are de-listed —
+  see the Enforcement table. Retention is the whole story unless
+  O.5 decides to build domains, which would restore the bundled
+  framing.)*
+- **The fee is priced, not billed.** No checkout path charges
+  `ARCHIVE_RENEWAL_CENTS` today — it is a decision constant awaiting
+  its feature, and no surface may present it as live billing.
 - Framing is **"preservation, not planning."** Planning Pearloom is
-  one-time; keeping a full-resolution archive and a custom domain
-  alive is the only recurring thing, and it's opt-in.
+  one-time; keeping a full-resolution archive alive is the only
+  recurring thing, and it's opt-in.
 
 Memorials are exempt from every tier limit and from the archive fee.
 
@@ -161,8 +168,9 @@ later, evidence-based word; this section now defers to it.)*
   at all, not its elasticity.
 - **Unit economics: modelled and fine** (DECISIONS §5 — under $1 per
   site per decade on the code's own constants; R2 egress is free).
-  The archive fee is margin on the custom domain, not cost recovery
-  — and internally we say so.
+  DECISIONS §5 framed the archive fee as margin on the custom
+  domain; with domains de-listed, §4's restructure (M.5) makes
+  full-res retention the fee's whole rationale.
 - **The keep window** (currently 45 days, a constant in
   `cockpit-phase.ts`) has no relationship to the archive fee yet.
 - **Per-celebration vs per-site.** CLAUDE-PRODUCT §8 Q3 is now

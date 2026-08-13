@@ -508,10 +508,24 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   DELETED with its fence whitelist removed; the pricing grid's dead
   "Pear's promise →" #journal anchor is gone — the promise is said
   plainly.
-- **M.2 Doors reach the till (L37).** Landing plan buttons carry plan
-  intent through auth to checkout; `?upgrade=true` lands on a real
-  upgrade surface; the 402's upgradeUrl goes there; one `/upgrade`
-  route to rule them all.
+- **M.2 Doors reach the till (L37). — SHIPPED 2026-08-13.** One
+  `/upgrade` route (server-gated; signed-out visits round-trip
+  through /login with ?plan/?from intact) renders the two paid
+  cards FROM DesignPricing.TIERS — the same fence-pinned array the
+  landing renders — and POSTs the working checkout. Every door now
+  reaches it: the landing's "Choose Pass/Keepsake" carry plan
+  intent via the new onChoosePlan (they used to fall into
+  /wizard/new with the free CTA); the settings modal's Upgrade
+  links go to /upgrade?plan= (they looped to /#pricing, whose paid
+  buttons then dropped the intent — no settings CTA ever reached
+  the till); the 402 bodies' upgradeUrl is /upgrade?from=<feature>
+  (was /dashboard?upgrade=true — a query param nothing read), and
+  /upgrade opens with a sentence naming the met limit in the
+  host's real numbers; the wizard's finish-line site-cap 402 stops
+  dead-ending — the error slat grows a "See the Pass →" door and
+  says the draft is saved. `e2e/specs/money-door.spec.ts` (4
+  tests, added to the staging fence) pins render, intent-through-
+  auth, the from-line, and the keyless degrade.
 - **M.3 Cards describe the real product (L36, L41, L97 + O.6). —
   SHIPPED 2026-08-13.** The decision went REMOVE, not gate: every
   un-gated claim (full Studio, Director, seating, budget, vendor
@@ -541,9 +555,17 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   display name with the FREE built-in theme; entitlement id
   unchanged). Named leftover: theme-packs-visual baselines for
   santorini-linen re-seed on next run.
-- **M.5 The archive fee makes sense (L42 + O.5).** If domains build:
-  fee = domain + full-res retention as documented. If not: fee is
-  full-res retention only, priced honestly, MONETIZATION.md amended.
+- **M.5 The archive fee makes sense (L42 + O.5). — SHIPPED
+  2026-08-13 (the de-listed default).** O.5 unanswered → the plan's
+  default applied: the fee's rationale is full-resolution media
+  retention ONLY — the custom-domain half is out of the story
+  everywhere it was told (MONETIZATION §4 restructured; plan-gate's
+  ARCHIVE_RENEWAL_CENTS comment rewritten; §8's DECISIONS framing
+  note updated). Also made explicit in both places: the fee is
+  PRICED, NOT BILLED — no checkout path charges the constant, and
+  no surface may present it as live billing until the feature
+  exists. If O.5 later builds domains, the bundled framing can
+  return with the feature.
 - **M.6 The loop links (L39). — SHIPPED 2026-08-13 (code-side).**
   The published footer's "Made with Pearloom" credit is a real link
   to /wizard/new?ref=<site> in both variants that render it (it was
@@ -569,12 +591,29 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   DECISIONS-2026-08-04 (L88 — don't price-test till ~200 activated;
   unit economics ARE modelled) and DECISIONS §4's "Pass includes
   the full Studio" anchor got a correction note.
-- **M.8 Degraded money copy (L83).** Keyless/degraded states speak
-  host language with a next step, never infrastructure-speak.
+- **M.8 Degraded money copy (L83). — SHIPPED 2026-08-13.**
+  `src/lib/money-copy.ts` (`humanizeCheckoutError`) is the one
+  voice for a till that can't take the payment: what happened +
+  NOTHING WAS CHARGED + a next step. All three checkout UIs route
+  through it — the /upgrade door, the settings plan buttons (which
+  printed the API's "Payments are not configured." in red), and
+  the store cart drawer (same, plus browser-speak "Failed to
+  fetch" now caught). Server strings unchanged (API contract /
+  logs); only the rendered sentence translates. money-copy.test.ts
+  pins every branch (never "configured"/"stripe"; keyless names
+  the inbox); the money-door e2e proves the live degrade.
 
 **Counts as done:** on staging with test Stripe keys: see price →
 choose Pass → pay → land on success → plan granted → gated feature
 unlocks → settings shows "Pass". Every step in one e2e.
+
+**Sprint status 2026-08-13: all eight code-side blocks SHIPPED
+(M.1–M.8).** The keyless half of counts-as-done is proven
+(money-door.spec.ts: price → choose → honest degrade, hasStripe()
+false). The PAID half — Stripe test keys through webhook to plan
+grant — remains blocked on owner action O.2; when keys land, extend
+money-door.spec.ts with the paid walk (the checkout POST, webhook
+grant, and settings "Pass" badge are all already wired).
 
 ---
 

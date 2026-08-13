@@ -448,10 +448,11 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
             {p.current || p.cta === 'Included' ? (
               <button className="btn btn-outline btn-sm" disabled style={{ width: '100%', justifyContent: 'center', opacity: 0.6 }}>{p.cta}</button>
             ) : (
-              /* Upgrades go through the pricing section's Stripe
-                 checkout — there is no in-modal purchase flow, so
-                 the CTA is a real link instead of a dead button. */
-              <Link href="/#pricing" className={`btn ${p.id === 'legacy' ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>{p.cta}</Link>
+              /* Straight to the one upgrade door with the plan intent
+                 intact (M.2/L37) — the old link went to /#pricing,
+                 whose paid buttons then dropped the intent into the
+                 wizard, so no settings CTA ever reached the till. */
+              <Link href={`/upgrade?plan=${p.id}`} className={`btn ${p.id === 'pass' ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>{p.cta}</Link>
             )}
           </div>
         ))}

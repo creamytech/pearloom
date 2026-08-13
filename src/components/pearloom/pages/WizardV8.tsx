@@ -2659,6 +2659,9 @@ export function WizardV8() {
      sheet, for viewports where the aside is hidden. */
   const [peekOpen, setPeekOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  /* Set only for the plan-limit 402 — the error slat grows a door
+     to /upgrade instead of dead-ending the host (M.2). */
+  const [errUpgradeUrl, setErrUpgradeUrl] = useState<string | null>(null);
 
   // Live mirror of wizard state for async flows — handleFinish
   // captures a stale `st` in its closure, so the upload-wait loop
@@ -3071,6 +3074,7 @@ export function WizardV8() {
     trackEvent('wizard_weave_clicked', { occasion: stRef.current.occasion });
     setBusy(true);
     setErr(null);
+    setErrUpgradeUrl(null);
     setGenStep('starting…');
     /* ── Make-ready choreography ─────────────────────────────
        The skeleton (no photos) and pre-warmed-cache paths finish
@@ -3479,6 +3483,23 @@ export function WizardV8() {
         router.push('/signup?next=/wizard/new');
         return;
       }
+      // ── The site cap (402) ──────────────────────────────────
+      // The one 402 a real host hits at the finish line: their plan's
+      // site limit. A raw thrown error left them at a dead end with
+      // nine steps of work behind them; instead, keep the draft (the
+      // debounced persister already mirrors it) and show the honest
+      // sentence WITH the door the server offered (M.2/L37).
+      if (res.status === 402 && resData?.code === 'PLAN_LIMIT') {
+        scriptTimers.forEach(clearTimeout);
+        pressInFlightRef.current = false;
+        setErr(resData.error ?? 'Your plan has reached its site limit.');
+        setErrUpgradeUrl(
+          typeof resData.upgradeUrl === 'string' && resData.upgradeUrl.startsWith('/')
+            ? resData.upgradeUrl
+            : '/upgrade?from=sites',
+        );
+        return;
+      }
       if (!res.ok) {
         throw new Error(resData?.error ?? `Failed to create site (${res.status})`);
       }
@@ -3565,6 +3586,7 @@ export function WizardV8() {
       // error state.
       scriptTimers.forEach(clearTimeout);
       setErr(e instanceof Error ? e.message : 'Something went wrong');
+      setErrUpgradeUrl(null); // a generic failure never wears the upgrade door
       // Failure releases the press guard so the host can retry —
       // the persisted pressKey makes that retry idempotent.
       pressInFlightRef.current = false;
@@ -5503,6 +5525,24 @@ export function WizardV8() {
                       }}
                     >
                       {err}
+                      {errUpgradeUrl && (
+                        <>
+                          {' '}
+                          <a
+                            href={errUpgradeUrl}
+                            style={{
+                              color: 'inherit',
+                              fontWeight: 700,
+                              textDecoration: 'underline',
+                            }}
+                          >
+                            See the Pass &rarr;
+                          </a>
+                          <span style={{ display: 'block', marginTop: 4, fontSize: 12, opacity: 0.85 }}>
+                            Your answers are saved on this device — nothing is lost.
+                          </span>
+                        </>
+                      )}
                     </div>
                   )}
                 </>

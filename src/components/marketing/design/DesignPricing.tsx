@@ -103,9 +103,22 @@ export const TIERS: Tier[] = [
 
 interface DesignPricingProps {
   onGetStarted: () => void;
+  /** Paid-tier CTA. Routes to /upgrade with the plan intent intact —
+   *  before M.2, "Choose Pass" called the same onGetStarted as the
+   *  free tier and the intent silently died in /wizard/new (L37). */
+  onChoosePlan?: (plan: 'pass' | 'keepsake') => void;
 }
 
-export function DesignPricing({ onGetStarted }: DesignPricingProps) {
+export function DesignPricing({ onGetStarted, onChoosePlan }: DesignPricingProps) {
+  const choosePlan = (name: TierName) => {
+    const plan = name === 'Keepsake' ? 'keepsake' : 'pass';
+    if (onChoosePlan) {
+      onChoosePlan(plan);
+      return;
+    }
+    // Mounted without a router-aware parent — still reach the till.
+    window.location.assign(`/upgrade?plan=${plan}`);
+  };
   /* Phone-only feature fold. The lists stay in the DOM at every width
      (CSS hides them collapsed ≤640); desktop never sees the toggle. */
   const [openTiers, setOpenTiers] = useState<Record<string, boolean>>({});
@@ -340,7 +353,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
               <PLButton
                 variant={t.btn}
                 size="md"
-                onClick={onGetStarted}
+                onClick={t.price === 0 ? onGetStarted : () => choosePlan(t.name)}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
                 {t.price === 0 ? 'Create your site' : `Choose ${t.name}`} <Pearl size={8} />

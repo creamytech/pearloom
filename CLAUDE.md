@@ -5,35 +5,34 @@
 
 ## Active focus
 
-**Sprint M — THE MONEY PATH** (`docs/REVAMP-EXECUTION-PLAN.md` §6).
-Sprints W, S, G, and T all shipped in full 2026-08-12/13 — every
-block stamped in the plan doc; the fabrications fence
-(welcome-home-copy.test dead-claims block + no-fabricated-proof +
-no-guest-fork + rsvp-honesty/passport-phone e2e) guards it all.
+**Sprint V — THE VISIBILITY SPINE** (`docs/REVAMP-EXECUTION-PLAN.md`
+§7). Sprints W, S, G, T, and M all shipped in full 2026-08-12/13 —
+every block stamped in the plan doc. M closed with all eight blocks:
+the /upgrade door (money-door e2e in the staging fence), the
+agreement fence (`pricing-agreement.test.ts`: PLAN_LIMITS ⇄ pricing
+page ⇄ MONETIZATION.md ⇄ the Stripe line items), honest cards
+everywhere, `money-copy.ts` for degraded tills. Only the PAID
+checkout walk remains, blocked on owner O.2 Stripe keys.
 
-Goal: a customer can discover the price, pay it, and receive it —
-and every money surface tells one true story. (R7; end-to-end needs
-owner action O.2 Stripe keys — code-side blocks proceed regardless.)
+Goal: one visibility state machine; four flags become one truth
+(R5; finishes what W.3 started).
 
-**M.1, M.3, M.4, M.6, M.7 SHIPPED 2026-08-13** (stamps in plan §6):
-one vocabulary + DesignFAQ deleted; the cards/settings/Stripe line
-items claim only enforced limits (the cut went REMOVE not gate —
-requirePlan keeps zero callers; aiGenerations aligned to
-checkPearGate's real 15-a-month/∞); the store stopped pricing owned
-packs; the footer credit + passport CTA carry ?ref=; and
-`src/lib/pricing-agreement.test.ts` (18 tests) pins PLAN_LIMITS ⇄
-pricing page ⇄ MONETIZATION.md ⇄ the Stripe till.
+Open threads: V.1 `visibility: draft | link-only | public |
+password` on the manifest — the site route enforces it, the publish
+modal sets it, and the four legacy flags (`published`,
+`comingSoon.enabled`, `privacyGate.password`, registry
+`privateByDefault`) read-migrate into it · V.2 private-by-default
+wiring (L32): bachelor/ette (and any registry-flagged occasion)
+presses as `link-only` with the privacy panel pre-armed —
+CLAUDE-PRODUCT §8 Q2 finally true · V.3 promise copy audited
+against the machine: the wizard line, the publish ceremony, and the
+Share panel all describe the actual state.
 
-Open threads: M.2 doors reach the till (plan intent through auth to
-checkout; one /upgrade route; the 402's upgradeUrl goes there) ·
-M.5 archive fee makes sense (per O.5 decision; default: full-res
-retention only, priced honestly) · M.8 degraded money copy (L83 —
-keyless/degraded states speak host language with a next step).
+Counts as done: the state-machine matrix e2e — each of the four
+states × (anon visitor / link visitor / password visitor) asserts
+exactly who sees what.
 
-Counts as done: plan §6's counts-as-done + fences per block; M.2/M.3
-verified with hasStripe() false (keyless deploys degrade honestly).
-
-Skip: Sprints V–D work not needed for an M block; the six pending
+Skip: Sprints A–D work not needed for a V block; the six pending
 prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)

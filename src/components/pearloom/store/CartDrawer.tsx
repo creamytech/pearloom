@@ -24,6 +24,7 @@ import { Icon, Pear } from '../motifs';
 import { useCart } from './CartProvider';
 import { PackPreview } from './PackPreview';
 import { collectionName, priceLabel, tierLabel } from './utils';
+import { humanizeCheckoutError } from '@/lib/money-copy';
 import type { Pack, Tier } from '@/lib/theme-store/packs';
 
 interface CartDrawerProps {
@@ -128,7 +129,10 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
         });
         if (!res.ok) {
           const body = (await res.json().catch(() => ({}))) as { error?: string };
-          throw new Error(body.error || `Checkout failed (${res.status})`);
+          // Host language, never the server's raw string — the keyless
+          // deploy printed "Payments are not configured." in the
+          // drawer (M.8/L83). The cart itself is untouched.
+          throw new Error(humanizeCheckoutError(res.status, body.error ?? null));
         }
         const json = (await res.json()) as { url?: string };
         if (json.url) {
@@ -146,7 +150,12 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
       setCheckoutState('idle');
     } catch (err) {
       setCheckoutState('error');
-      setCheckoutError(err instanceof Error ? err.message : 'Checkout failed');
+      // A fetch that never resolved throws browser-speak ("Failed to
+      // fetch") — that's not for a money surface either.
+      const msg = err instanceof Error && err.message && !/fetch|network/i.test(err.message)
+        ? err.message
+        : humanizeCheckoutError(null, null);
+      setCheckoutError(msg);
     }
   }, [items, onCheckout, clearCart, onClose]);
 

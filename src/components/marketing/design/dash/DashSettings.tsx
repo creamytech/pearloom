@@ -14,6 +14,7 @@ import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { usePlan } from '@/components/pearloom/dash/usePlan';
+import { humanizeCheckoutError } from '@/lib/money-copy';
 import { PlAvatar, PL_AVATARS, useUserAvatar } from '@/components/pearloom/avatars';
 import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
@@ -1238,11 +1239,18 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: target }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) throw new Error(data.error ?? 'Checkout unavailable.');
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!res.ok || !data?.url) {
+        // Host language, never the server's raw string — the keyless
+        // deploy used to print "Payments are not configured." in red
+        // under the buy buttons (M.8/L83).
+        setErr(humanizeCheckoutError(res.status, data?.error ?? null));
+        setBusy(null);
+        return;
+      }
       window.location.assign(data.url);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Checkout unavailable.');
+    } catch {
+      setErr(humanizeCheckoutError(null, null));
       setBusy(null);
     }
   }

@@ -182,7 +182,11 @@ export function planLimitResponseBody(feature: string, limit: number, currentPla
     feature,
     limit,
     currentPlan,
-    upgradeUrl: '/dashboard?upgrade=true',
+    // The one upgrade door (M.2/L37). ?from=<feature> lets /upgrade
+    // open with a sentence naming the limit the host just met. The
+    // old '/dashboard?upgrade=true' pointed at a query param nothing
+    // read — a dead end dressed as a door.
+    upgradeUrl: `/upgrade?from=${encodeURIComponent(feature)}`,
   };
 }
 
@@ -225,7 +229,8 @@ export class PlanGateError extends Error {
 export async function checkPlanAccess(
   requiredTier: string,
 ): Promise<PlanAccessResult> {
-  const upgradeUrl = '/dashboard?upgrade=true';
+  // The one upgrade door (M.2/L37) — see planLimitResponseBody.
+  const upgradeUrl = '/upgrade';
 
   /* 1. The authenticated session.
      `authOptions` is NOT optional here. This was the one call site
@@ -324,8 +329,14 @@ export function planMarketingLabel(plan: string): 'Page' | 'Pass' | 'Keepsake' {
 // ─── Prices (one-time; the "not a subscription" promise) ─────
 //
 // The optional archive fee after the keep window is preservation,
-// not planning — it buys custom-domain renewal + full-resolution
-// media retention, and never gates access to a published site.
+// not planning — it buys FULL-RESOLUTION MEDIA RETENTION, the one
+// genuinely recurring cost, and never gates access to a published
+// site. (M.5/L42: the fee's original rationale bundled "custom-
+// domain renewal" — but custom domains were never built and are
+// de-listed everywhere, so the retention story is the whole story
+// until O.5 decides to build them. NOTHING bills this constant yet:
+// no checkout path charges it — it is a priced decision awaiting
+// its feature, and no surface may present it as live billing.)
 
 export const PLAN_PRICE_CENTS = {
   free: 0,
