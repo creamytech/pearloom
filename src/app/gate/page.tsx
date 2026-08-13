@@ -41,6 +41,8 @@ export default function GatePage() {
         } catch {
           /* keep default */
         }
+        // hard on purpose: the gate cookie is httpOnly and the
+        // proxy must re-run against a fresh document request.
         window.location.assign(next);
         return;
       }

@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix, pdShadowMix } from './DesignAtoms';
+import { useSoftRouter } from '@/components/shell/soft-navigation';
 
 type TierName = 'Page' | 'Pass' | 'Keepsake';
 type BtnVariant = 'ghost' | 'pearl' | 'ink';
@@ -110,14 +111,16 @@ interface DesignPricingProps {
 }
 
 export function DesignPricing({ onGetStarted, onChoosePlan }: DesignPricingProps) {
+  const softRouter = useSoftRouter();
   const choosePlan = (name: TierName) => {
     const plan = name === 'Keepsake' ? 'keepsake' : 'pass';
     if (onChoosePlan) {
       onChoosePlan(plan);
       return;
     }
-    // Mounted without a router-aware parent — still reach the till.
-    window.location.assign(`/upgrade?plan=${plan}`);
+    // Mounted without a router-aware parent — still reach the till,
+    // softly (COHESION N.1).
+    softRouter.push(`/upgrade?plan=${plan}`);
   };
   /* Phone-only feature fold. The lists stay in the DOM at every width
      (CSS hides them collapsed ≤640); desktop never sees the toggle. */

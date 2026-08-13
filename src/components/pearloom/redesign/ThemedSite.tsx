@@ -20,7 +20,12 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { useContext, useId, useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+// AppRouterContext instead of useRouter(): ThemedSite renders in
+// vitest/jsdom outside any Next router, where useRouter() throws.
+// The context is simply null there — the multi-page jump is a
+// no-op in tests and the router path everywhere real.
+import { AppRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { createPortal } from 'react-dom';
 import { FadeInImage, usePrefersReducedMotion } from './graceful-image';
 import { PhotoFocusProvider, commitPhotoFocus } from './photo-focus';
@@ -859,6 +864,7 @@ function ThemedSiteInner({
      the root it re-rendered this entire component (the whole site)
      mid-scroll on published pages. Only the nav highlights care. */
 
+  const router = useContext(AppRouterContext);
   /* Variant ids — manifest.layouts.nav / manifest.layouts.navMobile
      override the per-section defaults registered in layouts.ts. */
   const navVariant = readVariant(manifest, 'nav');
@@ -870,7 +876,8 @@ function ThemedSiteInner({
        home anchor) instead of scrolling to an anchor that doesn't
        exist here. The editor canvas never passes siteSlug, so
        in-canvas nav clicks stay scroll-only and can't navigate the
-       editor tab away. */
+       editor tab away. Page moves ride the router (COHESION N.1) —
+       one document, no reload between a site's own pages. */
     if (
       siteMode === 'multi-page'
       && !editable
@@ -879,9 +886,9 @@ function ThemedSiteInner({
     ) {
       if (typeof window === 'undefined') return;
       if (isSiteBlockKey(id) && !homeBlockSet.has(id)) {
-        window.location.assign(buildSitePath(siteSlug, `/${BLOCK_PAGE_SLUG[id]}`, occasionId));
+        router?.push(buildSitePath(siteSlug, `/${BLOCK_PAGE_SLUG[id]}`, occasionId));
       } else {
-        window.location.assign(`${buildSitePath(siteSlug, '', occasionId)}#${id}`);
+        router?.push(`${buildSitePath(siteSlug, '', occasionId)}#${id}`);
       }
       return;
     }

@@ -2812,3 +2812,36 @@ button:not(:disabled):active,
     font-size: 16px !important;
   }
 }
+
+/* ── The weave cut — the one route transition (COHESION N.2) ─────
+   Zone-to-zone navigations run through document.startViewTransition
+   (components/shell/soft-navigation.tsx decides WHICH navigations:
+   cross-zone only — dashboard tab switches never transition, per
+   the (shell)/loading.tsx "one page" decision). The old surface
+   breathes out, the new one settles in on the same paper: a page
+   turning in one book, never a jump between web pages. Reduced
+   motion never enters the transition path (the JS gate skips
+   startViewTransition entirely); the media guard here is
+   belt-and-braces for any other startViewTransition caller. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: pl-weave-out 180ms var(--pl-ease-out, ease-out) forwards;
+  }
+  ::view-transition-new(root) {
+    animation: pl-weave-in 240ms var(--pl-ease-out, ease-out);
+  }
+}
+@keyframes pl-weave-out {
+  to { opacity: 0; }
+}
+@keyframes pl-weave-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

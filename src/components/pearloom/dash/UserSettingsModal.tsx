@@ -20,6 +20,7 @@ import {
   type ReactNode,
 } from 'react';
 import Link from 'next/link';
+import { useSoftRouter } from '@/components/shell/soft-navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import { NotificationPrefsTab } from './NotificationPrefsTab';
@@ -164,6 +165,8 @@ function SettingsHead({ title, sub }: { title: string; sub: string }) {
 /* ─── Tabs (verbatim from prototype, with live data wiring) ──────────── */
 
 function AccountTab({ user }: { user: { name: string; email: string; initials: string; joined: string; image?: string | null } }) {
+  const softRouter = useSoftRouter();
+  const { closeSettings } = useUserSettings();
   /* Display name persists to /api/user/preferences (display_name) —
      the same field DashSettings (/dashboard/profile) edits, so the
      two surfaces can never disagree. The old tab rendered dead
@@ -375,8 +378,11 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
         <button
           className="btn btn-outline btn-sm"
           onClick={() => {
-            if (typeof window === 'undefined') return;
-            window.location.assign(shareSite ? `/editor/${shareSite.domain}?jump=share` : '/dashboard/event');
+            // Close first — a soft same-zone navigation would
+            // otherwise leave the modal open over the new route
+            // (COHESION N.1).
+            closeSettings();
+            softRouter.push(shareSite ? `/editor/${shareSite.domain}?jump=share` : '/dashboard/event');
           }}
         >
           {shareSite ? 'Invite' : 'Manage'}
@@ -466,6 +472,8 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
 }
 
 function PreferencesTab() {
+  const softRouter = useSoftRouter();
+  const { closeSettings } = useUserSettings();
   /* NOTE deliberately no email/digest/autosave/reduced-motion
      toggles here: the previous set wrote fields the preferences
      API dropped (not in its PATCH allow-list) and read a
@@ -478,7 +486,7 @@ function PreferencesTab() {
       <SettingsHead title="Preferences" sub="How Pearloom behaves for you." />
       {/* Appearance control removed — the product is light-mode across
           the board now (no per-account dark toggle). */}
-      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: 'var(--pl-plum, #b4543a)' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: 'var(--pl-plum, #b4543a)', borderColor: 'color-mix(in oklab, var(--pl-plum, #b4543a) 30%, transparent)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
+      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: 'var(--pl-plum, #b4543a)' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: 'var(--pl-plum, #b4543a)', borderColor: 'color-mix(in oklab, var(--pl-plum, #b4543a) 30%, transparent)' }} onClick={() => { closeSettings(); softRouter.push('/dashboard/profile'); }}>Open settings</button></UsRow>
     </div>
   );
 }

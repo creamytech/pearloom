@@ -72,6 +72,7 @@ export function UpgradeClient({ currentPlan, intent, fromLine }: UpgradeClientPr
         setBusy(null);
         return;
       }
+      // hard on purpose: Stripe checkout is an external origin.
       window.location.assign(data.url);
     } catch {
       setErr(humanizeCheckoutError(null, null));

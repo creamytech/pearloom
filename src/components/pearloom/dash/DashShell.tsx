@@ -740,6 +740,7 @@ function SiteCrest({ site, size = 38 }: { site: SiteSummary | null | undefined; 
 /* ── Celebration switcher card (top of sidebar) ──────────────── */
 function CelebrationCard() {
   const { site, sites, selectSite } = useSelectedSite();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -778,8 +779,9 @@ function CelebrationCard() {
         className="pl8-dash-cele"
         onClick={() => {
           if (!hasOptions) {
-            // No sites yet — kick straight to creation.
-            window.location.href = '/dashboard/event';
+            // No sites yet — kick straight to creation. Same-zone
+            // shell navigation stays soft (COHESION N.1).
+            router.push('/dashboard/event');
             return;
           }
           setOpen((o) => !o);

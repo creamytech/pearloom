@@ -139,6 +139,7 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
           // Hand off to Stripe — Stripe returns to the store with
           // a session_id which the next phase resolves into
           // entitlements + clears the cart server-side.
+          // hard on purpose: Stripe checkout is an external origin.
           window.location.assign(json.url);
           return;
         }

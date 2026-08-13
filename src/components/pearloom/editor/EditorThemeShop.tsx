@@ -287,6 +287,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
              checkout greets them with "tap Apply" on return. */
           restoreSnapshot();
           try { sessionStorage.setItem(SHOP_RESUME_KEY, pack.id); } catch { /* nicety */ }
+          // hard on purpose: Stripe checkout is an external origin.
           window.location.assign(url);
           return;
         }

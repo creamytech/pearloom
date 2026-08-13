@@ -138,6 +138,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
       const { url: checkoutUrl } = (await res.json()) as { url?: string };
       if (res.ok && checkoutUrl) {
         try { sessionStorage.setItem('pl-shop-resume', wornPack.id); } catch { /* nicety */ }
+        // hard on purpose: Stripe checkout is an external origin.
         window.location.assign(checkoutUrl);
         return;
       }

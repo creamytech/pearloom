@@ -26,6 +26,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSoftRouter } from '@/components/shell/soft-navigation';
 import type { StoryManifest } from '@/types';
 import type { DoorwayPrefill } from '@/lib/doorway/extract';
 import { MAKEOVER_LOOKS } from '@/lib/doorway/makeover';
@@ -59,6 +60,7 @@ interface MakeoverResponse {
 }
 
 export function MakeoverPage() {
+  const softRouter = useSoftRouter();
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +118,7 @@ export function MakeoverPage() {
         window.localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify({ ...base, ...draft }));
       }
     } catch { /* storage disabled — the wizard just starts empty */ }
-    window.location.assign('/wizard/new');
+    softRouter.push('/wizard/new');
   }
 
   return (

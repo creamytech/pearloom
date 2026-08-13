@@ -62,6 +62,7 @@ import { OfflineIndicator } from '@/components/shared/OfflineIndicator';
 import { SharedScrollProvider } from '@/lib/shared-scroll';
 import { ThemeProvider } from '@/components/shell/ThemeProvider';
 import { ErrorTelemetry } from '@/components/shell/ErrorTelemetry';
+import { SoftNavigation } from '@/components/shell/soft-navigation';
 
 export default function RootLayout({
   children,
@@ -122,6 +123,7 @@ export default function RootLayout({
               <SharedScrollProvider>
                 <OfflineIndicator />
                 <ErrorTelemetry />
+                <SoftNavigation />
                 {children}
               </SharedScrollProvider>
             </ToastProvider>

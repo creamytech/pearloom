@@ -14,6 +14,7 @@
      - Co-host invite (unchanged from before). */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSoftRouter } from '@/components/shell/soft-navigation';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
@@ -1284,6 +1285,7 @@ function LanguagesSection({
    the copy says exactly what changes. After a successful rename
    the editor navigates itself to the new address. */
 function SiteAddressEditor({ siteSlug, occasion }: { siteSlug: string; occasion?: SiteOccasion }) {
+  const softRouter = useSoftRouter();
   const [open, setOpen] = useState(false);
   const [next, setNext] = useState(siteSlug);
   const [check, setCheck] = useState<{ state: 'idle' | 'checking' | 'ok' | 'no'; reason?: string }>({ state: 'idle' });
@@ -1326,8 +1328,11 @@ function SiteAddressEditor({ siteSlug, occasion }: { siteSlug: string; occasion?
         setBusy(false);
         return;
       }
-      // The editor lives at the slug — move with the site.
-      window.location.assign(`/editor/${encodeURIComponent(v)}?jump=share`);
+      // The editor lives at the slug — move with the site. Soft:
+      // the [siteSlug] segment remounts on the new address, and
+      // skipping the unload beacon means no stale-slug autosave
+      // can resurrect the old address (COHESION N.1).
+      softRouter.push(`/editor/${encodeURIComponent(v)}?jump=share`);
     } catch {
       setError('Rename failed — nothing changed. Try again in a minute.');
       setBusy(false);

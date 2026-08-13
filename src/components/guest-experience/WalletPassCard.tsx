@@ -60,6 +60,7 @@ export function WalletPassCard({ token, solemn = false }: Props) {
     try {
       const res = await fetch(`/api/wallet/${encodeURIComponent(token)}?platform=google`);
       const json = (await res.json()) as { saveUrl?: string; error?: string };
+      // hard on purpose: the wallet save URL is an external origin.
       if (json.saveUrl) window.location.href = json.saveUrl;
       else setError(json.error || 'That didn’t work. Try again in a moment.');
     } catch {

@@ -100,7 +100,8 @@ jobs:
             e2e/specs/money-door.spec.ts \
             e2e/specs/visibility-matrix.spec.ts \
             e2e/specs/phone-access.spec.ts \
-            e2e/specs/one-pressing.spec.ts
+            e2e/specs/one-pressing.spec.ts \
+            e2e/specs/cohesion.spec.ts
 
       - name: Surface logs on failure
         if: failure()

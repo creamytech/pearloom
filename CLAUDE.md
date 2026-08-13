@@ -3,7 +3,27 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## The revamp is complete — 2026-08-13 (owner handoff)
+## One Surface shipped — 2026-08-13 (Sprint N complete)
+
+**`docs/COHESION-PLAN.md` is fully executed** (N.1–N.4 stamped in
+§5). The product now behaves like one app: inside it, navigation
+never reloads the document (`no-hard-navigation.test.ts` — the
+seven allowed window.location call sites are external Stripe/
+wallet + the gate cookie, each with a "hard on purpose" comment);
+zone-to-zone moves get THE one house transition — the weave cut
+(`components/shell/soft-navigation.tsx` + the ::view-transition
+CSS in globals.css: 180ms out / 240ms settle, native
+document.startViewTransition, no experimental flag); dashboard
+tab switches stay INSTANT (the (shell) "one page" law — cuts
+never fire inside the shell); reduced motion skips the transition
+entirely. `e2e/specs/cohesion.spec.ts` is the fence (in the
+staging-fence workflow). New chrome law for future sessions:
+internal navigation goes through <Link>/useSoftRouter — never
+window.location; new zone transitions extend the weave cut, never
+add bespoke ones. Named out of scope in plan §4: shared-element
+morphs (a future taste pass), experimental.viewTransition.
+
+**The revamp is complete — 2026-08-13 (owner handoff).**
 
 **`docs/REVAMP-EXECUTION-PLAN.md` is fully executed.** All ten
 sprints — W (wires), S (schema truth), G (guest loop), T (honest
