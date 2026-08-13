@@ -72,7 +72,13 @@ function deriveLocalChips(manifest: StoryManifest, existing: string[]): string[]
       push(`${eventYear - oldestChapterYear} years strong`);
     }
   } else if (eventYear) {
-    push(`Class of ${eventYear}`);
+    /* Occasion-routed (P.2/L67): "Class of" is graduation grammar —
+       it used to fire on EVERY occasion with a date, so a wedding's
+       story panel suggested a graduation chip. Only school-shaped
+       occasions get it; everyone else gets their year, plainly. */
+    const occ = (loose.occasion as string | undefined) ?? '';
+    if (occ === 'graduation') push(`Class of ${eventYear}`);
+    else push(`${eventYear}`);
   }
 
   /* Place — venue + place when both, else either. */

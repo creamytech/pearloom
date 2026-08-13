@@ -873,10 +873,19 @@ sprint closes every ledger item not consumed above.
 - **P.1 Dashboard batch:** budget empty-state copy (L56, with D.2's
   fence), kebab menu clip (L57 — done in W.2 if not earlier),
   weekend/registry/link nits remaining from L62–L64.
-- **P.2 Editor batch:** "Class of 2027" chip routed by occasion
-  (L67), ⌘K synonyms + platform-aware shortcut glyph (L69), Sealed
-  Arrival addressee position (L72), Pear degraded-mode guest copy in
-  host language (L74).
+- **P.2 Editor batch — SHIPPED 2026-08-13:** the "Class of" chip
+  fires only on graduation; every other occasion gets its year
+  plainly (L67). ⌘K indexes the Guests TOOL under
+  guest/list/invite/rsvp/people — searching "guest" no longer
+  routes hosts away from managing guests — and the trigger's glyph
+  is platform-aware (⌘K on Apple, Ctrl+K elsewhere, resolved
+  post-mount) (L69). The Sealed Arrival address line drops to
+  bottom:12, clearing the wax seal's disc instead of rendering
+  half behind it (L72). Pear's three degraded 503s stop saying
+  "isn't connected to a model on this server": the guest concierge
+  says "Pear is resting right now — your hosts can answer anything
+  you need"; the two host drafters say "Pear can't draft right now
+  — you can write this yourself, or try again later" (L74).
 - **P.3 Wizard batch:** RSVP-deadline suggestion copy matches the
   clamped date (L76), seeded-sections vs "unusual for this occasion"
   agreement (L78), occasion search catch-all → "Other event" (L79),

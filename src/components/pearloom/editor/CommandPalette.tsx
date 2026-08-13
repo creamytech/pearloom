@@ -131,6 +131,11 @@ export function CommandPalette({
     if (onOpenSettings)     out.push({ id: 'flow:settings',   label: 'Open settings',       hint: 'Site URL, privacy, account',         icon: 'section',   group: 'Flows', keywords: ['settings', 'account'],   run: onOpenSettings });
     if (onPublish)          out.push({ id: 'flow:publish',    label: 'Publish & share',     hint: 'Push the latest draft live',         icon: 'arrow-ur',  group: 'Flows', keywords: ['publish', 'share'],      run: onPublish });
     if (onTogglePreview)    out.push({ id: 'flow:preview',    label: 'Preview as a guest',  hint: 'See the site as guests will',        icon: 'eye',       group: 'Flows', keywords: ['preview', 'guest'],      run: onTogglePreview });
+    /* The Guests TOOL (P.2/L69): searching "guest" used to find only
+       the preview flow — the guest list itself wasn't indexed, so
+       the most likely novice query routed hosts away from managing
+       guests. design-jump opens its rail panel. */
+    out.push({ id: 'flow:guests', label: 'Manage guests', hint: 'Your guest list — add, import, invite', icon: 'users', group: 'Flows', keywords: ['guest', 'guests', 'list', 'invite', 'rsvp', 'people'], run: () => window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'guests' } })) });
     if (onOpenAskPear)      out.push({ id: 'flow:ask-pear',   label: 'Ask Pear (AI)',       hint: 'Rewrite, draft, suggest',            icon: 'sparkles',  group: 'Flows', keywords: ['ai', 'pear', 'rewrite'], run: onOpenAskPear });
     return out;
   }, [sections, manifest, onJumpSection, onPatchManifest, onOpenThemeShop, onOpenDecorLibrary, onOpenSettings, onPublish, onTogglePreview, onOpenAskPear]);

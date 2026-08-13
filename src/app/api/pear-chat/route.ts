@@ -504,7 +504,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'Pear isn\'t connected to a model on this server.' }, { status: 503 });
+    return NextResponse.json({ error: 'Pear is resting right now. Your hosts can answer anything you need — try the site\'s FAQ, or check back later.' }, { status: 503 });
   }
 
   let body: ChatRequest;

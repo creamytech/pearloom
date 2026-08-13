@@ -535,7 +535,11 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           }}
         >
           <Icon name="search" size={11} />
-          <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, letterSpacing: '0.02em' }}>⌘K</kbd>
+          {/* Platform-aware (P.2/L69): a Windows host reads ⌘ as
+              decoration. Resolved post-mount so SSR stays stable. */}
+          <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, letterSpacing: '0.02em' }}>
+            <PaletteShortcutGlyph />
+          </kbd>
         </button>
         {manifest && <GoLiveBadge manifest={manifest} />}
         {manifest && <EditModeNote manifest={manifest} />}
@@ -674,6 +678,24 @@ function dayOfWindowFor(
   const daysOut = Math.round((eventDay.getTime() - todayMs) / (1000 * 60 * 60 * 24));
   if (daysOut > 7 || daysOut < -1) return null;
   return { isLive: daysOut <= 0 && daysOut >= -1, daysOut };
+}
+
+/* The ⌘K / Ctrl+K glyph, resolved from the platform after mount
+   (P.2/L69). SSR renders the Mac glyph; non-Apple platforms swap
+   to Ctrl+K in the first client render. */
+function PaletteShortcutGlyph() {
+  const [label, setLabel] = useState('⌘K');
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        const apple = /Mac|iPhone|iPad|iPod/.test(navigator.platform ?? '')
+          || /Mac OS X/.test(navigator.userAgent ?? '');
+        if (!apple) setLabel('Ctrl+K');
+      } catch { /* keep the default */ }
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+  return <>{label}</>;
 }
 
 /* The honest edit-mode note (C.2/L19): a published site's editor

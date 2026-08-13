@@ -683,7 +683,13 @@ function EnvelopeArrival({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{
-                  position: 'absolute', left: 0, right: 0, bottom: 26,
+                  /* bottom 12, not 26 (P.2/L72): the wax seal's disc
+                     reaches y≈170 and the address line's top sat at
+                     ≈155 — "For you" rendered half behind the seal,
+                     reading as a z-index collision on the product's
+                     best guest beat. At 12 the line clears the seal
+                     by a few px and stays on the lower front face. */
+                  position: 'absolute', left: 0, right: 0, bottom: 12,
                   textAlign: 'center',
                   fontFamily: fontDisplay, fontStyle: 'italic',
                   fontSize: '1.12rem', color: ink,

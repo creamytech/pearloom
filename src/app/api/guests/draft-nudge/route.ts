@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'Pear isn\'t connected to a model on this server.' }, { status: 503 });
+    return NextResponse.json({ error: 'Pear can\'t draft right now. You can write the note yourself, or try again later.' }, { status: 503 });
   }
 
   let body: { siteId?: string; pendingCount?: number } = {};
