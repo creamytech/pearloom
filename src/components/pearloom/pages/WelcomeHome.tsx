@@ -375,11 +375,16 @@ export function WelcomeHome() {
   const solemn = occasion === 'memorial' || occasion === 'funeral';
 
   // Planning progress — done / in-progress / to-do off the ladder.
+  // Pear's un-accepted suggestions are EXCLUDED: progress measures
+  // what the host did, never what Pear proposed (T.2/L16 — the old
+  // math counted cadence presets, so "25% · 1 in progress" described
+  // an email nobody asked for).
   const progress = useMemo(() => {
-    const total = milestones.length || 1;
-    const done = milestones.filter((m) => m.status === 'done').length;
-    const prog = milestones.filter((m) => m.status === 'urgent' || m.status === 'next').length;
-    const todo = milestones.filter((m) => m.status === 'upcoming' || m.status === 'distant').length;
+    const own = milestones.filter((m) => !m.pearSuggested);
+    const total = own.length || 1;
+    const done = own.filter((m) => m.status === 'done').length;
+    const prog = own.filter((m) => m.status === 'urgent' || m.status === 'next').length;
+    const todo = own.filter((m) => m.status === 'upcoming' || m.status === 'distant').length;
     return { done, prog, todo, pct: Math.round((done / total) * 100) };
   }, [milestones]);
 

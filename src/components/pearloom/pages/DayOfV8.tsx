@@ -113,6 +113,7 @@ function DayOfHero({
   headline,
   nowLabel,
   nextLabel,
+  hasSchedule,
 }: {
   rsvps: number;
   visits: number;
@@ -129,6 +130,9 @@ function DayOfHero({
   nowLabel: string | null;
   /** The next scheduled event, when one follows the current one. */
   nextLabel: string | null;
+  /** Whether a run of show exists at all — drives the pre/post-day
+   *  framing of the "Right now" line (T.1). */
+  hasSchedule: boolean;
 }) {
   const now = useLiveClock();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -153,8 +157,8 @@ function DayOfHero({
         : daysUntil > 0
           ? `${daysUntil} DAY${daysUntil === 1 ? '' : 'S'} TO GO${dateBit}`
           : `AFTER THE DAY${dateBit}`;
-  // "Right now: …" — the current run-of-show line, honest when there
-  // is no schedule to read from yet.
+  // "Right now: …" — live ONLY on the day. Before it, a schedule
+  // reads as the rehearsal it is; after, the day is done (T.1/L15).
   const rightNow: React.ReactNode = nowLabel
     ? (
         <>
@@ -162,7 +166,11 @@ function DayOfHero({
           {nextLabel ? <> Next up, {nextLabel}.</> : null}
         </>
       )
-    : 'Add your run of show and the day will keep its own time here.';
+    : hasSchedule && daysUntil !== null && daysUntil > 0
+      ? 'A rehearsal of your run of show — it keeps real time when the day arrives.'
+      : hasSchedule && daysUntil !== null && daysUntil < 0
+        ? 'The day has run its course.'
+        : 'Add your run of show and the day will keep its own time here.';
   const metrics: [label: string, value: string, sub: string | null][] = [
     ['RSVPs in', totalGuests && totalGuests > 0 ? `${rsvps}/${totalGuests}` : String(rsvps), rsvps === 0 ? 'awaiting first reply' : `${rsvps} responded`],
     ['Visits today', String(today), today === 0 ? 'nothing yet today' : 'since midnight'],
@@ -230,7 +238,17 @@ function parseTimeToMinutes(t: string): number | null {
   return h * 60 + mm;
 }
 
-function deriveStatuses(items: { time: string }[]): TimelineItem['status'][] {
+function deriveStatuses(
+  items: { time: string }[],
+  dayState: 'before' | 'day' | 'after',
+): TimelineItem['status'][] {
+  /* The wall clock only speaks ON the day. Months early, the old
+     code marked the 4:30 Ceremony "done" with a green check because
+     it was 6pm TODAY — a simulated live wedding beside "304 DAYS TO
+     GO" (T.1/L15). Before the day everything is 'later' (a
+     rehearsal); after it, everything is 'done'. */
+  if (dayState === 'before') return items.map(() => 'later');
+  if (dayState === 'after') return items.map(() => 'done');
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const withIdx = items.map((it, i) => ({ i, min: parseTimeToMinutes(it.time) ?? -1 }));
@@ -1621,7 +1639,9 @@ export function DayOfV8() {
       d: e.description ?? undefined,
       status: 'later' as const,
     }));
-    const statuses = deriveStatuses(mapped);
+    const dayState: 'before' | 'day' | 'after' =
+      daysUntil === null || daysUntil > 0 ? 'before' : daysUntil === 0 ? 'day' : 'after';
+    const statuses = deriveStatuses(mapped, dayState);
     return mapped.map((it, i) => ({ ...it, status: statuses[i] }));
   })();
 
@@ -1700,6 +1720,7 @@ export function DayOfV8() {
           headline={headline}
           nowLabel={nowLabel}
           nextLabel={nextLabel}
+          hasSchedule={events.length > 0}
         />
 
         {/* Run the day — the run of show anchors the page; the call

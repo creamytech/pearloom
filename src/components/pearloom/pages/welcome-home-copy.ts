@@ -52,6 +52,11 @@ export interface Milestone {
   sub: string;
   status: MilestoneStatus;
   urgency: 'urgent' | 'soon' | 'on-track';
+  /** True for rows that are Pear's un-accepted suggestions (cadence
+   *  presets). They ride the road as "Pear suggests" but NEVER count
+   *  in the host's planning-progress numbers — progress measures
+   *  what the host did, not what Pear proposed (T.2/L16). */
+  pearSuggested?: boolean;
 }
 
 /* Which planning ladder an occasion walks. The wedding pacing
@@ -183,12 +188,13 @@ export function buildMilestones({
       const urgent = ph.status === 'scheduled' && daysToDue <= 7;
       out.push({
         date: daysToDue <= 0 ? 'Now' : dateLabel,
-        label: ph.label,
+        label: ph.status === 'preset' ? `Pear suggests: ${ph.label}` : ph.label,
         sub: ph.status === 'scheduled'
           ? (daysToDue <= 0 ? 'sending today' : `sends in ${daysToDue} day${daysToDue === 1 ? '' : 's'}`)
-          : ph.status === 'draft' ? 'drafted, approve to schedule' : 'suggested by Pear',
+          : ph.status === 'draft' ? 'drafted, approve to schedule' : 'take it or leave it',
         status: urgent ? 'urgent' : isFirstOpen ? 'next' : 'upcoming',
         urgency: urgent ? 'urgent' : isFirstOpen ? 'soon' : 'on-track',
+        pearSuggested: ph.status === 'preset',
       });
     }
     if (eventDateShort) {
