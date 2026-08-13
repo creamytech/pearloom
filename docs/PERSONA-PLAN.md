@@ -831,7 +831,23 @@ Testing begins when every line is true. Check them off in place.
       reaches Review, RSVP modal opens on tap 1 on both (shots:
       `sweep-se-rsvp.png`, `sweep-android-review.png`)
 - [ ] Staging environment testers can safely break (never prod) —
-      owner action
+      the RECIPE is no longer the blocker: Sprint S.2 (2026-08-12)
+      productized the full migrations-built staging stack (empty
+      postgres:16 → `npm run db:migrate` → the pearlrest emulator →
+      the real app; `scripts/staging/README.md`), and CI rebuilds it
+      on every PR. What remains is the owner hosting one reachable
+      instance for testers
+
+**Re-armed 2026-08-13 (REVAMP Sprint D.5).** The gate above is
+stronger than when it was written: Sprint G made the guest flows
+honest end-to-end (preset-true RSVP, durable replies, the
+phone-first passport), Sprint W's `critical-journey.spec.ts` walks
+the whole recruit journey in CI, and the `activation_funnel` view
+now measures the agreed north star (published + ≥10 guests + ≥1
+invitation sent + ≥1 response — `20260813_activation_north_star.sql`),
+so in-session conversion reads off the same ladder the product
+tracks. Still open before recruiting: the one-week client-error
+baseline window and the hosted staging instance above.
 
 **The protocol (how a session runs):**
 Recruit 5–6 per persona archetype (30–36 total; Denise's archetype is

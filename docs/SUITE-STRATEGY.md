@@ -38,7 +38,7 @@ card — all visibly the same made object.
 | OG cards (`/api/og`) | Edition-aware, 28 occasion labels, dynamic Google-font loading. |
 | Email theming (`lib/email-sequences.ts`) | Heading/body font + email-safe palette derivation. |
 | Branded QR (SharePanel) | Monogram-overlaid QR, tone/shape options. |
-| Print (`/api/print/checkout`, Lob) | Physical mail rail, payment-gated as of 2026-06-09: retail pricing + legacy credit + Stripe Checkout before any Lob submission. |
+| Print — **RETIRED 2026-07-08** | The Lob rail and `/api/print/checkout` were deleted end-to-end (ATELIER-PLAN §1; `no-physical-promises.test.ts` fences the copy). Print-at-home PDFs are the only print story. |
 | Guest passport (`/g/[token]`) | Per-guest identity, personalized greeting, contributions. |
 | Catalog | 70 packs · 10 kits · 36 motifs · 20 monogram frames · 19 faces. |
 
@@ -143,20 +143,30 @@ The form already inherits site vars. What's missing is the
   hosts to post. Zero marginal design effort once the Suite
   renderer exists.
 
-## 7 · Print: where the money is
+## 7 · Print — RETIRED 2026-07-08 (owner decision; kept for the record)
 
-Zola's paper is the business; ours can be too, with a structural
-cost advantage (no design catalog to license — the suite renderer
-emits print PDFs from the same contract):
+**This section is dead strategy.** Pearloom Print was deleted
+end-to-end on 2026-07-08 (ATELIER-PLAN §1; owner call: no physical
+anything) — the Lob rail, `/api/print/checkout`, the print SKUs,
+the plan credits, and the pricing promise are all gone, and
+`src/lib/no-physical-promises.test.ts` fences the copy so they
+can't return. Print-at-home / press-ready PDF is the only print
+story ("Pearloom presses the artwork; your printer presses the
+paper"). The original text is preserved below only so the record
+of the bet stays legible — do not build from it.
 
-- Studio already has print preview; Lob rail exists for mailing.
-- **SKUs**: printed save-the-dates, invites + RSVP cards, day-of
-  set (programs/menus/place cards — the Tasting Menu kit IS a menu
-  design system already), thank-you cards using the stylized art.
-- **Plan hooks** (extends MONETIZATION.md): digital suite included
-  with Atelier; Legacy includes a print credit; à-la-carte print
-  for everyone. "Matching paper, pressed from your site, mailed
-  for you" — one tap from the editor.
+> Zola's paper is the business; ours can be too, with a structural
+> cost advantage (no design catalog to license — the suite renderer
+> emits print PDFs from the same contract):
+>
+> - Studio already has print preview; Lob rail exists for mailing.
+> - **SKUs**: printed save-the-dates, invites + RSVP cards, day-of
+>   set (programs/menus/place cards — the Tasting Menu kit IS a menu
+>   design system already), thank-you cards using the stylized art.
+> - **Plan hooks** (extends MONETIZATION.md): digital suite included
+>   with Atelier; Legacy includes a print credit; à-la-carte print
+>   for everyone. "Matching paper, pressed from your site, mailed
+>   for you" — one tap from the editor.
 
 ## 8 · Build order (each phase ships value alone)
 
@@ -167,7 +177,7 @@ emits print PDFs from the same contract):
 | 3 | Pear's proof sheet: stylize-style expansion (pack-keyed prompts) + composition pass + Studio "six proofs" entry | 2–3 sessions |
 | 4 | RSVP confirmation flourish + passport theming | 1 session |
 | 5 | Share kit (pre-sized themed images) + QR poster sizes | 1 session |
-| 6 | Print SKUs: Lob checkout + retail pricing + legacy credit — **✅ shipped 2026-06-09** (`/api/print/checkout` + `print_order_intents` + Stripe webhook fulfillment; prices in MONETIZATION.md §6). PDF suite renderer still pending. | 2–3 sessions |
+| 6 | ~~Print SKUs~~ — **RETIRED 2026-07-08** with §7: the Lob checkout it shipped on 2026-06-09 was deleted end-to-end (ATELIER-PLAN §1). The press-ready PDF renderer survived and shipped as StudioPressSheet. | — |
 
 ## 9 · Why this wins
 
@@ -179,5 +189,6 @@ emits print PDFs from the same contract):
    unified enough to promise this.
 3. **Speed** — Zola: browse 500 templates. Pearloom: "Pear pressed
    six proofs from your photos" in 30 seconds.
-4. **A real margin business** at the end (print) that the digital
-   coherence funnels into naturally.
+4. ~~A real margin business at the end (print)~~ — **void with §7's
+   retirement (2026-07-08)**: the win list is three items now; the
+   digital coherence is the product, not a funnel to paper.

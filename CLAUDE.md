@@ -5,65 +5,49 @@
 
 ## Active focus
 
-**Sprint C — ONE PRESSING** (`docs/REVAMP-EXECUTION-PLAN.md` §9).
-Sprints W, S, G, T, M, V, and A all shipped in full 2026-08-12/13 —
-every block stamped in the plan doc. A closed the phone+access
-pass: the Basics-grid crush (an implicit-column ghost from span-2
-children), hero mid-word breaks (one CSS rule across nine
-variants), the suite-card formatter (`lib/suite-card.ts` — humane
-dates + contrast-floored card ink + palette-var AA floors at the
-source), the keyboard/SR batch, and `phone-access.spec.ts` in the
-staging fence. L100/L109/L73 verified already-fixed live.
+**Sprint D — DOCS TRUTH** (`docs/REVAMP-EXECUTION-PLAN.md` §11).
+Sprints W, S, G, T, M, V, A, C, and P are ALL stamped SHIPPED in
+the plan doc (2026-08-12/13) — P closed 2026-08-13 with the P.3
+wizard batch (entry-time plan limits via /api/store/entitlements
+sites headroom, occasion-ordered vibe chips, honoree-shaped
+Opening panel, the Studio's own monogram in the mark tray) and
+the P.4 plate press (public/plates/plate-01..12.jpg replace all
+36 Unsplash hotlinks; lib/photo-plates.ts; the unsplash
+remotePattern deleted; no-stock-hotlinks.test.ts is the fence).
+C.5's 100% rollout stays flagged by design (funnel metrics).
 
-Goal: dissolve the wizard→editor seam — the highest-ceiling
-structural bet (R1; RADICAL-DESIGN §D's named remaining rebuild),
-done after W–A de-risked it.
+Goal: the docs stop teaching drift — every correction anchored to
+what the code actually does today.
 
-**C.1, C.2, C.3, C.4, C.6 SHIPPED 2026-08-13** (stamps in plan §9):
-the demo-ink law (composeVenuePlaceLine + DemoInkTab, fenced); the
-truthful editing model (live/staged editMode, published_manifest
-snapshot serving via servedManifestFor, staged walk in the matrix
-fence); one readiness system (the rail bar derives from
-buildPublishChecks and opens the checklist); receipts
-(wizardFactDestinations — "Your parking note → the Travel
-section", fenced in wizard-seed.test.ts); managed addresses
-(/api/sites/rename + site_redirects 301 forwarding +
-SiteAddressEditor in the Share panel, verified live).
+Open threads: D.1 CLAUDE-DESIGN.md corrected (§5 stops teaching
+the retired "Nothing yet. Begin a thread." key — L44; the §1-vs-
+§3.3 theme-count contradiction fixed against themes.ts; §12
+verified to carry the S.4 migration discipline; §16 debt list
+refreshed against the revamp) · D.3 doc reconciliation
+(MONETIZATION §2 ladder vs its own Enforcement table vs
+PLAN_LIMITS on free sites + AI generations — L87; MONETIZATION §8
+vs DECISIONS-2026-08-04 on unit economics + price-testing — L88;
+DECISIONS §1 "written but not applied" vs its own summary
+"APPLIED" on the referral ledger — L91; SUITE-STRATEGY §7 print +
+FOLLOW-UPS §H stamped RETIRED — L89) · D.4 the activation funnel
+upgraded to the agreed north star (published + guest threshold +
+≥1 invitation sent + ≥1 response; the shipped view computes only
+published AND ≥1 attending RSVP — L48; the invite-delivery stage
+lands with O.1) · D.5 PERSONA-PLAN §5 readiness gate refreshed
+(staging item → S.2; the mass-testing protocol re-armed on G).
 
-**C.5 increments 1–2 SHIPPED 2026-08-13** (recorded in plan §9):
-the `onePressing` flag (lib/one-pressing.ts, resolution order
-pinned) and the merged surface's first working cut
-(pages/OnePressing.tsx behind ?press=one — ThemedSite proof mode
-pressing live behind a floating glass prompt card, same idempotent
-pressKey path, same 401/402 contracts; one-pressing.spec.ts in the
-staging fence). C.5's 100% rollout gates on funnel metrics that
-need real traffic — BY DESIGN it stays flagged and open while
-Sprint P runs; its named next increments (in-place editor mount,
-photos/palette as canvas prompts, chrome fade-in, the metrics
-comparison) are in the plan stamp.
+Already done: D.2 — `src/lib/brand-retired-copy.test.ts` shipped
+inside P.1 with the sweep; stamp it in §11 and move on.
 
-Now running: **Sprint P — THE POLISH LEDGER** (plan §10; each row
-small and evidence-anchored). Open threads: P.1 dashboard batch
-(L56 budget empty-state uses the retired "Nothing yet. Begin a
-thread." — fix + fence with D.2; L62–L64 weekend/registry/link
-nits) · P.2 editor batch (L67 "Class of 2027" chip routed by
-occasion; L69 ⌘K synonyms + platform-aware shortcut glyph; L72
-Sealed Arrival addressee position; L74 Pear degraded-mode guest
-copy in host language) · P.3 wizard batch (L76 RSVP-deadline
-suggestion copy matches the clamped date; L78 seeded-sections vs
-"unusual" agreement; L79 occasion search catch-all; L80 memorial
-Opening honoree-shaped fields; L81 plan-limit at wizard ENTRY; L82
-vibe chips occasion-ordered; walk F5 Studio monogram) · P.4
-landing batch (L95 "Pear's promise" said in place; Unsplash
-hotlinks → self-hosted).
+Counts as done: every named contradiction fixed IN the doc it
+lives in, with the code (not another doc) as the cited authority;
+D.4's view migration authored + applied locally + queued for prod
+like every other pending apply.
 
-Counts as done: every ledger row fixed with its evidence re-checked
-(the finding's exact repro no longer reproduces), retired-copy
-fixes fenced per ground rule 3.
-
-Skip: Sprint D rows not touched by a P fix; C.5's remaining
-increments (return when funnel data accrues); the eight pending
-prod MCP applies (owner re-auth — plan §3 S.1).
+Skip: L90 (dead prod `referrals` table — owner/prod action, can't
+drop from here; record it in §3 instead); L92 (the surface census
+is a §12 market bet, not a D row); the eight pending prod MCP
+applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**

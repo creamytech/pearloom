@@ -49,10 +49,14 @@ features, which would cannibalise the thing we sell.
 
 ### Status
 
-The policy is implemented and tested (`lib/referral-reward.ts`). The
-**ledger table is written but not applied** — `supabase/migrations/
-20260804_referral_credits.sql` needs an MCP apply. Until then
-`grantReferralCredit` degrades to a no-op and logs, so nothing breaks.
+The policy is implemented and tested (`lib/referral-reward.ts`), and
+the ledger migration (`supabase/migrations/20260804_referral_credits.sql`)
+**is applied to prod** — the summary table below had this right all
+along; this paragraph was the stale pre-apply draft (audit L91), and
+Sprint S.1's full prod↔migrations diff (2026-08-12) confirmed
+`referral_credits` live in prod. `grantReferralCredit` still degrades
+to a no-op with a log line wherever the table is unreachable, so
+nothing breaks in a cold environment.
 
 ---
 

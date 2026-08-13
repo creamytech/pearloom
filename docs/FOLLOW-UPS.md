@@ -233,7 +233,7 @@ The backend is done + live (`participants`/`expenses`/`expense_shares`, the
 - Move the Google Photos scope out of sign-in → request at photo-pick time.
 - Un-bury Cadence; trim the cockpit (TheLongView / CockpitBlessing / fake ChecklistCard);
   rename `/dashboard/profile` → `/dashboard/settings` with a redirect.
-- Fix the Studio→Print artwork seam (push artwork straight into a print batch).
+- ~~Fix the Studio→Print artwork seam~~ — **VOID 2026-07-08**: Pearloom Print was deleted end-to-end (ATELIER-PLAN §1); there is no print batch to push into.
 - Collapse the three nav registries into one; delete `/dashboard/tools`; occasion-gate
   the sidebar.
 - Fix the landing↔renderer kit-id drift (`sk-mat-*`/`data-kit` demo CSS vs the real

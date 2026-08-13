@@ -247,10 +247,11 @@ it forever. (H5b, L9, L90; REVIEW-SYNTHESIS §1.1 item 8 closed.)
     `20260812_guest_spine_merge.sql` +
     `20260813_published_snapshot.sql` (the C.2 staged-editing
     snapshot column) + `20260813_site_redirects.sql` (the C.6
-    address-forwarding table — eight now). Also pending: a prod
-    unique-index dump to diff against migrations (tables/columns
-    are verified clean; indexes were verified for the RSVP-critical
-    pair only).
+    address-forwarding table) +
+    `20260813_activation_north_star.sql` (the D.4 funnel view
+    upgrade — nine now). Also pending: a prod unique-index dump to
+    diff against migrations (tables/columns are verified clean;
+    indexes were verified for the RSVP-critical pair only).
 - **S.2 The staging CI gate. — SHIPPED 2026-08-12.** The emulator
   productized at `scripts/staging/pearlrest.mjs` (env-driven config,
   `.data/` scratch, README) with `scripts/staging/migrate.mjs` as
@@ -935,23 +936,55 @@ sprint closes every ledger item not consumed above.
 
 Run early-parallel (D.1–D.2 with Sprint W; the rest with M).
 
-- **D.1** CLAUDE-DESIGN.md corrected: §5 stops teaching the retired
-  copy (L44), theme count fixed, §12 gains the S.4 migration
-  discipline, §16 debt list refreshed against this plan.
-- **D.2** The §7 fence: `brand-retired-copy.test.ts` — "basted in",
-  "Begin a thread." and future retirements fail CI in any user-facing
-  string (L21, L43, L56, L77). Sweep all current occurrences
-  (bastings.ts, ThreeActsStage "BLOCKS · BASTED IN", music dashboard,
-  BastedIn.tsx naming can stay internal).
-- **D.3** Doc reconciliation: MONETIZATION↔DECISIONS contradictions
-  (L88, L91), the three drifted numbers (L87), print leftovers stamped
-  RETIRED in SUITE-STRATEGY §7 and FOLLOW-UPS §H (L89).
-- **D.4** The activation funnel upgraded to the agreed north star —
-  published + guest threshold + invitation sent + response — and an
-  invite-delivery stage added the moment O.1 lands (L48).
-- **D.5** PERSONA-PLAN §5's readiness gate refreshed: the staging item
-  now points at S.2; the mass-testing protocol re-armed once Sprint G
-  ships.
+- **D.1 — SHIPPED 2026-08-13.** CLAUDE-DESIGN.md corrected against
+  the code: §5 stops teaching the retired "Nothing yet. Begin a
+  thread." key and instead names the clarity-first law + the
+  `brand-retired-copy.test.ts` fence (L44); the §1 table's "6 named
+  themes" now matches §3.3's 10 (themes.ts counted — the registry
+  is the authority); §12 already carried the S.4 migration
+  discipline (verified, no edit needed); §16's debt list refreshed
+  to 2026-08-13 (story-drafting item updated for W.11's verbatim
+  seeding, C.5's flag and the nine pending prod applies added as
+  live debt).
+- **D.2 — SHIPPED 2026-08-13 (inside P.1).**
+  `src/lib/brand-retired-copy.test.ts`: "Begin a thread" is
+  zero-tolerance in src; "basted in" is whitelisted only to
+  bastings.ts (internal name) + the pear-chat prompt that INSTRUCTS
+  against it. The P.1 sweep fixed all six live occurrences (budget,
+  music dashboard, circle ×2, DashShell, signup metadata, the
+  welcome-email CTA).
+- **D.3 — SHIPPED 2026-08-13.** L87 + L88's MONETIZATION side had
+  already been reconciled by M.7 (the ladder says 2/10/Unlimited,
+  the AI-generations row matches PEAR_MONTHLY_LIMIT, §8 cites
+  DECISIONS §5's "modelled and fine" and "do not price-test yet" —
+  all fence-pinned by pricing-agreement.test.ts). Closed here: L91
+  — DECISIONS-2026-08-04 §1's "written but not applied" status
+  paragraph corrected (the summary row was right; S.1's prod diff
+  confirmed referral_credits live) — and L89: SUITE-STRATEGY §7
+  print stamped RETIRED (original text preserved as a quoted
+  record), its §1 table row and build-order Phase 6 and "why this
+  wins" #4 struck, and FOLLOW-UPS §H's Studio→Print seam item
+  marked VOID.
+- **D.4 — SHIPPED 2026-08-13 (local; prod apply queued).**
+  `20260813_activation_north_star.sql` replaces activation_funnel
+  with the agreed ladder (REVIEW-SYNTHESIS §1.10): guest_count /
+  reached_guest_threshold (≥10) / sent_invitation
+  (guests.email_sent_at) / received_response (responded_at, any
+  status — a decline is a response); activated = published ∧ ≥10
+  guests ∧ invitation sent ∧ ≥1 response; activated_within_14d
+  follows the new bar; received_first_rsvp kept for dashboard
+  continuity. Applied locally (view smoke-tested over sim data,
+  stage flags correct); queued as the ninth pending prod apply in
+  §3. The invite-DELIVERY stage (first_invite_delivered_at) is
+  deliberately deferred to O.1 — no per-guest delivery stamp exists
+  until the email webhook lands.
+- **D.5 — SHIPPED 2026-08-13.** PERSONA-PLAN §5 refreshed: the
+  staging checklist item now points at the S.2 migrations-built
+  stack (the recipe exists; hosting an instance remains the owner
+  half), and the gate carries a re-arm note — G's honest guest
+  flows, W's critical-journey CI walk, and D.4's north-star view
+  are in place; still open before recruiting: the one-week
+  client-error baseline and the hosted staging instance.
 
 ---
 

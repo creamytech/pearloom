@@ -26,7 +26,7 @@
 | Editor↔server bridge | `src/components/pearloom/redesign/bridge.ts` | Autosave (2s debounce → `POST /api/sites`), undo/redo, publish, `beforeunload` sendBeacon flush, base64 strip. |
 | Manifest backfill | `src/components/pearloom/redesign/hydrate-manifest.ts` | Backfills redesign fields (themeId via nearest-accent match, edition recommendation, themeVars) onto pre-redesign manifests. Idempotent, never mutates input. |
 | Wizard | `src/components/pearloom/pages/WizardV8.tsx` | 8 steps → instant local manifest (~1s, no AI at finish). See §8. |
-| Theme catalog (`--t-*` bag) | `src/components/pearloom/site/themes.ts` | 6 named themes; `getTheme(id)`. See §3.3. |
+| Theme catalog (`--t-*` bag) | `src/components/pearloom/site/themes.ts` | 10 named themes; `getTheme(id)`. See §3.3 (the count there is the same on purpose — if they ever disagree, count the registry). |
 | Theme packs / store | `src/lib/theme-store/packs.ts` + `apply.ts`, `src/components/pearloom/store/` | Purchasable packs; `applyPackToManifest`; entitlements via `useEntitlements` (localStorage `pl-store-owned`). |
 | Look fields (kit/texture/density/motifs) | `src/lib/site-look/` | `wizard-look.ts` (applyWizardLook + themeVarsFromPalette), `look-recipes.ts` (wizard's 3 looks), `motif-layouts.ts`. |
 | Site Editions (read-time defaults) | `src/lib/site-editions/` | `recommendEdition` by occasion/voice. Never written to the manifest by the resolver. |
@@ -134,7 +134,7 @@ Under `src/components/brand/`: **`<Thread />`** (dividers), **`<WeaveLoader />`*
 
 The motifs/glyph language for product surfaces lives in `src/components/pearloom/motifs.tsx` (Pear, Sparkle, AmbientSprig, PearlDot, PearloomLogo…) and `pearloom/avatars.tsx` (the 12 orchard account marks).
 
-BRAND.md §7 microcopy rules apply everywhere: "Threading…" not "Loading…", "drafted by Pear" not "AI-generated", `<EmptyState />` copy in the "Nothing yet. Begin a thread." key.
+BRAND.md §7 microcopy rules apply everywhere — and §7's governing rule since 2026-07-08 is **clarity first**: plain words on every control, empty state, error, and instruction; the craft verb only in designed moments. "Drafted by Pear", never "AI-generated". The retired vocabulary ("Begin a thread", "basted in") is fenced by `src/lib/brand-retired-copy.test.ts` — if a phrase is retired in BRAND §7, add it to that fence, don't just delete it. (An earlier revision of this paragraph taught the pre-2026-07-08 empty-state key verbatim; that's exactly the drift the fence now catches — L44.)
 
 ---
 
@@ -295,11 +295,13 @@ Before resurrecting anything from git history, ask whether the redesign equivale
 
 ---
 
-## 16 · Active debt (2026-07-08)
+## 16 · Active debt (2026-08-13)
 
 1. **`pearloom.css` is 9.2k lines** — per-kit/texture/edition CSS. **The dead-selector sweep is DONE** (2026-08-04): 70 classes with no consumer anywhere are gone, verified against the built tree, via `scripts/css-dead-audit.mjs` (re-runnable; `--write` applies). It removed 172 lines, not the ~1,200 the audit predicted — most dead selectors were single entries in shared lists, not standalone blocks. So the file is *clean*, not *small*: what remains is live per-kit/texture/edition CSS, and shrinking it further means cutting features, not sediment. See `docs/CSS-DEAD-SELECTOR-AUDIT.md` §5–6.
-2. **Story drafting in the editor** — the wizard no longer drafts story content; the editor's "draft my story from these photos/facts" flow is the named successor (the factSheet + eventDetails already ride the manifest for it).
-3. **`user_preferences.intent`** (onboarding) prefills the wizard occasion, but nothing else reads it yet.
+2. **Pear's story rewrite in the editor** — since W.11 (2026-08-12) the wizard seeds the story section from `factSheet.story` VERBATIM ("in your words", no AI at press); Pear's rewrite is the editor-side upgrade and stays on-demand. The remaining debt is discoverability: nothing in the editor points a host with photos-but-no-story at the draft flow.
+3. **`user_preferences.intent`** (onboarding) prefills the wizard occasion (and the Welcome name prefills Basics), but nothing else reads intent yet.
+4. **C.5 (one pressing) is flagged, not landed** — `lib/one-pressing.ts` + `pages/OnePressing.tsx` behind `?press=one`; the 100% rollout gates on funnel metrics (REVAMP plan §9). Don't build on the classic wizard/editor seam without checking whether C.5's remaining increments land first.
+5. **Eight migrations are applied locally but pending prod** (owner MCP re-auth) — the list lives in REVAMP plan §3 S.1. New code must not assume those tables/columns exist in prod until the applies land.
 
 **Cleared 2026-07-08** (were items 1-3): the CommandPalette
 chrome-token violations, the PLChrome render-rule error, and the
