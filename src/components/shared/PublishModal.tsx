@@ -89,6 +89,14 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   const [gatePw, setGatePw] = useState(
     ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? ''),
   );
+  /* The editing model after publish (C.2/L19): every edit used to go
+     live to guests in ~2 seconds with no warning and no draft state.
+     The host now chooses — and either way the editor says what's
+     happening out loud. */
+  const [editMode, setEditMode] = useState<'live' | 'staged'>(() => {
+    const m = (manifest as unknown as { editMode?: string }).editMode;
+    return m === 'staged' ? 'staged' : 'live';
+  });
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unlockBusy, setUnlockBusy] = useState(false);
@@ -165,6 +173,9 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
       publishedAt: new Date().toISOString(),
       visibility: privacy,
       privacyGate: privacy === 'password' ? { password: gatePw.trim() } : undefined,
+      // The chosen editing model (C.2) — publishSite stamps or clears
+      // the published_manifest snapshot from this field.
+      editMode,
     } as StoryManifest;
     try {
       const res = await fetch('/api/sites/publish', {
@@ -292,6 +303,19 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
                   style={{ padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13.5, fontFamily: 'inherit', outline: 'none' } as CSSProperties}
                 />
               )}
+            </div>
+
+            <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '16px 0 8px' }}>Edits after publishing</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {([
+                ['live', 'Go live as you save', 'Guests see your changes within seconds'],
+                ['staged', 'Wait for your OK', 'Keep editing privately, then press "Update site" when it’s ready'],
+              ] as const).map(([v, t, s]) => (
+                <button key={v} onClick={() => setEditMode(v)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', borderRadius: 11, textAlign: 'left', cursor: 'pointer', background: editMode === v ? 'var(--cream-2)' : 'var(--card)', border: editMode === v ? '2px solid var(--ink)' : '1px solid var(--line)' } as CSSProperties}>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 600 }}>{t}</div><div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{s}</div></div>
+                  {editMode === v && <Icon name="check" size={15} color="var(--ink)"/>}
+                </button>
+              ))}
             </div>
             {error && <div role="alert" style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--pl-plum-mist)', border: '1px solid var(--pl-plum)', color: 'var(--pl-plum)', fontSize: 12.5, fontWeight: 600 } as CSSProperties}>{error}</div>}
             {/* The URL half may truncate; the verb may not. At 390px the

@@ -458,6 +458,13 @@ export interface StoryManifest {
    *  the state from the legacy flags (published, privacyGate,
    *  comingSoon, the occasion's privateByDefault). */
   visibility?: 'draft' | 'link-only' | 'public' | 'password';
+  /** The editing model for a PUBLISHED site (C.2 —
+   *  lib/site-visibility.ts readEditMode). 'live' (default):
+   *  autosaves serve to guests as they land — the pre-C.2 behavior,
+   *  now said out loud in the editor. 'staged': guests see the
+   *  sites.published_manifest snapshot; edits accumulate in the
+   *  working manifest until the host presses "Update site". */
+  editMode?: 'live' | 'staged';
   /** Tribute wall section (SectionKind 'tributeWall') host config —
    *  written by the editor's TributeWallPanel.
    *  - prompt: composer line ("Share a memory"); unset falls back

@@ -198,3 +198,57 @@ test.describe('the visibility matrix', () => {
     }
   });
 });
+
+test.describe('the staged-editing model (C.2)', () => {
+  test('a staged site serves the snapshot; the draft never leaks; Update releases it', async ({ request, browser }) => {
+    test.setTimeout(180_000);
+    const stamp = Date.now().toString(36);
+    const slug = `fence-staged-${stamp}`;
+    const base = (tagline: string) => ({
+      occasion: 'wedding',
+      names: ['Ana', 'Ben'],
+      logistics: { date: '2027-06-12', venue: 'Staged Hall' },
+      tagline,
+      published: true,
+      publishedAt: new Date().toISOString(),
+      visibility: 'public',
+      editMode: 'staged',
+    });
+
+    const created = await request.post('/api/sites', {
+      data: { create: true, pressKey: `stg-${stamp}-abcdef12`, subdomain: slug, names: ['Ana', 'Ben'], manifest: base('the first pressing') },
+    });
+    expect(created.ok()).toBeTruthy();
+    const finalSlug = (await created.json()).subdomain as string;
+
+    try {
+      // Publish v1 (stamps the snapshot), then autosave a private edit.
+      expect((await request.post('/api/sites/publish', {
+        data: { subdomain: finalSlug, names: ['Ana', 'Ben'], manifest: base('the first pressing') },
+      })).ok()).toBeTruthy();
+      expect((await request.post('/api/sites', {
+        data: { subdomain: finalSlug, names: ['Ana', 'Ben'], manifest: base('EDITED IN PRIVATE') },
+      })).ok()).toBeTruthy();
+
+      const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+      const page = await anon.newPage();
+      await page.goto(`/sites/${finalSlug}`, { waitUntil: 'domcontentloaded' });
+      await expect
+        .poll(async () => page.evaluate(() => document.body.innerText), { timeout: 20_000 })
+        .toContain('the first pressing');
+      expect(await page.evaluate(() => document.body.innerText)).not.toContain('EDITED IN PRIVATE');
+
+      // "Update site" releases the draft.
+      expect((await request.post('/api/sites/publish', {
+        data: { subdomain: finalSlug, names: ['Ana', 'Ben'], manifest: base('EDITED IN PRIVATE') },
+      })).ok()).toBeTruthy();
+      await page.goto(`/sites/${finalSlug}`, { waitUntil: 'domcontentloaded' });
+      await expect
+        .poll(async () => page.evaluate(() => document.body.innerText), { timeout: 20_000 })
+        .toContain('EDITED IN PRIVATE');
+      await anon.close();
+    } finally {
+      await deleteSite(request, finalSlug);
+    }
+  });
+});

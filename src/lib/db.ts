@@ -85,7 +85,7 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('sites')
-    .select('site_config, ai_manifest, theme_override')
+    .select('site_config, ai_manifest, theme_override, published_manifest')
     .eq('subdomain', subdomain)
     .single();
 
@@ -94,7 +94,13 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   // Re-assemble the standard template payload with dynamic overrides
   const baseConfig: SiteConfig = data.site_config as SiteConfig;
   baseConfig.manifest = data.ai_manifest;
-  
+  /* Staged-editing snapshot (C.2) — rides along so the PUBLIC site
+     routes can serve it via servedManifestFor(). Everything else
+     (editor, dashboards, APIs) keeps reading `manifest`, the
+     working copy. Loose-keyed: SiteConfig is a stored JSON shape. */
+  (baseConfig as unknown as Record<string, unknown>).publishedManifest =
+    data.published_manifest ?? null;
+
   if (data.theme_override) {
     baseConfig.theme = data.theme_override;
   }
@@ -302,10 +308,19 @@ export async function publishSite(
       // stored pair. createdAt is preserved too (a re-publish is
       // not a re-creation; this used to stamp it fresh every time).
       const existingConfig = (existing.site_config as Record<string, unknown>) || {};
+      /* Staged-editing snapshot (C.2): in staged mode, THIS publish
+         is the exact thing guests see until the next "Update site" —
+         stamp it. In live mode the snapshot must be NULL so the
+         public routes serve the working copy (and switching staged →
+         live clears a stale snapshot). */
+      const { readEditMode } = await import('@/lib/site-visibility');
+      const publishedSnapshot =
+        readEditMode(manifest as StoryManifest) === 'staged' ? manifest : null;
       const { error } = await supabase
         .from('sites')
         .update({
           ai_manifest: manifest,
+          published_manifest: publishedSnapshot,
           creator_email: normalizedUserId,
           // The column five features filter on (.eq('published', true):
           // sibling strip, celebration timeline, anniversary cron,
@@ -338,11 +353,15 @@ export async function publishSite(
     }
 
     // New site — insert
+    const { readEditMode: readMode } = await import('@/lib/site-visibility');
     const { error } = await supabase
       .from('sites')
       .insert({
         subdomain: subdomain.toLowerCase(),
         ai_manifest: manifest,
+        // Same staged-snapshot rule as the update path above (C.2).
+        published_manifest:
+          readMode(manifest as StoryManifest) === 'staged' ? manifest : null,
         creator_email: normalizedUserId,
         published: true,
         site_config: {

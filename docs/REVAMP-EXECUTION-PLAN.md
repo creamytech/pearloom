@@ -242,7 +242,11 @@ it forever. (H5b, L9, L90; REVIEW-SYNTHESIS §1.1 item 8 closed.)
     `20260529_registry_claims_idempotency.sql` and
     `20260530_account_deletions_audit.sql` (both authored long ago,
     never applied) + `20260812_schema_parity.sql` +
-    `20260812_time_capsules.sql`. Also pending: a prod
+    `20260812_time_capsules.sql` +
+    `20260812_pearloom_guests_site_key.sql` +
+    `20260812_guest_spine_merge.sql` +
+    `20260813_published_snapshot.sql` (the C.2 staged-editing
+    snapshot column — seven now). Also pending: a prod
     unique-index dump to diff against migrations (tables/columns
     are verified clean; indexes were verified for the RSVP-critical
     pair only).
@@ -761,10 +765,26 @@ then.
   Santorini class, the demo-pair gate, the never-dangling joiner);
   verified live: editor shows real venue + Example tab + zero
   Santorini, published shows zero dangling joins.
-- **C.2 A truthful editing model for published sites (L19).** Explicit
-  states: editing-live (banner: "changes appear to guests as you
-  save") or staged ("review & update site" publishes the diff) — host
-  chooses; the Publish button stops lying either way.
+- **C.2 A truthful editing model for published sites (L19). —
+  SHIPPED 2026-08-13.** The host chooses at publish ("Edits after
+  publishing": Go live as you save / Wait for your OK), stored as
+  `manifest.editMode` (readEditMode in site-visibility.ts). Staged:
+  publishSite stamps `sites.published_manifest`
+  (20260813_published_snapshot.sql — local-applied, queued for prod
+  in §3 S.1's pending list) and the PUBLIC routes serve that
+  snapshot via `servedManifestFor` while autosaves accumulate
+  privately; "Update site" (the topbar button's honest label on a
+  staged published site) re-snapshots. Live: the snapshot stays
+  NULL and autosaves serve within seconds — the original behavior,
+  now SAID OUT LOUD by the topbar's EditModeNote pill ("Edits go
+  live as you save" / "Edits wait for your OK"). The visibility
+  gate always reads the WORKING manifest, so unpublishing takes
+  effect instantly in either mode. Fenced: the staged walk
+  (publish v1 → private edit never leaks → Update releases it)
+  rides visibility-matrix.spec.ts in the staging fence; verified
+  live in both modes end-to-end. (The diff VIEW inside the update
+  flow — showing which sections changed — is a refinement left for
+  C.5's merged surface.)
 - **C.3 One readiness system (L65).** The 86% bar, the topbar
   checklist, and Pear's cards merge into one explainable readiness
   model with visible criteria; clicking it shows the list.

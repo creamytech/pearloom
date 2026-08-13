@@ -118,6 +118,27 @@ export function readSiteVisibility(manifest: StoryManifest): SiteVisibility {
   return 'public';
 }
 
+/** What the PUBLIC site routes render (C.2 — the staged-editing
+ *  model). When a staged snapshot exists (sites.published_manifest,
+ *  riding SiteConfig as `publishedManifest`), guests see THAT;
+ *  the working copy (`manifest`, which the editor autosaves into)
+ *  stays private until the host presses "Update site". No snapshot
+ *  = editing-live, today's behavior. The VISIBILITY gate always
+ *  reads the WORKING manifest — unpublishing takes effect
+ *  immediately, snapshot or not. */
+export function servedManifestFor(config: { manifest: StoryManifest | null }): StoryManifest {
+  const snap = (config as unknown as { publishedManifest?: StoryManifest | null }).publishedManifest;
+  // Callers gate on a present manifest before rendering; the cast
+  // keeps the signature honest for rows mid-creation.
+  return snap ?? (config.manifest as StoryManifest);
+}
+
+/** The host's chosen editing model for a published site. */
+export function readEditMode(manifest: StoryManifest): 'live' | 'staged' {
+  const loose = manifest as unknown as { editMode?: string };
+  return loose.editMode === 'staged' ? 'staged' : 'live';
+}
+
 /** Search engines may index only the one deliberately public state. */
 export function visibilityAllowsIndexing(v: SiteVisibility): boolean {
   return v === 'public';

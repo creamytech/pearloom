@@ -162,9 +162,13 @@ export default async function SiteSubPage(
     }
   }
 
-  const requestedLocale = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? siteConfig.manifest.activeLocale;
+  // Staged-editing model (C.2) — same rule as the home route:
+  // guests see the published snapshot when one exists.
+  const { servedManifestFor } = await import('@/lib/site-visibility');
+  const servedManifest = servedManifestFor(siteConfig);
+  const requestedLocale = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? servedManifest.activeLocale;
   const { applyLocale } = await import('@/lib/i18n/apply-locale');
-  const manifest = applyLocale(siteConfig.manifest, requestedLocale ?? null);
+  const manifest = applyLocale(servedManifest, requestedLocale ?? null);
 
   // ── Legacy redirect: /venue → /travel ──
   // v8 doesn't have a separate venue block — venue info lives in

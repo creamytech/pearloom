@@ -12,7 +12,8 @@ import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
 import type { StoryManifest } from '@/types';
 import { PublishChecklist } from './PublishChecklist';
-import { nextStepFor } from '@/lib/next-step';
+import { isManifestPublished, nextStepFor } from '@/lib/next-step';
+import { readEditMode } from '@/lib/site-visibility';
 
 interface Props {
   mode: EditorMode;
@@ -537,10 +538,16 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, letterSpacing: '0.02em' }}>⌘K</kbd>
         </button>
         {manifest && <GoLiveBadge manifest={manifest} />}
+        {manifest && <EditModeNote manifest={manifest} />}
         {manifest && canPublish && <PublishChecklist manifest={manifest} />}
         {canPublish && (
           <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
-            Publish
+            {/* On a published STAGED site the button is the release
+                valve, not a re-announcement (C.2) — "Publish" implied
+                nothing was live yet. */}
+            {manifest && isManifestPublished(manifest) && readEditMode(manifest) === 'staged'
+              ? 'Update site'
+              : 'Publish'}
             <Icon name="arrow-up" size={12} color="var(--cream)" />
           </button>
         )}
@@ -667,6 +674,35 @@ function dayOfWindowFor(
   const daysOut = Math.round((eventDay.getTime() - todayMs) / (1000 * 60 * 60 * 24));
   if (daysOut > 7 || daysOut < -1) return null;
   return { isLive: daysOut <= 0 && daysOut >= -1, daysOut };
+}
+
+/* The honest edit-mode note (C.2/L19): a published site's editor
+   used to say nothing while every keystroke went live to guests in
+   ~2 seconds. Now the truth rides next to the save dot: live mode
+   says so, staged mode says the draft is private until "Update
+   site". Drafts show nothing — nothing is public until pressed. */
+function EditModeNote({ manifest }: { manifest: StoryManifest }) {
+  if (!isManifestPublished(manifest)) return null;
+  const staged = readEditMode(manifest) === 'staged';
+  return (
+    <span
+      title={staged
+        ? 'Your edits save to a private draft. Guests keep seeing the last published version until you press "Update site".'
+        : 'This site is live — guests see your changes within seconds of each save. Switch to "Wait for your OK" in the publish window to stage edits instead.'}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '4px 10px', borderRadius: 999,
+        background: staged ? 'var(--sage-bg, rgba(92,107,63,0.10))' : 'var(--peach-bg)',
+        color: staged ? 'var(--sage-ink, #45522F)' : 'var(--peach-ink)',
+        border: '1px solid var(--line-soft)',
+        fontSize: 11, fontWeight: 600,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', opacity: 0.7 }} />
+      {staged ? 'Edits wait for your OK' : 'Edits go live as you save'}
+    </span>
+  );
 }
 
 function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
