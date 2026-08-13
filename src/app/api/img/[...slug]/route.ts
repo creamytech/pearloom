@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { decryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,12 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> },
 ) {
+  const ip = getClientIp(_req);
+  const rl = checkRateLimit(`img-proxy:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return new NextResponse('Too many requests', { status: 429 });
+  }
+
   const { slug } = await params;
   const key = slug.join('/');
 

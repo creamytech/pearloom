@@ -60,33 +60,8 @@ function getClientIp(req: NextRequest): string {
   );
 }
 
-// Mock data for when Supabase isn't configured
-const MOCK_MESSAGES = [
-  {
-    id: '1',
-    subdomain: 'demo',
-    name: 'Emma & James',
-    message: 'Wishing you both a lifetime of love and laughter! So thrilled to celebrate with you.',
-    emoji: '💕',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '2',
-    subdomain: 'demo',
-    name: 'The Martinez Family',
-    message: 'Congratulations! May your love story continue to inspire everyone around you.',
-    emoji: '🌸',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    id: '3',
-    subdomain: 'demo',
-    name: 'Sophie',
-    message: 'I knew from the moment you two met that this was something special. So happy for you!',
-    emoji: '✨',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-];
+// When Supabase isn't configured we return an empty list —
+// never ship placeholder guestbook entries into a real site.
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -98,11 +73,9 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabase();
   if (!supabase) {
-    // Return mock data gracefully when Supabase isn't configured
-    return NextResponse.json({
-      messages: MOCK_MESSAGES.filter(m => m.subdomain === subdomain || subdomain === 'demo'),
-      mock: true,
-    });
+    // Supabase isn't configured — respond with an empty list so the
+    // site renders its empty state instead of demo messages.
+    return NextResponse.json({ messages: [] });
   }
 
   try {

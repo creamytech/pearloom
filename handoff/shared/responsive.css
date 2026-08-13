@@ -1,0 +1,131 @@
+/* =========================================================================
+   PEARLOOM — RESPONSIVE LAYER
+   The app is built with React inline styles, so this sheet overrides the
+   recurring inline patterns with attribute selectors at mobile breakpoints.
+   Linked into every page host. Keyed to the literal style strings React emits
+   (e.g. gridTemplateColumns:'1fr 1fr' → "grid-template-columns: 1fr 1fr").
+   ========================================================================= */
+
+/* ---------- TABLET (≤ 980px) ---------- */
+@media (max-width: 980px) {
+  /* common 2-column splits → stack */
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: 1.1fr 0.9fr"],
+  [style*="grid-template-columns: 1.05fr 0.95fr"],
+  [style*="grid-template-columns: 0.85fr 1fr"],
+  [style*="grid-template-columns: 1.5fr 1fr"],
+  [style*="grid-template-columns: 1.3fr"],
+  [style*="grid-template-columns: 1.4fr"],
+  [style*="grid-template-columns: 1fr 360px"],
+  [style*="grid-template-columns: 1fr 300px"],
+  [style*="grid-template-columns: minmax(0,1fr) 300px"],
+  [style*="grid-template-columns: minmax(0, 1fr) 300px"],
+  [style*="grid-template-columns: minmax(0,1fr) 320px"],
+  [style*="grid-template-columns: 200px minmax"],
+  [style*="grid-template-columns: 232px 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* 3–6 up galleries/cards → 2-up */
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  [style*="grid-template-columns: repeat(6"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* ---------- PHONE (≤ 680px) ---------- */
+@media (max-width: 680px) {
+  /* everything stacks */
+  [style*="grid-template-columns: repeat(2"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr !important;
+  }
+  [style*="grid-template-columns: repeat(6"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* zig-zag / RTL story rows back to natural order */
+  [style*="direction: rtl"] { direction: ltr !important; }
+
+  /* headline + display type scale down */
+  [style*="font-size: 56px"], [style*="font-size: 58px"] { font-size: 38px !important; }
+  [style*="font-size: 52px"], [style*="font-size: 48px"], [style*="font-size: 46px"] { font-size: 34px !important; }
+  [style*="font-size: 44px"], [style*="font-size: 42px"], [style*="font-size: 40px"] { font-size: 31px !important; }
+  [style*="font-size: 38px"], [style*="font-size: 36px"] { font-size: 28px !important; }
+  [style*="font-size: 34px"], [style*="font-size: 32px"] { font-size: 26px !important; }
+
+  /* generous horizontal padding → comfortable on phones */
+  [style*="px 80px"] { padding-left: 22px !important; padding-right: 22px !important; }
+  [style*="px 72px"] { padding-left: 22px !important; padding-right: 22px !important; }
+  [style*="px 56px"] { padding-left: 20px !important; padding-right: 20px !important; }
+  [style*="px 48px"] { padding-left: 20px !important; padding-right: 20px !important; }
+  [style*="px 44px"] { padding-left: 18px !important; padding-right: 18px !important; }
+  [style*="px 40px"] { padding-left: 18px !important; padding-right: 18px !important; }
+
+  /* fixed-width side cards (e.g. signin collage, sheets) shrink */
+  [style*="width: 264px"], [style*="width: 300px"] { max-width: 90vw !important; }
+}
+
+/* =========================================================================
+   DASHBOARD SHELL  (Guests / Day / Memory / Settings / Studio)
+   sidebar → top bar; flex row → column
+   ========================================================================= */
+@media (max-width: 860px) {
+  [style*="display: flex; min-height: 100vh"] { flex-direction: column !important; }
+
+  .pl-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 14px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+    overflow-x: auto !important;
+    z-index: 20 !important;
+  }
+  .pl-sidebar .pl-side-nav { flex-direction: row !important; gap: 4px !important; }
+  .pl-sidebar .pl-side-nav a { white-space: nowrap; padding: 8px 12px !important; }
+  .pl-sidebar .pl-side-chip { display: none !important; }
+  /* studio side panels (drafts / design rail) stack full width */
+  [style*="width: 220px"][style*="height: 100vh"],
+  [style*="width: 250px"][style*="height: 100vh"] {
+    width: 100% !important; height: auto !important; position: static !important;
+    border-right: none !important; border-left: none !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+  }
+}
+
+/* =========================================================================
+   EDITOR SHELL  ("left canvas right" grid)
+   stack: topbar → canvas → section rail → properties rail
+   ========================================================================= */
+@media (max-width: 900px) {
+  [style*="left canvas right"] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 52px auto auto auto !important;
+    grid-template-areas: "top" "canvas" "left" "right" !important;
+    min-height: 0 !important;
+  }
+  [style*="grid-area: left"] {
+    height: auto !important;
+    max-height: 320px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+  }
+  [style*="grid-area: right"] {
+    border-left: none !important;
+    border-top: 1px solid var(--line-soft) !important;
+  }
+  [style*="grid-area: canvas"] { min-height: 60vh; }
+}
+
+/* generic: never let a horizontal scrollbar appear from a stray wide child */
+@media (max-width: 680px) {
+  html, body { overflow-x: hidden; }
+}

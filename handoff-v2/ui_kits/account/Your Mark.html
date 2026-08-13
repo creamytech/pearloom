@@ -1,0 +1,367 @@
+<!-- @dsCard group="Components" viewport="720x760" name="Your Mark — avatar set" subtitle="A cohesive animal-persona avatar picker in the Pearloom single-stroke hand" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Mark — Pearloom</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%);
+    min-height: 100vh;
+    font-family: var(--pl-font-body);
+    color: var(--pl-ink);
+  }
+  .stage {
+    display: flex;
+    justify-content: center;
+    padding: 40px 24px 72px;
+  }
+  .panel {
+    width: 100%;
+    max-width: 600px;
+    background: var(--pl-cream-card);
+    border: 1px solid var(--pl-divider);
+    border-radius: 18px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset,
+                0 18px 48px -24px rgba(40,28,12,0.28);
+    padding: 34px 38px 38px;
+  }
+
+  /* ── Eyebrow / mono label ── */
+  .eyebrow {
+    font-family: var(--pl-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pl-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--pl-gold-soft);
+  }
+
+  /* ── Profile row ── */
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  .me {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    transition: background var(--pl-dur-quick, 180ms) ease,
+                box-shadow var(--pl-dur-quick, 180ms) ease;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset;
+  }
+  .me .initials {
+    font-family: var(--pl-font-display);
+    font-variation-settings: var(--pl-fvs-heading);
+    font-size: 26px;
+    color: var(--pl-olive);
+  }
+  .me svg { width: 42px; height: 42px; }
+  .who h1 {
+    font-family: var(--pl-font-display);
+    font-variation-settings: var(--pl-fvs-heading);
+    font-weight: 500;
+    font-size: 26px;
+    line-height: 1.05;
+    margin: 0 0 3px;
+    color: var(--pl-ink);
+  }
+  .who p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--pl-muted);
+  }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .mark {
+    aspect-ratio: 1;
+    border-radius: 13px;
+    border: 1.5px solid transparent;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: transform var(--pl-dur-quick, 160ms) var(--pl-ease-spring, cubic-bezier(.34,1.56,.64,1)),
+                box-shadow var(--pl-dur-quick, 160ms) ease;
+  }
+  .mark svg { width: 64%; height: 64%; display: block; }
+  .mark:hover { transform: translateY(-2px); }
+  .mark:active { transform: scale(0.94); }
+  .mark[aria-pressed="true"] {
+    border-color: var(--pl-olive);
+    box-shadow: 0 0 0 3px var(--pl-olive-15),
+                0 6px 16px -8px rgba(40,28,12,0.35);
+  }
+  .mark[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    bottom: -1px; left: 50%;
+    transform: translateX(-50%);
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--pl-gold);
+  }
+
+  .hint {
+    font-size: 13.5px;
+    color: var(--pl-muted);
+    margin: 0;
+    font-style: italic;
+    font-family: var(--pl-font-display);
+    font-variation-settings: "opsz" 40, "SOFT" 60, "WONK" 0;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="panel">
+    <div class="eyebrow">Your mark</div>
+
+    <div class="profile">
+      <div class="me" id="me"><span class="initials">SB</span></div>
+      <div class="who">
+        <h1>Scott B</h1>
+        <p>Member of Pearloom</p>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <p class="hint">Tap your mark again to go back to your photo or initials.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── Tile palettes: warm, cohesive washes drawn from the Pearloom palette.
+  //    Gold is punctuation only (single accent glyphs), never a full ground.
+  var T = {
+    sage:  { bg: '#E7E5D3', ink: '#586A3C', acc: '#B8923F' },
+    cream: { bg: '#F3EAD6', ink: '#6F6557', acc: '#B8923F' },
+    peach: { bg: '#F1DECE', ink: '#BB6A39', acc: '#B8923F' },
+    rose:  { bg: '#F0DCD6', ink: '#C0543B', acc: '#B8923F' },
+    gold:  { bg: '#EFE4CB', ink: '#9A7838', acc: '#586A3C' },
+    night: { bg: '#292B21', ink: '#EFE9DA', acc: '#D4B373' }
+  };
+
+  // ── An animal-persona menagerie, each drawn in the Motif hand: stroke,
+  //    round caps, fill:none, eyes as ink dots, a single gold pearl on the
+  //    nose/beak as the brand signature. (ink, acc) → inner SVG.
+  var G = {
+    fox: function (k, a) { return ''
+      + '<path d="M13 16 L15.5 4 L23 13"/><path d="M35 16 L32.5 4 L25 13"/>'
+      + '<path d="M13 15 C 11 25 16 32 24 39 C 32 32 37 25 35 15"/>'
+      + '<path d="M17.5 21 L24 27 L30.5 21"/>'
+      + '<circle cx="18.5" cy="19.5" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="29.5" cy="19.5" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="30" r="1.8" fill="'+a+'" stroke="none"/>'; },
+    bear: function (k, a) { return ''
+      + '<circle cx="14" cy="13" r="5"/><circle cx="34" cy="13" r="5"/>'
+      + '<path d="M11 20 C 9 30 15 39 24 39 C 33 39 39 30 37 20 C 35 14 29 11 24 11 C 19 11 13 14 11 20 Z"/>'
+      + '<path d="M19 27 C 21 31 27 31 29 27"/>'
+      + '<circle cx="18" cy="22" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="30" cy="22" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="26" r="1.9" fill="'+a+'" stroke="none"/>'; },
+    cat: function (k, a) { return ''
+      + '<path d="M13 18 L13 6 L23 13"/><path d="M35 18 L35 6 L25 13"/>'
+      + '<path d="M13 16 C 11 26 16 34 24 38 C 32 34 37 26 35 16"/>'
+      + '<circle cx="18" cy="22" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="30" cy="22" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="27" r="1.5" fill="'+a+'" stroke="none"/>'
+      + '<path d="M16 28 L7 26 M16 30.5 L7 31 M32 28 L41 26 M32 30.5 L41 31"/>'; },
+    hare: function (k, a) { return ''
+      + '<path d="M18 21 C 14 12 14 4 17 3 C 20 4 20 13 20 21"/>'
+      + '<path d="M30 21 C 34 12 34 4 31 3 C 28 4 28 13 28 21"/>'
+      + '<path d="M15 23 C 13 31 17 39 24 39 C 31 39 35 31 33 23 C 31 18 28 17 24 17 C 20 17 17 18 15 23 Z"/>'
+      + '<circle cx="19" cy="27" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="29" cy="27" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="31" r="1.6" fill="'+a+'" stroke="none"/><path d="M24 32.5 L24 35"/>'; },
+    deer: function (k, a) { return ''
+      + '<path d="M18 14 C 14 9 13 5 13 3 M18 13 C 14 11 11 11 9 12 M14 8.5 C 11.5 8 9.5 8.5 8.5 9.5"/>'
+      + '<path d="M30 14 C 34 9 35 5 35 3 M30 13 C 34 11 37 11 39 12 M34 8.5 C 36.5 8 38.5 8.5 39.5 9.5"/>'
+      + '<path d="M17 17 C 14 23 16 31 24 39 C 32 31 34 23 31 17 C 29 14 27 13 24 13 C 21 13 19 14 17 17 Z"/>'
+      + '<circle cx="19.5" cy="22" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="28.5" cy="22" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="31" r="1.7" fill="'+a+'" stroke="none"/>'; },
+    owl: function (k, a) { return ''
+      + '<path d="M11 16 C 8 8 14 5 17 10"/><path d="M37 16 C 40 8 34 5 31 10"/>'
+      + '<path d="M12 19 C 10 31 16 40 24 40 C 32 40 38 31 36 19 C 33 12 28 10 24 10 C 20 10 15 12 12 19 Z"/>'
+      + '<circle cx="18" cy="22" r="4"/><circle cx="30" cy="22" r="4"/>'
+      + '<circle cx="18" cy="22" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="30" cy="22" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<path d="M24 25 L21 28.5 L24 30.5 L27 28.5 Z" fill="'+a+'" stroke="'+a+'"/>'
+      + '<path d="M16 34 q 8 5 16 0"/>'; },
+    mouse: function (k, a) { return ''
+      + '<circle cx="13" cy="14" r="7"/><circle cx="35" cy="14" r="7"/>'
+      + '<path d="M14 22 C 12 31 17 39 24 39 C 31 39 36 31 34 22 C 32 17 28 16 24 16 C 20 16 16 17 14 22 Z"/>'
+      + '<circle cx="19" cy="25" r="1.3" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="29" cy="25" r="1.3" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="24" cy="30" r="1.6" fill="'+a+'" stroke="none"/><path d="M24 31.5 L24 34"/>'; },
+    dog: function (k, a) { return ''
+      + '<path d="M14 14 C 8 16 7 26 12 30 L14.5 18"/><path d="M34 14 C 40 16 41 26 36 30 L33.5 18"/>'
+      + '<path d="M14 14 C 14 12 18 10 24 10 C 30 10 34 12 34 14 C 36 22 33 31 24 38 C 15 31 12 22 14 14 Z"/>'
+      + '<circle cx="19" cy="21" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="29" cy="21" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<path d="M20 29 q 4 4 8 0"/><circle cx="24" cy="27" r="1.9" fill="'+a+'" stroke="none"/>'; },
+    frog: function (k, a) { return ''
+      + '<circle cx="16" cy="13" r="5"/><circle cx="32" cy="13" r="5"/>'
+      + '<circle cx="16" cy="13" r="1.6" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="32" cy="13" r="1.6" fill="'+k+'" stroke="none"/>'
+      + '<path d="M9 23 C 9 17 15 16 24 16 C 33 16 39 17 39 23 C 39 33 33 39 24 39 C 15 39 9 33 9 23 Z"/>'
+      + '<path d="M16 31 q 8 6 16 0"/>'
+      + '<circle cx="21.5" cy="23" r="1" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="26.5" cy="23" r="1" fill="'+a+'" stroke="none"/>'; },
+    koala: function (k, a) { return ''
+      + '<circle cx="11" cy="15" r="6"/><circle cx="37" cy="15" r="6"/>'
+      + '<path d="M12 18 C 11 28 16 37 24 37 C 32 37 37 28 36 18 C 34 13 29 12 24 12 C 19 12 14 13 12 18 Z"/>'
+      + '<path d="M21 21 C 18.5 23 18.5 30 24 31.5 C 29.5 30 29.5 23 27 21 Z" fill="'+a+'" stroke="'+a+'"/>'
+      + '<circle cx="17.5" cy="21" r="1.3" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="30.5" cy="21" r="1.3" fill="'+k+'" stroke="none"/>'; },
+    panda: function (k, a) { return ''
+      + '<circle cx="13" cy="13" r="5" fill="'+k+'" stroke="'+k+'"/>'
+      + '<circle cx="35" cy="13" r="5" fill="'+k+'" stroke="'+k+'"/>'
+      + '<path d="M11 20 C 9 30 15 38 24 38 C 33 38 39 30 37 20 C 35 14 29 12 24 12 C 19 12 13 14 11 20 Z"/>'
+      + '<ellipse cx="18" cy="22" rx="2.6" ry="3.6" transform="rotate(-18 18 22)" fill="'+k+'" stroke="'+k+'"/>'
+      + '<ellipse cx="30" cy="22" rx="2.6" ry="3.6" transform="rotate(18 30 22)" fill="'+k+'" stroke="'+k+'"/>'
+      + '<circle cx="18" cy="22" r="0.9" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="30" cy="22" r="0.9" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="24" cy="28" r="1.7" fill="'+k+'" stroke="none"/><path d="M21 31.5 q 3 2 6 0"/>'; },
+    pig: function (k, a) { return ''
+      + '<path d="M13 16 L11 9 L18.5 13"/><path d="M35 16 L37 9 L29.5 13"/>'
+      + '<path d="M12 18 C 10 28 16 37 24 37 C 32 37 38 28 36 18 C 33 13 28 12 24 12 C 20 12 15 13 12 18 Z"/>'
+      + '<ellipse cx="24" cy="28" rx="6" ry="4"/>'
+      + '<circle cx="22" cy="28" r="1" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="26" cy="28" r="1" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="18.5" cy="21" r="1.3" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="29.5" cy="21" r="1.3" fill="'+k+'" stroke="none"/>'; },
+    bee: function (k, a) { return ''
+      + '<ellipse cx="24" cy="29" rx="9" ry="11"/>'
+      + '<path d="M16.5 24 H31.5" stroke="'+a+'"/><path d="M15.5 30 H32.5"/><path d="M17.5 36 H30.5"/>'
+      + '<ellipse cx="14" cy="17" rx="5" ry="7" transform="rotate(-22 14 17)"/>'
+      + '<ellipse cx="34" cy="17" rx="5" ry="7" transform="rotate(22 34 17)"/>'
+      + '<path d="M21 18 C 19 12 17 10 15 9"/><path d="M27 18 C 29 12 31 10 33 9"/>'
+      + '<circle cx="15" cy="9" r="1.4" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="33" cy="9" r="1.4" fill="'+a+'" stroke="none"/>'; },
+    fish: function (k, a) { return ''
+      + '<path d="M8 24 C 14 13 28 13 34 24 C 28 35 14 35 8 24 Z"/>'
+      + '<path d="M34 24 L43 16 L41 24 L43 32 Z"/>'
+      + '<path d="M20 16 C 18 21 18 27 20 32"/>'
+      + '<path d="M16 34 q 5 4 10 0"/>'
+      + '<circle cx="15" cy="21" r="1.5" fill="'+k+'" stroke="none"/>'
+      + '<circle cx="27" cy="20" r="1.2" fill="'+a+'" stroke="none"/>'; },
+    tortoise: function (k, a) { return ''
+      + '<path d="M8 31 C 8 20 15 15 24 15 C 33 15 40 20 40 31 Z"/>'
+      + '<path d="M20 20 L28 20 L31 26 L28 31 L20 31 L17 26 Z"/>'
+      + '<path d="M17 26 L9 27 M31 26 L39 27 M20 20 L18 16 M28 20 L30 16"/>'
+      + '<path d="M8 29 C 3 29 1 25 3 22 C 4.5 20 8 21 8.5 24"/>'
+      + '<circle cx="4.6" cy="24" r="0.9" fill="'+k+'" stroke="none"/>'
+      + '<path d="M14 31 L12 35 M34 31 L36 35 M40 30 L43 31"/>'
+      + '<circle cx="24" cy="25" r="1.3" fill="'+a+'" stroke="none"/>'; },
+    snail: function (k, a) { return ''
+      + '<circle cx="29" cy="23" r="10"/><circle cx="29" cy="23" r="6"/>'
+      + '<circle cx="29" cy="23" r="2.4"/>'
+      + '<path d="M19 24 C 12 25 8 30 8 37 L20 37 C 22 37 22 35 22 33"/>'
+      + '<path d="M8 37 C 6 36 5 33 6 30"/>'
+      + '<path d="M7 30 C 6 26 5 24 4 23 M11 30 C 11 27 10 25 9 24"/>'
+      + '<circle cx="4" cy="23" r="1.2" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="9" cy="24" r="1.2" fill="'+a+'" stroke="none"/>'; },
+    robin: function (k, a) { return ''
+      + '<path d="M14 16 C 22 12 32 14 36 22 C 38 28 34 36 26 38 C 18 40 12 34 12 27 C 12 22 12 18 14 16 Z"/>'
+      + '<path d="M12 30 L4 34 L12 37"/>'
+      + '<path d="M20 25 q 8 1 12 7"/>'
+      + '<circle cx="30" cy="21" r="1.4" fill="'+k+'" stroke="none"/>'
+      + '<path d="M36 22 L43 23 L36 25 Z" fill="'+a+'" stroke="'+a+'"/>'
+      + '<path d="M22 38 L22 43 M28 38 L28 43"/>'; },
+    butterfly: function (k, a) { return ''
+      + '<path d="M24 13 L24 36"/>'
+      + '<path d="M24 19 C 14 8 6 12 8 20 C 9 27 18 27 24 22 Z"/>'
+      + '<path d="M24 19 C 34 8 42 12 40 20 C 39 27 30 27 24 22 Z"/>'
+      + '<path d="M24 24 C 16 26 12 32 16 38 C 20 43 24 35 24 28 Z"/>'
+      + '<path d="M24 24 C 32 26 36 32 32 38 C 28 43 24 35 24 28 Z"/>'
+      + '<path d="M24 13 C 22 9 20 7 18 6.5"/><path d="M24 13 C 26 9 28 7 30 6.5"/>'
+      + '<circle cx="14" cy="18" r="1.6" fill="'+a+'" stroke="none"/>'
+      + '<circle cx="34" cy="18" r="1.6" fill="'+a+'" stroke="none"/>'; }
+  };
+
+  // ── The menagerie, in reading order (3 rows × 6). Name + tint family.
+  var MARKS = [
+    ['fox','peach'], ['bear','sage'], ['cat','cream'], ['hare','rose'], ['deer','sage'], ['owl','night'],
+    ['mouse','cream'], ['dog','peach'], ['frog','sage'], ['koala','cream'], ['panda','night'], ['pig','rose'],
+    ['bee','gold'], ['fish','cream'], ['tortoise','sage'], ['snail','peach'], ['robin','rose'], ['butterfly','gold']
+  ];
+
+  function svgFor(name, t, sw) {
+    return '<svg viewBox="0 0 48 48" aria-hidden="true">'
+      + '<g fill="none" stroke="'+t.ink+'" stroke-width="'+(sw||1.9)+'" '
+      + 'stroke-linecap="round" stroke-linejoin="round">'
+      + G[name](t.ink, t.acc) + '</g></svg>';
+  }
+
+  var grid = document.getElementById('grid');
+  var me = document.getElementById('me');
+  var selected = null;
+
+  function paintMe() {
+    if (selected == null) {
+      me.style.background = 'var(--pl-olive-mist)';
+      me.innerHTML = '<span class="initials">SB</span>';
+    } else {
+      var name = MARKS[selected][0], t = T[MARKS[selected][1]];
+      me.style.background = t.bg;
+      me.innerHTML = svgFor(name, t, 2.0);
+    }
+  }
+
+  MARKS.forEach(function (m, i) {
+    var name = m[0], t = T[m[1]];
+    var b = document.createElement('button');
+    b.className = 'mark';
+    b.type = 'button';
+    b.style.background = t.bg;
+    b.setAttribute('aria-pressed', 'false');
+    b.setAttribute('aria-label', name);
+    b.innerHTML = svgFor(name, t);
+    b.addEventListener('click', function () {
+      if (selected === i) {            // tap again → back to initials
+        selected = null;
+      } else {
+        selected = i;
+      }
+      [].forEach.call(grid.children, function (c, j) {
+        c.setAttribute('aria-pressed', j === selected ? 'true' : 'false');
+      });
+      paintMe();
+    });
+    grid.appendChild(b);
+  });
+
+  paintMe();
+})();
+</script>
+</body>
+</html>

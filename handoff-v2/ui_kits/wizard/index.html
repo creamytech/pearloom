@@ -1,0 +1,64 @@
+<!-- @dsCard group="Wizard" viewport="1240x860" name="Site wizard" subtitle="Experiential 5-step flow — woven progress, weave transitions, live preview, threading finale" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Start a site</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { margin: 0; background: var(--pl-cream); color: var(--pl-ink); font-family: var(--pl-font-body); }
+  #root { min-height: 100vh; position: relative; }
+  /* warm glow ground + grain */
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background:
+    radial-gradient(ellipse 70% 50% at 100% -5%, var(--peach-bg) 0%, transparent 60%),
+    radial-gradient(ellipse 48% 42% at -3% 6%, var(--sage-tint) 0%, transparent 55%); }
+  [data-theme='dark'] body::before { background:
+    radial-gradient(ellipse 70% 50% at 100% -5%, rgba(214,120,82,0.11) 0%, transparent 60%),
+    radial-gradient(ellipse 48% 42% at -3% 6%, rgba(164,181,122,0.08) 0%, transparent 55%); }
+
+  /* step transition — thread in */
+  .wz-step { animation: wz-thread var(--pl-dur-slow) var(--pl-ease-emphasis) both; }
+  @keyframes wz-thread { from { opacity: 0; transform: translateY(14px); clip-path: inset(0 6% 0 6%); } to { opacity: 1; transform: none; clip-path: inset(0 0 0 0); } }
+  [data-wz] { will-change: opacity, transform; }
+
+  .wz-btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px; font-family: var(--pl-font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; border: none; transition: transform var(--pl-dur-quick) var(--pl-ease-spring), background var(--pl-dur-quick); }
+  .wz-btn:active { transform: scale(0.96); }
+  .wz-btn.pearl { color: var(--pl-ink); border: 1px solid var(--pl-gold-soft); background: linear-gradient(135deg,#F4ECD8 0%,#E8C77A 32%,#D9A89E 58%,#B8C96B 82%,#F4ECD8 100%); }
+  .wz-btn.ghost { background: transparent; border: 1px solid var(--pl-divider); color: var(--pl-ink); }
+  .wz-btn.disabled { background: var(--cream-3); color: var(--pl-muted); cursor: not-allowed; border: 1px solid var(--pl-divider); }
+  .wz-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--pl-divider); cursor: pointer; text-align: left; font-family: var(--pl-font-body); transition: transform var(--pl-dur-base) var(--pl-ease-emphasis), border-color var(--pl-dur-quick), background var(--pl-dur-quick), box-shadow var(--pl-dur-quick); }
+  .wz-tile:hover { transform: translateY(-3px); }
+  .wz-chip { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--pl-divider); cursor: pointer; font-family: var(--pl-font-body); font-size: 14px; transition: transform var(--pl-dur-quick) var(--pl-ease-spring), background var(--pl-dur-quick), color var(--pl-dur-quick), border-color var(--pl-dur-quick); }
+  .wz-chip:active { transform: scale(0.94); }
+  .wz-pal { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--pl-divider); background: var(--pl-cream-card); cursor: pointer; transition: box-shadow var(--pl-dur-quick), border-color var(--pl-dur-quick), transform var(--pl-dur-quick); }
+  .wz-pal:hover { transform: translateY(-2px); }
+  .wz-drop { width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 34px; border-radius: 16px; border: 2px dashed var(--pl-divider); background: var(--pl-cream-card); cursor: pointer; transition: border-color var(--pl-dur-quick), background var(--pl-dur-quick); font-family: var(--pl-font-body); }
+  .wz-drop:hover { border-color: var(--pl-olive); background: var(--pl-olive-8); }
+  .wz-input { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--pl-divider); background: var(--pl-cream-card); font-size: 15px; font-family: var(--pl-font-body); color: var(--pl-ink); outline: none; transition: border-color var(--pl-dur-quick), box-shadow var(--pl-dur-base); }
+  .wz-input:focus { border-color: var(--pl-olive); box-shadow: 0 0 0 3px var(--pl-olive-12); }
+  .pl-theme-toggle { position: fixed; bottom: 16px; right: 16px; z-index: 9000; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--pl-divider); background: var(--pl-glass); backdrop-filter: blur(12px); color: var(--pl-ink); font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+  @media (max-width: 820px) { .wz-main { grid-template-columns: 1fr !important; } .wz-preview { display: none; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<button class="pl-theme-toggle" id="themeToggle">◐ <span id="themeLabel">Dark</span></button>
+<script>
+  (function(){ var root=document.documentElement; var saved=localStorage.getItem('pl-theme')||'light';
+    function apT(t){ root.setAttribute('data-theme',t); var l=document.getElementById('themeLabel'); if(l) l.textContent=t==='dark'?'Light':'Dark'; }
+    apT(saved); document.getElementById('themeToggle').addEventListener('click',function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('pl-theme',n); apT(n); });
+  })();
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../assets/pearloom-motion.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="react" src="Wizard.jsx"></script>
+<script type="text/babel" data-presets="react">
+  const Wizard = window.PearloomWizard;
+  ReactDOM.createRoot(document.getElementById('root')).render(<Wizard />);
+</script>
+</body>
+</html>

@@ -1,23 +1,25 @@
 /**
  * Pearloom / lib/date.ts
- * Date utilities that avoid the UTC-midnight off-by-one bug.
  *
- * `new Date("2024-06-15")` is interpreted as UTC midnight. In any negative-UTC
- * timezone (e.g. US Eastern = UTC-5) that renders as June 14 locally. This
- * module provides helpers that parse "YYYY-MM-DD" strings in LOCAL time instead.
+ * Thin compatibility shim — the canonical implementation lives in
+ * @/lib/date-utils (returns Date | null). This module preserves the
+ * older never-null API (returns Date with NaN for invalid input) so
+ * existing call sites that chain .toLocaleDateString() / .getTime()
+ * directly don't need null-guards.
+ *
+ * New code should import from @/lib/date-utils directly. This module
+ * stays so the migration can happen incrementally.
  */
 
+import { parseLocalDate as parseLocalDateOrNull, formatLocalDate as formatLocalDateImpl } from './date-utils';
+
 /**
- * Parse a "YYYY-MM-DD" date string in local time.
- * Falls back to native Date parsing for strings that include a time component.
+ * Parse a "YYYY-MM-DD" date string in local time. Returns Date with
+ * NaN for invalid input (legacy API). Prefer @/lib/date-utils for
+ * new code (returns Date | null).
  */
 export function parseLocalDate(dateStr: string): Date {
-  if (!dateStr) return new Date(NaN);
-  if (dateStr.includes('T') || dateStr.includes(' ')) return new Date(dateStr);
-  const parts = dateStr.split('-').map(Number);
-  if (parts.length !== 3 || parts.some(isNaN)) return new Date(dateStr);
-  const [y, m, d] = parts;
-  return new Date(y, m - 1, d);
+  return parseLocalDateOrNull(dateStr) ?? new Date(NaN);
 }
 
 /**
@@ -29,9 +31,8 @@ export function formatLocalDate(
   opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' },
   locale = 'en-US',
 ): string {
-  try {
-    return parseLocalDate(dateStr).toLocaleDateString(locale, opts);
-  } catch {
-    return dateStr;
-  }
+  // The canonical formatLocalDate returns '' for missing/invalid;
+  // legacy callers expect the original string back so the UI shows
+  // something rather than collapsing to empty.
+  return formatLocalDateImpl(dateStr, opts, locale) || dateStr;
 }

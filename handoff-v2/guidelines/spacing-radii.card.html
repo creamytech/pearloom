@@ -1,0 +1,24 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Radii" subtitle="Restrained, editorial — never blobby" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .strip { display: flex; gap: 18px; padding: 24px; align-items: flex-end; }
+  .cell { text-align: center; }
+  .box { width: 64px; height: 56px; background: var(--pl-olive-12); border: 1px solid var(--pl-olive-30); }
+  .lab { font-family: var(--pl-font-mono); font-size: 10px; color: var(--pl-muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="strip" id="s"></div>
+<script>
+  const r = [['xs','4px'],['sm','6px'],['md','8px'],['lg','12px'],['xl','16px'],['2xl','24px'],['full','pill']];
+  document.getElementById('s').innerHTML = r.map(([k,v]) =>
+    `<div class="cell"><div class="box" style="border-radius:var(--pl-radius-${k})"></div><div class="lab">${k} · ${v}</div></div>`
+  ).join('');
+</script>
+</body>
+</html>

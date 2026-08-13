@@ -1,0 +1,33 @@
+<!-- @dsCard group="Colors" viewport="700x250" name="Chrome accents" subtitle="Sage · lavender · peach — the product-UI accent families" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .wrap { padding: 22px 26px; display: flex; flex-direction: column; gap: 14px; }
+  .fam { }
+  .lab { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pl-muted); margin-bottom: 7px; }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .sw { border-radius: var(--pl-radius-md); overflow: hidden; border: 1px solid var(--pl-divider); }
+  .chip { height: 40px; }
+  .nm { font-family: var(--pl-font-mono); font-size: 9px; color: var(--pl-muted); padding: 5px 7px; background: var(--pl-cream-card); }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<script>
+  const fams = [
+    ['Sage · calm / saved / yes', ['--sage','--sage-2','--sage-deep','--sage-bg','--sage-tint']],
+    ['Lavender · editorial · italic ink', ['--lavender','--lavender-2','--lavender-3','--lavender-bg','--lavender-ink']],
+    ['Peach · active / working / CTA', ['--peach','--peach-2','--peach-3','--peach-bg','--peach-ink']],
+  ];
+  document.getElementById('root').innerHTML = fams.map(([label, vars]) =>
+    `<div class="fam"><div class="lab">${label}</div><div class="row">${vars.map(v =>
+      `<div class="sw"><div class="chip" style="background:var(${v})"></div><div class="nm">${v.replace('--','')}</div></div>`
+    ).join('')}</div></div>`
+  ).join('');
+</script>
+</body>
+</html>

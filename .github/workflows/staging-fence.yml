@@ -1,0 +1,112 @@
+# The staging fence — the migration + funnel gate.
+#
+# Rebuilds the entire Pearloom staging stack from nothing on every
+# PR: empty postgres:16 service → `npm run db:migrate` (schema from
+# supabase/migrations ALONE) → the pearlrest emulator → the real app
+# → the fence e2e suite (signed-out doorway, idempotent press,
+# publish gate — the Sprint W contracts, docs/REVAMP-EXECUTION-PLAN §2–3).
+#
+# What a red here means:
+#   • a migration that only works because prod already had the
+#     table/column (schema drift — the exact class of bug that
+#     shipped user_plans-less checkout, NEW-USER-REVAMP H1), or
+#   • a change that broke the acquisition funnel's contracts.
+#
+# ci.yml stays the compile/unit gate; this is the runtime gate.
+
+name: Staging fence
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: staging-fence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pearloom
+          POSTGRES_DB: pearloom
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build the database from migrations alone
+        run: npm run db:migrate
+
+      - name: Point the app at the staging stack
+        run: |
+          cat > .env.local <<'ENV'
+          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_local_sim
+          SUPABASE_SERVICE_ROLE_KEY=sb_secret_local_sim
+          NEXTAUTH_SECRET=pearloom-sim-nextauth-secret
+          NEXTAUTH_URL=http://localhost:3001
+          NEXT_PUBLIC_SITE_URL=http://localhost:3001
+          SITE_GATE_ENABLED=false
+          PEARLOOM_E2E=1
+          E2E_TEST_USER_EMAIL=e2e@pearloom.test
+          E2E_TEST_USER_PASSWORD=pearloom-e2e-secret
+          ENV
+
+      - name: Start emulator + app, warm the heavy routes
+        run: |
+          npm run staging:rest > pearlrest.out 2>&1 &
+          PEARLOOM_E2E=1 npx next dev -p 3001 > next-dev.out 2>&1 &
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:3001/ > /dev/null && break
+            sleep 2
+          done
+          # Cold Turbopack compiles of these routes exceed the per-test
+          # navigation timeout — compile them before the suite starts.
+          for route in / /wizard/new /start /login /signup /dashboard/sites; do
+            curl -sf -o /dev/null --max-time 120 "http://localhost:3001$route" || true
+          done
+
+      - name: Run the fence suite
+        run: |
+          npx playwright test --project=studio-chromium \
+            e2e/specs/doorway.spec.ts \
+            e2e/specs/press-idempotency.spec.ts \
+            e2e/specs/publish-gate.spec.ts \
+            e2e/specs/rsvp-honesty.spec.ts \
+            e2e/specs/passport-phone.spec.ts \
+            e2e/specs/money-door.spec.ts \
+            e2e/specs/visibility-matrix.spec.ts \
+            e2e/specs/phone-access.spec.ts \
+            e2e/specs/one-pressing.spec.ts \
+            e2e/specs/cohesion.spec.ts
+
+      - name: Surface logs on failure
+        if: failure()
+        run: |
+          echo '─── next dev ───'; tail -80 next-dev.out || true
+          echo '─── pearlrest ───'; tail -40 pearlrest.out || true
+          echo '─── pearlrest unsupported grammar ───'
+          grep -h UNSUPPORTED scripts/staging/.data/pearlrest.log 2>/dev/null | tail -20 || true

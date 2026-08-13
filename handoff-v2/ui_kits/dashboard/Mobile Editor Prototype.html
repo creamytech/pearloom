@@ -1,0 +1,354 @@
+<!-- @dsCard group="Mobile" viewport="460x900" name="Mobile editor — full" subtitle="The desktop editor on a phone: real --t-* themes, the decor (look) panel, inline section layouts, component kits — all live" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — mobile site editor</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--cream-3); display: grid; place-items: center; min-height: 100vh; padding: 32px; box-sizing: border-box;
+    background: radial-gradient(ellipse 70% 55% at 100% -5%, var(--peach-bg) 0%, transparent 55%), radial-gradient(ellipse 46% 40% at -3% 6%, var(--sage-tint) 0%, transparent 50%), var(--cream-3); }
+  .phone { width: 390px; height: 820px; border-radius: 54px; background: #14110b; padding: 11px; box-shadow: 0 50px 100px -30px rgba(40,28,12,0.55), 0 0 0 1px rgba(20,14,8,0.06); }
+  .screen { width: 100%; height: 100%; border-radius: 44px; overflow: hidden; background: var(--pl-chrome-bg, #F5EFE2); position: relative; display: flex; flex-direction: column; }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 128px; height: 30px; background: #14110b; border-radius: 0 0 18px 18px; z-index: 60; }
+  .statusbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 28px 6px; font-family: var(--pl-font-mono); font-size: 12px; color: var(--pl-ink); flex-shrink: 0; }
+  .home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 128px; height: 5px; border-radius: 99px; background: rgba(20,14,8,0.28); z-index: 60; }
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+  *::-webkit-scrollbar { width: 0; height: 0; }
+  .nosb { scrollbar-width: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../renderer/themes.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="react">
+const { Button, PearloomGlyph, Monogram, Pearl, Motif } = window.PearloomDesignSystem_55118c;
+const { useState } = React;
+const THEMES = window.PEARLOOM_SITE_THEMES || [];
+const rootStyle = window.themeRootStyle;
+const mono = 'var(--pl-font-mono)', ui = 'var(--pl-font-body)';
+function I({ d, s = 22, c = 'currentColor', w = 1.75 }) { return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />; }
+const IC = { pages: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>', add: '<path d="M12 5v14M5 12h14"/>', style: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M12 12h8.5"/>', pear: '<path d="M12 3.5c.5 3.4 1.6 4.5 5 5-3.4.5-4.5 1.6-5 5-.5-3.4-1.6-4.5-5-5 3.4-.5 4.5-1.6 5-5Z"/>', up: '<path d="M12 19V5M6 11l6-6 6 6"/>', down: '<path d="M12 5v14M6 13l6 6 6-6"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>', trash: '<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/>', back: '<path d="M15 6l-6 6 6 6"/>', drag: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>', pencil: '<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="M14 6l4 4"/>', layout: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M10 10v10"/>', eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>', eyeoff: '<path d="M4 4l16 16M9.5 9.6A3 3 0 0 0 14.4 13.8M6.5 6.6C3.8 8.2 2 12 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1"/>', check: '<path d="m5 12.5 4.5 4.5L19 7"/>', lock: '<rect x="4.5" y="10.5" width="15" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>', star: '<path d="M12 3l2.5 6 6.5.5-5 4.2 1.6 6.3L12 16.8 5.9 20l1.6-6.3-5-4.2 6.5-.5Z"/>' };
+
+const SECTIONS = [
+  { id: 'opening', label: 'Opening', glyph: '⌂', desc: 'Names, date, cover photo', req: true },
+  { id: 'story', label: 'Our story', glyph: '❧', desc: '2 chapters' },
+  { id: 'details', label: 'Details', glyph: '✦', desc: 'Dress code, kids, FAQ-lite' },
+  { id: 'schedule', label: 'Schedule', glyph: '◷', desc: '4 moments' },
+  { id: 'travel', label: 'Travel', glyph: '✈', desc: 'Hotels, transit, tips' },
+  { id: 'registry', label: 'Registry', glyph: '❖', desc: 'Linked stores', attn: true },
+  { id: 'gallery', label: 'Gallery', glyph: '◎', desc: 'No photos yet', attn: true },
+  { id: 'rsvp', label: 'RSVP', glyph: '✉', desc: 'Closes Aug 10', req: true },
+  { id: 'faq', label: 'FAQ', glyph: '✢', desc: '3 answered' },
+];
+const TOOLS = [['guests', 'Guests', '☞', 'Your guest list'], ['share', 'Share', '∞', 'Link, QR, preview'], ['dayof', 'Day-of', '✦', 'Live broadcasts']];
+// per-section inline layout variants
+const LAYOUTS = { opening: ['Centered', 'Left', 'Full-bleed'], story: ['Photo right', 'Photo left', 'Stacked'], schedule: ['List', 'Split'], gallery: ['Grid', 'Row'] };
+// the look options that make up the Decor panel (renderer's `look`)
+const LOOK = {
+  card: ['frame', 'wash', 'soft', 'flat'], button: ['pill', 'square', 'sharp'],
+  divider: ['sprig', 'bloom', 'dot', 'rule', 'brush', 'deckle'], photo: ['arch', 'polaroid', 'tape', 'clean', 'deckle'],
+  heroAlign: ['center', 'left'], motifDensity: ['none', 'sparse', 'generous'],
+};
+const DENSITY = ['cozy', 'comfortable', 'spacious'];
+const FREE_THEMES = ['garden', 'editorial'];
+let UID = 100;
+const TYPEFACES = [['Fraunces', "var(--pl-font-display)", 'letterpress display'], ['Cormorant', "'Cormorant Garamond', Georgia, serif", 'high serif'], ['Geist', "var(--pl-font-body)", 'clean sans']];
+const GRP = { background: 'var(--pl-cream-card)', border: '1px solid var(--pl-divider-soft)', borderRadius: 14, padding: 14, marginBottom: 12 };
+const LBL = { fontFamily: 'var(--pl-font-mono)', fontSize: 9, letterSpacing: '0.14em', color: 'var(--pl-muted)', marginBottom: 10 };
+
+function Status() {
+  return (<div className="statusbar"><span>9:41</span><span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+    <svg width="17" height="11" viewBox="0 0 17 11" fill="var(--pl-ink)"><rect x="0" y="6" width="3" height="5" rx="1"/><rect x="4.5" y="4" width="3" height="7" rx="1"/><rect x="9" y="2" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+    <svg width="22" height="11" viewBox="0 0 22 11" fill="none" stroke="var(--pl-ink)" strokeWidth="1"><rect x="0.5" y="0.5" width="18" height="10" rx="2.5"/><rect x="2" y="2" width="13" height="7" rx="1" fill="var(--pl-ink)"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.7" fill="var(--pl-ink)"/></svg></span></div>);
+}
+
+// ── divider rendered per look.divider ──
+function Divider({ look }) {
+  const ac = 'var(--t-accent)';
+  if (look.motifDensity === 'none' && (look.divider === 'rule' || look.divider === 'deckle')) {}
+  if (look.divider === 'dot') return <div style={{ display: 'flex', gap: 5, justifyContent: 'center', padding: '4px 0' }}>{[0, 1, 2].map((i) => <span key={i} style={{ width: 4, height: 4, borderRadius: 99, background: ac, opacity: i === 1 ? 1 : 0.5 }} />)}</div>;
+  if (look.divider === 'rule') return <div style={{ height: 1, width: 48, margin: '8px auto', background: 'var(--t-line)' }} />;
+  if (look.divider === 'brush') return <div style={{ height: 3, width: 54, margin: '8px auto', borderRadius: 99, background: ac, opacity: 0.7 }} />;
+  if (look.divider === 'deckle') return <div style={{ height: 0, width: 56, margin: '8px auto', borderTop: '2px dashed var(--t-line)' }} />;
+  const nm = look.divider === 'bloom' ? 'bloom' : 'sprig';
+  return <div style={{ display: 'grid', placeItems: 'center', padding: '4px 0' }}>{Motif ? <Motif name={nm} size={20} color={ac} accent="var(--t-gold)" /> : <span style={{ color: ac }}>✦</span>}</div>;
+}
+function photoWrap(look) {
+  if (look.photo === 'arch') return { borderRadius: '120px 120px var(--t-radius) var(--t-radius)', overflow: 'hidden' };
+  if (look.photo === 'polaroid') return { background: '#fff', padding: '7px 7px 22px', boxShadow: '0 8px 20px rgba(0,0,0,0.14)', borderRadius: 2 };
+  if (look.photo === 'tape') return { borderRadius: 2, transform: 'rotate(-1.4deg)', boxShadow: '0 6px 16px rgba(0,0,0,0.12)' };
+  if (look.photo === 'deckle') return { borderRadius: 0, padding: 4, background: 'var(--t-card)', boxShadow: '0 0 0 1px var(--t-line)' };
+  return { borderRadius: 'var(--t-radius-lg)', overflow: 'hidden' };
+}
+function cardBox(look) {
+  if (look.card === 'frame') return { border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', background: 'var(--t-card)' };
+  if (look.card === 'wash') return { background: 'var(--t-accent-bg)', borderRadius: 'var(--t-radius-lg)' };
+  if (look.card === 'flat') return { borderTop: '1px solid var(--t-line)', borderRadius: 0 };
+  return { background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)' };
+}
+const btnRadius = (b) => b === 'pill' ? 999 : b === 'sharp' ? 0 : 'var(--t-radius)';
+
+function Body({ s, look }) {
+  const Disp = ({ children, size = 18 }) => <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: size, color: 'var(--t-ink)', marginBottom: 8 }}>{children}</div>;
+  if (s.type === 'opening') {
+    const lay = s.lay || (look.heroAlign === 'left' ? 'Left' : 'Centered');
+    const al = lay === 'Left' ? 'left' : 'center';
+    if (lay === 'Full-bleed') return (
+      <div style={{ position: 'relative', minHeight: 230, borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 20, background: 'center/cover url(../../assets/imagery/vase-linen-still.png)' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent 60%)' }} />
+        <div style={{ position: 'relative', color: '#fff', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 30 }}>Mira &amp; Jun</div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: 'var(--t-eyebrow-ls)', marginTop: 6, opacity: 0.9 }}>SEPT 6, 2026 · POINT REYES</div>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{ textAlign: al }}>
+        <div style={{ ...photoWrap(look), display: 'inline-block', width: '100%', boxSizing: 'border-box' }}><div style={{ height: 130, background: 'center/cover url(../../assets/imagery/vase-linen-still.png)', borderRadius: look.photo === 'arch' ? '116px 116px 0 0' : look.photo === 'clean' ? 'var(--t-radius-lg)' : 2 }} /></div>
+        <div style={{ marginTop: 12 }}><Monogram left="M" right="J" frame="ring" size={30} ink="var(--t-ink)" accent="var(--t-accent)" paper="var(--t-card)" style={al === 'center' ? { margin: '0 auto' } : {}} /></div>
+        <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(26px * var(--t-hero-scale))', color: 'var(--t-ink)', marginTop: 6 }}>Mira &amp; Jun</div>
+        <div style={{ display: 'flex', justifyContent: al === 'center' ? 'center' : 'flex-start' }}><Divider look={look} /></div>
+        <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: 'var(--t-eyebrow-ls)', color: 'var(--t-ink-muted)' }}>SEPT 6, 2026 · POINT REYES</div>
+      </div>
+    );
+  }
+  if (s.type === 'story') {
+    const lay = s.lay || 'Photo right';
+    const photo = <div style={{ ...photoWrap(look), flexShrink: 0 }}><div style={{ width: lay === 'Stacked' ? '100%' : 96, height: lay === 'Stacked' ? 110 : 84, background: 'center/cover url(../../assets/imagery/coffee-mug.png)', borderRadius: look.photo === 'clean' ? 'var(--t-radius)' : 2 }} /></div>;
+    const txt = <div><Disp>{s.title}</Disp><div style={{ fontFamily: 'var(--t-body)', fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}>Two families, one Saturday in Point Reyes. Come hungry, stay late.</div></div>;
+    if (lay === 'Stacked') return <div>{txt}<div style={{ marginTop: 10 }}>{photo}</div></div>;
+    return <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexDirection: lay === 'Photo left' ? 'row-reverse' : 'row' }}><div style={{ flex: 1 }}>{txt}</div>{photo}</div>;
+  }
+  if (s.type === 'schedule') {
+    const split = (s.lay || 'List') === 'Split';
+    return <div style={{ ...cardBox(look), padding: 16 }}><Disp>{s.title}</Disp><div style={{ display: split ? 'grid' : 'block', gridTemplateColumns: split ? '1fr 1fr' : 'none', gap: split ? '4px 16px' : 0 }}>{(s.items || []).map(([t, l], i) => <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', fontFamily: 'var(--t-body)', fontSize: 13, color: 'var(--t-ink-soft)' }}><span style={{ fontFamily: mono, fontSize: 11.5, color: 'var(--t-accent)', width: 38 }}>{t}</span>{l}</div>)}</div></div>;
+  }
+  if (s.type === 'gallery') {
+    const row = (s.lay || 'Grid') === 'Row';
+    return <div><Disp>{s.title}</Disp><div style={{ display: 'grid', gridTemplateColumns: row ? 'repeat(3,1fr)' : 'repeat(2,1fr)', gap: 6 }}>{['vase-linen-still', 'coffee-mug', 'pear-photo', 'vase-linen-still'].slice(0, row ? 3 : 4).map((n, i) => <div key={i} style={{ ...photoWrap(look), aspectRatio: row ? '1' : '4/3' }}><div style={{ width: '100%', height: '100%', background: `center/cover url(../../assets/imagery/${n}.png)`, borderRadius: look.photo === 'clean' ? 'var(--t-radius)' : 0 }} /></div>)}</div></div>;
+  }
+  if (s.type === 'details') return <div style={{ ...cardBox(look), padding: 16 }}><Disp>{s.title}</Disp><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{['Garden formal', 'Kids welcome', 'Parking on-site'].map((c) => <span key={c} style={{ fontSize: 12, padding: '4px 11px', borderRadius: btnRadius(look.button), background: 'var(--t-accent-bg)', color: 'var(--t-accent-ink)', fontFamily: 'var(--t-body)' }}>{c}</span>)}</div></div>;
+  if (s.type === 'faq') return <div><Disp>{s.title}</Disp>{['Can I bring a plus-one?', 'Is it outdoors?', 'Where do I park?'].map((q) => <div key={q} style={{ fontFamily: 'var(--t-body)', fontSize: 13, color: 'var(--t-ink-soft)', padding: '5px 0', borderBottom: '1px solid var(--t-line-soft)' }}>{q}</div>)}</div>;
+  if (s.type === 'rsvp') return <div style={{ textAlign: 'center' }}><div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 24, color: 'var(--t-ink)' }}>Kindly reply</div><div style={{ fontFamily: 'var(--t-body)', fontSize: 12.5, color: 'var(--t-ink-muted)', margin: '4px 0 12px' }}>by August 10th</div><span style={{ display: 'inline-block', padding: '10px 24px', borderRadius: btnRadius(look.button), background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)', fontFamily: 'var(--t-body)', fontWeight: 600, fontSize: 13 }}>Press RSVP →</span></div>;
+  return <div style={{ ...cardBox(look), padding: 16 }}><Disp>{s.title}</Disp><div style={{ fontFamily: 'var(--t-body)', fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}>The Lark Hill, Point Reyes. Shuttle from the hotel at 3:30.</div></div>;
+}
+
+function App() {
+  const [mode, setMode] = useState('edit');
+  const [sel, setSel] = useState('opening');
+  const [sheet, setSheet] = useState(null);
+  const [tab, setTab] = useState('Themes');
+  const [themeId, setThemeId] = useState('garden');
+  const [density, setDensity] = useState('comfortable');
+  const [font, setFont] = useState(null);
+  const [paper, setPaper] = useState('none');
+  const [look, setLook] = useState(null);
+  const [secs, setSecs] = useState(SECTIONS.map((s) => ({ id: s.id, type: s.id, title: s.label, hidden: false, lay: null, ...(s.id === 'schedule' ? { items: [['4:00', 'Arrive'], ['5:00', 'The vows'], ['6:30', 'Supper'], ['9:00', 'Dancing']] } : {}) })));
+  const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+  const L = look || (theme ? theme.look : {});
+  const edit = mode === 'edit';
+  const pickTheme = (id) => { const t = THEMES.find((x) => x.id === id); if (FREE_THEMES.indexOf(id) < 0 && id !== 'garden') {} setThemeId(id); setLook(t ? { ...t.look } : null); };
+  const meta = (id) => SECTIONS.find((s) => s.id === id) || { label: id };
+  const move = (id, d) => setSecs((a) => { const i = a.findIndex((s) => s.id === id); const j = i + d; if (j < 0 || j >= a.length) return a; const b = [...a]; [b[i], b[j]] = [b[j], b[i]]; return b; });
+  const del = (id) => { setSecs((a) => a.filter((s) => s.id !== id)); setSel(null); };
+  const dup = (id) => setSecs((a) => { const i = a.findIndex((s) => s.id === id); const c = { ...a[i], id: 'b' + (UID++) }; const b = [...a]; b.splice(i + 1, 0, c); return b; });
+  const hide = (id) => setSecs((a) => a.map((s) => s.id === id ? { ...s, hidden: !s.hidden } : s));
+  const setLay = (id, v) => setSecs((a) => a.map((s) => s.id === id ? { ...s, lay: v } : s));
+  const addBlock = (t) => { const m = meta(t); const s = { id: 'b' + (UID++), type: t, title: m.label, lay: null }; if (t === 'schedule') s.items = [['5:00', 'A moment']]; setSecs((a) => [...a, s]); setSheet(null); setSel(s.id); };
+  const setTitle = (id, v) => setSecs((a) => a.map((s) => s.id === id ? { ...s, title: v } : s));
+  const selSec = secs.find((s) => s.id === sel);
+  const visible = edit ? secs : secs.filter((s) => !s.hidden);
+  const themeStyle = rootStyle && theme ? { ...rootStyle(theme, density) } : {};
+  if (font) { themeStyle['--t-display'] = font; themeStyle['--font-display'] = font; }
+
+  const Dock = () => (
+    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '12px 8px 26px', background: 'var(--pl-chrome-surface, #FBF7EE)', borderTop: '1px solid var(--pl-chrome-border, #D8CFB8)', flexShrink: 0 }}>
+      {[['pages', 'Sections', IC.pages], ['add', 'Add', IC.add], ['style', 'Decor', IC.style], ['pear', 'Pear', IC.pear]].map(([k, l, d]) => (
+        <button key={k} onClick={() => { setSheet(k === sheet ? null : k); if (k === 'style') setTab('Themes'); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'transparent', border: 'none', cursor: 'pointer', color: sheet === k ? 'var(--pl-ink)' : (k === 'pear' ? 'var(--lavender-ink, #6B5A8C)' : 'var(--pl-ink-soft)') }}>
+          <I d={d} s={21} /><span style={{ fontFamily: ui, fontSize: 10.5 }}>{l}</span>
+        </button>
+      ))}
+    </div>
+  );
+  const Sheet = ({ title, h, children, pad = true }) => (
+    <>
+      <div onClick={() => setSheet(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(14,13,11,0.32)', zIndex: 45, animation: 'scrim-in 160ms ease both' }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: h, background: 'var(--pl-cream)', borderRadius: '22px 22px 0 0', zIndex: 50, boxShadow: '0 -20px 50px -20px rgba(40,28,12,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'sheet-up 280ms cubic-bezier(0.22,1,0.36,1) both' }}>
+        <div style={{ display: 'grid', placeItems: 'center', padding: '10px 0 4px' }}><span style={{ width: 38, height: 5, borderRadius: 99, background: 'var(--pl-divider)' }} /></div>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '6px 20px 12px', borderBottom: '1px solid var(--pl-divider-soft)' }}>
+          <span style={{ fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--pl-ink)', flex: 1 }}>{title}</span>
+          <button onClick={() => setSheet(null)} style={{ fontFamily: ui, fontSize: 14, fontWeight: 600, color: 'var(--pl-olive)', background: 'transparent', border: 'none', cursor: 'pointer' }}>Done</button>
+        </div>
+        <div className="nosb" style={{ flex: 1, overflowY: 'auto', padding: pad ? '16px 20px 28px' : 0 }}>{children}</div>
+      </div>
+    </>
+  );
+  // Decor look-option control
+  const Opt = ({ k, label }) => (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.14em', color: 'var(--pl-muted)', marginBottom: 8 }}>{label}</div>
+      <div className="nosb" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{LOOK[k].map((c) => <button key={c} onClick={() => setLook({ ...L, [k]: c })} style={{ padding: '7px 12px', borderRadius: 999, cursor: 'pointer', textTransform: 'capitalize', fontFamily: ui, fontSize: 12, fontWeight: L[k] === c ? 600 : 500, border: `1px solid ${L[k] === c ? 'var(--peach-ink, #C6703D)' : 'var(--pl-divider)'}`, background: L[k] === c ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream-card)', color: 'var(--pl-ink)' }}>{c}</button>)}</div>
+    </div>
+  );
+
+  return (
+    <div className="phone"><div className="screen">
+      <div className="notch" />
+      <Status />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 14px 9px', background: 'var(--pl-chrome-surface, #FBF7EE)', borderBottom: '1px solid var(--pl-chrome-border, #D8CFB8)', flexShrink: 0 }}>
+        <button style={{ width: 30, height: 30, borderRadius: 999, border: '1px solid var(--pl-chrome-border, #D8CFB8)', background: 'var(--pl-cream)', color: 'var(--pl-ink)', display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0 }}><I d={IC.back} s={15} /></button>
+        <div style={{ display: 'flex', gap: 2, background: 'var(--pl-cream-deep, #F0E9D8)', borderRadius: 999, padding: 3, margin: '0 auto' }}>
+          {[['edit', 'Edit'], ['preview', 'Preview']].map(([k, l]) => <button key={k} onClick={() => { setMode(k); setSheet(null); if (k === 'preview') setSel(null); }} style={{ padding: '6px 15px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: ui, fontSize: 12.5, fontWeight: mode === k ? 600 : 500, background: mode === k ? 'var(--pl-ink)' : 'transparent', color: mode === k ? 'var(--pl-cream)' : 'var(--pl-ink-soft)' }}>{l}</button>)}
+        </div>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 9.5, color: 'var(--pl-muted)', flexShrink: 0 }}><span style={{ width: 6, height: 6, borderRadius: 99, background: 'var(--sage)' }} />Saved</span>
+        <button style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999, border: '1px solid var(--pl-gold-soft)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: ui, color: 'var(--pl-ink)', background: 'linear-gradient(135deg,#F4ECD8 0%,#E8C77A 40%,#D9A89E 70%,#F4ECD8 100%)' }}>Publish ↑</button>
+      </div>
+      {/* canvas — the REAL renderer, themed via --t-* + look */}
+      <div onClick={() => edit && setSel(null)} className="nosb" style={{ flex: 1, overflowY: 'auto', background: 'var(--pl-chrome-bg, #F5EFE2)', backgroundImage: edit ? 'radial-gradient(circle, rgba(20,14,8,0.07) 1px, transparent 1px)' : 'none', backgroundSize: '15px 15px', padding: edit ? '14px 14px' : '0' }}>
+        <div style={{ ...themeStyle, position: 'relative', borderRadius: edit ? 12 : 0, overflow: 'hidden', boxShadow: edit ? '0 16px 40px -18px rgba(40,28,12,0.3)' : 'none' }}>{paper !== 'none' ? <div className={'pl-tx-' + (paper === 'grain' ? 'laid' : 'linen')} style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 0 }} /> : null}
+          {visible.map((s, idx) => {
+            const on = edit && sel === s.id;
+            const gap = L.motifDensity === 'generous' ? true : L.motifDensity === 'sparse' ? idx % 2 === 1 : false;
+            return (
+              <React.Fragment key={s.id}>
+                {idx > 0 && s.type !== 'opening' && gap ? <Divider look={L} /> : null}
+                <div onClick={(e) => { if (edit) { e.stopPropagation(); setSel(s.id); } }} style={{ position: 'relative', padding: s.type === 'opening' && (s.lay === 'Full-bleed') ? 0 : '16px 18px', margin: edit ? '4px 6px' : 0, borderRadius: 8, cursor: edit ? 'pointer' : 'default', outline: on ? '2px solid var(--peach-ink, #C6703D)' : 'none', outlineOffset: 1, opacity: s.hidden ? 0.4 : 1 }}>
+                  {on ? (
+                    <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: -16, right: 8, display: 'flex', gap: 1, background: 'var(--pl-ink)', borderRadius: 10, padding: 3, zIndex: 22, boxShadow: '0 10px 24px rgba(40,28,12,0.25)' }}>
+                      {[['edit', IC.pencil, () => setSheet('block')], ['up', IC.up, () => move(s.id, -1)], ['down', IC.down, () => move(s.id, 1)], ['dup', IC.copy, () => dup(s.id)], ['del', IC.trash, () => del(s.id)]].map(([k, d, fn]) => <button key={k} onClick={fn} style={{ width: 32, height: 30, display: 'grid', placeItems: 'center', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: k === 'edit' ? 'var(--pl-gold)' : 'var(--pl-cream)' }}><I d={d} s={15} /></button>)}
+                    </div>
+                  ) : null}
+                  {/* inline section-layout switcher */}
+                  {on && LAYOUTS[s.type] ? (
+                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: 5, marginBottom: 10, flexWrap: 'wrap' }}>
+                      {LAYOUTS[s.type].map((v) => { const cur = (s.lay || (s.type === 'opening' ? (L.heroAlign === 'left' ? 'Left' : 'Centered') : LAYOUTS[s.type][0])) === v; return <button key={v} onClick={() => setLay(s.id, v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 7, cursor: 'pointer', fontFamily: ui, fontSize: 10.5, fontWeight: cur ? 600 : 500, border: `1px solid ${cur ? 'var(--peach-ink, #C6703D)' : 'var(--pl-divider)'}`, background: cur ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream-card)', color: 'var(--pl-ink)' }}><I d={IC.layout} s={11} />{v}</button>; })}
+                    </div>
+                  ) : null}
+                  {s.hidden ? <div style={{ position: 'absolute', top: 8, right: 12, fontFamily: mono, fontSize: 8.5, letterSpacing: '0.1em', color: 'var(--t-ink-muted)' }}>HIDDEN</div> : null}
+                  <Body s={s} look={L} />
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+        {edit ? <div style={{ textAlign: 'center', padding: '14px 0 8px', fontFamily: ui, fontSize: 12.5, color: 'var(--pl-muted)' }}>Tap a section · its layout switches inline · Decor restyles all of it</div> : null}
+      </div>
+      {edit ? <Dock /> : <button onClick={() => setMode('edit')} style={{ position: 'absolute', right: 20, bottom: 34, zIndex: 40, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 18px', borderRadius: 999, border: 'none', background: 'var(--pl-ink)', color: 'var(--pl-cream)', fontFamily: ui, fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 24px 56px rgba(40,28,12,0.3)' }}><I d={IC.pencil} s={16} /> Edit</button>}
+
+      {/* SECTIONS */}
+      {sheet === 'pages' ? (
+        <Sheet title="Sections" h={580}>
+          <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}><span>PAGE SECTIONS</span><span style={{ textTransform: 'none', letterSpacing: 0, fontFamily: ui }}>drag to reorder</span></div>
+          {secs.map((s, i) => { const m = meta(s.type); return (
+            <div key={s.id} onClick={() => { setSel(s.id); setSheet('block'); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', marginBottom: 7, opacity: s.hidden ? 0.55 : 1, cursor: 'pointer' }}>
+              <span style={{ color: 'var(--pl-muted)' }}><I d={IC.drag} s={15} /></span>
+              <span style={{ fontFamily: 'var(--pl-font-display)', fontSize: 14, color: 'var(--pl-olive)', width: 18, textAlign: 'center' }}>{m.glyph}</span>
+              <span style={{ flex: 1, minWidth: 0 }}><span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: ui, fontSize: 13.5, fontWeight: 600, color: 'var(--pl-ink)' }}>{s.title}{m.attn ? <span style={{ width: 5, height: 5, borderRadius: 99, background: 'var(--peach-ink, #C6703D)' }} /> : null}</span><span style={{ display: 'block', fontSize: 11, color: 'var(--pl-muted)', fontFamily: ui }}>{m.desc}</span></span>
+              <button onClick={(e) => { e.stopPropagation(); move(s.id, -1); }} disabled={i === 0} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: i === 0 ? 'var(--pl-divider)' : 'var(--pl-ink-soft)' }}><I d={IC.up} s={15} /></button>
+              <button onClick={(e) => { e.stopPropagation(); hide(s.id); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: s.hidden ? 'var(--pl-terra)' : 'var(--pl-olive)' }}><I d={s.hidden ? IC.eyeoff : IC.eye} s={15} /></button>
+            </div>
+          ); })}
+          <button onClick={() => setSheet('add')} style={{ width: '100%', padding: '11px', borderRadius: 10, border: '1.5px dashed var(--pl-divider)', background: 'transparent', color: 'var(--peach-ink, #C6703D)', fontFamily: ui, fontSize: 13.5, fontWeight: 600, marginTop: 2, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer' }}><I d={IC.add} s={15} /> Add section</button>
+          <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', color: 'var(--pl-muted)', margin: '18px 0 8px' }}>TOOLS</div>
+          {TOOLS.map(([id, l, g, d]) => <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', marginBottom: 7 }}><span style={{ fontFamily: 'var(--pl-font-display)', fontSize: 14, color: 'var(--pl-olive)', width: 18, textAlign: 'center' }}>{g}</span><span style={{ flex: 1 }}><span style={{ display: 'block', fontFamily: ui, fontSize: 13.5, fontWeight: 600, color: 'var(--pl-ink)' }}>{l}</span><span style={{ fontSize: 11, color: 'var(--pl-muted)', fontFamily: ui }}>{d}</span></span></div>)}
+        </Sheet>
+      ) : null}
+
+      {/* ADD */}
+      {sheet === 'add' ? (
+        <Sheet title="Add a section" h={520}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>{SECTIONS.map((m) => <button key={m.id} onClick={() => addBlock(m.id)} style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '14px', borderRadius: 12, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', cursor: 'pointer', textAlign: 'left' }}><span style={{ fontFamily: 'var(--pl-font-display)', fontSize: 18, color: 'var(--pl-olive)' }}>{m.glyph}</span><span style={{ fontFamily: ui, fontSize: 13.5, fontWeight: 600, color: 'var(--pl-ink)' }}>{m.label}</span><span style={{ fontSize: 11, color: 'var(--pl-muted)', fontFamily: ui }}>{m.desc}</span></button>)}</div>
+        </Sheet>
+      ) : null}
+
+      {/* THEME — mirrors the desktop ThemeRail: Palette · Type · Paper texture · Theme Shop, + decor look & spacing */}
+      {sheet === 'style' ? (
+        <Sheet title="Dress the page." h={604}>
+          <div style={GRP}>
+            <div style={LBL}>PALETTE</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {THEMES.filter((t) => ['garden', 'santorini', 'tuscan', 'midnight'].indexOf(t.id) >= 0).map((t) => { const on = themeId === t.id; return (
+                <button key={t.id} onClick={() => pickTheme(t.id)} style={{ padding: 0, borderRadius: 10, overflow: 'hidden', border: on ? '2px solid var(--peach-ink, #C6703D)' : '1px solid var(--pl-divider)', cursor: 'pointer', background: 'var(--pl-cream)' }}>
+                  <div style={{ height: 38, display: 'flex' }}>{t.swatches.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}</div>
+                  <div style={{ padding: '6px 9px', fontFamily: ui, fontSize: 12, fontWeight: 600, color: 'var(--pl-ink)', textAlign: 'left' }}>{t.name}</div>
+                </button>); })}
+            </div>
+          </div>
+          <div style={GRP}>
+            <div style={LBL}>TYPE</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {TYPEFACES.map(([n, f, d]) => { const on = (font || (theme.vars && theme.vars['--t-display'])) === f; return (
+                <button key={n} onClick={() => setFont(f)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, border: on ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--pl-divider)', background: on ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream)', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontFamily: f, fontSize: 18, color: 'var(--pl-ink)', flex: 1 }}>{n}</span><span style={{ fontSize: 10.5, color: 'var(--pl-muted)', fontFamily: ui }}>{d}</span></button>); })}
+            </div>
+          </div>
+          <div style={GRP}>
+            <div style={LBL}>PAPER TEXTURE</div>
+            <div style={{ display: 'flex', gap: 8 }}>{[['none', 'None'], ['grain', 'Grain'], ['linen', 'Linen']].map(([k, l]) => { const on = paper === k; return <button key={k} onClick={() => setPaper(k)} style={{ flex: 1, padding: '9px', borderRadius: 9, fontFamily: ui, fontSize: 12.5, fontWeight: on ? 600 : 500, border: on ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--pl-divider)', background: on ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream)', color: 'var(--pl-ink)', cursor: 'pointer' }}>{l}</button>; })}</div>
+          </div>
+          <div style={GRP}>
+            <div style={LBL}>DECOR · {theme.name.toUpperCase()} KIT</div>
+            <Opt k="card" label="CARDS" /><Opt k="photo" label="PHOTO FRAMES" /><Opt k="divider" label="DIVIDERS" /><Opt k="button" label="BUTTONS" /><Opt k="heroAlign" label="OPENING ALIGN" /><Opt k="motifDensity" label="MOTIF DENSITY" />
+          </div>
+          <div style={GRP}>
+            <div style={LBL}>SPACING</div>
+            <div style={{ display: 'flex', gap: 6 }}>{DENSITY.map((d) => { const on = density === d; return <button key={d} onClick={() => setDensity(d)} style={{ flex: 1, padding: '9px 4px', borderRadius: 9, textTransform: 'capitalize', fontFamily: ui, fontSize: 12, fontWeight: on ? 600 : 500, border: on ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--pl-divider)', background: on ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream)', color: 'var(--pl-ink)', cursor: 'pointer' }}>{d}</button>; })}</div>
+          </div>
+          <div style={GRP}>
+            <div style={{ ...LBL, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span>THEME SHOP</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 999, border: '1px solid var(--gold-line)', background: 'rgba(193,154,75,0.14)', color: '#8A6A2E', fontSize: 10, fontWeight: 600 }}><I d={IC.lock} s={10} /> Full bolt</span></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {THEMES.filter((t) => ['garden', 'santorini', 'tuscan', 'midnight'].indexOf(t.id) < 0).map((t) => { const on = themeId === t.id; return (
+                <button key={t.id} onClick={() => pickTheme(t.id)} style={{ padding: 0, borderRadius: 10, overflow: 'hidden', border: on ? '2px solid var(--peach-ink, #C6703D)' : '1px solid var(--pl-divider)', cursor: 'pointer', background: 'var(--pl-cream)' }}>
+                  <div style={{ height: 34, display: 'flex' }}>{t.swatches.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}</div>
+                  <div style={{ padding: '6px 9px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span style={{ fontFamily: ui, fontSize: 11.5, fontWeight: 600, color: 'var(--pl-ink)' }}>{t.name}</span><I d={IC.lock} s={11} c="#8A6A2E" /></div>
+                </button>); })}
+            </div>
+            <div style={{ ...LBL, marginTop: 14 }}>ORNAMENT KIT</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>{['sprig', 'laurel', 'bloom', 'rings', 'dove', 'star', 'sun', 'vine', 'feather', 'wave'].map((m) => { const free = ['sprig', 'rings', 'star', 'laurel'].indexOf(m) >= 0; return <button key={m} onClick={() => free && setLook({ ...L, divider: m === 'bloom' ? 'bloom' : 'sprig', motifDensity: L.motifDensity === 'none' ? 'sparse' : L.motifDensity })} style={{ position: 'relative', aspectRatio: '1', borderRadius: 9, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', display: 'grid', placeItems: 'center', cursor: free ? 'pointer' : 'default', opacity: free ? 1 : 0.75 }}>{Motif ? <Motif name={m} size={20} color="var(--pl-olive)" accent="var(--pl-gold)" /> : '✦'}{!free ? <span style={{ position: 'absolute', top: 4, right: 4, color: '#8A6A2E' }}><I d={IC.lock} s={9} /></span> : null}</button>; })}</div>
+          </div>
+        </Sheet>
+      ) : null}
+
+      {/* BLOCK */}
+      {sheet === 'block' && selSec ? (
+        <Sheet title={'Editing · ' + meta(selSec.type).label} h={540}>
+          {LAYOUTS[selSec.type] ? (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.14em', color: 'var(--pl-muted)', marginBottom: 8 }}>SECTION LAYOUT</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{LAYOUTS[selSec.type].map((v) => { const cur = (selSec.lay || (selSec.type === 'opening' ? (L.heroAlign === 'left' ? 'Left' : 'Centered') : LAYOUTS[selSec.type][0])) === v; return <button key={v} onClick={() => setLay(selSec.id, v)} style={{ padding: '8px 12px', borderRadius: 10, cursor: 'pointer', fontFamily: ui, fontSize: 12, fontWeight: cur ? 600 : 500, border: `1px solid ${cur ? 'var(--peach-ink, #C6703D)' : 'var(--pl-divider)'}`, background: cur ? 'var(--peach-bg, #FBE8D6)' : 'var(--pl-cream-card)', color: 'var(--pl-ink)' }}>{v}</button>; })}</div>
+            </div>
+          ) : null}
+          <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.14em', color: 'var(--pl-muted)', marginBottom: 6 }}>SECTION TITLE</div>
+          <input value={selSec.title} onChange={(e) => setTitle(selSec.id, e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 10, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-deep, #F0E9D8)', fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 17, color: 'var(--pl-ink)', marginBottom: 16 }} />
+          {selSec.type === 'schedule' ? (
+            <>{(selSec.items || []).map(([t, l], i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', marginBottom: 7 }}><span style={{ fontFamily: mono, fontSize: 12, color: 'var(--pl-terra)', width: 36 }}>{t}</span><span style={{ flex: 1, fontFamily: ui, fontSize: 13.5, color: 'var(--pl-ink)' }}>{l}</span><button onClick={() => setSecs((a) => a.map((x) => x.id === selSec.id ? { ...x, items: x.items.filter((_, j) => j !== i) } : x))} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)' }}><I d={IC.trash} s={14} /></button></div>)}
+              <button onClick={() => setSecs((a) => a.map((x) => x.id === selSec.id ? { ...x, items: [...(x.items || []), ['7:30', 'A new moment']] } : x))} style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1.5px dashed var(--pl-divider)', background: 'transparent', color: 'var(--peach-ink, #C6703D)', fontFamily: ui, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>+ Add a moment</button></>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 12, background: 'var(--lavender-bg, #E8E0F0)' }}><PearloomGlyph size={18} color="var(--lavender-ink, #6B5A8C)" /><span style={{ flex: 1, fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 13.5, color: 'var(--pl-ink)' }}>"Want me to write this in your voice?"</span><Button variant="ink" size="sm">Draft</Button></div>
+          )}
+        </Sheet>
+      ) : null}
+
+      {/* PEAR */}
+      {sheet === 'pear' ? (
+        <Sheet title="Pear" h={360}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><PearloomGlyph size={22} color="var(--lavender-ink, #6B5A8C)" /><span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: '0.14em', color: 'var(--lavender-ink, #6B5A8C)' }}>YOUR DESIGN ADVISOR</span></div>
+          {['Pick a theme from our cover photo', 'Make the layout feel more like a garden party', 'Tighten the copy on every section', 'Match the type to our save-the-date'].map((q) => <button key={q} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--pl-divider)', background: 'var(--pl-cream-card)', fontFamily: ui, fontSize: 13.5, color: 'var(--pl-ink)', marginBottom: 8, cursor: 'pointer' }}>{q}</button>)}
+        </Sheet>
+      ) : null}
+
+      <div className="home-ind" />
+    </div></div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

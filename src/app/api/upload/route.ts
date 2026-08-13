@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     // Fallback: Supabase Storage (no encryption — Supabase encrypts at rest natively)
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error('[upload] No storage backend configured');
-      return NextResponse.json({ error: 'Storage not configured — contact support' }, { status: 503 });
+      return NextResponse.json({ error: 'Storage not configured. Contact support' }, { status: 503 });
     }
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(

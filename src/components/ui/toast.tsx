@@ -144,6 +144,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       {/* Fixed notification stack */}
       <div
+        role="region"
         aria-label="Notifications"
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 pointer-events-none"
       >

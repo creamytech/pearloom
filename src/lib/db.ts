@@ -4,9 +4,12 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient } from '@supabase/supabase-js';
+import { recordProductEvent } from '@/lib/analytics/product-events';
+import { usableNamesPair } from '@/lib/site-names';
 import type {
   SiteConfig,
   RsvpResponse,
+  StoryManifest,
   Venue,
   VenueSpace,
   SeatingTable,
@@ -82,7 +85,7 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('sites')
-    .select('site_config, ai_manifest, theme_override')
+    .select('site_config, ai_manifest, theme_override, published_manifest')
     .eq('subdomain', subdomain)
     .single();
 
@@ -91,7 +94,13 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   // Re-assemble the standard template payload with dynamic overrides
   const baseConfig: SiteConfig = data.site_config as SiteConfig;
   baseConfig.manifest = data.ai_manifest;
-  
+  /* Staged-editing snapshot (C.2) — rides along so the PUBLIC site
+     routes can serve it via servedManifestFor(). Everything else
+     (editor, dashboards, APIs) keeps reading `manifest`, the
+     working copy. Loose-keyed: SiteConfig is a stored JSON shape. */
+  (baseConfig as unknown as Record<string, unknown>).publishedManifest =
+    data.published_manifest ?? null;
+
   if (data.theme_override) {
     baseConfig.theme = data.theme_override;
   }
@@ -99,13 +108,78 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   return baseConfig;
 }
 
+/**
+ * adoptSite — write/normalise the site_config.creator_email so the
+ * dashboard's case-insensitive listing picks the site up.
+ *
+ * Called from the editor's server-side ownership check whenever:
+ *   (a) the site has no creator_email (orphan), OR
+ *   (b) the stored creator_email differs only in casing from the
+ *       current session's email.
+ *
+ * Refuses to overwrite a creator_email that points to a different
+ * identity — the editor's strict-mismatch redirect runs first, so
+ * we should never reach this with a real owner-mismatch, but the
+ * guard is belt-and-braces.
+ */
+export async function adoptSite(
+  subdomain: string,
+  sessionEmail: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  const normalised = sessionEmail.toLowerCase().trim();
+  try {
+    const { data: existing } = await supabase
+      .from('sites')
+      .select('id, site_config')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (!existing) return { success: false, error: 'Site not found.' };
+
+    const cfg = (existing.site_config as Record<string, unknown>) || {};
+    const currentOwner = String(cfg.creator_email ?? '').toLowerCase().trim();
+
+    // If the stored owner is set and differs from the session user,
+    // refuse — the editor route should have already redirected.
+    if (currentOwner && currentOwner !== normalised) {
+      return { success: false, error: 'Owned by a different user.' };
+    }
+
+    const { error } = await supabase
+      .from('sites')
+      .update({
+        creator_email: normalised,
+        site_config: {
+          ...cfg,
+          creator_email: normalised,
+        },
+      })
+      .eq('subdomain', subdomain);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function saveSiteDraft(
   userId: string,
   subdomain: string,
   manifest: unknown,
-  names: [string, string] = ['', '']
+  names: [string, string] = ['', ''],
+  /** Wizard-create idempotency: the per-press key stamped onto
+   *  site_config so a replayed create converges on this row
+   *  (see findAvailableSubdomain in api/sites). Absent on
+   *  autosave/update callers — never cleared once set. */
+  opts?: { pressKey?: string | null }
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Normalize the user id so future case-mismatches don't cause the
+  // dashboard to lose track of the site (the listing query is now
+  // case-insensitive too — belt and braces).
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     const { data: existing } = await supabase
       .from('sites')
@@ -114,19 +188,34 @@ export async function saveSiteDraft(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
+      // Names fence: manifest-only savers (Studio autosave, unload
+      // beacons) don't carry names — an empty incoming pair must
+      // NEVER clobber a stored one. Fall back through the stored
+      // config pair, then the incoming manifest's own names field.
+      const existingConfig = (existing.site_config as Record<string, unknown>) || {};
+      const namesToStore =
+        usableNamesPair(names)
+        ?? usableNamesPair(existingConfig.names)
+        ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+        ?? ['', ''];
       const { error } = await supabase
         .from('sites')
         .update({
           ai_manifest: manifest,
+          // Top-level column kept in sync with the JSON — RLS
+          // policies + the co-host routes read the column
+          // (lib/cohost-access.ts has the full history).
+          creator_email: normalizedUserId,
           site_config: {
-            ...((existing.site_config as Record<string, unknown>) || {}),
+            ...existingConfig,
             slug: subdomain,
-            creator_email: userId,
-            names,
+            creator_email: normalizedUserId,
+            names: namesToStore,
+            ...(opts?.pressKey ? { pressKey: opts.pressKey } : {}),
           },
         })
         .eq('subdomain', subdomain);
@@ -139,11 +228,16 @@ export async function saveSiteDraft(
       .insert({
         subdomain: subdomain.toLowerCase(),
         ai_manifest: { ...(manifest as Record<string, unknown>), comingSoon: { enabled: true } },
+        creator_email: normalizedUserId,
         site_config: {
           slug: subdomain,
-          creator_email: userId,
-          names,
+          creator_email: normalizedUserId,
+          names:
+            usableNamesPair(names)
+            ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+            ?? ['', ''],
           createdAt: new Date().toISOString(),
+          ...(opts?.pressKey ? { pressKey: opts.pressKey } : {}),
         },
       });
     if (error) return { success: false, error: error.message };
@@ -153,13 +247,48 @@ export async function saveSiteDraft(
   }
 }
 
+/**
+ * markSitePublished — stamp sites.published_at on the FIRST publish
+ * and fire the site_published funnel event exactly once (Pillar 20).
+ *
+ * Fully failure-tolerant: the published_at column may not exist yet
+ * on deployments where 20260706_product_events.sql hasn't been
+ * applied, so any error here is swallowed — publishing is NEVER lost
+ * to instrumentation. The `.is('published_at', null)` guard means a
+ * re-publish is a no-op (no row updated → no duplicate event), so
+ * the funnel counts first-publish only.
+ */
+async function markSitePublished(
+  supabase: ReturnType<typeof getSupabase>,
+  subdomain: string,
+  email: string,
+): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .update({ published_at: new Date().toISOString() })
+      .eq('subdomain', subdomain)
+      .is('published_at', null)
+      .select('id');
+    if (error) return; // column absent (pre-migration) or DB blip — skip.
+    if (data && data.length > 0) {
+      void recordProductEvent('site_published', { email, siteId: subdomain });
+    }
+  } catch {
+    /* instrumentation only — never block a publish */
+  }
+}
+
 export async function publishSite(
-  userId: string, 
-  subdomain: string, 
+  userId: string,
+  subdomain: string,
   manifest: unknown,
   names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
+  // Match saveSiteDraft — normalize on write so the dashboard's
+  // case-insensitive listing always finds this row later.
+  const normalizedUserId = userId.toLowerCase().trim();
   try {
     // Check if this subdomain is owned by someone else
     const { data: existing } = await supabase
@@ -169,22 +298,46 @@ export async function publishSite(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
-      if (ownerEmail && ownerEmail !== userId) {
+      const ownerEmail = String((existing.site_config as Record<string, unknown>)?.creator_email ?? '').toLowerCase();
+      if (ownerEmail && ownerEmail !== normalizedUserId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
 
-      // Same user re-publishing — update
+      // Same user re-publishing — update. Same names fence as
+      // saveSiteDraft: a publish without names must never wipe the
+      // stored pair. createdAt is preserved too (a re-publish is
+      // not a re-creation; this used to stamp it fresh every time).
+      const existingConfig = (existing.site_config as Record<string, unknown>) || {};
+      /* Staged-editing snapshot (C.2): in staged mode, THIS publish
+         is the exact thing guests see until the next "Update site" —
+         stamp it. In live mode the snapshot must be NULL so the
+         public routes serve the working copy (and switching staged →
+         live clears a stale snapshot). */
+      const { readEditMode } = await import('@/lib/site-visibility');
+      const publishedSnapshot =
+        readEditMode(manifest as StoryManifest) === 'staged' ? manifest : null;
       const { error } = await supabase
         .from('sites')
         .update({
           ai_manifest: manifest,
+          published_manifest: publishedSnapshot,
+          creator_email: normalizedUserId,
+          // The column five features filter on (.eq('published', true):
+          // sibling strip, celebration timeline, anniversary cron,
+          // weekly digest, day-after recap) and the public route's
+          // gate. Nothing wrote it before 2026-08-12 — the whole
+          // "Remember" pillar had never fired (NEW-USER-REVAMP H6).
+          published: true,
           site_config: {
-            ...((existing.site_config as Record<string, unknown>) || {}),
+            ...existingConfig,
             slug: subdomain,
-            creator_email: userId,
-            names,
-            createdAt: new Date().toISOString()
+            creator_email: normalizedUserId,
+            names:
+              usableNamesPair(names)
+              ?? usableNamesPair(existingConfig.names)
+              ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+              ?? ['', ''],
+            createdAt: existingConfig.createdAt ?? new Date().toISOString()
           }
         })
         .eq('subdomain', subdomain);
@@ -193,19 +346,31 @@ export async function publishSite(
         console.error('Publish update error:', error);
         return { success: false, error: `Database update failed: ${error.message}` };
       }
+      // Activation instrumentation (Pillar 20) — stamp published_at +
+      // fire site_published on the first publish only. Fire-and-forget.
+      await markSitePublished(supabase, subdomain, normalizedUserId);
       return { success: true };
     }
 
     // New site — insert
+    const { readEditMode: readMode } = await import('@/lib/site-visibility');
     const { error } = await supabase
       .from('sites')
       .insert({
         subdomain: subdomain.toLowerCase(),
         ai_manifest: manifest,
+        // Same staged-snapshot rule as the update path above (C.2).
+        published_manifest:
+          readMode(manifest as StoryManifest) === 'staged' ? manifest : null,
+        creator_email: normalizedUserId,
+        published: true,
         site_config: {
           slug: subdomain,
-          creator_email: userId,
-          names,
+          creator_email: normalizedUserId,
+          names:
+            usableNamesPair(names)
+            ?? usableNamesPair((manifest as { names?: unknown } | null)?.names)
+            ?? ['', ''],
           createdAt: new Date().toISOString()
         }
       });
@@ -214,6 +379,9 @@ export async function publishSite(
       console.error('Publish insert error:', error);
       return { success: false, error: `Database insert failed: ${error.message}` };
     }
+    // Activation instrumentation (Pillar 20) — a brand-new site
+    // inserted straight to published: stamp published_at + fire once.
+    await markSitePublished(supabase, subdomain, normalizedUserId);
     return { success: true };
 
   } catch (err: unknown) {
@@ -643,13 +811,20 @@ function toGuestPhoto(row: Record<string, unknown>): GuestPhoto {
   };
 }
 
-export async function addGuestPhoto(data: Omit<GuestPhoto, 'id' | 'createdAt'>): Promise<GuestPhoto | null> {
+export async function addGuestPhoto(
+  data: Omit<GuestPhoto, 'id' | 'createdAt'> & { guestId?: string | null }
+): Promise<GuestPhoto | null> {
   const supabase = getSupabase();
   const { data: row, error } = await supabase
     .from('guest_photos')
     .insert({
       site_id: data.siteId,
       uploader_name: data.uploaderName,
+      // Optional attribution to a pearloom_guests row. When set,
+      // the /g/[token] page surfaces this photo as part of "your
+      // contributions" — the guest revisits and sees what they
+      // added without hunting through the wall.
+      guest_id: data.guestId ?? null,
       url: data.url,
       thumbnail_url: data.thumbnailUrl ?? null,
       caption: data.caption ?? null,
@@ -674,6 +849,28 @@ export async function getGuestPhotos(siteId: string, status?: GuestPhoto['status
   const { data, error } = await query;
   if (error) return [];
   return (data as Record<string, unknown>[]).map(toGuestPhoto);
+}
+
+/**
+ * getApprovedGuestPhotos — the single read every keepsake surface
+ * (dashboard memory book, the public /recap page, the day-after
+ * "your memory book is ready" email) shares so the moderation
+ * filter can't drift apart again.
+ *
+ * `guest_photos.site_id` is the SUBDOMAIN string (see migration
+ * 20260614_guest_photos_with_attribution.sql) — NOT the sites.id
+ * UUID. Pass the site's subdomain / slug. Only host-APPROVED photos
+ * are returned; pending + rejected never surface on a public or
+ * keepsake surface. Fails soft to [] (missing env / DB blip must
+ * never break a keepsake).
+ */
+export async function getApprovedGuestPhotos(subdomain: string): Promise<GuestPhoto[]> {
+  if (!subdomain) return [];
+  try {
+    return await getGuestPhotos(subdomain, 'approved');
+  } catch {
+    return [];
+  }
 }
 
 export async function moderateGuestPhoto(id: string, status: 'approved' | 'rejected'): Promise<void> {
@@ -762,4 +959,71 @@ export async function acceptSiteInvite(token: string, acceptorEmail: string): Pr
 export async function deleteSiteInvite(id: string): Promise<void> {
   const supabase = getSupabase();
   await supabase.from('site_invites').delete().eq('id', id);
+}
+
+/**
+ * Get all published sites for sitemap generation.
+ */
+export async function getPublishedSites(): Promise<Array<{ domain: string; created_at: string; updated_at?: string; occasion?: string }>> {
+  const supabase = getSupabase();
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('subdomain, created_at, updated_at, ai_manifest')
+      .not('ai_manifest', 'is', null)
+      .limit(5000);
+    if (error || !data) return [];
+    // Only the deliberately PUBLIC state is listed (V.1 — one
+    // visibility resolver). The old filter only excluded
+    // comingSoon.enabled, so every DRAFT rode into the sitemap —
+    // leaking slug existence the 404 gate was built to hide — and
+    // password/link-only sites were handed to search engines.
+    const { readSiteVisibility } = await import('@/lib/site-visibility');
+    return data
+      .filter((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        if (!manifest) return false;
+        return readSiteVisibility(manifest as unknown as StoryManifest) === 'public';
+      })
+      .map((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        return {
+          domain: row.subdomain as string,
+          created_at: row.created_at as string,
+          updated_at: row.updated_at as string | undefined,
+          occasion: (manifest?.occasion as string | undefined),
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
+/* ── Managed site addresses (C.6/L22) ─────────────────────────── */
+
+/** Follow a renamed site's old address one hop (chains are collapsed
+ *  at rename time). Returns the new subdomain + occasion for the
+ *  301's pretty path, or null when the old slug never existed. */
+export async function getRedirectTarget(
+  oldSubdomain: string,
+): Promise<{ subdomain: string; occasion?: string } | null> {
+  const supabase = getSupabase();
+  try {
+    const { data } = await supabase
+      .from('site_redirects')
+      .select('new_subdomain')
+      .eq('old_subdomain', oldSubdomain)
+      .maybeSingle();
+    const next = (data as { new_subdomain?: string } | null)?.new_subdomain;
+    if (!next) return null;
+    const { data: site } = await supabase
+      .from('sites')
+      .select('ai_manifest')
+      .eq('subdomain', next)
+      .maybeSingle();
+    const occasion = ((site as { ai_manifest?: { occasion?: string } } | null)?.ai_manifest?.occasion);
+    return { subdomain: next, occasion };
+  } catch {
+    return null;
+  }
 }

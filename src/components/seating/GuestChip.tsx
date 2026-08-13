@@ -21,7 +21,7 @@ export interface GuestChipProps {
 /** Derive a stable color from a name string */
 function colorFromName(name: string): string {
   const COLORS = [
-    '#A3B18A', // olive
+    '#5C6B3F', // olive
     '#8FA876', // dark olive
     '#D6C6A8', // gold
     '#6D597A', // plum
@@ -96,7 +96,7 @@ export function GuestChip({
               right: '-2px',
               fontSize: '0.45rem',
               lineHeight: 1,
-              background: 'rgba(255,255,255,0.85)',
+              background: 'var(--pl-ink)',
               borderRadius: '50%',
               padding: '1px',
             }}
@@ -119,8 +119,8 @@ export function GuestChip({
         gap: '0.5rem',
         padding: '0.35rem 0.6rem 0.35rem 0.4rem',
         borderRadius: '2rem',
-        background: isDragging ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.85)',
-        border: isAssigned ? '1.5px solid var(--eg-accent)' : '1.5px solid var(--eg-divider)',
+        background: isDragging ? 'rgba(255,255,255,0.98)' : 'var(--pl-ink)',
+        border: isAssigned ? '1.5px solid var(--pl-olive)' : '1.5px solid var(--pl-divider)',
         cursor: draggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
         opacity: isDragging ? 0.7 : 1,
         transform: isDragging ? 'scale(1.04)' : 'scale(1)',
@@ -159,7 +159,7 @@ export function GuestChip({
               right: '-3px',
               fontSize: '0.55rem',
               lineHeight: 1,
-              background: 'rgba(255,255,255,0.9)',
+              background: 'var(--pl-ink)',
               borderRadius: '50%',
               padding: '1px',
             }}
@@ -173,8 +173,8 @@ export function GuestChip({
       <span
         style={{
           fontSize: isPlusOne ? '0.72rem' : '0.78rem',
-          color: isAssigned ? 'var(--eg-fg)' : 'var(--eg-muted)',
-          fontFamily: 'var(--eg-font-body)',
+          color: isAssigned ? 'var(--pl-ink)' : 'var(--pl-muted)',
+          fontFamily: 'var(--pl-font-body)',
           fontWeight: isAssigned ? 500 : 400,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -192,7 +192,7 @@ export function GuestChip({
             width: '0.4rem',
             height: '0.4rem',
             borderRadius: '50%',
-            background: 'var(--eg-accent)',
+            background: 'var(--pl-olive)',
             flexShrink: 0,
           }}
         />

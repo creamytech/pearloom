@@ -2,8 +2,17 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/brand/PearloomMark.tsx
-// The Pearloom logo mark — two elegant threads intertwining,
-// embodying "pear + loom" — an intertwined connection.
+// The Pearloom logo mark (final, signed off 2026-06-18): the solid
+// pear silhouette with a spiral core carved out as true negative
+// space, stem + angled leaf on top. One `color` paints the whole
+// mark (the spiral is a real hole), so it reverses to a cream
+// knockout and re-skins per theme.
+//
+// Canonical static version lives in pearloom/motifs.tsx
+// (PearloomGlyph) — this file is the framer-motion variant used by
+// ceremonial surfaces (PasswordGate, sign-in). The old woven-pear
+// (olive thread + gold weft + pearl) was retired with this rebrand;
+// `color2` is still accepted for call-site compatibility but unused.
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
@@ -11,152 +20,70 @@ import { motion } from 'framer-motion';
 interface PearloomMarkProps {
   size?: number;
   color?: string;
-  color2?: string;    // second thread color (defaults to slightly lighter)
-  animated?: boolean; // draw-in animation
+  color2?: string;    // retained for call-site compat; unused by the solid mark
+  animated?: boolean; // press-in reveal
   className?: string;
   style?: React.CSSProperties;
 }
 
-/**
- * Two intertwining curves that form an elegant infinity-like knot.
- * Represents "pear + loom" — two lives woven together.
- */
+// viewBox 0 0 115.4 186 — body (with carved spiral) + leaf.
+const BODY =
+  'm90 92c-4.4-9-5.7-15.4-7.1-25.2-1.6-10.9-8-19.3-15.9-23-2.5-1.3-6.7-1.2-8.6-1.4 0.2-6.7-0.4-12.5-2.2-20.4-1.1-3-2.9-2-4.3-1.1s-2.9 2.2-1.5 4.8 4.2 4.4 5 17c0.1 0.3-1.1-0.1-1.8 0-10.6 1.4-19.4 10.1-21.2 22.7-1.7 11.4-2.5 17.7-8.7 28.6-4.9 8.9-6.9 10.4-10.1 18-2.2 4.8-5.1 12.6-4.6 24.1 0.4 9.1 3.7 22.5 12.3 31.2 7.9 8.2 18.6 14.5 35.1 15.1 26.6 0 45.6-14.1 49.5-35.6 4.2-18.4-1.2-33.1-10.2-47.8l-5.7-7zm-31.4 77.5c-18.6 0-31.7-13.2-31.8-33.5-0.1-17.1 9-26.8 13.8-34.7 5.2-8.6 12.2-28.2 14.4-50.2h0.4c0.7 9.2-0.1 25.3-2.1 34.4-3.9 18.3-11.4 26.3-14.5 38.5-5.9 22.5 8.1 32.7 20.6 32.9 14.1 0.1 18.2-9.6 18.5-17 0.2-6.5-6-13.8-12.9-14.1-5.2-0.1-9.7 3.1-9.8 8.7-0.3 7 7.5 9.9 11.3 5.8-0.1 2.5-2.9 5.2-7.5 4.9-4-0.2-9.1-4-9.1-11.3 0.1-5.8 5.1-16.3 17.3-16.3 12.9-0.3 20.7 9.8 21.1 21 0.3 13.8-9.6 30.9-29.7 30.9zm6.3-137.2c0.5-8.1 5.7-25.3 24.5-25.7 11.5-0.5 15.5 1.3 16.3 1.8 0.5 0.2 1.6 0.6-0.6 3.4-3.4 4.8-8.8 22.1-27.5 23.3-7.9 0.3-9.7-2-13 1.5s-5.2 7.2 0.3-4.3zm0.5 1.6c3.2-4.3 13.3-16.5 25.1-17.9 9.7-1.2-12 1-23.6 17.9h-1.5z';
+const LEAF =
+  'm64.9 32.3c-0.1-4.7 3.1-24.3 22.4-25.5 9.7-0.9 14.7-0.2 18 1l0.2 0.1c0.7 0.2 1.3 0.6 0.6 1.5-5.1 7.7-9.4 22.2-25.6 25.4-9.1 1.3-12.3-2.7-15.6 1.2v-3.7z';
+
 export function PearloomMark({
   size = 40,
-  color = '#A3B18A',
-  color2,
+  color = 'var(--pl-olive, #5C6B3F)',
   animated = false,
   className,
   style,
 }: PearloomMarkProps) {
-  const c2 = color2 || adjustAlpha(color, 0.65);
-
-  // The intertwined paths — two threads crossing over each other
-  // Thread 1: sweeps upper-left to lower-right
-  const thread1 = 'M 12 28 C 12 12, 30 8, 50 20 C 70 32, 88 28, 88 12';
-  // Thread 2: sweeps lower-left to upper-right (crossing thread 1)
-  const thread2 = 'M 12 12 C 12 28, 30 32, 50 20 C 70 8, 88 12, 88 28';
-
-  const pathProps = {
-    fill: 'none',
-    strokeWidth: 2.5,
-    strokeLinecap: 'round' as const,
-  };
+  const width = size * (115.4 / 186);
 
   if (animated) {
     return (
-      <svg
-        width={size}
+      <motion.svg
+        width={width}
         height={size}
-        viewBox="0 0 100 40"
+        viewBox="0 0 115.4 186"
         className={className}
-        style={style}
+        style={{ transformOrigin: '50% 60%', ...style }}
+        aria-hidden
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
         <motion.path
-          d={thread1}
-          stroke={color}
-          {...pathProps}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.5, ease: 'easeInOut' }}
+          d={BODY}
+          fill={color}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         />
         <motion.path
-          d={thread2}
-          stroke={c2}
-          {...pathProps}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.5, ease: 'easeInOut', delay: 0.3 }}
+          d={LEAF}
+          fill={color}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut', delay: 0.35 }}
         />
-      </svg>
+      </motion.svg>
     );
   }
 
   return (
     <svg
-      width={size}
-      height={size * 0.4}
-      viewBox="0 0 100 40"
+      width={width}
+      height={size}
+      viewBox="0 0 115.4 186"
       className={className}
       style={style}
+      aria-hidden
     >
-      <path d={thread1} stroke={color} {...pathProps} />
-      <path d={thread2} stroke={c2} {...pathProps} />
+      <path d={BODY} fill={color} />
+      <path d={LEAF} fill={color} />
     </svg>
-  );
-}
-
-/**
- * Full Pearloom wordmark with intertwined mark
- */
-export function PearloomWordmark({
-  size = 120,
-  color = '#A3B18A',
-  textColor = '#2B2B2B',
-  style,
-}: {
-  size?: number;
-  color?: string;
-  textColor?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: size * 0.08, ...style }}>
-      <PearloomMark size={size * 0.35} color={color} />
-      <span style={{
-        fontFamily: 'var(--eg-font-heading)',
-        fontSize: size * 0.2,
-        fontWeight: 400,
-        letterSpacing: '-0.02em',
-        color: textColor,
-      }}>
-        Pearloom
-      </span>
-    </div>
-  );
-}
-
-/**
- * Floating thread particle for background decoration.
- * Replaces the old FloatingPear.
- */
-export function FloatingThread({
-  x,
-  y,
-  size = 60,
-  delay = 0,
-  opacity = 0.2,
-  color = '#A3B18A',
-}: {
-  x: string;
-  y: string;
-  size?: number;
-  delay?: number;
-  opacity?: number;
-  color?: string;
-}) {
-  return (
-    <motion.div
-      style={{
-        position: 'absolute',
-        left: x,
-        top: y,
-        pointerEvents: 'none',
-      }}
-      animate={{
-        y: [0, -15, 0],
-        rotate: [0, 8, -5, 0],
-        opacity: [opacity * 0.6, opacity, opacity * 0.5, opacity * 0.6],
-      }}
-      transition={{
-        duration: 7 + delay,
-        repeat: Infinity,
-        ease: 'easeInOut',
-        delay,
-      }}
-    >
-      <PearloomMark size={size} color={`${color}`} animated={false} style={{ opacity }} />
-    </motion.div>
   );
 }
 
@@ -195,14 +122,4 @@ export function WovenCircle({
       {children}
     </div>
   );
-}
-
-// ── Helpers ────────────────────────────────────────────────
-function adjustAlpha(hex: string, factor: number): string {
-  // Simple opacity adjustment — returns rgba
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  if (isNaN(r)) return hex; // fallback if not a hex color
-  return `rgba(${r},${g},${b},${factor})`;
 }

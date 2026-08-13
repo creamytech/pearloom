@@ -1,0 +1,40 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Motifs & dividers" subtitle="The line-ornament set + ornamental section rules" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); }
+  .wrap { padding: 26px 30px; }
+  .cap { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--pl-muted); margin-bottom: 14px; }
+  .motifs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px 8px; margin-bottom: 28px; }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .m span { font-family: var(--pl-font-mono); font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pl-muted); }
+  .divs { display: flex; flex-direction: column; gap: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+  var h=React.createElement, NS=window.PearloomDesignSystem_55118c;
+  var Motif=NS.Motif, MOTIF_NAMES=NS.MOTIF_NAMES, Divider=NS.Divider;
+  function App(){
+    return h('div',null,
+      h('div',{className:'cap'},'Motif — the line-ornament set'),
+      h('div',{className:'motifs'}, MOTIF_NAMES.map(function(n){ return h('div',{className:'m',key:n}, h(Motif,{name:n,size:42}), h('span',null,n)); })),
+      h('div',{className:'cap'},'Divider — ornamental section rules'),
+      h('div',{className:'divs'},
+        h(Divider,{ornament:'fleuron'}),
+        h(Divider,{ornament:'infinity', ink:'var(--pl-terra)'}),
+        h(Divider,{ornament:'cross', ink:'var(--lavender-ink)'})
+      )
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

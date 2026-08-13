@@ -1,0 +1,38 @@
+<!-- @dsCard group="Brand" viewport="700x220" name="Logo & marks" subtitle="The pear mark + wordmark, and its reversals" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); }
+  .wrap { padding: 24px 30px; display: flex; align-items: center; gap: 30px; }
+  .logo { width: 120px; flex: 0 0 auto; }
+  .logo img { width: 100%; display: block; }
+  .rule { width: 1px; align-self: stretch; background: var(--pl-divider); }
+  .ills { display: flex; align-items: center; gap: 18px; flex: 1; }
+  .ills img { height: 130px; }
+  .cap { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pl-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="cap" style="margin-bottom:10px">Mark &amp; wordmark</div>
+    <div style="display:flex; align-items:center; gap:14px">
+      <img src="../assets/logo-pear-mark.svg" alt="Pearloom mark" style="height:64px">
+      <img src="../assets/logo-wordmark.svg" alt="Pearloom" style="height:26px">
+    </div>
+  </div>
+  <div class="rule"></div>
+  <div>
+    <div class="cap" style="margin-bottom:10px">Reversals</div>
+    <div style="display:flex; align-items:center; gap:14px">
+      <span style="background:var(--pl-olive); border-radius:12px; padding:14px; display:inline-flex"><img src="../assets/logo-pear-mark.svg" alt="" style="height:54px; filter:brightness(0) invert(1)"></span>
+      <span style="background:var(--pl-ink); border-radius:12px; padding:14px; display:inline-flex"><img src="../assets/logo-pear-mark.svg" alt="" style="height:54px"></span>
+      <span style="background:var(--pl-gold); border-radius:12px; padding:14px; display:inline-flex"><img src="../assets/logo-pear-mark.svg" alt="" style="height:54px; filter:brightness(0)"></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

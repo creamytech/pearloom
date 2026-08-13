@@ -1,0 +1,82 @@
+# Visual-regression screenshot tour.
+#
+# Runs the Playwright spec at e2e/specs/screenshot-tour.spec.ts on
+# every push + PR. The spec snaps every major surface (dashboard,
+# wizard, editor, themed site preview, dashboard sub-routes) into
+# e2e/.screenshots/. The captures are uploaded as a workflow
+# artifact so reviewers can pull the zip and diff against the
+# previous run locally.
+#
+# Why not pixel-diff in CI? Two reasons:
+#   1. Pearloom's themed renderer reads from SVG filters + CSS
+#      animations whose anti-aliasing varies per OS/browser
+#      version. Naive pixel diffs would be perpetually red.
+#   2. The goal here is "I changed Theme X and want to see what
+#      it looks like" — humans eyeballing a downloaded zip is
+#      better signal than a binary CI red/green badge.
+#
+# A nicer follow-up: wire a tool like reg-suit or Argos that
+# uploads to a side service and surfaces visual diffs inline on
+# the PR. Deferred — this workflow is the cheapest first step.
+
+name: Screenshot tour
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'package.json'
+      - '.github/workflows/screenshot-tour.yml'
+  push:
+    branches: [main]
+  workflow_dispatch: {} # manual trigger from the Actions tab
+
+concurrency:
+  group: screenshot-tour-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright browsers (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run screenshot tour
+        # Playwright's webServer block spins up `next dev` with the
+        # e2e auth provider gated on. PEARLOOM_E2E=1 enables the
+        # CredentialsProvider in src/lib/auth.ts; without it the
+        # global setup 401s.
+        env:
+          PEARLOOM_E2E: '1'
+          NODE_ENV: 'development'
+        run: npx playwright test e2e/specs/screenshot-tour.spec.ts --reporter=list
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.sha }}
+          path: e2e/.screenshots/
+          retention-days: 14
+
+      - name: Upload trace + test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace-${{ github.sha }}
+          path: e2e/.test-results/
+          retention-days: 14

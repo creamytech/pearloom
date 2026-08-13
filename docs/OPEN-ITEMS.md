@@ -1,0 +1,127 @@
+# Open items — what's left, and who owns it
+
+> Compiled 2026-08-04 after Phase 0 + Phase 1. Everything the code
+> could close is closed; this is the honest remainder. Each item says
+> **who** can do it, because most of what's left is not code.
+>
+> Logs: `docs/PHASE-0-LOG.md`, `docs/PHASE-1-LOG.md`.
+> Plan of record: `docs/REVIEW-SYNTHESIS.md`.
+
+---
+
+## 1 · Owner actions — code cannot close these
+
+These are the real launch gates. None is blocked on engineering.
+
+| Item | Why it matters | What to do |
+|---|---|---|
+| **Email DNS** | Without SPF/DKIM/DMARC + a dedicated bulk subdomain, invitations land in spam. This breaks the product's core loop — the site is fine and nobody sees it. | Publish the records in Resend + DNS (e.g. `mail.pearloom.com`). |
+| **`EMAIL_POSTAL_ADDRESS`** | CAN-SPAM §5(a)(5) requires a physical address on bulk mail. The code is done — the footer renders the line only when this is set, so today's mail simply omits it (fine for transactional, not for bulk marketing). | Set the env var to the real registered address. |
+| **Stripe products at $89 / $199** | The checkout route reads `PLAN_PRICE_CENTS`, so no code changes — but the till can't take money at the new numbers until the products exist. | Create them in Stripe. |
+| **`FILM_RENDERER_WEBHOOK_SECRET`** | Became load-bearing in Phase 0: `/api/film/render-complete` used to fail OPEN (any POST could mark a render job complete with an attacker-supplied URL) and now returns 503 until the secret is set. | Set it in prod, or accept film rendering being disabled. |
+| **`RESEND_WEBHOOK_SECRET`, `EMAIL_UNSUB_SECRET`** | Bounce tracking rejects everything without the first; unsub tokens silently fall back to `NEXTAUTH_SECRET` without the second. | Set both deliberately. |
+| **Staging environment** | The critical-path e2e specs are written and green, but hermetic (every API mocked) because this container has no backend. Staging is where they run against a real one. | Stand one up. |
+
+## 2 · Decisions — DECIDED 2026-08-04
+
+All five are now made, with reasoning, in
+**`docs/DECISIONS-2026-08-04.md`**. Summary:
+
+| Decision | Made | Status |
+|---|---|---|
+| **What a referral earns** | New host inherits the LOOK of the site they came from; referrer earns +1 archive year, capped at 3. The reviews' "Edition credit" is void under our own pricing — design is free now, so it would be worth nothing. | **Shipped end to end.** Policy + tests, and the ledger migration applied to prod 2026-08-04 (guards verified live: duplicate grant, self-referral and >3 years all refused). |
+| **Free-tier site limit** | **1 → 2.** One site closes our #1 growth loop: a maid of honour can't add the bachelorette, and a referred couple can't create their wedding. | Shipped |
+| **Container pivot** | **Yes — after ~50 celebrations of evidence.** The model is built (that was the point of sequencing it first); the reframe waits for real users so we're not designing for an imagined one. | Position — blocked on the §1 owner actions |
+| **Willingness to pay** | **Ship $89 / $199.** We're priced against stationery ($300–800), not free websites; $89 is 0.26% of an average wedding. Test conversion, not elasticity, until ~200 activated celebrations. | Position |
+| **Unit economics** | **Modelled: under $1 per site per decade.** R2 egress is free, photos cap at 2048px/~450KB. The archive fee is margin on the custom domain, NOT cost recovery — and the cost worth watching is AI, not storage. | Modelled |
+
+Overrule any of these and the doc explains what the reasoning depended
+on, so it's clear what changes.
+
+## 3 · Code still open (ranked)
+
+Real work, none of it blocking, in the order I'd take it.
+
+1. **Apple Pass Type ID certificate.** Everything else for wallet
+   passes is built and tested — the pass body, the ZIP writer, the
+   drawn icon, the route, the guest card. What's missing is the
+   certificate itself (Apple Developer → Certificates → Pass Type
+   IDs) plus `APPLE_PASS_CERT` / `APPLE_PASS_KEY` /
+   `APPLE_PASS_TYPE_ID` / `APPLE_TEAM_ID`. Implementing `PassSigner`
+   against it is a short job, not a session. **Google Wallet needs
+   no certificate** — set the three `GOOGLE_WALLET_*` vars and that
+   half is live today. See `docs/WALLET-PASSES.md`.
+2. **Buy a number and point it at the webhook.** Everything else
+   for the concierge is built: SMS *and* WhatsApp inbound, shared
+   *and* dedicated-number routing, the fail-closed signature check.
+   Buy a Twilio number, set its "A MESSAGE COMES IN" webhook to
+   `POST /api/sms/inbound`, set `TWILIO_AUTH_TOKEN`, and tell guests
+   it exists. **WhatsApp needs no template approval for this** — a
+   reply inside the 24-hour window a guest's own message opens is
+   free-form, and the concierge only ever replies. See
+   `docs/CONCIERGE.md`.
+
+### Closed since this list was written (2026-08-04)
+
+- **Guest import into onboarding** — the tolerant paste is now the
+  guests empty state (`GuestListDoor`), with an honest pre-commit
+  count. Fixed a 404 found while wiring it: the publish moment's
+  "Invite your guests →" pointed at `/dashboard/guests`, which did
+  not exist.
+- **SMS concierge, inbound half** — `POST /api/sms/inbound` with a
+  fail-closed Twilio signature check, phone→guest→celebration
+  resolution, an allowlisted fact sheet, and escalation to the host
+  rather than a guessed answer. See ROUTE-AUDIT §3.
+- **CSS dead-selector deletion** — executed via
+  `scripts/css-dead-audit.mjs`; 70 consumer-less classes removed and
+  verified against the built tree. It came to 172 lines, not the
+  ~1,200 the audit estimated: the estimate assumed standalone blocks
+  where most dead selectors are single entries in shared lists.
+  `pearloom.css` is now clean rather than small.
+- **Planner v1** — `/dashboard/planner`: a client book keyed off the
+  existing co-host role (no new table), plus reusable shapes that
+  carry structure and look but never a previous client's content.
+
+### Closed 2026-08-05 (owner sign-off on plan enforcement)
+
+- **`requirePlan` had a latent outage.** `checkPlanAccess` was the
+  one call site of 209 that omitted `authOptions`, so with the JWT
+  strategy the session never resolved and EVERY caller — paying
+  ones included — read as `anonymous` and got denied. Harmless only
+  because nothing called it; the first gate wired to it would have
+  locked out the whole user base. Fixed before any gate went live.
+- **Co-hosts are now enforced** (`checkCoHostCapacity`): free
+  includes one, paid unlimited. Turning it on evicts nobody — it is
+  consulted on ADD only, fails open on a counting error, and
+  memorials stay exempt.
+- **Custom domain is priced but UNBUILT** — `PLAN_LIMITS.customDomain`
+  and the Stripe copy sell it; no custom-domain feature exists
+  anywhere in the product. Build it or stop selling it. Recorded in
+  `docs/MONETIZATION.md`.
+
+## 4 · What is NOT open (so nobody re-litigates it)
+
+- The launch-blocker list from `REVIEW-SYNTHESIS.md` §1.1 — all seven
+  code items shipped in Phase 0, including the two authorization bugs
+  the work surfaced (`POST /api/guests` accepting an ungated `siteId`;
+  `/api/film/render-complete` failing open).
+- Pricing packaging — restructured to Page/Pass/Keepsake, with no
+  migration and rank-based compatibility so no existing customer
+  loses entitlements.
+- The shedding problem — per-satellite privacy scopes, enforced on
+  both the read (roster union) and write (write-back) halves.
+- The doorway contract — creation and guest surfaces stay open;
+  `proxy.test.ts` fails CI if that regresses.
+- Doc drift — occasion/theme/variant counts corrected; `FOLLOW-UPS.md`
+  no longer lists shipped work as pending.
+- **The doorway story, end to end** — `/start` (express entry),
+  `/makeover` (the switching surface, rendering a real manifest
+  through the real pipeline), tolerant guest-list parsing, and
+  referral attribution.
+- **Reverse acquisition** — the satellite→couple invite link, table
+  free, ranked #1 distribution by the merged synthesis.
+- **The barn problem** — day-of cache warming plus the day-of,
+  seating and vendor shells precached, so a coordinator with no
+  signal still has the run of show and the vendor numbers.
+- **The printable briefcase** — the sheet for the guest who won't use
+  a phone, with table-mates reduced to first names.

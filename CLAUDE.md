@@ -1,1 +1,201 @@
 @AGENTS.md
+@BRAND.md
+@CLAUDE-DESIGN.md
+@CLAUDE-PRODUCT.md
+
+## The calm editor shipped — 2026-08-13 (Sprint E complete)
+
+**`docs/EDITOR-CALM-PLAN.md` is fully executed** (E.1–E.5 stamped
+in §5 with the exit state). Design is FREE end-to-end — every
+theme, pack, wallpaper, decor item, and motion finish belongs to
+every account; money buys capacity (sites/guests/photos/Pear),
+never the look (`free-design.test.ts` is the fence). Every editor
+decision has ONE home (the E.2 cull: NavPanel/FooterPanel/
+GuestbookPanel/RailLayoutRow/SectionVisibilityFooter×28/
+ToolPointerCard×9/EventTypeChip/eyebrows×9 all deleted;
+Bachelor/Memorial are launchpads). The Design tab is a deck of
+NINE doors on every viewport — 12 controls at first paint, was
+113 across 5,328px — with Cards & motion as ONE kitId dial and
+Decor as an inline catalog (`design-doors.test.ts` pins it).
+Content panels are ≤2 levels deep: zero `<details>` in editor/ +
+redesign/; SectionRail rows are real buttons; tool panels keep
+their phone header. CLAUDE-DESIGN §7 IS the panel registry (42
+dispatch cases, machine-readable marker, `panel-registry.test.ts`
+pins doc↔code). New editor laws for future sessions: one home per
+decision (resurrecting a deleted duplicate = failed review) ·
+doors, not warehouses (new design controls go INSIDE an existing
+door, or make the case for a tenth in the plan doc + fence) ·
+depth ≤2 (no `<details>` in panels — promote or cut).
+
+Known environment note (E.3 stamp): the local DEV server stopped
+hydrating client JS on every route (React loads, zero fibers, no
+errors; prod hydrates fine). Live editor walks now run against
+`npm run build` + `PEARLOOM_E2E=1 NEXTAUTH_URL=http://localhost:3002
+npx next start -p 3002`, auth minted via `next-auth/jwt` encode
+with NEXTAUTH_SECRET from .env.local.
+
+**To start the next sprint:** rename this heading back to the
+literal sprint-focus heading that the Stop hook greps for, and
+fill in goal / direction / open threads / counts-as-done /
+what-to-skip in the same shape as before.
+
+---
+
+**One Surface shipped — 2026-08-13 (Sprint N complete).**
+
+**`docs/COHESION-PLAN.md` is fully executed** (N.1–N.4 stamped in
+§5). The product now behaves like one app: inside it, navigation
+never reloads the document (`no-hard-navigation.test.ts` — the
+seven allowed window.location call sites are external Stripe/
+wallet + the gate cookie, each with a "hard on purpose" comment);
+zone-to-zone moves get THE one house transition — the weave cut
+(`components/shell/soft-navigation.tsx` + the ::view-transition
+CSS in globals.css: 180ms out / 240ms settle, native
+document.startViewTransition, no experimental flag); dashboard
+tab switches stay INSTANT (the (shell) "one page" law — cuts
+never fire inside the shell); reduced motion skips the transition
+entirely. `e2e/specs/cohesion.spec.ts` is the fence (in the
+staging-fence workflow). New chrome law for future sessions:
+internal navigation goes through <Link>/useSoftRouter — never
+window.location; new zone transitions extend the weave cut, never
+add bespoke ones. Named out of scope in plan §4: shared-element
+morphs (a future taste pass), experimental.viewTransition.
+
+**The revamp is complete — 2026-08-13 (owner handoff).**
+
+**`docs/REVAMP-EXECUTION-PLAN.md` is fully executed.** All ten
+sprints — W (wires), S (schema truth), G (guest loop), T (honest
+states), M (the money path), V (visibility spine), A (phone +
+access), C (one pressing), P (polish ledger), D (docs truth) — are
+stamped SHIPPED in the plan doc, every block with its fence. The
+§13 exit state is stamped: vitest 1860/1861 (the one failure is
+the pre-existing weekend-route B.2 baseline), tsc/eslint/build
+clean, and the scripted Maya walk + all nine fence e2e suites
+re-ran green (24/24) on the local stack the day of the stamp.
+
+**What only the owner can close (plan §1 + §3):**
+- **O.1** email DNS (SPF/DKIM/DMARC) — unlocks real invitation
+  delivery and the funnel's invite-delivery stage.
+- **O.2** Stripe keys — turns the already-wired till live
+  (checkout → webhook → plan grant are coded and fence-tested
+  keyless).
+- **O.3** prod env check via `/api/health/deps` (admin-gated).
+- ~~Nine pending prod MCP applies~~ — **DONE 2026-08-13**: all nine
+  applied to prod via MCP and recorded in `_pearloom_migrations`
+  (list + verification in plan §3 S.1). Prod schema and the
+  migration set are diff-clean; advisors show only the two known
+  INFO notices on internal bookkeeping tables.
+- C.5 (one pressing) stays behind `?press=one` by design until
+  funnel data accrues; its remaining increments are listed in the
+  plan §9 stamp.
+
+**To start the next sprint:** rename the heading on line 6 back
+to the literal sprint-focus heading that the Stop hook greps
+for, and fill in goal / direction / open threads /
+counts-as-done / what-to-skip in the same shape as before.
+
+**Last sprint (Studio / stationery editor at `/dashboard/invite`)
+landed 2026-05-31:**
+- All three open threads green: smoke flow across stationery
+  types/views/drafts, AI generation paths mocked + asserted,
+  Send overlay → `/api/invite/guest` → `email_sent_at` stamp.
+- Studio e2e suite 41/41 passing locally. Type-check clean.
+- Last commits on `main`: `bf2c3eb3` (EditionPicker prototype
+  theme-pack card), `ad77fbb0` (Studio: skip the spurious
+  mount-time autosave — closed the flaky AI-asset round-trip
+  test). User push pending.
+
+**Both prior sprint queues are fully executed** (2026-07-08):
+`docs/PERSONA-PLAN.md` S1–S9 and `docs/GRAND-PLAN-2.md` A.1–A.2 /
+B.1–B.2 / C.1–C.6 are all stamped SHIPPED — nothing left to arm in
+either. All four 2026-07-08 migrations (person_threads, avatar_url,
+circle_invites, crew_threads) are applied to prod and recorded;
+advisors clean.
+
+**`docs/AFTERGLOW-PLAN.md` is fully executed** (2026-07-08, commit
+`70713cd6`) — the post-event dashboard revamp. All four sprint
+blocks (AG.1 phase spine → AG.2 afterglow home → AG.3 hero +
+memory → AG.4 long view) are stamped SHIPPED. The cockpit now runs
+on `src/lib/event-os/cockpit-phase.ts` (planning / final / the-day
+/ afterglow / kept from the unclamped day count); WelcomeHome's
+derived copy lives pure in `welcome-home-copy.ts` behind the
+forbidden-strings test; `/dev/dashboard` has the four-world phase
+switcher. Every dashboard-card change must keep the §5 guardrails
+green (the forbidden-strings test IS the fence). Open decisions
+remain in AFTERGLOW-PLAN §8 (the 45-day afterglow→kept window is a
+constant in cockpit-phase.ts; per-photo focal point still
+deferred). vitest 1278/1278; the PERSONA, GRAND-PLAN-2, and
+AFTERGLOW queues are all fully executed.
+
+**`docs/ATELIER-PLAN.md` is fully executed** (2026-07-08, ten
+commits `bde6c615`…the DR.3 curation commit) — all ten §6 blocks
+stamped SHIPPED. What landed: Pearloom Print retired end-to-end
+(engine + routes + surfaces + pricing promise; the
+no-physical-promises fence test guards the copy); the invitation is
+one woven object (themed email on the SuiteTheme contract → the
+guest's own per-guest card image as the hero via /api/invite-card →
+?g= passport links landing on Sealed Arrival with a dated postmark;
+/i/ is a legacy 301; .ics + #rsvp deep-links); Studio v2 presses
+from the site's real --t-* bag ('site' sentinel palette/font,
+KitFrame, shared seal/postmark envelope, real QR everywhere) and
+exports a true press sheet (StudioPressSheet — 3 pages at exact
+physical size, 5×7+bleed with crop marks, geometry pinned by
+press-sheet-geometry tests); routes merged (payments→registry,
+connections→weekend) and phase-aware (Studio/Cadence/Guests read
+cockpit-phase); nav curated (Director de-promoted per §8 Q3 — Home
+is the brief; ⌘K indexes the sidebar; DEPROMOTED = the true quiet
+shelf: cadence/director/review/voice; Guests sub-nav gained
+Threads). Open: §7 Q2 (/i/ 301 kept indefinitely), Q4 (email DNS —
+owner action). vitest 1269/1269 (the retired print/SVG-serializer
+suites left with their features; the press-geometry + stationery
+contracts replaced them).
+
+**`docs/TASTE-PLAN.md` is fully executed** (2026-07-08, five
+commits `dad78a24`…the T.5 calm-pass commit) — the design-taste
+pass from the owner's reference image, moves stolen and the
+pastel-gradient skin refused. What landed: shell `<StateChip>` (one
+status language — 9 surfaces migrated, 9 local helpers deleted);
+the display tier (PageIntro/PLHead at 44-46px letterpress + the
+shared mono-gold eyebrow); shell `<HeroPlate>`/`<PlateAction>` (the
+cockpit hero generalized — Guests/Registry/Vendors/Budget/Keepsakes
+each open with ONE pressed plate, real figures only); `pl-hatch`
+line-screen utilities (settled things wear the press: claimed
+tiles, sent phases, thanked rows, done moments); BRAND §7 copy
+fixes. New chrome rules for future sessions: statuses render via
+StateChip (never bare colored text), one plate per route (never
+two), pattern-as-state via pl-hatch (never new patterns). vitest
+1269/1269.
+
+**`docs/STUDIO-PLAN.md` is the next plan** (authored 2026-07-09,
+owner brief: replace the pastel Stamp marks + bring the Studio to
+editor-level customization with paper parity). SV.0 SHIPPED same
+day: the `Stamp` motif redesigned in place (`pearloom/motifs.tsx`)
+from a solid pastel disc to a letterpress ink postmark — hairline
+double ring, dotted inner ring, mono-caps circular text, tone
+picks the ink, paper shows through; every consumer swapped
+automatically; visual harness at `/dev/marks`. SV.1 SHIPPED same
+day: the store's theme packs press the card (`pack:<id>` palette/
+font sentinel over the pack's `--t-*` bag; Theme-packs shelf in
+the Colors rail, owned/free press in one tap with faces + grain,
+locked link to the store; `/dev/studio` harness). SV.2 SHIPPED
+same day: paper parity (Grain-strength slider on
+`--pl-texture-intensity`, six paper stocks with their own inks
+incl. dark navy, edge treatments plain/hairline/double/gilded;
+all persisted on manifest.studio; press sheet carries the same
+sheet). SV.3–SV.6 SHIPPED same day — **the plan is fully
+executed**: dated Postmark + monogram Seal marks + the Mark-ink
+picker (SV.3); click-to-edit lines on the canvas + the On-the-card
+show/hide group + Names size (SV.4); 10 layouts with
+`recommendedStudioLayoutFor` gold-pearl picks (SV.5); the photo
+back, the envelope liner + real-guest addressee, and the
+`no-sticker-marks.test.ts` fence (SV.6). SV.7 (the depth pass)
+closed every deferral: placed assets (press pieces onto the card
+at 9 snap anchors, drag to re-snap, printed in place —
+`manifest.studio.placed`), Label ink + spacing for the mono-caps
+lines, the per-guest email card pressing on the studio's paper
+stock (`lib/studio/paper-stocks.ts` shared with /api/invite-card),
+and deckle CLOSED as a product decision (print-at-home can't
+manufacture a torn edge; deckled stock + the Plain edge is the
+honest answer). Nothing in the plan remains open except §7 Q2/Q3
+judgment calls. New mark law: marks are STAMPED ink, never pastel
+sticker discs — the fence test enforces it.

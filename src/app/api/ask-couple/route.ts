@@ -8,11 +8,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { overBudget, chargeAi, centsForUsage, approxTokens, budgetKey } from '@/lib/ai-budget';
 
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 function getSupabase() {
   return createClient(
@@ -142,12 +143,23 @@ export async function POST(req: NextRequest) {
   const rateCheck = checkRateLimit(`ask-couple:${ip}`, { max: 20, windowMs: 60 * 60 * 1000 });
   if (!rateCheck.allowed) {
     return NextResponse.json(
-      { error: 'Too many questions — please wait a while and try again.' },
+      { error: 'Too many questions. Please wait a while and try again.' },
       { status: 429 }
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  // Daily AI dollar cap (src/lib/ai-budget.ts). Keyed by client IP
+  // (guest-facing). Fails open — only blocks on a confirmed
+  // over-budget read.
+  const budgetK = budgetKey(null, ip);
+  if (await overBudget(budgetK)) {
+    return NextResponse.json(
+      { error: "You've reached today's AI limit. Try again tomorrow." },
+      { status: 429 }
+    );
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 });
 
   try {
@@ -262,6 +274,18 @@ ${name1} & ${name2}'s reply:`;
     const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
       || (isPostWedding ? "Let's catch up soon!" : "See you at the wedding!");
 
+    // Charge the estimated cost once the model call succeeded.
+    void chargeAi(
+      budgetK,
+      centsForUsage({
+        provider: 'gemini',
+        model: 'gemini-3.1-flash-lite-preview',
+        inputTokens: approxTokens(systemPrompt),
+        outputTokens: approxTokens(answer),
+        ms: 0,
+      })
+    );
+
     // ── Generate suggested questions on first message ──
     let suggestions: string[] | undefined;
     if (!history || history.length === 0) {
@@ -271,6 +295,6 @@ ${name1} & ${name2}'s reply:`;
     return NextResponse.json({ answer, suggestions });
   } catch (err) {
     console.error('[ask-couple] Error:', err);
-    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning — ask us at the reception!" });
+    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning. Ask us at the reception!" });
   }
 }

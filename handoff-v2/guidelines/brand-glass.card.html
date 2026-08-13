@@ -1,0 +1,28 @@
+<!-- @dsCard group="Brand" viewport="700x200" name="Glass — floating chrome" subtitle="Frosted warm cream · the ONLY material for floating UI" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; }
+  .stage { position: relative; height: 200px; background:
+    radial-gradient(circle at 20% 30%, var(--pl-olive-20), transparent 45%),
+    radial-gradient(circle at 80% 70%, var(--pl-gold-mist), transparent 50%),
+    var(--pl-gradient-warm); display: grid; place-items: center; }
+  .panel { display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-radius: var(--pl-radius-full); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pl-olive); }
+  .txt { font-family: var(--pl-font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--pl-ink); }
+  .cta { font-family: var(--pl-font-body); font-size: 13px; font-weight: 500; color: var(--pl-cream); background: var(--pl-ink); padding: 7px 14px; border-radius: var(--pl-radius-full); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="panel pl-glass-surface">
+    <span class="dot"></span>
+    <span class="txt">Threading your site</span>
+    <span class="cta">Press publish</span>
+  </div>
+</div>
+</body>
+</html>

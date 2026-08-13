@@ -1,0 +1,333 @@
+<!-- @dsCard group="Marketing" viewport="1280x900" name="Pearloom landing" subtitle="Hero with live name preview, 31 occasions, the promise, pricing, FAQ" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — A craft house for memory</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); min-height: 100vh; overflow-x: hidden; }
+  .v2 {
+    --ac: var(--pl-terra);
+    --glow: radial-gradient(ellipse 80% 60% at 78% -20%, var(--peach-bg) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 45% at -5% 8%, var(--sage-tint) 0%, transparent 55%);
+  }
+  [data-theme='dark'] .v2 { --glow: radial-gradient(ellipse 80% 60% at 78% -20%, rgba(214,120,82,0.12) 0%, transparent 60%), radial-gradient(ellipse 50% 45% at -5% 8%, rgba(164,181,122,0.09) 0%, transparent 55%); }
+  /* Lighter glass + its own GPU layer so the sticky nav doesn't re-sample
+     the gradient ground every scroll frame. */
+  .v2 .pl-glass-surface { -webkit-backdrop-filter: blur(8px) saturate(1.4); backdrop-filter: blur(8px) saturate(1.4); transform: translateZ(0); }
+  /* Perf: skip layout/paint for sections not on screen — keeps a long
+     page responsive while scrolling. */
+  .v2 > section { content-visibility: auto; contain-intrinsic-size: auto 720px; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px); opacity: 0; visibility: hidden; z-index: 400; padding: 13px 20px; border-radius: 999px; display: flex; align-items: center; gap: 10px; font-family: var(--pl-font-body); font-size: 14px; color: var(--pl-ink); pointer-events: none; transition: opacity var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-ease-spring), visibility 0s linear var(--pl-dur-base); }
+  .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); transition: opacity var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-ease-spring); }
+  .pl-theme-toggle { position: fixed; bottom: 16px; right: 16px; z-index: 9000; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--pl-divider); background: var(--pl-glass); backdrop-filter: blur(12px); color: var(--pl-ink); font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; box-shadow: var(--pl-shadow-sm); }
+  @media (max-width: 920px) {
+    .v2-navlinks { display: none !important; }
+    .v2-hero { grid-template-columns: 1fr !important; gap: 56px !important; }
+    .v2-occ { grid-template-columns: repeat(3, 1fr) !important; }
+    .v2-promise, .v2-pricing { grid-template-columns: 1fr !important; }
+    .v2-occ-head { flex-direction: column !important; align-items: flex-start !important; }
+  }
+  @media (max-width: 600px) { .v2-occ { grid-template-columns: repeat(2, 1fr) !important; } .v2-signin { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<button class="pl-theme-toggle" id="themeToggle">◐ <span id="themeLabel">Dark</span></button>
+<script>
+  (function () { var root = document.documentElement; var saved = localStorage.getItem('pl-theme') || 'light';
+    function apply(t){ root.setAttribute('data-theme', t); var l=document.getElementById('themeLabel'); if(l) l.textContent = t==='dark'?'Light':'Dark'; }
+    apply(saved); document.getElementById('themeToggle').addEventListener('click', function(){ var n = root.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('pl-theme', n); apply(n); });
+  })();
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+/* Pearloom — Landing v2, precompiled (no Babel, no JSX, production React).
+   Plain React.createElement so the page ships with zero in-browser compile. */
+(function () {
+  var h = React.createElement;
+  var NS = window.PearloomDesignSystem_55118c;
+  var PearloomLogo = NS.PearloomLogo, PearloomGlyph = NS.PearloomGlyph, Button = NS.Button,
+      Pearl = NS.Pearl, Thread = NS.Thread, Eyebrow = NS.Eyebrow, Card = NS.Card;
+
+  var THREADING = ['reading your photos', 'pressing a palette', 'writing your story', 'weaving your RSVP', 'setting the type'];
+  var DATA = {
+    wedding:   { hosts: 'Mira & Jun', verb: 'are getting married', sub: 'A bright Saturday in Point Reyes, two families, one very long table.', date: 'Sept 6, 2026', loc: 'Point Reyes, CA', slug: 'wedding/mira-and-jun', accent: 'var(--pl-gold)' },
+    milestone: { hosts: 'Maya turns 30', verb: 'is throwing a supper', sub: 'Citrus, rosé, the garden hose for the kids, no speeches longer than 90 seconds.', date: 'Aug 15, 2026', loc: 'Lark Hill Orchard', slug: 'milestone/maya-at-thirty', accent: 'var(--pl-terra)' },
+    memorial:  { hosts: 'For Amara Osei', verb: 'a quiet gathering', sub: 'Tea, her records, her people. Come as you are.', date: 'Nov 15, 2026', loc: 'The Lumen, Brooklyn', slug: 'memorial/for-amara', accent: 'var(--lavender-ink)' }
+  };
+
+  function Nav(props) {
+    var links = [['Occasions', '#occasions'], ['The promise', '#promise'], ['Pricing', '#pricing'], ['Journal', '#journal']];
+    return h('nav', { style: { position: 'sticky', top: 14, zIndex: 50, margin: '14px auto 0', maxWidth: 1320, padding: '0 24px' } },
+      h('div', { className: 'pl-glass-surface', style: { borderRadius: 999, padding: '10px 14px 10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 } },
+        h(PearloomLogo, { size: 26 }),
+        h('div', { className: 'v2-navlinks', style: { display: 'flex', alignItems: 'center', gap: 26, fontSize: 14, fontWeight: 500 } },
+          links.map(function (p) { return h('a', { key: p[0], href: p[1], style: { color: 'var(--pl-ink)', opacity: 0.82, textDecoration: 'none', whiteSpace: 'nowrap' } }, p[0]); })),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+          h('button', { onClick: props.onStart, className: 'v2-signin', style: { fontSize: 14, fontWeight: 500, opacity: 0.8, padding: '8px 10px', background: 'transparent', border: 'none', color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)', cursor: 'pointer' } }, 'Sign in'),
+          h(Button, { variant: 'pearl', size: 'sm', onClick: props.onStart }, 'Begin a thread ', h(Pearl, { size: 8 })))));
+  }
+
+  function Hero(props) {
+    var s1 = React.useState('Mira & Jun'), names = s1[0], setNames = s1[1];
+    var s2 = React.useState('wedding'), occ = s2[0], setOcc = s2[1];
+    var s3 = React.useState(0), step = s3[0], setStep = s3[1];
+    React.useEffect(function () {
+      var id = setInterval(function () { if (!document.hidden) setStep(function (x) { return (x + 1) % THREADING.length; }); }, 1500);
+      return function () { clearInterval(id); };
+    }, []);
+    var d = DATA[occ];
+    var shownNames = names || d.hosts;
+    var stats = [['31', 'occasions, one voice each', 'var(--pl-olive)'], ['20 sec', 'to a first draft', 'var(--ac)'], ['$0', 'your first site, forever', 'var(--pl-olive)']];
+    var occBtns = [['wedding', 'Wedding'], ['milestone', 'Milestone'], ['memorial', 'Memorial']];
+
+    return h('section', { style: { position: 'relative', background: 'var(--glow)' } },
+      h('div', { className: 'v2-hero', style: { maxWidth: 1280, margin: '0 auto', padding: '60px 24px 104px', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 64, alignItems: 'center' } },
+        h('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 22 } },
+          h(Eyebrow, null, 'A craft house for memory'),
+          h('h1', { className: 'pl-letterpress', style: { fontFamily: 'var(--pl-font-display)', fontWeight: 400, fontVariationSettings: '"opsz" 144, "SOFT" 50', fontSize: 'clamp(36px, 3.9vw, 56px)', lineHeight: 1.16, letterSpacing: '-0.025em', color: 'var(--pl-ink)', margin: 0 } },
+            'The days that ', h('span', { style: { fontStyle: 'italic', color: 'var(--ac)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, 'matter'), ', woven in an afternoon.'),
+          h('p', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 18, lineHeight: 1.6, maxWidth: 500, color: 'var(--pl-ink-soft)', margin: 0 } },
+            'Answer three questions. Hand over a few photos. Pearloom drafts the whole site — cover, story, RSVP, schedule, travel guide, registry. Pear, our in-house planner, writes it in your voice and stays with you from save the date to a year later.'),
+          h('div', { 'aria-live': 'polite', style: { display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: 'var(--pl-cream-deep)', borderRadius: 999, border: '1px solid var(--pl-olive-10)' } },
+            h(Pearl, { size: 9, iridescent: true }),
+            h('span', { style: { fontFamily: 'var(--pl-font-mono)', textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: 10, color: 'var(--pl-muted)' } }, 'Pear is'),
+            h('span', { style: { fontSize: 14, fontStyle: 'italic', color: 'var(--ac)', fontFamily: 'var(--pl-font-display)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1', minWidth: 168, display: 'inline-block' } }, THREADING[step] + '…')),
+          h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10, alignSelf: 'stretch' } },
+            h('label', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--pl-muted)' } }, 'Start with your names →'),
+            h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+              h('input', { value: names, onChange: function (e) { setNames(e.target.value); }, placeholder: d.hosts, style: { flex: '1 1 220px', minWidth: 0, padding: '14px 18px', fontFamily: 'var(--pl-font-display)', fontSize: 20, color: 'var(--pl-ink)', background: 'var(--pl-cream-card)', border: '1.5px solid var(--pl-divider)', borderRadius: 'var(--pl-radius-full)', outline: 'none' } }),
+              h(Button, { variant: 'pearl', size: 'lg', onClick: props.onStart }, 'Make my site free ', h(Pearl, { size: 9 })))),
+          h('div', { style: { display: 'flex', gap: 28, alignItems: 'center', paddingTop: 22, marginTop: 2, borderTop: '1px solid var(--pl-olive-12)', flexWrap: 'wrap', alignSelf: 'stretch' } },
+            stats.map(function (p, i) {
+              return h('div', { key: p[1], style: { display: 'flex', alignItems: 'center', gap: 28 } },
+                h('div', null,
+                  h('div', { style: { fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 26, color: p[2], lineHeight: 1, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, p[0]),
+                  h('div', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 12, color: 'var(--pl-muted)', marginTop: 3, maxWidth: 140 } }, p[1])),
+                i < 2 ? h('div', { style: { width: 1, height: 36, background: 'var(--pl-olive-12)' } }) : null);
+            }))),
+        h('div', { style: { position: 'relative', display: 'flex', justifyContent: 'center' } },
+          h('div', { style: { position: 'absolute', top: -30, right: 4, opacity: 0.9 }, 'aria-hidden': 'true' }, h(PearloomGlyph, { size: 96 })),
+          h('div', { style: { position: 'relative', width: 'min(450px, 94vw)' } },
+            h('div', { style: { background: 'var(--pl-cream-card)', borderRadius: 22, border: '1px solid var(--pl-divider)', overflow: 'hidden', boxShadow: 'var(--pl-shadow-xl)' } },
+              h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--pl-divider)', background: 'var(--pl-cream-deep)' } },
+                h('span', { style: { width: 8, height: 8, borderRadius: 99, background: 'var(--pl-stone)' } }),
+                h('span', { style: { width: 8, height: 8, borderRadius: 99, background: 'var(--pl-stone)' } }),
+                h('span', { style: { width: 8, height: 8, borderRadius: 99, background: 'var(--pl-stone)' } }),
+                h('span', { style: { marginLeft: 8, fontFamily: 'var(--pl-font-mono)', fontSize: 9, letterSpacing: '0.04em', color: 'var(--pl-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, 'pearloom.com/' + d.slug)),
+              h('div', { style: { height: 176, backgroundColor: 'var(--pl-olive-deep)', backgroundImage: 'linear-gradient(160deg, var(--pl-olive) 0%, var(--pl-olive-deep) 55%, var(--pl-ink) 100%), linear-gradient(180deg, rgba(24,24,27,0) 45%, rgba(24,24,27,0.55))', backgroundSize: 'cover, cover', backgroundPosition: 'center, center', backgroundRepeat: 'no-repeat, no-repeat', display: 'flex', alignItems: 'flex-end', padding: 20 } },
+                h('div', null,
+                  h('div', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', marginBottom: 4 } }, 'Pressed by Pear · ' + d.date),
+                  h('div', { className: 'pl-letterpress', style: { fontFamily: 'var(--pl-font-display)', fontSize: 30, lineHeight: 1.0, color: '#fff', fontWeight: 400, letterSpacing: '-0.02em' } }, shownNames))),
+              h('div', { style: { padding: '16px 20px 6px' } },
+                h('div', { style: { fontFamily: 'var(--pl-font-display)', fontStyle: 'italic', fontSize: 15, color: d.accent, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, d.verb),
+                h('p', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 12.5, color: 'var(--pl-ink-soft)', margin: '6px 0 0', lineHeight: 1.5 } }, d.sub),
+                h('div', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 10, color: 'var(--pl-muted)', marginTop: 8, letterSpacing: '0.04em' } }, d.date.toUpperCase() + ' · ' + d.loc.toUpperCase())),
+              h('div', { style: { display: 'flex', gap: 8, padding: '12px 20px 18px' } },
+                h('button', { onClick: function () { props.onToast('RSVP pressed — see you there'); }, style: { flex: 1, padding: '10px', borderRadius: 999, background: d.accent, color: '#fff', border: 'none', fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--pl-font-body)', cursor: 'pointer' } }, 'Press RSVP →'),
+                h('button', { onClick: function () { props.onToast('Opening the registry…'); }, style: { padding: '10px 16px', borderRadius: 999, background: 'transparent', color: 'var(--pl-ink)', border: '1px solid var(--pl-divider)', fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--pl-font-body)', cursor: 'pointer' } }, 'Registry'))),
+            h('div', { className: 'pl-glass-surface', style: { position: 'absolute', left: '50%', bottom: -52, transform: 'translateX(-50%)', display: 'flex', gap: 4, padding: 4, borderRadius: 999 } },
+              occBtns.map(function (p) {
+                var on = occ === p[0];
+                return h('button', { key: p[0], onClick: function () { setOcc(p[0]); setNames(DATA[p[0]].hosts); }, style: { background: on ? 'var(--pl-ink)' : 'transparent', color: on ? 'var(--pl-cream)' : 'var(--pl-ink)', border: 'none', borderRadius: 999, padding: '8px 16px', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--pl-font-body)' } }, p[1]);
+              }))))));
+  }
+
+  function sv(kids) { return h('svg', { width: 56, height: 56, viewBox: '0 0 80 80' }, kids); }
+  function OccGlyph(props) {
+    var c = props.c, k = props.kind;
+    if (k === 'pear') return h(PearloomGlyph, { size: 52 });
+    if (k === 'rings') return sv([h('circle', { key: 1, cx: 40, cy: 40, r: 26, fill: 'none', stroke: c, strokeWidth: 1.5 }), h('circle', { key: 2, cx: 40, cy: 40, r: 16, fill: 'none', stroke: c, strokeWidth: 1 }), h('circle', { key: 3, cx: 40, cy: 40, r: 5, fill: c })]);
+    if (k === 'two') return sv([h('circle', { key: 1, cx: 30, cy: 40, r: 17, fill: 'none', stroke: c, strokeWidth: 1.5 }), h('circle', { key: 2, cx: 50, cy: 40, r: 17, fill: 'none', stroke: c, strokeWidth: 1.5 })]);
+    if (k === 'burst') return sv(h('g', { transform: 'translate(40 40)' }, [0, 45, 90, 135, 180, 225, 270, 315].map(function (a) { return h('rect', { key: a, x: -2, y: -26, width: 4, height: 9, fill: c, transform: 'rotate(' + a + ')' }); }).concat([h('circle', { key: 'd', r: 9, fill: c })])));
+    if (k === 'heart') return sv(h('path', { d: 'M40 58 C 10 38, 20 12, 40 28 C 60 12, 70 38, 40 58 Z', fill: 'none', stroke: c, strokeWidth: 1.5 }));
+    if (k === 'dots') return sv([[20, 30], [40, 22], [60, 30], [28, 52], [52, 52]].map(function (p, i) { return h('circle', { key: i, cx: p[0], cy: p[1], r: 7, fill: 'none', stroke: c, strokeWidth: 1.5 }); }));
+    if (k === 'mtn') return sv([h('path', { key: 1, d: 'M18 52 L40 20 L62 52 Z', fill: 'none', stroke: c, strokeWidth: 1.5 }), h('path', { key: 2, d: 'M28 52 L40 34 L52 52 Z', fill: 'none', stroke: c, strokeWidth: 1.5 })]);
+    if (k === 'clock') return sv([h('circle', { key: 1, cx: 40, cy: 40, r: 24, fill: 'none', stroke: c, strokeWidth: 1.5 }), h('path', { key: 2, d: 'M40 24 L40 40 L52 48', stroke: c, strokeWidth: 1.5, fill: 'none' })]);
+    if (k === 'house') return sv([h('path', { key: 1, d: 'M20 52 L20 38 L40 20 L60 38 L60 52 Z', fill: 'none', stroke: c, strokeWidth: 1.5 }), h('rect', { key: 2, x: 34, y: 40, width: 12, height: 14, fill: 'none', stroke: c, strokeWidth: 1.3 })]);
+    return sv([h('path', { key: 1, d: 'M40 12 L52 30 L48 58 L32 58 L28 30 Z', fill: 'none', stroke: c, strokeWidth: 1.5 }), h('circle', { key: 2, cx: 40, cy: 40, r: 5, fill: c })]);
+  }
+  var OCCASIONS = [
+    { title: 'Weddings', tone: 'CEREMONIAL', blocks: '14', glyph: 'pear', c: 'var(--pl-olive)', tint: 'var(--peach-bg)' },
+    { title: 'Memorials', tone: 'SOLEMN', blocks: '11', glyph: 'rings', c: 'var(--pl-plum)', tint: 'var(--lavender-bg)' },
+    { title: 'Anniversaries', tone: 'INTIMATE', blocks: '9', glyph: 'two', c: 'var(--pl-gold)', tint: 'var(--peach-3)' },
+    { title: 'Milestone birthdays', tone: 'PLAYFUL', blocks: '10', glyph: 'burst', c: 'var(--pl-terra)', tint: 'var(--sage-tint)' },
+    { title: 'Bar & bat mitzvahs', tone: 'CEREMONIAL', blocks: '12', glyph: 'crown', c: 'var(--pl-olive)', tint: 'var(--sage-bg)' },
+    { title: 'Baby showers', tone: 'TENDER', blocks: '9', glyph: 'heart', c: 'var(--pl-rose)', tint: 'var(--lavender-3)' },
+    { title: 'Reunions', tone: 'WARM', blocks: '11', glyph: 'dots', c: 'var(--pl-gold)', tint: 'var(--peach-bg)' },
+    { title: 'Engagement parties', tone: 'ROMANTIC', blocks: '8', glyph: 'heart', c: 'var(--pl-terra)', tint: 'var(--peach-3)' },
+    { title: 'Bachelor weekends', tone: 'LOOSE', blocks: '10', glyph: 'mtn', c: 'var(--pl-olive)', tint: 'var(--sage-tint)' },
+    { title: 'Quinceañeras', tone: 'CEREMONIAL', blocks: '12', glyph: 'burst', c: 'var(--pl-rose)', tint: 'var(--lavender-bg)' },
+    { title: 'Retirements', tone: 'GRATEFUL', blocks: '9', glyph: 'clock', c: 'var(--pl-gold)', tint: 'var(--sage-bg)' },
+    { title: 'Housewarmings', tone: 'WARM', blocks: '7', glyph: 'house', c: 'var(--pl-olive)', tint: 'var(--peach-bg)' }
+  ];
+  var TILTS = [-2.2, 1.5, -1, 2, -2, 1, -1.5, 2.2, -2, 1, -1, 2];
+  function OccCard(props) {
+    var o = props.o, rot = props.rot;
+    var st = React.useState(false), hv = st[0], setHv = st[1];
+    return h('div', { onMouseEnter: function () { setHv(true); }, onMouseLeave: function () { setHv(false); },
+      style: { background: o.tint, border: '1px solid var(--pl-divider)', borderRadius: 28, padding: 20, aspectRatio: '0.82', transform: hv ? 'rotate(0deg) translateY(-6px)' : 'rotate(' + rot + 'deg)', boxShadow: hv ? 'var(--pl-shadow-lg)' : 'var(--pl-shadow-xs)', transition: 'transform var(--pl-dur-base) var(--pl-ease-out), box-shadow var(--pl-dur-base) var(--pl-ease-out)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' } },
+      h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' } },
+        h('div', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 9, letterSpacing: '0.1em', color: 'var(--pl-ink)', opacity: 0.65 } }, o.tone),
+        h(Pearl, { size: 7 })),
+      h('div', { style: { alignSelf: 'center', opacity: 0.9 } }, h(OccGlyph, { kind: o.glyph, c: o.c })),
+      h('div', null,
+        h('div', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 22, lineHeight: 1.05, fontStyle: 'italic', fontWeight: 400, letterSpacing: '-0.015em', color: 'var(--pl-ink)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, o.title),
+        h('div', { style: { fontSize: 11.5, color: 'var(--pl-ink-soft)', opacity: 0.8, marginTop: 4, fontFamily: 'var(--pl-font-body)' } }, o.blocks + ' · tailored blocks')));
+  }
+  function Occasions(props) {
+    return h('section', { id: 'occasions', style: { background: 'var(--pl-cream-deep)', borderTop: '1px solid var(--pl-divider-soft)', borderBottom: '1px solid var(--pl-divider-soft)', padding: '88px 24px' } },
+      h('div', { style: { maxWidth: 1280, margin: '0 auto' } },
+        h('div', { className: 'v2-occ-head', style: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24, marginBottom: 52 } },
+          h('div', { style: { maxWidth: 680 } },
+            h(Eyebrow, null, 'Thirty-one occasions'),
+            h('h2', { className: 'pl-display pl-letterpress', style: { fontSize: 'clamp(34px, 4.8vw, 60px)', margin: '14px 0 0', lineHeight: 1.0 } },
+              'Each day has its ', h('span', { className: 'pl-display-italic', style: { fontSize: 'inherit', color: 'var(--pl-olive)' } }, 'own'), ' language. Pear speaks all of them.')),
+          h('div', { style: { maxWidth: 380, fontSize: 15, color: 'var(--pl-ink-soft)', lineHeight: 1.55, fontFamily: 'var(--pl-font-body)' } },
+            'An advice wall for the baby shower. A cost splitter for the reunion. A program and livestream for the memorial. The blocks you actually need, filtered by what you’re actually hosting.')),
+        h('div', { className: 'v2-occ', style: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16 } },
+          OCCASIONS.map(function (o, i) { return h(OccCard, { key: o.title, o: o, rot: TILTS[i] }); })),
+        h('div', { style: { marginTop: 44, paddingTop: 36, textAlign: 'center' } },
+          h('div', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 11, letterSpacing: '0.14em', color: 'var(--pl-muted)', marginBottom: 16 } }, '— AND 19 MORE, QUIETLY WAITING —'),
+          h(Button, { variant: 'ink', size: 'md', onClick: props.onStart }, 'See every occasion →'))));
+  }
+
+  var NOTES = [
+    { t: 'The save-the-date opens like a letter, not a form — set in your two names, in your own colors, from your own photographs.', n: 'The suite', role: 'Save-the-dates · drafted by Pear', bg: '#E8DCB4', rot: -2 },
+    { t: 'A memorial, drafted gently in their voice. You change four words, and it is ready for family. It will never cost anything.', n: 'Memorials', role: 'Free on every tier — written into the code', bg: '#E8D9D3', rot: 1.5 },
+    { t: 'On the day, everyone knows what is next. The run of show, the seating, the live photo wall — one quiet room, threading itself.', n: 'The day-of room', role: 'Timeline · toasts · broadcasts', bg: '#E3DCC0', rot: -1 },
+    { t: 'A year on, the site returns — rewoven with every photo, toast, and note your guests left behind. Yours to keep, always.', n: 'The rebroadcast', role: 'Anniversaries · the memory book', bg: '#DCDFB8', rot: 2 },
+    { t: 'Snap or pick a photo, add a filter, send. Every upload is checked before it ever reaches the wall — the warmth, never the wrong thing.', n: 'The photo wall', role: 'Filters · auto-screened uploads', bg: '#EBE3D2', rot: -1.5 },
+    { t: 'A quiet thread for the whole party, and a private line straight to the hosts. Everyone in the loop, no group-text chaos.', n: 'Messages', role: 'The party thread · host DMs', bg: '#C8BFA5', rot: 1.5 }
+  ];
+  function PromiseCard(props) {
+    var q = props.q;
+    var st = React.useState(false), hv = st[0], setHv = st[1];
+    return h('div', { onMouseEnter: function () { setHv(true); }, onMouseLeave: function () { setHv(false); },
+      style: { background: q.bg, color: '#18181B', borderRadius: 20, padding: '30px 32px', transform: hv ? 'rotate(0deg) translateY(-4px)' : 'rotate(' + q.rot + 'deg)', transition: 'transform var(--pl-dur-base) var(--pl-ease-out)', boxShadow: 'var(--pl-shadow-md)' } },
+      h('div', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 40, lineHeight: 0.5, color: 'var(--pl-gold)', fontStyle: 'italic' } }, '“'),
+      h('p', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 21, lineHeight: 1.4, margin: '10px 0 26px', fontStyle: 'italic', fontWeight: 400, color: '#18181B', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, q.t),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, paddingTop: 14, borderTop: '1px solid rgba(24,24,27,0.15)' } },
+        h('span', { style: { width: 8, height: 8, borderRadius: '50%', background: 'var(--pl-olive)' } }),
+        h('div', null,
+          h('div', { style: { fontFamily: 'var(--pl-font-body)', fontWeight: 600, fontSize: 13, color: '#18181B' } }, q.n),
+          h('div', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 11.5, opacity: 0.65, color: '#18181B' } }, q.role))));
+  }
+  function Promise() {
+    return h('section', { id: 'promise', style: { background: '#1A1610', color: '#F5EFE2', padding: '104px 24px', position: 'relative', overflow: 'hidden' } },
+      h('div', { style: { maxWidth: 1100, margin: '0 auto' } },
+        h('div', { style: { textAlign: 'center', marginBottom: 60 } },
+          h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, border: '1px solid rgba(245,239,226,0.3)', fontFamily: 'var(--pl-font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F5EFE2', marginBottom: 18 } }, h(Pearl, { size: 7 }), ' The promise'),
+          h('h2', { className: 'pl-letterpress', style: { fontFamily: 'var(--pl-font-display)', fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 0.98, margin: 0, fontWeight: 400, letterSpacing: '-0.025em', color: '#F5EFE2' } },
+            'Days that deserve keeping, ', h('span', { style: { fontStyle: 'italic', color: 'var(--pl-gold)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, 'woven.'))),
+        h('div', { className: 'v2-promise', style: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 22 } },
+          NOTES.map(function (q) { return h(PromiseCard, { key: q.n, q: q }); }))));
+  }
+
+  var TIERS = [
+    { name: 'Journal', price: 0, cadence: 'forever', blurb: 'Your first celebration, kept free always.', accent: 'var(--pl-olive)', btn: 'paper', cta: 'Begin a thread',
+      feats: ['One site, yours to keep', 'The full drafting by Pear', 'Unlimited RSVPs', 'All 31 occasions', 'The Reel (one event)', 'Your pearloom.com address'] },
+    { name: 'Atelier', price: 19, cadence: 'once', blurb: 'One celebration, every block unlocked.', accent: 'var(--pl-gold)', btn: 'pearl', cta: 'Choose Atelier', featured: true,
+      feats: ['Everything in Journal', 'Every block, every template', 'Every premium theme pack included', 'Ten times the photo library', 'The Director (day-of room)', 'Live photo wall + toasts', 'Anniversary rebroadcast', 'Pear drafts — proofs, toasts, rewrites'] },
+    { name: 'Legacy', price: 129, cadence: 'lifetime', blurb: 'Every future celebration, one price.', accent: 'var(--pl-terra)', btn: 'ink', cta: 'Choose Legacy',
+      feats: ['Everything in Atelier', 'Up to ten sites, forever', 'The full Theme Store, signature shelf', 'Co-hosts on every site', 'Linked celebrations — many sites', 'Heirloom memory book (print-ready)', '$50 Pearloom Print credit'] }
+  ];
+  function Pricing(props) {
+    return h('section', { id: 'pricing', style: { padding: '88px 24px', maxWidth: 1180, margin: '0 auto' } },
+      h('div', { style: { textAlign: 'center', marginBottom: 48, maxWidth: 720, marginInline: 'auto' } },
+        h(Eyebrow, { rule: 'both' }, 'One-time, not a subscription'),
+        h('h2', { className: 'pl-display pl-letterpress', style: { fontSize: 'clamp(38px, 5.4vw, 68px)', margin: '14px 0 16px', lineHeight: 0.98 } },
+          'Your first site is ', h('span', { className: 'pl-display-italic', style: { fontSize: 'inherit', color: 'var(--pl-olive)' } }, 'free'), ' forever.'),
+        h('p', { className: 'pl-body', style: { fontSize: 17, color: 'var(--pl-ink-soft)', margin: 0 } }, 'Pay when you want every block and the day-of room. Never again, unless you’re hosting again.')),
+      h('div', { className: 'v2-pricing', style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, alignItems: 'stretch' } },
+        TIERS.map(function (t) {
+          return h('div', { key: t.name, style: { background: t.featured ? 'var(--pl-ink)' : 'var(--pl-cream-card)', color: t.featured ? 'var(--pl-cream)' : 'var(--pl-ink)', border: '1px solid ' + (t.featured ? t.accent : 'var(--pl-divider)'), borderRadius: 20, padding: '34px 30px 30px', transform: t.featured ? 'translateY(-14px)' : 'none', boxShadow: t.featured ? 'var(--pl-shadow-xl)' : 'var(--pl-shadow-sm)', position: 'relative', display: 'flex', flexDirection: 'column' } },
+            t.featured ? h('div', { style: { position: 'absolute', top: -11, left: 30, background: t.accent, color: '#2C1E12', borderRadius: 999, padding: '4px 12px', fontFamily: 'var(--pl-font-mono)', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em' } }, 'MOST CHOSEN') : null,
+            h('div', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 34, fontWeight: 400, lineHeight: 1, letterSpacing: '-0.02em' } }, t.name),
+            h('div', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 14, opacity: 0.75, marginTop: 8, minHeight: 40 } }, t.blurb),
+            h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 6, margin: '24px 0 4px' } },
+              h('span', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 54, fontWeight: 400, lineHeight: 1, letterSpacing: '-0.03em' } }, '$' + t.price),
+              h('span', { style: { fontSize: 13, opacity: 0.7, fontFamily: 'var(--pl-font-body)' } }, '· ' + t.cadence)),
+            h('div', { style: { width: 56, height: 1, background: t.accent, margin: '16px 0 18px' } }),
+            h('ul', { style: { listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 } },
+              t.feats.map(function (f) {
+                return h('li', { key: f, style: { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13.5, lineHeight: 1.45, fontFamily: 'var(--pl-font-body)' } },
+                  h('span', { style: { color: t.accent, flexShrink: 0, marginTop: 1 } }, '❧'), h('span', null, f));
+              })),
+            h(Button, { variant: t.btn, size: 'md', style: { width: '100%', justifyContent: 'center' }, onClick: props.onStart }, t.cta + ' ', h(Pearl, { size: 8 })));
+        })),
+      h('div', { style: { textAlign: 'center', marginTop: 44, fontSize: 14, color: 'var(--pl-ink-soft)', fontFamily: 'var(--pl-font-body)' } },
+        'Memorials are always free on every tier. ', h('a', { href: '#journal', style: { color: 'var(--pl-olive)', fontWeight: 500 } }, 'Pear’s promise →')));
+  }
+
+  var QS = [
+    { q: 'What does Pear actually do?', a: 'Pear is our in-house planner. She drafts your whole site from three questions and a few photos, in your voice and the tone the occasion deserves. Then she stays with you, handling the timeline, the guest list, the budget, and the day-of room. She is not a button. She is a person who happens to run on a lot of code.' },
+    { q: 'Is the first site really free, forever?', a: 'Yes. Journal is free. One site, every block it needs, all 31 occasions, unlimited RSVPs, and The Reel. No card to start, no expiry, no trial. Your first celebration is our gift.' },
+    { q: 'Can I use my own domain?', a: 'Not yet. Every site lives at a clean pearloom.com address — pearloom.com/wedding/your-names — on every tier, with HTTPS automatic. Custom domains are on the loom; when they ship, Atelier and Legacy hosts get them included.' },
+    { q: 'What happens on the day of the event?', a: 'Pearloom becomes a room. Announcements push to guests. Voice toasts collect in a moderated stream. The run-of-show sits beside the seating plan and the live photo wall. If something drifts off schedule, Pear re-threads it quietly.' },
+    { q: 'What happens after?', a: "Photos file themselves into The Reel, one gallery across every site you've made. On your anniversary, the site returns — rewoven with the photos, toasts, and notes your guests left behind. Your site is yours to keep." },
+    { q: 'Is memorial hosting really always free?', a: "Always, on every tier. A memorial never counts against your plan's site limit, its guest list is never capped, and every memorial block — obituary, tribute wall, program, livestream — is included. Grief deserves no paywall. This is Pear's promise, and it's written into the code." },
+    { q: 'How is my data handled?', a: 'GDPR and CCPA compliant, and nothing is ever sold. Export everything as a single JSON file anytime from Settings. Delete a site and it is gone. Your photos are yours — they are never used to train anything.' },
+    { q: 'Can co-hosts edit?', a: 'Yes. Invite a maid of honor to run the shower, a best man for the bachelor weekend, parents for the rehearsal dinner. Co-host roles and invite tokens keep edits clean and moderated.' }
+  ];
+  function FAQ() {
+    var st = React.useState(0), open = st[0], setOpen = st[1];
+    return h('section', { id: 'journal', style: { background: 'var(--pl-cream-deep)', borderTop: '1px solid var(--pl-divider-soft)', padding: '96px 24px' } },
+      h('div', { style: { maxWidth: 960, margin: '0 auto' } },
+        h('div', { style: { textAlign: 'center', marginBottom: 52 } },
+          h(Eyebrow, { rule: 'both' }, 'The small print'),
+          h('h2', { className: 'pl-display pl-letterpress', style: { fontSize: 'clamp(34px, 5vw, 64px)', margin: '14px 0 0', lineHeight: 0.98 } },
+            'Questions, ', h('span', { className: 'pl-display-italic', style: { fontSize: 'inherit', color: 'var(--pl-olive)' } }, 'answered.'))),
+        h('div', null,
+          QS.map(function (x, i) {
+            var isOpen = open === i;
+            return h('div', { key: x.q, onClick: function () { setOpen(isOpen ? -1 : i); },
+              style: { borderTop: '1px solid var(--pl-divider)', borderBottom: i === QS.length - 1 ? '1px solid var(--pl-divider)' : 'none', borderLeft: isOpen ? '2px solid var(--pl-gold)' : '2px solid transparent', padding: isOpen ? '24px 4px 24px 16px' : '24px 4px', cursor: 'pointer', transition: 'padding var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast)' } },
+              h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 } },
+                h('div', { style: { fontFamily: 'var(--pl-font-display)', fontSize: 22, fontWeight: 400, fontStyle: isOpen ? 'italic' : 'normal', color: isOpen ? 'var(--pl-olive)' : 'var(--pl-ink)', letterSpacing: '-0.01em', fontVariationSettings: isOpen ? '"opsz" 144, "SOFT" 80, "WONK" 1' : '"opsz" 144, "SOFT" 80, "WONK" 0' } }, x.q),
+                h('div', { style: { width: 26, height: 26, borderRadius: 999, border: '1px solid var(--pl-divider)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: 'var(--pl-ink)', flexShrink: 0, transform: isOpen ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)' } }, '+')),
+              isOpen ? h('div', { style: { marginTop: 14, fontSize: 16, lineHeight: 1.6, color: 'var(--pl-ink-soft)', maxWidth: 780, fontFamily: 'var(--pl-font-body)' } }, x.a) : null);
+          }))));
+  }
+
+  function CTAFooter(props) {
+    return h('footer', { style: { background: 'var(--pl-ink)', color: 'var(--pl-cream)', padding: '88px 24px 44px', position: 'relative', overflow: 'hidden' } },
+      h('div', { style: { maxWidth: 760, margin: '0 auto', textAlign: 'center' } },
+        h(PearloomGlyph, { size: 56, color: 'var(--pl-gold)', gold: 'var(--pl-cream)', paper: 'var(--pl-ink)' }),
+        h('h2', { className: 'pl-letterpress', style: { fontFamily: 'var(--pl-font-display)', fontSize: 'clamp(34px, 5vw, 60px)', lineHeight: 1.0, fontWeight: 400, letterSpacing: '-0.025em', margin: '18px 0 16px', color: 'var(--pl-cream)' } },
+          'Begin the day that ', h('span', { style: { fontStyle: 'italic', color: 'var(--pl-gold)', fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' } }, 'matters.')),
+        h('p', { style: { fontFamily: 'var(--pl-font-body)', fontSize: 16, color: 'var(--pl-stone)', maxWidth: 460, margin: '0 auto 26px', lineHeight: 1.55 } }, 'Three questions, a few photos, twenty seconds. Your first site is free, forever — no card.'),
+        h(Button, { variant: 'pearl', size: 'lg', onClick: props.onStart }, 'Begin a thread ', h(Pearl, { size: 9 }))),
+      h('div', { style: { maxWidth: 1100, margin: '64px auto 0' } },
+        h(Thread, { width: '100%', color: 'var(--pl-olive)', color2: 'var(--pl-gold)', style: { marginBottom: 28 } }),
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 20 } },
+          h(PearloomLogo, { size: 24, color: 'var(--pl-cream)' }),
+          h('div', { style: { fontFamily: 'var(--pl-font-mono)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-stone)' } }, 'A craft house for memory'))));
+  }
+
+  function App() {
+    var st = React.useState(null), toast = st[0], setToast = st[1];
+    var show = function (m) { setToast(m); clearTimeout(window.__t); window.__t = setTimeout(function () { setToast(null); }, 2400); };
+    var start = function () { show('Threading a new site…'); };
+    return h('div', { className: 'v2' },
+      h(Nav, { onStart: start }),
+      h(Hero, { onStart: start, onToast: show }),
+      h(Occasions, { onStart: start }),
+      h(Promise, null),
+      h(Pricing, { onStart: start }),
+      h(FAQ, null),
+      h(CTAFooter, { onStart: start }),
+      h('div', { className: 'toast pl-glass-surface' + (toast ? ' show' : '') }, h(Pearl, { size: 10, iridescent: true }), ' ', toast || ''));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+})();
+
+</script>
+</body>
+</html>

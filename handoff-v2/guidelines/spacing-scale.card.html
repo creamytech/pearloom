@@ -1,0 +1,24 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Spacing scale" subtitle="4px base · used as gap and padding" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .wrap { padding: 22px 28px; display: flex; flex-direction: column; gap: 7px; }
+  .row { display: flex; align-items: center; gap: 14px; }
+  .bar { height: 12px; background: var(--pl-olive); border-radius: 2px; }
+  .lab { font-family: var(--pl-font-mono); font-size: 10px; color: var(--pl-muted); width: 74px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="s"></div>
+<script>
+  const sp = [['1','4'],['2','8'],['3','12'],['4','16'],['6','24'],['8','32'],['12','48'],['16','64']];
+  document.getElementById('s').innerHTML = sp.map(([k,px]) =>
+    `<div class="row"><span class="lab">space-${k}</span><div class="bar" style="width:${px}px"></div><span class="lab">${px}px</span></div>`
+  ).join('');
+</script>
+</body>
+</html>

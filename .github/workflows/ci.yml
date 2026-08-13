@@ -1,0 +1,57 @@
+# Continuous integration — the safety net the 1,052-test suite was missing.
+#
+# Until this existed, the only workflow was the screenshot tour, so tsc /
+# eslint / vitest / build ran ONLY on a developer's machine and nothing
+# mechanical stopped a bad merge (GRAND-PLAN Pillar 19). This job runs the
+# existing checks on every PR + push so the tests you already have become a
+# real gate.
+#
+# Hard gates (a red here should block the merge): type-check, unit tests,
+# production build — all currently green.
+# Soft gate (reported, non-blocking): full-repo eslint carries a
+# pre-existing backlog (~106 errors, CLAUDE-DESIGN §16); it's surfaced here
+# so the backlog shrinks, and should be flipped to a hard gate once clean.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Lint (reported, non-blocking until the backlog clears)
+        run: npx eslint . || true
+
+      - name: Unit tests (vitest)
+        run: npx vitest run
+
+      - name: Production build
+        run: npm run build
+        env:
+          # No secrets needed — the Sentry/Stripe/Supabase layers are all
+          # env-gated and no-op when their keys are absent, so the build is
+          # a pure compile + static-analysis gate here.
+          NEXT_TELEMETRY_DISABLED: '1'

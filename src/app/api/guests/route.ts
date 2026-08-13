@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkGuestCapacity } from '@/lib/plan-gate';
+import { linkGuestRowToPerson } from '@/lib/people';
+import { guestTokenColumns } from '@/lib/guest-tokens';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
+import { isSuppressed } from '@/lib/email/suppression';
+import { sendGuestInviteEmail } from '@/lib/email/guest-invite';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +18,11 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-// GET /api/guests?siteId=xxx — list all guests for a site
+// GET /api/guests?siteId=xxx — list all guests for a site.
+// Accepts:
+//   ?siteId=<uuid>     (legacy)
+//   ?site=<uuid>       (new)
+//   ?siteSlug=<sub>    (Studio passes this — resolved server-side)
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,32 +30,116 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const siteId = req.nextUrl.searchParams.get('siteId');
-    if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
-
+    type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
+    // ?site= accepts EITHER an id or a slug — the dashboard Home was
+    // passing the domain here while the route read it as a uuid, so
+    // every host's guest summary 404'd into a masked empty state
+    // ("you have no guests" beside a full roster — NEW-USER-REVAMP
+    // L1). One param, both shapes, decided by the uuid grammar.
+    const rawSite = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
+    const isUuid = !!rawSite && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawSite);
+    const siteIdParam = isUuid ? rawSite : null;
+    const siteSlug = req.nextUrl.searchParams.get('siteSlug')
+      || req.nextUrl.searchParams.get('subdomain')
+      || (!isUuid ? rawSite : null);
+    if (!siteIdParam && !siteSlug) {
+      return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
+    }
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    // Look up the site row by either id or slug so we can check
+    // ownership before returning anyone's guest list.
+    const lookup = siteIdParam
+      ? supabase.from('sites').select('id, site_config, creator_email').eq('id', siteIdParam).maybeSingle()
+      : supabase.from('sites').select('id, site_config, creator_email').eq('subdomain', siteSlug).maybeSingle();
+    const { data: siteRow } = await lookup as { data: SiteRow | null };
+    if (!siteRow) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+    const ownerEmail = (siteRow.creator_email
+      ?? siteRow.site_config?.creator_email
+      ?? '').toLowerCase();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const siteId = siteRow.id;
+
+    const hasAddressOnly = req.nextUrl.searchParams.get('hasAddress') === '1';
+
+    let q = supabase
       .from('guests')
       .select('*')
       .eq('site_id', siteId)
       .order('created_at', { ascending: true });
+    if (hasAddressOnly) {
+      q = q.not('mailing_address_line1', 'is', null);
+    }
+    const { data, error } = await q;
 
     if (error) {
       console.error('Guests fetch error:', error);
       return NextResponse.json({ guests: [] });
     }
 
+    // Backfill personal-link tokens for rows that predate token
+    // minting, so every guest the host sees has a working ?g= link
+    // (envelope + auto-recognition + invitation gate). Owner-gated
+    // above; best-effort — a failed update just leaves that one row
+    // tokenless and it retries next load. After the first pass this
+    // is a no-op filter.
+    const needTokens = (data || []).filter((r) => !r.guest_token);
+    if (needTokens.length > 0) {
+      await Promise.all(
+        needTokens.map(async (r) => {
+          const cols = guestTokenColumns();
+          const { error: upErr } = await supabase.from('guests').update(cols).eq('id', r.id);
+          if (!upErr) {
+            r.guest_token = cols.guest_token;
+            r.passport_token = cols.passport_token;
+          }
+        }),
+      );
+    }
+
     const guests = (data || []).map(row => ({
       id: row.id,
       name: row.name,
       email: row.email,
+      phone: row.phone ?? null,
       status: row.status || 'pending',
       plusOne: row.plus_one || false,
       plusOneName: row.plus_one_name,
+      // Host's per-guest plus-one grant (20260616 migration).
+      plusOneAllowed: row.plus_one_allowed || false,
       mealPreference: row.meal_preference,
       dietaryRestrictions: row.dietary_restrictions,
       message: row.message,
       respondedAt: row.responded_at,
+      // Lifecycle timestamps for the host's timeline + stale-guest
+      // detection. invitedAt is set when the host imports / sends
+      // an invite cadence; respondedAt is set on RSVP submit; the
+      // email_* timestamps come from the Resend webhook.
+      invitedAt: row.invited_at,
+      // RSVP-funnel timestamps (20260628) — feed the Analytics funnel's
+      // Opened + Started stages.
+      inviteOpenedAt: row.invite_opened_at ?? null,
+      replyStartedAt: row.reply_started_at ?? null,
+      createdAt: row.created_at,
+      guestToken: row.guest_token,
+      emailSentAt: row.email_sent_at,
+      emailDeliveredAt: row.email_delivered_at,
+      emailOpenedAt: row.email_opened_at,
+      emailClickedAt: row.email_clicked_at,
+      emailBouncedAt: row.email_bounced_at,
+      // The column is `selected_events` (not `event_ids`) — reading
+      // the wrong name silently emptied per-event headcounts.
+      eventIds: Array.isArray(row.selected_events) ? row.selected_events : [],
+      mailingAddress: row.mailing_address_line1 ? {
+        line1: row.mailing_address_line1,
+        line2: row.mailing_address_line2,
+        city: row.city,
+        state: row.state,
+        zip: row.postal_code,
+      } : null,
     }));
 
     return NextResponse.json({ guests });
@@ -64,13 +158,43 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { siteId, name, email, plusOne } = body;
+    const { siteId: siteIdParam, siteSlug, name, email, plusOne, plusOneAllowed, sendInvite } = body;
 
-    if (!siteId || !name) {
-      return NextResponse.json({ error: 'siteId and name required' }, { status: 400 });
+    if ((!siteIdParam && !siteSlug) || !name) {
+      return NextResponse.json({ error: 'siteId (or siteSlug) and name required' }, { status: 400 });
     }
 
     const supabase = getSupabase();
+    /* Resolve the target site and verify ownership. The editor may
+       post EITHER siteSlug (subdomain) or siteId directly — both
+       paths must be owner-gated. Previously only the siteSlug branch
+       checked ownership, so a signed-in stranger could add guests
+       (and trigger invite emails) to any site by passing its raw
+       siteId. Now both resolve through the same lookup + gate. */
+    type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
+    const siteQuery = supabase
+      .from('sites')
+      .select('id, site_config, creator_email');
+    const { data: siteRow } = await (siteIdParam
+      ? siteQuery.eq('id', siteIdParam as string)
+      : siteQuery.eq('subdomain', siteSlug)
+    ).maybeSingle() as { data: SiteRow | null };
+    if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    const ownerEmail = (siteRow.creator_email ?? siteRow.site_config?.creator_email ?? '').toLowerCase();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const siteId = siteRow.id;
+
+    // Plan gate — the shared guest-capacity choke point
+    // (checkGuestCapacity in plan-gate.ts): grief exemption +
+    // fail-open + the 402 body, one implementation for every
+    // host-initiated guest writer.
+    const capacity = await checkGuestCapacity(supabase, session.user.email, siteId, 1);
+    if (!capacity.ok) {
+      return NextResponse.json(capacity.body, { status: capacity.status });
+    }
+
     const { data, error } = await supabase
       .from('guests')
       .insert({
@@ -78,7 +202,13 @@ export async function POST(req: NextRequest) {
         name,
         email: email || null,
         status: 'pending',
-        plus_one: plusOne || false,
+        // The HOST'S grant ("this guest may bring someone"), not the
+        // guest's answer — plus_one is what the guest sets when they
+        // RSVP that they're bringing one. The Add Guest dialog's old
+        // `plusOne` key meant the grant too, so it maps here as well.
+        plus_one_allowed: (plusOneAllowed ?? plusOne) === true,
+        // Personal-link token (envelope + auto-recognition + gate).
+        ...guestTokenColumns(),
         created_at: new Date().toISOString(),
       })
       .select()
@@ -92,14 +222,105 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Persistent guest identity — fire-and-forget link to the
+    // people record (migration 20260621). Never blocks the add.
+    if (data?.email) {
+      void linkGuestRowToPerson(supabase, String(data.id), {
+        email: String(data.email),
+        name: String(data.name ?? name),
+      });
+    }
+
+    // Email them their personal invite — only when the host opted in
+    // (the Add Guest dialog's "Email them their invite" toggle) and
+    // an email is present. Shared sender (lib/email/guest-invite) so
+    // the circle weave-in door sends the identical invite.
+    if (sendInvite && data?.email) {
+      void sendGuestInviteEmail(supabase, {
+        siteId,
+        guestId: String(data.id),
+        guestName: String(data.name ?? name),
+        guestEmail: String(data.email),
+        guestToken: (data as { guest_token?: string }).guest_token ?? null,
+      });
+    }
+
     return NextResponse.json({
       guest: {
         id: data.id, name: data.name, email: data.email,
         status: data.status, plusOne: data.plus_one,
+        // The personal-link token just minted for this guest — the
+        // owner-gated GET already exposes it (share/QR/envelope
+        // links), so the create response returns it too instead of
+        // forcing a second fetch.
+        passport_token: data.passport_token ?? null,
       }
     });
   } catch (err) {
     console.error('Add guest error:', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+
+// PATCH /api/guests — update a single guest's editable fields.
+// Currently: { id, plusOneAllowed } — the host's per-guest plus-one
+// grant. Owner-gated: the guest must belong to a site this host
+// created.
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let body: { id?: string; plusOneAllowed?: boolean };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+    }
+    const { id, plusOneAllowed } = body;
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+    if (typeof plusOneAllowed !== 'boolean') {
+      return NextResponse.json({ error: 'plusOneAllowed must be a boolean' }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+
+    // Ownership — resolve the guest's site, then confirm the session
+    // user created it.
+    const { data: guestRow } = await supabase
+      .from('guests')
+      .select('site_id')
+      .eq('id', id)
+      .maybeSingle();
+    if (!guestRow) return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
+
+    const { data: site } = await supabase
+      .from('sites')
+      .select('creator_email, site_config')
+      .eq('id', (guestRow as { site_id: string }).site_id)
+      .maybeSingle();
+    const owner = String(
+      (site as { creator_email?: string; site_config?: { creator_email?: string } } | null)?.creator_email
+      ?? (site as { site_config?: { creator_email?: string } } | null)?.site_config?.creator_email
+      ?? '',
+    ).toLowerCase().trim();
+    if (!site || owner !== session.user.email.toLowerCase().trim()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { error } = await supabase
+      .from('guests')
+      .update({ plus_one_allowed: plusOneAllowed })
+      .eq('id', id);
+    if (error) {
+      console.error('Guest patch error:', error);
+      return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, plusOneAllowed });
+  } catch (err) {
+    console.error('Guest patch error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
@@ -116,6 +337,29 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
     const supabase = getSupabase();
+
+    // Ownership — same gate as PATCH. Without it any signed-in
+    // account could delete any guest row by id.
+    const { data: guestRow } = await supabase
+      .from('guests')
+      .select('site_id')
+      .eq('id', id)
+      .maybeSingle();
+    if (!guestRow) return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
+    const { data: site } = await supabase
+      .from('sites')
+      .select('creator_email, site_config')
+      .eq('id', (guestRow as { site_id: string }).site_id)
+      .maybeSingle();
+    const owner = String(
+      (site as { creator_email?: string; site_config?: { creator_email?: string } } | null)?.creator_email
+      ?? (site as { site_config?: { creator_email?: string } } | null)?.site_config?.creator_email
+      ?? '',
+    ).toLowerCase().trim();
+    if (!site || owner !== session.user.email.toLowerCase().trim()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { error } = await supabase.from('guests').delete().eq('id', id);
 
     if (error) {

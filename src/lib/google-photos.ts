@@ -9,6 +9,12 @@ import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 
 const PICKER_API_BASE = 'https://photospicker.googleapis.com/v1';
 
+// Every Google fetch below uses this. Without it, a slow / hung
+// Google response stacks up Vercel workers until they exhaust the
+// deployment's concurrency budget. The retry loop in fetchPickedMediaItems
+// makes that worse — one slow call holds the worker for all pages.
+const FETCH_TIMEOUT_MS = 20000;
+
 // ── Picker Session Management ──────────────────────────────
 
 /**
@@ -28,6 +34,7 @@ export async function createPickerSession(accessToken: string): Promise<{
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({}),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -57,6 +64,7 @@ export async function pollPickerSession(accessToken: string, sessionId: string):
 }> {
   const res = await fetch(`${PICKER_API_BASE}/sessions/${sessionId}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -94,6 +102,7 @@ export async function fetchPickedMediaItems(
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -327,7 +336,8 @@ function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
     location = {
       lat: avgLat,
       lng: avgLng,
-      label: '',
+      label: '', // Will be reverse-geocoded later
+      needsReverseGeocode: true,
     };
   }
 
@@ -342,7 +352,10 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
-      { headers: { 'User-Agent': 'pearloom/1.0' } }
+      {
+        headers: { 'User-Agent': 'pearloom/1.0' },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      }
     );
     if (!res.ok) return '';
     const data = await res.json();

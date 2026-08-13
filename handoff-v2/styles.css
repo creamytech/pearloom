@@ -1,0 +1,17 @@
+/* ═══════════════════════════════════════════════════════════════
+   PEARLOOM — Design System · global entry point
+   A craft house for memory. Editorial modernism on warm paper:
+   Fraunces letterpress display · Geist body · olive + gold thread.
+   This file is an @import manifest only — never put rules here.
+   Consumers link THIS one file.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/motion.css";
+@import "./tokens/chrome.css";
+@import "./tokens/textures.css";
+@import "./tokens/animation.css";
+@import "./tokens/base.css";

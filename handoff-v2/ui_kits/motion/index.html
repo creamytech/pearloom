@@ -1,0 +1,101 @@
+<!-- @dsCard group="Motion" viewport="1240x860" name="Motion system" subtitle="Scroll reveals, letterpress settle, micro-interactions & the weave transition" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Motion</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { margin: 0; background: var(--pl-cream); color: var(--pl-ink); font-family: var(--pl-font-body); }
+  .seg { max-width: 920px; margin: 0 auto; padding: clamp(48px,8vh,110px) 28px; }
+  .eyebrow { font-family: var(--pl-font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--pl-muted); display: inline-flex; align-items: center; gap: 12px; }
+  .eyebrow::before { content: ''; width: 26px; height: 1px; background: var(--pl-gold); }
+  .disp { font-family: var(--pl-font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 1.0; color: var(--pl-ink); }
+  .disp .it { font-style: italic; color: var(--pl-olive); }
+  .lede { font-size: 18px; line-height: 1.6; color: var(--pl-ink-soft); max-width: 560px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+  .card { background: var(--pl-cream-card); border: 1px solid var(--pl-divider); border-radius: var(--pl-radius-lg); padding: 24px; box-shadow: var(--pl-shadow-sm); }
+  .card h3 { font-family: var(--pl-font-heading); font-size: 19px; margin: 0 0 6px; }
+  .card p { font-size: 13.5px; color: var(--pl-ink-soft); line-height: 1.55; margin: 0; }
+  .hint { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pl-gold); margin-top: 14px; display: block; }
+  .rule { height: 1px; background: linear-gradient(90deg, transparent, var(--pl-gold), transparent); margin: 8px auto 0; max-width: 220px; }
+  .btn { font-family: var(--pl-font-body); font-weight: 600; font-size: 14px; cursor: pointer; border: none; padding: 14px 26px; border-radius: 999px; color: var(--pl-cream); background: var(--pl-ink); }
+  .kb { width: 100%; height: 150px; border-radius: 10px; background: linear-gradient(135deg, var(--pl-olive-20), var(--pl-gold-mist)); }
+  .pearlbtn { display:inline-flex; align-items:center; gap:9px; padding:14px 24px; border-radius:999px; border:1px solid var(--pl-gold-soft); font-weight:600; font-size:14px; cursor:pointer; color:var(--pl-ink); background:linear-gradient(135deg,#F4ECD8,#E8C77A 32%,#D9A89E 58%,#B8C96B 82%,#F4ECD8); }
+  .pl-theme-toggle { position: fixed; bottom: 16px; right: 16px; z-index: 9000; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--pl-divider); background: var(--pl-glass); backdrop-filter: blur(12px); color: var(--pl-ink); font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+  .scrollnote { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 40; font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pl-muted); background: var(--pl-glass); border: 1px solid var(--pl-divider); padding: 7px 14px; border-radius: 999px; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+</style>
+</head>
+<body>
+<button class="pl-theme-toggle" id="themeToggle">◐ <span id="themeLabel">Dark</span></button>
+<div class="scrollnote">Scroll — watch it thread in</div>
+
+<!-- HERO: letterpress settle on load -->
+<section class="seg" style="text-align:center; min-height:84vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:22px;">
+  <div class="eyebrow pl-press-in" style="animation-delay:.05s">The motion system</div>
+  <h1 class="disp pl-press-in" style="font-size:clamp(44px,8vw,96px); animation-delay:.12s">A site that <span class="it">threads</span><br>itself into being.</h1>
+  <div class="rule pl-press-in" style="animation-delay:.32s; transform-origin:center"></div>
+  <p class="lede pl-press-in" style="animation-delay:.4s; text-align:center;">Nothing here just appears. Content settles as if drawn into place — the weave, made motion. Scroll to feel it; press the button to turn the page.</p>
+  <div class="pl-press-in" style="animation-delay:.5s; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+    <button class="pearlbtn pl-tap" id="turnpage">Turn the page →</button>
+    <a href="#how" class="pl-link" style="align-self:center; font-weight:500;">See how it's built</a>
+  </div>
+</section>
+
+<!-- REVEAL TYPES -->
+<section class="seg" id="how">
+  <div data-reveal="up" class="eyebrow">Scroll reveals</div>
+  <h2 data-reveal="up" data-reveal-delay="60" class="disp" style="font-size:clamp(30px,4.5vw,48px); margin:14px 0 10px;">Seven ways to <span class="it">arrive</span>.</h2>
+  <p data-reveal="up" data-reveal-delay="120" class="lede" style="margin-bottom:36px;">Each block declares how it enters. The engine flips them in on scroll, staggered, reduced-motion aware.</p>
+  <div class="grid3" data-reveal-stagger="90" data-reveal-as="rise">
+    <div class="card"><h3>up · down</h3><p>The everyday lift — content rises into place with an expo-out ease.</p><span class="hint">data-reveal="up"</span></div>
+    <div class="card"><h3>thread</h3><p>Unveiled between two strands opening from the center. The signature.</p><span class="hint">data-reveal="thread"</span></div>
+    <div class="card"><h3>press</h3><p>Display type settles into the paper — a soft letterpress.</p><span class="hint">data-reveal="press"</span></div>
+    <div class="card"><h3>left · right</h3><p>Lateral drift for side-by-side or list items.</p><span class="hint">data-reveal="left"</span></div>
+    <div class="card"><h3>scale · rise</h3><p>A gentle bloom for cards and imagery.</p><span class="hint">data-reveal="rise"</span></div>
+    <div class="card"><h3>stagger</h3><p>Any group sequences its children automatically.</p><span class="hint">data-reveal-stagger="90"</span></div>
+  </div>
+</section>
+
+<!-- THREAD REVEAL showcase -->
+<section class="seg" style="text-align:center;">
+  <div data-reveal="thread" class="disp" style="font-size:clamp(34px,6vw,72px);">Woven, <span class="it">not faded.</span></div>
+  <div data-reveal="up" data-reveal-delay="200" class="rule" style="margin-top:24px;"></div>
+</section>
+
+<!-- MICRO-INTERACTIONS -->
+<section class="seg">
+  <div data-reveal="up" class="eyebrow">Micro-interactions</div>
+  <h2 data-reveal="up" data-reveal-delay="60" class="disp" style="font-size:clamp(30px,4.5vw,48px); margin:14px 0 36px;">In the <span class="it">hand</span>.</h2>
+  <div class="grid3" data-reveal-stagger="90" data-reveal-as="rise">
+    <div class="card pl-lift"><h3>Lift</h3><p>Hover me — cards rise and bloom their shadow.</p><span class="hint">.pl-lift</span></div>
+    <div class="card pl-tap"><h3>Tap</h3><p>Press me — a tactile spring on tap.</p><span class="hint">.pl-tap</span></div>
+    <div class="card pl-kenburns"><div class="kb pl-kb-layer"></div><h3 style="margin-top:14px;">Ken-burns</h3><p>Imagery drifts almost imperceptibly on hover.</p><span class="hint">.pl-kenburns</span></div>
+  </div>
+  <p data-reveal="up" style="margin-top:26px; font-size:15px; color:var(--pl-ink-soft);">A link with a gold thread that weaves in — <a href="#" class="pl-link" onclick="return false">hover this</a>.</p>
+</section>
+
+<!-- CLOSING -->
+<section class="seg" style="text-align:center; padding-bottom:120px;">
+  <div data-reveal="press" class="disp" style="font-size:clamp(30px,5vw,56px);">Press the page, <span class="it">and turn it.</span></div>
+  <div data-reveal="up" data-reveal-delay="160" style="margin-top:26px;">
+    <button class="pearlbtn pl-tap" onclick="PearloomMotion.weave()">Turn the page again</button>
+  </div>
+</section>
+
+<script src="../../assets/pearloom-motion.js"></script>
+<script>
+  (function(){
+    var root=document.documentElement; var saved=localStorage.getItem('pl-theme')||'light';
+    function apT(t){ root.setAttribute('data-theme',t); var l=document.getElementById('themeLabel'); if(l) l.textContent=t==='dark'?'Light':'Dark'; }
+    apT(saved);
+    document.getElementById('themeToggle').addEventListener('click',function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('pl-theme',n); apT(n); });
+    // "Turn the page" → weave, then jump to top of the reveals section
+    document.getElementById('turnpage').addEventListener('click',function(){
+      PearloomMotion.weave(function(){ var t=document.getElementById('how'); window.scrollTo(0, t.offsetTop); });
+    });
+  })();
+</script>
+</body>
+</html>

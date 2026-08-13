@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Pearloom event site" description="A woven event-site page — pill nav, letterpress hero, run-of-day, RSVP, footer" -->
+<helmet>
+  <script src="./ds-base.js"></script>
+</helmet>
+<main style="min-height:100vh; background:var(--pl-gradient-hero); font-family:var(--pl-font-body); color:var(--pl-ink); position:relative;">
+
+  <!-- Nav — sticky glass pill -->
+  <nav style="position:sticky; top:14px; z-index:100; margin:14px auto 0; max-width:1080px; padding:0 24px;">
+    <div class="pl-glass-surface" style="border-radius:999px; padding:10px 14px 10px 18px; display:flex; align-items:center; justify-content:space-between; gap:20px;">
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.PearloomLogo" hint-size="150px,36px"></x-import>
+      <div style="display:flex; align-items:center; gap:26px; font-size:14px; font-weight:500;">
+        <a href="#story" style="color:var(--pl-ink); opacity:0.82; text-decoration:none;">The story</a>
+        <a href="#day" style="color:var(--pl-ink); opacity:0.82; text-decoration:none;">The day</a>
+        <a href="#travel" style="color:var(--pl-ink); opacity:0.82; text-decoration:none;">Travel</a>
+        <a href="#rsvp" style="color:var(--pl-ink); opacity:0.82; text-decoration:none;">RSVP</a>
+      </div>
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Button" variant="pearl" size="sm" hint-size="120px,38px">Press RSVP</x-import>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section style="max-width:840px; margin:0 auto; padding:96px 24px 72px; text-align:center;">
+    <div style="display:flex; justify-content:center; margin-bottom:22px;">
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Eyebrow" rule="both" hint-size="280px,16px">Pressed by Pear · Sept 6, 2026</x-import>
+    </div>
+    <h1 class="pl-letterpress" style="font-family:var(--pl-font-display); font-weight:400; font-variation-settings:'opsz' 144, 'SOFT' 50; font-size:clamp(56px, 9vw, 116px); line-height:0.92; letter-spacing:-0.03em; margin:0; color:var(--pl-ink);">Mira &amp; Jun</h1>
+    <p style="font-family:var(--pl-font-display); font-style:italic; font-variation-settings:'opsz' 144, 'SOFT' 80, 'WONK' 1; font-size:clamp(22px, 3vw, 34px); color:var(--pl-olive); margin:14px 0 0;">are getting married</p>
+    <p style="font-family:var(--pl-font-body); font-size:18px; line-height:1.6; color:var(--pl-ink-soft); max-width:520px; margin:26px auto 0;">A bright Saturday in Point Reyes, two families, and one very long table. Come hungry, stay late.</p>
+    <div style="display:flex; justify-content:center; gap:12px; margin-top:32px; flex-wrap:wrap;">
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Button" variant="pearl" size="lg" hint-size="150px,52px">Press RSVP</x-import>
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Button" variant="ghost" size="lg" hint-size="150px,52px">See the day</x-import>
+    </div>
+    <div style="max-width:280px; margin:44px auto 0;">
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Thread" hint-size="280px,14px"></x-import>
+    </div>
+  </section>
+
+  <!-- The run of the day -->
+  <section id="day" class="pl-grain" style="background:var(--pl-cream-deep); padding:72px 24px; position:relative;">
+    <div style="max-width:760px; margin:0 auto; position:relative; z-index:1;">
+      <div style="text-align:center; margin-bottom:40px;">
+        <x-import component-from-global-scope="PearloomDesignSystem_55118c.Eyebrow" hint-size="200px,16px">The run of the day</x-import>
+        <h2 class="pl-heading" style="font-size:clamp(30px,4vw,44px); margin:12px 0 0;">Saturday, the sixth</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0;">
+        <div style="display:flex; gap:22px; align-items:baseline; padding:18px 0; border-bottom:1px solid var(--pl-divider);">
+          <span style="font-family:var(--pl-font-mono); font-size:13px; letter-spacing:0.08em; color:var(--pl-gold); width:88px; flex:0 0 auto;">4:00 PM</span>
+          <div><div class="pl-heading" style="font-size:20px;">Arrive &amp; gather</div><p class="pl-body" style="margin:2px 0 0; font-size:14.5px; color:var(--pl-ink-soft);">Cold drinks on the lawn, find your people.</p></div>
+        </div>
+        <div style="display:flex; gap:22px; align-items:baseline; padding:18px 0; border-bottom:1px solid var(--pl-divider);">
+          <span style="font-family:var(--pl-font-mono); font-size:13px; letter-spacing:0.08em; color:var(--pl-gold); width:88px; flex:0 0 auto;">5:00 PM</span>
+          <div><div class="pl-heading" style="font-size:20px;">The vows</div><p class="pl-body" style="margin:2px 0 0; font-size:14.5px; color:var(--pl-ink-soft);">Under the cypress. Bring a tissue.</p></div>
+        </div>
+        <div style="display:flex; gap:22px; align-items:baseline; padding:18px 0; border-bottom:1px solid var(--pl-divider);">
+          <span style="font-family:var(--pl-font-mono); font-size:13px; letter-spacing:0.08em; color:var(--pl-gold); width:88px; flex:0 0 auto;">6:30 PM</span>
+          <div><div class="pl-heading" style="font-size:20px;">Supper &amp; toasts</div><p class="pl-body" style="margin:2px 0 0; font-size:14.5px; color:var(--pl-ink-soft);">One very long table. No speech over 90 seconds.</p></div>
+        </div>
+        <div style="display:flex; gap:22px; align-items:baseline; padding:18px 0;">
+          <span style="font-family:var(--pl-font-mono); font-size:13px; letter-spacing:0.08em; color:var(--pl-gold); width:88px; flex:0 0 auto;">9:00 PM</span>
+          <div><div class="pl-heading" style="font-size:20px;">Dancing</div><p class="pl-body" style="margin:2px 0 0; font-size:14.5px; color:var(--pl-ink-soft);">Until the candles burn down.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RSVP -->
+  <section id="rsvp" style="max-width:540px; margin:0 auto; padding:80px 24px; text-align:center;">
+    <h2 class="pl-display pl-letterpress" style="font-size:clamp(34px,5vw,56px); margin:0;">Kindly reply</h2>
+    <p class="pl-body" style="font-size:16px; color:var(--pl-ink-soft); margin:14px 0 28px;">By <em style="font-family:var(--pl-font-display); font-style:italic;">August 10th</em>, so we can set a place for you.</p>
+    <div style="display:flex; justify-content:center;">
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Button" variant="ink" size="lg" hint-size="160px,52px">Press RSVP</x-import>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:var(--pl-ink); color:var(--pl-cream); padding:48px 24px 40px;">
+    <div style="max-width:1080px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px;">
+      <p style="font-family:var(--pl-font-display); font-style:italic; font-variation-settings:'opsz' 144, 'SOFT' 80, 'WONK' 1; font-size:24px; color:var(--pl-gold); margin:0;">Mira &amp; Jun · pearloom.com</p>
+      <x-import component-from-global-scope="PearloomDesignSystem_55118c.Folio" kicker="Edition" no="01" label="Point Reyes" color="var(--pl-stone)" hint-size="260px,16px"></x-import>
+    </div>
+  </footer>
+
+</main>
+</x-dc>
+</body>
+</html>

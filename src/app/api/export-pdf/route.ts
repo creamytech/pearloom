@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,9 +49,9 @@ function sanitizeCssValue(val: string): string {
 function buildHtml(manifest: StoryManifest, siteId: string): string {
   const chapters = manifest.chapters ?? [];
   const coupleNames = (manifest as unknown as { names?: [string, string] })?.names ?? ['', ''];
-  const headingFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.heading ?? 'Georgia');
-  const bodyFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.body ?? 'Georgia');
-  const accent = sanitizeCssValue(manifest.vibeSkin?.palette?.accent ?? '#6B8F5A');
+  const headingFont = sanitizeCssValue(manifest.theme?.fonts?.heading ?? 'Georgia');
+  const bodyFont = sanitizeCssValue(manifest.theme?.fonts?.body ?? 'Georgia');
+  const accent = sanitizeCssValue(manifest.theme?.colors?.accent ?? '#6B8F5A');
 
   const chaptersHtml = chapters
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -97,7 +98,7 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
     .join('\n');
 
   const title = coupleNames[0] && coupleNames[1]
-    ? `${coupleNames[0]} & ${coupleNames[1]} — Our Story`
+    ? `${coupleNames[0]} & ${coupleNames[1]}: Our Story`
     : 'Our Story Book';
 
   return `<!DOCTYPE html>
@@ -292,18 +293,25 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 
   <!-- Print bar (screen only) -->
   <div class="print-bar">
-    <span>📄 Story Book — ready to print or save as PDF</span>
+    <span>📄 Story Book, ready to print or save as PDF</span>
     <button onclick="window.print()">Print / Save PDF</button>
   </div>
 
   <!-- Cover -->
   <div class="cover">
+    ${(manifest as { coverPhoto?: string }).coverPhoto ? `<img src="${escapeHtml((manifest as { coverPhoto?: string }).coverPhoto!)}" alt="Cover" style="max-width:60%;max-height:10cm;border-radius:8px;margin-bottom:2rem;object-fit:cover;" />` : ''}
     <div class="cover-eyebrow">A Love Story</div>
     <h1 class="cover-title">${escapeHtml(title)}</h1>
     <div class="cover-accent">♡</div>
     <p class="cover-subtitle">
       ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${escapeHtml(formatDate(new Date().toISOString()))}
     </p>
+    ${(((manifest as { heroSlideshow?: string[] }).heroSlideshow) || []).filter(Boolean).length > 0 ? `
+    <div class="chapter-images" style="margin-top:1.5cm;justify-content:center;">
+      ${((manifest as { heroSlideshow?: string[] }).heroSlideshow!).filter(Boolean).slice(0, 4).map((u: string) =>
+        `<img src="${escapeHtml(u)}" alt="" style="max-width:40%;max-height:6cm;border-radius:4px;object-fit:cover;" />`
+      ).join('')}
+    </div>` : ''}
   </div>
 
   <!-- Chapters -->
@@ -328,6 +336,12 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`export-pdf:${ip}`, { max: 20, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return new Response('Too many requests', { status: 429 });
+  }
+
   try {
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) {

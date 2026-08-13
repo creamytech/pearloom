@@ -14,31 +14,9 @@ import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// Mock data for when the DB table doesn't exist yet
-const MOCK_SOURCES = [
-  {
-    id: 'mock-1',
-    userId: 'demo',
-    siteId: 'demo',
-    storeName: 'Zola',
-    registryUrl: 'https://www.zola.com/registry/demo',
-    category: 'Home & Kitchen',
-    notes: 'Our main registry!',
-    sortOrder: 0,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'mock-2',
-    userId: 'demo',
-    siteId: 'demo',
-    storeName: 'Amazon',
-    registryUrl: 'https://www.amazon.com/registry/wishlist/demo',
-    category: 'Experiences',
-    notes: '',
-    sortOrder: 1,
-    createdAt: new Date().toISOString(),
-  },
-];
+// When the registry_sources table isn't configured we return an
+// empty list so the UI shows its own "Add your first registry"
+// empty state instead of placeholder Zola/Amazon rows.
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -59,8 +37,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabase();
     if (!supabase) {
-      console.warn('[api/registry] Supabase not configured — returning mock data');
-      return NextResponse.json({ sources: MOCK_SOURCES }, { status: 200 });
+      console.warn('[api/registry] Supabase not configured — returning empty list');
+      return NextResponse.json({ sources: [] }, { status: 200 });
     }
 
     const { data, error } = await supabase

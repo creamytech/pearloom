@@ -1,0 +1,96 @@
+/* ═══════════════════════════════════════════════════════════════
+   TEXTURES — paper & cloth grounds (production-ready, pure CSS)
+   ───────────────────────────────────────────────────────────────
+   Tiling background utilities for site sections and theme packs.
+   All are CSS gradients or inline-SVG data-URIs — zero image
+   requests, theme-aware (they tint off --pl-* tokens via
+   currentColor where possible). Apply a texture class to any
+   element; pair with a surface color underneath.
+
+   These map to the marketplace `background-pack` / `pattern` item
+   type: each `.pl-tx-*` is one sellable ground.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* tint knobs — override per theme to recolor every texture at once */
+  --tx-ink: rgba(92,107,63,0.10);    /* @kind other */ /* line/dot color (olive wash) */
+  --tx-ink-2: rgba(193,154,75,0.12); /* @kind other */ /* secondary (gold wash)       */
+  --tx-scale: 1;                     /* @kind other */
+}
+[data-theme='dark'] :root, [data-theme='dark'] {
+  --tx-ink: rgba(164,181,122,0.10);
+  --tx-ink-2: rgba(212,179,115,0.12);
+}
+
+/* 1 · LAID PAPER — fine horizontal laid lines + chain lines, like
+      handmade stationery. */
+.pl-tx-laid {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(0deg, var(--tx-ink) 0 0.5px, transparent 0.5px 4px),
+    repeating-linear-gradient(90deg, var(--tx-ink-2) 0 1px, transparent 1px 26px);
+}
+
+/* 2 · LINEN — woven cloth crosshatch. */
+.pl-tx-linen {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(0deg, var(--tx-ink) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, var(--tx-ink) 0 1px, transparent 1px 5px);
+  background-size: 5px 5px;
+}
+
+/* 3 · DOTWORK — engraver's stipple grid. */
+.pl-tx-dotwork {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: radial-gradient(var(--tx-ink) 1px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+
+/* 4 · LATTICE — diagonal trellis, garden-party. */
+.pl-tx-lattice {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    repeating-linear-gradient(45deg, var(--tx-ink) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(-45deg, var(--tx-ink) 0 1px, transparent 1px 18px);
+}
+
+/* 5 · SCALLOP — overlapping arcs (fish-scale / Art Deco fan). */
+.pl-tx-scallop {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    radial-gradient(circle at 50% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px),
+    radial-gradient(circle at 0% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px),
+    radial-gradient(circle at 100% 100%, transparent 9px, var(--tx-ink-2) 9px 10px, transparent 11px);
+  background-size: 24px 12px;
+}
+
+/* 6 · HERRINGBONE — woven chevron, via SVG tile. */
+.pl-tx-herringbone {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%235C6B3F' stroke-opacity='0.14' stroke-width='1.4'%3E%3Cpath d='M0 7 L7 0 M7 14 L14 7 M0 21 L7 14 M7 28 L14 21'/%3E%3Cpath d='M14 7 L21 0 M21 14 L28 7 M14 21 L21 14 M21 28 L28 21'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 7 · STARFIELD — sparse celestial dots of two sizes, for evening
+      / new-year / bar-mitzvah themes. */
+.pl-tx-starfield {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image:
+    radial-gradient(circle, var(--tx-ink-2) 1.4px, transparent 1.8px),
+    radial-gradient(circle, var(--tx-ink) 0.8px, transparent 1.1px);
+  background-size: 64px 64px, 38px 38px;
+  background-position: 0 0, 19px 27px;
+}
+
+/* 8 · WAVELINE — gentle horizontal waves (coastal / water). */
+.pl-tx-waveline {
+  background-color: var(--surface-page, var(--pl-cream));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M0 8 q 6 -6 12 0 t 12 0 t 12 0 t 12 0' fill='none' stroke='%235C6B3F' stroke-opacity='0.13' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* Soft vignette helper to sink any texture toward the edges. */
+.pl-tx-vignette { position: relative; }
+.pl-tx-vignette::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 120% 100% at 50% 0%, transparent 55%, var(--surface-page, var(--pl-cream)) 100%);
+}

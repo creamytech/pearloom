@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 interface LiveQROverlayProps {
   domain: string;
+  /** Occasion for Zola-style URLs; falls back to legacy when omitted. */
+  occasion?: string;
 }
 
-export function LiveQROverlay({ domain }: LiveQROverlayProps) {
+export function LiveQROverlay({ domain, occasion }: LiveQROverlayProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = `https://pearloom.com/sites/${domain}`;
+    const url = buildSiteUrl(domain, '', 'https://pearloom.com', occasion);
     QRCode.toDataURL(url, {
       width: 120,
       margin: 1,
@@ -19,7 +22,7 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
     })
       .then(setQrDataUrl)
       .catch(console.error);
-  }, [domain]);
+  }, [domain, occasion]);
 
   return (
     <div
@@ -27,17 +30,17 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
         position: 'fixed',
         bottom: '24px',
         right: '24px',
-        background: 'rgba(255,255,255,0.08)',
+        background: 'rgba(0,0,0,0.06)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.15)',
-        borderRadius: '12px',
+        border: '1px solid rgba(0,0,0,0.08)',
+        borderRadius: 'var(--pl-radius-lg)',
         padding: '12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '6px',
-        zIndex: 100,
+        zIndex: 'var(--z-sticky)',
       }}
     >
       {qrDataUrl && (
@@ -51,7 +54,7 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
       )}
       <span
         style={{
-          color: 'rgba(255,255,255,0.6)',
+          color: 'var(--pl-ink-soft)',
           fontSize: '0.65rem',
           textAlign: 'center',
           lineHeight: 1.4,
