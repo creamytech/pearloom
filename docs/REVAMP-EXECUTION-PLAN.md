@@ -816,12 +816,32 @@ then.
   can't be applied from the dashboard. Fenced in
   wizard-seed.test.ts (a full picks set seeds → every fact names
   its destination; an empty manifest produces zero receipts).
-- **C.5 The merge.** The pressing IS the surface: wizard steps become
-  the empty-state prompts of the editor canvas; chrome fades in as
-  content lands; phone-first working steps (RADICAL §D). The press
-  becomes an in-place transition (no route seam → no double-create
-  class, no handoff cliff). Feature-flagged; the old wizard remains
-  the fallback until the funnel metrics beat it.
+- **C.5 The merge — IN PROGRESS behind the flag (increments 1–2
+  shipped 2026-08-13).** The pressing IS the surface: wizard steps
+  become the empty-state prompts of the editor canvas; chrome fades
+  in as content lands; phone-first working steps (RADICAL §D). The
+  press becomes an in-place transition. Feature-flagged; the old
+  wizard remains the fallback until the funnel metrics beat it.
+  - *Increment 1:* `lib/one-pressing.ts` — the `onePressing` gate
+    (?press=one/classic beats localStorage beats
+    NEXT_PUBLIC_ONE_PRESSING beats off; server always sees off),
+    resolution order pinned by unit test.
+  - *Increment 2:* `pages/OnePressing.tsx` — the merged surface's
+    first working cut, mounted by WizardNewClient when the flag
+    resolves on: the REAL renderer (ThemedSite, proof mode) presses
+    the site live behind a floating glass prompt card (occasion →
+    names → date/venue → press); un-answered sections wear honest
+    drafting slats, never demo copy; the press rides the SAME
+    idempotent pressKey path (W.2 — no new double-create class) and
+    the same 401 claim-handoff / 402 upgrade-door contracts.
+    `e2e/specs/one-pressing.spec.ts` (staging fence): flag-off
+    renders the classic wizard untouched; ?press=one presses live
+    (typed names appear in the canvas) → lands in the editor →
+    exactly one site.
+  - *Named next increments:* the true in-place editor mount (no
+    route swap — needs the ownership pass folded in), photos/palette
+    steps as canvas prompts, chrome fade-in choreography, the
+    funnel-metrics comparison that gates the 100% rollout.
 - **C.6 Site addresses, managed (L22). — SHIPPED 2026-08-13.**
   `/api/sites/rename` (owner-gated, rate-limited): GET ?check=
   availability (format + taken + reserved-by-a-renamed-site), POST
