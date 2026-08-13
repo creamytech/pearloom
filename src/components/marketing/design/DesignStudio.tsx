@@ -20,7 +20,6 @@ import { PD, MONO_STYLE, DISPLAY_STYLE, Pearl, pdInkMix } from './DesignAtoms';
 import {
   OCC,
   OCC_IMG,
-  U,
   STUDIO_THEMES,
   STUDIO_SANS,
   STUDIO_KITS,
@@ -395,7 +394,7 @@ export function DesignStudio({ occ = 'wedding', names }: { occ?: OccasionKey; na
                 flexDirection: 'column',
                 justifyContent: 'center',
                 gap: 8,
-                backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--dv-accent) 55%, transparent), transparent), linear-gradient(0deg, rgba(20,16,8,0.32), rgba(20,16,8,0.32)), url(${U(OCC_IMG[occ], 900)})`,
+                backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--dv-accent) 55%, transparent), transparent), linear-gradient(0deg, rgba(20,16,8,0.32), rgba(20,16,8,0.32)), url(${OCC_IMG[occ]})`,
                 backgroundSize: 'cover, cover, cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

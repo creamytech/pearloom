@@ -10,7 +10,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { PD, MONO_STYLE, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
-import { U, WALL_IMGS } from './landing-data';
+import { WALL_IMGS } from './landing-data';
 import { Music } from 'lucide-react';
 
 const TRACKS: ReadonlyArray<readonly [string, string]> = [
@@ -127,7 +127,7 @@ export function DesignDayOf() {
             >
               <img
                 className="pd-day-tile"
-                src={U(id, 600)}
+                src={id}
                 loading="lazy"
                 decoding="async"
                 alt=""

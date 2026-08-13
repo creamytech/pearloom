@@ -14,31 +14,33 @@
 
 export type OccasionKey = 'wedding' | 'milestone' | 'memorial' | 'baby' | 'reunion';
 
-/** Unsplash placeholder URL (matches the design handoff). Swap the ids
- *  for licensed assets before launch — the README calls these
- *  placeholders, but the v4 design IS photographic. */
-export const U = (id: string, w = 1280): string =>
-  `https://images.unsplash.com/photo-${id}?w=${w}&q=70&auto=format&fit=crop`;
+/** The house's own photo plates (public/plates — see
+ *  lib/photo-plates.ts). These used to be Unsplash hotlinks; a
+ *  craft house doesn't hotlink stock, and a corporate proxy or
+ *  ad-blocker must never blank the landing (REVAMP P.4). Every
+ *  value below is a self-hosted path, hand-assigned so adjacent
+ *  slots always press different plates. */
+import { platePath } from '@/lib/photo-plates';
 
-/** Per-occasion hero photograph (crossfades behind the hero). */
+/** Per-occasion hero plate (crossfades behind the hero). */
 export const OCC_IMG: Record<OccasionKey, string> = {
-  wedding: '1519741497674-611481863552',
-  milestone: '1464349153735-7db50ed83c84',
-  memorial: '1490750967868-88aa4486c946',
-  baby: '1519689680058-324335c77eba',
-  reunion: '1529156069898-49953e39b3ac',
+  wedding: platePath(1),   // meadow arch
+  milestone: platePath(6), // gold hour
+  memorial: platePath(3),  // quiet slate
+  baby: platePath(4),      // blush morning
+  reunion: platePath(5),   // plum lake
 };
 
 /** The day-of photo wall + memory album + finale imagery. */
 export const WALL_IMGS = [
-  '1519741497674-611481863552', '1519671482749-fd09be7ccebf', '1511795409834-ef04bbd61622',
-  '1414235077428-338989a2e8c0', '1470337458703-46ad1756a187', '1529156069898-49953e39b3ac',
+  platePath(1), platePath(10), platePath(7),
+  platePath(2), platePath(11), platePath(5),
 ];
 export const ALBUM_IMGS = [
-  '1519741497674-611481863552', '1519671482749-fd09be7ccebf', '1470337458703-46ad1756a187',
-  '1414235077428-338989a2e8c0', '1529156069898-49953e39b3ac',
+  platePath(1), platePath(10), platePath(6),
+  platePath(7), platePath(2),
 ];
-export const FINALE_IMG = '1511285560929-80b456fea0bc';
+export const FINALE_IMG = platePath(12);
 
 export interface LandingOccasion {
   chip: string;
@@ -224,12 +226,12 @@ export interface GalleryTile {
   key?: OccasionKey;
 }
 export const GALLERY_TILES: GalleryTile[] = [
-  { nm: 'Weddings', tone: 'Ceremonial', blk: 14, img: '1511795409834-ef04bbd61622', key: 'wedding' },
-  { nm: 'Milestone birthdays', tone: 'Playful', blk: 10, img: '1530103862676-de8c9debad1d', key: 'milestone' },
-  { nm: 'Anniversaries', tone: 'Intimate', blk: 9, img: '1414235077428-338989a2e8c0' },
-  { nm: 'Baby showers', tone: 'Tender', blk: 9, img: '1519689680058-324335c77eba', key: 'baby' },
-  { nm: 'Memorials', tone: 'Solemn', blk: 11, img: '1518895312237-a9e23508077d', key: 'memorial' },
-  { nm: 'Engagement parties', tone: 'Romantic', blk: 8, img: '1583939003579-730e3918a45a' },
-  { nm: 'Reunions', tone: 'Warm', blk: 11, img: '1529156069898-49953e39b3ac', key: 'reunion' },
-  { nm: 'Retirements & galas', tone: 'Grateful', blk: 9, img: '1470337458703-46ad1756a187' },
+  { nm: 'Weddings', tone: 'Ceremonial', blk: 14, img: platePath(1), key: 'wedding' },
+  { nm: 'Milestone birthdays', tone: 'Playful', blk: 10, img: platePath(6), key: 'milestone' },
+  { nm: 'Anniversaries', tone: 'Intimate', blk: 9, img: platePath(12) },
+  { nm: 'Baby showers', tone: 'Tender', blk: 9, img: platePath(4), key: 'baby' },
+  { nm: 'Memorials', tone: 'Solemn', blk: 11, img: platePath(3), key: 'memorial' },
+  { nm: 'Engagement parties', tone: 'Romantic', blk: 8, img: platePath(10) },
+  { nm: 'Reunions', tone: 'Warm', blk: 11, img: platePath(5), key: 'reunion' },
+  { nm: 'Retirements & galas', tone: 'Grateful', blk: 9, img: platePath(11) },
 ];

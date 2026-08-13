@@ -18,7 +18,7 @@ import { ArrowDown } from 'lucide-react';
 import { Thread } from '@/components/brand/Thread';
 import { usePrefersReducedMotion } from '@/components/pearloom/redesign/graceful-image';
 import { Pearl, PLButton } from './DesignAtoms';
-import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, U, parseNames, type OccasionKey } from './landing-data';
+import { OCC, OCC_KEYS, OCC_IMG, ALBUM_IMGS, THREADING, parseNames, type OccasionKey } from './landing-data';
 
 const CREAM = '#FDFAF0';
 const CREAM_SOFT = 'rgba(253,250,240,0.95)';
@@ -110,7 +110,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
         {OCC_KEYS.map((k) => (
           <img
             key={k}
-            src={U(OCC_IMG[k], 1600)}
+            src={OCC_IMG[k]}
             alt=""
             decoding="async"
             loading={k === occ ? 'eager' : 'lazy'}
@@ -265,7 +265,7 @@ export function DesignHero({ occ, setOcc, names, setNames, onType, onGetStarted 
             </div>
             <div className="pc-album">
               {ALBUM_IMGS.slice(0, 5).map((id) => (
-                <div className="ph" key={id} style={{ backgroundImage: `url(${U(id, 200)})` }} />
+                <div className="ph" key={id} style={{ backgroundImage: `url(${id})` }} />
               ))}
               <div className="ph more">126</div>
             </div>

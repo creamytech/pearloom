@@ -18,7 +18,10 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.in' },
       { protocol: 'https', hostname: 'pub-048344d6c97340309d01946d6aad04c3.r2.dev' },
       { protocol: 'https', hostname: '*.r2.dev' },
-      { protocol: 'https', hostname: 'images.unsplash.com' },
+      // images.unsplash.com was removed on purpose (REVAMP P.4):
+      // no surface hotlinks stock anymore — the house presses its
+      // own plates (public/plates). A future hotlink should break
+      // visibly here, not ride through the optimizer.
     ],
     formats: ['image/avif', 'image/webp'],
   },

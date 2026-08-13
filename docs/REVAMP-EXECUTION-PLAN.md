@@ -870,9 +870,13 @@ beat the old wizard.
 Batched by surface; each row is small and evidence-anchored. This
 sprint closes every ledger item not consumed above.
 
-- **P.1 Dashboard batch:** budget empty-state copy (L56, with D.2's
-  fence), kebab menu clip (L57 — done in W.2 if not earlier),
-  weekend/registry/link nits remaining from L62–L64.
+- **P.1 Dashboard batch — SHIPPED 2026-08-13.** The budget
+  empty-state's retired "Nothing yet. Begin a thread." is plain
+  copy now, with the D.2 fence (`brand-retired-copy.test.ts`)
+  keeping every retirement dead (L56); the kebab clip closed in
+  W.2 (L57); the weekend/registry/link nits all closed inside
+  Sprint T — T.7 covered L63, T.8 covered L62 + L64. Nothing in
+  the batch remains.
 - **P.2 Editor batch — SHIPPED 2026-08-13:** the "Class of" chip
   fires only on graduation; every other occasion gets its year
   plainly (L67). ⌘K indexes the Guests TOOL under
@@ -909,9 +913,21 @@ sprint closes every ledger item not consumed above.
   draft thumbnails, and Decoration picker all wear the host's own
   monogram via the shared `monogramFor` (walk F5, live-verified —
   the tray now matches the card exactly, S&S sample gone).
-- **P.4 Landing batch:** "Pear's promise" anchor restored (L95, with
-  M.1's DesignFAQ decision), self-hosted imagery replacing Unsplash
-  hotlinks (walk observation — a craft house shouldn't hotlink stock).
+- **P.4 Landing batch — SHIPPED 2026-08-13.** L95 closed inside
+  M.1 (DesignFAQ deleted; the dead "#journal" anchor removed; the
+  memorial promise said plainly in the pricing footer). The
+  Unsplash sweep: all 36 stock hotlinks are gone — the house now
+  presses its own plates (`public/plates/plate-01..12.jpg`,
+  twelve painterly occasion-tinted fields authored in-house;
+  `lib/photo-plates.ts` maps slots stably) across the landing
+  (hero backdrops, day-of wall, gallery tiles, album strips,
+  studio covers), both demo worlds, and the dev harness; the
+  `images.unsplash.com` remotePattern is deleted from next.config
+  so a future hotlink breaks visibly; `no-stock-hotlinks.test.ts`
+  is the fence (zero unsplash refs in src, no remotePattern, all
+  12 plates present). Live-verified: landing renders 19 plate
+  images with zero unsplash requests; /demo renders all 12 plates
+  after scroll with none broken.
 
 ---
 

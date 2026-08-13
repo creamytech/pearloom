@@ -6,6 +6,7 @@
 import { notFound } from 'next/navigation';
 import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
 import { DEMO_MANIFEST, DEMO_NAMES } from '@/lib/demo-manifest';
+import { plateFor } from '@/lib/photo-plates';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -30,8 +31,8 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
   },
   thenAndNow: {
     thenAndNow: [
-      { id: 't1', then: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600', now: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600', caption: 'Maya · 1998 / 2026' },
-      { id: 't2', then: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600', now: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600', caption: 'The cousins, twenty summers apart' },
+      { id: 't1', then: plateFor('then-1'), now: plateFor('now-1'), caption: 'Maya · 1998 / 2026' },
+      { id: 't2', then: plateFor('then-2'), now: plateFor('now-2'), caption: 'The cousins, twenty summers apart' },
     ],
   },
   honorList: {
@@ -100,9 +101,9 @@ const ADD_SECTION_SEEDS: Record<string, Record<string, unknown>> = {
       note: 'The ceremony is on a lawn, leave the stilettos home.',
       palette: ['#7A8A5C', '#C9BFA9', '#C19A4B'],
       examples: [
-        { label: 'Linen suits', hint: 'light colors', photo: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600' },
-        { label: 'Midi dresses', photo: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600' },
-        { label: 'Block heels', hint: 'lawn-proof', photo: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600' },
+        { label: 'Linen suits', hint: 'light colors', photo: plateFor('wardrobe-1') },
+        { label: 'Midi dresses', photo: plateFor('wardrobe-2') },
+        { label: 'Block heels', hint: 'lawn-proof', photo: plateFor('wardrobe-3') },
         { label: 'No white' },
       ],
     },

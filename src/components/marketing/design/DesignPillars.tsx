@@ -13,7 +13,7 @@
 
 import { PenLine, Users, CalendarCheck, Images, Check, type LucideIcon } from 'lucide-react';
 import { PD, MONO_STYLE, DISPLAY_STYLE, Pearl, pdInkMix } from './DesignAtoms';
-import { U, ALBUM_IMGS } from './landing-data';
+import { ALBUM_IMGS } from './landing-data';
 
 // Translucent tint from a PD var() token — never string-concat an
 // alpha suffix onto a var(), color-mix instead.
@@ -336,7 +336,7 @@ function KeepsakeWidget() {
           style={{
             aspectRatio: '1',
             borderRadius: 8,
-            backgroundImage: `url(${U(id, 200)})`,
+            backgroundImage: `url(${id})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'saturate(1.05) sepia(0.04)',

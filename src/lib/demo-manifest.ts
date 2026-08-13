@@ -25,12 +25,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
+import { plateFor } from '@/lib/photo-plates';
 
 export const DEMO_NAMES: [string, string] = ['Elena', 'Theo'];
 
-/* Unsplash helper — crop + quality params on a stable photo id. */
-const u = (id: string, w = 1200) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
+/* Every demo image is one of the house's own pressed plates
+   (public/plates) — these were Unsplash hotlinks, which a proxy
+   or ad-blocker could blank (REVAMP P.4). The old photo ids stay
+   as stable keys so each slot keeps a consistent plate. */
+const u = (id: string, _w = 1200) => plateFor(id);
 
 export const DEMO_MANIFEST = {
     occasion: 'wedding',

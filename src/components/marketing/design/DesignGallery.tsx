@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { PD, MONO_STYLE, DISPLAY_STYLE } from './DesignAtoms';
-import { GALLERY_TILES, U, type OccasionKey } from './landing-data';
+import { GALLERY_TILES, type OccasionKey } from './landing-data';
 
 export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: OccasionKey) => void }) {
   return (
@@ -50,7 +50,7 @@ export function DesignGallery({ onPickOccasion }: { onPickOccasion?: (k: Occasio
               {o.nm.charAt(0)}
             </span>
             <img
-              src={U(o.img, 700)}
+              src={o.img}
               alt={o.nm}
               loading="lazy"
               decoding="async"
