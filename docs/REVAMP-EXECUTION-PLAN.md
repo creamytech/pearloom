@@ -785,9 +785,18 @@ then.
   live in both modes end-to-end. (The diff VIEW inside the update
   flow — showing which sections changed — is a refinement left for
   C.5's merged surface.)
-- **C.3 One readiness system (L65).** The 86% bar, the topbar
-  checklist, and Pear's cards merge into one explainable readiness
-  model with visible criteria; clicking it shows the list.
+- **C.3 One readiness system (L65). — SHIPPED 2026-08-13.** The
+  rail's completion bar and the topbar checklist are ONE model:
+  bridge.ts derives the % from the SAME `buildPublishChecks` the
+  checklist renders (they used to run two different 7-check lists —
+  86% beside a disagreeing checklist, neither explaining itself),
+  and the bar is a real button — clicking it opens the checklist
+  popover (`pearloom:open-publish-checklist`), whose failing rows
+  already jump to the fixing panel. Judgment call recorded: Pear's
+  cards (bastings) are SUGGESTIONS, not readiness claims — after
+  T.2 they never count toward the host's numbers, so they stay a
+  separate strip rather than merging into the checklist; the two
+  systems that CLAIMED readiness are now one.
 - **C.4 Receipts everywhere (H3 complete).** Every wizard fact shows
   its destination ("Your parking note → Details section"), every Pear
   apply shows a diff, every failure is loud. BastedIn's receipts

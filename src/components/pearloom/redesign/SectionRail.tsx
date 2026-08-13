@@ -518,7 +518,20 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           <Icon name="globe" size={10} />
           {slug}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* The readiness bar — clickable, and it derives from the
+            SAME buildPublishChecks the popover renders (C.3/L65):
+            the bare unexplained "86%" that disagreed with the
+            checklist is gone. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('pearloom:open-publish-checklist'))}
+          title="What's left before publishing — click for the list"
+          aria-label={`Site readiness ${completion} percent — open the checklist`}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+            padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
+          }}
+        >
           <div
             style={{
               flex: 1,
@@ -533,7 +546,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           <span style={{ fontSize: 10, color: 'var(--ink-muted)', fontWeight: 600 }}>
             {completion}%
           </span>
-        </div>
+        </button>
       </div>
 
       {/* Pages tabs — prototype L172-183. */}

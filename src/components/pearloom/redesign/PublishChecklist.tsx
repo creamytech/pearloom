@@ -115,6 +115,15 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
   const missing = checks.filter((c) => !c.ok);
   const ready = missing.length === 0;
 
+  /* One readiness model (C.3/L65): the rail's completion bar derives
+     its % from the SAME checks and opens THIS popover on click —
+     the number finally explains itself. */
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('pearloom:open-publish-checklist', onOpen);
+    return () => window.removeEventListener('pearloom:open-publish-checklist', onOpen);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {

@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { stripArtForStorage } from '@/lib/editor-state';
+import { buildPublishChecks } from './PublishChecklist';
 
 interface BridgeInput {
   initialManifest: StoryManifest;
@@ -115,22 +116,18 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     return a || b || 'Your site';
   }, [names]);
 
-  /* Completion %% — quick fill-state heuristic across the canonical
-     manifest fields. Mirrors what production's SiteCompletenessPanel
-     computes but condensed to a single number for the rail. */
+  /* Completion % — ONE readiness model (C.3/L65). This number is
+     now derived from the SAME buildPublishChecks the topbar
+     checklist renders, so the rail's bar and the checklist can
+     never disagree again (they used to run two different 7-check
+     lists — 86% here while the checklist said something else, and
+     neither explained itself). The rail's bar is clickable and
+     opens that checklist. */
   const completion = useMemo(() => {
-    const checks = [
-      Boolean(names[0] && names[1]),
-      Boolean((manifest as unknown as { logistics?: { date?: string } }).logistics?.date),
-      Boolean((manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue),
-      Boolean((manifest.chapters ?? []).length > 0),
-      Boolean((manifest.events ?? []).length > 0),
-      Boolean((manifest.faqs ?? []).length > 0),
-      Boolean((manifest as unknown as { themeId?: string }).themeId),
-    ];
-    const filled = checks.filter(Boolean).length;
-    return Math.round((filled / checks.length) * 100);
-  }, [manifest, names]);
+    const checks = buildPublishChecks(manifest);
+    const done = checks.filter((c) => c.ok).length;
+    return Math.round((done / checks.length) * 100);
+  }, [manifest]);
 
   /* fireSave — the actual POST, factored out so the in-flight
      guard + retry timer can re-enter without re-arming the
