@@ -122,7 +122,7 @@ footer, countdown, map, music, plus every Event-OS block.
 auto-applied.
 
 - **Wizard**: `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts) — the `'match'` recipe from `lookRecipesFor(occasion)` dresses the live pressing (and the "room wears the look" underlay on Palette/Review). Explicit kit/texture/motif/density picks come from the **fitting room** (`wizard-fitting-room.tsx`) and beat the defaults at generation. (The old three-look card picker — `wizard-looks.tsx` — was unreachable inside the dead-coded Layout step and was deleted 2026-07-01; the fitting room is its successor.)
-- **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (the in-canvas "All themes" sheet — try-on preview + Apply; every pack free since E.1).
+- **Editor**: the Design door deck (DesignDoorDeck → ThemePickerBody, one door at a time — E.3) + ThemePackPicker + EditorThemeShop (the in-canvas "All themes" sheet — try-on preview + Apply; every pack free since E.1). ThemeRail is deleted.
 - **Studio inheritance**: `studio-defaults-from-look.ts` — first Studio open inherits the site look.
 - **From photos**: `src/lib/look-engine/palette-from-photo.ts` (client-side quantize) feeds the wizard's "From your photos" palette + `/api/wizard/smart-palette`.
 
@@ -144,8 +144,8 @@ BRAND.md §7 microcopy rules apply everywhere — and §7's governing rule since
 
 | Dir | Files | What |
 |---|---|---|
-| `pearloom/redesign/` | 33 | **The editor + renderer.** ThemedSite, EditorRedesign, SectionRail, PropertyRail, ThemeRail/ThemePickerBody, EditorTopbar, EditorDrawers, MobileSheet, InlineEdit, MotifLayer, PearAssist/FloatingPearBubble, PublishChecklist, UndoToast, FittingRoom, FirstPressing, bridge/hydrate/taste/layouts/bastings, `section-variants/` (per-section variant components: nav, story, schedule, details, travel, registry, gallery, rsvp, faq + `blocks/`). |
-| `pearloom/editor/` | 55 | Panels (24: Hero, Story, Schedule, Details, Travel, Registry, Gallery, Rsvp, Faq, Music, Map, Countdown, Share, Privacy, DayOf, Guests, SaveTheDate, DecorLibrary, ThemePackPicker, Bachelor/Memorial/Toasts occasion panels, SiteModeSection…), `_form-atoms` / `_section-atoms` / `_suggestions`, CommandPalette (⌘K), EditorThemeShop, DesignAdvisor, PhotoPicker, `pear/` (PatchProposalCard, PearActionCard, patch.ts), atoms.tsx (chrome tokens). |
+| `pearloom/redesign/` | ~35 | **The editor + renderer.** ThemedSite, EditorRedesign, SectionRail, PropertyRail, DesignDoorDeck/ThemePickerBody (the nine-door Design surface, E.3), EditorTopbar, EditorDrawers, MobileSheet, InlineEdit, MotifLayer, PearAssist (helpers only), PublishChecklist, UndoToast, FittingRoom, FirstPressing, bridge/hydrate/taste/layouts/bastings, the design-doors + panel-registry fences, `section-variants/` (per-section variant components: nav, story, schedule, details, travel, registry, gallery, rsvp, faq + `blocks/`). |
+| `pearloom/editor/` | ~52 | Panels (21 `*Panel.tsx` in `panels/` after E.2 deleted Nav/Footer/Guestbook: Hero, Story, Schedule, Details, Travel, Registry, Gallery, Rsvp, Faq, Music, Map, Countdown, Share, Privacy, DayOf, Guests, SaveTheDate, DecorLibrary, Bachelor/Memorial/Toasts) + ThemePackPicker/SiteModeSection/BrandedQR helpers + 17 block panels in `panels/blocks/` (the ONE home for their sections), `_form-atoms` / `_section-atoms` / `_suggestions`, CommandPalette (⌘K), EditorThemeShop, PhotoPicker, atoms.tsx (chrome tokens). The full dispatch registry lives in §7. |
 | `pearloom/pages/` | 19 | Route-level clients: WizardV8 (+ wizard-looks, WizardLookPreviews), WelcomeHome, SigninV8, BuilderV8, DayOfV8, SpeechComposerPage, MemoryBookPage, SeatingArrangerPage, QrPosterPage, PassportCardsPage, KeepsakesPage, WeekendBuilderPage, VendorsPage, LibraryPage, BridgePage, EventIndexPage, LegalPage. |
 | `pearloom/studio/` | 16 | Stationery studio: StudioApp, StudioCard (+ BrandedQR), StudioRails, StudioSendOverlay, StudioProofSheet, StudioPrintPreview, StudioMailFlow, useStudioState, studio-defaults-from-look. |
 | `pearloom/dash/` | 16 | DashShell (SiteCrest switcher), PLChrome, DashSubNav, DashCommandPalette, NotificationBell, UserSettingsModal, BroadcastComposer, TwoTapThanks, ThankYouGenerator, ShellPersistentLayout. |
@@ -163,30 +163,78 @@ BRAND.md §7 microcopy rules apply everywhere — and §7's governing rule since
 
 ## 7 · Editor architecture
 
+<!-- panel-registry-count: 42 -->
+
 ```
 EditorRedesign
-├── EditorTopbar          (save state, publish, device, undo/redo)
-├── SectionRail           (left; tabs: Sections | Pages — the Theme
-│                          signpost tab was cut 2026-07-08; the look
-│                          lives in PropertyRail's Design tab, and
-│                          Pear's bastings render inline via pearSlot)
+├── EditorTopbar          (save state, publish, device, undo/redo;
+│                          ONE Design button — the Decor button
+│                          collapsed into it, E.3)
+├── SectionRail           (left; tabs: Sections | Pages. Section
+│                          rows are real <button>s (E.4); reorder =
+│                          rail drag + Alt+↑/↓ + mobile arrows)
 │     Pages tab lists real pages in magazine mode → canvasPage filter
-├── canvas: ThemedSite    (editable; InlineEdit text, jump/scroll sync)
-├── PropertyRail          (right; tabs: Content | Design. Content =
-│                          per-section panel dispatch via SECTIONS map,
-│                          live section descriptions — no fake counts.
-│                          Design = ThemePickerBody, the whole site
-│                          look, reordered 2026-07-08: sticky jump
-│                          chips → Pear picks → Themes → Colors →
-│                          Fonts → Paper (texture + grain) → Layout &
-│                          card styles (6 + Show-all) → background →
-│                          ✦ Motion (folded in; its top-level tab is
-│                          gone) → Menu/Footer → Fine-tune → CTAs)
-├── EditorDrawers / MobileSheet (mobile: props sheet)
-├── CommandPalette (⌘K)   + EditorThemeShop (bottom sheet)
-└── PearAssist / FloatingPearBubble / DesignAdvisor (Pear copilot;
-    pearloom:patch envelopes → PatchProposalCard / PearActionCard)
+├── canvas: ThemedSite    (editable; InlineEdit text, jump/scroll
+│                          sync; the canvas Layout chip is THE home
+│                          for a section's layout variant)
+├── PropertyRail          (right; tabs: Content | Design.
+│                          Content = per-section panel dispatch,
+│                          42 cases — the registry below.
+│                          Design = DesignDoorDeck on EVERY
+│                          viewport (E.3): nine doors — Theme ·
+│                          Colors · Fonts · Paper · Cards & motion ·
+│                          Background · Menu & footer · Decor ·
+│                          Fine-tune — each opening ONE
+│                          ThemePickerBody door. ≤25 controls at
+│                          first paint; fenced by design-doors.test)
+├── EditorDrawers / MobileSheet (decor drawer for ⌘K; phone sheets)
+├── CommandPalette (⌘K)   + EditorThemeShop (the free All-themes
+│                          gallery sheet, E.1)
+└── PearAssist helpers    (pearErrorMessage; inline Pear suggestions
+    render inside PropertyRail — there is NO DesignAdvisor,
+    FloatingPearBubble, PatchProposalCard, or editor/pear/ tree;
+    those were phantom entries in earlier revisions of this doc)
 ```
+
+**The panel registry (the doc IS the registry — EDITOR-CALM-PLAN
+E.5).** `renderSectionEditor` in `PropertyRail.tsx` dispatches
+exactly **42** case labels; `panel-registry.test.ts` pins this list
+to the marker above, so the doc cannot drift:
+
+- **Canvas sections (9)**: hero · story · details · schedule ·
+  travel · registry · gallery · rsvp · faq — panels in
+  `editor/panels/`.
+- **Optional sections (3)**: countdown · map · music.
+- **Event-OS blocks (17)** — `editor/panels/blocks/`, THE one home
+  for their section's data (E.2): itinerary · costSplitter ·
+  activityVote · toastSignup · adviceWall · program · livestream ·
+  obituary · packingList · honorList · tributeWall · menu ·
+  dressCode · nameVote · rooms · thenAndNow · groupChat.
+- **Tool panels (9)**: guests · savetheDate · share · cohost
+  (SharePanel focus="cohost"; rail-delisted, deep-link only) ·
+  privacy · dayof · toasts · memorial · bachelor (Memorial +
+  Weekend planner are LAUNCHPADS — glance state + doors into the
+  block panels above, never duplicate editors).
+- **Chrome doors (3 labels → 1 component)**: nav · navMobile ·
+  footer → `DesignHomeDoorCard`, which opens the Design tab's
+  Menu & footer door directly (`pearloom:open-design-door`).
+- **Guestbook (1)**: → SharePanel focus="guestbook".
+
+**The one-home law (E.2, 2026-08-13).** Every editor decision has
+exactly ONE home. The deleted duplicate homes — NavPanel ·
+FooterPanel · GuestbookPanel · the rail layout row ·
+SectionVisibilityFooter (×28) · ToolPointerCard (×9) ·
+EventTypeChip · the cohost rail row · the 9 eyebrow fields · the
+options-popover Move rows — are gone ON PURPOSE; resurrecting one
+is a failed review, same pattern as the §15 ledger. The rail's
+eye + options popover own hide/show; the canvas chip owns layout;
+inline-edit owns eyebrows; SharePanel owns guestbook + co-hosts.
+
+**Depth law (E.4).** Content panels are ≤2 levels deep: no
+`<details>` anywhere in `editor/` or `redesign/` (grep-verified);
+every group is a top-level child of the panel shell, which on
+phones makes it one deck card (PanelDeckDots counts those
+children). Design is ≤2 by construction: deck → door.
 
 - **Save**: `bridge.ts` — 2s debounce → `POST /api/sites`; `beforeunload` flushes via sendBeacon; `stripArtForStorage` keeps payloads under request limits. SaveState is binary (`saved | unsaved`).
 - **Deep links**: `/editor/[slug]?jump=<section>` validated against `JUMPABLE_SECTIONS`; on phones the props sheet opens automatically.

@@ -400,4 +400,43 @@ eslint / vitest / build / the editor e2e + a live walk).
   build passes · a 10-assertion live walk on the production stack
   (flat hero/rsvp/travel, real rail buttons with no nested
   interactives, keyboard focus, the phone tool-panel header).
-- E.5 —
+- E.5 — **SHIPPED 2026-08-13** (the registry & the fences).
+  CLAUDE-DESIGN §7 rewritten from the new truth: the door-deck
+  architecture tree, the full 42-case panel registry (canvas 9 ·
+  optional 3 · blocks 17 · tools 9 · chrome-door labels 3 ·
+  guestbook 1) with a machine-readable
+  `<!-- panel-registry-count: 42 -->` marker, the one-home law
+  with every deleted duplicate named (resurrection = a failed
+  review), and the depth law; the phantom components
+  (DesignAdvisor / FloatingPearBubble / PatchProposalCard /
+  `editor/pear/`) removed from §6/§7 and called out as phantoms;
+  §4's Editor row and §6's redesign//editor/ counts corrected
+  (21 `*Panel.tsx` + 17 block panels). Fences:
+  `free-design.test.ts` (E.1) · `design-doors.test.ts` (the door
+  pin — 9 doors, union↔deck 1:1, every door has a body, retired
+  surfaces stay retired; landed with the E.4 commit) ·
+  `panel-registry.test.ts` (dispatch case count == the §7 marker,
+  every case named in the doc, deleted panels stay unimported).
+  The editor e2e smoke re-recorded against the door model
+  (editor-surface.spec.ts: nine doors visible, no topbar Decor
+  button, Cards & motion drills to one unified dial with the
+  motion toggle, back chevron returns to the deck) — its
+  assertions are a 1:1 transcription of the E.3 walk verified
+  live on the production stack; the spec's /dev/editor route is
+  dev-only and the local dev server's hydration issue (E.3 stamp)
+  blocks a local run today, as it does the whole suite.
+  Validated: tsc/eslint clean · vitest src/components/pearloom
+  210/210 (207 + the 3 registry-fence tests) · both new fences
+  green against the live tree.
+
+**Sprint E exit state (2026-08-13):** all five blocks SHIPPED the
+same day the plan was authored. Design is free end-to-end (money
+buys capacity, never the look); every editor decision has one
+home; the Design tab is nine doors with 12 controls at first
+paint (was 113 across 5,328px); content panels are ≤2 levels deep
+with zero `<details>`; the doc is the registry and four fences
+hold the shape. Full suite 1852/1853 + 7 new fence tests (the one
+failure is the pre-existing weekend-route B.2 baseline);
+tsc/eslint/build clean; live editor walks on the production stack
+for E.2 (11 assertions), E.3 (13), E.4 (10). Capacity paywalls
+(sites/guests/photos/Pear) untouched throughout.

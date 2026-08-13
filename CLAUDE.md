@@ -3,40 +3,41 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## Active focus
+## The calm editor shipped — 2026-08-13 (Sprint E complete)
 
-**Sprint E — THE CALM EDITOR** (`docs/EDITOR-CALM-PLAN.md`).
-Owner brief: simplify the editor and panels; no paywalls for
-themes and design — "do it all."
+**`docs/EDITOR-CALM-PLAN.md` is fully executed** (E.1–E.5 stamped
+in §5 with the exit state). Design is FREE end-to-end — every
+theme, pack, wallpaper, decor item, and motion finish belongs to
+every account; money buys capacity (sites/guests/photos/Pear),
+never the look (`free-design.test.ts` is the fence). Every editor
+decision has ONE home (the E.2 cull: NavPanel/FooterPanel/
+GuestbookPanel/RailLayoutRow/SectionVisibilityFooter×28/
+ToolPointerCard×9/EventTypeChip/eyebrows×9 all deleted;
+Bachelor/Memorial are launchpads). The Design tab is a deck of
+NINE doors on every viewport — 12 controls at first paint, was
+113 across 5,328px — with Cards & motion as ONE kitId dial and
+Decor as an inline catalog (`design-doors.test.ts` pins it).
+Content panels are ≤2 levels deep: zero `<details>` in editor/ +
+redesign/; SectionRail rows are real buttons; tool panels keep
+their phone header. CLAUDE-DESIGN §7 IS the panel registry (42
+dispatch cases, machine-readable marker, `panel-registry.test.ts`
+pins doc↔code). New editor laws for future sessions: one home per
+decision (resurrecting a deleted duplicate = failed review) ·
+doors, not warehouses (new design controls go INSIDE an existing
+door, or make the case for a tenth in the plan doc + fence) ·
+depth ≤2 (no `<details>` in panels — promote or cut).
 
-Goal: design is free (money buys capacity, never the look); one
-home per decision; doors, not warehouses; depth ≤ 2; the doc is
-the registry.
+Known environment note (E.3 stamp): the local DEV server stopped
+hydrating client JS on every route (React loads, zero fibers, no
+errors; prod hydrates fine). Live editor walks now run against
+`npm run build` + `PEARLOOM_E2E=1 NEXTAUTH_URL=http://localhost:3002
+npx next start -p 3002`, auth minted via `next-auth/jwt` encode
+with NEXTAUTH_SECRET from .env.local.
 
-Open threads: E.1 FREE DESIGN (tier system collapsed at
-packs.ts:351; both publish 402 gates + PublishModal wall deleted;
-EditorThemeShop try-on machinery → plain Apply; Studio shelf
-flat; the $19 Atelier stub dies; store → free Theme Gallery, cart
-and checkout retired; copy/docs/fences flip in the SAME
-change-set; free-design.test.ts is the new fence) · E.2 ONE HOME
-PER DECISION (NavPanel/FooterPanel/RailLayoutRow/GuestbookPanel/
-eyebrow fields/SectionVisibilityFooter×28/EventTypeChip culled;
-sections own their data — Bachelor/Memorial slim to launchpads;
-reorder ×4→×2) · E.3 THE CALM DESIGN TAB (desktop adopts the
-door model; ≤25 controls at first paint; Cards & motion door
-fixes the kitId collision via manifest.motionKit + read-time
-fallback; Decor becomes a full catalog surface) · E.4 CONTENT
-DEPTH ≤2 (More… disclosures promoted or died; no details inside
-phone deck cards; tool panels get their phone header back; rail
-rows become real buttons) · E.5 registry + fences (CLAUDE-DESIGN
-§7 rewritten; panel-count fence; door-count pin).
-
-Counts as done: §5 of the plan stamped per block; every block
-green on tsc/eslint/vitest/build + a live editor walk; capacity
-paywalls untouched (sites/guests/photos/Pear).
-
-Skip: shared-element morphs; any change to plan-gate capacity
-logic; the C.5 rollout.
+**To start the next sprint:** rename this heading back to the
+literal sprint-focus heading that the Stop hook greps for, and
+fill in goal / direction / open threads / counts-as-done /
+what-to-skip in the same shape as before.
 
 ---
 

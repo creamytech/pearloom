@@ -73,6 +73,25 @@ test.describe('Editor surface integration', () => {
     ).toBeVisible({ timeout: 25_000 });
   });
 
+  test('the Design tab is a nine-door deck; a door drills in and back (E.3/E.5)', async ({ page }) => {
+    // The topbar's ONE Design button opens the Design tab, which is
+    // the door deck on every viewport — never a scroll ladder.
+    await page.getByRole('button', { name: /^Design$/ }).first().click();
+    for (const door of ['Theme', 'Colors', 'Fonts', 'Paper', 'Cards & motion', 'Background', 'Menu & footer', 'Decor', 'Fine-tune']) {
+      await expect(page.getByText(door, { exact: false }).first()).toBeVisible({ timeout: 10_000 });
+    }
+    // No topbar Decor button — it collapsed into Design (E.3).
+    await expect(page.getByRole('button', { name: /^Decor$/ })).toHaveCount(0);
+    // Drill into Cards & motion: ONE unified dial — card styles and
+    // living finishes together, with the motion toggle.
+    await page.getByRole('button', { name: /Cards & motion/ }).first().click();
+    await expect(page.getByText(/Living finishes/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /Turn motion (on|off)/ }).first()).toBeVisible();
+    // The back chevron returns to the deck.
+    await page.getByRole('button', { name: /All design/ }).first().click();
+    await expect(page.getByText(/One pick dresses the whole site/).first()).toBeVisible({ timeout: 10_000 });
+  });
+
   test('⌘K opens the command palette; Esc closes it', async ({ page }) => {
     // No palette mounted at rest.
     await expect(page.getByRole('dialog', { name: /Command palette/i })).toHaveCount(0);
