@@ -886,13 +886,29 @@ sprint closes every ledger item not consumed above.
   says "Pear is resting right now — your hosts can answer anything
   you need"; the two host drafters say "Pear can't draft right now
   — you can write this yourself, or try again later" (L74).
-- **P.3 Wizard batch:** RSVP-deadline suggestion copy matches the
-  clamped date (L76), seeded-sections vs "unusual for this occasion"
-  agreement (L78), occasion search catch-all → "Other event" (L79),
-  memorial Opening panel honoree-shaped fields (L80), plan-limit
-  surfaced at wizard ENTRY not after the press (L81), vibe chips
-  occasion-ordered (L82), Studio mark tray wears the couple's own
-  monogram (walk F5).
+- **P.3 Wizard batch — SHIPPED 2026-08-13:** the RSVP-deadline
+  suggestion says "(as soon as you can — the day is close)" when the
+  five-weeks-out ideal is clamped by a near date (L76); wizard FAQ
+  seeding is gated on the occasion's own registry blocks so a seeded
+  section can't contradict "unusual for this occasion" (L78); a
+  no-match occasion search offers "Give it a home anyway — start a
+  Story site" instead of a dead end (L79, live-verified); the
+  Opening panel's solo default follows the SAME chain the canvas
+  uses (explicit subject.kind → isSoloOccasion), so a memorial
+  presents one honoree field with "Single honoree" ON, never two
+  fields joined by '&' (L80, live-verified in the editor);
+  /api/store/entitlements now surfaces the press gate's own sites
+  headroom (count/max/atLimit, grief-exempt sites excluded) and the
+  wizard says "You're using all N sites on your plan…" with a
+  /upgrade?from=sites door AT ENTRY, role=status, memorials named
+  as always allowed (L81, live-verified at the limit); celebratory
+  vibe chips are occasion-ordered — a non-couple occasion (birthday)
+  leads Joyful/Playful with Romantic demoted to the tail, while
+  couple-shaped celebratory occasions (engagement) still lead
+  Romantic (L82, both live-verified); and the Studio's mark tray,
+  draft thumbnails, and Decoration picker all wear the host's own
+  monogram via the shared `monogramFor` (walk F5, live-verified —
+  the tray now matches the card exactly, S&S sample gone).
 - **P.4 Landing batch:** "Pear's promise" anchor restored (L95, with
   M.1's DesignFAQ decision), self-hosted imagery replacing Unsplash
   hotlinks (walk observation — a craft house shouldn't hotlink stock).

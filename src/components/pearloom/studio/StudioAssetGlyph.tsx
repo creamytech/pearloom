@@ -3,13 +3,18 @@
 // ─────────────────────────────────────────────────────────────
 // AssetGlyph — small SVG renderer for a single AssetEntry. Used
 // by the asset palette in the left rail. AI-generated assets
-// render via <img> when `url` is set.
+// render via <img> when `url` is set. `monogram` is the host's
+// own mark ("M&D") — the seal + monogram pieces wear it instead
+// of the S&S sample whenever it's known (walk F5).
 // ─────────────────────────────────────────────────────────────
 
 import type { AssetEntry } from './studio-constants';
 import { Stamp } from '../motifs';
 
-export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: number }) {
+/** The catalog's sample letters — replaceable by the real mark. */
+const SAMPLE_LETTERS = 'S&S';
+
+export function AssetGlyph({ asset, size = 32, monogram }: { asset: AssetEntry; size?: number; monogram?: string }) {
   if (asset.url) {
     return <img src={asset.url} alt="" style={{ width: size, height: size, objectFit: 'contain' }} />;
   }
@@ -31,7 +36,7 @@ export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: num
       <svg viewBox="0 0 40 40" width={size} height={size}>
         <circle cx="20" cy="20" r="14" fill={asset.color ?? '#C97A6E'} />
         <circle cx="20" cy="20" r="14" fill="url(#waxGrad)" opacity="0.4" />
-        <text x="20" y="25" textAnchor="middle" fontSize="9" fontFamily="Fraunces" fill="rgba(255,255,255,0.6)" fontStyle="italic" fontWeight="700">S&amp;S</text>
+        <text x="20" y="25" textAnchor="middle" fontSize="9" fontFamily="Fraunces" fill="rgba(255,255,255,0.6)" fontStyle="italic" fontWeight="700">{monogram ?? SAMPLE_LETTERS}</text>
         <defs><radialGradient id="waxGrad"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#000" /></radialGradient></defs>
       </svg>
     );
@@ -66,9 +71,15 @@ export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: num
     );
   }
   if (asset.kind === 'mono') {
+    /* Persisted entries carry the catalog's sample letters — the
+       host's real monogram replaces the sample, but a deliberate
+       non-sample value (none exists today) would win. */
+    const letters = monogram && (!asset.letters || asset.letters === SAMPLE_LETTERS)
+      ? monogram
+      : (asset.letters ?? monogram ?? SAMPLE_LETTERS);
     return (
       <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: size * 0.7, color: 'var(--ink)', fontWeight: 600 }}>
-        {asset.letters ?? 'S&S'}
+        {letters}
       </div>
     );
   }

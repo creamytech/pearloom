@@ -224,6 +224,7 @@ export function CardFront(props: CardProps) {
         <PlacedAssets
           placed={props.placed}
           assets={props.assets}
+          monogram={monogram}
           onMove={props.onMoveAsset}
           onRemove={props.onRemoveAsset}
         />

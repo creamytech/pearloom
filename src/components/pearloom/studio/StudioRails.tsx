@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
-  PAPER_STOCKS, EDGE_TREATMENTS, MARK_INKS,
+  PAPER_STOCKS, EDGE_TREATMENTS, MARK_INKS, monogramFor,
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
 } from './studio-constants';
 import type { StudioState, SetStudioField } from './useStudioState';
@@ -437,6 +437,10 @@ function formatRelative(ts: number): string {
 
 export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, onOpenProofSheet, sendStats, aiBusy, onPlaceAsset }: RailProps) {
   const drafts = content.drafts;
+  /* The tray's seal + monogram pieces wear the host's own mark —
+     the same "M&D" the card presses — never a sample couple's
+     initials (walk F5). */
+  const trayMonogram = monogramFor(nameA, nameB);
   return (
     <aside aria-label="Pear's drafts" style={{
       gridArea: 'left',
@@ -546,7 +550,7 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
         )}
       </div>
 
-      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} aiBusy={aiBusy} onPlaceAsset={onPlaceAsset} />
+      <AssetPalette state={state} setField={setField} monogram={trayMonogram} onAskPearForAsset={onAskPearForAsset} aiBusy={aiBusy} onPlaceAsset={onPlaceAsset} />
 
       <div style={{
         marginTop: 'auto', padding: 12,
@@ -615,7 +619,7 @@ function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; activ
           )}
           {draft.motif === 'monogram' && (
             <div style={{ position: 'absolute', top: 6, left: 6, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: palette.accent, fontWeight: 600 }}>
-              S&amp;S
+              {monogramFor(nameA, nameB)}
             </div>
           )}
         </>
@@ -624,7 +628,7 @@ function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; activ
   );
 }
 
-function AssetPalette({ state, setField, onAskPearForAsset, aiBusy, onPlaceAsset }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>; aiBusy?: boolean; onPlaceAsset?: (assetId: string) => void }) {
+function AssetPalette({ state, setField, monogram, onAskPearForAsset, aiBusy, onPlaceAsset }: { state: StudioState; setField: SetStudioField; monogram?: string; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>; aiBusy?: boolean; onPlaceAsset?: (assetId: string) => void }) {
   // Tracks which asset kind the host most recently asked Pear to
   // paint. Combined with aiBusy at render time to flip the matching
   // pill to "Painting…". When aiBusy goes false, the kind is stale
@@ -689,7 +693,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy, onPlaceAsset
                 title={`Use ${a.kind} as the card's mark`}
                 aria-label={`Use ${a.kind} asset`}
               >
-                <AssetGlyph asset={a} />
+                <AssetGlyph asset={a} monogram={monogram} />
               </button>
               {/* Press onto the card (SV.7) — adds this piece at the
                   next free snap anchor; drag it on the card after. */}
@@ -794,7 +798,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       </div>
 
       <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} siteSwatch={siteSwatch} recommendedLayout={recommendedLayout} />}
+        {tab === 'design' && <DesignTab state={state} setField={setField} monogram={monogramFor(nameA, nameB)} decorAssets={decorAssets} siteSwatch={siteSwatch} recommendedLayout={recommendedLayout} />}
         {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
         {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} onSuggestPair={onSuggestPair} />}
       </div>
@@ -900,7 +904,7 @@ function PackShelf({ state, setField }: { state: StudioState; setField: SetStudi
   );
 }
 
-function DesignTab({ state, setField, decorAssets, siteSwatch, recommendedLayout }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string }; recommendedLayout?: string }) {
+function DesignTab({ state, setField, monogram, decorAssets, siteSwatch, recommendedLayout }: { state: StudioState; setField: SetStudioField; monogram?: string; decorAssets?: Array<{ id: string; url: string; label: string }>; siteSwatch?: { paper: string; ink: string; accent: string; accent2: string }; recommendedLayout?: string }) {
   return (
     <>
       <RailGroup label="Colors" sub={packFromLookId(state.palette)?.name ?? PALETTES.find(p => p.id === state.palette)?.sub}>
@@ -1446,7 +1450,7 @@ function DesignTab({ state, setField, decorAssets, siteSwatch, recommendedLayout
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                <MiniMotif id={m.id} on={on} />
+                <MiniMotif id={m.id} on={on} monogram={monogram} />
                 <div style={{ fontSize: 9, fontWeight: 600 }}>{m.name}</div>
               </button>
             );
@@ -1486,7 +1490,7 @@ function DesignTab({ state, setField, decorAssets, siteSwatch, recommendedLayout
   );
 }
 
-function MiniMotif({ id, on }: { id: string; on: boolean }) {
+function MiniMotif({ id, on, monogram }: { id: string; on: boolean; monogram?: string }) {
   const c = on ? 'var(--cream)' : 'var(--ink)';
   if (id === 'stamp') return <Stamp size={20} tone="lavender" text="" icon="heart" rotation={-6} />;
   if (id === 'postmark') return (
@@ -1500,7 +1504,7 @@ function MiniMotif({ id, on }: { id: string; on: boolean }) {
     <svg viewBox="0 0 24 24" width={20} height={20}>
       <circle cx="12" cy="12" r="10" fill="none" stroke={c} strokeWidth="1.4" />
       <circle cx="12" cy="12" r="7" fill="none" stroke={c} strokeWidth="0.6" />
-      <text x="12" y="15.5" textAnchor="middle" fontSize="9" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="600" fill={c}>S</text>
+      <text x="12" y="15.5" textAnchor="middle" fontSize="9" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="600" fill={c}>{monogram?.[0] ?? 'S'}</text>
     </svg>
   );
   if (id === 'leaves') return (
@@ -1511,7 +1515,7 @@ function MiniMotif({ id, on }: { id: string; on: boolean }) {
     </svg>
   );
   if (id === 'tape') return <div style={{ width: 22, height: 8, background: 'var(--peach)', opacity: 0.7, transform: 'rotate(-6deg)' }} />;
-  if (id === 'monogram') return <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: c, fontWeight: 700, lineHeight: 1 }}>S&amp;S</div>;
+  if (id === 'monogram') return <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: c, fontWeight: 700, lineHeight: 1 }}>{monogram ?? 'S&S'}</div>;
   if (id === 'wax') return <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#C97A6E' }} />;
   return <div style={{ width: 18, height: 18, border: '1.5px solid ' + c }} />;
 }

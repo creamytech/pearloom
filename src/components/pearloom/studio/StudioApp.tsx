@@ -26,7 +26,7 @@ import type { StoryManifest } from '@/types';
 import { Pear, PostIt, Icon } from '../motifs';
 import {
   PALETTES, FONT_PAIRS, PAPER_STOCKS, type StationeryType,
-  buildTypeContent, type AssetEntry, type StudioDraft,
+  buildTypeContent, monogramFor, type AssetEntry, type StudioDraft,
 } from './studio-constants';
 import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
@@ -78,12 +78,7 @@ export function StudioApp({ siteSlug, manifest, names, initialThanks }: Props) {
   }, [names, solo]);
   /** "Emma & James" for pairs, "Eleanor" for solo honorees. */
   const displayNames = nameB ? `${nameA} & ${nameB}` : nameA;
-  const monogram = useMemo(() => {
-    const first = (nameA[0] ?? '').toUpperCase();
-    const second = (nameB[0] ?? '').toUpperCase();
-    if (!second) return first || '·';
-    return `${first || '·'}&${second}`;
-  }, [nameA, nameB]);
+  const monogram = useMemo(() => monogramFor(nameA, nameB), [nameA, nameB]);
 
   const dateShort = useMemo(() => {
     const d = parseLocalDate(manifest.logistics?.date);

@@ -34,9 +34,11 @@ export function nearestAnchor(xFrac: number, yFrac: number): number {
  *  (where marks read best), center last. */
 export const ANCHOR_ORDER = [2, 0, 8, 6, 4, 1, 3, 5, 7] as const;
 
-export function PlacedAssets({ placed, assets, onMove, onRemove }: {
+export function PlacedAssets({ placed, assets, monogram, onMove, onRemove }: {
   placed: PlacedAsset[];
   assets: AssetEntry[];
+  /** The host's own mark ("M&D") — seal/monogram pieces wear it. */
+  monogram?: string;
   /** Present on the live canvas only — drag re-snaps. */
   onMove?: (id: string, anchor: number) => void;
   onRemove?: (id: string) => void;
@@ -101,7 +103,7 @@ export function PlacedAssets({ placed, assets, onMove, onRemove }: {
             } : undefined}
             onPointerCancel={onMove ? () => setDrag(null) : undefined}
           >
-            <AssetGlyph asset={asset} size={52} />
+            <AssetGlyph asset={asset} size={52} monogram={monogram} />
             {onRemove && !dragging && (
               <button
                 type="button"

@@ -301,10 +301,16 @@ const VOICE_VIBES: Record<EventVoice, string[]> = {
 };
 
 /** Vibe chips offered for an occasion, in voice order. Unknown /
- *  unset occasions fall back to the celebratory (default) set. */
+ *  unset occasions fall back to the celebratory (default) set.
+ *  'celebratory' spans weddings AND birthdays — on occasions that
+ *  aren't couple-shaped, 'Romantic' moves to the tail so a kid's
+ *  birthday leads with Joyful/Playful, not a candlelit frame. */
 function vibesForOccasion(occasion: string) {
   const voice = getEventType(occasion)?.voice ?? 'celebratory';
-  const ids = VOICE_VIBES[voice] ?? VOICE_VIBES.celebratory;
+  let ids = VOICE_VIBES[voice] ?? VOICE_VIBES.celebratory;
+  if (voice === 'celebratory' && nameModeFor(occasion).mode !== 'couple') {
+    ids = [...ids.filter((id) => id !== 'romantic'), 'romantic'];
+  }
   return ids
     .map((id) => VIBES.find((v) => v.id === id))
     .filter((v): v is (typeof VIBES)[number] => Boolean(v));
@@ -1390,24 +1396,47 @@ function OccasionPicker({
                 borderRadius: 12,
               }}
             >
-              Nothing matches "{query}". Try a different word, or{' '}
+              <div style={{ marginBottom: 10 }}>
+                Nothing matches "{query}". Try a different word, or{' '}
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--pl-olive, #5C6B3F)',
+                    fontFamily: 'inherit',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  clear search
+                </button>
+                .
+              </div>
+              {/* The catch-all hand-off (P.3/L79): an event we don't
+                  carry by name still deserves a home — the Story site
+                  exists for exactly this, but the dead-end never
+                  offered it. */}
               <button
                 type="button"
-                onClick={() => setQuery('')}
+                onClick={() => { setQuery(''); onPick('story'); }}
                 style={{
+                  padding: '9px 16px',
+                  borderRadius: 999,
+                  border: '1px solid var(--pl-olive, #5C6B3F)',
                   background: 'transparent',
-                  border: 'none',
                   color: 'var(--pl-olive, #5C6B3F)',
                   fontFamily: 'inherit',
-                  fontSize: 13,
-                  fontWeight: 600,
+                  fontSize: 12.5,
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  padding: 0,
                 }}
               >
-                clear search
+                Give it a home anyway — start a Story site
               </button>
-              .
             </div>
           ) : (
             filtered.map(tile)
@@ -2657,7 +2686,27 @@ export function WizardV8() {
       })
       .catch(() => { /* prefill is a nicety */ });
     return () => { cancelled = true; };
-     
+
+  }, []);
+  /* Sites headroom (L81) — the create gate lives at press time, but
+     a host at their plan's limit deserves to hear it at step 1, not
+     after nine steps. /api/store/entitlements surfaces the SAME
+     count the press gate runs. Null = unknown (signed out, degraded,
+     fetch failed) = say nothing; the press-time 402 stays the
+     backstop. Memorial/funeral presses are never gated (the grief
+     exemption), so the notice never blocks and says so. */
+  const [sitesHeadroom, setSitesHeadroom] = useState<{ count: number; max: number | null; atLimit: boolean } | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    fetch('/api/store/entitlements', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { sites?: { count: number; max: number | null; atLimit: boolean } | null } | null) => {
+        if (cancelled || !d?.sites) return;
+        setSitesHeadroom(d.sites);
+      })
+      .catch(() => { /* the notice is a courtesy — the press gate is the enforcer */ });
+    return () => { cancelled = true; };
   }, []);
   const [busy, setBusy] = useState(false);
   /* The phone preview peek (S6) — the live preview in a bottom
@@ -3996,6 +4045,46 @@ export function WizardV8() {
                 </span>
               </div>
 
+              {step === 'Occasion' && sitesHeadroom?.atLimit && (
+                /* L81 — the plan-limit wall used to appear only after
+                   all nine steps, at the press. Say it here, at entry,
+                   in plain words with the door to more room. role=
+                   status, not alert: nothing is broken, and the host
+                   may be here for a memorial (never limited). */
+                <div
+                  role="status"
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'baseline',
+                    gap: 10,
+                    margin: '0 0 18px',
+                    padding: '10px 14px',
+                    border: '1px solid var(--pl-gold, #C19A4B)',
+                    borderRadius: 10,
+                    background: 'var(--cream-2, #FBF7EE)',
+                    fontSize: 13.5,
+                    lineHeight: 1.5,
+                    color: 'var(--ink-soft)',
+                  }}
+                >
+                  <span>
+                    {`You're using all ${sitesHeadroom.max} sites on your plan, so a new one can't be created yet. Memorial sites are always allowed.`}
+                  </span>
+                  <a
+                    href="/upgrade?from=sites"
+                    style={{
+                      color: 'var(--pl-olive, #5C6B3F)',
+                      fontWeight: 600,
+                      textDecoration: 'underline',
+                      textUnderlineOffset: 3,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    See plans →
+                  </a>
+                </div>
+              )}
               {step === 'Occasion' && (
                 <OccasionPicker
                   selected={st.occasion}
@@ -4379,6 +4468,15 @@ export function WizardV8() {
                 });
                 const dresses = dressCodeSuggestions(st.occasion).options;
                 const suggestedDl = suggestRsvpDeadline(st.eventDate || undefined);
+                /* The label tells the truth about the clamp (P.3/L76):
+                   suggestRsvpDeadline clamps to tomorrow when the day
+                   is near, but the copy said "five weeks out" over a
+                   2-days-out date. Say which one it actually is. */
+                const dlIsClamped = (() => {
+                  if (!suggestedDl || !st.eventDate) return false;
+                  const ideal = Date.parse(st.eventDate) - 35 * 24 * 60 * 60 * 1000;
+                  return Number.isFinite(ideal) && Date.parse(suggestedDl) > ideal + 24 * 60 * 60 * 1000;
+                })();
                 return (
                   <>
                     <StepEyebrow step="Day" hiddenSteps={hiddenSteps} />
@@ -4461,7 +4559,9 @@ export function WizardV8() {
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span>
                           RSVP deadline: <b style={{ color: 'var(--ink)' }}>{st.rsvpDeadline ?? suggestedDl}</b>
-                          {!st.rsvpDeadline && ' (five weeks out, our suggestion)'}
+                          {!st.rsvpDeadline && (dlIsClamped
+                            ? ' (as soon as you can — the day is close)'
+                            : ' (five weeks out, our suggestion)')}
                         </span>
                         {/* Brand date picker — the native input was
                             the one OS-chrome control in the flow. */}

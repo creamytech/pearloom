@@ -133,6 +133,17 @@ export interface AssetEntry {
   url?: string;
 }
 
+/** "E&J" from the couple's names, "E" for a solo honoree — the
+ *  same mark the card's crest/wax layouts press. Shared so the
+ *  asset tray's seal + monogram pieces wear the host's own
+ *  initials, never a sample couple's (walk F5). */
+export function monogramFor(nameA: string, nameB: string): string {
+  const first = (nameA[0] ?? '').toUpperCase();
+  const second = (nameB[0] ?? '').toUpperCase();
+  if (!second) return first || '·';
+  return `${first || '·'}&${second}`;
+}
+
 export const PALETTES: StudioPalette[] = [
   { id: 'lavender', name: 'Dusk',         paper: '#FDFAF0', ink: '#3D4A1F', accent: '#C4B5D9', accent2: '#E8E0F0', sub: 'lavender · olive' },
   { id: 'sage',     name: 'Garden',       paper: '#FDFAF0', ink: '#3D4A1F', accent: '#8B9C5A', accent2: '#E3E6C8', sub: 'olive · sage' },

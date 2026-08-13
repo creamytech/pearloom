@@ -24,6 +24,7 @@ import {
   travelDirectionsSuggestions,
   smartContext,
 } from '@/components/pearloom/editor/panels/_suggestions';
+import { getEventType } from '@/lib/event-os/event-types';
 
 type Loose = Record<string, unknown>;
 
@@ -193,7 +194,18 @@ export function seedSectionsFromWizard(
   // a kids policy answers the kids question in their words, the
   // first hotel answers "Where should I stay?".
   const existingFaqs = (loose.faqs as Array<{ question?: string }> | undefined) ?? [];
-  if (existingFaqs.length === 0) {
+  /* Only seed a section the OCCASION carries (P.3/L78): the wizard
+     used to seed FAQ starters for every occasion, and the pressed
+     birthday editor immediately flagged its own seed "unusual for
+     this occasion" — the wizard and the registry disagreeing about
+     the same site. Registry says no faq → no seed. */
+  const occasionBlocks = (() => {
+    const et = getEventType(ctx.occasion);
+    if (!et) return null; // unknown occasion → legacy behavior (seed)
+    return new Set([...(et.defaultBlocks ?? []), ...(et.optionalBlocks ?? [])]);
+  })();
+  const occasionCarriesFaq = occasionBlocks === null || occasionBlocks.has('faq');
+  if (existingFaqs.length === 0 && occasionCarriesFaq) {
     const qs = faqQuestionSuggestions(ctx.occasion).options.slice(0, 4);
     const seeded = qs
       .map((q, i) => {

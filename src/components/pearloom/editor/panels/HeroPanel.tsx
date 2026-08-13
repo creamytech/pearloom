@@ -15,6 +15,7 @@ import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { DraftedBadge } from './_drafted-badge';
 import { clearDraftedPaths } from '@/lib/first-pressing/clear-on-edit';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { SECTION_LINK_TARGETS, SPECIAL_LINK_TARGETS, resolveLinkLabel } from './_link-targets';
 import { useVoicePack } from './_voice-pack';
@@ -201,9 +202,16 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   const v = useVoicePack(manifest);
   /* Solo-honoree mode — when on, the second name slot hides and
      the canvas suppresses the '&' glyph. Stored under
-     manifest.subject.kind ('couple' | 'solo'). */
-  const subject = ((manifest as unknown as { subject?: { kind?: 'couple' | 'solo' } }).subject) ?? { kind: 'couple' as const };
-  const isSolo = subject.kind === 'solo';
+     manifest.subject.kind ('couple' | 'solo'). When unset, the
+     default follows the SAME chain the canvas uses (ThemedSite):
+     solo-shaped occasions (memorial, birthday, graduation…) start
+     solo, so a memorial's Opening panel never presents two name
+     fields joined by '&' for one honoree. */
+  const subject = ((manifest as unknown as { subject?: { kind?: 'couple' | 'solo' } }).subject) ?? {};
+  const isSolo =
+    subject.kind === 'solo' ||
+    (subject.kind !== 'couple' &&
+      isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
   const setSolo = (next: boolean) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     subject: { ...subject, kind: next ? 'solo' : 'couple' },
