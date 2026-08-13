@@ -5,7 +5,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient } from '@supabase/supabase-js';
-import { isPlanSufficient } from '@/lib/plan-gate';
 
 // ─── Lazy Supabase client (server-side only) ─────────────────
 
@@ -150,25 +149,13 @@ export async function recordPurchase(purchase: {
 // ─── Plan-based free access ──────────────────────────────────
 
 /**
- * Determine whether a marketplace item is free for a given user plan.
- *
- * Rules:
- * - Free items (price === 0): always free for everyone
- * - Pro plan (pro / atelier): all templates are free, asset packs still paid
- * - Premium plan (premium / legacy): everything is free
+ * Every marketplace item is free for everyone (EDITOR-CALM-PLAN
+ * E.1, 2026-08-13): themes, templates, icon packs, font pairings —
+ * design is never the paywall. Kept as a function so callers don't
+ * churn; both args are ignored.
  */
-export function isItemFree(item: MarketplaceItem, userPlan: string): boolean {
-  // Always free if the item has no price
-  if (item.price === 0) return true;
-
-  // Rank-based so every alias resolves — canonical (free/pro/premium),
-  // current marketing (page/pass/keepsake), and the retired
-  // journal/atelier/legacy names still sitting in older rows.
-  // Keepsake covers everything; the Pass covers templates.
-  if (isPlanSufficient(userPlan, 'premium')) return true;
-  if (isPlanSufficient(userPlan, 'pro')) return item.type === 'template';
-
-  return false;
+export function isItemFree(_item: MarketplaceItem, _userPlan: string): boolean {
+  return true;
 }
 
 // ─── Price formatting ────────────────────────────────────────

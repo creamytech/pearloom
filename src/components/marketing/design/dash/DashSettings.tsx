@@ -825,8 +825,8 @@ export function DashSettings() {
                   {plan.plan === 'premium'
                     ? 'Keepsake removes every limit: unlimited sites, unlimited guests, unlimited photos. Nothing about your celebrations gets counted again.'
                     : plan.plan === 'pro'
-                      ? 'The Pass covers the whole weekend: ten sites, 500 guests and photos, co-hosts for everyone helping, unlimited drafting by Pear, and the signature theme shelf. Keepsake ($199) removes every limit.'
-                      : 'Your first sites are free forever, with the whole standard theme catalog. The Pass ($89 once) covers the whole weekend — ten sites, 500 guests, co-hosts for everyone helping, and unlimited drafting by Pear.'}
+                      ? 'The Pass covers the whole weekend: ten sites, 500 guests and photos, co-hosts for everyone helping, and unlimited drafting by Pear. Keepsake ($199) removes every limit.'
+                      : 'Your first sites are free forever, with every theme and design. The Pass ($89 once) covers the whole weekend — ten sites, 500 guests, co-hosts for everyone helping, and unlimited drafting by Pear.'}
                 </p>
                 <PlanUpgradeButtons plan={plan.plan} />
               </Panel>

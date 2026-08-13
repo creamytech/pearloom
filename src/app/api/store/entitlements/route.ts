@@ -1,24 +1,23 @@
 // ──────────────────────────────────────────────────────────────
 // GET /api/store/entitlements
 //
-// Returns the signed-in user's owned pack ids (real Stripe
-// purchases + the catalog's free tier folded in via
-// getUserEntitlements).
+// Design is free (EDITOR-CALM-PLAN E.1): every theme pack belongs
+// to everyone, so `packIds` (and `freePackIds`) are simply the
+// full catalog. The route survives because the wizard reads its
+// `sites` headroom and dashboard chrome reads `plan` — capacity
+// stays paid; the look doesn't.
 //
-// Shape: { ok: true, packIds: string[] }
-//
-// useEntitlements() on the client reads this and degrades to
-// free-only ownership on 401/404/network, so this route is
-// safe to ship before every pack card consumes it.
+// Shape: { ok: true, packIds, freePackIds, plan, planLabel, sites }
 // ──────────────────────────────────────────────────────────────
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { getUserEntitlements } from '@/lib/theme-store/entitlements';
-import { FREE_PACK_IDS } from '@/lib/theme-store/packs';
+import { PACKS } from '@/lib/theme-store/packs';
 import { getPlanWithLimitsForEmail, canonicalPlan, planMarketingLabel, isGriefExempt } from '@/lib/plan-gate';
+
+const ALL_PACK_IDS: readonly string[] = PACKS.map((p) => p.id);
 
 export const dynamic = 'force-dynamic';
 
@@ -61,18 +60,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
     }
 
-    const entitlements = await getUserEntitlements(userEmail);
-    const ownedPackIds = Array.from(new Set(entitlements.map((e) => e.packId)));
     const { plan, limits } = await getPlanWithLimitsForEmail(userEmail);
     const sites = await sitesHeadroom(userEmail.toLowerCase().trim(), limits.maxSites);
 
     return NextResponse.json({
       ok: true,
-      packIds: ownedPackIds,
-      // Surface the free-tier list separately so clients can
-      // distinguish implicit ownership from real purchases
-      // without re-deriving from the catalog.
-      freePackIds: FREE_PACK_IDS,
+      packIds: ALL_PACK_IDS,
+      // Kept for response-shape compatibility — with every pack
+      // free the two lists are identical.
+      freePackIds: ALL_PACK_IDS,
       // Plan for host-facing chrome (sidebar strip, settings
       // badge). `plan` is canonical (free/pro/premium); the
       // label is the marketed name (Journal/Atelier/Legacy).
@@ -85,12 +81,12 @@ export async function GET() {
     });
   } catch (err) {
     console.error('[api/store/entitlements] error:', err);
-    // Degrade to free-only so the store stays usable even when
-    // the DB is unreachable.
+    // Degrade gracefully — packs are catalog-derived, so only the
+    // plan/sites lookups can fail.
     return NextResponse.json({
       ok: true,
-      packIds: FREE_PACK_IDS,
-      freePackIds: FREE_PACK_IDS,
+      packIds: ALL_PACK_IDS,
+      freePackIds: ALL_PACK_IDS,
       plan: 'free',
       planLabel: 'Page',
       sites: null,

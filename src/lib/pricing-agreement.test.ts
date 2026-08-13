@@ -132,36 +132,37 @@ describe('the pricing page (DesignPricing.TIERS)', () => {
     expect(keepsake).toMatch(/unlimited guests, unlimited photos/);
   });
 
-  it('sells the shelf each tier actually gets (the grants, not vibes)', () => {
-    const signatureIds = PACKS.filter((p) => p.tier === 'signature').map((p) => p.id);
-    const openIds = PACKS.filter((p) => p.tier !== 'signature').map((p) => p.id);
-    expect(signatureIds.length).toBeGreaterThan(0);
-
-    // Free accounts hold the whole non-signature catalog and none of
-    // the signature shelf; Pass and Keepsake hold everything.
-    const freeGrants = planGrantedPackIds('free');
-    const proGrants = planGrantedPackIds('pro');
-    const premiumGrants = planGrantedPackIds('premium');
-    for (const id of openIds) expect(freeGrants).toContain(id);
-    for (const id of signatureIds) expect(freeGrants).not.toContain(id);
-    for (const id of signatureIds) expect(proGrants).toContain(id);
-    for (const id of signatureIds) expect(premiumGrants).toContain(id);
-
-    // The cards, accordingly: Page sells the standard catalog, the
-    // Pass sells the SIGNATURE shelf — never "the premium shelf",
-    // which is already free for everyone.
-    expect(cardText('Page')).toMatch(/standard theme catalog/);
-    expect(cardText('Pass')).toMatch(/signature theme shelf/);
-    expect(cardText('Pass')).not.toMatch(/premium theme shelf/);
+  it('design is free — every plan grants the whole catalog, no pack carries a price (E.1)', () => {
+    // FREE DESIGN (EDITOR-CALM-PLAN E.1, owner decision 2026-08-13):
+    // the tier system is collapsed at the source. Every pack is
+    // free; every plan (and no plan) grants everything.
+    for (const p of PACKS) {
+      expect(p.priceCents, `${p.id} carries a price`).toBe(0);
+      expect(p.tier, `${p.id} carries a paid tier`).toBe('free');
+    }
+    const all = PACKS.map((p) => p.id);
+    for (const plan of ['free', 'pro', 'premium', 'page', 'pass', 'keepsake', null]) {
+      const grants = planGrantedPackIds(plan);
+      for (const id of all) expect(grants).toContain(id);
+    }
+    // The free card says so plainly; no paid card claims design.
+    expect(cardText('Page')).toMatch(/every theme and design, free/i);
   });
 
   it('never sells an un-gated feature as a paid one (L36)', () => {
     // None of these has a plan gate — every account has them all.
     // They may not appear on ANY tier card until a gate exists.
+    // theme/shelf/pack joined the list with E.1: design is free
+    // for everyone, so any design claim on a PAID card is exactly
+    // the fabrication this test exists to kill.
     const unGated =
       /\b(studio|director|seating|vendor|budget|broadcast|custom domain|memory book|archive)\b/;
+    const designClaim = /\b(theme|themes|shelf|pack|packs)\b/i;
     for (const tier of TIERS) {
       expect(cardText(tier.name)).not.toMatch(unGated);
+      if (tier.name !== 'Page') {
+        expect(cardText(tier.name), `${tier.name} claims design`).not.toMatch(designClaim);
+      }
     }
   });
 

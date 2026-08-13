@@ -1,20 +1,19 @@
 // ─────────────────────────────────────────────────────────────
 // Theme store — STANDALONE DECOR PRODUCTS (design-system v2)
 //
-// The store sells full theme Packs (packs.ts). This module adds the
-// other half of the catalog: individual decor pieces a host can buy
-// and apply on their own — a single motif, a divider, a monogram
-// frame, or a component kit — without changing the rest of their
-// look.
+// The gallery carries full theme Packs (packs.ts). This module adds
+// the other half of the catalog: individual decor pieces a host can
+// apply on their own — a single motif, a divider, a monogram frame,
+// or a component kit — without changing the rest of their look.
 //
-//   DecorItem  — one purchasable decor piece (kind + value + price).
-//   DECOR_ITEMS — the curated catalog (basics free, fancier premium).
+//   DecorItem  — one decor piece (kind + value).
+//   DECOR_ITEMS — the curated catalog (all free).
 //   applyDecorItem(item, manifest) — writes the ONE manifest field
 //     the piece controls (motifKind / dividerLook / monogram.frame /
 //     kitId); never touches the rest of the look.
 //
-// Ownership rides the same `pl-store-owned` entitlement set as packs
-// (keyed by item id). Free items are owned by default.
+// Every piece is free (EDITOR-CALM-PLAN E.1) — the old ownership
+// ledger is gone; apply is just apply.
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
@@ -23,7 +22,7 @@ import type { Tier, PackBadges } from './packs';
 export type DecorKind = 'motif' | 'divider' | 'monogram' | 'kit';
 
 export interface DecorItem {
-  /** Stable id — entitlement key + localStorage `pl-store-owned`. */
+  /** Stable id. */
   id: string;
   kind: DecorKind;
   name: string;
@@ -40,12 +39,10 @@ export interface DecorItem {
   tags?: readonly string[];
 }
 
-function tierFor(price: number): Tier {
-  return price === 0 ? 'free' : price >= 14 ? 'signature' : 'premium';
-}
-
 function it(o: Omit<DecorItem, 'tier'> & { tier?: Tier }): DecorItem {
-  return { ...o, tier: o.tier ?? tierFor(o.price) };
+  /* FREE DESIGN (EDITOR-CALM-PLAN E.1): every decor piece is free.
+     The catalog's price args are historical metadata, ignored. */
+  return { ...o, price: 0, tier: 'free' };
 }
 
 /* ── Motifs — line ornaments + botanicals. The free Decor Library

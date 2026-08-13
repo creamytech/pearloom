@@ -126,11 +126,10 @@ describe('applyPackToManifest', () => {
     expect(next.theme.cardRadius).toBe('lg');
   });
 
-  it('stamps appliedPackId onto the manifest (the publish paywall reads it)', () => {
-    // Reversed 2026-06-13: try-before-you-buy needs the receipt.
-    // The editor applies any pack freely; /api/sites/publish gates
-    // on ownership of manifest.appliedPackId. Without the stamp the
-    // gate can't tell which pack a draft is wearing.
+  it('stamps appliedPackId onto the manifest (provenance)', () => {
+    // The stamp survived the paywall it once served (the publish
+    // gate died with FREE DESIGN, E.1): it now records which pack a
+    // site wears — read by reusable-structure and analytics.
     const pack = PACKS[0]!;
     const next = applyPackToManifest(pack, baseManifest) as unknown as Record<
       string,

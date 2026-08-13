@@ -27,7 +27,7 @@ interface Tier {
 
 /* The ladder gates COORDINATION, COLLABORATION, COMMUNICATION and
    PRESERVATION — never how good a site looks. The free tier carries
-   the whole standard theme catalog on purpose: every published free
+   the whole theme catalog on purpose: every published free
    site is the marketing, so a crippled one costs more than it earns.
    (docs/REVIEW-SYNTHESIS.md §1.3–§1.4.) */
 export const TIERS: Tier[] = [
@@ -42,7 +42,7 @@ export const TIERS: Tier[] = [
       // fence (pricing-agreement.test.ts) pins the numbers (M.7).
       'Two sites — yours, plus one you host for someone',
       'Up to 100 guests, unlimited RSVPs',
-      'The whole standard theme catalog',
+      'Every theme and design, free',
       '15 drafts by Pear every month',
       'All 31 occasions',
       'Guest passports + the photo wall',
@@ -61,15 +61,13 @@ export const TIERS: Tier[] = [
       /* The old card sold the Studio, the Director, seating, budget,
          and the vendor book — none of which has a plan gate; free
          accounts have them all (M.3/L36). A card may only claim
-         what PLAN_LIMITS enforces or entitlements grant. (And the
-         shelf the Pass actually adds is the SIGNATURE shelf — the
-         premium shelf is already free for everyone.) */
+         what PLAN_LIMITS enforces. Design claims are banned outright:
+         every theme is free for everyone (EDITOR-CALM-PLAN E.1). */
       'Everything in Page',
       'Ten sites — the whole weekend: shower, bachelorette, rehearsal, brunch',
       'Up to 500 guests, 500 photos',
       'Co-hosts with real permissions, as many as you need',
       'Unlimited drafting by Pear',
-      'The signature theme shelf, included',
     ],
     bg: PD.ink,
     fg: PD.paper,

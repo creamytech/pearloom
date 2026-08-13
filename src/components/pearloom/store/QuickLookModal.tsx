@@ -3,91 +3,37 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / pearloom/store/QuickLookModal.tsx
 //
-// Centered "Quick Look" modal for a single theme pack. Mirrors
-// the prototype's QuickLook (store.jsx ~line 119): full-bleed
-// pack hero on the left, pack metadata + "what's included" +
-// CTAs on the right.
-//
-// The right-pane CTAs are state-aware:
-//   - owned       → "Apply to my site"
-//   - free pack   → "Get it free"
-//   - in cart     → "Added to cart" (disabled)
-//   - otherwise   → "Add to cart · $N"
+// Centered "Quick Look" modal for a single theme pack. Full-bleed
+// pack site preview on the left, pack metadata + "what's
+// included" + the Apply CTA on the right. Design is free
+// (EDITOR-CALM-PLAN E.1) — no price, no tier, no ownership,
+// no cart; the one CTA is "Apply to my site".
 //
 // Closes on:
 //   - Esc
 //   - backdrop click
 //   - × button
-//
-// Schedule sample (right pane bottom) ports the prototype's
-// "themed schedule rows in the pack's kit" — for the MVP we
-// render a simple kit-labelled schedule list themed by the
-// pack's CSS-var bag so a host can sense how the kit reads
-// when applied to real content. The full KSchedule per-kit
-// renderers are tracked under CLAUDE-PRODUCT.md Phase 4.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
-import { PackPreview } from './PackPreview';
 import { PackSitePreview } from './PackSitePreview';
-import { useCart } from './CartProvider';
-import {
-  collectionName,
-  fontName,
-  kitLabel,
-  priceLabel,
-  tierLabel,
-} from './utils';
+import { collectionName, fontName, kitLabel } from './utils';
 import { EXCLUSIVE_KITS } from '@/lib/theme-store/packs';
-import type { Pack, Tier, Includes } from '@/lib/theme-store/packs';
+import type { Pack, Includes } from '@/lib/theme-store/packs';
 
 interface QuickLookModalProps {
   /** The pack currently being looked at, or null when closed. */
   pack: Pack | null;
-  /** Set of pack ids the viewing user owns. */
-  ownedIds?: ReadonlySet<string>;
   onClose: () => void;
   /**
-   * "Apply to my site" handler — invoked for owned packs.
-   * Receives the pack so the host can stash {id, vars, kit}
-   * in localStorage and redirect to the editor.
+   * "Apply to my site" handler. Receives the pack so the host can
+   * stash {id, vars, kit} in localStorage and redirect to the
+   * editor.
    */
   onApply?: (pack: Pack) => void;
-  /**
-   * "Get it free" handler for $0 packs — typically writes a
-   * synthetic entitlement and re-opens the modal in "owned"
-   * state.
-   */
-  onGetFree?: (pack: Pack) => void;
-}
-
-const TIER_BADGE: Record<Tier, { bg: string; fg: string }> = {
-  free: { bg: '#E0DDC9', fg: '#363F22' },
-  premium: { bg: '#E8DEEE', fg: '#4A3F5C' },
-  signature: { bg: '#231F33', fg: '#E5D6A8' },
-};
-
-function TierBadge({ tier }: { tier: Tier }) {
-  const t = TIER_BADGE[tier];
-  return (
-    <span
-      style={{
-        padding: '3px 9px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 9.5,
-        fontWeight: 800,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-      }}
-    >
-      {tierLabel(tier)}
-    </span>
-  );
 }
 
 // "What's included" → human label + icon name. The pack's
@@ -143,16 +89,11 @@ const INCLUDES_META: Record<
   },
 };
 
-/** Schedule sample — three lines themed by the pack's vars. */
-
 export function QuickLookModal({
   pack,
-  ownedIds,
   onClose,
   onApply,
-  onGetFree,
 }: QuickLookModalProps) {
-  const { addToCart, hasItem } = useCart();
   // Below ~720px the two-pane layout crushes both panes — stack
   // previews above details instead. SSR-safe matchMedia hook.
   const isNarrow = useIsMobile(720);
@@ -192,18 +133,6 @@ export function QuickLookModal({
     if (!pack) return;
     closeBtnRef.current?.focus();
   }, [pack]);
-
-  const owned = useMemo(() => {
-    if (!pack || !ownedIds) return false;
-    return ownedIds.has(pack.id);
-  }, [pack, ownedIds]);
-
-  const inCart = pack ? hasItem(pack.id) : false;
-
-  const handleAdd = useCallback(() => {
-    if (!pack) return;
-    addToCart(pack);
-  }, [pack, addToCart]);
 
   if (!pack || !portalTarget) return null;
 
@@ -285,9 +214,9 @@ export function QuickLookModal({
         >
           {/* The WHOLE demo site wearing this pack — scrollable,
               real renderer, the exact applyPackToManifest transform
-              purchasing runs. Replaces the hero-crop vignette +
-              static schedule mock (2026-06-12: "the theme shop
-              should show actual full previews"). */}
+              Apply runs. Replaces the hero-crop vignette + static
+              schedule mock (2026-06-12: "the theme shop should show
+              actual full previews"). */}
           <div
             style={{
               borderRadius: 'var(--pl-radius-xl, 1rem)',
@@ -317,7 +246,6 @@ export function QuickLookModal({
             }}
           >
             <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
-              <TierBadge tier={pack.tier} />
               {pack.badges.new && (
                 <span
                   style={{
@@ -481,128 +409,36 @@ export function QuickLookModal({
             </div>
           )}
 
-          {/* Footer CTAs */}
+          {/* Footer CTA */}
           <div
             style={{
               marginTop: 'auto',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               gap: 14,
               paddingTop: 14,
               borderTop: '1px solid var(--pl-divider, #D8CFB8)',
-              // Narrow screens: let the CTA drop under the price
-              // instead of squeezing both.
-              flexWrap: 'wrap',
             }}
           >
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span
-                style={{
-                  fontFamily: 'var(--pl-font-display, Fraunces), serif',
-                  fontSize: 28,
-                  fontWeight: 700,
-                }}
-              >
-                {owned ? 'Owned' : priceLabel(pack.priceCents)}
-              </span>
-              {/* Plan-grant hint — the store's quiet upsell, in the
-                  MARKETED vocabulary (M.1/M.4): premium packs come
-                  with the Pass; signature with the Keepsake. (Grants
-                  enforced server-side in entitlements.ts.) */}
-              {!owned && pack.tier !== 'free' && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    color: 'var(--pl-olive, #5C6B3F)',
-                  }}
-                >
-                  {pack.tier === 'premium'
-                    ? 'Included with the Pass'
-                    : 'Included with the Keepsake'}
-                </span>
-              )}
-            </span>
-            {owned ? (
-              <button
-                onClick={() => onApply?.(pack)}
-                className="pl-pearl-accent"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '11px 18px',
-                  borderRadius: 'var(--pl-radius-full, 100px)',
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                Apply to my site
-                <Icon name="arrow-right" size={15} />
-              </button>
-            ) : pack.priceCents === 0 ? (
-              <button
-                onClick={() => onGetFree?.(pack)}
-                className="pl-pearl-accent"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '11px 18px',
-                  borderRadius: 'var(--pl-radius-full, 100px)',
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                Get it free
-              </button>
-            ) : inCart ? (
-              <button
-                onClick={onClose}
-                disabled
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '11px 18px',
-                  borderRadius: 'var(--pl-radius-full, 100px)',
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: 'default',
-                  border: '1px solid var(--pl-divider, #D8CFB8)',
-                  background: 'var(--pl-cream-deep, #EBE3D2)',
-                  color: 'var(--pl-ink, #0E0D0B)',
-                }}
-              >
-                <Icon name="check" size={15} />
-                Added to cart
-              </button>
-            ) : (
-              <button
-                onClick={handleAdd}
-                className="pl-pearl-accent"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '11px 18px',
-                  borderRadius: 'var(--pl-radius-full, 100px)',
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                <Icon name="cart" size={15} />
-                Add to cart · {priceLabel(pack.priceCents)}
-              </button>
-            )}
+            <button
+              onClick={() => onApply?.(pack)}
+              className="pl-pearl-accent"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '11px 18px',
+                borderRadius: 'var(--pl-radius-full, 100px)',
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                border: 'none',
+              }}
+            >
+              Apply to my site
+              <Icon name="arrow-right" size={15} />
+            </button>
           </div>
         </div>
       </div>

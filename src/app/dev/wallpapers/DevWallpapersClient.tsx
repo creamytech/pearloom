@@ -32,7 +32,7 @@ export function DevWallpapersClient() {
             Living background · {cur.occ}
           </div>
           <div style={{ fontFamily: 'var(--font-display, Georgia, serif)', fontSize: 30, color: 'var(--ink, #0E0D0B)', margin: '4px 0 6px' }}>
-            {cur.name}{cur.free ? <span style={{ fontSize: 13, color: 'var(--sage-deep, #5C6B3F)', marginLeft: 10 }}>· Free</span> : <span style={{ fontSize: 13, color: 'var(--ink-muted)', marginLeft: 10 }}>· {cur.price}</span>}
+            {cur.name}
           </div>
           <p style={{ fontSize: 13.5, lineHeight: 1.55, color: 'var(--ink-soft, #3A332C)', margin: 0 }}>{cur.desc}</p>
         </div>

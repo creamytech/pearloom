@@ -99,7 +99,6 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   });
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unlockBusy, setUnlockBusy] = useState(false);
   /* Reset a lingering re-read step when the modal re-opens (the host
      may have edited/acknowledged the drafted story since) — derive
      from the previous render so there's no setState-in-effect. */
@@ -109,46 +108,9 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
     if (open && step === 'reread') setStep('review');
   }
   if (!open) return null;
-  /* ── Pack paywall (client half) — the site is wearing a paid
-     pack the host hasn't unlocked. Try-before-you-buy: they could
-     APPLY it freely; publishing is the moment it's bought. The
-     server gates too (/api/sites/publish 402) — this is the warm
-     version. Ownership reads the shared 'pl-store-owned' key the
-     store + webhook success page maintain. */
-  const wornPack = (() => {
-    const id = (manifest as unknown as { appliedPackId?: string }).appliedPackId;
-    if (!id) return null;
-    const pack = getPackById(id);
-    if (!pack || pack.priceCents === 0) return null;
-    try {
-      const owned = new Set(JSON.parse(localStorage.getItem('pl-store-owned') || '[]'));
-      if (owned.has(pack.id)) return null;
-    } catch { /* private mode → trust the server gate */ }
-    return pack;
-  })();
-  const unlockWornPack = async () => {
-    if (!wornPack || unlockBusy) return;
-    setUnlockBusy(true);
-    try {
-      const res = await fetch('/api/store/checkout', {
-        method: 'POST', credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packIds: [wornPack.id] }),
-      });
-      const { url: checkoutUrl } = (await res.json()) as { url?: string };
-      if (res.ok && checkoutUrl) {
-        try { sessionStorage.setItem('pl-shop-resume', wornPack.id); } catch { /* nicety */ }
-        // hard on purpose: Stripe checkout is an external origin.
-        window.location.assign(checkoutUrl);
-        return;
-      }
-      setError('Couldn’t start checkout, try again?');
-    } catch {
-      setError('Couldn’t start checkout, try again?');
-    } finally {
-      setUnlockBusy(false);
-    }
-  };
+  /* The pack publish paywall (the "Make it yours to go live"
+     banner) lived here until 2026-08-13 — design is FREE now
+     (EDITOR-CALM-PLAN E.1). */
   /* The slug is the site's identity — it isn't editable here.
      (The prototype let you retype it past a fake "Available"
      badge, which forked the site to a second subdomain and
@@ -197,7 +159,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
   };
 
   const go = async () => {
-    if (step === 'publishing' || wornPack) return;
+    if (step === 'publishing') return;
     if (privacy === 'password' && !gatePw.trim()) {
       setError('Set the password guests will use, or switch back to public.');
       return;
@@ -239,41 +201,6 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             <div className="eyebrow" style={{ color: 'var(--lavender-ink)' }}>GO LIVE</div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, margin: '4px 0 16px' }}>Publish your site</h2>
             <div style={{ marginBottom: 16, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft)' }}><PubShareCard manifest={manifest}/></div>
-            {wornPack && (
-              <div
-                style={{
-                  marginBottom: 16, padding: '14px 16px', borderRadius: 14,
-                  background: 'var(--pl-glass)',
-                  backgroundImage: 'var(--pl-glass-sheen)',
-                  backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
-                  WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
-                  border: '1px solid var(--pl-glass-border)',
-                } as CSSProperties}
-              >
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--lavender-ink)' }}>
-                  Wearing {wornPack.name}
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--ink)', margin: '4px 0 6px' }}>
-                  Make it yours to go live.
-                </div>
-                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 12 }}>
-                  You&rsquo;ve been trying this pack on, it looks like it fits. Unlock it once and publish,
-                  or switch back to a free look in the Theme panel.
-                </div>
-                <button
-                  type="button"
-                  onClick={unlockWornPack}
-                  disabled={unlockBusy}
-                  style={{
-                    padding: '10px 22px', borderRadius: 999, border: 'none',
-                    background: 'var(--ink)', color: 'var(--cream)',
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                  } as CSSProperties}
-                >
-                  {unlockBusy ? 'Unlocking…' : `Unlock ${wornPack.name} · $${wornPack.priceCents / 100}`}
-                </button>
-              </div>
-            )}
 
             <label style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Your address</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)' }}>
@@ -322,7 +249,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             {/* The URL half may truncate; the verb may not. At 390px the
                 full "Publish to pearloom.com/wedding/<slug>" ran past the
                 pill and clipped the leading P (A.1/L107). */}
-            <button onClick={go} disabled={!!wornPack} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, minWidth: 0, overflow: 'hidden', opacity: wornPack ? 0.5 : 1, cursor: wornPack ? 'not-allowed' : 'pointer' } as CSSProperties}>{wornPack ? <>Unlock {wornPack.name} to publish</> : <><span style={{ flexShrink: 0 }}>Publish to</span> <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } as CSSProperties}>{url}</span> <Icon name="arrow-up" size={13} color="var(--cream)"/></>}</button>
+            <button onClick={go} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, minWidth: 0, overflow: 'hidden' } as CSSProperties}><span style={{ flexShrink: 0 }}>Publish to</span> <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } as CSSProperties}>{url}</span> <Icon name="arrow-up" size={13} color="var(--cream)"/></button>
           </div>
         )}
 

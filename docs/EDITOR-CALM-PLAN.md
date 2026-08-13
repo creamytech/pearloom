@@ -262,7 +262,32 @@ eslint / vitest / build / the editor e2e + a live walk).
 
 ## §5 · Status
 
-- E.1 —
+- E.1 — **SHIPPED 2026-08-13.** The tier system collapsed at its
+  origin (packs.ts forces priceCents=0/tier='free'; entitlements
+  grant the whole catalog to everyone; userOwnsPack → true). Both
+  publish 402 gates deleted (+ their tests replaced by the
+  publishes-any-pack case); PublishModal's "Make it yours to go
+  live" wall gone; EditorThemeShop is the free "All themes" sheet
+  (try-on stays as a preview contract; tier pills, $ pills, the
+  decision bar, unlock(), and the checkout resume stash are gone);
+  EditorRedesign's stashed-pack ownership branch gone; the Studio
+  shelf is one flat list; the "$19 Atelier" stub is a plain motion
+  on/off; decor items + wallpapers stripped of prices; marketplace
+  isItemFree → true; the webhook pack branch is a legacy
+  acknowledgment; the admin grant desk retired. The store is the
+  free Theme Gallery (cart/CartProvider/CartDrawer/checkout/
+  apply-free/success deleted; nav says "Themes"; metadata says
+  gallery). Copy flipped on DesignPricing (no design claim on paid
+  cards), the Stripe receipt, and both settings surfaces;
+  MONETIZATION.md restated (§1/§2 ladder row deleted/§3/§5/§7);
+  pricing-agreement's shelf test inverted and its un-gated-claims
+  regex grew the design ban; entitlements-grants/packs/marketplace
+  tests rewritten. Fence: `src/lib/free-design.test.ts` (11 tests:
+  no prices anywhere, grants universal, commerce surfaces stay
+  deleted, no unlock language renders). Live-verified: the Design
+  tab, the All-themes sheet, and /store render zero pay language;
+  vitest 1852/1853 (the one failure is the pre-existing weekend
+  baseline); tsc/eslint/build clean.
 - E.2 —
 - E.3 —
 - E.4 —

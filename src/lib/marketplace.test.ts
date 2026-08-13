@@ -59,140 +59,16 @@ describe('formatPrice', () => {
 
 // ── isItemFree ──────────────────────────────────────────────
 
-describe('isItemFree', () => {
-  describe('free items (price === 0)', () => {
-    const freeItem = makeItem({ price: 0 });
+describe('isItemFree — design is free for everyone (EDITOR-CALM-PLAN E.1)', () => {
+  const freeItem = { price: 0, type: 'template' } as Parameters<typeof isItemFree>[0];
+  const paidTemplate = { price: 1200, type: 'template' } as Parameters<typeof isItemFree>[0];
+  const paidAssetPack = { price: 499, type: 'icon-pack' } as Parameters<typeof isItemFree>[0];
 
-    it('is always free for free plan', () => {
-      expect(isItemFree(freeItem, 'free')).toBe(true);
-    });
-
-    it('is always free for pro plan', () => {
-      expect(isItemFree(freeItem, 'pro')).toBe(true);
-    });
-
-    it('is always free for premium plan', () => {
-      expect(isItemFree(freeItem, 'premium')).toBe(true);
-    });
-
-    it('is always free for atelier plan', () => {
-      expect(isItemFree(freeItem, 'atelier')).toBe(true);
-    });
-
-    it('is always free for legacy plan', () => {
-      expect(isItemFree(freeItem, 'legacy')).toBe(true);
-    });
-  });
-
-  describe('paid templates', () => {
-    const paidTemplate = makeItem({ price: 499, type: 'template' });
-
-    it('is NOT free for free plan users', () => {
-      expect(isItemFree(paidTemplate, 'free')).toBe(false);
-    });
-
-    it('IS free for pro plan users (templates included)', () => {
-      expect(isItemFree(paidTemplate, 'pro')).toBe(true);
-    });
-
-    it('IS free for atelier plan users (templates included)', () => {
-      expect(isItemFree(paidTemplate, 'atelier')).toBe(true);
-    });
-
-    it('IS free for premium plan users (everything included)', () => {
-      expect(isItemFree(paidTemplate, 'premium')).toBe(true);
-    });
-
-    it('IS free for legacy plan users (everything included)', () => {
-      expect(isItemFree(paidTemplate, 'legacy')).toBe(true);
-    });
-  });
-
-  describe('paid asset packs (non-template)', () => {
-    const iconPack = makeItem({ price: 299, type: 'icon-pack' });
-    const themePack = makeItem({ price: 599, type: 'theme' });
-    const stickerPack = makeItem({ price: 199, type: 'sticker-pack' });
-    const bgPack = makeItem({ price: 399, type: 'background-pack' });
-    const accentPack = makeItem({ price: 299, type: 'accent-pack' });
-    const fontPairing = makeItem({ price: 149, type: 'font-pairing' });
-
-    it('is NOT free for free plan users', () => {
-      expect(isItemFree(iconPack, 'free')).toBe(false);
-      expect(isItemFree(themePack, 'free')).toBe(false);
-      expect(isItemFree(stickerPack, 'free')).toBe(false);
-    });
-
-    it('is NOT free for pro plan users (only templates are free for pro)', () => {
-      expect(isItemFree(iconPack, 'pro')).toBe(false);
-      expect(isItemFree(themePack, 'pro')).toBe(false);
-      expect(isItemFree(stickerPack, 'pro')).toBe(false);
-      expect(isItemFree(bgPack, 'pro')).toBe(false);
-      expect(isItemFree(accentPack, 'pro')).toBe(false);
-      expect(isItemFree(fontPairing, 'pro')).toBe(false);
-    });
-
-    it('is NOT free for atelier plan users (same as pro)', () => {
-      expect(isItemFree(iconPack, 'atelier')).toBe(false);
-      expect(isItemFree(themePack, 'atelier')).toBe(false);
-    });
-
-    it('IS free for premium plan users (everything included)', () => {
-      expect(isItemFree(iconPack, 'premium')).toBe(true);
-      expect(isItemFree(themePack, 'premium')).toBe(true);
-      expect(isItemFree(stickerPack, 'premium')).toBe(true);
-      expect(isItemFree(bgPack, 'premium')).toBe(true);
-      expect(isItemFree(accentPack, 'premium')).toBe(true);
-      expect(isItemFree(fontPairing, 'premium')).toBe(true);
-    });
-
-    it('IS free for legacy plan users (everything included)', () => {
-      expect(isItemFree(iconPack, 'legacy')).toBe(true);
-      expect(isItemFree(themePack, 'legacy')).toBe(true);
-    });
-  });
-
-  describe('plan name case insensitivity', () => {
-    const paidTemplate = makeItem({ price: 499, type: 'template' });
-
-    it('handles uppercase plan names', () => {
-      expect(isItemFree(paidTemplate, 'PRO')).toBe(true);
-      expect(isItemFree(paidTemplate, 'PREMIUM')).toBe(true);
-    });
-
-    it('handles mixed case plan names', () => {
-      expect(isItemFree(paidTemplate, 'Pro')).toBe(true);
-      expect(isItemFree(paidTemplate, 'Premium')).toBe(true);
-      expect(isItemFree(paidTemplate, 'Atelier')).toBe(true);
-      expect(isItemFree(paidTemplate, 'Legacy')).toBe(true);
-    });
-  });
-
-  describe('unknown plan names', () => {
-    const paidItem = makeItem({ price: 499 });
-
-    it('returns false for unrecognized plan names', () => {
-      expect(isItemFree(paidItem, 'starter')).toBe(false);
-      expect(isItemFree(paidItem, 'basic')).toBe(false);
-      expect(isItemFree(paidItem, '')).toBe(false);
-    });
-  });
-});
-
-// ── MARKETPLACE_CATEGORIES ──────────────────────────────────
-
-describe('MARKETPLACE_CATEGORIES', () => {
-  it('has at least 5 categories', () => {
-    expect(MARKETPLACE_CATEGORIES.length).toBeGreaterThanOrEqual(5);
-  });
-
-  it('each category has an id and label', () => {
-    for (const cat of MARKETPLACE_CATEGORIES) {
-      expect(cat.id).toBeTruthy();
-      expect(cat.label).toBeTruthy();
+  it('every item is free for every plan — including unknown plan names', () => {
+    for (const item of [freeItem, paidTemplate, paidAssetPack]) {
+      for (const plan of ['free', 'pro', 'premium', 'atelier', 'legacy', 'page', 'pass', 'keepsake', '', 'vip']) {
+        expect(isItemFree(item, plan)).toBe(true);
+      }
     }
-  });
-
-  it('includes wedding category', () => {
-    expect(MARKETPLACE_CATEGORIES.find(c => c.id === 'wedding')).toBeDefined();
   });
 });

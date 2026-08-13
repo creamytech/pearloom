@@ -6,7 +6,6 @@
    but it's still our chrome. */
 
 import { useState } from 'react';
-import { PACKS } from '@/lib/theme-store/packs';
 
 interface OwnedRow {
   packId: string;
@@ -65,7 +64,6 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
   const [result, setResult] = useState<LookupResult | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const [packPick, setPackPick] = useState(PACKS.find((p) => p.tier !== 'free')?.id ?? '');
 
   async function lookup(email: string) {
     setBusy('lookup');
@@ -210,64 +208,13 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
             </div>
           </section>
 
-          {/* Packs */}
+          {/* Packs — the grant desk retired 2026-08-13 (EDITOR-CALM-
+              PLAN E.1): every account holds the whole catalog. */}
           <section style={card}>
             <div style={mono}>THEME PACKS</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0 16px', alignItems: 'center' }}>
-              <select
-                value={packPick}
-                onChange={(e) => setPackPick(e.target.value)}
-                style={{
-                  padding: '9px 14px',
-                  borderRadius: 'var(--pl-radius-full, 100px)',
-                  border: '1px solid var(--pl-divider, #D8CFB8)',
-                  background: 'var(--pl-cream-card, #FBF7EE)',
-                  fontSize: 13,
-                  color: 'var(--pl-ink, #0E0D0B)',
-                }}
-              >
-                {PACKS.filter((p) => p.tier !== 'free').map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} · ${(p.priceCents / 100).toFixed(0)} · {p.tier}
-                  </option>
-                ))}
-              </select>
-              <button
-                style={btn}
-                disabled={busy !== null}
-                onClick={() => void grant({ action: 'grant-pack', packId: packPick })}
-              >
-                {busy === 'grant-pack' ? 'Working…' : 'Grant this pack'}
-              </button>
-              <button
-                style={btn}
-                disabled={busy !== null}
-                onClick={() => void grant({ action: 'grant-all-packs' })}
-              >
-                {busy === 'grant-all-packs' ? 'Working…' : 'Grant the whole catalog'}
-              </button>
-            </div>
-            <div style={mono}>OWNED ({result.ownedPackIds.length})</div>
-            {result.ownedPackIds.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--pl-muted, #6F6557)', margin: '8px 0 0' }}>
-                Nothing yet. Free-shelf and plan-included packs don&apos;t need rows here.
-              </p>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'grid', gap: 6 }}>
-                {result.ownedPackIds.map((o) => (
-                  <li
-                    key={o.packId}
-                    style={{ display: 'flex', gap: 10, fontSize: 13, alignItems: 'baseline' }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{o.packId}</span>
-                    <span style={{ fontSize: 11, color: 'var(--pl-muted, #6F6557)' }}>
-                      {o.source?.startsWith('admin:') ? `comped, ${o.source.split(':')[1]}` : 'purchased'}
-                      {o.purchasedAt ? ` · ${new Date(o.purchasedAt).toLocaleDateString()}` : ''}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p style={{ fontSize: 13, color: 'var(--pl-muted, #6F6557)', margin: '8px 0 0' }}>
+              Every theme is free for every account now — there is nothing to grant.
+            </p>
           </section>
         </div>
       )}

@@ -3,20 +3,20 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / pearloom/store/ThemeStore.tsx
 //
-// Main Theme Store client surface. Composes:
-//   • Sticky header with brand + search + owned count + cart pill
+// The Theme Gallery client surface (design is free —
+// EDITOR-CALM-PLAN E.1: no cart, no checkout, no ownership;
+// every pack applies in one tap). Composes:
+//   • Sticky header with brand + search
 //   • Editorial hero ("A look for every once-in-a-lifetime day.")
 //     with a featured pack preview
-//   • Sticky filter bar: collection chips (All / Free
-//     / New / 11 collections / My themes) + sort dropdown
+//   • Sticky filter bar: collection chips (All / New /
+//     11 collections) + sort dropdown
 //   • Pack grid (`auto-fill, minmax(290px, 1fr)`)
-//   • <QuickLookModal>, <CartDrawer>, toast pill
+//   • <QuickLookModal>, toast pill
 //
 // Local state:
 //   - search query, active collection chip, sort key, modal target,
-//     cart-open flag, toast message
-//   - ownership comes from useEntitlements() (server)
-//   - cart comes from useCart() (CartProvider, localStorage-backed)
+//     toast message
 //
 // "Apply" handler stashes the pack id under the shared
 // APPLIED_PACK_STASH_KEY ('pl-applied-pack') and navigates to
@@ -36,24 +36,14 @@ import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackCard } from './PackCard';
 import { PackPreview } from './PackPreview';
 import { QuickLookModal } from './QuickLookModal';
-import { CartDrawer } from './CartDrawer';
-import { CartProvider, useCart } from './CartProvider';
-import { useEntitlements } from './useEntitlements';
-import { collectionName, priceLabel } from './utils';
+import { collectionName } from './utils';
 
-type SortKey = 'featured' | 'new' | 'price-lo' | 'price-hi';
-type ChipId =
-  | 'all'
-  | 'free'
-  | 'new'
-  | 'owned'
-  | (typeof COLLECTIONS)[number]['id'];
+type SortKey = 'featured' | 'new';
+type ChipId = 'all' | 'new' | (typeof COLLECTIONS)[number]['id'];
 
 const SORTS: ReadonlyArray<{ id: SortKey; label: string }> = [
   { id: 'featured', label: 'Featured' },
   { id: 'new', label: 'Newest' },
-  { id: 'price-lo', label: 'Price: low to high' },
-  { id: 'price-hi', label: 'Price: high to low' },
 ];
 
 interface FeaturedHeroProps {
@@ -92,7 +82,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
               color: 'var(--lavender-ink, #6B5A8C)',
             }}
           >
-            The Theme Store
+            The Theme Gallery
           </div>
           <h1
             style={{
@@ -122,7 +112,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
             }}
           >
             {PACKS.length} designer theme packs, each a full kit of palette, real material texture,
-            type, motifs and matching components. One tap to own, one tap to dress your site.
+            type, motifs and matching components. Every theme is free — apply one to your site.
           </p>
           <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap' }}>
             {[
@@ -188,7 +178,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
               textTransform: 'uppercase',
             }}
           >
-            ✦ Featured · Signature
+            ✦ Featured
           </span>
           <div
             style={{
@@ -216,15 +206,6 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
               </div>
               <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11.5 }}>Tap to preview</div>
             </div>
-            <span
-              style={{
-                fontFamily: 'var(--pl-font-display, "Fraunces"), Georgia, serif',
-                fontWeight: 700,
-                fontSize: 18,
-              }}
-            >
-              {priceLabel(pack.priceCents)}
-            </span>
           </div>
         </div>
       </div>
@@ -249,19 +230,12 @@ interface OwnedSiteRow {
 
 function StoreInner() {
   const router = useRouter();
-  const { addToCart, hasItem, itemIds } = useCart();
-  const { owned } = useEntitlements();
 
   const [q, setQ] = useState('');
   const [chip, setChip] = useState<ChipId>('all');
   const [sort, setSort] = useState<SortKey>('featured');
   const [look, setLook] = useState<Pack | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
-  // Local ownership shadow — the entitlements API is read-only at
-  // this phase, so when a host taps "Get free" we add the id to a
-  // local set so the card flips to "Apply" without a round-trip.
-  const [implicitFree, setImplicitFree] = useState<ReadonlySet<string>>(() => new Set());
   // Site-picker prompt state — used when the host taps Apply on
   // the standalone store and we don't yet know which of their
   // sites to apply the pack to.
@@ -273,7 +247,7 @@ function StoreInner() {
 
   // The filter bar pins below the sticky header. On desktop the
   // header is 57px tall, but on phones its flex-wrapped contents
-  // grow it to ~3 rows — a hardcoded top: 57 left the chip strip
+  // grow it to ~2 rows — a hardcoded top: 57 left the chip strip
   // pinned underneath it. Measure the real height instead.
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerH, setHeaderH] = useState(57);
@@ -285,14 +259,6 @@ function StoreInner() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-
-  // Owned set combines server entitlements + free unlocks claimed
-  // in this session.
-  const ownedSet = useMemo(() => {
-    const s = new Set<string>(owned);
-    for (const id of implicitFree) s.add(id);
-    return s;
-  }, [owned, implicitFree]);
 
   // Auto-dismiss the toast after 2.6s — matches prototype timing.
   useEffect(() => {
@@ -313,35 +279,29 @@ function StoreInner() {
           collectionName(p.collection).toLowerCase().includes(ql),
       );
     }
-    if (chip === 'free') list = list.filter((p) => p.priceCents === 0);
-    else if (chip === 'new') list = list.filter((p) => p.badges.new);
-    else if (chip === 'owned') list = list.filter((p) => ownedSet.has(p.id));
+    if (chip === 'new') list = list.filter((p) => p.badges.new);
     else if (chip !== 'all') list = list.filter((p) => p.collection === chip);
 
     const sorted = list.slice();
-    if (sort === 'price-lo') sorted.sort((a, b) => a.priceCents - b.priceCents);
-    else if (sort === 'price-hi') sorted.sort((a, b) => b.priceCents - a.priceCents);
-    else if (sort === 'new')
+    if (sort === 'new')
       sorted.sort((a, b) => (b.badges.new ? 1 : 0) - (a.badges.new ? 1 : 0));
     /* 'featured' keeps the catalog's editorial order — the old sort
        ranked by fabricated bestseller flags + invented ratings
        (T.5). */
     return sorted;
-  }, [q, chip, sort, ownedSet]);
+  }, [q, chip, sort]);
 
   const featured = useMemo(
     () => getPackById('midnight-velvet') ?? PACKS[0],
     [],
   );
 
-  // The chip set — All / Free / New / 11 collections / My themes
+  // The chip set — All / New / 11 collections
   const chips: ReadonlyArray<{ id: ChipId; label: string }> = useMemo(
     () => [
       { id: 'all', label: 'All' },
-      { id: 'free', label: 'Free' },
       { id: 'new', label: 'New' },
       ...COLLECTIONS.map((c) => ({ id: c.id, label: c.name })),
-      { id: 'owned', label: 'My themes' },
     ],
     [],
   );
@@ -354,20 +314,6 @@ function StoreInner() {
   const fire = (message: string) => {
     toastIdRef.current += 1;
     setToast({ message, id: toastIdRef.current });
-  };
-
-  const handleAdd = (p: Pack) => {
-    addToCart(p);
-    fire(`${p.name} added to cart`);
-  };
-
-  const handleGetFree = (p: Pack) => {
-    setImplicitFree((prev) => {
-      const next = new Set(prev);
-      next.add(p.id);
-      return next;
-    });
-    fire(`${p.name} added to your themes`);
   };
 
   /**
@@ -530,7 +476,7 @@ function StoreInner() {
               paddingLeft: 18,
             }}
           >
-            Theme Store
+            Theme Gallery
           </span>
           <div className="pl-store-search" style={{ flex: 1, maxWidth: 440, marginInline: 'auto', position: 'relative', minWidth: 200 }}>
             <span
@@ -563,77 +509,12 @@ function StoreInner() {
               aria-label="Search packs"
             />
           </div>
-          <div
-            className="pl-store-owned"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12.5,
-              color: 'var(--pl-ink-soft, #3A332C)',
-            }}
-          >
-            <Icon name="check" size={13} color="var(--sage-deep, #6d7d3f)" /> {ownedSet.size} owned
-          </div>
           <style>{`
             @media (max-width: 600px) {
-              /* Row 1: brand · label · owned (pushed right).
-                 Row 2: search grows + cart beside it — no orphan
-                 cart row. */
-              .pl-store-owned { order: 1; margin-left: auto; }
-              .pl-store-search { order: 2; flex: 1 1 220px; min-width: 0; margin-inline: 0; }
-              .pl-store-cart { order: 3; flex-shrink: 0; }
+              /* Row 1: brand · label. Row 2: search grows full-width. */
+              .pl-store-search { flex: 1 1 220px; min-width: 0; margin-inline: 0; }
             }
           `}</style>
-          <button
-            type="button"
-            className="pl-store-cart"
-            onClick={() => setCartOpen(true)}
-            style={{
-              position: 'relative',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 7,
-              padding: '9px 16px',
-              borderRadius: 999,
-              background: 'var(--pl-ink, #0E0D0B)',
-              color: 'var(--pl-cream, #F5EFE2)',
-              fontSize: 13,
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'transform 180ms ease',
-            }}
-            aria-label={`Open cart with ${itemIds.length} items`}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="9" cy="20" r="1.4" />
-              <circle cx="18" cy="20" r="1.4" />
-              <path d="M3 4h2l2.5 12.5a2 2 0 002 1.5h8.5a2 2 0 002-1.6L21 8H6" />
-            </svg>
-            Cart
-            {itemIds.length > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: -5,
-                  right: -5,
-                  minWidth: 19,
-                  height: 19,
-                  padding: '0 5px',
-                  borderRadius: 999,
-                  background: 'var(--peach-2, #EAB286)',
-                  color: '#5A2E12',
-                  fontSize: 11,
-                  fontWeight: 800,
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                {itemIds.length}
-              </span>
-            )}
-          </button>
         </div>
       </header>
 
@@ -737,7 +618,7 @@ function StoreInner() {
           }}
         >
           {filtered.length} {filtered.length === 1 ? 'pack' : 'packs'}
-          {chip !== 'all' && chip !== 'owned'
+          {chip !== 'all'
             ? ` in ${chips.find((c) => c.id === chip)?.label ?? ''}`
             : ''}
         </div>
@@ -765,17 +646,13 @@ function StoreInner() {
               key={p.id}
               pack={p}
               idx={i}
-              owned={ownedSet.has(p.id)}
-              inCart={hasItem(p.id)}
               onOpen={handleOpen}
-              onAdd={handleAdd}
-              onGetFree={handleGetFree}
               onApply={handleApply}
             />
           );
           /* Browsing everything (no filter, no search) → break the
              ~80-pack wall into collection SECTIONS with editorial
-             headers, so the store reads as a curated craft house
+             headers, so the gallery reads as a curated craft house
              instead of an endless grid. Any active filter/search
              keeps the flat grid (the result set is already small
              and the grouping would just add empty headers). */
@@ -819,18 +696,12 @@ function StoreInner() {
         })()}
       </main>
 
-      {/* QuickLook + Cart overlays */}
+      {/* QuickLook overlay */}
       <QuickLookModal
         pack={look}
-        ownedIds={ownedSet}
         onClose={() => setLook(null)}
         onApply={handleApply}
-        onGetFree={(p) => {
-          handleGetFree(p);
-          setLook(null);
-        }}
       />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
       {/* Site-picker prompt — opens when the host taps Apply but
           owns more than one site. Pure inline overlay so we don't
@@ -1010,18 +881,11 @@ function StoreInner() {
   );
 }
 
-/**
- * Top-level export — wraps the inner store in <CartProvider> so
- * the page mount doesn't have to know about it. The provider is
- * idempotent: nesting it under an existing provider higher in
- * the tree is fine (`useCart()` would still resolve to the
- * nearest one).
- */
 export function ThemeStore() {
   return (
-    <CartProvider>
+    <>
       <StoreFonts />
       <StoreInner />
-    </CartProvider>
+    </>
   );
 }

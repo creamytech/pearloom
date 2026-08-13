@@ -251,40 +251,9 @@ export async function POST(req: NextRequest) {
       console.warn('[api/sites] plan gate check failed (failing open):', gateErr);
     }
 
-    // ── Pack paywall — try-before-you-buy's other half ─────────
-    // Unowned paid packs may be WORN on drafts (the editor applies
-    // them freely); the PUBLISH transition is the gate. Fires only
-    // when the incoming manifest says published && wears a paid
-    // pack the host doesn't own && the existing row isn't already
-    // published — so autosaves are never blocked and a save is
-    // never lost. Fails OPEN on lookup errors (publishing is never
-    // lost to a flaky gate query; the client gate still stands).
-    try {
-      const packId = (manifest?.appliedPackId as string | undefined) ?? null;
-      if (packId && Boolean(manifest?.published)) {
-        const { getPackById } = await import('@/lib/theme-store/packs');
-        const pack = getPackById(packId);
-        if (pack && pack.priceCents > 0) {
-          const gateDb = getSupabase();
-          const { data: existingRow } = gateDb
-            ? await gateDb.from('sites').select('ai_manifest').eq('subdomain', subdomain).maybeSingle()
-            : { data: null };
-          const alreadyPublished = Boolean((existingRow?.ai_manifest as { published?: boolean } | null)?.published);
-          if (!alreadyPublished) {
-            const { userOwnsPack } = await import('@/lib/theme-store/entitlements');
-            const owns = await userOwnsPack(session.user.email, packId);
-            if (!owns) {
-              return NextResponse.json({
-                error: `This site is wearing ${pack.name}. Unlock it to publish, or switch to a free look in the Theme panel.`,
-                packGate: { id: pack.id, name: pack.name, priceCents: pack.priceCents },
-              }, { status: 402 });
-            }
-          }
-        }
-      }
-    } catch (packGateErr) {
-      console.warn('[api/sites] pack gate check failed (failing open):', packGateErr);
-    }
+    // The pack publish paywall lived here until 2026-08-13 — design
+    // is FREE now (EDITOR-CALM-PLAN E.1): every pack publishes for
+    // everyone. `manifest.appliedPackId` stays as provenance only.
 
     // If the manifest carries a templateId, layer the rich template
     // (motifs, blockOrder, hiddenBlocks, theme fallback, poetry fallback)

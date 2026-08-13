@@ -76,6 +76,8 @@ function toEntitlement(row: PurchaseRow): Entitlement {
   };
 }
 
+/** Every pack, as an implicit entitlement (FREE_PACK_IDS is the
+ *  whole catalog since E.1). */
 function syntheticFreeEntitlements(userEmail: string): Entitlement[] {
   return FREE_PACK_IDS.map((packId) => ({
     userId: userEmail,
@@ -84,138 +86,43 @@ function syntheticFreeEntitlements(userEmail: string): Entitlement[] {
   }));
 }
 
-// ─── Plan-tier grants (restructured 2026-08-04) ──────────────
+// ─── Grants (FREE DESIGN — EDITOR-CALM-PLAN E.1, 2026-08-13) ──
 //
-// DESIGN IS NOT THE PAYWALL. All three external reviews landed on
-// the same finding independently: gating the theme catalog
-// sabotages the acquisition loop, because every published free site
-// is the marketing. A mediocre free Pearloom site costs more in
-// word-of-mouth than the à-la-carte shelf ever earned. So the old
-// decoy economics (two premium packs cost more than the plan) are
-// retired — see docs/REVIEW-SYNTHESIS.md §1.3 + §2.2.
-//
-//   • Page (free) → the free shelf AND the whole premium shelf.
-//     55 of 75 packs, no upgrade, no purchase.
-//   • Pass ($89)  → adds the signature shelf (foil/dark treatments,
-//     exclusive kits, licensed display faces) — a small paid-tier
-//     shelf that keeps the Pass feeling rich without making the
-//     free tier look poor.
-//   • Keepsake    → the same full catalog (rank ≥ Pass).
-//
-// Signature packs remain individually purchasable, so a Page host
-// who wants exactly one can still buy it.
-//
-// Plan strings come from public.user_plans via getUserPlan and use
-// the canonical names in src/lib/plan-gate.ts (free/pro/premium),
-// which also accept both the new (page/pass/keepsake) and retired
-// (journal/atelier/legacy) marketing aliases.
+// DESIGN IS FREE. ALL OF IT. The 2026-08-04 restructure freed 55
+// of 75 packs and kept a paid "signature shelf" on the Pass; the
+// owner's 2026-08-13 decision finishes the thought: every pack,
+// for every account, no purchase, no plan rank. Money buys
+// capacity (sites/guests/photos/Pear — src/lib/plan-gate.ts),
+// never the look. theme_pack_purchases stays as purchase HISTORY
+// only; nothing reads it for access anymore.
 
-/** Everything below the signature shelf — free for every account. */
-const OPEN_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier !== 'signature').map((p) => p.id);
-/** The whole catalog — granted from Pass upward. */
+/** The whole catalog — granted to everyone. */
 const ALL_PACK_IDS: readonly string[] = PACKS.map((p) => p.id);
 
-/** Pack ids granted by a plan, beyond the free shelf. */
-export function planGrantedPackIds(plan: string | null | undefined): readonly string[] {
-  // Rank-based so every alias (canonical, new, and retired) resolves.
-  if (isPlanSufficient(plan ?? 'free', 'pro')) return ALL_PACK_IDS;
-  return OPEN_PACK_IDS;
-}
-
-/**
- * Look up the user's plan and return its granted pack ids.
- * Fails closed (no grants) on any DB error — a transient outage
- * should never hand out the catalog, and real purchases are
- * still honored via theme_pack_purchases.
- */
-async function planGrantsFor(userEmail: string): Promise<Entitlement[]> {
-  try {
-    const planRow = await getUserPlan(userEmail);
-    return planGrantedPackIds(planRow?.plan).map((packId) => ({
-      userId: userEmail,
-      packId,
-      purchasedAt: null,
-    }));
-  } catch {
-    return [];
-  }
+/** Pack ids granted by a plan: the whole catalog, always. Kept as
+ *  a function so callers don't churn; the plan arg is ignored. */
+export function planGrantedPackIds(_plan: string | null | undefined): readonly string[] {
+  return ALL_PACK_IDS;
 }
 
 // ─── Reads ───────────────────────────────────────────────────
 
 /**
- * All packs a user is entitled to — real Stripe purchases plus
- * the free tier folded in. Deduped by pack id so a free pack
- * that somehow ended up in the purchases table only shows once.
- *
- * Returns an empty array (plus the free tier) on DB error so
- * the store keeps rendering — the free packs are still useful.
+ * All packs a user is entitled to — the whole catalog, always
+ * (FREE DESIGN, E.1). No DB round-trip: entitlement is universal,
+ * so the answer is static.
  */
 export async function getUserEntitlements(userEmail: string): Promise<Entitlement[]> {
   const email = normalizeEmail(userEmail);
-  const supabase = getSupabase();
-
-  const { data, error } = await supabase
-    .from('theme_pack_purchases')
-    .select('user_email, pack_id, purchased_at, stripe_session_id')
-    .eq('user_email', email);
-
-  if (error) {
-    console.error('[theme-store] getUserEntitlements error:', error.message);
-    return syntheticFreeEntitlements(email);
-  }
-
-  const purchased: Entitlement[] = (data ?? []).map((r) => toEntitlement(r as PurchaseRow));
-  const purchasedIds = new Set(purchased.map((e) => e.packId));
-
-  // Fold in free-tier implicit ownership for any pack the user
-  // hasn't already paid for. (A free pack with a real purchase
-  // row is unusual — we keep the real row since it carries the
-  // purchasedAt timestamp.)
-  const implicit = syntheticFreeEntitlements(email).filter((e) => !purchasedIds.has(e.packId));
-
-  // Fold in plan-tier grants (Atelier → premium shelf, Legacy →
-  // everything). Synthetic like the free tier — no purchase row.
-  const seen = new Set([...purchasedIds, ...implicit.map((e) => e.packId)]);
-  const planGrants = (await planGrantsFor(email)).filter((e) => !seen.has(e.packId));
-
-  return [...purchased, ...implicit, ...planGrants];
+  return syntheticFreeEntitlements(email);
 }
 
 /**
- * Single-pack ownership check. Used by /api/theme-store/apply
- * and the pack card "Apply" / "Buy" branch. Free packs always
- * return true without a DB round-trip.
+ * Single-pack ownership check. Everyone owns everything (FREE
+ * DESIGN, E.1). Kept so callers don't churn.
  */
-export async function userOwnsPack(userEmail: string, packId: string): Promise<boolean> {
-  if (isPackFree(packId)) return true;
-
-  const email = normalizeEmail(userEmail);
-
-  // Plan-tier grant — Atelier covers the premium shelf, Legacy
-  // covers everything. Checked before the purchase row so plan
-  // holders skip the extra query.
-  try {
-    const planRow = await getUserPlan(email);
-    if (planGrantedPackIds(planRow?.plan).includes(packId)) return true;
-  } catch {
-    /* fall through to the purchase-row check */
-  }
-
-  const supabase = getSupabase();
-
-  const { data, error } = await supabase
-    .from('theme_pack_purchases')
-    .select('id')
-    .eq('user_email', email)
-    .eq('pack_id', packId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('[theme-store] userOwnsPack error:', error.message);
-    return false;
-  }
-  return data !== null;
+export async function userOwnsPack(_userEmail: string, _packId: string): Promise<boolean> {
+  return true;
 }
 
 // ─── Writes ──────────────────────────────────────────────────

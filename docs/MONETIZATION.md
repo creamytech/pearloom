@@ -1,4 +1,4 @@
-# Pearloom monetization — restructured 2026-08-04
+# Pearloom monetization — restructured 2026-08-04 · design freed 2026-08-13
 
 > The single source of truth for how Pearloom makes money. If a
 > surface (pricing page, store, upgrade gate) contradicts this doc,
@@ -15,8 +15,9 @@
 
 Pearloom sells **one-time passes per celebration** — never a
 subscription; that promise is load-bearing on the landing page. The
-free tier is deliberately generous and **carries the whole standard
-theme catalog**, because every published free site is the marketing.
+free tier is deliberately generous and **carries the whole theme
+catalog — all of it**, because every published free site is the
+marketing.
 What the ladder gates is **operational power**: coordination across
 linked events, collaboration with co-hosts, communication volume,
 guest scale, and long-term preservation. It never gates how good a
@@ -34,7 +35,6 @@ site looks.
 | Photos | 50 | 500 | Unlimited |
 | Drafts by Pear | 15 a month | Unlimited | Unlimited |
 | Co-hosts | 1 | Unlimited | Unlimited |
-| Theme catalog | **All standard packs** | + the signature shelf | + the signature shelf |
 | Memorials | Always free on every tier (Pear's promise) | | |
 
 ¹ **Retired names, still honored.** `user_plans` was NOT migrated —
@@ -67,13 +67,14 @@ Source of truth for limits: `src/lib/plan-gate.ts` (`PLAN_LIMITS`).
 Source of truth for prices: `src/lib/plan-gate.ts`
 (`PLAN_PRICE_CENTS`, `ARCHIVE_RENEWAL_CENTS`) — the checkout route
 imports them so the till and the gate cannot drift.
-Source of truth for pack grants:
-`src/lib/theme-store/entitlements.ts` → `planGrantedPackIds()`.
+Design has NO grants to track: every pack is free for every
+account (`planGrantedPackIds()` returns the whole catalog
+unconditionally — kept only so callers don't churn).
 The agreement fence: `src/lib/pricing-agreement.test.ts` asserts
 PLAN_LIMITS ⇄ the pricing page ⇄ this doc all carry the same
 numbers — if you change one, the suite makes you change the others.
 
-## 3 · Why design is free now
+## 3 · Why design is free now — all of it
 
 The old model made the theme shelf the paywall and used à-la-carte
 pack prices as a decoy (two premium packs cost more than the plan).
@@ -81,15 +82,17 @@ All three external reviewers independently rejected it:
 
 > *"A mediocre free Pearloom site actively hurts you."*
 
-In a product whose growth loop runs through guests seeing a host's
-site, a crippled free tier costs more in word-of-mouth than the
-shelf ever earned. So:
-
-- **55 of 75 packs are free to everyone** (the free + premium tiers).
-- **20 signature packs** (foil/dark treatments, exclusive kits,
-  licensed display faces) ride with the Pass — a small paid shelf
-  that keeps the Pass feeling rich without making Page look poor.
-  They remain individually purchasable for a Page host who wants one.
+The 2026-08-04 restructure freed 55 of 75 packs and kept a 20-pack
+"signature shelf" on the Pass. The owner's 2026-08-13 decision
+(EDITOR-CALM-PLAN E.1) finished the thought: **every pack, kit,
+texture, wallpaper, motif, and motion finish is free for every
+account.** Money buys capacity — sites, guests, photos, Pear's
+drafting, co-hosts — never the look. The store survives as a free
+Theme Gallery (browsing + apply); its cart, checkout, and the
+publish-time pack gate are deleted. Fence:
+`src/lib/free-design.test.ts` + the design-claim ban inside
+`pricing-agreement.test.ts` (no paid card may mention themes,
+shelves, or packs).
 
 ## 4 · The archive fee, and the "not a subscription" promise
 
@@ -122,9 +125,8 @@ Memorials are exempt from every tier limit and from the archive fee.
 | Marketing pricing tiers | `src/components/marketing/design/DesignPricing.tsx` |
 | Plan limits, ranks, prices, aliases | `src/lib/plan-gate.ts` |
 | Guest-capacity enforcement (the choke point) | `src/lib/plan-gate.ts` → `checkGuestCapacity` |
-| Site-count + pack-publish gates | `src/app/api/sites/route.ts` |
-| Pack catalog + tier derivation | `src/lib/theme-store/packs.ts` |
-| Plan → pack grants | `src/lib/theme-store/entitlements.ts` |
+| Site-count gate | `src/app/api/sites/route.ts` |
+| Pack catalog (all free) | `src/lib/theme-store/packs.ts` |
 | Entitlements API | `src/app/api/store/entitlements/route.ts` |
 | Plan checkout (the till) | `src/app/api/billing/checkout/route.ts` |
 | Plan grant on payment | `src/app/api/stripe/webhook/route.ts` |
@@ -153,6 +155,13 @@ Memorials are exempt from every tier limit and from the archive fee.
   retail prices and margins as live — a doc drift caught in the
   2026-08-04 platform audit.)*
 - **The à-la-carte decoy store** (§3).
+- **The signature shelf + the whole design paywall** (2026-08-04 →
+  2026-08-13). The 20-pack paid shelf, the publish-time 402 pack
+  gate (both routes), the store's cart/checkout/success flow, the
+  "$19 Atelier" motion stub, priced decor items and wallpapers, and
+  the marketplace's paid design types are all retired — design is
+  free, entirely (EDITOR-CALM-PLAN E.1). `theme_pack_purchases` and
+  `marketplace_purchases` stay as historical records only.
 
 ## 8 · Open
 

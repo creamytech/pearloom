@@ -21,8 +21,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { getStripe } from '@/lib/stripe/client';
-import { addEntitlement } from '@/lib/theme-store/entitlements';
-import { getPackById } from '@/lib/theme-store/packs';
 
 export const dynamic = 'force-dynamic';
 // Stripe needs the raw body for signature verification.
@@ -408,64 +406,14 @@ async function handlePaymentFailed(supabase: Sb, intent: Stripe.PaymentIntent) {
     .eq('stripe_payment_intent_id', intent.id);
 }
 
-// ── Theme-Store pack purchases ────────────────────────────────
+// ── Theme-Store pack purchases — RETIRED 2026-08-13 ─────────
 //
-// Parses metadata.packIds (JSON-stringified array set by
-// /api/store/checkout) and grants one entitlement per pack via
-// the service-role-backed addEntitlement(). Idempotent — the
-// upsert in addEntitlement is keyed by stripe_session_id, so
-// retries are a no-op.
-//
-// Skips packs that aren't in the catalog or are free-tier
-// (those are implicit ownership — no row needed). Throws on
-// DB error so Stripe retries.
+// Design is free (EDITOR-CALM-PLAN E.1): /api/store/checkout is
+// deleted and no new sessions carry this metadata. The handler
+// stays as a benign acknowledgment so a late Stripe retry of a
+// pre-E.1 session is logged, never 500'd into endless retries.
 
 async function handleThemePackPurchase(session: Stripe.Checkout.Session) {
-  const meta = session.metadata || {};
-  const userEmail = meta.userEmail || session.customer_details?.email || session.customer_email;
-  if (!userEmail) {
-    console.warn('[stripe/webhook] theme_pack_purchase missing userEmail', session.id);
-    return;
-  }
-
-  let packIds: string[] = [];
-  try {
-    const parsed = JSON.parse(meta.packIds || '[]');
-    if (Array.isArray(parsed)) {
-      packIds = parsed.filter((x): x is string => typeof x === 'string');
-    }
-  } catch (err) {
-    console.error('[stripe/webhook] theme_pack_purchase bad packIds JSON:', err);
-    return;
-  }
-
-  if (packIds.length === 0) {
-    console.warn('[stripe/webhook] theme_pack_purchase no packIds', session.id);
-    return;
-  }
-
-  const amountTotal = session.amount_total ?? 0;
-  // Per-pack amount: in mixed-price carts we'd need to look up
-  // line items; the per-pack catalog price is the source of truth
-  // anyway, so prefer that. Falls back to even split if catalog
-  // misses (defensive — shouldn't happen).
-  for (const packId of packIds) {
-    const pack = getPackById(packId);
-    if (!pack) {
-      console.warn('[stripe/webhook] theme_pack_purchase unknown packId:', packId);
-      continue;
-    }
-    if (pack.tier === 'free') {
-      // Free packs don't need a row — implicit ownership.
-      continue;
-    }
-    const perPackAmount = pack.priceCents || Math.round(amountTotal / packIds.length);
-    // addEntitlement upserts on stripe_session_id; for multi-pack
-    // sessions we synthesise per-pack ids so each pack gets its own
-    // row (otherwise the second pack would collide on the unique
-    // index and be skipped).
-    const perPackSessionKey = packIds.length === 1 ? session.id : `${session.id}:${packId}`;
-    await addEntitlement(userEmail, packId, perPackSessionKey, perPackAmount);
-  }
+  console.log('[stripe/webhook] theme_pack_purchase (legacy, design is free now) acknowledged:', session.id);
 }
 

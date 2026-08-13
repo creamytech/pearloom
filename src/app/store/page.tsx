@@ -4,9 +4,9 @@ import { ThemeStore } from '@/components/pearloom/store/ThemeStore';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Theme Store · Pearloom',
+  title: 'Theme Gallery · Pearloom',
   description:
-    'Designer theme packs for every once-in-a-lifetime day. Palette, texture, type, motifs and matching components, woven into a kit. One tap to own, one tap to dress your site.',
+    'Designer themes for every once-in-a-lifetime day — palette, texture, type, motifs and matching components, woven into a kit. Every one is free. One tap to dress your site.',
 };
 
 export default function ThemeStorePage() {

@@ -3,7 +3,44 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## One Surface shipped — 2026-08-13 (Sprint N complete)
+## Active focus
+
+**Sprint E — THE CALM EDITOR** (`docs/EDITOR-CALM-PLAN.md`).
+Owner brief: simplify the editor and panels; no paywalls for
+themes and design — "do it all."
+
+Goal: design is free (money buys capacity, never the look); one
+home per decision; doors, not warehouses; depth ≤ 2; the doc is
+the registry.
+
+Open threads: E.1 FREE DESIGN (tier system collapsed at
+packs.ts:351; both publish 402 gates + PublishModal wall deleted;
+EditorThemeShop try-on machinery → plain Apply; Studio shelf
+flat; the $19 Atelier stub dies; store → free Theme Gallery, cart
+and checkout retired; copy/docs/fences flip in the SAME
+change-set; free-design.test.ts is the new fence) · E.2 ONE HOME
+PER DECISION (NavPanel/FooterPanel/RailLayoutRow/GuestbookPanel/
+eyebrow fields/SectionVisibilityFooter×28/EventTypeChip culled;
+sections own their data — Bachelor/Memorial slim to launchpads;
+reorder ×4→×2) · E.3 THE CALM DESIGN TAB (desktop adopts the
+door model; ≤25 controls at first paint; Cards & motion door
+fixes the kitId collision via manifest.motionKit + read-time
+fallback; Decor becomes a full catalog surface) · E.4 CONTENT
+DEPTH ≤2 (More… disclosures promoted or died; no details inside
+phone deck cards; tool panels get their phone header back; rail
+rows become real buttons) · E.5 registry + fences (CLAUDE-DESIGN
+§7 rewritten; panel-count fence; door-count pin).
+
+Counts as done: §5 of the plan stamped per block; every block
+green on tsc/eslint/vitest/build + a live editor walk; capacity
+paywalls untouched (sites/guests/photos/Pear).
+
+Skip: shared-element morphs; any change to plan-gate capacity
+logic; the C.5 rollout.
+
+---
+
+**One Surface shipped — 2026-08-13 (Sprint N complete).**
 
 **`docs/COHESION-PLAN.md` is fully executed** (N.1–N.4 stamped in
 §5). The product now behaves like one app: inside it, navigation

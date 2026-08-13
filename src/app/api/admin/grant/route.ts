@@ -89,26 +89,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, email, plan });
       }
 
-      case 'grant-pack': {
-        const pack = body.packId ? getPackById(body.packId) : undefined;
-        if (!pack) {
-          return NextResponse.json({ error: `Unknown packId "${body.packId ?? ''}"` }, { status: 400 });
-        }
-        await addEntitlement(email, pack.id, `admin:${adminEmail}:${Date.now()}`, 0);
-        console.log(`[admin/grant] ${adminEmail} granted pack=${pack.id} to ${email}`);
-        return NextResponse.json({ ok: true, email, packId: pack.id });
-      }
-
+      case 'grant-pack':
       case 'grant-all-packs': {
-        const paid = PACKS.filter((p) => p.tier !== 'free');
-        const stamp = Date.now();
-        for (const pack of paid) {
-          // Sequential on purpose — 60-odd upserts, and Supabase
-          // connection limits beat a marginal latency win.
-          await addEntitlement(email, pack.id, `admin:${adminEmail}:${stamp}:${pack.id}`, 0);
-        }
-        console.log(`[admin/grant] ${adminEmail} granted ALL ${paid.length} paid packs to ${email}`);
-        return NextResponse.json({ ok: true, email, granted: paid.length });
+        // Design is free (EDITOR-CALM-PLAN E.1) — every account
+        // already holds the whole catalog; there is nothing to
+        // grant. Acknowledged so old admin bookmarks don't 500.
+        return NextResponse.json({ ok: true, email, note: 'Every theme is free now — nothing to grant.' });
       }
 
       default:

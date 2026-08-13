@@ -70,7 +70,7 @@ export type Texture =
   | 'slate'    // honed dark stone wash
   | 'tweed';   // woven flecked wool
 
-/** Exclusive material set — store UI badges these. */
+/** Pack-signature material set — these arrive with their packs. */
 export const EXCLUSIVE_TEXTURES: ReadonlySet<Texture> = new Set(['silk', 'flecked', 'washi', 'slate', 'tweed'] as Texture[]);
 
 export type Pattern =
@@ -148,17 +148,17 @@ export type Kit =
   | 'gallery'
   | 'menu'
   | 'glass'
-  /* ── PACK-EXCLUSIVE kits (2026-06-13) — never listed by the
-     editor's or fitting room's kit pickers; the only way to wear
-     one is to apply (and own) a pack that carries it. That's the
-     store's value: looks the free settings can't reproduce. */
+  /* ── PACK-SIGNATURE kits (2026-06-13; free since E.1) — never
+     listed by the editor's or fitting room's kit pickers; they
+     arrive by applying a pack that carries them. They're each
+     pack's signature, not a paywall. */
   | 'gilt'
   | 'atelier'
   | 'cabinet'
   | 'scallop'
   | 'noir';
 
-/** The exclusive set — store UI badges these "only with this pack". */
+/** The pack-signature set — worn by applying the pack that carries them. */
 export const EXCLUSIVE_KITS: ReadonlySet<Kit> = new Set(['gilt', 'atelier', 'cabinet', 'scallop', 'noir'] as Kit[]);
 
 export type CollectionId =
@@ -348,9 +348,14 @@ function mk(o: MkInput): Pack {
     '--t-shadow':
       o.shadow || (dark ? '0 16px 40px rgba(0,0,0,0.42)' : '0 10px 26px rgba(40,40,30,0.08)'),
   };
-  const priceDollars = o.price || 0;
-  const priceCents = priceDollars * 100;
-  const tier: Tier = priceDollars === 0 ? 'free' : priceDollars >= 20 ? 'signature' : 'premium';
+  /* FREE DESIGN (EDITOR-CALM-PLAN E.1, owner decision 2026-08-13):
+     every pack is free for everyone — money buys capacity, never
+     the look. The old `price` args on the catalog entries are kept
+     as historical metadata in the calls but are IGNORED here; the
+     tier system they derived is collapsed. */
+  void o.price;
+  const priceCents = 0;
+  const tier: Tier = 'free';
   const texture: Texture = o.texture || 'none';
   const pattern: Pattern = o.pattern || 'none';
   const motif: Motif = o.motif || 'none';

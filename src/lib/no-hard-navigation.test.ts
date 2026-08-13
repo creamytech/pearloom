@@ -18,11 +18,10 @@ import { join } from 'node:path';
 
 /** Files allowed to hard-navigate, each for a named reason. */
 const HARD_ON_PURPOSE = [
+  // (Three E.1 departures: EditorThemeShop, PublishModal, and
+  //  CartDrawer lost their Stripe redirects when design went free.)
   'src/app/gate/page.tsx',                                  // httpOnly gate cookie → fresh document
-  'src/components/pearloom/editor/EditorThemeShop.tsx',     // Stripe checkout (external origin)
-  'src/components/shared/PublishModal.tsx',                 // Stripe checkout (external origin)
   'src/components/guest-experience/WalletPassCard.tsx',     // wallet save URL (external origin)
-  'src/components/pearloom/store/CartDrawer.tsx',           // Stripe checkout (external origin)
   'src/components/marketing/design/dash/DashSettings.tsx',  // Stripe checkout (external origin)
   'src/app/upgrade/UpgradeClient.tsx',                      // Stripe checkout (external origin)
 ];

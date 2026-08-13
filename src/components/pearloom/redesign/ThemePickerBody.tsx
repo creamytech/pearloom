@@ -1026,30 +1026,27 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 9 }}>
         ✦ Motion · Atelier
       </div>
-      {/* Hero upsell banner */}
+      {/* The intro banner. This carried an "Unlock Atelier, $19"
+          pre-checkout STUB until 2026-08-13 — design is free
+          (EDITOR-CALM-PLAN E.1); the button is a plain motion
+          on/off for this site (manifest.atelier). */}
       <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 14, background: 'linear-gradient(135deg, #2A2416, #4A3A1C)', padding: '16px 14px', position: 'relative' }}>
         {/* .pl-atelier-sheen — class, not inline animation, so the
             sweep sits behind the reduced-motion media guard. */}
         <div aria-hidden className="pl-atelier-sheen" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Atelier · Motion</div>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Motion</div>
           <div className="display" style={{ fontSize: 20, color: '#FBF1DC', lineHeight: 1.1, marginBottom: 6 }}>{premium ? 'Your site is alive.' : 'Bring your site to life.'}</div>
           <div style={{ fontSize: 11.5, color: 'rgba(243,236,217,0.75)', lineHeight: 1.5, marginBottom: 13 }}>
-            {premium ? 'Every motion kit is unlocked for this site. Tap one to apply it.' : 'Eight living finishes, neon, foil, candlelight and more. One unlock, this site forever.'}
+            {premium ? 'Motion is on for this site. Tap a finish to apply it.' : 'Eight living finishes, neon, foil, candlelight and more. Free, like everything else.'}
           </div>
-          {/* NOTE the $19 unlock is the pre-checkout stub phase theme
-              packs shipped through — real checkout lands via the same
-              Stripe path (pl-store-owned + the publish paywall). Until
-              then the click enables motion for THIS site. Once on, the
-              button is an explicit toggle — the old "Manage" label
-              silently revoked the unlock on click. */}
           <button
             type="button"
             onClick={() => setPremium(!premium)}
             className="lift"
             style={{ padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: premium ? 'rgba(251,241,220,0.16)' : '#E6C877', color: premium ? '#FBF1DC' : '#241a08' }}
           >
-            {premium ? 'Turn motion off' : 'Unlock Atelier, $19'}
+            {premium ? 'Turn motion off' : 'Turn motion on'}
           </button>
         </div>
       </div>
@@ -1060,7 +1057,6 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
           return (
             <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 9, borderRadius: 11, border: on ? '1px solid var(--gold)' : '1px solid var(--line)', background: on ? 'color-mix(in srgb, var(--gold) 12%, var(--card))' : 'var(--card)' }}>
               <span aria-hidden style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: `linear-gradient(135deg, ${k.sw[0]}, ${k.sw[1]})`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)', position: 'relative' }}>
-                {!premium && <span style={{ position: 'absolute', right: -3, bottom: -3, width: 14, height: 14, borderRadius: '50%', background: 'var(--gold)', color: '#241a08', fontSize: 8, display: 'grid', placeItems: 'center', fontWeight: 800 }}>✦</span>}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{k.name}</div>
@@ -1081,7 +1077,7 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
       </div>
       {!premium && (
         <div style={{ fontSize: 10.5, color: 'var(--gold-ink, var(--ink-muted))', fontStyle: 'italic', textAlign: 'center', marginTop: 12, lineHeight: 1.5 }}>
-          Applying shows the still preview on your canvas. Unlock to set it in motion.
+          Applying shows the still preview on your canvas. Turn motion on to set it moving.
         </div>
       )}
     </div>

@@ -1,12 +1,14 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / pearloom/store/utils.ts
 //
-// Shared helpers for the Theme Store surface. Mirrors the
-// prototype's `priceLabel`, `fontName`, `collName`, and the
-// rotating SAMPLE_NAMES array used by PackPreview vignettes.
+// Shared helpers for the Theme Gallery surface. Mirrors the
+// prototype's `fontName`, `collName`, and the rotating
+// SAMPLE_NAMES array used by PackPreview vignettes.
+// (priceLabel/tierLabel retired with the shop — design is free,
+// EDITOR-CALM-PLAN E.1.)
 // ─────────────────────────────────────────────────────────────
 
-import { COLLECTIONS, type CollectionId, type Pack, type Tier } from '@/lib/theme-store/packs';
+import { COLLECTIONS, type CollectionId, type Pack } from '@/lib/theme-store/packs';
 
 /** Eight rotating couple-name pairs used in pack preview vignettes. */
 export const SAMPLE_NAMES: ReadonlyArray<readonly [string, string]> = [
@@ -19,15 +21,6 @@ export const SAMPLE_NAMES: ReadonlyArray<readonly [string, string]> = [
   ['Lucia', 'Sam'],
   ['Nora', 'Eli'],
 ];
-
-export function priceLabel(cents: number): string {
-  if (cents === 0) return 'Free';
-  return '$' + Math.round(cents / 100);
-}
-
-export function tierLabel(tier: Tier): string {
-  return tier === 'free' ? 'Free' : tier === 'premium' ? 'Premium' : 'Signature';
-}
 
 /** Lookup a collection display name; falls back to id string. */
 export function collectionName(id: CollectionId | string): string {

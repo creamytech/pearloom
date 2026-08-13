@@ -46,17 +46,14 @@ describe('theme pack catalog', () => {
     expect(dupes, `duplicate look recipes:\n${dupes.join('\n')}`).toEqual([]);
   });
 
-  it('pack-exclusive materials never ship on free packs', () => {
-    const leaks: string[] = [];
+  it('every pack is free — the tier system stays collapsed (E.1)', () => {
+    // The old test here kept pack-exclusive materials OFF free packs
+    // ("the exclusives exist to make paid packs worth paying for") —
+    // that policy is retired: pack-signature materials are each
+    // pack's signature, not bait, and every pack is free.
     for (const p of PACKS) {
-      if (p.tier !== 'free') continue;
-      if (EXCLUSIVE_KITS.has(p.kit)) leaks.push(`${p.id}: kit ${p.kit}`);
-      if (EXCLUSIVE_TEXTURES.has(p.texture)) leaks.push(`${p.id}: texture ${p.texture}`);
-      if (EXCLUSIVE_PATTERNS.has(p.pattern)) leaks.push(`${p.id}: pattern ${p.pattern}`);
-      if (EXCLUSIVE_MOTIFS.has(p.motif)) leaks.push(`${p.id}: motif ${p.motif}`);
-      if (p.divider && EXCLUSIVE_DIVIDERS.has(p.divider)) leaks.push(`${p.id}: divider ${p.divider}`);
-      if (p.monogramFrame && EXCLUSIVE_MONOGRAMS.has(p.monogramFrame)) leaks.push(`${p.id}: monogram ${p.monogramFrame}`);
+      expect(p.tier, `${p.id} carries a paid tier`).toBe('free');
+      expect(p.priceCents, `${p.id} carries a price`).toBe(0);
     }
-    expect(leaks, `exclusives on free packs:\n${leaks.join('\n')}`).toEqual([]);
   });
 });

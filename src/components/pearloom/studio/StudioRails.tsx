@@ -7,7 +7,7 @@
 //   - RemixRail (right): Design / Copy / Pear tabs
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
@@ -20,7 +20,6 @@ import { AssetGlyph } from './StudioAssetGlyph';
 import { PearThinking } from '../pear-thinking';
 import { PlColorPicker } from '../redesign/PlColorPicker';
 import { PACKS } from '@/lib/theme-store/packs';
-import { useEntitlements } from '../store/useEntitlements';
 import { isPackLookId, packFromLookId, packLookId, packStudioTexture } from './studio-theme-packs';
 
 // Editorial chrome tokens — the .pl8 handoff family (cockpit.tsx /
@@ -822,17 +821,11 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
    The store's pack catalog inside the Colors group. Owned packs
    (purchases + the free tier) press onto the card in one tap —
    colors, faces, AND the pack's paper grain together, since a
-   pack is one designed object. Locked packs list quietly with a
-   store link; nothing applies without ownership (one purchase
-   covers site + stationery — STUDIO-PLAN §7 Q1). */
+   pack is one designed object. Every pack presses for everyone —
+   design is free (EDITOR-CALM-PLAN E.1); the locked "In the
+   store" rows are gone. */
 function PackShelf({ state, setField }: { state: StudioState; setField: SetStudioField }) {
-  const { owned } = useEntitlements();
   const activePack = packFromLookId(state.palette);
-  /* Owned first (they're pressable), catalog order within groups. */
-  const { own, locked } = useMemo(() => ({
-    own: PACKS.filter((p) => owned.has(p.id)),
-    locked: PACKS.filter((p) => !owned.has(p.id)),
-  }), [owned]);
 
   function pressPack(packId: string) {
     const pack = packFromLookId(packLookId(packId));
@@ -863,7 +856,7 @@ function PackShelf({ state, setField }: { state: StudioState; setField: SetStudi
         Theme packs{activePack ? ` · ${activePack.name}` : ''}
       </summary>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-        {own.map((p) => {
+        {PACKS.map((p) => {
           const on = state.palette === packLookId(p.id);
           return (
             <button
@@ -880,25 +873,6 @@ function PackShelf({ state, setField }: { state: StudioState; setField: SetStudi
             </button>
           );
         })}
-        {locked.length > 0 && (
-          <>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '6px 0 0 2px' }}>
-              In the store
-            </div>
-            {locked.map((p) => (
-              <Link
-                key={p.id}
-                href="/store"
-                title={`${p.blurb} Unlock it in the store; it covers the site and the stationery.`}
-                style={{ ...rowStyle(false), opacity: 0.72, textDecoration: 'none' }}
-              >
-                {swatchStrip(p.swatches)}
-                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-muted)', flexShrink: 0 }}>Unlock</span>
-              </Link>
-            ))}
-          </>
-        )}
       </div>
     </details>
   );

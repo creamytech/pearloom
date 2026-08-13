@@ -266,7 +266,7 @@ describe('POST /api/sites/publish — ownership gate', () => {
   });
 });
 
-describe('POST /api/sites/publish — pack paywall', () => {
+describe('POST /api/sites/publish — design is free (E.1)', () => {
   beforeEach(() => {
     h.reset();
     h.publishSiteMock.mockClear();
@@ -277,39 +277,13 @@ describe('POST /api/sites/publish — pack paywall', () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
   });
 
-  it('402 when publishing a site wearing an unowned paid pack — and publishSite is NOT called', async () => {
-    h.queue('sites.maybeSingle', null); // fresh slug, ownership ok
-    // theme_pack_purchases.maybeSingle returns null (nothing queued)
-    // → the host doesn't own the pack.
+  it('a site wearing ANY pack publishes — the pack paywall is gone', async () => {
+    // The 402 pack gate lived here until 2026-08-13 (EDITOR-CALM-
+    // PLAN E.1). Every pack is free; no ownership row is consulted.
+    h.queue('sites.maybeSingle', null);
     const res = await POST(postReq({
       subdomain: 'wearing-velvet',
       manifest: { ...fixtureManifest, appliedPackId: 'midnight-velvet' },
-      names: ['A', 'B'],
-    }));
-    expect(res.status).toBe(402);
-    const json = await res.json();
-    expect(json.packGate?.id).toBe('midnight-velvet');
-    // The whole point: the paywall stops the write.
-    expect(h.publishSiteMock).not.toHaveBeenCalled();
-  });
-
-  it('200 when the worn paid pack is owned (purchase row present)', async () => {
-    h.queue('sites.maybeSingle', null);
-    h.queue('theme_pack_purchases.maybeSingle', { id: 'purchase-1' });
-    const res = await POST(postReq({
-      subdomain: 'owns-velvet',
-      manifest: { ...fixtureManifest, appliedPackId: 'midnight-velvet' },
-      names: ['A', 'B'],
-    }));
-    expect(res.status).toBe(200);
-    expect(h.publishSiteMock).toHaveBeenCalledOnce();
-  });
-
-  it('200 when the worn pack is free — no gate', async () => {
-    h.queue('sites.maybeSingle', null);
-    const res = await POST(postReq({
-      subdomain: 'free-look',
-      manifest: { ...fixtureManifest, appliedPackId: 'first-thread' },
       names: ['A', 'B'],
     }));
     expect(res.status).toBe(200);

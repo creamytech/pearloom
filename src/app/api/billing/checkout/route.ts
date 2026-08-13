@@ -51,7 +51,7 @@ interface PlanProduct {
 const PASS: PlanProduct = {
   planId: 'pro',
   name: 'Pearloom Pass',
-  description: 'The whole weekend: ten sites, 500 guests, 500 photos, unlimited co-hosts, unlimited drafting by Pear, and the signature theme shelf.',
+  description: 'The whole weekend: ten sites, 500 guests, 500 photos, unlimited co-hosts, and unlimited drafting by Pear.',
   priceCents: PLAN_PRICE_CENTS.pro,
 };
 

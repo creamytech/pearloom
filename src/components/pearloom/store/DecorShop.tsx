@@ -6,8 +6,7 @@
 // Renders DECOR_ITEMS grouped by kind (Motifs · Dividers ·
 // Monograms · Component kits) as cards with a LIVE preview, blurb,
 // and a buy / apply action. Reused by the Theme Store route and the
-// in-editor shop; ownership rides the caller's `owned` set (free
-// items are always owned).
+// in-editor gallery; every piece is free (EDITOR-CALM-PLAN E.1).
 // ─────────────────────────────────────────────────────────────
 
 import { Motif, type MotifKind } from '../site/MotifScatter';
@@ -58,13 +57,10 @@ function DecorPreview({ item }: { item: DecorItem }) {
 }
 
 export interface DecorShopProps {
-  /** Ids the host owns (free items count as owned regardless). */
-  owned: ReadonlySet<string>;
   onApply: (item: DecorItem) => void;
-  onBuy: (item: DecorItem) => void;
 }
 
-export function DecorShop({ owned, onApply, onBuy }: DecorShopProps) {
+export function DecorShop({ onApply }: DecorShopProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
       {ORDER.map((kind) => (
@@ -72,7 +68,6 @@ export function DecorShop({ owned, onApply, onBuy }: DecorShopProps) {
           <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 12, margin: '0 0 12px' }}>{KIND_LABEL[kind]}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
             {decorItemsByKind(kind).map((item) => {
-              const isOwned = item.price === 0 || owned.has(item.id);
               return (
                 <div key={item.id} style={{ background: 'var(--card)', border: '1px solid var(--card-ring, var(--line))', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ height: 66, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', borderRadius: 8, overflow: 'hidden' }}>
@@ -83,11 +78,7 @@ export function DecorShop({ owned, onApply, onBuy }: DecorShopProps) {
                     {item.badges?.new ? <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>New</span> : null}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4, flex: 1 }}>{item.blurb}</div>
-                  {isOwned ? (
-                    <button type="button" onClick={() => onApply(item)} className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }}>Apply</button>
-                  ) : (
-                    <button type="button" onClick={() => onBuy(item)} className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center' }}>${item.price}</button>
-                  )}
+                  <button type="button" onClick={() => onApply(item)} className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }}>Apply</button>
                 </div>
               );
             })}

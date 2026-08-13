@@ -3,25 +3,20 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / pearloom/store/PackCard.tsx
 //
-// One pack tile in the Theme Store grid. Renders a live themed
-// vignette (via PackPreview), badges (New / Owned),
-// tier pill, name + collection + rating + swatches, and a
-// contextual primary action button:
+// One pack tile in the Theme Gallery grid. Renders a live themed
+// vignette (via PackPreview), a New badge, name + collection +
+// swatches, and one primary action: "Apply". Design is free
+// (EDITOR-CALM-PLAN E.1) — no price, no tier, no ownership,
+// no cart.
 //
-//    owned          → "Apply"
-//    free + unowned → "Get free"
-//    in cart        → "In cart ✓"
-//    otherwise      → "Add"
-//
-// Whole card is clickable to open QuickLook; primary action
-// button stops propagation so clicking "Add" doesn't also
-// open the modal.
+// Whole card is clickable to open QuickLook; the Apply button
+// stops propagation so clicking it doesn't also open the modal.
 //
 // "Apply" context resolution
 // ──────────────────────────
 // The card itself is context-agnostic — it just calls onApply
-// when an owned pack's CTA is clicked. The owner of the card
-// decides what "apply" means:
+// when the CTA is clicked. The owner of the card decides what
+// "apply" means:
 //
 //   • In the editor's ThemePanel → onApply mutates the open
 //     manifest directly via applyPackToManifest() so the canvas
@@ -35,17 +30,13 @@
 import type { Pack } from '@/lib/theme-store/packs';
 import { Icon } from '../motifs';
 import { PackPreview } from './PackPreview';
-import { collectionName, priceLabel, tierLabel } from './utils';
+import { collectionName } from './utils';
 import { foilTextStyle, PAPER_GRAIN } from '@/components/brand/pressed';
 
 interface PackCardProps {
   pack: Pack;
   idx: number;
-  owned: boolean;
-  inCart: boolean;
   onOpen: (pack: Pack) => void;
-  onAdd: (pack: Pack) => void;
-  onGetFree: (pack: Pack) => void;
   onApply: (pack: Pack) => void;
   /** Optional explicit label override for the apply CTA — lets
    *  the editor mount say "Apply to this site" while the standalone
@@ -65,49 +56,7 @@ function pillStyle(bg: string, fg: string) {
   } as const;
 }
 
-function TierBadge({ tier }: { tier: Pack['tier'] }) {
-  const label = tierLabel(tier);
-  const map: Record<Pack['tier'], { bg: string; fg: string }> = {
-    free: { bg: 'var(--sage-tint, #E3E6C8)', fg: 'var(--sage-deep, #6d7d3f)' },
-    premium: { bg: 'var(--lavender-bg, #E8E0F0)', fg: 'var(--lavender-ink, #6B5A8C)' },
-    signature: { bg: '#231F33', fg: '#E5D6A8' },
-  };
-  const c = map[tier];
-  return (
-    <span
-      style={{
-        padding: '3px 9px',
-        borderRadius: 999,
-        background: c.bg,
-        color: c.fg,
-        fontSize: 9.5,
-        fontWeight: 800,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
-function actionBtnBase() {
-  return {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    padding: '8px 14px',
-    borderRadius: 999,
-    border: 'none',
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: '0.01em',
-    cursor: 'pointer',
-    transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), background 180ms ease',
-  } as const;
-}
-
-export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, onApply, applyLabel }: PackCardProps) {
+export function PackCard({ pack, idx, onOpen, onApply, applyLabel }: PackCardProps) {
   return (
     <div
       role="button"
@@ -146,33 +95,6 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
             <span style={pillStyle('var(--peach-2, #EAB286)', '#5A2E12')}>New</span>
           )}
         </div>
-
-        {/* Tier badge top-right */}
-        <div style={{ position: 'absolute', top: 10, right: 10 }}>
-          <TierBadge tier={pack.tier} />
-        </div>
-
-        {/* Owned pip bottom-right */}
-        {owned && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 10,
-              right: 10,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '4px 10px',
-              borderRadius: 999,
-              background: 'rgba(255,255,255,0.92)',
-              color: 'var(--sage-deep, #6d7d3f)',
-              fontSize: 10.5,
-              fontWeight: 800,
-            }}
-          >
-            <Icon name="check" size={11} color="var(--sage-deep, #6d7d3f)" /> Owned
-          </div>
-        )}
 
         {/* Hover hint overlay — purely visual; the whole card is clickable. */}
         <div className="pl-store-card-hover-veil" aria-hidden="true">
@@ -246,82 +168,34 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             marginTop: 'auto',
             paddingTop: 4,
           }}
         >
-          <span
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onApply(pack);
+            }}
             style={{
-              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
-              fontSize: 18,
-              fontWeight: 700,
-              color: 'var(--ink, #0E0D0B)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: 'none',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              cursor: 'pointer',
+              transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1), background 180ms ease',
+              background: 'var(--ink, #0E0D0B)',
+              color: 'var(--cream, #F5EFE2)',
             }}
           >
-            {/* An owned pack never wears a price — 47 plan-granted
-                packs showed "$16" beside "✓ Owned", a price no host
-                could ever pay (M.4/L84). */}
-            {owned ? '' : priceLabel(pack.priceCents)}
-          </span>
-          {owned ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onApply(pack);
-              }}
-              style={{
-                ...actionBtnBase(),
-                background: 'var(--ink, #0E0D0B)',
-                color: 'var(--cream, #F5EFE2)',
-              }}
-            >
-              {applyLabel ?? 'Apply'} <Icon name="arrow-right" size={12} color="var(--cream, #F5EFE2)" />
-            </button>
-          ) : pack.priceCents === 0 ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onGetFree(pack);
-              }}
-              style={{
-                ...actionBtnBase(),
-                background: 'var(--sage-tint, #E3E6C8)',
-                color: 'var(--sage-deep, #6d7d3f)',
-              }}
-            >
-              Get free
-            </button>
-          ) : inCart ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpen(pack);
-              }}
-              style={{
-                ...actionBtnBase(),
-                background: 'var(--cream-2, #FBF7EE)',
-                color: 'var(--ink, #0E0D0B)',
-                border: '1px solid var(--line, rgba(14,13,11,0.16))',
-              }}
-            >
-              <Icon name="check" size={12} color="var(--ink, #0E0D0B)" /> In cart
-            </button>
-          ) : (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdd(pack);
-              }}
-              style={{
-                ...actionBtnBase(),
-                background: 'var(--ink, #0E0D0B)',
-                color: 'var(--cream, #F5EFE2)',
-              }}
-            >
-              <Icon name="plus" size={12} color="var(--cream, #F5EFE2)" /> Add
-            </button>
-          )}
+            {applyLabel ?? 'Apply'} <Icon name="arrow-right" size={12} color="var(--cream, #F5EFE2)" />
+          </button>
         </div>
       </div>
     </div>

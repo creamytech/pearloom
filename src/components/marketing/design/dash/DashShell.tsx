@@ -48,7 +48,7 @@ const NAV: NavGroup[] = [
   {
     group: 'THE HOUSE',
     items: [
-      { k: 'store',       l: 'Theme Store', i: '⛉', href: '/store' },
+      { k: 'store',       l: 'Themes',      i: '⛉', href: '/store' },
       { k: 'analytics',   l: 'Analytics',   i: '▲', href: '/dashboard/analytics', needsSite: true },
     ],
   },

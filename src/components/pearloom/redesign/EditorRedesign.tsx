@@ -525,31 +525,12 @@ export default function EditorRedesign({
       const pack = readPackStash(raw, Date.now());
       if (!pack) return;
       const prior = manifestRef.current;
-      /* Free vs owned — mirrors EditorThemeShop.onApply. An unowned
-         paid pack may be worn on a DRAFT (try-before-you-buy; the
-         publish gate reads manifest.appliedPackId), but never on a
-         live site — its autosaves would put a paid look in front
-         of guests. Ownership reads the shared 'pl-store-owned'
-         ledger the store + shop both write. */
-      let ownedLocally = pack.priceCents === 0;
-      if (!ownedLocally) {
-        try {
-          const ownedIds = JSON.parse(window.localStorage.getItem('pl-store-owned') || '[]') as unknown;
-          ownedLocally = Array.isArray(ownedIds) && ownedIds.includes(pack.id);
-        } catch {
-          /* unreadable ledger — treat as unowned */
-        }
-      }
-      const locked = !ownedLocally && pack.priceCents > 0;
-      if (locked && isManifestPublished(prior)) {
-        console.warn('[editor] skipped stashed pack — site is live and the pack is unowned:', pack.id);
-        return;
-      }
+      /* Design is free (EDITOR-CALM-PLAN E.1) — the ownership
+         branch and the live-site refusal that lived here are gone;
+         a stashed pack simply applies. */
       setManifestRef.current(applyPackToManifest(pack, prior));
       fireUndoable(
-        locked
-          ? `Wearing ${pack.name} to try, unlock it when you publish`
-          : `${pack.name} applied, your old look is one tap away`,
+        `${pack.name} applied, your old look is one tap away`,
         () => setManifestRef.current(prior),
       );
     }, 0);

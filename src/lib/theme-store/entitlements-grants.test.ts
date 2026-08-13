@@ -30,12 +30,14 @@ describe('planGrantedPackIds — design is not the paywall', () => {
     expect(OPEN_IDS.length).toBeGreaterThan(20);
   });
 
-  it('withholds the signature shelf from free accounts', () => {
+  it('the signature shelf is free too — no pack carries a paid tier (E.1)', () => {
+    // FREE DESIGN (EDITOR-CALM-PLAN E.1): the tier system is
+    // collapsed; SIGNATURE_IDS must be empty forever.
+    expect(SIGNATURE_IDS).toEqual([]);
     const granted = new Set(planGrantedPackIds('free'));
-    for (const id of SIGNATURE_IDS) {
-      expect(granted.has(id), `signature pack "${id}" must not be free`).toBe(false);
+    for (const p of PACKS) {
+      expect(granted.has(p.id), `free account must own "${p.id}"`).toBe(true);
     }
-    expect(SIGNATURE_IDS.length).toBeGreaterThan(0);
   });
 
   it('grants the whole catalog from the Pass upward', () => {
@@ -64,15 +66,12 @@ describe('planGrantedPackIds — retired plan names keep their entitlements', ()
       .toEqual([...planGrantedPackIds('page')].sort());
   });
 
-  it('an unknown or absent plan is treated as free, never as paid', () => {
+  it('an unknown or absent plan still holds the whole catalog (E.1)', () => {
     for (const plan of [null, undefined, '', 'vip', 'enterprise']) {
       const granted = new Set(planGrantedPackIds(plan));
-      for (const id of SIGNATURE_IDS) {
-        expect(granted.has(id), `"${String(plan)}" must not unlock signature`).toBe(false);
+      for (const p of PACKS) {
+        expect(granted.has(p.id), `"${String(plan)}" must own "${p.id}"`).toBe(true);
       }
-      // …but they still get the open shelf — an unrecognized plan
-      // string must not make the product look broken.
-      expect(granted.has(OPEN_IDS[0])).toBe(true);
     }
   });
 });
