@@ -30,7 +30,7 @@ interface Props {
   /** Phone-width chrome: mode pills hidden (the device-frame
    *  toggle is meaningless when the viewport IS a phone; Preview
    *  + Publish live in the MobileBottomBar), save dot kept
-   *  inline, everything else (Share / Theme / Decor / Settings)
+   *  inline, everything else (Share / Design / Settings)
    *  tucked into an ellipsis menu so the bar fits 390px. Desktop
    *  layout is untouched when false. */
   compact?: boolean;
@@ -111,10 +111,6 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
   function openThemeRail() {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
-  }
-  function openDecorLibrary() {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
   }
 
   /* Day-of window for the compact overflow menu — the desktop
@@ -293,7 +289,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         </button>
       )}
 
-      {/* Right zone — save state · | · Share · Theme · Decor · Publish · | · avatar.
+      {/* Right zone — save state · | · Share · Design · Publish · | · avatar.
           Prototype L108-132. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 8 : 10 }}>
         {/* Realtime presence — one initial-dot per collaborator
@@ -403,7 +399,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             )}
             {/* Compact right zone — ellipsis menu. Publish moved to
                 the bottom bar (thumb range beats a tiny top-right
-                button); Share / Theme / Decor / Find anything /
+                button); Share / Design / Find anything /
                 Settings overflow into the menu. GoLiveBadge +
                 PublishChecklist pills don't fit at 390px. */}
             <div style={{ position: 'relative' }} ref={menuWrapRef}>
@@ -443,7 +439,6 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 >
                   <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); shareSite(); }} />
                   <MenuRow icon="palette" label="Design" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
-                  <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
                   {/* Day-of go-live — appears only inside the ±7-day
                       window, same rule as the desktop badge. */}
                   {dayOf && (
@@ -484,12 +479,10 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         >
           <Icon name="share" size={12} /> <span className="pl-rd-top-label">Share</span>
         </button>
-        {/* Theme + Decor quick-access shortcuts — surfacing
-            the two most-touched look surfaces near the top so
-            hosts don't have to dig through the rail. Theme
-            dispatches design-jump with block:'theme' (custom —
-            EditorRedesign listens by treating active=null +
-            tab='theme'); Decor opens the global drawer. */}
+        {/* ONE Design button (EDITOR-CALM-PLAN E.3) — the Design
+            tab's door deck is the single entry to the whole look,
+            Decor door included; the separate topbar Decor button is
+            gone (⌘K keeps the decor drawer as a deep destination). */}
         <button
           type="button"
           className="btn btn-outline btn-sm"
@@ -497,17 +490,9 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           /* "Design" — the same word as the rail tab it opens, so
              the destination has ONE name (was "Theme" here,
              "Design" there, "Site look" in the eyebrow). */
-          title="Open the Design panel, theme, colors, fonts, layout"
+          title="Open the Design panel, theme, colors, fonts, decor"
         >
           <Icon name="palette" size={12} /> <span className="pl-rd-top-label">Design</span>
-        </button>
-        <button
-          type="button"
-          className="btn btn-outline btn-sm"
-          onClick={openDecorLibrary}
-          title="Open decor library, motifs, dividers, patterns, monogram"
-        >
-          <Icon name="sparkles" size={12} /> <span className="pl-rd-top-label">Decor</span>
         </button>
         {/* Command-palette discoverability — the palette has shipped
             for months behind an unmarked Cmd+K. A visible chip is

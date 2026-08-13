@@ -3,28 +3,16 @@
 import { pearWorking } from './PearLoomFx';
 import { KIT_CATALOG, TEXTURE_CATALOG } from '@/lib/site-look/look-catalog';
 
- 
-/* LITERAL PORT of handoff/shared/themes.jsx L820-933 ThemePicker body.
 
-   The right-rail content when no section is selected. Order:
-     1. Event-type chip
-     2. Generate-from-story peach card
-     3. Recommended-for-{event} theme grid (ThemePackPicker)
-     4. Layout · whole-page feel (Classic / Invitation / Split)
-     5. Component Kit grid (9 kits)
-     6. Fine-tune · {THEME NAME}: Voice / Spacing / Texture / Motifs
-        / Use my photos
-     7. Legibility note (AA contrast)
-     8. Theme Shop dark-pill CTA
-     9. Decor Library gradient CTA
-    10. Match my photos
-    11. Saved looks
-    12. Matching Save-the-Date link
+/* The body behind ONE Design door (EDITOR-CALM-PLAN E.3).
 
-   This replaces the production ThemePanel which carries a lot of
-   production-specific chrome (SiteLookHeader, OwnedPacksSection,
-   EditionPicker, Advanced disclosure) the prototype doesn't show.
-*/
+   Since 2026-08-13 the Design tab is a deck of doors on EVERY
+   viewport (DesignDoorDeck) — the desktop's old 6-screen altitude
+   ladder, its sticky jump chips, and its bottom CTA pile are gone.
+   This component renders exactly one door's controls; the deck
+   names the door and brings the back chevron. Doors: Theme ·
+   Colors · Fonts · Paper · Cards & motion · Background · Menu &
+   footer · Decor · Fine-tune. */
 
 import { useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
@@ -42,27 +30,33 @@ import { TextureLayer } from './ThemedSite';
 import { VariantThumb } from './variant-thumb';
 import { useCanvasTryOn, expandThemeVarsForPreview, findCanvasRoot } from './design-tryon';
 import { announceDesignChange } from './design-feedback';
+import dynamic from 'next/dynamic';
 
-/** One rung of the Design ladder, renderable alone (EDITOR-RAILS-PLAN
- *  DK.3): the phone Design tab shows a deck of DOORS, each opening
- *  exactly one of these instead of the whole 6-screen ladder. */
+/* The Decor door renders the full catalog inline (E.3 — a catalog,
+   not a drawer bottom-CTA). Dynamic: the panel is heavy and only
+   one door shows at a time. */
+const DecorLibraryPanel = dynamic(
+  () => import('../editor/panels/DecorLibraryPanel').then((m) => ({ default: m.DecorLibraryPanel })),
+  { ssr: false },
+);
+
+/** One Design door (EDITOR-CALM-PLAN E.3). 'layout' is the
+ *  "Cards & motion" door — card styles and living finishes are one
+ *  dial (kitId) by construction, so they share one picker. The old
+ *  standalone 'motion' door folded into it; 'decor' is the
+ *  DecorLibraryPanel catalog as a first-class door. */
 export type DesignDoorId =
   | 'theme' | 'colors' | 'fonts' | 'paper' | 'layout'
-  | 'background' | 'motion' | 'menu' | 'finetune';
+  | 'background' | 'menu' | 'decor' | 'finetune';
 
 interface Props {
   manifest: StoryManifest;
   onChange: (next: StoryManifest) => void;
+  /** Opens the full theme gallery sheet (the Theme door's
+   *  "Browse every theme" row). */
   onOpenShop: () => void;
-  onOpenDecor: () => void;
-  /** Which slice of the look to render. The v2 editor splits the
-   *  right rail into a Design tab (everything but motion) and a
-   *  Motion tab (Atelier kits only). 'inline' (default) keeps the
-   *  motion picker in the flow — used by the mobile Theme sheet. */
-  motion?: 'inline' | 'hidden' | 'only';
-  /** Render ONLY this ladder rung (no jump chips, no CTAs) — the
-   *  body behind one phone Design door. Desktop never sets it. */
-  door?: DesignDoorId;
+  /** THE door to render — the deck always names one. */
+  door: DesignDoorId;
 }
 
 /* Texture → 6-theme catalog id mapping. /api/look/from-story
@@ -81,20 +75,10 @@ const TEXTURE_TO_THEME_ID: Record<string, string> = {
   gilded: 'midnight',
 };
 
-export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, motion = 'inline', door }: Props) {
+export function ThemePickerBody({ manifest, onChange, onOpenShop, door }: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
-
-  /* Motion tab — render ONLY the Atelier kit panel (the v2 editor's
-     dedicated ✦ Motion tab). */
-  if (motion === 'only') {
-    return (
-      <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <MotionKitPick manifest={manifest} onChange={onChange} />
-      </div>
-    );
-  }
 
   /* TRY-ANYTHING-SAFELY — ThemePackPicker calls onChange exactly
      once per pack apply (it rewrites themeId + clears every
@@ -109,234 +93,97 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
     fireUndoable('Theme applied, your old look is one tap away', () => onChange(prior));
   };
 
-  /* One door only (DK.3) — the body behind a phone Design door.
-     No jump chips, no CTAs, no sibling rungs: the door named it,
-     this renders it. */
-  if (door) {
-    return (
-      <div style={{ flex: 1, overflow: 'auto', padding: '12px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <StoreFonts />
-        {door === 'theme' && (
-          <>
-            <GenerateCard manifest={manifest} onChange={onChange} />
-            <MatchMyPhotos manifest={manifest} onChange={onChange} />
-            <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
-          </>
-        )}
-        {/* Colors / Fonts / Paper carry the live look plate — the
-            full-height sheet hides the canvas, so the plate is the
-            feedback: tap a swatch, watch it re-press (CARD-PLAN
-            CD-A). */}
-        {door === 'colors' && (
-          <>
-            <SiteLookPlate manifest={manifest} height={130} />
-            <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
-          </>
-        )}
-        {door === 'fonts' && (
-          <>
-            <SiteLookPlate manifest={manifest} height={130} />
-            <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
-          </>
-        )}
-        {door === 'paper' && (
-          <>
-            <SiteLookPlate manifest={manifest} height={130} />
-            <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
-          </>
-        )}
-        {door === 'layout' && (
-          <>
-            <SiteLayoutPick manifest={manifest} onChange={onChange} />
-            <KitPick theme={theme} manifest={manifest} onChange={onChange} />
-          </>
-        )}
-        {door === 'background' && <LivingBackgroundPick manifest={manifest} onChange={onChange} />}
-        {door === 'motion' && <MotionKitPick manifest={manifest} onChange={onChange} />}
-        {door === 'menu' && (
-          <>
-            <NavPick manifest={manifest} onChange={onChange} />
-            <FooterPick manifest={manifest} onChange={onChange} />
-          </>
-        )}
-        {door === 'finetune' && (
-          <>
-            <FineTune theme={theme} manifest={manifest} onChange={onChange} />
-            <LegibilityNote manifest={manifest} theme={theme} onChange={onChange} />
-          </>
-        )}
-      </div>
-    );
-  }
-
-  /* ── The altitude ladder (reordered 2026-07-08) ─────────────────
-     One 6.4-screen scroll used to bury Colors + Fonts (the two
-     most-wanted tweaks) under 26 layout/card-style diagrams. Order
-     now falls from "one pick changes everything" to polish:
-       Pear picks → Themes → Colors → Fonts → Paper → Layout &
-       cards → atmosphere (background + motion) → Menu & footer →
-       Fine-tune → cross-links.
-     The sticky chip row up top jumps to each rung — a table of
-     contents for the scroll. Anchor ids pl-dz-*; scrollMarginTop
-     clears the sticky chips. */
-  const anchor: CSSProperties = {
-    /* scrollMarginTop clears the sticky chip row at its two-row
-       wrap (the 360px rail wraps the six chips onto two lines). */
-    display: 'flex', flexDirection: 'column', gap: 16, scrollMarginTop: 92,
-  };
+  /* One door only — no jump chips, no CTAs, no sibling rungs: the
+     door named it, this renders it. */
   return (
-    <div style={{ flex: 1, overflow: 'auto', padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <JumpChips />
-      {/* No Event-type chip here (EDITOR-CALM-PLAN E.2) — it was a
-          button whose onChange was voided; it only opened ⌘K. The
-          occasion is a wizard decision, not a Design-tab control. */}
-      {/* "Let Pear pick" — both hands-off entries side by side:
-          describe the look in words, or hand her a photo. */}
-      <GenerateCard manifest={manifest} onChange={onChange} />
-      <MatchMyPhotos manifest={manifest} onChange={onChange} />
-      {/* Recommended themes — already lives at the right shape after
-          earlier ThemePackPicker rewrite (Aa/and tiles + ★ Pick badge
-          + ✓ active checkmark + corner motif + footer). */}
-      <div id="pl-dz-theme" style={anchor}>
-        <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
-      </div>
-
-      <div id="pl-dz-colors" style={anchor}>
-        <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
-      </div>
-      <div id="pl-dz-fonts" style={anchor}>
-        <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
-      </div>
-      <div id="pl-dz-paper" style={anchor}>
-        <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
-      </div>
-
-      <div id="pl-dz-layout" style={anchor}>
-        <SiteLayoutPick manifest={manifest} onChange={onChange} />
-        <KitPick theme={theme} manifest={manifest} onChange={onChange} />
-      </div>
-
-      <LivingBackgroundPick manifest={manifest} onChange={onChange} />
-      {motion === 'inline' && <MotionKitPick manifest={manifest} onChange={onChange} />}
-
-      <div id="pl-dz-menu" style={anchor}>
-        <NavPick manifest={manifest} onChange={onChange} />
-        <FooterPick manifest={manifest} onChange={onChange} />
-      </div>
-
-      <FineTune theme={theme} manifest={manifest} onChange={onChange} />
-
-      <LegibilityNote manifest={manifest} theme={theme} onChange={onChange} />
-
-      {/* Theme Shop CTA — ink-on-cream with gold sparkle. */}
-      <button
-        type="button"
-        onClick={onOpenShop}
-        className="lift pl8"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 11,
-          padding: '13px 15px', borderRadius: 13, width: '100%',
-          cursor: 'pointer', background: 'var(--ink)', color: 'var(--cream)',
-          border: 'none', textAlign: 'left',
-        }}
-      >
-        <span style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.12)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <Icon name="sparkles" size={17} color="var(--gold)" />
-        </span>
-        <span style={{ flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700 }}>Theme Shop</span>
-          <span style={{ display: 'block', fontSize: 11, opacity: 0.7 }}>60+ premium packs · try live</span>
-        </span>
-        <Icon name="arrow-up" size={15} color="var(--cream)" />
-      </button>
-
-      {/* Decor Library CTA — gradient lavender→peach. */}
-      <button
-        type="button"
-        onClick={onOpenDecor}
-        className="lift"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 11,
-          padding: '13px 15px', borderRadius: 13, width: '100%', cursor: 'pointer',
-          background: 'linear-gradient(120deg, var(--lavender-bg), var(--peach-bg))',
-          border: '1px solid var(--line-soft)', textAlign: 'left',
-        }}
-      >
-        <span style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--card)', display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(61,74,31,0.08)' }}>
-          <Icon name="sparkles" size={18} color="var(--lavender-ink)" />
-        </span>
-        <span style={{ flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>Decor Library</span>
-          <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-soft)' }}>Motifs, dividers, patterns &amp; monograms</span>
-        </span>
-        <Icon name="arrow-right" size={15} color="var(--ink-soft)" />
-      </button>
-
-      {/* Matching Save-the-Date — dark pill linking to Studio. */}
-      <a
-        href="/dashboard/invite"
-        className="lift"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '12px 14px', borderRadius: 12,
-          background: 'var(--ink)', color: 'var(--cream)', textDecoration: 'none',
-        }}
-      >
-        <Icon name="send" size={16} color="var(--cream)" />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700 }}>Matching Save-the-Date</div>
-          <div style={{ fontSize: 11, opacity: 0.75 }}>Same theme, print-ready card &amp; envelope</div>
-        </div>
-        <Icon name="arrow-right" size={14} color="var(--cream)" />
-      </a>
-    </div>
-  );
-}
-
-/* ─── JumpChips — the Design tab's table of contents ──────────────
-   The scroll is ~6 screens; these sticky chips name its rungs and
-   jump to them. Anchors are the pl-dz-* wrappers in the body. */
-
-const JUMP_CHIPS: Array<[string, string]> = [
-  ['pl-dz-theme', 'Themes'],
-  ['pl-dz-colors', 'Colors'],
-  ['pl-dz-fonts', 'Fonts'],
-  ['pl-dz-paper', 'Paper'],
-  ['pl-dz-layout', 'Layout'],
-  ['pl-dz-menu', 'Menu'],
-];
-
-function JumpChips() {
-  const jump = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-  };
-  return (
-    <div
-      style={{
-        position: 'sticky', top: 0, zIndex: 5,
-        margin: '0 -18px', padding: '11px 18px 9px',
-        background: 'var(--card)',
-        borderBottom: '1px solid var(--line-soft)',
-        display: 'flex', flexWrap: 'wrap', gap: 5,
-      }}
-    >
-      {JUMP_CHIPS.map(([id, label]) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => jump(id)}
-          style={{
-            padding: '4px 11px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-            border: '1px solid var(--line)', background: 'transparent',
-            color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
-          }}
-        >
-          {label}
-        </button>
-      ))}
+    <div style={{ flex: 1, overflow: 'auto', padding: '12px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <StoreFonts />
+      {door === 'theme' && (
+        <>
+          <GenerateCard manifest={manifest} onChange={onChange} />
+          <MatchMyPhotos manifest={manifest} onChange={onChange} />
+          <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
+          {/* The full gallery — every theme, all free (E.1). */}
+          <button
+            type="button"
+            onClick={onOpenShop}
+            className="lift"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '12px 14px', borderRadius: 12, width: '100%',
+              cursor: 'pointer', background: 'var(--ink)', color: 'var(--cream)',
+              border: 'none', textAlign: 'left',
+            }}
+          >
+            <Icon name="sparkles" size={15} color="var(--gold)" />
+            <span style={{ flex: 1 }}>
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 700 }}>Browse every theme</span>
+              <span style={{ display: 'block', fontSize: 11, opacity: 0.7 }}>The whole gallery, free — try any live</span>
+            </span>
+            <Icon name="arrow-up" size={14} color="var(--cream)" />
+          </button>
+          {/* Matching Save-the-Date — same theme, pressed in Studio. */}
+          <a
+            href="/dashboard/invite"
+            className="lift"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '11px 14px', borderRadius: 12,
+              background: 'var(--card)', border: '1px solid var(--line-soft)',
+              color: 'var(--ink)', textDecoration: 'none',
+            }}
+          >
+            <Icon name="send" size={14} color="var(--ink-soft)" />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Matching Save-the-Date</div>
+              <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>Same theme, print-ready card &amp; envelope</div>
+            </div>
+            <Icon name="arrow-right" size={13} color="var(--ink-soft)" />
+          </a>
+        </>
+      )}
+      {/* Colors / Fonts / Paper carry the live look plate — the
+          full-height sheet hides the canvas, so the plate is the
+          feedback: tap a swatch, watch it re-press (CARD-PLAN
+          CD-A). */}
+      {door === 'colors' && (
+        <>
+          <SiteLookPlate manifest={manifest} height={130} />
+          <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
+          {/* The AA legibility note lives with the color decisions
+              it audits (E.3 — it used to trail the Fine-tune rung). */}
+          <LegibilityNote manifest={manifest} theme={theme} onChange={onChange} />
+        </>
+      )}
+      {door === 'fonts' && (
+        <>
+          <SiteLookPlate manifest={manifest} height={130} />
+          <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
+        </>
+      )}
+      {door === 'paper' && (
+        <>
+          <SiteLookPlate manifest={manifest} height={130} />
+          <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+        </>
+      )}
+      {door === 'layout' && (
+        <>
+          <SiteLayoutPick manifest={manifest} onChange={onChange} />
+          <CardsAndMotionPick theme={theme} manifest={manifest} onChange={onChange} />
+        </>
+      )}
+      {door === 'background' && <LivingBackgroundPick manifest={manifest} onChange={onChange} />}
+      {door === 'menu' && (
+        <>
+          <NavPick manifest={manifest} onChange={onChange} />
+          <FooterPick manifest={manifest} onChange={onChange} />
+        </>
+      )}
+      {door === 'decor' && <DecorLibraryPanel manifest={manifest} onChange={onChange} />}
+      {door === 'finetune' && (
+        <FineTune theme={theme} manifest={manifest} onChange={onChange} />
+      )}
     </div>
   );
 }
@@ -650,7 +497,12 @@ function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onCha
   );
 }
 
-/* ─── KitPick — prototype L993-1013 (9-kit grid). ──────────────── */
+/* ─── CardsAndMotionPick — ONE dial (EDITOR-CALM-PLAN E.3) ────────
+   Card styles and living finishes both write manifest.kitId — each
+   motion kit's CSS is a COMPLETE kit (full static card treatment
+   plus a motion layer gated on manifest.atelier). Two pickers on
+   one dial pretended to be two dials; this is the one picker: the
+   static grid, then the living finishes, one selected value. */
 
 /* The kit catalog is shared with the wizard's fitting room —
    lib/site-look/look-catalog.ts is the one list. */
@@ -879,14 +731,15 @@ function KitMini({ id, p }: { id: string; p: KitPalette }) {
   }
 }
 
-function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+function CardsAndMotionPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = manifest.kitId ?? 'classic';
+  const premium = !!(manifest as unknown as { atelier?: boolean }).atelier;
   const tryOn = useCanvasTryOn();
   const palette = kitPaletteFor(theme, manifest);
-  /* 24 kits was the single biggest wall in the Design scroll. Show
-     the first six; the rest fold behind "Show all". Opens expanded
-     when the site's current kit lives in the folded tail so the
-     active card is never hidden. */
+  /* 24 kits was the single biggest wall in the old Design scroll.
+     Show the first six; the rest fold behind "Show all". Opens
+     expanded when the site's current kit lives in the folded tail
+     so the active card is never hidden. */
   const [showAllKits, setShowAllKits] = useState(
     () => KITS.findIndex((k) => k.id === value) >= 6,
   );
@@ -896,13 +749,15 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
     onChange({ ...manifest, kitId: id } as StoryManifest);
     announceDesignChange('kit', label);
   };
+  const setPremium = (v: boolean) => onChange({ ...(manifest as unknown as Record<string, unknown>), atelier: v } as unknown as StoryManifest);
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
-        Card style
+        Cards &amp; motion
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
-        How cards, dividers, schedule &amp; badges are drawn. Hover to try one on your site.
+        How cards, dividers, schedule &amp; badges are drawn — one dial,
+        still styles and living finishes together. Hover to try one.
       </div>
       <div
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}
@@ -950,55 +805,19 @@ function KitPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryM
       >
         {showAllKits ? 'Show fewer styles' : `Show all ${KITS.length} styles`}
       </button>
-    </div>
-  );
-}
 
-/* ─── MotionKitPick — the Atelier · Motion panel (v2 editor.jsx
-   MotionTab L395-230). Eight animated finishes that share the
-   kitId field with the static kits; the motion layer only comes
-   alive when Atelier is unlocked for this site (manifest.atelier
-   → data-pl-premium on the renderer root). Selecting a motion kit
-   always paints its STATIC base on the canvas; unlocking sets it
-   in motion. ────────────────────────────────────────────────── */
-
-const MOTION_KITS = [
-  /* id 'neon' kept for data compat; the LABEL follows BRAND §10
-     (neon is out of the Pearloom vocabulary — the finish itself is
-     an occasion-scoped host opt-in). */
-  { id: 'neon',          name: 'After Dark',    desc: 'Tube-light flicker + glow',               for: 'Bachelor/ette · NYE · galas',         sw: ['#15131C', '#B9A6E0'] },
-  { id: 'marquee-live',  name: 'Marquee Live',  desc: 'Bulb lights, pulsing',                    for: 'Birthdays · theatre',                 sw: ['#FFFEF7', '#C19A4B'] },
-  { id: 'aurora-glass',  name: 'Aurora Glass',  desc: 'Light drifting behind frosted glass',     for: 'Evening weddings',                    sw: ['#1A1B2E', '#B9A6E0'] },
-  { id: 'gold-foil',     name: 'Gold Foil',     desc: 'A sheen sweeping the edges',              for: 'Deco · anniversaries',                sw: ['#14110C', '#C9A24B'] },
-  { id: 'confetti',      name: 'Confetti',      desc: 'Slow falling flecks',                     for: 'Parties · reveals',                   sw: ['#FFFEF7', '#D9A89E'] },
-  { id: 'candlelight',   name: 'Candlelight',   desc: 'A gentle warm flame',                     for: 'Memorials · vigils',                  sw: ['#FCF4EE', '#C19A4B'] },
-  { id: 'pressed-bloom', name: 'Pressed Bloom', desc: 'A swaying pressed flower',                for: 'Garden · baby · bridal',              sw: ['#FDFAF0', '#B7A4D0'] },
-  { id: 'vinyl',         name: 'Vinyl',         desc: 'A spinning record',                       for: 'Milestone birthdays · music',         sw: ['#FFFEF7', '#5C6B3F'] },
-];
-
-function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const premium = !!(manifest as unknown as { atelier?: boolean }).atelier;
-  const value = manifest.kitId ?? 'classic';
-  const setKit = (id: string, name: string) => {
-    onChange({ ...manifest, kitId: id } as StoryManifest);
-    announceDesignChange('kit', name);
-  };
-  const setPremium = (v: boolean) => onChange({ ...(manifest as unknown as Record<string, unknown>), atelier: v } as unknown as StoryManifest);
-  return (
-    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 9 }}>
-        ✦ Motion · Atelier
+      {/* ── Living finishes — the SAME dial, animated entries.
+          Selecting one always paints its static base; the banner's
+          toggle (manifest.atelier → data-pl-premium) sets it in
+          motion. Free, like everything else (E.1). */}
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '18px 0 9px' }}>
+        ✦ Living finishes
       </div>
-      {/* The intro banner. This carried an "Unlock Atelier, $19"
-          pre-checkout STUB until 2026-08-13 — design is free
-          (EDITOR-CALM-PLAN E.1); the button is a plain motion
-          on/off for this site (manifest.atelier). */}
       <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 14, background: 'linear-gradient(135deg, #2A2416, #4A3A1C)', padding: '16px 14px', position: 'relative' }}>
         {/* .pl-atelier-sheen — class, not inline animation, so the
             sweep sits behind the reduced-motion media guard. */}
         <div aria-hidden className="pl-atelier-sheen" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Motion</div>
           <div className="display" style={{ fontSize: 20, color: '#FBF1DC', lineHeight: 1.1, marginBottom: 6 }}>{premium ? 'Your site is alive.' : 'Bring your site to life.'}</div>
           <div style={{ fontSize: 11.5, color: 'rgba(243,236,217,0.75)', lineHeight: 1.5, marginBottom: 13 }}>
             {premium ? 'Motion is on for this site. Tap a finish to apply it.' : 'Eight living finishes, neon, foil, candlelight and more. Free, like everything else.'}
@@ -1013,7 +832,6 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
           </button>
         </div>
       </div>
-      {/* Motion kit cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {MOTION_KITS.map((k) => {
           const on = value === k.id;
@@ -1028,7 +846,7 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
               </div>
               <button
                 type="button"
-                onClick={() => setKit(k.id, k.name)}
+                onClick={() => set(k.id, k.name)}
                 className="lift"
                 style={{ padding: '6px 11px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, flexShrink: 0, border: on ? '1px solid var(--gold)' : '1px solid var(--line)', background: on ? 'var(--gold)' : 'transparent', color: on ? '#241a08' : 'var(--ink)' }}
               >
@@ -1046,6 +864,23 @@ function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChan
     </div>
   );
 }
+
+/* Eight living finishes sharing the kitId dial with the static
+   kits — each one's CSS is a complete kit; manifest.atelier gates
+   only the motion layer. Exported for the deck's door state. */
+export const MOTION_KITS = [
+  /* id 'neon' kept for data compat; the LABEL follows BRAND §10
+     (neon is out of the Pearloom vocabulary — the finish itself is
+     an occasion-scoped host opt-in). */
+  { id: 'neon',          name: 'After Dark',    desc: 'Tube-light flicker + glow',               for: 'Bachelor/ette · NYE · galas',         sw: ['#15131C', '#B9A6E0'] },
+  { id: 'marquee-live',  name: 'Marquee Live',  desc: 'Bulb lights, pulsing',                    for: 'Birthdays · theatre',                 sw: ['#FFFEF7', '#C19A4B'] },
+  { id: 'aurora-glass',  name: 'Aurora Glass',  desc: 'Light drifting behind frosted glass',     for: 'Evening weddings',                    sw: ['#1A1B2E', '#B9A6E0'] },
+  { id: 'gold-foil',     name: 'Gold Foil',     desc: 'A sheen sweeping the edges',              for: 'Deco · anniversaries',                sw: ['#14110C', '#C9A24B'] },
+  { id: 'confetti',      name: 'Confetti',      desc: 'Slow falling flecks',                     for: 'Parties · reveals',                   sw: ['#FFFEF7', '#D9A89E'] },
+  { id: 'candlelight',   name: 'Candlelight',   desc: 'A gentle warm flame',                     for: 'Memorials · vigils',                  sw: ['#FCF4EE', '#C19A4B'] },
+  { id: 'pressed-bloom', name: 'Pressed Bloom', desc: 'A swaying pressed flower',                for: 'Garden · baby · bridal',              sw: ['#FDFAF0', '#B7A4D0'] },
+  { id: 'vinyl',         name: 'Vinyl',         desc: 'A spinning record',                       for: 'Milestone birthdays · music',         sw: ['#FFFEF7', '#5C6B3F'] },
+];
 
 /* LivingBackgroundPick — the v2 interactive shader wallpapers. Writes
    manifest.background (a WallpaperId, or undefined for None); the

@@ -718,7 +718,6 @@ export default function EditorRedesign({
           onChange={bridge.setManifest}
           siteSlug={siteSlug}
           onOpenShop={bridge.openThemeShop}
-          onOpenDecor={bridge.openDecor}
         />
       )}
 
@@ -839,7 +838,6 @@ export default function EditorRedesign({
               manifest={bridge.manifest}
               onChange={bridge.setManifest}
               onOpenShop={bridge.openThemeShop}
-              onOpenDecor={bridge.openDecor}
               header
             />
           )}
@@ -851,7 +849,6 @@ export default function EditorRedesign({
               onChange={bridge.setManifest}
               siteSlug={siteSlug}
               onOpenShop={bridge.openThemeShop}
-              onOpenDecor={bridge.openDecor}
             />
           )}
         </MobileSheet>

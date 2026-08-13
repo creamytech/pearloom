@@ -36,7 +36,6 @@ export interface EditorBridge {
   openPublish: () => void;
   openSettings: () => void;
   openThemeShop: () => void;
-  openDecor: () => void;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
@@ -382,10 +381,6 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('pearloom:open-theme-shop'));
   }, []);
-  const openDecor = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
-  }, []);
 
   return {
     manifest,
@@ -402,7 +397,6 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     openPublish,
     openSettings,
     openThemeShop,
-    openDecor,
     undo,
     redo,
     canUndo,

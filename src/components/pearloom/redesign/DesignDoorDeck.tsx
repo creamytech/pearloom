@@ -1,31 +1,31 @@
 'use client';
 
-/* ─── DesignDoorDeck — the phone Design surface ──────────────────
-   Extracted from PropertyRail 2026-07-09 and made RICH (owner:
-   "the design panel on mobile we should make it rich beautiful
-   cards like the sections in the mobile editor"). Each door is a
-   full snap card in the sheet's deck grammar, led by a live
-   preview pressed from the SITE'S OWN resolved look — the theme
-   card wears the real paper/ink/display face, Colors shows the
-   actual swatches, Fonts sets real specimens, Menu draws the
-   current nav variant's schematic. Tapping drills into just that
-   rung (ThemePickerBody's door prop) with a back chevron home.
+/* ─── DesignDoorDeck — THE Design surface, every viewport ────────
+   Born as the phone Design deck 2026-07-09; since EDITOR-CALM-PLAN
+   E.3 (2026-08-13) the desktop Design tab renders it too — the old
+   6-screen desktop scroll ladder is gone. Each door is a full card
+   led by a live preview pressed from the SITE'S OWN resolved look —
+   the theme card wears the real paper/ink/display face, Colors
+   shows the actual swatches, Fonts sets real specimens, Menu draws
+   the current nav variant's schematic. Tapping drills into just
+   that rung (ThemePickerBody's door prop) with a back chevron home.
 
-   Mounted in TWO places, phones only by construction:
-   · PropertyRail's Design tab (the props sheet)
-   · the theme sheet (EditorRedesign) — with `header` for the
+   Mounted in TWO places:
+   · PropertyRail's Design tab (desktop rail AND the phone props
+     sheet)
+   · the phone theme sheet (EditorRedesign) — with `header` for the
      SITE LOOK masthead + CompareHold the old ThemeRail carried.
 
    Chrome tokens for the card furniture; the PREVIEWS deliberately
    read the site's --t-* values as data (inline colors/fonts) the
    way thumbnails do — they're content, not chrome. */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
 import { getTheme } from '../site/themes';
 import { SectionPanelShell } from '../editor/panels/_section-atoms';
-import { ThemePickerBody, type DesignDoorId } from './ThemePickerBody';
+import { ThemePickerBody, MOTION_KITS, type DesignDoorId } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
 import { LAYOUTS, readVariant } from './layouts';
 import { SiteLookPlate, siteLookTexture, siteLookVars } from './site-look-plate';
@@ -37,10 +37,10 @@ const DESIGN_DOORS: ReadonlyArray<{ id: DesignDoorId; label: string; blurb: stri
   { id: 'colors',     label: 'Colors',         blurb: 'Accent, paper & ink' },
   { id: 'fonts',      label: 'Fonts',          blurb: 'Display & body pairing' },
   { id: 'paper',      label: 'Paper',          blurb: 'Texture & grain strength' },
-  { id: 'layout',     label: 'Layout & cards', blurb: 'Page feel + card styles' },
+  { id: 'layout',     label: 'Cards & motion', blurb: 'Page feel, card styles & living finishes' },
   { id: 'background', label: 'Background',     blurb: 'Wallpaper behind the paper' },
-  { id: 'motion',     label: 'Motion',         blurb: 'How things arrive & move' },
   { id: 'menu',       label: 'Menu & footer',  blurb: 'How guests get around' },
+  { id: 'decor',      label: 'Decor',          blurb: 'Motifs, dividers, patterns & monograms' },
   { id: 'finetune',   label: 'Fine-tune',      blurb: 'Voice, spacing, motifs' },
 ];
 
@@ -56,8 +56,16 @@ function designDoorState(id: DesignDoorId, manifest: StoryManifest): string {
     }
     case 'paper':
       return loose.texture ? loose.texture.charAt(0).toUpperCase() + loose.texture.slice(1) : 'Natural';
-    case 'layout':
+    case 'layout': {
+      /* Living finishes share the kitId dial — name them properly
+         and say whether the motion layer is on. */
+      const living = MOTION_KITS.find((k) => k.id === loose.kitId);
+      if (living) {
+        const moving = !!(manifest as unknown as { atelier?: boolean }).atelier;
+        return `${living.name}${moving ? ' · in motion' : ''}`;
+      }
       return loose.kitId ? `${loose.kitId.charAt(0).toUpperCase()}${loose.kitId.slice(1)} cards` : 'Classic';
+    }
     case 'menu': {
       const nav = readVariant(manifest, 'nav');
       const label = (LAYOUTS.nav ?? []).find((v) => v.id === nav)?.label;
@@ -145,8 +153,9 @@ function DoorPreview({ id, manifest }: { id: DesignDoorId; manifest: StoryManife
           <span aria-hidden style={{ width: 44, height: 30, borderRadius: 6, background: paper, border: '1px solid var(--line)', boxShadow: '0 3px 10px rgba(40,28,12,0.12)' }} />
         </div>
       );
-    case 'motion':
-      /* The two-strand thread mid-weave — the motion language. */
+    case 'decor':
+      /* The two-strand thread with a motif pearl — the decor
+         language: dividers, sprigs, marks. */
       return (
         <div style={PREVIEW_FRAME}>
           <svg aria-hidden width="70%" height="40" viewBox="0 0 200 40">
@@ -180,17 +189,30 @@ function DoorPreview({ id, manifest }: { id: DesignDoorId; manifest: StoryManife
 }
 
 export function DesignDoorDeck({
-  manifest, onChange, onOpenShop, onOpenDecor, header = false,
+  manifest, onChange, onOpenShop, header = false,
 }: {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
   onOpenShop: () => void;
-  onOpenDecor: () => void;
   /** The theme sheet's masthead (SITE LOOK · Design · CompareHold).
    *  PropertyRail's Design tab brings its own chrome — omit it. */
   header?: boolean;
 }) {
   const [door, setDoor] = useState<DesignDoorId | null>(null);
+  /* Deep-link into a door — the E.2 nav/footer door card (and any
+     future deep surface) dispatches this right after
+     pearloom:open-theme-rail so the deck lands on the named door
+     instead of the deck home. */
+  useEffect(() => {
+    const onOpenDoor = (e: Event) => {
+      const wanted = (e as CustomEvent<{ door?: string }>).detail?.door;
+      if (wanted && DESIGN_DOORS.some((d) => d.id === wanted)) {
+        setDoor(wanted as DesignDoorId);
+      }
+    };
+    window.addEventListener('pearloom:open-design-door', onOpenDoor);
+    return () => window.removeEventListener('pearloom:open-design-door', onOpenDoor);
+  }, []);
   if (door) {
     const meta = DESIGN_DOORS.find((d) => d.id === door);
     return (
@@ -215,7 +237,6 @@ export function DesignDoorDeck({
           manifest={manifest}
           onChange={onChange}
           onOpenShop={onOpenShop}
-          onOpenDecor={onOpenDecor}
           door={door}
         />
       </div>

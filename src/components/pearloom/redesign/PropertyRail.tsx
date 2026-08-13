@@ -16,7 +16,6 @@ import { fireUndoable } from './UndoToast';
 import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
 import { useMobileViewport } from './use-mobile-viewport';
-import { ThemePickerBody } from './ThemePickerBody';
 import { CompareHold } from './CompareHold';
 import { DesignDoorDeck } from './DesignDoorDeck';
 import { SectionPanelShell } from '../editor/panels/_section-atoms';
@@ -236,10 +235,9 @@ interface Props {
   /** Opens the global Theme Shop / Decor drawers — the Design tab's
    *  CTAs (the v2 rail folds the whole site look in here). */
   onOpenShop?: () => void;
-  onOpenDecor?: () => void;
 }
 
-export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, onOpenShop, onOpenDecor }: Props) {
+export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, onOpenShop }: Props) {
   /* True when mounted inside the phone bottom sheet (the desktop
      grid only renders this rail above the breakpoint). */
   const isMobileViewport = useMobileViewport();
@@ -687,7 +685,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
            switching sections replays the fade-up like tab flips do —
            panel switches were the one hard swap left in the rail.
            Design/Motion keep the plain tab key: keying those by
-           section would remount ThemePickerBody and drop its state. */
+           section would remount the design deck and drop its state. */
         key={effectiveTab === 'content' ? `content:${active ?? 'none'}` : tab}
         className="pl-rd-tab-body"
         style={{
@@ -696,7 +694,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           display: 'flex',
           flexDirection: 'column',
           /* Content owns its padding + scroll; Design / Motion render
-             ThemePickerBody, which brings its own flex:1 overflow:auto
+             the door deck, which brings its own flex:1 overflow:auto
              padded container — so the wrapper gets out of its way. */
           overflow: effectiveTab === 'content' ? 'auto' : 'hidden',
           padding: effectiveTab === 'content' ? 20 : 0,
@@ -769,31 +767,19 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
           </div>
         )}
 
-        {/* DESIGN TAB — the whole site look: theme · type · texture ·
-            kit · navigation · footer · decor. The v2 inspector folds
-            the former standalone theme rail in here. On phones the
-            6-screen ladder becomes a deck of DOORS (DK.3): each card
-            names one rung + its current state and drills into just
-            that rung's editor. */}
+        {/* DESIGN TAB — the whole site look behind nine doors
+            (EDITOR-CALM-PLAN E.3): Theme · Colors · Fonts · Paper ·
+            Cards & motion · Background · Menu & footer · Decor ·
+            Fine-tune. One deck on EVERY viewport — the desktop's
+            6-screen scroll ladder is gone; each card names one rung
+            + its current state and drills into just that rung's
+            editor. */}
         {effectiveTab === 'design' && (
-          isMobileViewport ? (
-            <DesignDoorDeck
-              manifest={manifest}
-              onChange={onChange}
-              onOpenShop={onOpenShop ?? (() => {})}
-              onOpenDecor={onOpenDecor ?? (() => {})}
-            />
-          ) : (
-          <ThemePickerBody
+          <DesignDoorDeck
             manifest={manifest}
             onChange={onChange}
             onOpenShop={onOpenShop ?? (() => {})}
-            onOpenDecor={onOpenDecor ?? (() => {})}
-            /* inline: the ✦ Motion (Atelier) kits ride the Design
-               scroll now — the standalone Motion tab is gone. */
-            motion="inline"
           />
-          )
         )}
 
         {/* Pear assist — prototype L758-789. Only shown where Pear
@@ -900,25 +886,23 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
 
 /* ─── DesignHomeDoorCard — EDITOR-CALM-PLAN E.2 (one home per
    decision). The menu + footer design decisions live in ONE panel
-   home: the Design tab's "Menu & footer" rung (ThemePickerBody's
+   home: the Design tab's "Menu & footer" door (ThemePickerBody's
    NavPick / FooterPick). The deleted Menu / Footer rail panels used
    to re-render the same pickers here as a second rail home. Pressing
    the menu or footer on the canvas now lands on this calm door: one
-   line of orientation + one button that opens the home via the SAME
-   pearloom:open-theme-rail event the topbar's Design button
-   dispatches. The event carries no target, so after the Design tab
-   paints we make a best-effort scroll to the rung's #pl-dz-menu
-   anchor (misses harmlessly on the phone door deck). */
+   line of orientation + one button that opens the Design tab (the
+   SAME pearloom:open-theme-rail event the topbar uses) and then
+   names the door — the deck listens for pearloom:open-design-door
+   and lands directly on Menu & footer (E.3). */
 function DesignHomeDoorCard({ section }: { section: 'nav' | 'navMobile' | 'footer' }) {
   const isFooter = section === 'footer';
   const openHome = () => {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
+    /* A beat later so the deck (which mounts with the Design tab)
+       has its listener up before the door is named. */
     window.setTimeout(() => {
-      const el = document.getElementById('pl-dz-menu');
-      if (!el) return;
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+      window.dispatchEvent(new CustomEvent('pearloom:open-design-door', { detail: { door: 'menu' } }));
     }, 80);
   };
   return (

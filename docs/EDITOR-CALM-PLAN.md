@@ -337,6 +337,41 @@ eslint / vitest / build / the editor e2e + a live walk).
   deviation from the block text: reorder is ×4→×3, not ×2 — the
   mobile arrows stay because touch has no Alt+↑/↓ and rail drag is
   hostile at 390px; the popover Move rows died as planned.
-- E.3 —
+- E.3 — **SHIPPED 2026-08-13** (the calm Design tab — doors on
+  desktop too). The PropertyRail viewport ternary is gone:
+  `DesignDoorDeck` is THE Design surface on every viewport, and
+  `ThemePickerBody` renders exactly ONE door (its `door` prop is
+  required; the desktop 6-screen altitude ladder, the sticky
+  JumpChips, the bottom CTA pile, and the `motion` prop all
+  deleted). The nine doors: Theme (Generate-from-story +
+  Match-my-photos + recommended themes + a "Browse every theme"
+  gallery row + the Save-the-Date cross-link) · Colors (the AA
+  legibility note moved in from Fine-tune's tail — it audits
+  color decisions) · Fonts · Paper · **Cards & motion** (the two
+  pickers on the one kitId dial merged into `CardsAndMotionPick`:
+  static kit grid + the eight living finishes + the motion on/off
+  toggle in ONE control, per the corrected §3 mechanism — no new
+  manifest field, existing sites keep their exact look) ·
+  Background · Menu & footer · **Decor** (the DecorLibraryPanel
+  catalog renders INLINE as the door's surface — a catalog, not a
+  drawer bottom-CTA; the ⌘K decor-drawer deep destination stays) ·
+  Fine-tune. The topbar's Design + Decor buttons collapsed to one
+  Design (desktop quick-access AND the phone ellipsis menu);
+  `bridge.openDecor` retired with its last caller. The E.2
+  nav/footer door card now lands DIRECTLY on the Menu & footer
+  door via a new `pearloom:open-design-door` event the deck
+  listens for (replacing the dead `#pl-dz-menu` scroll). First
+  paint: **12 controls** (target ≤25; was 113/5,328px).
+  Validated: tsc/eslint clean · vitest 1852/1853 (the weekend
+  baseline) · build passes · a 13-assertion live editor walk —
+  run against the production build (`next start` + a minted
+  session cookie) after discovering the local DEV server has
+  stopped hydrating client JS on every route (React loads, zero
+  fibers attach, no errors — pre-existing environment issue, not
+  a code regression: the landing page fails identically and prod
+  hydrates 73/73; earlier "click" walks against dev passed only
+  on SSR-text assertions). Future live walks: build + `next start
+  -p 3002` with PEARLOOM_E2E=1 and NEXTAUTH_URL overridden, auth
+  via `next-auth/jwt` encode.
 - E.4 —
 - E.5 —
