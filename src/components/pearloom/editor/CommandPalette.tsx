@@ -126,7 +126,7 @@ export function CommandPalette({
       if (et.status === 'planned') continue;
       out.push({ id: `event:${et.id}`, label: `Event, ${et.label}`, hint: et.tagline, icon: 'heart-icon', group: 'Events', keywords: ['event', 'occasion', et.id, et.category, et.voice], run: () => onPatchManifest({ ...manifest, occasion: et.id } as unknown as StoryManifest) });
     }
-    if (onOpenThemeShop)    out.push({ id: 'flow:theme-shop', label: 'Open theme shop',     hint: 'Theme packs, palettes, templates',     icon: 'palette',   group: 'Flows', keywords: ['theme', 'shop'],         run: onOpenThemeShop });
+    if (onOpenThemeShop)    out.push({ id: 'flow:theme-shop', label: 'Browse all themes',    hint: 'Every theme, free — try and apply',    icon: 'palette',   group: 'Flows', keywords: ['theme', 'themes', 'shop', 'gallery'], run: onOpenThemeShop });
     if (onOpenDecorLibrary) out.push({ id: 'flow:decor',      label: 'Open decor library',  hint: 'Dividers, stamps, motifs, stickers', icon: 'brush',     group: 'Flows', keywords: ['decor', 'library'],      run: onOpenDecorLibrary });
     if (onOpenSettings)     out.push({ id: 'flow:settings',   label: 'Open settings',       hint: 'Site URL, privacy, account',         icon: 'section',   group: 'Flows', keywords: ['settings', 'account'],   run: onOpenSettings });
     if (onPublish)          out.push({ id: 'flow:publish',    label: 'Publish & share',     hint: 'Push the latest draft live',         icon: 'arrow-ur',  group: 'Flows', keywords: ['publish', 'share'],      run: onPublish });

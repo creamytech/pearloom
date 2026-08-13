@@ -120,7 +120,7 @@ test.describe('Editor surface integration', () => {
     // CommandPalette defers the onSelect by one tick so the close
     // animation can commit first — the Theme Shop dialog should
     // be visible shortly after.
-    const themeShop = page.getByRole('dialog', { name: /Theme Shop/i });
+    const themeShop = page.getByRole('dialog', { name: /All themes/i });
     await expect(themeShop).toBeVisible({ timeout: 5_000 });
     await expect(themeShop).toHaveAttribute('aria-modal', 'true');
 
@@ -134,13 +134,13 @@ test.describe('Editor surface integration', () => {
     await palette.getByPlaceholder(/Search sections/).fill('theme');
     await page.keyboard.press('Enter');
 
-    const themeShop = page.getByRole('dialog', { name: /Theme Shop/i });
+    const themeShop = page.getByRole('dialog', { name: /All themes/i });
     await expect(themeShop).toBeVisible({ timeout: 5_000 });
 
     // Click the Theme Shop's close button (Esc isn't bound on the
     // sheet itself — closing is via the close affordance or the
-    // backdrop click). aria-label="Close Theme Shop".
-    await themeShop.getByRole('button', { name: /Close Theme Shop/i }).click();
+    // backdrop click). aria-label="Close the theme gallery".
+    await themeShop.getByRole('button', { name: /Close the theme gallery/i }).click();
     // The sheet animates out; assert by waiting for it to disappear
     // from the accessibility tree.
     await expect(themeShop).toHaveCount(0, { timeout: 5_000 });

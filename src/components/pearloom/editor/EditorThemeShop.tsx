@@ -197,6 +197,9 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
       <StoreFonts />
       <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }} />
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="All themes"
         style={{
           position: 'absolute',
           left: isNarrow ? 0 : '50%',

@@ -27,7 +27,7 @@
 | Manifest backfill | `src/components/pearloom/redesign/hydrate-manifest.ts` | Backfills redesign fields (themeId via nearest-accent match, edition recommendation, themeVars) onto pre-redesign manifests. Idempotent, never mutates input. |
 | Wizard | `src/components/pearloom/pages/WizardV8.tsx` | 8 steps → instant local manifest (~1s, no AI at finish). See §8. |
 | Theme catalog (`--t-*` bag) | `src/components/pearloom/site/themes.ts` | 10 named themes; `getTheme(id)`. See §3.3 (the count there is the same on purpose — if they ever disagree, count the registry). |
-| Theme packs / store | `src/lib/theme-store/packs.ts` + `apply.ts`, `src/components/pearloom/store/` | Purchasable packs; `applyPackToManifest`; entitlements via `useEntitlements` (localStorage `pl-store-owned`). |
+| Theme packs / gallery | `src/lib/theme-store/packs.ts` + `apply.ts`, `src/components/pearloom/store/` | ALL FREE (EDITOR-CALM-PLAN E.1); `applyPackToManifest`; `/store` is the free Theme Gallery — no cart, no checkout, no entitlements. |
 | Look fields (kit/texture/density/motifs) | `src/lib/site-look/` | `wizard-look.ts` (applyWizardLook + themeVarsFromPalette), `look-recipes.ts` (wizard's 3 looks), `motif-layouts.ts`. |
 | Site Editions (read-time defaults) | `src/lib/site-editions/` | `recommendEdition` by occasion/voice. Never written to the manifest by the resolver. |
 | Event OS registry | `src/lib/event-os/event-types.ts` | 28 occasions: blocks, voice, RSVP preset, templates, look defaults. Plus `name-mode.ts`, `rsvp-presets.ts`, `wizard-questions.ts`, `solo-occasions.ts`, `weekend-arcs.ts` (Weekend Builder anchors + satellite events; shared by `/dashboard/weekend`, `/api/celebrations/weekend`, and WelcomeHome's "Around your day" card). |
@@ -62,7 +62,7 @@
 /{occasion}/{slug}/{pg} → sites/[domain]/[page]/page.tsx → PublishedSiteShell (pageFilter)
 /g/[token]              → guest passport (RsvpCeremony, GuestThreadCard, YourCelebrationsCard, …)
 /a/[siteSlug]           → address-collection form
-/store                  → ThemeStore (packs, cart, entitlements)
+/store                  → ThemeStore (the free Theme Gallery — browse + apply)
 ```
 
 **The renderer rule:** every site pixel — editor canvas and published — comes from `redesign/ThemedSite.tsx`. There is no dispatch, no fallback, no legacy path. PublishedSiteShell wraps it in an ErrorBoundary with a calm guest fallback.
@@ -122,7 +122,7 @@ footer, countdown, map, music, plus every Event-OS block.
 auto-applied.
 
 - **Wizard**: `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts) — the `'match'` recipe from `lookRecipesFor(occasion)` dresses the live pressing (and the "room wears the look" underlay on Palette/Review). Explicit kit/texture/motif/density picks come from the **fitting room** (`wizard-fitting-room.tsx`) and beat the defaults at generation. (The old three-look card picker — `wizard-looks.tsx` — was unreachable inside the dead-coded Layout step and was deleted 2026-07-01; the fitting room is its successor.)
-- **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (in-canvas pack preview/unlock, shares `pl-store-owned` localStorage with `/store`).
+- **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (the in-canvas "All themes" sheet — try-on preview + Apply; every pack free since E.1).
 - **Studio inheritance**: `studio-defaults-from-look.ts` — first Studio open inherits the site look.
 - **From photos**: `src/lib/look-engine/palette-from-photo.ts` (client-side quantize) feeds the wizard's "From your photos" palette + `/api/wizard/smart-palette`.
 
@@ -151,7 +151,7 @@ BRAND.md §7 microcopy rules apply everywhere — and §7's governing rule since
 | `pearloom/dash/` | 16 | DashShell (SiteCrest switcher), PLChrome, DashSubNav, DashCommandPalette, NotificationBell, UserSettingsModal, BroadcastComposer, TwoTapThanks, ThankYouGenerator, ShellPersistentLayout. |
 | `pearloom/site/` | 13 | Published-site shell + overlays: PublishedSiteShell, ArrivalReveal, GuestRsvpModal, RsvpCeremony, GuestPearChat, DayOfBanner, BroadcastBar, Monogram, MotifScatter, TextureFilters, themes.ts. |
 | `pearloom/wizard/` | 7 | GeneratingScreen (press stages), WizardDatePicker, WizardLocationAutocomplete, StoryListen, BackgroundCookPill, useBackgroundCook (decor pre-cook), usePhotoPalette. |
-| `pearloom/store/` | 8 | ThemeStore, CartProvider/CartDrawer, PackCard/PackPreview/QuickLookModal, useEntitlements. |
+| `pearloom/store/` | 6 | ThemeStore (the free gallery), PackCard/PackPreview/QuickLookModal, useEntitlements (static all-owned), DecorShop. |
 | `marketing/` | 19 | `design/*` is the live landing (DesignNav, DesignHero, WovenDivider, ThreeActsStage, DesignOccasions, DesignPricing, DesignFAQ, DesignTestimonials, DesignCTAFooter) + `design/dash/*` dashboard pages (DashDirector et al). |
 | `brand/`, `shell/`, `effects/` | 24/9/7 | §5. |
 | `guest-experience/`, `invite/`, `passport/` | 6/6/2 | Guest passport cards (GuestCircleCards, YourCelebrationsCard, …), invite reveal. |

@@ -125,10 +125,9 @@ test.describe('Theme Store → editor pack hand-off', () => {
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
     });
-    // Deterministic entitlements (free packs are implicitly owned).
-    await page.route('**/api/store/entitlements**', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"packIds":[]}' });
-    });
+    // Every pack is free (EDITOR-CALM-PLAN E.1) — ownership is
+    // universal and the client no longer fetches entitlements, so
+    // the old deterministic stub is gone.
     // The editor route needs a real DB row — stub the destination;
     // this leg only asserts the hand-off, the editor leg above
     // asserts consumption.
