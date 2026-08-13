@@ -44,16 +44,16 @@ export async function GET(req: NextRequest) {
   const [cfg, guestsRes] = await Promise.all([
     siteRef ? getSiteConfig(siteRef.subdomain).catch(() => null) : Promise.resolve(null),
     supabase
-      .from('pearloom_guests')
-      .select('id, display_name, guest_token, home_city, relationship_to_host, side')
+      .from('guests')
+      .select('id, display_name:name, guest_token, passport_token, home_city, relationship_to_host, side')
       .eq('site_id', siteRef?.id ?? siteId)
-      .order('display_name', { ascending: true }),
+      .order('name', { ascending: true }),
   ]);
 
   const guests = (guestsRes.data ?? []).map((g) => ({
     id: g.id,
     name: g.display_name,
-    token: g.guest_token,
+    token: g.passport_token ?? g.guest_token,
     homeCity: g.home_city,
     relationship: g.relationship_to_host,
     side: g.side,

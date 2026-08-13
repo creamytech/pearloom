@@ -25,6 +25,7 @@ import { generateJson, cached } from '@/lib/claude';
 import { env } from '@/lib/env';
 import type { StoryManifest } from '@/types';
 import type { PearloomGuest, RelationshipEdge, VoiceToast } from './db';
+import { listGuests } from './db';
 import { synthesizeVoiceLine } from './voice';
 
 function admin(): SupabaseClient {
@@ -128,7 +129,7 @@ async function gatherSources(siteId: string): Promise<FilmSources> {
 
   const [siteRes, guestsRes, edgesRes, toastsRes, photosRes] = await Promise.all([
     sb.from('sites').select('site_config').eq('id', siteId).maybeSingle(),
-    sb.from('pearloom_guests').select('*').eq('site_id', siteId),
+    listGuests(siteId),
     sb.from('relationship_graph').select('*').eq('site_id', siteId),
     sb
       .from('voice_toasts')
@@ -149,7 +150,7 @@ async function gatherSources(siteId: string): Promise<FilmSources> {
   const manifest = (siteRes.data?.site_config as { manifest?: StoryManifest } | null)?.manifest ?? null;
   return {
     manifest,
-    guests: (guestsRes.data ?? []) as PearloomGuest[],
+    guests: guestsRes,
     edges: (edgesRes.data ?? []) as RelationshipEdge[],
     toasts: (toastsRes.data ?? []) as VoiceToast[],
     photoUrls: ((photosRes.data ?? []) as Array<{ url: string }>).map((p) => p.url).filter(Boolean),

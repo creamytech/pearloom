@@ -54,15 +54,19 @@ export async function POST(
     return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
   }
 
+  // guests is the one spine (G.1b) — both token columns resolve.
+  if (!/^[\w-]{6,80}$/.test(token)) {
+    return NextResponse.json({ error: 'Passport not found' }, { status: 404 });
+  }
   const { data: guest, error: guestErr } = await supabase
-    .from('pearloom_guests')
-    .select('id, site_id, display_name')
-    .eq('guest_token', token)
+    .from('guests')
+    .select('id, site_id, name')
+    .or(`passport_token.eq.${token},guest_token.eq.${token}`)
     .maybeSingle();
   if (guestErr || !guest) {
     return NextResponse.json({ error: 'Passport not found' }, { status: 404 });
   }
-  const guestName = guest.display_name;
+  const guestName = guest.name;
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== 'object') {

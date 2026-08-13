@@ -150,12 +150,14 @@ export default async function GuestUploadPage({
   // editable in case the guest's borrowing someone's phone.
   let prefillName: string | null = null;
   if (guestToken && guestToken.length >= 6) {
-    const { data: guestRow } = await sb
-      .from('pearloom_guests')
-      .select('display_name')
-      .eq('guest_token', guestToken)
-      .maybeSingle();
-    prefillName = (guestRow as { display_name?: string } | null)?.display_name ?? null;
+    const { data: guestRow } = /^[\w-]{6,80}$/.test(guestToken)
+      ? await sb
+          .from('guests')
+          .select('name')
+          .or(`passport_token.eq.${guestToken},guest_token.eq.${guestToken}`)
+          .maybeSingle()
+      : { data: null };
+    prefillName = (guestRow as { name?: string } | null)?.name ?? null;
   }
 
   return (

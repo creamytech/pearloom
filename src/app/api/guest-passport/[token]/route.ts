@@ -7,15 +7,15 @@
 // existing whispers / time-capsule / song requests they've already
 // submitted.
 //
-// Queries `pearloom_guests` (the existing multi-guest table with
-// `guest_token`) and joins to the newer passport tables introduced
-// in 20260425_guest_passport.sql.
+// Resolves the guest on the `guests` spine (G.1b — the fork is
+// collapsed) and joins to the passport tables introduced in
+// 20260425_guest_passport.sql.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSiteConfig } from '@/lib/db';
-import { resolveSiteRef } from '@/lib/event-os/db';
+import { getGuestByToken, resolveSiteRef } from '@/lib/event-os/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,13 +40,10 @@ export async function GET(
     return NextResponse.json({ error: 'Passport unavailable' }, { status: 503 });
   }
 
-  const { data: guest, error } = await supabase
-    .from('pearloom_guests')
-    .select('*')
-    .eq('guest_token', token)
-    .maybeSingle();
-
-  if (error || !guest) {
+  // The guests spine via the adapter (G.1b) — resolves both the
+  // passport_token every link mints and the legacy guest_token.
+  const guest = await getGuestByToken(token).catch(() => null);
+  if (!guest) {
     return NextResponse.json({ error: 'Passport not found' }, { status: 404 });
   }
 

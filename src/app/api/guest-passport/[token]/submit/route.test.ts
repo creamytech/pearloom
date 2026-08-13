@@ -25,7 +25,7 @@ const h = vi.hoisted(() => {
 
   function makeChain(table: string) {
     const chain: Record<string, unknown> = {};
-    const verbs = ['select', 'eq', 'order', 'limit', 'maybeSingle', 'insert', 'update'];
+    const verbs = ['select', 'eq', 'or', 'order', 'limit', 'maybeSingle', 'insert', 'update'];
     for (const verb of verbs) {
       chain[verb] = (...args: unknown[]) => {
         calls.push({ table, method: verb, args });
@@ -103,10 +103,10 @@ function callPost(token: string, body: unknown) {
   return POST(postReq(body), { params: Promise.resolve({ token }) });
 }
 
-const guestRow = (overrides: Partial<{ id: string; site_id: string; display_name: string }> = {}) => ({
+const guestRow = (overrides: Partial<{ id: string; site_id: string; name: string }> = {}) => ({
   id: overrides.id ?? 'guest-1',
   site_id: overrides.site_id ?? 'demo',
-  display_name: overrides.display_name ?? 'Alice',
+  name: overrides.name ?? 'Alice',
 });
 
 describe('POST /api/guest-passport/[token]/submit — door', () => {
@@ -129,13 +129,13 @@ describe('POST /api/guest-passport/[token]/submit — door', () => {
   });
 
   it('404 when guest token does not match a row', async () => {
-    h.queue('pearloom_guests.maybeSingle', null);
+    h.queue('guests.maybeSingle', null);
     const res = await callPost(nextToken(), { kind: 'whisper', body: 'x' });
     expect(res.status).toBe(404);
   });
 
   it('400 on invalid JSON body', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await POST(
       new NextRequest('http://localhost/api/guest-passport/T/submit', {
         method: 'POST',
@@ -148,7 +148,7 @@ describe('POST /api/guest-passport/[token]/submit — door', () => {
   });
 
   it('400 on unknown kind', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'mystery' });
     expect(res.status).toBe(400);
   });
@@ -157,7 +157,7 @@ describe('POST /api/guest-passport/[token]/submit — door', () => {
     const tok = `rl-${Date.now()}-aaaaaaaa`;
     // Queue 10 guest lookups + 10 song inserts (song is simplest).
     for (let i = 0; i < 10; i++) {
-      h.queue('pearloom_guests.maybeSingle', guestRow());
+      h.queue('guests.maybeSingle', guestRow());
       h.queue('song_requests.insert', null);
     }
     for (let i = 0; i < 10; i++) {
@@ -177,22 +177,22 @@ describe('POST /api/guest-passport/[token]/submit — memory', () => {
   });
 
   it('400 when response is empty or whitespace', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const r1 = await callPost(nextToken(), { kind: 'memory', response: '' });
     expect(r1.status).toBe(400);
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const r2 = await callPost(nextToken(), { kind: 'memory', response: '   ' });
     expect(r2.status).toBe(400);
   });
 
   it('400 when response exceeds 3000 chars', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'memory', response: 'x'.repeat(3001) });
     expect(res.status).toBe(400);
   });
 
   it('404 when no memory prompt exists for the guest', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('memory_prompts.maybeSingle', null);
     const res = await callPost(nextToken(), { kind: 'memory', response: 'A nice memory' });
     expect(res.status).toBe(404);
@@ -201,7 +201,7 @@ describe('POST /api/guest-passport/[token]/submit — memory', () => {
   });
 
   it('200 updates the most-recent prompt with response + responded_at', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('memory_prompts.maybeSingle', { id: 'mp-7' });
     h.queue('memory_prompts.update.eq', null);
     const res = await callPost(nextToken(), { kind: 'memory', response: '  The Sonoma trip  ' });
@@ -227,19 +227,19 @@ describe('POST /api/guest-passport/[token]/submit — whisper', () => {
   });
 
   it('400 on empty body', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'whisper', body: '' });
     expect(res.status).toBe(400);
   });
 
   it('400 on >1500 chars', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'whisper', body: 'x'.repeat(1501) });
     expect(res.status).toBe(400);
   });
 
   it('200 inserts whisper with site_id + guest_id + is_private + deliver_after stamp', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow({ id: 'g-1', site_id: 'site-7' }));
+    h.queue('guests.maybeSingle', guestRow({ id: 'g-1', site_id: 'site-7' }));
     h.queue('whispers.insert', null);
     const res = await callPost(nextToken(), { kind: 'whisper', body: 'Thinking of you' });
     expect(res.status).toBe(200);
@@ -271,13 +271,13 @@ describe('POST /api/guest-passport/[token]/submit — capsule', () => {
   });
 
   it('400 on empty body', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'capsule', body: '', years: 5 });
     expect(res.status).toBe(400);
   });
 
   it('400 on >2000 chars', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), {
       kind: 'capsule',
       body: 'x'.repeat(2001),
@@ -288,7 +288,7 @@ describe('POST /api/guest-passport/[token]/submit — capsule', () => {
 
   it('clamps years to [1, 50] integer', async () => {
     // years=0 → coerced to 1
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('time_capsule.insert', null);
     await callPost(nextToken(), { kind: 'capsule', body: 'note', years: 0 });
     let ins = h.calls.find((c) => c.table === 'time_capsule' && c.method === 'insert');
@@ -296,7 +296,7 @@ describe('POST /api/guest-passport/[token]/submit — capsule', () => {
 
     // years=999 → coerced to 50
     h.reset();
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('time_capsule.insert', null);
     await callPost(nextToken(), { kind: 'capsule', body: 'note', years: 999 });
     ins = h.calls.find((c) => c.table === 'time_capsule' && c.method === 'insert');
@@ -304,7 +304,7 @@ describe('POST /api/guest-passport/[token]/submit — capsule', () => {
 
     // years=7.6 → rounded to 8
     h.reset();
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('time_capsule.insert', null);
     await callPost(nextToken(), { kind: 'capsule', body: 'note', years: 7.6 });
     ins = h.calls.find((c) => c.table === 'time_capsule' && c.method === 'insert');
@@ -312,7 +312,7 @@ describe('POST /api/guest-passport/[token]/submit — capsule', () => {
   });
 
   it('computes reveal_on as today + years (YYYY-MM-DD shape)', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('time_capsule.insert', null);
     await callPost(nextToken(), { kind: 'capsule', body: 'note', years: 5 });
     const ins = h.calls.find((c) => c.table === 'time_capsule' && c.method === 'insert');
@@ -334,13 +334,13 @@ describe('POST /api/guest-passport/[token]/submit — song', () => {
   });
 
   it('400 when title missing', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     const res = await callPost(nextToken(), { kind: 'song', title: '' });
     expect(res.status).toBe(400);
   });
 
   it('200 inserts song with all optional fields nullable', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow({ id: 'g-1', site_id: 'site-7' }));
+    h.queue('guests.maybeSingle', guestRow({ id: 'g-1', site_id: 'site-7' }));
     h.queue('song_requests.insert', null);
     const res = await callPost(nextToken(), {
       kind: 'song',
@@ -364,7 +364,7 @@ describe('POST /api/guest-passport/[token]/submit — song', () => {
   });
 
   it('200 with title only — empty optionals coerced to null (not "")', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('song_requests.insert', null);
     const res = await callPost(nextToken(), { kind: 'song', title: 'Lonesome Road' });
     expect(res.status).toBe(200);
@@ -376,7 +376,7 @@ describe('POST /api/guest-passport/[token]/submit — song', () => {
   });
 
   it('500 surfaces a Supabase insert error', async () => {
-    h.queue('pearloom_guests.maybeSingle', guestRow());
+    h.queue('guests.maybeSingle', guestRow());
     h.queue('song_requests.insert', { message: 'rls denied' }, true);
     const res = await callPost(nextToken(), { kind: 'song', title: 'x' });
     expect(res.status).toBe(500);

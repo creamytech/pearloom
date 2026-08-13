@@ -5,57 +5,37 @@
 
 ## Active focus
 
-**Sprint G — THE GUEST SPINE** (`docs/REVAMP-EXECUTION-PLAN.md` §4).
-Sprints W (THE WIRES) and S (THE SCHEMA) shipped in full 2026-08-12 —
-all stamps in the plan doc. S landed: the three-way schema diff clean
-(fresh-from-migrations ≡ local; prod deltas = the four pending MCP
-applies listed in plan §3 S.1), `npm run db:migrate` builds a working
-DB from empty Postgres (82 migrations, deferral-retry ordering), the
-staging fence workflow (`.github/workflows/staging-fence.yml`) runs
-the full stack + fence suite on every PR (rehearsed locally on a
-zero-row DB: 7/7), all six phantom-table reads decided (repointed to
-guest_photos / day_of_announcements / guests tokens, dead routes
-deleted, time_capsules created), and warnFeed ended the bell's
-silent-empty masking.
+**Sprint T — HONEST STATES** (`docs/REVAMP-EXECUTION-PLAN.md` §5).
+Sprints W, S, and G all shipped in full 2026-08-12/13 — every stamp
+in the plan doc. G closed with the fork collapse (G.1b, commit
+pending push): `guests` is the ONE canonical guest row, the
+20260812_guest_spine_merge migration merged + rekeyed everything,
+the adapter in lib/event-os/db.ts is the only guest resolver, and
+`no-guest-fork.test.ts` greps the fork from ever growing back.
+pearloom_guests is frozen-deprecated (drop after a quiet cycle).
 
-Goal: one guest identity, occasion-true honest asks, a passport worth
-the name (the R2 revamp, first half).
+Goal: rule §0.2 (never fabricate) applied everywhere the audit
+found a fabrication.
 
-**G.2–G.7 all SHIPPED 2026-08-12** (stamps + details in plan §4;
-commits 1d1df9a, b73dc3a, 7661b4b): preset-driven honest RSVP form +
-the 42P10 first-reply prod bug fixed; registry honesty gate; .ics
-real-times/all-day; gate-aware hero anchor; RSVP contrast floor (+
-amalfi/first-light catalog fixes); passport phone-first (minWidth:0
-pair, manifest.names signing, token-first + ilike reply lookup,
-passport_token in POST /api/guests response, cache()-deduped
-resolver — the first-visit mint race 404'd real passports). Four new
-fences in the staging-fence workflow: rsvp-honesty (2) +
-passport-phone (1) alongside doorway/press/publish.
+Open threads: T.1 day-of wears a REHEARSAL frame pre-event
+(cockpit-phase knows) · T.2 progress counts only host-real
+milestones; day-of checklist persists (never useState) · T.3
+funnel stages render only from real tracking ("not tracked", never
+100%) · T.4 "Pear is following up weekly" becomes true or the copy
+goes · T.5 fake sold counts/ratings/"MOST CHOSEN"/usage meter
+deleted; real counts when real · T.6 /partners unpublished until
+the program exists · T.7 weekend planner prefills from the host's
+real site · T.8 link hygiene (registry "See payments" → payments;
+the shell copy-nit sweep).
 
-Open threads: **G.1b only** — the fork retirement. G.1a SHIPPED
-2026-08-12 (plan §4 stamp): the site_id convention converged on
-uuid-as-text via `20260812_pearloom_guests_site_key.sql` (backfill +
-RLS rewrite + passthrough tables), the GDPR purge/export now sweep
-both keys, and `resolveSiteRef` in lib/event-os/db.ts repaired the
-five uuid-into-getSiteConfig routes (they 404'd at baseline). G.1b =
-merge pearloom_guests into `guests` and retire: add the 9 profile
-columns (or side table) + unique guest_token index, backfill by
-(site uuid, lower(email)), rekey the 13 FKs +
-guest_push_subscriptions, swap all consumers through the adapter,
-regenerate database.types.ts. THE MAP IS IN docs/FORK-SURVEY.md —
-read it first. Fence: grep-test (no `from('pearloom_guests')`
-outside the adapter) + all 12 fence e2e keep passing.
+Counts as done: the fabrications fence — the forbidden-strings
+suite extended so the specific dead claims can't return, plus a
+grep that flags any sold/rating literal in store data.
 
-Counts as done: the four occasion worlds (wedding, memorial,
-bachelorette, baby shower) each pass a guest-side e2e — honest form,
-durable reply, working passport, working calendar, no false claims.
-**DONE for the form dimension** (rsvp-honesty 4/4, commit c17a94e:
-wedding menu-less walk, memorial register, bachelorette required
-cost-gate, baby-shower gifts/advice); passport + calendar ride
-passport-phone + the wedding walk. G.1 is the sprint's last block.
-
-Skip: Sprints T–D work not needed for a G block; the pending prod
-MCP applies (owner/Supabase re-auth — listed in plan §3).
+Skip: Sprints M–D work not needed for a T block; the pending prod
+MCP applies (owner/Supabase re-auth — plan §3 S.1 lists five now:
+20260529, 20260530, 20260812_schema_parity, 20260812_time_capsules,
+20260812_pearloom_guests_site_key + 20260812_guest_spine_merge).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
 landed 2026-05-31:**

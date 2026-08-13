@@ -57,6 +57,7 @@ const h = vi.hoisted(() => {
     calls,
     supabaseMock,
     getSiteConfigMock: vi.fn(async () => null) as Mock,
+    getGuestByTokenMock: vi.fn(async () => null) as Mock,
     queue(key: string, value: unknown, isError?: boolean) {
       queues[key] = queues[key] || [];
       queues[key].push({ value, isError });
@@ -77,6 +78,7 @@ vi.mock('@supabase/supabase-js', () => ({
 // subdomain-shaped site_id straight through.
 vi.mock('@/lib/event-os/db', () => ({
   resolveSiteRef: vi.fn(async (key: string) => ({ id: 'site-uuid-1', subdomain: key })),
+  getGuestByToken: h.getGuestByTokenMock,
 }));
 vi.mock('@/lib/db', () => ({
   getSiteConfig: h.getSiteConfigMock,
@@ -98,6 +100,8 @@ describe('GET /api/guest-passport/[token]', () => {
     h.reset();
     h.getSiteConfigMock.mockReset();
     h.getSiteConfigMock.mockImplementation(async () => null);
+    h.getGuestByTokenMock.mockReset();
+    h.getGuestByTokenMock.mockImplementation(async () => null);
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://supabase.test';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
   });
@@ -120,19 +124,19 @@ describe('GET /api/guest-passport/[token]', () => {
   });
 
   it('404 when no guest matches the token', async () => {
-    h.queue('pearloom_guests.maybeSingle', null);
+    h.getGuestByTokenMock.mockResolvedValueOnce(null);
     const res = await callGet('valid-token-xyz');
     expect(res.status).toBe(404);
   });
 
   it('404 when the guest lookup errors', async () => {
-    h.queue('pearloom_guests.maybeSingle', { message: 'rls denied' }, true);
+    h.getGuestByTokenMock.mockRejectedValueOnce(new Error('rls denied'));
     const res = await callGet('valid-token-xyz');
     expect(res.status).toBe(404);
   });
 
   it('200 with all five joins populated, mapped to camelCase', async () => {
-    h.queue('pearloom_guests.maybeSingle', {
+    h.getGuestByTokenMock.mockResolvedValueOnce({
       id: 'guest-1',
       guest_token: 'valid-token-xyz',
       site_id: 'emma-and-james',
@@ -217,7 +221,7 @@ describe('GET /api/guest-passport/[token]', () => {
   });
 
   it('200 with null joins when guest has no prompt/whisper/capsule/seatmate yet', async () => {
-    h.queue('pearloom_guests.maybeSingle', {
+    h.getGuestByTokenMock.mockResolvedValueOnce({
       id: 'guest-2',
       guest_token: 'valid-token-xyz',
       site_id: 'demo',
@@ -249,7 +253,7 @@ describe('GET /api/guest-passport/[token]', () => {
   });
 
   it('falls back to empty-site shape when getSiteConfig fails', async () => {
-    h.queue('pearloom_guests.maybeSingle', {
+    h.getGuestByTokenMock.mockResolvedValueOnce({
       id: 'guest-3',
       guest_token: 'valid-token-xyz',
       site_id: 'unconfigured-site',

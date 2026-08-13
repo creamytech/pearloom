@@ -47,10 +47,13 @@ export async function POST(
     return NextResponse.json({ error: 'Subscription is missing endpoint or keys.' }, { status: 400 });
   }
 
+  if (!/^[\w-]{6,80}$/.test(token)) {
+    return NextResponse.json({ error: 'Token not recognised.' }, { status: 404 });
+  }
   const { data: guest } = await client
-    .from('pearloom_guests')
+    .from('guests')
     .select('id, site_id')
-    .eq('guest_token', token)
+    .or(`passport_token.eq.${token},guest_token.eq.${token}`)
     .maybeSingle();
   if (!guest) {
     return NextResponse.json({ error: 'Token not recognised.' }, { status: 404 });

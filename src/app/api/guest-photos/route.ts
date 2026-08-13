@@ -223,11 +223,14 @@ export async function POST(req: NextRequest) {
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!,
         );
-        const { data: guestRow } = await supabase
-          .from('pearloom_guests')
-          .select('id')
-          .eq('guest_token', guestToken.trim())
-          .maybeSingle();
+        const tk = guestToken.trim();
+        const { data: guestRow } = /^[\w-]{6,80}$/.test(tk)
+          ? await supabase
+              .from('guests')
+              .select('id')
+              .or(`passport_token.eq.${tk},guest_token.eq.${tk}`)
+              .maybeSingle()
+          : { data: null };
         resolvedGuestId = (guestRow as { id?: string } | null)?.id ?? null;
       } catch { /* silent — attribution is nice-to-have */ }
     }

@@ -102,17 +102,12 @@ async function matchesForPhone(
   supabase: SupabaseClient,
   phone: string,
 ): Promise<{ matches: ConciergeMatch[]; sites: Map<string, SiteRow> }> {
-  const [a, b] = await Promise.all([
-    supabase.from('guests').select('id, name, site_id, phone').eq('phone', phone).limit(20),
-    supabase.from('pearloom_guests').select('id, display_name, site_id, phone').eq('phone', phone).limit(20),
-  ]);
+  // One spine since G.1b — guests carries every reachable phone.
+  const a = await supabase.from('guests').select('id, name, site_id, phone').eq('phone', phone).limit(40);
 
   const raw: Array<{ guestId: string; guestName: string; siteId: string }> = [];
   for (const r of a.data ?? []) {
     raw.push({ guestId: String(r.id), guestName: String(r.name ?? ''), siteId: String(r.site_id) });
-  }
-  for (const r of b.data ?? []) {
-    raw.push({ guestId: String(r.id), guestName: String(r.display_name ?? ''), siteId: String(r.site_id) });
   }
 
   const sites = new Map<string, SiteRow>();

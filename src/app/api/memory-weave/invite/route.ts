@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
     ? cfg.names.filter(Boolean).join(' & ')
     : 'Your hosts';
 
-  // Join memory_prompts to pearloom_guests to get emails.
+  // Join memory_prompts to the guests spine to get emails (G.1b).
   const { data: prompts } = await supabase
     .from('memory_prompts')
-    .select('id, guest_id, guest_name, prompt, response, pearloom_guests!inner(email, guest_token)')
+    .select('id, guest_id, guest_name, prompt, response, guests!inner(email, guest_token, passport_token)')
     .eq('site_id', siteId)
     .is('response', null);
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
   // Skip opted-out / bounced addresses. Fail-open on lookup error.
   const suppressed = await suppressedEmails(
     supabase,
-    prompts.map((p) => (p as unknown as { pearloom_guests: { email?: string | null } }).pearloom_guests?.email),
+    prompts.map((p) => (p as unknown as { guests: { email?: string | null } }).guests?.email),
     siteId,
   );
 
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   const errors: string[] = [];
 
   for (const p of prompts) {
-    const guest = (p as unknown as { pearloom_guests: { email?: string | null; guest_token: string } }).pearloom_guests;
+    const guest = (p as unknown as { guests: { email?: string | null; guest_token?: string | null; passport_token?: string | null } }).guests;
     if (!guest?.email) {
       skipped += 1;
       continue;
@@ -97,7 +97,9 @@ export async function POST(req: NextRequest) {
       continue;
     }
     const first = (p.guest_name ?? '').split(/\s+/)[0] ?? 'Friend';
-    const passportUrl = `${appOrigin()}/g/${guest.guest_token}`;
+    const token = guest.passport_token ?? guest.guest_token;
+    if (!token) { skipped += 1; continue; }
+    const passportUrl = `${appOrigin()}/g/${token}`;
     try {
       const html = buildMemoryPromptEmail({ guestFirstName: first, names, prompt: p.prompt, passportUrl, theme: emailTheme }).html;
       await resend.emails.send({

@@ -313,12 +313,27 @@ worth the name. (The R2 revamp, first half.)
     passport-cards, pear-sms, memory-weave (all returned null/404
     at baseline), and film.ts's guest_photos read now keys by
     subdomain as that table requires. All 12 fence e2e green.
-  - **G.1b — OPEN.** The retirement: merge into `guests` (add the
-    9 profile columns or a side table + unique guest_token index),
-    backfill by (site uuid, lower(email)), rekey the 13 FKs +
-    guest_push_subscriptions, swap all consumers through the
-    adapter, regenerate database.types.ts, then the grep fence.
-    Full execution sketch + consumer table: docs/FORK-SURVEY.md.
+  - **G.1b — SHIPPED 2026-08-13.** THE FORK IS COLLAPSED.
+    `20260812_guest_spine_merge.sql`: guests gains the 12 profile
+    columns; every pearloom_guests row lands in guests (matched by
+    site uuid + lower(email) fills gaps, unmatched inserts fresh;
+    `_pearloom_guest_merge_map` records old→new ids permanently);
+    the 13 FKs + guest_push_subscriptions rekeyed to guests(id)
+    with original delete semantics (UNIQUE(guest_id) children
+    ctid-deduped first); guests.guest_token gets its unique
+    partial index. The adapter (lib/event-os/db.ts): getGuestByToken
+    reads ONE table via or(passport_token, guest_token) — the
+    whole two-table bridge-and-mint dance deleted; listGuests +
+    findGuestsByPhone added; upsertGuest (dead code) removed. All
+    14 direct consumers swapped (display_name:name aliasing, token
+    fallbacks, the memory_prompts embed now joins guests);
+    people.resolveGuestToken is one lookup. pearloom_guests stays
+    FROZEN as a safety net (COMMENT: deprecated; drop after a
+    quiet release cycle — the purge/export dual-key sweeps still
+    cover it). Fence: `no-guest-fork.test.ts` (grep — nothing in
+    src/ queries the old table) + all 12 fence e2e green. Named
+    leftovers: `database.types.ts` regeneration (needs supabase
+    codegen), and the eventual DROP TABLE.
 - **G.2 rsvpPreset drives the form (L7). — SHIPPED 2026-08-12.**
   `GuestRsvpModal` renders the preset schema: the attending toggle
   wears the occasion's register (`ATTENDING_LABELS` — memorial says

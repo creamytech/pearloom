@@ -104,12 +104,14 @@ export async function POST(req: NextRequest) {
     try {
       const emails = guests.map((g) => String(g.email).toLowerCase());
       const { data: passportRows } = await supabase
-        .from('pearloom_guests')
-        .select('email, guest_token')
+        .from('guests')
+        .select('email, guest_token, passport_token')
         .eq('site_id', siteRow.id)
         .in('email', emails);
       for (const row of passportRows ?? []) {
-        if (row.email && row.guest_token) tokenByEmail.set(String(row.email).toLowerCase(), String(row.guest_token));
+        const tok = (row as { passport_token?: string | null; guest_token?: string | null }).passport_token
+          ?? (row as { guest_token?: string | null }).guest_token;
+        if (row.email && tok) tokenByEmail.set(String(row.email).toLowerCase(), String(tok));
       }
     } catch {
       /* tokens are a nice-to-have — the bare reveal link still works */

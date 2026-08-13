@@ -153,9 +153,9 @@ export async function POST(req: NextRequest) {
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 
   const { data: guestsRaw } = await supabase
-    .from('pearloom_guests')
-    .select('id, display_name, relationship_to_host, side, home_city, notes')
-    .eq('site_id', siteId);
+    .from('guests')
+    .select('id, display_name:name, relationship_to_host, side, home_city, notes')
+    .eq('site_id', siteRef?.id ?? siteId);
   const guests = (guestsRaw ?? []) as GuestRow[];
   if (!guests.length) {
     return NextResponse.json({ error: 'No guests on this site yet' }, { status: 400 });

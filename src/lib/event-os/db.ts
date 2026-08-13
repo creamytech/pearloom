@@ -105,89 +105,108 @@ export async function resolveSiteRef(key: string): Promise<SiteRef | null> {
   return { id: String((data as { id: unknown }).id), subdomain: String((data as { subdomain: unknown }).subdomain) };
 }
 
+/* ── THE ADAPTER (G.1b) ───────────────────────────────────────
+   guests is the ONE canonical guest row since the
+   20260812_guest_spine_merge migration folded pearloom_guests
+   into it (docs/FORK-SURVEY.md is the map). Every consumer that
+   used to read pearloom_guests goes through these helpers; the
+   grep fence (no-guest-fork.test.ts) bans querying the old
+   table anywhere. The
+   PearloomGuest shape survives as the adapter's return type so
+   the passport surfaces didn't have to change. */
+
+interface GuestSpineRow {
+  id: string;
+  site_id: string;
+  event_id?: string | null;
+  guest_token?: string | null;
+  passport_token?: string | null;
+  name?: string | null;
+  pronunciation?: string | null;
+  pronouns?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  home_city?: string | null;
+  home_country?: string | null;
+  relationship_to_host?: string | null;
+  side?: string | null;
+  is_plus_one_of?: string | null;
+  language?: string | null;
+  dietary?: string[] | null;
+  accessibility?: string[] | null;
+  notes?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+function toPearloomGuest(g: GuestSpineRow): PearloomGuest {
+  return {
+    id: String(g.id),
+    // sites.id as uuid → the text convention every consumer holds.
+    site_id: String(g.site_id ?? ''),
+    event_id: g.event_id ?? null,
+    // The personal-link token: passport_token is the one every
+    // email/QR/dashboard surface mints; guest_token is the legacy
+    // identity-era column (kept unique + resolvable).
+    guest_token: String(g.passport_token ?? g.guest_token ?? ''),
+    display_name: String(g.name ?? g.email ?? 'Guest'),
+    pronunciation: g.pronunciation ?? null,
+    pronouns: g.pronouns ?? null,
+    email: g.email ?? null,
+    phone: g.phone ?? null,
+    home_city: g.home_city ?? null,
+    home_country: g.home_country ?? null,
+    relationship_to_host: g.relationship_to_host ?? null,
+    side: g.side ?? null,
+    is_plus_one_of: g.is_plus_one_of ?? null,
+    language: g.language ?? 'en',
+    dietary: g.dietary ?? null,
+    accessibility: g.accessibility ?? null,
+    notes: g.notes ?? null,
+    metadata: (g.metadata as Record<string, unknown> | null) ?? {},
+  };
+}
+
+const TOKEN_RE = /^[\w-]{6,80}$/;
+
 export async function getGuestByToken(token: string): Promise<PearloomGuest | null> {
+  // One table, both token columns — passport_token (every link the
+  // product mints) and guest_token (the legacy identity era). The
+  // old two-table bridge-and-mint dance is gone with the fork.
+  const t = (token ?? '').trim();
+  if (!TOKEN_RE.test(t)) return null;
   const { data, error } = await admin()
-    .from('pearloom_guests')
-    .select('*')
-    .eq('guest_token', token)
-    .maybeSingle();
-  if (error) throw error;
-  if (data) return data as PearloomGuest;
-
-  // ── The other half of the guest world ────────────────────────
-  // Every token the product actually mints for hosts' guests lives
-  // on public.guests.passport_token (RSVP emails, dashboard links,
-  // nudges, QR cards) — while this resolver historically read only
-  // pearloom_guests.guest_token, so every such passport 404'd
-  // (NEW-USER-REVAMP H8: "the growth engine is a 404"). Resolve the
-  // roster token and bridge it to a pearloom_guests identity row —
-  // find by token, then by (site_id, email), else mint one carrying
-  // THIS token so the next visit resolves on the fast path above.
-  const { data: rosterGuest, error: rosterErr } = await admin()
     .from('guests')
-    .select('site_id, name, email, passport_token')
-    .eq('passport_token', token)
-    .maybeSingle();
-  if (rosterErr || !rosterGuest) return null;
-
-  // guests.site_id is the sites uuid — and uuid-as-text is ALSO
-  // pearloom_guests.site_id's canonical value (G.1a, the
-  // 20260812_pearloom_guests_site_key migration), so the mint
-  // below copies it verbatim on purpose.
-  const siteId = String(rosterGuest.site_id ?? '');
-  const email = (rosterGuest.email as string | null)?.toLowerCase().trim() || null;
-  if (!siteId) return null;
-
-  if (email) {
-    const { data: byEmail } = await admin()
-      .from('pearloom_guests')
-      .select('*')
-      .eq('site_id', siteId)
-      .ilike('email', email)
-      .maybeSingle();
-    if (byEmail) return byEmail as PearloomGuest;
-  }
-
-  const { data: minted, error: mintErr } = await admin()
-    .from('pearloom_guests')
-    .insert({
-      site_id: siteId,
-      display_name: (rosterGuest.name as string | null) || email || 'Guest',
-      email,
-      guest_token: token,
-    })
-    .select()
-    .single();
-  if (mintErr) {
-    // A concurrent visit may have minted it — one retry by token.
-    const { data: retry } = await admin()
-      .from('pearloom_guests')
-      .select('*')
-      .eq('guest_token', token)
-      .maybeSingle();
-    return (retry ?? null) as PearloomGuest | null;
-  }
-  return minted as PearloomGuest;
-}
-
-export async function listGuests(siteId: string): Promise<PearloomGuest[]> {
-  const { data, error } = await admin()
-    .from('pearloom_guests')
     .select('*')
-    .eq('site_id', siteId)
-    .order('display_name', { ascending: true });
+    .or(`passport_token.eq.${t},guest_token.eq.${t}`)
+    .maybeSingle();
   if (error) throw error;
-  return (data ?? []) as PearloomGuest[];
+  return data ? toPearloomGuest(data as GuestSpineRow) : null;
 }
 
-export async function upsertGuest(input: Partial<PearloomGuest> & { site_id: string; display_name: string }): Promise<PearloomGuest> {
+/** Every guest profile on a site. Accepts the site uuid or its
+ *  subdomain (resolved through resolveSiteRef). */
+export async function listGuests(siteKey: string): Promise<PearloomGuest[]> {
+  const ref = await resolveSiteRef(siteKey);
+  if (!ref) return [];
   const { data, error } = await admin()
-    .from('pearloom_guests')
-    .upsert(input, { onConflict: 'id' })
-    .select()
-    .single();
+    .from('guests')
+    .select('*')
+    .eq('site_id', ref.id)
+    .order('name', { ascending: true });
   if (error) throw error;
-  return data as PearloomGuest;
+  return ((data ?? []) as GuestSpineRow[]).map(toPearloomGuest);
+}
+
+/** SMS webhook lookup — every guest row carrying this phone. */
+export async function findGuestsByPhone(phone: string): Promise<PearloomGuest[]> {
+  const p = (phone ?? '').trim();
+  if (!p) return [];
+  const { data, error } = await admin()
+    .from('guests')
+    .select('*')
+    .eq('phone', p);
+  if (error) throw error;
+  return ((data ?? []) as GuestSpineRow[]).map(toPearloomGuest);
 }
 
 // ── Relationship graph ────────────────────────────────────────

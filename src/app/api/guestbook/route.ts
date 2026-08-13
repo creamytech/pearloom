@@ -95,11 +95,13 @@ export async function POST(req: NextRequest) {
     // silently — attribution is nice-to-have, not gating.
     let guestId: string | null = null;
     if (guestToken) {
-      const { data: guestRow } = await supabase
-        .from('pearloom_guests')
-        .select('id')
-        .eq('guest_token', guestToken)
-        .maybeSingle();
+      const { data: guestRow } = /^[\w-]{6,80}$/.test(guestToken)
+        ? await supabase
+            .from('guests')
+            .select('id')
+            .or(`passport_token.eq.${guestToken},guest_token.eq.${guestToken}`)
+            .maybeSingle()
+        : { data: null };
       const id = (guestRow as { id?: string } | null)?.id;
       if (id) guestId = id;
     }

@@ -177,54 +177,30 @@ export interface ResolvedTokenGuest {
   email: string | null;
 }
 
-/** Resolve EITHER guest credential to one shape:
- *    • guests.passport_token   (?g= links, minted by /api/invite)
- *    • pearloom_guests.guest_token  (/g/[token] passport pages),
- *      bridged to the roster row by (site_id, lower(email)) — the
- *      same bridge /g/[token]/page.tsx uses for the RSVP card. */
+/** Resolve EITHER guest credential to one shape. Since the fork
+ *  collapse (G.1b, 20260812_guest_spine_merge) both token columns —
+ *  passport_token (?g= links) and guest_token (the legacy identity
+ *  era) — live on public.guests, so one lookup covers both and the
+ *  old two-table email bridge is gone. */
 export async function resolveGuestToken(
   supabase: SupabaseClient,
   token: unknown,
 ): Promise<ResolvedTokenGuest | null> {
   if (typeof token !== 'string' || token.length < 6 || token.length > 80) return null;
+  if (!/^[\w-]+$/.test(token)) return null;
   try {
     const { data: g } = await supabase
       .from('guests')
       .select('id, site_id, name, email, person_id')
-      .eq('passport_token', token)
+      .or(`passport_token.eq.${token},guest_token.eq.${token}`)
       .maybeSingle();
-    if (g) {
-      return {
-        siteId: String(g.site_id),
-        guestRowId: String(g.id),
-        personId: g.person_id ? String(g.person_id) : null,
-        name: String(g.name ?? 'A guest'),
-        email: (g.email as string | null) ?? null,
-      };
-    }
-    const { data: pg } = await supabase
-      .from('pearloom_guests')
-      .select('id, site_id, display_name, email, person_id')
-      .eq('guest_token', token)
-      .maybeSingle();
-    if (!pg) return null;
-    let roster: { id: string; person_id: string | null } | null = null;
-    if (pg.email) {
-      const { data } = await supabase
-        .from('guests')
-        .select('id, person_id')
-        .eq('site_id', pg.site_id)
-        .ilike('email', String(pg.email))
-        .maybeSingle();
-      roster = (data as { id: string; person_id: string | null } | null) ?? null;
-    }
-    const personId = roster?.person_id ?? (pg.person_id as string | null) ?? null;
+    if (!g) return null;
     return {
-      siteId: String(pg.site_id),
-      guestRowId: roster ? String(roster.id) : null,
-      personId: personId ? String(personId) : null,
-      name: String(pg.display_name ?? 'A guest'),
-      email: (pg.email as string | null) ?? null,
+      siteId: String(g.site_id),
+      guestRowId: String(g.id),
+      personId: g.person_id ? String(g.person_id) : null,
+      name: String(g.name ?? 'A guest'),
+      email: (g.email as string | null) ?? null,
     };
   } catch (err) {
     console.warn('[people] resolveGuestToken failed:', err);
