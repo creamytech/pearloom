@@ -67,7 +67,7 @@ const DIVIDERS: DecorItem[] = [
   it({ id: 'divider-sprig', kind: 'divider', value: 'sprig', name: 'Sprig', blurb: 'A small leaf, centered on the seam.', price: 0, tags: ['botanical'] }),
   it({ id: 'divider-pearl', kind: 'divider', value: 'pl-pearl', name: 'Pearl', blurb: 'A single gold bead between two rules.', price: 5, tags: ['fine', 'gold'] }),
   it({ id: 'divider-infinity', kind: 'divider', value: 'pl-infinity', name: 'Infinity', blurb: 'An unbroken loop, for the long view.', price: 5, tags: ['wedding'] }),
-  it({ id: 'divider-thread', kind: 'divider', value: 'thread', name: 'Loom Thread', blurb: 'The two-strand olive-and-gold thread.', price: 5, badges: { best: true }, tags: ['brand', 'thread'] }),
+  it({ id: 'divider-thread', kind: 'divider', value: 'thread', name: 'Loom Thread', blurb: 'The two-strand olive-and-gold thread.', price: 5, tags: ['brand', 'thread'] }),
   it({ id: 'divider-vine', kind: 'divider', value: 'vine', name: 'Vine', blurb: 'A trailing vine across the page.', price: 6, tags: ['botanical'] }),
   it({ id: 'divider-stars', kind: 'divider', value: 'stars', name: 'Stars', blurb: 'A scatter of small stars for evening.', price: 6, tags: ['celestial', 'night'] }),
 ];
@@ -78,7 +78,7 @@ const MONOGRAMS: DecorItem[] = [
   it({ id: 'mono-laurel', kind: 'monogram', value: 'laurel', name: 'Laurel', blurb: 'A victor’s laurel around the crest.', price: 0, tags: ['classic'] }),
   it({ id: 'mono-wreath', kind: 'monogram', value: 'wreath', name: 'Wreath', blurb: 'A full botanical wreath, hand-drawn.', price: 6, tags: ['botanical'] }),
   it({ id: 'mono-fan', kind: 'monogram', value: 'fan', name: 'Deco Fan', blurb: 'A jazz-age fan framing the initials.', price: 6, tags: ['deco'] }),
-  it({ id: 'mono-seal', kind: 'monogram', value: 'seal', name: 'Wax Seal', blurb: 'A pressed wax seal, as if just stamped.', price: 8, badges: { best: true }, tags: ['letterpress', 'seal'] }),
+  it({ id: 'mono-seal', kind: 'monogram', value: 'seal', name: 'Wax Seal', blurb: 'A pressed wax seal, as if just stamped.', price: 8, tags: ['letterpress', 'seal'] }),
   it({ id: 'mono-halo', kind: 'monogram', value: 'halo', name: 'Halo', blurb: 'A fine radiant halo behind the letters.', price: 6, tags: ['celestial'] }),
   it({ id: 'mono-gate', kind: 'monogram', value: 'gate', name: 'Deco Gate', blurb: 'An architectural deco gateway.', price: 8, tags: ['deco', 'architectural'] }),
 ];

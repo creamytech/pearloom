@@ -364,19 +364,10 @@ export function RegistryDashboardClient() {
                   Cash gifts go straight to your own Venmo / PayPal / Cash App, 
                   Pearloom never touches the money. Amounts are as shared by guests.
                 </div>
-                <Link
-                  href="/dashboard/payments"
-                  style={{
-                    display: 'inline-block',
-                    marginTop: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: 'var(--peach-ink, #C6703D)',
-                    textDecoration: 'none',
-                  }}
-                >
-                  See payments →
-                </Link>
+                {/* The old "See payments →" link went to /dashboard/payments,
+                    a retired route that permanentRedirects BACK to this page —
+                    a door that reloads the same room (T.8/L62). The ledger it
+                    promised is the claims feed on this very page. */}
               </RailCard>
             </div>
           </div>

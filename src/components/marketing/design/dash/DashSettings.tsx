@@ -353,7 +353,7 @@ export function DashSettings() {
               fontFamily: 'inherit',
             }}
           >
-            <Icon name="arrow-left" size={14} color="var(--pl-plum, #7A2D2D)" /> Log out
+            <Icon name="arrow-left" size={14} color="var(--pl-plum, #7A2D2D)" /> Sign out
           </button>
         </aside>
 

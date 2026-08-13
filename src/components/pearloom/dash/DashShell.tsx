@@ -372,7 +372,7 @@ export function DashSidebar({ active }: { active?: string }) {
 
 /* ── User menu (bottom of sidebar) ─────────────────────────────
    The whole avatar + name + email row is a single button. Clicking
-   reveals a small popover with View settings / Help / Log out. The
+   reveals a small popover with View settings / Help / Sign out. The
    user's previous expectation — "I should be able to click on my
    profile to see settings" — is honoured here without giving up
    the existing space-saving compact look. ──────────────────── */
@@ -539,7 +539,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <Icon name="arrow-right" size={14} />
-            Log out
+            Sign out
           </button>
         </div>
       )}

@@ -318,21 +318,6 @@ export function QuickLookModal({
           >
             <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
               <TierBadge tier={pack.tier} />
-              {pack.badges.best && (
-                <span
-                  style={{
-                    padding: '3px 9px',
-                    borderRadius: 999,
-                    background: 'var(--pl-olive-deep, #363F22)',
-                    color: 'var(--pl-cream, #F5EFE2)',
-                    fontSize: 9.5,
-                    fontWeight: 800,
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  ★ Bestseller
-                </span>
-              )}
               {pack.badges.new && (
                 <span
                   style={{
@@ -394,13 +379,6 @@ export function QuickLookModal({
             }}
           >
             <span>{collectionName(pack.collection)}</span>
-            <span aria-hidden>·</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="star" size={12} color="var(--pl-gold, #C19A4B)" />
-              <strong style={{ color: 'var(--pl-ink, #0E0D0B)' }}>{pack.rating.toFixed(1)}</strong>
-            </span>
-            <span aria-hidden>·</span>
-            <span>{pack.sales} sold</span>
           </div>
           <p
             style={{

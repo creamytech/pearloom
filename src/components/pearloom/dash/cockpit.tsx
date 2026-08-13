@@ -91,7 +91,15 @@ function HeartDoodle({ size = 20, color = 'var(--lavender-ink)' }: { size?: numb
  *  event dated "today" must read as upcoming for the WHOLE day
  *  (see daysBetweenCalendarDates). `d` is the whole-day magnitude
  *  either way: days-to-go while upcoming, days-since once past. */
-interface Countdown { d: number; h: number; m: number; s: number; has: boolean; past: boolean }
+interface Countdown {
+  d: number; h: number; m: number; s: number; has: boolean; past: boolean;
+  /** Calendar days to the date — how a person counts ("the wedding
+   *  is 304 days out"), and what the road card says. The label line
+   *  reads THIS; the ticking cells keep ms-precision. The two used
+   *  to disagree on one screen — hero "303 DAYS TO GO" beside the
+   *  card's "304 days out" (T.8/L64a). */
+  cal: number;
+}
 
 function useCockpitCountdown(eventDate: Date | null): Countdown {
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -101,7 +109,7 @@ function useCockpitCountdown(eventDate: Date | null): Countdown {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, [key]);
-  if (!eventDate) return { d: 0, h: 0, m: 0, s: 0, has: false, past: false };
+  if (!eventDate) return { d: 0, h: 0, m: 0, s: 0, has: false, past: false, cal: 0 };
   const daysDiff = daysBetweenCalendarDates(eventDate, new Date(nowMs));
   const past = daysDiff < 0;
   const ms = Math.max(0, eventDate.getTime() - nowMs);
@@ -112,6 +120,7 @@ function useCockpitCountdown(eventDate: Date | null): Countdown {
     s: Math.floor((ms % 60_000) / 1000),
     has: true,
     past,
+    cal: daysDiff,
   };
 }
 
@@ -217,7 +226,7 @@ export function HeroBanner({
     ? `YOUR ${occLabel}`
     : c.past
       ? `YOUR ${occLabel} · ${formatDaysAgo(c.d).toUpperCase()}`
-      : `YOUR ${occLabel} · ${c.d === 0 ? 'TODAY' : `${c.d} ${c.d === 1 ? 'DAY' : 'DAYS'} TO GO`}`;
+      : `YOUR ${occLabel} · ${c.cal === 0 ? 'TODAY' : `${c.cal} ${c.cal === 1 ? 'DAY' : 'DAYS'} TO GO`}`;
   const cells: [string, number][] = [['DAYS', c.d], ['HRS', c.h], ['MIN', c.m], ['SEC', c.s]];
   const dateLines = [dateLabel, venueLabel].filter(Boolean) as string[];
 

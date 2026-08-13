@@ -7,7 +7,7 @@
 //   • Sticky header with brand + search + owned count + cart pill
 //   • Editorial hero ("A look for every once-in-a-lifetime day.")
 //     with a featured pack preview
-//   • Sticky filter bar: collection chips (All / Free / Bestsellers
+//   • Sticky filter bar: collection chips (All / Free
 //     / New / 11 collections / My themes) + sort dropdown
 //   • Pack grid (`auto-fill, minmax(290px, 1fr)`)
 //   • <QuickLookModal>, <CartDrawer>, toast pill
@@ -41,18 +41,16 @@ import { CartProvider, useCart } from './CartProvider';
 import { useEntitlements } from './useEntitlements';
 import { collectionName, priceLabel } from './utils';
 
-type SortKey = 'featured' | 'rating' | 'new' | 'price-lo' | 'price-hi';
+type SortKey = 'featured' | 'new' | 'price-lo' | 'price-hi';
 type ChipId =
   | 'all'
   | 'free'
-  | 'best'
   | 'new'
   | 'owned'
   | (typeof COLLECTIONS)[number]['id'];
 
 const SORTS: ReadonlyArray<{ id: SortKey; label: string }> = [
   { id: 'featured', label: 'Featured' },
-  { id: 'rating', label: 'Top rated' },
   { id: 'new', label: 'Newest' },
   { id: 'price-lo', label: 'Price: low to high' },
   { id: 'price-hi', label: 'Price: high to low' },
@@ -316,7 +314,6 @@ function StoreInner() {
       );
     }
     if (chip === 'free') list = list.filter((p) => p.priceCents === 0);
-    else if (chip === 'best') list = list.filter((p) => p.badges.best);
     else if (chip === 'new') list = list.filter((p) => p.badges.new);
     else if (chip === 'owned') list = list.filter((p) => ownedSet.has(p.id));
     else if (chip !== 'all') list = list.filter((p) => p.collection === chip);
@@ -324,13 +321,11 @@ function StoreInner() {
     const sorted = list.slice();
     if (sort === 'price-lo') sorted.sort((a, b) => a.priceCents - b.priceCents);
     else if (sort === 'price-hi') sorted.sort((a, b) => b.priceCents - a.priceCents);
-    else if (sort === 'rating') sorted.sort((a, b) => b.rating - a.rating);
     else if (sort === 'new')
       sorted.sort((a, b) => (b.badges.new ? 1 : 0) - (a.badges.new ? 1 : 0));
-    else
-      sorted.sort(
-        (a, b) => (b.badges.best ? 1 : 0) - (a.badges.best ? 1 : 0) || b.rating - a.rating,
-      );
+    /* 'featured' keeps the catalog's editorial order — the old sort
+       ranked by fabricated bestseller flags + invented ratings
+       (T.5). */
     return sorted;
   }, [q, chip, sort, ownedSet]);
 
@@ -339,12 +334,11 @@ function StoreInner() {
     [],
   );
 
-  // The chip set — All / Free / Bestsellers / New / 11 collections / My themes
+  // The chip set — All / Free / New / 11 collections / My themes
   const chips: ReadonlyArray<{ id: ChipId; label: string }> = useMemo(
     () => [
       { id: 'all', label: 'All' },
       { id: 'free', label: 'Free' },
-      { id: 'best', label: '★ Bestsellers' },
       { id: 'new', label: 'New' },
       ...COLLECTIONS.map((c) => ({ id: c.id, label: c.name })),
       { id: 'owned', label: 'My themes' },

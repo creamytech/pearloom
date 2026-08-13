@@ -4,7 +4,7 @@
 // Pearloom / pearloom/store/PackCard.tsx
 //
 // One pack tile in the Theme Store grid. Renders a live themed
-// vignette (via PackPreview), badges (Bestseller / New / Owned),
+// vignette (via PackPreview), badges (New / Owned),
 // tier pill, name + collection + rating + swatches, and a
 // contextual primary action button:
 //
@@ -91,15 +91,6 @@ function TierBadge({ tier }: { tier: Pack['tier'] }) {
   );
 }
 
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <Icon name="star" size={12} color="var(--gold, #C19A4B)" />
-      <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</span>
-    </span>
-  );
-}
-
 function actionBtnBase() {
   return {
     display: 'inline-flex',
@@ -151,9 +142,6 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
 
         {/* Badge cluster top-left */}
         <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
-          {pack.badges.best && (
-            <span style={pillStyle('#3D4A1F', '#F8F1E4')}>★ Bestseller</span>
-          )}
           {pack.badges.new && (
             <span style={pillStyle('var(--peach-2, #EAB286)', '#5A2E12')}>New</span>
           )}
@@ -236,7 +224,6 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
               {collectionName(pack.collection)}
             </div>
           </div>
-          <Stars rating={pack.rating} />
         </div>
 
         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
@@ -253,9 +240,6 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
               aria-hidden="true"
             />
           ))}
-          <span style={{ marginLeft: 'auto', fontSize: 10.5, color: 'var(--ink-muted, #6F6557)' }}>
-            {pack.sales} sold
-          </span>
         </div>
 
         <div
