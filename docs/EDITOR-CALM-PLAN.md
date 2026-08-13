@@ -186,10 +186,14 @@ panel on desktop, the existing sheet on phone; ThemePickerBody's
    here (they're theme-making, not a separate rung).
 2. **Colors** · 3. **Fonts** · 4. **Paper** (texture + grain).
 5. **Cards & motion** — the 24 card styles AND the 8 motion finishes
-   in one door, and the `kitId` collision fixed: motion becomes its
-   own manifest field (`motionKit`) layered on the card style, so
-   the two pickers stop overwriting each other (a read-time
-   fallback keeps existing sites' looks identical).
+   in one door. (Mechanism corrected during E.3 against the CSS
+   truth: each motion kit's pearloom.css is a COMPLETE kit — full
+   static card treatment plus a motion layer gated on
+   `manifest.atelier` — so card styles and motion finishes are one
+   axis, `kitId`, by construction. The "collision" was two pickers
+   on one dial pretending to be two dials; the fix is ONE unified
+   picker in one door, not a second manifest field. Existing sites
+   keep their exact look — no field migration.)
 6. **Background** (wallpapers, free) · 7. **Menu & footer** (the one
    home, ex-NavPanel/FooterPanel) · 8. **Decor** — the
    DecorLibraryPanel's catalog becomes this door's full-height
@@ -253,9 +257,10 @@ eslint / vitest / build / the editor e2e + a live walk).
    (BachelorPanel/MemorialPanel slim down rather than the block
    panels dying) — a host thinks "edit this section", not "find the
    workspace that shadows it".
-3. **Motion finishes become `manifest.motionKit`**, layered over
-   card styles, with a read-time fallback so no existing site
-   changes appearance.
+3. **Motion finishes stay on `kitId`** — the CSS truth (found in
+   E.3) is that motion kits ARE complete kits; the fix is one
+   unified Cards & motion picker, and no existing site changes
+   appearance because nothing about the field changes.
 4. **Capacity paywalls are untouched**: sites 2/10/∞, guests,
    photos, Pear drafting, co-hosts — the Pass still sells the whole
    weekend; it just stops selling the look.
