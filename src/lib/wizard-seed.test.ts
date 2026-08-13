@@ -3,7 +3,7 @@
 // host/AI content.
 
 import { describe, it, expect } from 'vitest';
-import { seedSectionsFromWizard, suggestRsvpDeadline } from './wizard-seed';
+import { seedSectionsFromWizard, suggestRsvpDeadline, wizardFactDestinations } from './wizard-seed';
 import type { StoryManifest } from '@/types';
 
 const base = (extra: Record<string, unknown> = {}): StoryManifest =>
@@ -223,5 +223,44 @@ describe('suggestRsvpDeadline', () => {
 
   it('returns null with no date', () => {
     expect(suggestRsvpDeadline(undefined)).toBeNull();
+  });
+});
+
+// ─── The destination receipts (C.4 — H3's "where did it land") ──
+// Every fact the seeder writes must produce its receipt line, so a
+// host can find what they told the wizard. The fence: seed with a
+// full picks set, then every seeded destination appears.
+describe('wizardFactDestinations', () => {
+  it('every seeded wizard fact names its destination', () => {
+    const seeded = seedSectionsFromWizard(
+      { occasion: 'wedding', logistics: { date: '2027-06-12', venue: 'Ash Hall' } } as unknown as StoryManifest,
+      {
+        dressCode: 'Garden formal',
+        parkingNote: 'Lot behind the chapel',
+        kidsPolicy: 'Kids welcome',
+        events: [{ name: 'Ceremony', time: '4:00 pm' }],
+        hotels: [{ id: 'h1', name: 'The Grove Inn', address: '1 Grove Ln' }],
+        meals: ['Roast chicken', 'Garden risotto'],
+        playlistUrl: 'https://open.spotify.com/playlist/x',
+      },
+    );
+    const receipts = wizardFactDestinations(seeded);
+    const facts = receipts.map((r) => r.fact);
+    expect(facts).toContain('Your day plan');
+    expect(facts).toContain('Your dress code');
+    expect(facts).toContain('Your parking note');
+    expect(facts).toContain('Your hotel picks');
+    expect(facts).toContain('Your menu');
+    expect(facts).toContain('Your playlist');
+    expect(facts).toContain('Your reply-by date'); // derived deadline
+    // Every receipt names a real destination in host words.
+    for (const r of receipts) {
+      expect(r.destination.length).toBeGreaterThan(3);
+      expect(r.destination).toMatch(/^the /);
+    }
+  });
+
+  it('an empty manifest produces no receipts — nothing invented', () => {
+    expect(wizardFactDestinations({ occasion: 'wedding' } as unknown as StoryManifest)).toEqual([]);
   });
 });

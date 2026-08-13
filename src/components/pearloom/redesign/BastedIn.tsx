@@ -24,6 +24,7 @@ import { useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Pear } from '../motifs';
 import { deriveBastings, pullThread, type Basting } from './bastings';
+import { wizardFactDestinations, type WizardFactReceipt } from '@/lib/wizard-seed';
 import { fireUndoable } from './UndoToast';
 import { pearWorking } from './PearLoomFx';
 
@@ -56,19 +57,25 @@ export function BastedIn({
      by the generation route). Once per site; explaining her choices
      is what turns "nice template" into "she listened". */
   const receipts = useMemo(() => {
-    if (typeof window === 'undefined') return [] as string[];
+    if (typeof window === 'undefined') return { anchors: [] as string[], facts: [] as WizardFactReceipt[] };
     const key = `pl-receipts-shown:${siteSlug}`;
     try {
-      if (window.localStorage.getItem(key)) return [];
+      if (window.localStorage.getItem(key)) return { anchors: [], facts: [] };
       const fs = (initial as unknown as { factSheet?: { anchors?: string[] } }).factSheet;
-      const list = (fs?.anchors ?? []).filter(Boolean).slice(0, 3);
-      if (list.length) window.localStorage.setItem(key, '1');
-      return list;
-    } catch { return []; }
+      const anchors = (fs?.anchors ?? []).filter(Boolean).slice(0, 3);
+      /* The destination half (C.4/H3): "Your parking note → the
+         Travel section". Every fact the wizard seeded names where
+         it landed — derived from the manifest, co-located with the
+         seeder (wizardFactDestinations) so a new seed can't ship
+         without its receipt line. */
+      const facts = wizardFactDestinations(initial).slice(0, 5);
+      if (anchors.length || facts.length) window.localStorage.setItem(key, '1');
+      return { anchors, facts };
+    } catch { return { anchors: [], facts: [] }; }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
 
-  if (items.length === 0 && receipts.length === 0) return null;
+  if (items.length === 0 && receipts.anchors.length === 0 && receipts.facts.length === 0) return null;
 
   const set = async (b: Basting) => {
     const before = manifest;
@@ -122,7 +129,7 @@ export function BastedIn({
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-        {receipts.length > 0 && (
+        {(receipts.anchors.length > 0 || receipts.facts.length > 0) && (
           <div
             style={{
               padding: '8px 9px',
@@ -131,17 +138,36 @@ export function BastedIn({
               border: '1px solid var(--gold-line, #D0B070)',
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 5 }}>
-              I wove your story in, look for these:
-            </div>
-            <div style={{ display: 'grid', gap: 4 }}>
-              {receipts.map((r) => (
-                <div key={r} style={{ display: 'flex', gap: 6, fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
-                  <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span>
-                  <span>{r}</span>
+            {receipts.anchors.length > 0 && (
+              <>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 5 }}>
+                  I wove your story in, look for these:
                 </div>
-              ))}
-            </div>
+                <div style={{ display: 'grid', gap: 4, marginBottom: receipts.facts.length ? 7 : 0 }}>
+                  {receipts.anchors.map((r) => (
+                    <div key={r} style={{ display: 'flex', gap: 6, fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                      <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span>
+                      <span>{r}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            {receipts.facts.length > 0 && (
+              <>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 5 }}>
+                  Where your answers landed:
+                </div>
+                <div style={{ display: 'grid', gap: 4 }}>
+                  {receipts.facts.map((f) => (
+                    <div key={f.fact} style={{ display: 'flex', gap: 6, fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                      <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>→</span>
+                      <span>{f.fact} → {f.destination}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
         {items.map((b) => (

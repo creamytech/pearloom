@@ -797,10 +797,24 @@ then.
   T.2 they never count toward the host's numbers, so they stay a
   separate strip rather than merging into the checklist; the two
   systems that CLAIMED readiness are now one.
-- **C.4 Receipts everywhere (H3 complete).** Every wizard fact shows
-  its destination ("Your parking note → Details section"), every Pear
-  apply shows a diff, every failure is loud. BastedIn's receipts
-  pattern generalized into the one Pear-apply pipeline.
+- **C.4 Receipts everywhere (H3 complete). — SHIPPED 2026-08-13.**
+  The destination half built: `wizardFactDestinations`
+  (lib/wizard-seed.ts, CO-LOCATED with the seeder so a new seed
+  can't ship without its receipt line) maps every seeded wizard
+  fact to where it landed — "Your parking note → the Travel
+  section", day plan → Schedule, dress code → Details cards, hotels
+  → Travel, menu → Menu, playlist → Music, reply-by → RSVP —
+  rendered in BastedIn's once-per-site receipts strip ("Where your
+  answers landed") beside the existing story anchors. The other
+  halves were already in place from earlier sprints and are hereby
+  confirmed as the one pipeline: PearAssist's preview-before-apply
+  (Keep / Try again / Discard) for every inline rewrite, BastedIn's
+  loud failures (L20's silent 'Add it' fixed with an error line +
+  retry) + fireUndoable receipts on every rail apply, and
+  DashAskPear honestly showing prose-only when a patch envelope
+  can't be applied from the dashboard. Fenced in
+  wizard-seed.test.ts (a full picks set seeds → every fact names
+  its destination; an empty manifest produces zero receipts).
 - **C.5 The merge.** The pressing IS the surface: wizard steps become
   the empty-state prompts of the editor canvas; chrome fades in as
   content lands; phone-first working steps (RADICAL §D). The press

@@ -327,3 +327,41 @@ export function seedSectionsFromWizard(
 
   return loose as unknown as StoryManifest;
 }
+
+// ─── The wizard's receipts (C.4 — H3's destination half) ──────
+//
+// "Your parking note → the Travel section." A host hands the wizard
+// a dozen facts and then can't find half of them — the receipts say
+// where each one landed, in the words they'd use. Derived from the
+// MANIFEST (the picks are gone by editor time), co-located with the
+// seeding above so a new seed can't ship without its receipt line.
+// Rendered once per site by the rail's Pear strip (BastedIn).
+
+export interface WizardFactReceipt {
+  /** The host's fact, named plainly ("Your parking note"). */
+  fact: string;
+  /** Where it landed — a section name the rail also uses. */
+  destination: string;
+}
+
+export function wizardFactDestinations(manifest: StoryManifest): WizardFactReceipt[] {
+  const l = manifest as unknown as {
+    logistics?: { dresscode?: string; rsvpDeadline?: string };
+    travelInfo?: { parkingInfo?: string; hotels?: unknown[] };
+    events?: unknown[];
+    faqs?: unknown[];
+    music?: { url?: string };
+    menuSection?: { courses?: unknown[] };
+    detailsCards?: unknown[];
+  };
+  const rows: WizardFactReceipt[] = [];
+  if ((l.events ?? []).length > 0) rows.push({ fact: 'Your day plan', destination: 'the Schedule' });
+  if (l.logistics?.dresscode?.trim()) rows.push({ fact: 'Your dress code', destination: 'the Details cards' });
+  if (l.travelInfo?.parkingInfo?.trim()) rows.push({ fact: 'Your parking note', destination: 'the Travel section' });
+  if ((l.travelInfo?.hotels ?? []).length > 0) rows.push({ fact: 'Your hotel picks', destination: 'the Travel section' });
+  if ((l.menuSection?.courses ?? []).length > 0) rows.push({ fact: 'Your menu', destination: 'the Menu section' });
+  if ((l.faqs ?? []).length > 0) rows.push({ fact: 'Your answers', destination: 'the FAQ' });
+  if (l.music?.url?.trim()) rows.push({ fact: 'Your playlist', destination: 'the Music section' });
+  if (l.logistics?.rsvpDeadline) rows.push({ fact: 'Your reply-by date', destination: 'the RSVP form' });
+  return rows;
+}
