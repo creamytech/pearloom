@@ -828,7 +828,7 @@ export default async function PersonalGuestPage({
             )}
             {!recap.inviteToHost && !isAfter && (
               <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
-                <HostYourOwnCard accent={accent} headingFont={headingFont} />
+                <HostYourOwnCard accent={accent} headingFont={headingFont} refSlug={site.subdomain as string} />
               </section>
             )}
           </>

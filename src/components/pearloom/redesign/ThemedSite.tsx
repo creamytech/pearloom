@@ -969,7 +969,7 @@ function ThemedSiteInner({
        page-aware handler navigates there (same path as the header
        nav) instead of preventDefault-ing into a dead anchor. */
     <TSection id="footer" label="Footer" active={active} setActive={setActive} editable={editable} onSectionFocus={onSectionFocus} manifest={manifest} onEditField={onEditField} editorTexture={effectiveTexture} editorTextureIntensity={textureIntensity}>
-      <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
+      <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} siteSlug={ctx.siteSlug} />
     </TSection>
   );
 
@@ -1387,19 +1387,33 @@ function PostEventBanner() {
    keyed on manifest.footerVariant. Themed entirely off the live
    --t-* bag so it reads under any theme/pack. */
 function SiteFooter({
-  variant, headline, meta, navItems, scrollToSection,
+  variant, headline, meta, navItems, scrollToSection, siteSlug,
 }: {
   variant: 'signature' | 'columns' | 'minimal';
   headline: string;
   meta: { date: string; place: string };
   navItems: { id: string; label: string }[];
   scrollToSection: (id: string) => void;
+  /** Attribution for the growth loop (M.6/L39) — the credit links
+   *  to /wizard/new?ref=<site> so a guest who loves the site can
+   *  start their own, and the referral ledger knows who to thank. */
+  siteSlug?: string;
 }) {
+  /* The credit was a plain, unlinked div — the growth thesis's main
+     surface was a dead end (M.6/L39). One quiet link, same ink. */
+  const credit = (
+    <a
+      href={siteSlug ? `/wizard/new?ref=${encodeURIComponent(siteSlug)}` : '/wizard/new'}
+      style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}
+    >
+      Made with Pearloom
+    </a>
+  );
   if (variant === 'minimal') {
     return (
       <footer style={{ padding: '26px 24px', textAlign: 'center', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)', fontSize: 12, color: 'var(--t-ink-muted)' }}>
         <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', color: 'var(--t-ink)', fontSize: 15 }}>{headline}</span>
-        {meta.date ? ` · ${meta.date}` : ''} · Made with Pearloom
+        {meta.date ? ` · ${meta.date}` : ''} · {credit}
       </footer>
     );
   }
@@ -1441,7 +1455,7 @@ function SiteFooter({
         {[meta.date, meta.place].filter(Boolean).join(' · ')}
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', marginTop: 18, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>
-        Made with Pearloom
+        {credit}
       </div>
     </footer>
   );

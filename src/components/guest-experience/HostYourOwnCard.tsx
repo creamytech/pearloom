@@ -15,12 +15,16 @@ export function HostYourOwnCard({
   accent,
   headingFont,
   hostFirstName,
+  refSlug,
 }: {
   accent: string;
   headingFont: string;
   /** The host of the event this guest is visiting, when known —
    *  personalises the invitation ("like Emma did"). */
   hostFirstName?: string | null;
+  /** Referring site slug — the guest→host loop carries attribution
+   *  so the referral ledger knows who to thank (M.6/L39). */
+  refSlug?: string | null;
 }) {
   return (
     <div
@@ -61,7 +65,7 @@ export function HostYourOwnCard({
         own celebration comes, Pearloom drafts it with you in a few minutes.
       </p>
       <a
-        href="/wizard/new"
+        href={refSlug ? `/wizard/new?ref=${encodeURIComponent(refSlug)}` : '/wizard/new'}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

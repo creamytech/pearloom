@@ -530,10 +530,15 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
 - **M.5 The archive fee makes sense (L42 + O.5).** If domains build:
   fee = domain + full-res retention as documented. If not: fee is
   full-res retention only, priced honestly, MONETIZATION.md amended.
-- **M.6 The loop links (L39).** "MADE WITH PEARLOOM" becomes a link
-  with attribution (`?ref=<site>`); the passport's "host your own"
-  carries it; `grantReferralCredit`'s ledger verified live (S.1
-  adopted the table).
+- **M.6 The loop links (L39). — SHIPPED 2026-08-13 (code-side).**
+  The published footer's "Made with Pearloom" credit is a real link
+  to /wizard/new?ref=<site> in both variants that render it (it was
+  a plain div — the growth thesis's main surface was a dead end);
+  HostYourOwnCard carries refSlug and the passport passes the
+  site's slug. Note: S.1's diff showed prod never had a `referrals`
+  table — the ledger reads `referral_credits` (real, migrated);
+  grantReferralCredit's live verification remains for a post-deploy
+  check.
 - **M.7 The agreement fence (L87, L88, D.3).** One test imports
   `PLAN_LIMITS`/`PLAN_PRICE_CENTS` and the pricing page's rendered
   claims and asserts agreement; MONETIZATION.md's three drifted
