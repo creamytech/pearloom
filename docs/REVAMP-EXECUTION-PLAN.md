@@ -433,9 +433,11 @@ durable reply, working passport, working calendar, no false claims.
 - **T.3 Analytics don't invent stages (L60).** Funnel stages render
   only from real tracking events; absent tracking shows "not tracked",
   not 100%.
-- **T.4 No phantom automations (L61).** "Pear is following up weekly"
-  either becomes true (the cadence system CAN do it — wire it, off by
-  default, host-armed) or the copy goes.
+- **T.4 No phantom automations (L61). — SHIPPED 2026-08-13.** The
+  Guests follow-ups card now reads manifest.reminderCadence (the
+  editor's real, cron-consumed setting) and states the
+  configuration — off (with the door to turn it on) / one reminder
+  / two reminders — never a claim of running activity.
 - **T.5 No fabricated social proof (L38). — SHIPPED 2026-08-13.**
   Pack.rating + Pack.sales deleted from the catalog type, the r:/s:
   literals stripped from all 61 packs, the bestseller badge removed
