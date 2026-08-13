@@ -27,6 +27,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { humaneDateLabel } from '@/lib/suite-card';
 import { Monogram } from '../site/Monogram';
 
 const SESSION_KEY = 'pl-first-pressing';
@@ -117,7 +118,10 @@ export function FirstPressing({ manifest, names, onDone }: Props) {
 
   const { palette, fonts } = suite;
   const displayNames = names.filter(Boolean);
-  const dateLine = suite.eventDate ?? '';
+  // Humane, never raw ISO — a letterpress moment printed
+  // "2026-08-15" while the hero said "Saturday, August 15, 2026"
+  // (A.3/L99). One formatter for every suite card.
+  const dateLine = humaneDateLabel(suite.eventDate);
   const r = reduced.current;
 
   /* One curtain half. The unveil slides each half outward. */

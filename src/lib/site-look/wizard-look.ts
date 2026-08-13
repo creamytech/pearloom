@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
+import { ensureContrast } from '@/lib/color-utils';
 import { lookDefaultsFor, recommendTextureFor } from '@/lib/event-os/event-types';
 import { MOTIF_LAYOUTS, motifLayoutForKit } from '@/lib/site-look/motif-layouts';
 import { MOTIF_KINDS } from '@/components/pearloom/site/MotifScatter';
@@ -98,17 +99,26 @@ export function themeVarsFromPalette(colors: string[]): Record<string, string> |
 
   const inkRgba = (a: number) => `rgba(${Math.round(ink.r)},${Math.round(ink.g)},${Math.round(ink.b)},${a})`;
 
+  /* The AA floor at the SOURCE (A.3/L108): the derived soft/muted
+     inks and accent-ink render as real text — the hero tagline, the
+     eyebrow color-mixes, captions — and a warm palette used to land
+     them at 3.9–4.4:1 on the section paper. Every text-bearing
+     derived token is floored against the darker ground (the section)
+     so it passes everywhere it renders. Deepening only — the mix
+     recipe stays the look's own. */
+  const sectionHex = rgbToHex(mix(paper, accent, 0.10));
+
   return {
     '--t-paper': rgbToHex(paper),
-    '--t-section': rgbToHex(mix(paper, accent, 0.10)),
+    '--t-section': sectionHex,
     '--t-card': rgbToHex(mix(paper, WHITE, 0.5)),
     '--t-ink': rgbToHex(ink),
-    '--t-ink-soft': rgbToHex(mix(ink, paper, 0.28)),
-    '--t-ink-muted': rgbToHex(mix(ink, paper, 0.52)),
+    '--t-ink-soft': ensureContrast(rgbToHex(mix(ink, paper, 0.28)), sectionHex, 4.5),
+    '--t-ink-muted': ensureContrast(rgbToHex(mix(ink, paper, 0.52)), sectionHex, 4.5),
     '--t-accent': rgbToHex(accent),
     '--t-accent-2': rgbToHex(accent2),
     '--t-accent-bg': rgbToHex(mix(paper, accent, 0.16)),
-    '--t-accent-ink': rgbToHex(mix(accent, BLACK, 0.3)),
+    '--t-accent-ink': ensureContrast(rgbToHex(mix(accent, BLACK, 0.3)), sectionHex, 4.5),
     '--t-gold': rgbToHex(gold),
     '--t-line': inkRgba(0.16),
     '--t-line-soft': inkRgba(0.08),

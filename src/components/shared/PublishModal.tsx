@@ -14,6 +14,7 @@ import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { publishNeedsReview, acknowledgeReview } from '@/lib/first-pressing/clear-on-edit';
 import { isPrivateByDefaultOccasion } from '@/lib/site-visibility';
+import { suiteCardInk, suiteDateVenueLine } from '@/lib/suite-card';
 import { trackEvent } from '@/lib/analytics/beacon';
 
 export interface PublishModalProps {
@@ -27,10 +28,12 @@ export interface PublishModalProps {
 function PubShareCard({ manifest }: { manifest: StoryManifest }) {
   const theme = manifest.theme;
   const accent = theme?.colors?.accent || '#5C6B3F';
-  const ink = theme?.colors?.foreground || '#0E0D0B';
   const paper = theme?.colors?.background || '#F5EFE2';
-  const inkSoft = 'rgba(14,13,11,0.65)';
-  const line = 'rgba(14,13,11,0.18)';
+  /* The suite-card formatter (A.3): ink comes from the contrast
+     floor, never straight from the theme — the old theme-ink-on-
+     theme-card pairing measured 1.72–2.12:1 (L55) — and the date
+     line is humane, never raw ISO (L99). */
+  const { ink, inkSoft, divider: line } = suiteCardInk(paper);
   const display = theme?.fonts?.heading || 'var(--t-display, var(--pl-font-display))';
   /* Real names only — the prototype's hardcoded fallbacks
      ('Scott' / 'Shauna' / Santorini) leaked onto real hosts'
@@ -38,9 +41,7 @@ function PubShareCard({ manifest }: { manifest: StoryManifest }) {
      fabricated partner. Solo honorees render one name, no '&'. */
   const n1 = (manifest.names?.[0] ?? '').trim() || 'Your name';
   const n2 = (manifest.names?.[1] ?? '').trim();
-  const dateLine = manifest.logistics?.date && manifest.logistics?.venue
-    ? `${manifest.logistics.date} · ${manifest.logistics.venue}`
-    : (manifest.logistics?.date || manifest.logistics?.venue || '');
+  const dateLine = suiteDateVenueLine(manifest.logistics?.date, manifest.logistics?.venue);
   return (
     <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', background: paper, aspectRatio: '1200/630', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px', border: '1px solid ' + line } as CSSProperties}>
       <div style={{ position: 'absolute', top: 12, left: 14, opacity: 0.5, transform: 'scaleX(-1)' }}><Sprig size={42} color={accent}/></div>

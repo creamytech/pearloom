@@ -28,6 +28,7 @@ import { FoilGradient, letterpressShadow } from '@/components/brand/pressed';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
+import { humaneDateLabel } from '@/lib/suite-card';
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
@@ -6063,11 +6064,10 @@ function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: {
 /* ─── Date formatter. ───────────────────────────────────────── */
 
 function formatHeroDate(raw: string | undefined): string {
-  if (!raw) return '';
-  if (!/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return raw;
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  // Delegates to THE suite-card formatter (lib/suite-card.ts) so the
+  // hero, the publish share card, and the First Pressing overlay can
+  // never disagree about what a date looks like (A.3/L99).
+  return humaneDateLabel(raw);
 }
 
 /* ─── Copy / data — pulls from manifest with prototype fallbacks. ─── */

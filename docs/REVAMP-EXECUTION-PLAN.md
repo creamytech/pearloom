@@ -677,28 +677,62 @@ green locally.
 **Goal:** the funnel and the guest side work on the devices people
 actually hold. (R8; mobile-a11y ledger complete.)
 
-- **A.1** Wizard Basics grid at 390px (L54) + publish CTA clip (L107)
-  + mobile hero mid-word break (L23: non-breaking join or wrap the
-  pair, all hero variants).
-- **A.2** Phone canvas tap-to-edit (L100): tapping a section on the
-  phone editor opens its sheet — the props-sheet plumbing exists; the
-  canvas tap targets don't. (Full phone-first editing lands with C.5.)
-- **A.3** The suite-card formatter (L55, L99, L108): one shared
-  formatter for every designed card (publish modal, first-pressing,
-  It's-pressed, OG) with a contrast floor (auto ink-flip against the
-  accent) and humane date formatting ("Saturday, June 12, 2027" —
-  never raw ISO). Replaces three hand-assembled versions.
-- **A.4** Keyboard + SR: SectionRail rows focusable (L103), RSVP modal
-  labels + focus restore (L104), welcome marks named (L102), occasion
-  cards announce selection (L110), settings modal Escape (L66).
-- **A.5** Signup mobile ergonomics (L101): 16px inputs (kills iOS
-  zoom), ≥44px tap targets.
-- **A.6** DOM hygiene: EditorThemeShop unmounts when closed (L70,
-  L105); the `/wizard/new` hydration mismatch fixed (L109); guest
-  photo-upload page responsive (L73).
+- **A.1 — SHIPPED 2026-08-13.** The Basics-grid crush (L54) had a
+  two-layer cause: inline gridTemplateColumns fighting the phone
+  stylesheet AND two children whose inline gridColumn:'span 2'
+  conjured an implicit second column whenever the stylesheet stacked
+  the grid — silently rebuilding the two-up layout. Columns live
+  only in pearloom.css now; spanning children use '1 / -1' (inert in
+  one column). Publish CTA truncates its URL half, never the verb
+  (L107). Hero names never break mid-word (L23): every variant
+  renders name·joiner·name as space-less adjacent spans, so the
+  browser saw one "MayaandDaniel" run and split it anywhere; one CSS
+  rule (.pl8-hero-display > span { inline-block }) fixes all nine
+  variants. All three verified live at 390px.
+- **A.2 — VERIFIED FIXED 2026-08-13 (L100).** Does not reproduce:
+  tapping a section on the phone canvas activates it AND opens the
+  props sheet ("EDITING · OUR STORY" + sheet, verified live at
+  390px) — EditorRedesign.selectFromCanvas landed with intervening
+  mobile-canvas work. Nothing to build; the wiring already exists
+  (setActive={viewportMobile ? selectFromCanvas : setActive}).
+- **A.3 — SHIPPED 2026-08-13.** `src/lib/suite-card.ts` is the one
+  formatter: humaneDateLabel (the hero's own formatting — ThemedSite
+  delegates to it), suiteDateVenueLine (the joiner renders only
+  between two real values), suiteCardInk (contrast-floored ink
+  family; mid-tone card colors that beat both warm inks — the
+  audit's olive at 2.12:1 — escalate to pure black/white). Wired
+  into PubShareCard (which paired theme-ink with theme-card at
+  1.72–2.12:1, L55), the First Pressing overlay, and the hero
+  (L99's raw-ISO trio). L108's deeper cause found: the failing
+  tagline/eyebrow colors come from the WIZARD's palette-derived
+  vars, not the catalog — themeVarsFromPalette now floors
+  ink-soft/ink-muted/accent-ink at 4.5:1 against the section at the
+  source; wizard-look.test.ts fences four tricky palettes.
+- **A.4 — SHIPPED 2026-08-13.** SectionRail rows are keyboard stops
+  (role=button + Enter/Space; rows and insert points get a
+  :focus-visible ring — L103); RSVP modal inputs gain real label
+  association and focus restores to the OPENER on close (the trap
+  hook captured activeElement after autoFocus had already moved
+  focus inside — L104); welcome marks carry aria-label (L102);
+  occasion cards announce selection (L110); the settings modal
+  honors Escape, field-Escape stays with the field (L66).
+- **A.5 — SHIPPED 2026-08-13 (L101).** Signup inputs 16px (kills
+  the iOS zoom-on-focus), the password eye 44px, both "Sign in"
+  links carry 44px tap areas via padding + negative margins.
+- **A.6 — SHIPPED 2026-08-13.** EditorThemeShop unmounts when
+  closed (two-phase mount through the exit slide) and every pack
+  tile gets a distinct accessible name (L70/L105). L109 (the
+  /wizard/new hydration mismatch) and L73 (the squeezed guest
+  photo-upload page) no longer reproduce — verified over repeated
+  loads/live taps; fixed by intervening sprint work.
 
-**Fence:** a 390px screenshot pass in the screenshot-tour CI for the
-funnel steps; an a11y assertions spec for the fixed controls.
+**Fence:** SHIPPED — `e2e/specs/phone-access.spec.ts` (in the
+staging fence): the Basics grid computes ONE column at 390px with
+full-width fields, occasion cards expose aria-pressed, signup
+inputs ≥16px + a 44px eye, and a pressed site's hero name units are
+inline-block. (The screenshot-tour 390px pass rides the existing
+tour spec on demand; the executable CI fence is this spec.) All 21
+fence e2e green locally.
 
 ---
 

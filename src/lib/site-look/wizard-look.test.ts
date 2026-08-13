@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyWizardLook, themeVarsFromPalette } from './wizard-look';
+import { contrastRatio } from '@/lib/color-utils';
 import type { StoryManifest } from '@/types';
 
 const m = (extra: Record<string, unknown> = {}) => extra as unknown as StoryManifest;
@@ -133,5 +134,30 @@ describe('advisor-paired ornament', () => {
       motifKind: 'disco',
     }) as unknown as Record<string, unknown>;
     expect(out.motifKind).toBe('fern');
+  });
+});
+
+// ─── The AA floor on derived text tokens (A.3/L108) ───────────
+// The audited world's palette-derived --t-ink-soft measured 3.91:1
+// on its own section paper (the hero tagline), and the eyebrow
+// color-mix built on --t-accent-ink landed 4.2–4.4:1. Every derived
+// text-bearing token is now floored at the source.
+describe('themeVarsFromPalette — the contrast floor', () => {
+  const TRICKY_PALETTES = [
+    ['#F3E9D4', '#8B9C5A', '#EAB286', '#707752'], // the audit's warm garden class
+    ['#FDFAF0', '#B7A4D0', '#C4B5D9'],            // pale lavenders
+    ['#FFF8E7', '#E8A07A', '#C6703D'],            // peaches
+    ['#F5EFE2', '#9AA98C', '#7C8B6E', '#5C6B3F'], // olives
+  ];
+
+  it.each(TRICKY_PALETTES)('floors soft/muted/accent-ink at 4.5:1 on the section (%s…)', (...colors) => {
+    const vars = themeVarsFromPalette(colors as string[]);
+    expect(vars).not.toBeNull();
+    const section = vars!['--t-section'];
+    for (const key of ['--t-ink-soft', '--t-ink-muted', '--t-accent-ink'] as const) {
+      const ratio = contrastRatio(vars![key], section);
+      expect(ratio, `${key} on section`).not.toBeNull();
+      expect(ratio!, `${key} (${vars![key]}) on section (${section})`).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

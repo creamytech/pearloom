@@ -5,39 +5,41 @@
 
 ## Active focus
 
-**Sprint A — PHONE + ACCESS** (`docs/REVAMP-EXECUTION-PLAN.md` §8).
-Sprints W, S, G, T, M, and V all shipped in full 2026-08-12/13 —
-every block stamped in the plan doc. V closed the visibility spine:
-`lib/site-visibility.ts` is THE resolver (draft / link-only /
-public / password; press outranks everything; legacy flags incl.
-the dead PearSpotlight soft-signal read-migrate), enforced in the
-site route + sub-page metadata (which had leaked draft names via
-OG), the SiteGate, and the sitemap (which had listed drafts);
-`visibility-matrix.spec.ts` walks all four states in the staging
-fence; a pressed bachelorette defaults link-only (L32/§8 Q2 wired).
+**Sprint C — ONE PRESSING** (`docs/REVAMP-EXECUTION-PLAN.md` §9).
+Sprints W, S, G, T, M, V, and A all shipped in full 2026-08-12/13 —
+every block stamped in the plan doc. A closed the phone+access
+pass: the Basics-grid crush (an implicit-column ghost from span-2
+children), hero mid-word breaks (one CSS rule across nine
+variants), the suite-card formatter (`lib/suite-card.ts` — humane
+dates + contrast-floored card ink + palette-var AA floors at the
+source), the keyboard/SR batch, and `phone-access.spec.ts` in the
+staging fence. L100/L109/L73 verified already-fixed live.
 
-Goal: the funnel and the guest side work on the devices people
-actually hold (R8; the mobile-a11y ledger complete).
+Goal: dissolve the wizard→editor seam — the highest-ceiling
+structural bet (R1; RADICAL-DESIGN §D's named remaining rebuild),
+done after W–A de-risked it.
 
-Open threads: A.1 wizard Basics grid at 390px (L54) + publish CTA
-clip (L107) + hero name pair never mid-word breaks (L23, all hero
-variants) · A.2 phone canvas tap-to-edit opens the section's sheet
-(L100 — plumbing exists, tap targets don't) · A.3 ONE suite-card
-formatter for publish modal / first-pressing / It's-pressed / OG
-with a contrast floor + humane dates, replacing three hand-rolled
-versions (L55/L99/L108) · A.4 keyboard + SR: SectionRail rows
-focusable (L103), RSVP modal labels + focus restore (L104), welcome
-marks named (L102), occasion cards announce selection (L110),
-settings modal Escape (L66) · A.5 signup 16px inputs + ≥44px taps
-(L101) · A.6 DOM hygiene: EditorThemeShop unmounts closed
-(L70/L105), /wizard/new hydration mismatch (L109), guest
-photo-upload responsive (L73).
+Open threads (C.1 FIRST — small and the worst remaining trust
+break): C.1 demo-ink law (L18/L24/L33/L71/L75/L106 — no fabricated
+value ever composites into a line with real host data; kill the
+per-field `place` fallback (the Santorini class) and dangling "·"
+joins; canvas demo content wears an explicit DEMO slat; G.5's
+published empty-section policy generalized) · C.2 truthful editing
+model for published sites (L19 — editing-live banner or staged
+review-and-update; the Publish button stops lying) · C.3 one
+readiness system (L65 — the 86% bar, topbar checklist, and Pear's
+cards merge into one explainable model with visible criteria) ·
+C.4 receipts everywhere (H3 — every wizard fact shows its
+destination; every Pear apply shows a diff) · C.5 the merge (the
+pressing IS the surface; feature-flagged, old wizard stays the
+fallback) · C.6 site addresses managed (L22 — slug rename with
+redirect, availability check, surfaced in Share/Settings).
 
-Counts as done: a 390px screenshot pass in the screenshot-tour CI
-for the funnel steps; an a11y assertions spec for the fixed
-controls.
+Counts as done: plan §9's counts-as-done — C.5's flag ships to
+100% only when the staging funnel e2e + wow-moment metrics beat
+the old wizard; C.1–C.4/C.6 each carry their own fence.
 
-Skip: Sprints C/P/D work not needed for an A block; the six pending
+Skip: Sprints P/D work not needed for a C block; the six pending
 prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
