@@ -21,7 +21,7 @@
    the /api/celebrations/weekend route).
    ───────────────────────────────────────────────────────────── */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DashLayout } from '../dash/DashShell';
 import { DashConnections } from '@/components/marketing/design/dash/DashConnections';
@@ -92,6 +92,44 @@ export function WeekendBuilderPage() {
   /* Per-event date overrides — kind → ISO. Cleared on anchor swap. */
   const [dateOverrides, setDateOverrides] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  /* T.7/L63 — the planner used to open a BLANK names/date form
+     beside the host's real, dated site. Prefill from their newest
+     site (anchor-matching when possible); functional setters only
+     fill fields still empty, so nothing the host typed is ever
+     clobbered. */
+  const [prefilledFrom, setPrefilledFrom] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/sites', { cache: 'no-store' });
+        if (!r.ok) return;
+        const { sites } = (await r.json()) as {
+          sites: Array<{
+            domain: string;
+            occasion: string | null;
+            names: unknown[];
+            manifest: Record<string, unknown> | null;
+          }>;
+        };
+        if (cancelled || !Array.isArray(sites) || sites.length === 0) return;
+        const pick = sites.find((x) => x.occasion === 'wedding') ?? sites[0];
+        const [a, b] = (Array.isArray(pick.names) ? pick.names : []).map((n) => String(n ?? '').trim());
+        const siteDate = String(
+          ((pick.manifest as { logistics?: { date?: string } } | null)?.logistics?.date ?? ''),
+        ).trim();
+        let used = false;
+        if (a) { setName1((cur) => { if (cur) return cur; used = true; return a; }); }
+        if (b) { setName2((cur) => { if (cur) return cur; used = true; return b; }); }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(siteDate)) {
+          setDate((cur) => { if (cur) return cur; used = true; return siteDate; });
+        }
+        // Defer the note one tick so the setters above have landed.
+        setTimeout(() => { if (!cancelled && used) setPrefilledFrom(pick.domain); }, 0);
+      } catch { /* the blank form is the graceful fallback */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Array<{ slug: string; kind: string; date: string; url: string }> | null>(null);
   const [createdMoments, setCreatedMoments] = useState<Array<{ kind: string; label: string; date: string }>>([]);
@@ -354,6 +392,11 @@ export function WeekendBuilderPage() {
               {/* ── Step 2 · the basics ──────────────────────── */}
               <Card>
                 <StepEyebrow n={2} label="The basics" />
+                {prefilledFrom && (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', margin: '0 0 10px' }}>
+                    Filled in from your site /{prefilledFrom} — change anything.
+                  </div>
+                )}
                 <div className="pl8-weekend-basics" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <Field label={nameSpec.primaryLabel}>
                     <input value={name1} onChange={(e) => setName1(e.target.value)} placeholder={nameSpec.primaryPlaceholder} style={inputStyle} />

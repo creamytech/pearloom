@@ -159,10 +159,13 @@ export function DashAnalytics() {
           const isReplied = key !== 'pending';
           if (key === 'yes') coming += 1;
           if (isReplied) replied += 1;
-          // A reply implies the earlier stages even if the ping was
-          // missed; keeps the funnel monotonic + honest.
-          if (gu.inviteOpenedAt || gu.replyStartedAt || isReplied) opened += 1;
-          if (gu.replyStartedAt || isReplied) started += 1;
+          /* ONLY real tracking events count (T.3/L60). The old code
+             back-filled "opened"/"started" from the terminal status,
+             which rendered a fabricated 100%-at-every-stage funnel
+             for guests whose opens were never tracked. A stage with
+             no pings now says "not tracked" at render instead. */
+          if (gu.inviteOpenedAt) opened += 1;
+          if (gu.replyStartedAt) started += 1;
         }
         funnel = { invited, opened, started, replied, coming };
       }
@@ -358,12 +361,29 @@ export function DashAnalytics() {
             {hasFunnel ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {([
-                  { s: 'Invited', n: funnel!.invited, c: 'var(--ink)' },
-                  { s: 'Opened', n: funnel!.opened, c: 'var(--sage)' },
-                  { s: 'Started a reply', n: funnel!.started, c: 'var(--pl-gold)' },
-                  { s: 'Replied', n: funnel!.replied, c: 'var(--peach-ink)' },
+                  { s: 'Invited', n: funnel!.invited, c: 'var(--ink)', tracked: true },
+                  /* Opened/Started come from real pings only — a
+                     replied guest whose open was never tracked no
+                     longer inflates them (T.3/L60). When a stage has
+                     zero pings but replies exist, tracking clearly
+                     isn't wired for this send path: say so. */
+                  { s: 'Opened', n: funnel!.opened, c: 'var(--sage)', tracked: funnel!.opened > 0 || funnel!.replied === 0 },
+                  { s: 'Started a reply', n: funnel!.started, c: 'var(--pl-gold)', tracked: funnel!.started > 0 || funnel!.replied === 0 },
+                  { s: 'Replied', n: funnel!.replied, c: 'var(--peach-ink)', tracked: true },
                 ] as const).map((f, i, arr) => {
                   const pct = Math.round((f.n / funnel!.invited) * 100);
+                  if (!f.tracked) {
+                    return (
+                      <div key={f.s}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{f.s}</span>
+                          <span style={{ fontFamily: MONO, fontSize: 11.5, color: 'var(--ink-muted)' }}>not tracked</span>
+                        </div>
+                        <div style={{ height: 14, background: 'var(--cream-3)', borderRadius: 8 }} />
+                      </div>
+                    );
+                  }
+                  const next = arr.slice(i + 1).find((x) => x.tracked);
                   return (
                     <div key={f.s}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -373,9 +393,9 @@ export function DashAnalytics() {
                       <div style={{ height: 14, background: 'var(--cream-3)', borderRadius: 8, overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: f.c, borderRadius: 8, transition: 'width var(--pl-dur-slow) var(--pl-ease-out)' }} />
                       </div>
-                      {i < arr.length - 1 && (
+                      {next && next.n <= f.n && (
                         <div style={{ fontFamily: MONO, fontSize: 9.5, color: 'var(--ink-muted)', marginTop: 4, textAlign: 'right' }}>
-                          ↓ {arr[i].n - arr[i + 1].n} dropped
+                          ↓ {f.n - next.n} dropped
                         </div>
                       )}
                     </div>

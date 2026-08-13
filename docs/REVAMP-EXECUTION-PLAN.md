@@ -430,9 +430,12 @@ durable reply, working passport, working calendar, no false claims.
   suggestions move to a "Pear suggests" strip, not the host's
   numbers); the Day-of checklist persists (manifest or table — not
   `useState`) and appears in day-of week, derived where possible.
-- **T.3 Analytics don't invent stages (L60).** Funnel stages render
-  only from real tracking events; absent tracking shows "not tracked",
-  not 100%.
+- **T.3 Analytics don't invent stages (L60). — SHIPPED 2026-08-13.**
+  Opened/Started count only real pings (invite_opened_at /
+  reply_started_at) — the old code back-filled them from the
+  terminal status, rendering a fabricated 100%-at-every-stage
+  funnel. A stage with zero pings while replies exist renders
+  "not tracked"; the dropped-count line skips untracked stages.
 - **T.4 No phantom automations (L61). — SHIPPED 2026-08-13.** The
   Guests follow-ups card now reads manifest.reminderCadence (the
   editor's real, cron-consumed setting) and states the
@@ -454,8 +457,13 @@ durable reply, working passport, working calendar, no false claims.
   a form wired to nothing) replaced with the honest page: the
   program is in the making, and the one door — mailto
   hello@pearloom.com — goes somewhere a person reads.
-- **T.7 Weekend planner reads the world (L63).** Prefills from the
-  host's existing site; never a blank form beside real data.
+- **T.7 Weekend planner reads the world (L63). — SHIPPED
+  2026-08-13.** /dashboard/weekend prefills names + date from the
+  host's newest (wedding-preferred) site via GET /api/sites, with
+  a "Filled in from your site /<domain> — change anything" note.
+  Functional setters fill only still-empty fields, so nothing the
+  host typed is ever clobbered; the blank form remains the
+  graceful fallback when they have no sites.
 - **T.8 Link hygiene (L62 + L64 batch). — SHIPPED 2026-08-13.**
   Registry's "See payments →" (a permanentRedirect back to the same
   page) removed — the ledger it promised is on that page. The Home
