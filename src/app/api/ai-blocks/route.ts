@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
       requiredPlan: planAccess.requiredPlan,
       currentPlan: planAccess.currentPlan,
       upgradeUrl: planAccess.upgradeUrl,
-      message: 'Upgrade to Atelier to generate AI blocks.',
+      message: 'Upgrade to the Pass to draft these sections.',
     }, { status: 402 });
   }
 

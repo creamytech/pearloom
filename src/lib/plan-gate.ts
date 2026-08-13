@@ -20,8 +20,8 @@ import { getUserPlan } from '@/lib/db';
 //                     the paywall (only the signature shelf sits
 //                     above it).
 //   Pass      $89   — the whole celebration: linked events, co-hosts,
-//                     500 guests, full Studio. (Custom domain is
-//                     RESERVED — priced once, never built; see below.)
+//                     500 guests, the signature shelf. (Custom domain
+//                     is RESERVED — priced once, never built; see below.)
 //   Keepsake  $199  — preservation: unlimited media + the long view.
 //
 // What's gated is OPERATIONAL POWER (coordination, collaboration,
@@ -65,6 +65,14 @@ export interface PlanLimits {
   maxSites: number;
   maxGuests: number;
   maxPhotos: number;
+  /** Pear drafting allowance PER CALENDAR MONTH. The enforcer is
+   *  checkPearGate (src/lib/rate-limit.ts): free accounts get
+   *  PEAR_MONTHLY_LIMIT drafts a month; Pass and Keepsake are
+   *  unlimited (the gate short-circuits for rank ≥ pro). These
+   *  numbers MUST agree with that gate — the old 10 / 100 / ∞
+   *  ladder here was enforced by nothing and sold by the pricing
+   *  page anyway (M.7). pricing-agreement.test.ts pins the
+   *  equality PEAR_MONTHLY_LIMIT === PLAN_LIMITS.FREE.aiGenerations. */
   aiGenerations: number;
   /** RESERVED — NOT IMPLEMENTED. There is no custom-domain feature
    *  in the product: no DNS provisioning, no TLS issuance, no
@@ -102,7 +110,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     maxSites: 2,
     maxGuests: 100,
     maxPhotos: 50,
-    aiGenerations: 10,
+    aiGenerations: 15, // per month — mirrors PEAR_MONTHLY_LIMIT (rate-limit.ts)
     customDomain: false,
     maxCoHosts: 1,
   },
@@ -113,7 +121,7 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
     maxSites: 10,
     maxGuests: 500,
     maxPhotos: 500,
-    aiGenerations: 100,
+    aiGenerations: Infinity, // checkPearGate is unlimited from Pass up
     customDomain: true,
     maxCoHosts: Infinity,
   },

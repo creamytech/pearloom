@@ -815,11 +815,17 @@ export function DashSettings() {
                     lineHeight: 1.55,
                   }}
                 >
+                  {/* Each line claims only what the code enforces or
+                      grants (PLAN_LIMITS / checkPearGate / the pack
+                      grants) — the old copy sold the Studio and the
+                      memory book as paid features, and neither has a
+                      plan gate (M.3/L36). pricing-agreement.test.ts
+                      greps this file. */}
                   {plan.plan === 'premium'
-                    ? 'Keepsake keeps everything: unlimited celebrations, unlimited full-resolution photos and video, the memory book, and your archive to download any time.'
+                    ? 'Keepsake removes every limit: unlimited sites, unlimited guests, unlimited photos. Nothing about your celebrations gets counted again.'
                     : plan.plan === 'pro'
-                      ? 'The Pass covers this whole celebration, every linked event, co-hosts, the full Studio, and the day-of room. Keepsake ($199) keeps the photos, the memory book, and the archive.'
-                      : 'Your first celebration is free forever, with the whole standard theme catalog. The Pass ($89 once) adds every linked event, co-hosts, 500 guests, and the full Studio.'}
+                      ? 'The Pass covers the whole weekend: ten sites, 500 guests and photos, co-hosts for everyone helping, unlimited drafting by Pear, and the signature theme shelf. Keepsake ($199) removes every limit.'
+                      : 'Your first sites are free forever, with the whole standard theme catalog. The Pass ($89 once) covers the whole weekend — ten sites, 500 guests, co-hosts for everyone helping, and unlimited drafting by Pear.'}
                 </p>
                 <PlanUpgradeButtons plan={plan.plan} />
               </Panel>

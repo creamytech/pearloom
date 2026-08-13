@@ -106,6 +106,11 @@ function currentMonthKey(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// Free-tier Pear drafting allowance per calendar month. This is the
+// enforced number behind PLAN_LIMITS.FREE.aiGenerations (plan-gate.ts)
+// and the pricing page's "15 drafts by Pear" line — the three must
+// agree, pinned by src/lib/pricing-agreement.test.ts. (Not imported
+// from plan-gate to keep this module's import graph flat.)
 export const PEAR_MONTHLY_LIMIT = 15;
 
 export interface PearUsageResult {

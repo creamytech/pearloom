@@ -512,10 +512,24 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   intent through auth to checkout; `?upgrade=true` lands on a real
   upgrade surface; the 402's upgradeUrl goes there; one `/upgrade`
   route to rule them all.
-- **M.3 Cards describe the real product (L36, L41, L97 + O.6).** Per
-  Pass line item: gate it (wire `requirePlan` through the one choke
-  point — it has zero callers today) or remove it from the card.
-  Outcome: pricing page === enforcement table === MONETIZATION.md.
+- **M.3 Cards describe the real product (L36, L41, L97 + O.6). —
+  SHIPPED 2026-08-13.** The decision went REMOVE, not gate: every
+  un-gated claim (full Studio, Director, seating, budget, vendor
+  book, memory book, archive download) is off every money surface —
+  the pricing page's three cards, the settings plan cards
+  (UserSettingsModal + DashSettings), and the Stripe checkout LINE
+  ITEMS themselves (the receipt sold "the full Studio, and the
+  day-of room"). Cards now claim only what PLAN_LIMITS enforces or
+  the pack grants give: Page 2 sites / 100 guests / 15 Pear drafts a
+  month / standard catalog; Pass 10 sites / 500 guests+photos / ∞
+  co-hosts / ∞ drafting / the SIGNATURE shelf (the old card sold
+  "the premium shelf" — free for everyone); Keepsake = every limit
+  removed. `requirePlan` keeps zero callers — nothing needed gating
+  because nothing un-gated is sold anymore (O.6 seating decision
+  thereby resolved: seating stays free, un-sold). Bonus: the dead
+  aiGenerations ladder (10/100/∞, enforced by nothing) aligned to
+  the ONE real gate — checkPearGate's 15/month free, unlimited from
+  Pass up; ai-blocks' 402 stopped saying "Upgrade to Atelier".
 - **M.4 Store re-merchandised (L84, L68). — SHIPPED 2026-08-13.**
   Owned packs never wear a price (card + quick-look — 47
   plan-granted packs showed "$16" beside "Owned"); the quick-look's
@@ -539,10 +553,22 @@ and every money surface tells one true story. (R7 complete; needs O.2.)
   table — the ledger reads `referral_credits` (real, migrated);
   grantReferralCredit's live verification remains for a post-deploy
   check.
-- **M.7 The agreement fence (L87, L88, D.3).** One test imports
-  `PLAN_LIMITS`/`PLAN_PRICE_CENTS` and the pricing page's rendered
-  claims and asserts agreement; MONETIZATION.md's three drifted
-  numbers corrected and cross-doc contradictions resolved.
+- **M.7 The agreement fence (L87, L88, D.3). — SHIPPED 2026-08-13.**
+  `src/lib/pricing-agreement.test.ts` (18 tests): PLAN_LIMITS /
+  PLAN_PRICE_CENTS / PEAR_MONTHLY_LIMIT ⇄ DesignPricing.TIERS
+  (exported for the fence) ⇄ MONETIZATION.md's ladder rows ⇄ the
+  settings cards + Stripe line items (text-grepped) — change one and
+  the suite makes you change the rest. Occasions count pins to
+  EVENT_TYPES.length; shelf claims pin to planGrantedPackIds (free
+  holds all 55 non-signature packs, none of signature; Pass+ hold
+  everything). MONETIZATION.md corrected: sites 1→2, the dead "AI
+  generations 10/100/∞" row → "Drafts by Pear 15 a month / ∞ / ∞",
+  a Co-hosts 1/∞/∞ row, the rows selling custom domain + full
+  Studio + memory book replaced by an explicit "what the ladder
+  deliberately does NOT list" note; §8 reconciled with
+  DECISIONS-2026-08-04 (L88 — don't price-test till ~200 activated;
+  unit economics ARE modelled) and DECISIONS §4's "Pass includes
+  the full Studio" anchor got a correction note.
 - **M.8 Degraded money copy (L83).** Keyless/degraded states speak
   host language with a next step, never infrastructure-speak.
 

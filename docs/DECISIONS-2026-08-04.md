@@ -135,9 +135,13 @@ users need working email.
   categorically invisible.
 - The competitive frame is **not** "Zola is free." Zola and Joy give
   away *websites*; Minted sells *stationery* at $300–800 for the same
-  wedding. Our Pass includes the full Studio, so we're priced against
-  the stationery line, where $89 is cheap enough to feel like a
-  rounding error.
+  wedding. Pearloom ships the Studio (print-at-home stationery), so
+  we're priced against the stationery line, where $89 is cheap
+  enough to feel like a rounding error. *(Correction 2026-08-13: the
+  Studio is not plan-gated — every account has it. The anchor
+  argument survives — the product category is stationery-adjacent —
+  but the Pass may not be SOLD on the Studio; see MONETIZATION.md §2
+  and `src/lib/pricing-agreement.test.ts`.)*
 
 ### The real risk is packaging, not price
 

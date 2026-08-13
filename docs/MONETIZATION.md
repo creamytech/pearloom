@@ -29,14 +29,12 @@ site looks.
 | Price | $0 | **$89** one-time | **$199** one-time |
 | Canonical plan id (`user_plans.plan`) | `free` | `pro` | `premium` |
 | Marketing aliases accepted | `page`, `journal`¹ | `pass`, `atelier`¹ | `keepsake`, `legacy`¹ |
-| Celebrations / sites | 1 | 10 | Unlimited |
+| Celebrations / sites | 2 | 10 | Unlimited |
 | Guests | 100 | 500 | Unlimited |
 | Photos | 50 | 500 | Unlimited |
-| AI generations | 10 | 100 | Unlimited |
-| Custom domain | — | ✓ | ✓ |
+| Drafts by Pear | 15 a month | Unlimited | Unlimited |
+| Co-hosts | 1 | Unlimited | Unlimited |
 | Theme catalog | **All standard packs** | + the signature shelf | + the signature shelf |
-| Linked events, co-hosts, full Studio, Director | — | ✓ | ✓ |
-| Unlimited full-res media, memory book, archive export | — | — | ✓ |
 | Memorials | Always free on every tier (Pear's promise) | | |
 
 ¹ **Retired names, still honored.** `user_plans` was NOT migrated —
@@ -45,12 +43,35 @@ lookup is rank-based through `plan-gate.ts`, so an account that
 bought "Atelier" at $19 automatically holds today's Pass
 entitlements. Pinned by `entitlements-grants.test.ts`.
 
+**What the ladder deliberately does NOT list** (corrected 2026-08-13,
+M.7 — this table previously sold all of these):
+
+- **The Studio, the Director, seating, budget, the vendor book, the
+  memory book, archive export** — none of these has a plan gate;
+  every account, free included, has all of them. A row here or a
+  pricing-card line selling them is a fabrication until a gate
+  exists. (Earlier revisions of this table sold "full Studio" and
+  "memory book" as paid rows — a doc drift the 2026-08-13 audit
+  pass caught, L36/L87.)
+- **Custom domain** — RESERVED, not built, not sold on any tier
+  (see the Enforcement table below).
+- **Sites at 2, not 1, on Page** is deliberate
+  (docs/DECISIONS-2026-08-04 §2 — the bridal-party reverse-
+  acquisition loop needs a free host to add a second site).
+- **Drafts by Pear** is the enforced monthly gate in
+  `checkPearGate` (`src/lib/rate-limit.ts`, `PEAR_MONTHLY_LIMIT`),
+  unlimited from Pass up. The old "AI generations 10 / 100 /
+  Unlimited" row described numbers nothing enforced.
+
 Source of truth for limits: `src/lib/plan-gate.ts` (`PLAN_LIMITS`).
 Source of truth for prices: `src/lib/plan-gate.ts`
 (`PLAN_PRICE_CENTS`, `ARCHIVE_RENEWAL_CENTS`) — the checkout route
 imports them so the till and the gate cannot drift.
 Source of truth for pack grants:
 `src/lib/theme-store/entitlements.ts` → `planGrantedPackIds()`.
+The agreement fence: `src/lib/pricing-agreement.test.ts` asserts
+PLAN_LIMITS ⇄ the pricing page ⇄ this doc all carry the same
+numbers — if you change one, the suite makes you change the others.
 
 ## 3 · Why design is free now
 
@@ -128,12 +149,20 @@ Memorials are exempt from every tier limit and from the archive fee.
 
 ## 8 · Open
 
-- **Willingness-to-pay is unvalidated.** $89 / $199 come from the
-  three-review consensus, not from customer evidence. The synthesis's
-  own advice applies: test two packages in market, not a conclusion.
-- **Unit economics are unmodeled.** Nobody has priced the storage +
-  bandwidth + AI tail of a decade-lived free or memorial site. The
-  archive fee is a start, not an answer.
+*(Reconciled 2026-08-13 with `docs/DECISIONS-2026-08-04.md` — this
+section previously contradicted that same-day doc on two counts, a
+drift the platform audit caught as L88. The DECISIONS doc is the
+later, evidence-based word; this section now defers to it.)*
+
+- **Willingness-to-pay: ship $89 / $199, do not price-test yet**
+  (DECISIONS §4). Below a few hundred activated celebrations an A/B
+  produces noise and burns the first-impression price. Revisit at
+  ~200 activated celebrations; until then watch free→paid conversion
+  at all, not its elasticity.
+- **Unit economics: modelled and fine** (DECISIONS §5 — under $1 per
+  site per decade on the code's own constants; R2 egress is free).
+  The archive fee is margin on the custom domain, not cost recovery
+  — and internally we say so.
 - **The keep window** (currently 45 days, a constant in
   `cockpit-phase.ts`) has no relationship to the archive fee yet.
 - **Per-celebration vs per-site.** CLAUDE-PRODUCT §8 Q3 is now

@@ -15,19 +15,20 @@ Goal: a customer can discover the price, pay it, and receive it —
 and every money surface tells one true story. (R7; end-to-end needs
 owner action O.2 Stripe keys — code-side blocks proceed regardless.)
 
-Open threads: M.1 one vocabulary (Page/Pass/Keepsake everywhere;
-kill "subscription"; DesignFAQ remount-or-delete) · M.2 doors reach
-the till (plan intent through auth to checkout; one /upgrade route;
-the 402's upgradeUrl goes there) · M.3 cards describe the real
-product (wire requirePlan through one choke point — zero callers
-today — or cut the line item; pricing page === enforcement table)
-· M.4 store re-merchandised (plan-granted packs stop wearing price
-tags beside "Owned"; free-theme/store-pack name collision) · M.5
-archive fee makes sense (per O.5 decision; default: full-res
-retention only, priced honestly) · M.6 the growth loop links ("MADE
-WITH PEARLOOM" becomes a real ?ref= link; passport "host your own"
-carries it) · M.7 the agreement fence (one test: PLAN_LIMITS ===
-pricing page === MONETIZATION.md).
+**M.1, M.3, M.4, M.6, M.7 SHIPPED 2026-08-13** (stamps in plan §6):
+one vocabulary + DesignFAQ deleted; the cards/settings/Stripe line
+items claim only enforced limits (the cut went REMOVE not gate —
+requirePlan keeps zero callers; aiGenerations aligned to
+checkPearGate's real 15-a-month/∞); the store stopped pricing owned
+packs; the footer credit + passport CTA carry ?ref=; and
+`src/lib/pricing-agreement.test.ts` (18 tests) pins PLAN_LIMITS ⇄
+pricing page ⇄ MONETIZATION.md ⇄ the Stripe till.
+
+Open threads: M.2 doors reach the till (plan intent through auth to
+checkout; one /upgrade route; the 402's upgradeUrl goes there) ·
+M.5 archive fee makes sense (per O.5 decision; default: full-res
+retention only, priced honestly) · M.8 degraded money copy (L83 —
+keyless/degraded states speak host language with a next step).
 
 Counts as done: plan §6's counts-as-done + fences per block; M.2/M.3
 verified with hasStripe() false (keyless deploys degrade honestly).

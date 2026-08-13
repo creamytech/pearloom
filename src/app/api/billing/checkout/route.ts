@@ -43,17 +43,22 @@ interface PlanProduct {
   priceCents: number;
 }
 
+/* These descriptions become the line item on the buyer's Stripe
+   receipt — the most binding money copy in the product, so they may
+   claim ONLY what the code enforces or grants (M.3/L36; the old
+   text sold the Studio and the memory book, neither plan-gated).
+   pricing-agreement.test.ts greps this file. */
 const PASS: PlanProduct = {
   planId: 'pro',
   name: 'Pearloom Pass',
-  description: 'The whole celebration: every linked event, co-hosts, 500 guests, the full Studio, and the day-of room.',
+  description: 'The whole weekend: ten sites, 500 guests, 500 photos, unlimited co-hosts, unlimited drafting by Pear, and the signature theme shelf.',
   priceCents: PLAN_PRICE_CENTS.pro,
 };
 
 const KEEPSAKE: PlanProduct = {
   planId: 'premium',
   name: 'Pearloom Keepsake',
-  description: 'Everything in the Pass, kept: unlimited full-resolution media, the memory book, and the long view.',
+  description: 'Everything in the Pass with every limit removed: unlimited sites, guests, and photos.',
   priceCents: PLAN_PRICE_CENTS.premium,
 };
 

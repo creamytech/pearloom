@@ -29,17 +29,20 @@ interface Tier {
    the whole standard theme catalog on purpose: every published free
    site is the marketing, so a crippled one costs more than it earns.
    (docs/REVIEW-SYNTHESIS.md §1.3–§1.4.) */
-const TIERS: Tier[] = [
+export const TIERS: Tier[] = [
   {
     name: 'Page',
     price: 0,
     cadence: 'forever',
     blurb: 'Your celebration, beautiful from the first minute.',
     feats: [
-      'One celebration, yours to keep',
-      'The whole standard theme catalog',
-      'The full drafting by Pear',
+      // Every line here mirrors what the code enforces or grants —
+      // PLAN_LIMITS, checkPearGate, planGrantedPackIds. The agreement
+      // fence (pricing-agreement.test.ts) pins the numbers (M.7).
+      'Two sites — yours, plus one you host for someone',
       'Up to 100 guests, unlimited RSVPs',
+      'The whole standard theme catalog',
+      '15 drafts by Pear every month',
       'All 31 occasions',
       'Guest passports + the photo wall',
       'Your pearloom.com address',
@@ -54,14 +57,18 @@ const TIERS: Tier[] = [
     cadence: 'once',
     blurb: 'The whole celebration — every event, every host.',
     feats: [
+      /* The old card sold the Studio, the Director, seating, budget,
+         and the vendor book — none of which has a plan gate; free
+         accounts have them all (M.3/L36). A card may only claim
+         what PLAN_LIMITS enforces or entitlements grant. (And the
+         shelf the Pass actually adds is the SIGNATURE shelf — the
+         premium shelf is already free for everyone.) */
       'Everything in Page',
-      'Every linked event: shower, bachelorette, rehearsal, brunch',
-      'Co-hosts with real permissions',
-      'Up to 500 guests',
-      'The full Studio: invitations, save-the-dates, thank-yous',
-      'The Director (day-of room) + live broadcasts',
-      'Seating, budget, and the vendor book',
-      'The signature theme shelf',
+      'Ten sites — the whole weekend: shower, bachelorette, rehearsal, brunch',
+      'Up to 500 guests, 500 photos',
+      'Co-hosts with real permissions, as many as you need',
+      'Unlimited drafting by Pear',
+      'The signature theme shelf, included',
     ],
     bg: PD.ink,
     fg: PD.paper,
@@ -78,13 +85,15 @@ const TIERS: Tier[] = [
     cadence: 'once',
     blurb: 'Everything, kept — long after the day.',
     feats: [
+      /* Keepsake's enforced difference from the Pass is scale: every
+         counted limit goes to Infinity (PLAN_LIMITS.PREMIUM). The old
+         card also sold "download your whole archive" — data export
+         exists for every account (/api/user/export-data) and may not
+         be dressed as a paid feature. Three honest lines beat five
+         embellished ones. */
       'Everything in the Pass',
-      'Unlimited celebrations',
-      'Unlimited full-resolution photos and video',
-      'The heirloom memory book (print-ready)',
-      'Voice toasts + the time capsule, kept',
-      'Anniversary rebroadcast, every year',
-      'Download your whole archive, any time',
+      'Unlimited sites — every celebration you’ll ever host',
+      'Unlimited guests, unlimited photos',
     ],
     bg: PD.paper2,
     accent: PD.gold,

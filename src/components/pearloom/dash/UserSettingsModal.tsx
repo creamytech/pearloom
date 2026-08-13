@@ -123,13 +123,16 @@ interface PlanShape {
 }
 
 /** Canonical tier catalog — names, prices, and limits mirror the
- *  pricing page (DesignPricing) + PLAN_LIMITS. The previous list
- *  showed an invented 'Bloom $12/mo' tier that never existed. */
+ *  pricing page (DesignPricing) + PLAN_LIMITS; the agreement fence
+ *  (pricing-agreement.test.ts) greps this file. The previous list
+ *  showed an invented subscription tier that never existed, and a
+ *  later one sold the Studio + the memory book as paid features —
+ *  neither has a plan gate, so neither may be sold (M.3/L36). */
 function planList(plan: 'free' | 'pro' | 'premium'): PlanShape[] {
   return [
-    { id: 'page',     name: 'Page',     price: '$0',   per: 'forever', features: ['One celebration, yours to keep', 'The whole standard theme catalog', 'Up to 100 guests, unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
-    { id: 'pass',     name: 'Pass',     price: '$89',  per: 'once',    features: ['Everything in Page', 'Every linked event + co-hosts', '500 guests, the full Studio'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
-    { id: 'keepsake', name: 'Keepsake', price: '$199', per: 'once',    features: ['Everything in the Pass', 'Unlimited celebrations + full-res media', 'The memory book, kept'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
+    { id: 'page',     name: 'Page',     price: '$0',   per: 'forever', features: ['Two sites — yours, plus one you host', 'The whole standard theme catalog', 'Up to 100 guests, unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
+    { id: 'pass',     name: 'Pass',     price: '$89',  per: 'once',    features: ['Everything in Page + the signature shelf', 'Ten sites — the whole weekend', '500 guests, unlimited co-hosts + drafting'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
+    { id: 'keepsake', name: 'Keepsake', price: '$199', per: 'once',    features: ['Everything in the Pass', 'Unlimited sites, guests, and photos', 'Every future celebration covered'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
   ];
 }
 
