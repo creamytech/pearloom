@@ -19,6 +19,7 @@ import { captureReferral, storedReferral, clearReferral } from '@/lib/doorway/re
 import { applyVibeLook, vibeLookSummary, VIBE_LOOKS } from '@/lib/site-look/vibe-look';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { isPrivateByDefaultOccasion } from '@/lib/site-visibility';
 import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory, type EventVoice } from '@/lib/event-os/event-types';
@@ -3205,6 +3206,13 @@ export function WizardV8() {
           school: st.detailSchool,
         },
         ...(seedTagline ? { poetry: { heroTagline: seedTagline } } : {}),
+        // Private-by-default occasions press with the intent stamped
+        // (V.2/L32 — CLAUDE-PRODUCT §8 Q2): a bachelorette carries
+        // visibility 'link-only' from the first press, so the Privacy
+        // panel and the publish modal open pre-armed. The site is
+        // still a DRAFT until published — the resolver's press check
+        // outranks this field (lib/site-visibility.ts).
+        ...(isPrivateByDefaultOccasion(st.occasion) ? { visibility: 'link-only' as const } : {}),
       };
 
       // Stamp the host's picked palette on the legacy theme.colors

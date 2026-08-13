@@ -13,6 +13,7 @@ import { getPackById } from '@/lib/theme-store/packs';
 import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { publishNeedsReview, acknowledgeReview } from '@/lib/first-pressing/clear-on-edit';
+import { isPrivateByDefaultOccasion } from '@/lib/site-visibility';
 import { trackEvent } from '@/lib/analytics/beacon';
 
 export interface PublishModalProps {
@@ -65,9 +66,25 @@ function PubShareCard({ manifest }: { manifest: StoryManifest }) {
 
 export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: PublishModalProps) {
   const [step, setStep] = useState<'review' | 'reread' | 'publishing' | 'live'>('review');
-  const [privacy, setPrivacy] = useState<'public' | 'password'>(() =>
-    ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim()
-      ? 'password' : 'public');
+  /* Who-can-see-it choice — the visibility spine's three live
+     states (V.1; lib/site-visibility.ts is the resolver every
+     reader consults). Pre-armed (V.2/L32): an explicit prior
+     choice wins; else a set password; else the OCCASION's registry
+     default — a bachelorette opens on "Just people with the link"
+     (CLAUDE-PRODUCT §8 Q2, wired at last); else public. */
+  const [privacy, setPrivacy] = useState<'public' | 'link-only' | 'password'>(() => {
+    const loose = manifest as unknown as {
+      visibility?: string;
+      privacyGate?: { password?: string };
+      occasion?: string;
+    };
+    if (loose.visibility === 'public' || loose.visibility === 'link-only' || loose.visibility === 'password') {
+      return loose.visibility;
+    }
+    if ((loose.privacyGate?.password ?? '').trim()) return 'password';
+    if (isPrivateByDefaultOccasion(loose.occasion)) return 'link-only';
+    return 'public';
+  });
   const [gatePw, setGatePw] = useState(
     ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? ''),
   );
@@ -138,11 +155,14 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
     setError(null);
     /* Privacy ships INSIDE the published manifest so the gate is
        live from the first request — and the same change lands in
-       the editor's manifest via onChange below. */
+       the editor's manifest via onChange below. `visibility` is the
+       explicit spine stamp (V.1); the password rides only in the
+       password state. */
     const next = {
       ...base,
       published: true,
       publishedAt: new Date().toISOString(),
+      visibility: privacy,
       privacyGate: privacy === 'password' ? { password: gatePw.trim() } : undefined,
     } as StoryManifest;
     try {
@@ -250,7 +270,11 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
 
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '16px 0 8px' }}>Who can see it</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {([['public', 'globe', 'Public', 'Anyone with the link'], ['password', 'lock', 'Password protected', 'Guests enter a shared password']] as const).map(([v, ic, t, s]) => (
+              {([
+                ['public', 'globe', 'Public', 'Anyone can open it, and search engines can find it'],
+                ['link-only', 'link', 'Just people with the link', 'Live for anyone you send it to, hidden from search'],
+                ['password', 'lock', 'Password protected', 'Guests enter a shared password'],
+              ] as const).map(([v, ic, t, s]) => (
                 <button key={v} onClick={() => setPrivacy(v)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', borderRadius: 11, textAlign: 'left', cursor: 'pointer', background: privacy === v ? 'var(--cream-2)' : 'var(--card)', border: privacy === v ? '2px solid var(--ink)' : '1px solid var(--line)' } as CSSProperties}>
                   <Icon name={ic} size={16} color="var(--ink-soft)"/>
                   <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 600 }}>{t}</div><div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{s}</div></div>
@@ -344,7 +368,15 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
           <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--sage-tint)', display: 'grid', placeItems: 'center', marginInline: 'auto' } as CSSProperties}><Pear size={32} tone="sage" sparkle shadow={false}/></div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>It{'’'}s pressed.</h2>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is live, guests can leaf through it now. Share this link; it unfurls into the card below.</p>
+            {/* The ceremony describes the ACTUAL state (V.3) — not a
+                one-size "it's live" over a password gate. */}
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>
+              {privacy === 'password'
+                ? 'Your site is live behind its password. Share the link and the password together — guests need both.'
+                : privacy === 'link-only'
+                  ? 'Your site is live for anyone you send the link to, and hidden from search engines. Share it; it unfurls into the card below.'
+                  : 'Your site is live, guests can leaf through it now. Share this link; it unfurls into the card below.'}
+            </p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line)', marginBottom: 14 }}>
               <Icon name="globe" size={15} color="var(--ink-soft)"/>

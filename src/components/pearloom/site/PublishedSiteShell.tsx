@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
 import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
+import { gatePasswordFor, readSiteVisibility } from '@/lib/site-visibility';
 import { readVariant } from '@/components/pearloom/redesign/layouts';
 /* Interaction-gated overlays — each Lazy* wrapper keeps a feather-
    weight trigger mounted and only downloads the real component
@@ -98,11 +99,24 @@ function GuestCrashFallback() {
 export function PublishedSiteShell(props: Props) {
   const hydrated = hydrateManifestForRedesign(props.manifest);
 
-  /* Site password (manifest.privacyGate.password, editor Privacy
-     panel). Client-side gate — parity with the legacy PasswordGate:
-     it keeps casual visitors out, not determined ones (the manifest
-     rides the RSC payload either way). Unlock persists per session. */
-  const gatePassword = ((hydrated as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim();
+  /* Site password — resolved through the visibility spine (V.1),
+     so the gate mounts exactly when the ONE state machine says
+     'password': the legacy comingSoon password is honored, and a
+     stale privacyGate.password under an explicit 'public' choice
+     no longer locks the door. Client-side gate — parity with the
+     legacy PasswordGate: it keeps casual visitors out, not
+     determined ones (the manifest rides the RSC payload either
+     way). Unlock persists per session. */
+  const shellVisibility = readSiteVisibility(hydrated);
+  const gatePassword =
+    // 'password' mounts the gate; an owner previewing their DRAFT
+    // with a password set sees the gate too (pre-spine parity — the
+    // route already keeps drafts owner-only, this is their preview
+    // of what guests will meet). public/link-only never gate, even
+    // over a stale password field.
+    shellVisibility === 'password' || shellVisibility === 'draft'
+      ? gatePasswordFor(hydrated)
+      : '';
   /* Starts locked on server + client alike (hydration-safe); the
      gate itself re-checks sessionStorage on mount and self-clears
      for returning visitors. */

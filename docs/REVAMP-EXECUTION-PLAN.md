@@ -622,20 +622,53 @@ grant, and settings "Pass" badge are all already wired).
 **Goal:** one visibility state machine; four flags become one truth.
 (R5; finishes what W.3 started.)
 
-- **V.1** `visibility: draft | link-only | public | password` on the
-  manifest; the site route enforces it; publish modal sets it; the
-  four legacy flags (`published`, `comingSoon.enabled`,
-  `privacyGate.password`, registry `privateByDefault`) read-migrate
-  into it.
-- **V.2** Private-by-default wiring (L32): bachelor/ette (and any
-  registry-flagged occasion) presses as `link-only` with the privacy
-  panel pre-armed; CLAUDE-PRODUCT §8 Q2 finally true.
-- **V.3** Promise copy audited against the machine: the wizard line,
-  the publish ceremony, the Share panel all describe the actual state.
+- **V.1 — SHIPPED 2026-08-13.** `src/lib/site-visibility.ts` is THE
+  resolver (`readSiteVisibility`: draft | link-only | public |
+  password): the press check outranks every field ("nothing is
+  public until you publish" is now literally rule 1), an explicit
+  `manifest.visibility` wins (password with no password degrades to
+  public — an empty gate is not protection; explicit draft on a
+  pressed site is the host pulling it back), and pre-spine manifests
+  read-migrate from the legacy flags — privacyGate.password, the
+  comingSoon password (its documented precedence kept), the
+  registry's privateByDefault, and even the DELETED PearSpotlight
+  wizard's soft-signal 'unlisted'/'private' values (found as a
+  duplicate `visibility` declaration in types.ts; both map to
+  link-only). Enforced everywhere that reads: the site route (page +
+  metadata — password sites' metadata says nothing personal now),
+  the SUB-PAGE route (whose generateMetadata never got H7's gate —
+  a draft's names/tagline leaked through sub-page OG for anyone who
+  guessed the URL), the shell's SiteGate (mounts exactly when the
+  machine says password), and `getPublishedSites` — which listed
+  EVERY site with a manifest into the sitemap, drafts included,
+  leaking the very slug-existence the 404 gate was built to hide;
+  now only `public` is listed. 15 unit tests pin the resolution.
+- **V.2 — SHIPPED 2026-08-13 (L32).** The wizard stamps
+  `visibility: 'link-only'` on private-by-default occasions at
+  press; the publish modal and the rewritten three-state
+  PrivacyPanel both open pre-armed on "Just people with the link"
+  for those occasions; and the resolver's registry fallback makes
+  the same true for every pre-spine bachelor/ette already
+  published. CLAUDE-PRODUCT §8 Q2, wired at last — proven live by
+  the matrix fence's bachelorette test (no explicit choice →
+  reachable by link, noindex).
+- **V.3 — SHIPPED 2026-08-13.** The copy tells the machine's truth:
+  the wizard/editor "Nothing is public until you publish" line is
+  now literally rule 1 of the resolver; the publish ceremony's
+  "It's pressed" describes the CHOSEN state (password → "share the
+  link and the password together"; link-only → "hidden from search
+  engines"); the publish modal offers all three live states in
+  plain words; the PrivacyPanel names the current state and warns
+  that an empty password gate protects no one. (SharePanel makes no
+  visibility claims — audited, nothing to fix.)
 
-**Fence:** a state-machine matrix e2e — each of the four states ×
-(anon visitor / link visitor / password visitor) asserts exactly who
-sees what.
+**Fence:** SHIPPED — `e2e/specs/visibility-matrix.spec.ts` (in the
+staging fence): one site walks draft → public → link-only →
+password → pulled-back-draft, asserting per state who sees what
+(anon 404 / owner preview / open+indexable / open+noindex / gate
+with wrong-password-stays-out + right-password-enters + private
+metadata), plus the bachelorette-default test. All 18 fence e2e
+green locally.
 
 ---
 

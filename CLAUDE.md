@@ -5,34 +5,39 @@
 
 ## Active focus
 
-**Sprint V — THE VISIBILITY SPINE** (`docs/REVAMP-EXECUTION-PLAN.md`
-§7). Sprints W, S, G, T, and M all shipped in full 2026-08-12/13 —
-every block stamped in the plan doc. M closed with all eight blocks:
-the /upgrade door (money-door e2e in the staging fence), the
-agreement fence (`pricing-agreement.test.ts`: PLAN_LIMITS ⇄ pricing
-page ⇄ MONETIZATION.md ⇄ the Stripe line items), honest cards
-everywhere, `money-copy.ts` for degraded tills. Only the PAID
-checkout walk remains, blocked on owner O.2 Stripe keys.
+**Sprint A — PHONE + ACCESS** (`docs/REVAMP-EXECUTION-PLAN.md` §8).
+Sprints W, S, G, T, M, and V all shipped in full 2026-08-12/13 —
+every block stamped in the plan doc. V closed the visibility spine:
+`lib/site-visibility.ts` is THE resolver (draft / link-only /
+public / password; press outranks everything; legacy flags incl.
+the dead PearSpotlight soft-signal read-migrate), enforced in the
+site route + sub-page metadata (which had leaked draft names via
+OG), the SiteGate, and the sitemap (which had listed drafts);
+`visibility-matrix.spec.ts` walks all four states in the staging
+fence; a pressed bachelorette defaults link-only (L32/§8 Q2 wired).
 
-Goal: one visibility state machine; four flags become one truth
-(R5; finishes what W.3 started).
+Goal: the funnel and the guest side work on the devices people
+actually hold (R8; the mobile-a11y ledger complete).
 
-Open threads: V.1 `visibility: draft | link-only | public |
-password` on the manifest — the site route enforces it, the publish
-modal sets it, and the four legacy flags (`published`,
-`comingSoon.enabled`, `privacyGate.password`, registry
-`privateByDefault`) read-migrate into it · V.2 private-by-default
-wiring (L32): bachelor/ette (and any registry-flagged occasion)
-presses as `link-only` with the privacy panel pre-armed —
-CLAUDE-PRODUCT §8 Q2 finally true · V.3 promise copy audited
-against the machine: the wizard line, the publish ceremony, and the
-Share panel all describe the actual state.
+Open threads: A.1 wizard Basics grid at 390px (L54) + publish CTA
+clip (L107) + hero name pair never mid-word breaks (L23, all hero
+variants) · A.2 phone canvas tap-to-edit opens the section's sheet
+(L100 — plumbing exists, tap targets don't) · A.3 ONE suite-card
+formatter for publish modal / first-pressing / It's-pressed / OG
+with a contrast floor + humane dates, replacing three hand-rolled
+versions (L55/L99/L108) · A.4 keyboard + SR: SectionRail rows
+focusable (L103), RSVP modal labels + focus restore (L104), welcome
+marks named (L102), occasion cards announce selection (L110),
+settings modal Escape (L66) · A.5 signup 16px inputs + ≥44px taps
+(L101) · A.6 DOM hygiene: EditorThemeShop unmounts closed
+(L70/L105), /wizard/new hydration mismatch (L109), guest
+photo-upload responsive (L73).
 
-Counts as done: the state-machine matrix e2e — each of the four
-states × (anon visitor / link visitor / password visitor) asserts
-exactly who sees what.
+Counts as done: a 390px screenshot pass in the screenshot-tour CI
+for the funnel steps; an a11y assertions spec for the fixed
+controls.
 
-Skip: Sprints A–D work not needed for a V block; the six pending
+Skip: Sprints C/P/D work not needed for an A block; the six pending
 prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)

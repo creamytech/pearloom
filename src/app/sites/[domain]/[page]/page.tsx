@@ -56,6 +56,36 @@ export async function generateMetadata(
   const siteConfig = await getSiteConfig(domain);
   if (!siteConfig) return { title: 'Pearloom' };
 
+  // The visibility gate, metadata half (V.1). The home route got
+  // this with H7; the sub-pages never did — a draft's names and
+  // tagline leaked through sub-page <title>/OG for anyone who
+  // guessed the URL. Same contract now: drafts 404 here (before
+  // the shell flushes, so the status is a real 404) except for the
+  // owner; password sites say nothing personal.
+  {
+    const { readSiteVisibility } = await import('@/lib/site-visibility');
+    const v = siteConfig.manifest ? readSiteVisibility(siteConfig.manifest) : 'draft';
+    if (v === 'draft') {
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions).catch(() => null);
+      const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
+      const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
+        .toLowerCase().trim();
+      if (!viewer || !draftOwner || viewer !== draftOwner) {
+        notFound();
+      }
+      return { title: 'Pearloom', robots: { index: false } };
+    }
+    if (v === 'password') {
+      return {
+        title: 'A private celebration · Pearloom',
+        description: 'This celebration is shared by invitation.',
+        robots: { index: false, follow: false },
+      };
+    }
+  }
+
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
   const coupleTitle = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
   const meta = isV8PageKey(page) ? PAGE_META[page] : null;
@@ -113,11 +143,13 @@ export default async function SiteSubPage(
   const siteConfig = await getSiteConfig(domain);
   if (!siteConfig || !siteConfig.manifest) return notFound();
 
-  // The publish gate — same contract as the home route (H7):
-  // unpublished sub-pages render only for the site's owner.
+  // The visibility gate — same contract as the home route (V.1/H7):
+  // draft sub-pages render only for the site's owner. (The other
+  // states pass: password sub-pages still mount the shell's
+  // SiteGate; link-only differs only in indexing.)
   {
-    const { isManifestPublished } = await import('@/lib/next-step');
-    if (!isManifestPublished(siteConfig.manifest)) {
+    const { readSiteVisibility } = await import('@/lib/site-visibility');
+    if (readSiteVisibility(siteConfig.manifest) === 'draft') {
       const { getServerSession } = await import('next-auth');
       const { authOptions } = await import('@/lib/auth');
       const session = await getServerSession(authOptions).catch(() => null);

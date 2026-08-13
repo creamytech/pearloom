@@ -451,6 +451,13 @@ export interface StoryManifest {
    *  gate — parity with the legacy PasswordGate). Edited in the
    *  editor's Privacy panel; DashSettings deep-links ?jump=privacy. */
   privacyGate?: { password?: string };
+  /** THE visibility state (Sprint V.1 — lib/site-visibility.ts is
+   *  the one resolver; never read this field directly). Explicit
+   *  host choice from the publish modal / Privacy panel / wizard
+   *  press. Absent on pre-spine manifests — the resolver derives
+   *  the state from the legacy flags (published, privacyGate,
+   *  comingSoon, the occasion's privateByDefault). */
+  visibility?: 'draft' | 'link-only' | 'public' | 'password';
   /** Tribute wall section (SectionKind 'tributeWall') host config —
    *  written by the editor's TributeWallPanel.
    *  - prompt: composer line ("Share a memory"); unset falls back
@@ -1061,7 +1068,12 @@ export interface StoryManifest {
   // phrasing, etc.). See /api/generate/stream for the rails that
   // derive defaults from these at generation time.
   category?: 'wedding-arc' | 'family' | 'milestone' | 'cultural' | 'commemoration';
-  visibility?: 'public' | 'unlisted' | 'private';
+  /* `visibility` — declared once, further up, as the spine field
+   * (V.1). It USED to live here as a wizard soft-signal
+   * ('public' | 'unlisted' | 'private') written by the deleted
+   * PearSpotlight pipeline; rows carrying those old values resolve
+   * through lib/site-visibility.ts, which maps 'unlisted'/'private'
+   * to link-only. */
   tonePolicy?: 'celebratory' | 'reflective' | 'mixed';
   dateMode?: 'specific' | 'season' | 'year' | 'tba';
   dateSeason?: string;

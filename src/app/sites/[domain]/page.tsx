@@ -17,26 +17,35 @@ export async function generateMetadata(
 
   if (!siteConfig) return { title: 'Pearloom' };
 
-  // The publish gate, metadata half (H7): a draft's names, date, and
-  // venue must not leak through <title>/OG tags — and calling
-  // notFound() HERE, before the streaming shell flushes, is what
-  // gives anonymous visitors a genuine 404 status instead of a
-  // 200-with-404-body. The owner keeps their seamless draft preview
-  // (same bypass as the page body's gate below).
-  {
-    const { isManifestPublished } = await import('@/lib/next-step');
-    if (!siteConfig.manifest || !isManifestPublished(siteConfig.manifest)) {
-      const { getServerSession } = await import('next-auth');
-      const { authOptions } = await import('@/lib/auth');
-      const session = await getServerSession(authOptions).catch(() => null);
-      const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
-      const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
-        .toLowerCase().trim();
-      if (!viewer || !draftOwner || viewer !== draftOwner) {
-        notFound();
-      }
-      return { title: 'Pearloom', robots: { index: false } };
+  // The visibility spine, metadata half (V.1; grew out of H7's
+  // draft gate): a draft's names, date, and venue must not leak
+  // through <title>/OG tags — and calling notFound() HERE, before
+  // the streaming shell flushes, is what gives anonymous visitors a
+  // genuine 404 status instead of a 200-with-404-body. The owner
+  // keeps their seamless draft preview (same bypass as the page
+  // body's gate below). A password-gated site's metadata says
+  // nothing personal either — OG tags with the names and venue
+  // would leak exactly what the gate hides.
+  const { readSiteVisibility } = await import('@/lib/site-visibility');
+  const siteVisibility = siteConfig.manifest ? readSiteVisibility(siteConfig.manifest) : 'draft';
+  if (siteVisibility === 'draft') {
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('@/lib/auth');
+    const session = await getServerSession(authOptions).catch(() => null);
+    const viewer = session?.user?.email?.toLowerCase().trim() ?? null;
+    const draftOwner = (((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '')
+      .toLowerCase().trim();
+    if (!viewer || !draftOwner || viewer !== draftOwner) {
+      notFound();
     }
+    return { title: 'Pearloom', robots: { index: false } };
+  }
+  if (siteVisibility === 'password') {
+    return {
+      title: 'A private celebration · Pearloom',
+      description: 'This celebration is shared by invitation.',
+      robots: { index: false, follow: false },
+    };
   }
 
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
@@ -182,8 +191,11 @@ export async function generateMetadata(
       images: [ogUrl.toString()],
     },
     robots: {
-      index: true,
-      follow: true,
+      // Only the deliberately public state is indexable — link-only
+      // stays reachable (full OG for the group-chat share) but never
+      // listed (V.1).
+      index: siteVisibility === 'public',
+      follow: siteVisibility === 'public',
     },
   };
 }
@@ -229,16 +241,19 @@ export default async function SubdomainSite({
     return notFound();
   }
 
-  // ── The publish gate ─────────────────────────────────────────
+  // ── The visibility gate (V.1 — one state machine) ────────────
   // "Nothing is public until you publish" — the wizard's promise,
   // made true (NEW-USER-REVAMP H7: drafts were world-readable at
-  // their guessable URL, comingSoon gated nothing). An unpublished
-  // site renders only for its owner (their preview stays seamless);
-  // everyone else gets a 404 — indistinguishable from a slug that
-  // was never pressed, so drafts don't leak their existence either.
+  // their guessable URL, comingSoon gated nothing). A draft renders
+  // only for its owner (their preview stays seamless); everyone
+  // else gets a 404 — indistinguishable from a slug that was never
+  // pressed, so drafts don't leak their existence either. The other
+  // three states all render here: public and link-only openly
+  // (link-only differs only in indexing/listing), password behind
+  // the shell's SiteGate.
   {
-    const { isManifestPublished } = await import('@/lib/next-step');
-    if (!isManifestPublished(siteConfig.manifest)) {
+    const { readSiteVisibility } = await import('@/lib/site-visibility');
+    if (readSiteVisibility(siteConfig.manifest) === 'draft') {
       const { getServerSession } = await import('next-auth');
       const { authOptions } = await import('@/lib/auth');
       const session = await getServerSession(authOptions).catch(() => null);

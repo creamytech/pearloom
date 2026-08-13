@@ -9,6 +9,7 @@ import { usableNamesPair } from '@/lib/site-names';
 import type {
   SiteConfig,
   RsvpResponse,
+  StoryManifest,
   Venue,
   VenueSpace,
   SeatingTable,
@@ -953,13 +954,17 @@ export async function getPublishedSites(): Promise<Array<{ domain: string; creat
       .not('ai_manifest', 'is', null)
       .limit(5000);
     if (error || !data) return [];
-    // Filter out coming-soon sites (comingSoon.enabled is set in the manifest JSON)
+    // Only the deliberately PUBLIC state is listed (V.1 — one
+    // visibility resolver). The old filter only excluded
+    // comingSoon.enabled, so every DRAFT rode into the sitemap —
+    // leaking slug existence the 404 gate was built to hide — and
+    // password/link-only sites were handed to search engines.
+    const { readSiteVisibility } = await import('@/lib/site-visibility');
     return data
       .filter((row: Record<string, unknown>) => {
         const manifest = row.ai_manifest as Record<string, unknown> | null;
         if (!manifest) return false;
-        const comingSoon = manifest.comingSoon as { enabled?: boolean } | undefined;
-        return !comingSoon?.enabled;
+        return readSiteVisibility(manifest as unknown as StoryManifest) === 'public';
       })
       .map((row: Record<string, unknown>) => {
         const manifest = row.ai_manifest as Record<string, unknown> | null;
