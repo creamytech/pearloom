@@ -2038,13 +2038,21 @@ button.pl8-mobile-only { display: none !important; }
   }
 }
 
+/* Wizard Basics grid — the column layout lives HERE, never inline
+   (A.1/L54). The old inline gridTemplateColumns:'1fr 1fr' beat the
+   phone override below in practice, crushing NAME 1 to a 66px
+   square at 390px. minmax(0, 1fr) so an input's min-content can
+   never starve its neighbour at any width. */
+.pl8-basics-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.pl8-basics-grid[data-name-mode='solo'] { grid-template-columns: minmax(0, 1fr); }
+
 /* Wizard-specific adjustments */
 @media (max-width: 960px) {
   .pl8-wizard-header { flex-wrap: wrap; gap: 8px !important; }
   .pl8-wizard-progress { order: 3; width: 100% !important; overflow-x: auto; padding: 10px 0 !important; }
   .pl8-wizard-progress > div > div[data-step-label] { display: none !important; }
   .pl8-occasion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-basics-grid { grid-template-columns: 1fr !important; }
+  .pl8-basics-grid { grid-template-columns: minmax(0, 1fr) !important; }
   .pl8-palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   /* Live save-the-date preview: collapse the Look-step two-column layout
      to one column and hide the preview on narrow screens. */
@@ -7698,6 +7706,21 @@ html { scroll-behavior: smooth; }
   text-shadow:
     0 1px 1px rgba(0, 0, 0, 0.45),
     0 -1px 1px rgba(241, 235, 220, 0.10);
+}
+
+/* ── Hero names never break mid-word (A.1/L23) ────────────────
+   Every hero variant renders the couple as adjacent spans —
+   name · joiner · name — with margins instead of space
+   characters, so the browser saw one unbreakable "MayaandDaniel"
+   run and overflow-wrap: break-word split it ANYWHERE on narrow
+   phones: "Maya an / d Daniel", the first thing a host checks in
+   mobile view. inline-block gives each unit its own box: lines
+   may break BETWEEN name and joiner, never inside a name — and a
+   single genuinely-too-long name still wraps within its own box
+   via the h1's overflow-wrap. */
+.pl8-hero-display > span {
+  display: inline-block;
+  max-width: 100%;
 }
 
 /* ── iOS Safari guard — SVG reference filters on HTML ─────────

@@ -293,7 +293,10 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
               )}
             </div>
             {error && <div role="alert" style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--pl-plum-mist)', border: '1px solid var(--pl-plum)', color: 'var(--pl-plum)', fontSize: 12.5, fontWeight: 600 } as CSSProperties}>{error}</div>}
-            <button onClick={go} disabled={!!wornPack} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, opacity: wornPack ? 0.5 : 1, cursor: wornPack ? 'not-allowed' : 'pointer' } as CSSProperties}>{wornPack ? <>Unlock {wornPack.name} to publish</> : <>Publish to {url} <Icon name="arrow-up" size={13} color="var(--cream)"/></>}</button>
+            {/* The URL half may truncate; the verb may not. At 390px the
+                full "Publish to pearloom.com/wedding/<slug>" ran past the
+                pill and clipped the leading P (A.1/L107). */}
+            <button onClick={go} disabled={!!wornPack} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, minWidth: 0, overflow: 'hidden', opacity: wornPack ? 0.5 : 1, cursor: wornPack ? 'not-allowed' : 'pointer' } as CSSProperties}>{wornPack ? <>Unlock {wornPack.name} to publish</> : <><span style={{ flexShrink: 0 }}>Publish to</span> <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } as CSSProperties}>{url}</span> <Icon name="arrow-up" size={13} color="var(--cream)"/></>}</button>
           </div>
         )}
 

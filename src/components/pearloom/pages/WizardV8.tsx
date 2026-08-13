@@ -4075,13 +4075,14 @@ export function WizardV8() {
                   </div>
                   <div
                     className="pl8-basics-grid"
-                    style={{
-                      display: 'grid',
-                      // Solo and group modes get a single-column name row;
-                      // couple modes use the two-up layout.
-                      gridTemplateColumns: nameSpec.mode === 'couple' ? '1fr 1fr' : '1fr',
-                      gap: 16,
-                    }}
+                    // Column layout lives ENTIRELY in pearloom.css (A.1/L54):
+                    // couple modes two-up, solo/group one-up via the data
+                    // attribute, and the ≤640px stack. The old inline
+                    // gridTemplateColumns fought the stylesheet's phone
+                    // override and WON in practice — NAME 1 crushed to a
+                    // 66px square at 390px. Never re-add it inline.
+                    data-name-mode={nameSpec.mode === 'couple' ? 'couple' : 'solo'}
+                    style={{ display: 'grid', gap: 16 }}
                   >
                     <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'auto' : 'span 1' }}>
                       <CheckLabel done={!!st.names[0].trim()}>{nameSpec.primaryLabel}</CheckLabel>
@@ -4113,7 +4114,12 @@ export function WizardV8() {
                     {nameSpec.hint && (
                       <div
                         style={{
-                          gridColumn: nameSpec.mode === 'couple' ? 'span 2' : 'auto',
+                          // '1 / -1' = span every EXPLICIT column. The old
+                          // 'span 2' CREATED an implicit second column when
+                          // the phone stylesheet stacked the grid to one —
+                          // which silently rebuilt the two-up layout and
+                          // crushed NAME 1 to 86px at 390px (A.1/L54).
+                          gridColumn: '1 / -1',
                           fontSize: 12,
                           color: 'var(--ink-muted)',
                           marginTop: -6,
@@ -4147,7 +4153,8 @@ export function WizardV8() {
                         placeholder="Madison Square Garden · New York"
                       />
                     </div>
-                    <div style={{ gridColumn: nameSpec.mode === 'couple' ? 'span 2' : 'span 1' }}>
+                    {/* '1 / -1', never 'span 2' — see the hint note above. */}
+                    <div style={{ gridColumn: '1 / -1' }}>
                       <CheckLabel done={!!st.subdomain.trim()}>Site link (optional)</CheckLabel>
                       <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', flexWrap: 'wrap' }}>
                         <div
@@ -5241,7 +5248,7 @@ export function WizardV8() {
                   >
                     Your plan
                   </div>
-                  <div className="pl8-basics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="pl8-basics-grid" data-name-mode="couple" style={{ display: 'grid', gap: 14 }}>
                     <Row label="Occasion" val={OCCASIONS.find((o) => o.id === st.occasion)?.label ?? '—'} />
                     <Row label="Names" val={st.names.filter(Boolean).join(' & ') || '—'} />
                     <Row label="Date" val={st.eventDate || '—'} />
