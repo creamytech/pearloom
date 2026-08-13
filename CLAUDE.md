@@ -19,27 +19,37 @@ Goal: dissolve the wizard→editor seam — the highest-ceiling
 structural bet (R1; RADICAL-DESIGN §D's named remaining rebuild),
 done after W–A de-risked it.
 
-Open threads (C.1 FIRST — small and the worst remaining trust
-break): C.1 demo-ink law (L18/L24/L33/L71/L75/L106 — no fabricated
-value ever composites into a line with real host data; kill the
-per-field `place` fallback (the Santorini class) and dangling "·"
-joins; canvas demo content wears an explicit DEMO slat; G.5's
-published empty-section policy generalized) · C.2 truthful editing
-model for published sites (L19 — editing-live banner or staged
-review-and-update; the Publish button stops lying) · C.3 one
-readiness system (L65 — the 86% bar, topbar checklist, and Pear's
-cards merge into one explainable model with visible criteria) ·
-C.4 receipts everywhere (H3 — every wizard fact shows its
-destination; every Pear apply shows a diff) · C.5 the merge (the
-pressing IS the surface; feature-flagged, old wizard stays the
-fallback) · C.6 site addresses managed (L22 — slug rename with
-redirect, availability check, surfaced in Share/Settings).
+**C.1, C.2, C.3, C.4, C.6 SHIPPED 2026-08-13** (stamps in plan §9):
+the demo-ink law (composeVenuePlaceLine + DemoInkTab, fenced); the
+truthful editing model (live/staged editMode, published_manifest
+snapshot serving via servedManifestFor, staged walk in the matrix
+fence); one readiness system (the rail bar derives from
+buildPublishChecks and opens the checklist); receipts
+(wizardFactDestinations — "Your parking note → the Travel
+section", fenced in wizard-seed.test.ts); managed addresses
+(/api/sites/rename + site_redirects 301 forwarding +
+SiteAddressEditor in the Share panel, verified live).
 
-Counts as done: plan §9's counts-as-done — C.5's flag ships to
-100% only when the staging funnel e2e + wow-moment metrics beat
-the old wizard; C.1–C.4/C.6 each carry their own fence.
+Open thread — ONLY C.5 remains, the sprint's whole reason: **the
+merge**. The pressing IS the surface: wizard steps become the
+empty-state prompts of the editor canvas; chrome fades in as
+content lands; phone-first working steps (RADICAL-DESIGN §D); the
+press becomes an in-place transition (no route seam → no
+double-create class, no handoff cliff). FEATURE-FLAGGED (name the
+flag `onePressing`, read from an env/localStorage gate) — the old
+wizard remains the default and the fallback until the staging
+funnel e2e + the wow-moment metrics (already instrumented) match
+or beat it. Start by scaffolding the flag + the merged entry
+(/wizard/new?press=one or a dev route), reusing the editor's
+canvas + the wizard's step state; ship increments behind the flag
+with the funnel e2e green at every step.
 
-Skip: Sprints P/D work not needed for a C block; the six pending
+Counts as done: plan §9's counts-as-done — the flag ships to 100%
+only when the staging funnel e2e + wow-moment metrics beat the old
+wizard. Until then C.5 increments land behind the flag with the
+fence suite green.
+
+Skip: Sprints P/D work not needed for a C block; the eight pending
 prod MCP applies (owner re-auth — plan §3 S.1).
 
 **Last sprint (Studio / stationery editor at `/dashboard/invite`)
