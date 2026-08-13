@@ -2,7 +2,7 @@
 // no dangling joiners, and a real contrast floor for card ink.
 
 import { describe, expect, it } from 'vitest';
-import { humaneDateLabel, suiteDateVenueLine, suiteCardInk } from '@/lib/suite-card';
+import { composeVenuePlaceLine, humaneDateLabel, suiteDateVenueLine, suiteCardInk } from '@/lib/suite-card';
 import { contrastRatio } from '@/lib/color-utils';
 
 describe('humaneDateLabel', () => {
@@ -51,5 +51,33 @@ describe('suiteCardInk — the contrast floor (L55)', () => {
     const fam = suiteCardInk('#6D7D3F');
     expect(contrastRatio(fam.ink, '#6D7D3F')!).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(fam.inkSoft, '#6D7D3F')!).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('composeVenuePlaceLine — the demo-ink law (C.1)', () => {
+  const DEMO = { editable: true, demoVenue: 'Casa Chorro', demoPlace: 'Santorini, Greece' };
+
+  it('a real venue NEVER composites with the demo place (the Santorini class)', () => {
+    expect(composeVenuePlaceLine('Asheville, North Carolina', '', DEMO)).toBe(
+      'Asheville, North Carolina',
+    );
+    expect(composeVenuePlaceLine('', 'Portland, Oregon', DEMO)).toBe('Portland, Oregon');
+  });
+
+  it('the demo pair renders only when the host gave NEITHER half, editor only', () => {
+    expect(composeVenuePlaceLine('', '', DEMO)).toBe('Casa Chorro · Santorini, Greece');
+    expect(composeVenuePlaceLine('', '', { ...DEMO, editable: false })).toBe('');
+  });
+
+  it('the joiner never dangles', () => {
+    expect(composeVenuePlaceLine('Ashwood Hall', 'Portland', DEMO)).toBe('Ashwood Hall · Portland');
+    for (const line of [
+      composeVenuePlaceLine('Ashwood Hall', null, DEMO),
+      composeVenuePlaceLine(null, null, { editable: false }),
+      composeVenuePlaceLine('  ', '  ', DEMO),
+    ]) {
+      expect(line.endsWith('·')).toBe(false);
+      expect(line.startsWith('·')).toBe(false);
+    }
   });
 });

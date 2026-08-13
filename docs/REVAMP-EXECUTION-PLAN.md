@@ -743,14 +743,24 @@ structural bet (R1; RADICAL-DESIGN §D's named remaining rebuild), done
 LAST because W–A de-risk it and its bug class is already fenced by
 then.
 
-- **C.1 Demo-ink law (L18, L24, L33, L71, L75, L106).** No fabricated
-  value ever composites into a line with real host data: kill the
-  per-field `place` fallback (the Santorini class) and the dangling
-  "·" joins; canvas demo content wears an explicit DEMO slat
-  (chapters, taglines); published empty-section policy from G.5
-  generalized.
-  *(Ship this block FIRST and independently — it's small and it's the
-  worst remaining trust break.)*
+- **C.1 Demo-ink law (L18, L24, L33, L71, L75, L106). — SHIPPED
+  2026-08-13.** The law lives as a pure helper —
+  `composeVenuePlaceLine` (lib/suite-card.ts): demo halves render
+  only when the host gave NEITHER half (editor only), and the "·"
+  joiner renders only between two real parts. ThemedSite's hero
+  byline builds through it — the per-field 'Santorini, Greece'
+  fallback that composited with the host's real Asheville is dead,
+  and every dangling-'·' case (editor, preview, published hero +
+  footer) resolves from the same root. Canvas demo content wears
+  the tab: `DemoInkTab` ("Example — click to write yours", the
+  peach working accent) renders on any section whose canvas render
+  is PURE demo — the un-authored story (L24's three unmarked
+  fabricated chapters) and the un-given registry, the same pair the
+  published-honesty gates drop for guests (G.5's policy,
+  generalized to the canvas). Fenced in suite-card.test.ts (the
+  Santorini class, the demo-pair gate, the never-dangling joiner);
+  verified live: editor shows real venue + Example tab + zero
+  Santorini, published shows zero dangling joins.
 - **C.2 A truthful editing model for published sites (L19).** Explicit
   states: editing-live (banner: "changes appear to guests as you
   save") or staged ("review & update site" publishes the diff) — host

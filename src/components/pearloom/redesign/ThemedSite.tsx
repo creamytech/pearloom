@@ -28,7 +28,7 @@ import { FoilGradient, letterpressShadow } from '@/components/brand/pressed';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
-import { humaneDateLabel } from '@/lib/suite-card';
+import { composeVenuePlaceLine, humaneDateLabel } from '@/lib/suite-card';
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
@@ -237,6 +237,42 @@ const noop = () => {};
    ThemedSite in edit mode only — published sites never carry it. */
 const INLINE_GHOST_CSS =
   '[contenteditable].pl8-inline-ghost:empty::before{content:attr(aria-label);opacity:0.38;font-style:italic;pointer-events:none;}';
+
+/* The demo-ink tab (C.1/L24) — the editor canvas fills un-authored
+   sections with demo copy so the host can see the shape, but the
+   old canvas showed three fabricated love-story chapters with NO
+   marking, contenteditable and all: it read as content the site
+   already had, and the published site would silently drop it. Any
+   section whose canvas render is pure demo now wears this quiet
+   tab. Peach — the working/editing accent, pinned literal like the
+   selection chrome so the theme scope can't remap it. */
+function DemoInkTab() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        top: 10,
+        right: 12,
+        zIndex: 106, // above the selection chrome's frame
+        pointerEvents: 'none',
+        padding: '3px 10px',
+        borderRadius: 999,
+        background: 'rgba(230,143,90,0.14)',
+        border: '1px solid rgba(230,143,90,0.55)',
+        color: '#9C4F1E',
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      Example — click to write yours
+    </div>
+  );
+}
 
 /* The Review pressing's drafting slat — an un-authored section's
    honest stand-in: the section's own heading (occasion-routed), a
@@ -475,8 +511,19 @@ function ThemedSiteInner({
   const nameB = soloSite ? (names[1] || '') : (names[1] || (editable ? 'Shauna' : ''));
   const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
   const date = formatHeroDate(rawDate) || (editable ? 'Monday, April 26, 2027' : '');
-  const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || (editable ? 'Casa Chorro' : '');
-  const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || (editable ? 'Santorini, Greece' : '');
+  /* THE DEMO-INK LAW (C.1 — L18/L33/L71/L75/L106): a fabricated
+     value never composites into a line with real host data. The
+     wizard stamps logistics.venue but never logistics.place, and
+     the old per-field fallbacks put 'Santorini, Greece' NEXT TO the
+     host's real Asheville — the first thing every host saw after
+     pressing read as a wrong venue on their site. Demo halves
+     render only when BOTH halves are demo; the '·' joiner renders
+     only between two real parts, never dangling. */
+  const venuePlaceLine = composeVenuePlaceLine(
+    (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue,
+    (manifest as unknown as { logistics?: { place?: string } }).logistics?.place,
+    { editable, demoVenue: 'Casa Chorro', demoPlace: 'Santorini, Greece' },
+  );
 
   /* Motif resolution (handoff L116-117):
        host's Decor Library pick wins over theme default; if motifs
@@ -509,7 +556,7 @@ function ThemedSiteInner({
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
-  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}`, editable, demoCopy });
+  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: venuePlaceLine, editable, demoCopy });
   /* Per-section layout variants — manifest.layouts[section] overrides
      the per-section default. PropertyRail's Layout tab writes here. */
   const variants = {
@@ -949,7 +996,21 @@ function ThemedSiteInner({
         editorTexture={effectiveTexture}
         editorTextureIntensity={textureIntensity}
       >
-        {slatNote ? <ProofSlat label={sectionLabel(kind)} note={slatNote} /> : renderKind(kind, ctx)}
+        {slatNote ? (
+          <ProofSlat label={sectionLabel(kind)} note={slatNote} />
+        ) : (
+          <>
+            {/* Pure-demo sections wear the tab (C.1/L24): the story
+                with nothing authored and the registry with nothing
+                given are the two whose canvas render is entirely
+                fabricated — the same pair the published-honesty
+                gates above drop for guests. */}
+            {editable && !proof && (
+              (kind === 'story' && !storyAuthored) || (kind === 'registry' && !registryAuthored)
+            ) && <DemoInkTab />}
+            {renderKind(kind, ctx)}
+          </>
+        )}
       </TSection>
     );
   };

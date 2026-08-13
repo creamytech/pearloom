@@ -50,6 +50,24 @@ export function suiteDateVenueLine(
   return d || v;
 }
 
+/** The hero/footer venue line under THE DEMO-INK LAW (C.1 —
+ *  L18/L33/L71/L75/L106): a fabricated value never composites into
+ *  a line with real host data. Demo halves render only when the
+ *  host has given NEITHER half (editor only); the '·' joiner
+ *  renders only between two real parts, never dangling. */
+export function composeVenuePlaceLine(
+  venue: string | null | undefined,
+  place: string | null | undefined,
+  opts?: { editable?: boolean; demoVenue?: string; demoPlace?: string },
+): string {
+  const realVenue = (venue ?? '').trim();
+  const realPlace = (place ?? '').trim();
+  const hasReal = Boolean(realVenue || realPlace);
+  const v = realVenue || (opts?.editable && !hasReal ? opts?.demoVenue ?? '' : '');
+  const p = realPlace || (opts?.editable && !hasReal ? opts?.demoPlace ?? '' : '');
+  return [v, p].filter(Boolean).join(' · ');
+}
+
 /** Contrast-floored ink family for a card background — the one way
  *  a designed card picks its text colors (never the theme's ink
  *  straight onto the theme's card color).
