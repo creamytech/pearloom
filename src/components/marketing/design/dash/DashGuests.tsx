@@ -2002,13 +2002,27 @@ export function DashGuests() {
             )}
           </Panel>
 
-          {/* Pear's follow-up cadence — was a sentence in the page
-              subtitle; now a quiet rail note (plan rule 7). */}
+          {/* Pear's follow-up cadence — states the site's REAL
+              reminderCadence setting (the editor's RSVP panel writes
+              it; the chase-non-responders job reads it). The old
+              copy asserted "Pear is following up … once a week"
+              unconditionally — a claim of automated activity that
+              wasn't configured (T.4/L61). */}
           <RailCard title="Follow-ups">
             <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-              {site?.occasion === 'memorial' || site?.occasion === 'funeral'
-                ? 'Pear checks in quietly, no follow-ups unless you ask.'
-                : 'Pear is following up on the quiet ones once a week.'}
+              {(() => {
+                if (site?.occasion === 'memorial' || site?.occasion === 'funeral') {
+                  return 'Pear checks in quietly, no follow-ups unless you ask.';
+                }
+                const cadence = (site?.manifest as { reminderCadence?: string } | null | undefined)?.reminderCadence;
+                if (cadence === 'off') {
+                  return 'Automatic reminders are off — you can still nudge from here, or turn them on in the editor’s RSVP panel.';
+                }
+                if (cadence === 'gentle') {
+                  return 'One reminder is set to go to guests who haven’t replied, before your reply-by date.';
+                }
+                return 'Two reminders are set to go to guests who haven’t replied, before your reply-by date.';
+              })()}
             </div>
           </RailCard>
 
