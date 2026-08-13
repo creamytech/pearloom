@@ -17,16 +17,23 @@ pearloom_guests is frozen-deprecated (drop after a quiet cycle).
 Goal: rule §0.2 (never fabricate) applied everywhere the audit
 found a fabrication.
 
+**T.5, T.6, T.8 SHIPPED 2026-08-13** (stamps in plan §5): store
+fabrications deleted + no-fabricated-proof fence; /partners honest
+(mailto hello@); registry loop-link cut, countdown label calendar-
+aligned, one "Sign out" label.
+
 Open threads: T.1 day-of wears a REHEARSAL frame pre-event
-(cockpit-phase knows) · T.2 progress counts only host-real
-milestones; day-of checklist persists (never useState) · T.3
-funnel stages render only from real tracking ("not tracked", never
-100%) · T.4 "Pear is following up weekly" becomes true or the copy
-goes · T.5 fake sold counts/ratings/"MOST CHOSEN"/usage meter
-deleted; real counts when real · T.6 /partners unpublished until
-the program exists · T.7 weekend planner prefills from the host's
-real site · T.8 link hygiene (registry "See payments" → payments;
-the shell copy-nit sweep).
+(cockpit-phase knows; L15: no wall-clock "Right now", no checked-off
+moments pre-day) · T.2 progress counts only host-real milestones
+(Pear's un-accepted suggestions → a "Pear suggests" strip, not the
+host's numbers; L16/L59) + the Day-of checklist persists (manifest
+or table — never useState) and appears in day-of week · T.3 funnel
+stages render only from real tracking events ("not tracked", never
+100%; L60 — /dashboard/analytics) · T.4 "Pear is following up
+weekly" becomes true (cadence CAN send — wire it host-armed,
+off-default) or the copy goes (L61) · T.7 weekend planner prefills
+from the host's existing site (L63 — /dashboard/weekend opens blank
+beside a real dated site).
 
 Counts as done: the fabrications fence — the forbidden-strings
 suite extended so the specific dead claims can't return, plus a
