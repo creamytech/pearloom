@@ -436,16 +436,31 @@ durable reply, working passport, working calendar, no false claims.
 - **T.4 No phantom automations (L61).** "Pear is following up weekly"
   either becomes true (the cadence system CAN do it — wire it, off by
   default, host-armed) or the copy goes.
-- **T.5 No fabricated social proof (L38).** Fake sold counts, ratings,
-  "MOST CHOSEN", the fake usage meter — deleted. Real counts render
-  when real.
-- **T.6 /partners tells the truth (L40).** Unpublish until the
-  program exists; replace with a "talk to us" capture that goes
-  somewhere real.
+- **T.5 No fabricated social proof (L38). — SHIPPED 2026-08-13.**
+  Pack.rating + Pack.sales deleted from the catalog type, the r:/s:
+  literals stripped from all 61 packs, the bestseller badge removed
+  (packs + decor items), "Top rated" sort + "★ Bestsellers" chip
+  cut, 'featured' keeps editorial order. Fence:
+  `no-fabricated-proof.test.ts` (no rating/sales keys on any pack;
+  no store surface renders "sold"/Bestseller). The `new` badge
+  stays — an honest editorial fact. Real sold counts may return
+  when derived from theme_pack_purchases. (No usage meter found in
+  the store; if L38's meter lives on another money surface it
+  falls to that surface's block.)
+- **T.6 /partners tells the truth (L40). — SHIPPED 2026-08-13.**
+  The 337-line commission-tier promise ("hundreds already earning",
+  a form wired to nothing) replaced with the honest page: the
+  program is in the making, and the one door — mailto
+  hello@pearloom.com — goes somewhere a person reads.
 - **T.7 Weekend planner reads the world (L63).** Prefills from the
   host's existing site; never a blank form beside real data.
-- **T.8 Link hygiene (L62 + L64 batch).** Registry "See payments" goes
-  to payments; the shell copy-nit list from the dashboard audit swept.
+- **T.8 Link hygiene (L62 + L64 batch). — SHIPPED 2026-08-13.**
+  Registry's "See payments →" (a permanentRedirect back to the same
+  page) removed — the ledger it promised is on that page. The Home
+  hero's countdown label now counts calendar days like the road
+  card beside it (the ticking cells keep ms precision) — no more
+  303-vs-304 on one screen. The shell's three exits wear one
+  label: "Sign out".
 
 **Fence for the sprint:** extend the forbidden-strings suite with a
 "fabrications" fence — the specific dead claims can't return; plus a
