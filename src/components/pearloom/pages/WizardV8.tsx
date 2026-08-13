@@ -1100,6 +1100,10 @@ function OccasionPicker({
         key={o.id}
         type="button"
         onClick={() => onPick(o.id)}
+        // Selection is announced, not just painted (A.4/L110) — the
+        // welcome flow's intent cards already do this; the wizard's
+        // cards only showed the olive tint.
+        aria-pressed={on}
         // Hover host — bespoke glyph anims fire on parent hover.
         className="pl8-glyph-host"
         style={{

@@ -33,7 +33,10 @@ const inputStyle: CSSProperties = {
   background: 'var(--card)',
   border: '1.5px solid var(--line)',
   borderRadius: 12,
-  fontSize: 14,
+  // 16px, not 14 — anything smaller makes real iOS Safari auto-zoom
+  // the page on focus, breaking the keyboard-safe layout (A.5/L101).
+  // The wizard's inputs are 16px for the same reason.
+  fontSize: 16,
   outline: 'none',
   color: 'var(--ink)',
   fontFamily: 'inherit',
@@ -127,7 +130,9 @@ function PasswordField({
           type="button"
           onClick={() => setShow((v) => !v)}
           aria-label={show ? 'Hide password' : 'Show password'}
-          style={{ position: 'absolute', right: 12, top: 10, padding: 4, background: 'transparent', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
+          // ≥44px tap target (A.5/L101 — it measured 26×26); the icon
+          // stays 18px, the padding carries the touch area.
+          style={{ position: 'absolute', right: 2, top: 1, minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
         >
           <Icon name={show ? 'eye-off' : 'eye'} size={18} />
         </button>
@@ -391,7 +396,7 @@ export function SignupClient() {
 
       <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'var(--ink-soft)' }}>
         Already have an account?{' '}
-        <Link href="/login" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500 }}>Sign in</Link>
+        <Link href="/login" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500, display: 'inline-block', padding: '13px 10px', margin: '-13px -10px' }}>Sign in</Link>
       </div>
     </AuthShell>
   );
@@ -470,7 +475,7 @@ export function ForgotClient() {
 
       <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'var(--ink-soft)' }}>
         Remembered after all?{' '}
-        <Link href="/login" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500 }}>Sign in</Link>
+        <Link href="/login" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500, display: 'inline-block', padding: '13px 10px', margin: '-13px -10px' }}>Sign in</Link>
       </div>
     </AuthShell>
   );

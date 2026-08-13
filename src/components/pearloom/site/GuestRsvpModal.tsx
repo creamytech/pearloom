@@ -415,8 +415,18 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   // when the host hasn't placed an RSVP section (no #rsvp anchor):
   // markRsvpReady() returns true when a tap was queued before we
   // mounted, so we honour it immediately.
+  /* The element that opened the modal (the RSVP CTA / sticky pill),
+     captured AT THE OPEN EVENT — the focus-trap hook captures at
+     effect time, which runs after the name input's autoFocus has
+     already moved focus inside, so its "restore" pointed back into
+     the (unmounting) modal and keyboard focus fell to <body> on
+     close (A.4/L104). */
+  const openerRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const handler = () => {
+      openerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
       resetState();
       setOpen(true);
       // RSVP funnel — opening the reply flow stamps reply_started_at
@@ -430,6 +440,15 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       markRsvpUnready();
     };
   }, [resetState]);
+
+  /* Restore focus to the opener once the close animation lets go. */
+  useEffect(() => {
+    if (open) return;
+    const opener = openerRef.current;
+    if (!opener || !opener.isConnected) return;
+    const t = setTimeout(() => opener.focus(), 210); // after the 200ms exit
+    return () => clearTimeout(t);
+  }, [open]);
 
   // Escape to close, focus management.
   useEffect(() => {
@@ -783,8 +802,11 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 : 'Tell us who’s coming, your name is all we need. If you’re on the list, we’ll find your invitation as you type.'}
             </p>
             <div style={fieldStyle()}>
-              <label style={labelStyle()}>Your name or party</label>
+              {/* htmlFor/id — the labels were visually adjacent only, so
+                  screen readers announced just the placeholder (A.4/L104). */}
+              <label htmlFor="pl-rsvp-name" style={labelStyle()}>Your name or party</label>
               <input
+                id="pl-rsvp-name"
                 type="text"
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setMatchedGuestId(null); setMatchedFromList(false); }}
@@ -848,8 +870,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               )}
             </div>
             <div style={fieldStyle()}>
-              <label style={labelStyle()}>Email (optional)</label>
+              <label htmlFor="pl-rsvp-email" style={labelStyle()}>Email (optional)</label>
               <input
+                id="pl-rsvp-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

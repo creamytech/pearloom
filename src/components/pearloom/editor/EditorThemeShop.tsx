@@ -69,6 +69,10 @@ function ShopCard({ pack, owned, isTrying, onTry, onApply }: {
       type="button"
       onClick={() => onTry(pack)}
       aria-pressed={isTrying}
+      // Distinct accessible name per tile (A.6/L105) — every card's
+      // preview text starts "SAVE THE DATE Ava&Liam…", so all ~75
+      // tiles announced identically.
+      aria-label={`${pack.name} theme pack${owned ? ', owned' : pack.priceCents > 0 ? `, $${price}` : ''}`}
       className="lift"
       style={{
         display: 'flex', flexDirection: 'column',
@@ -150,6 +154,15 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
   /* Desktop gets a floating centered panel — a full-width bottom
      sheet is a phone pattern and read as one on wide screens. */
   const isNarrow = useIsMobile(760);
+  /* Two-phase mount: mounted while open + through the exit slide,
+     gone after (A.6/L70/L105 — see the note above the early return). */
+  const [render, setRender] = useState(open);
+  if (open && !render) setRender(true);
+  useEffect(() => {
+    if (open) return;
+    const t = setTimeout(() => setRender(false), 400);
+    return () => clearTimeout(t);
+  }, [open]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2600); return () => clearTimeout(t); }, [toast]);
 
   /* TRY-ANYTHING-SAFELY — snapshot the manifest the moment the
@@ -286,6 +299,13 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
 
   const tryingPack = tryingId ? packs.find((p) => p.id === tryingId) ?? null : null;
   const tryingLocked = !!tryingPack && !owned.has(tryingPack.id) && tryingPack.priceCents > 0;
+
+  /* Closed = UNMOUNTED (A.6/L70/L105). The old always-mounted sheet
+     kept ~75 pack tiles + 13 filter chips in the DOM and tab order
+     offscreen on every editor paint — screen readers and keyboard
+     users waded through a shop that wasn't there. `render` holds
+     through the 380ms exit slide, then lets go. */
+  if (!render) return null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 85, pointerEvents: open ? 'auto' : 'none' }}>

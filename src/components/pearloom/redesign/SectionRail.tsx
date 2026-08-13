@@ -728,6 +728,22 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               {dropAfter  && <DropLine position="bottom" />}
             <div
               draggable={!isHero}
+              /* Keyboard parity (A.4/L103): the rows were mouse-only —
+                 Tab skipped from the rail tabs straight past every
+                 section to "Add section", so a keyboard user couldn't
+                 open a section's panel at all. A div (not <button>)
+                 because rows nest real buttons (the move arrows) and
+                 carry drag-and-drop. */
+              role="button"
+              tabIndex={0}
+              aria-label={`${s.label} section`}
+              aria-pressed={on}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActive(s.id);
+                }
+              }}
               onDragStart={(e) => {
                 if (isHero) { e.preventDefault(); return; }
                 setDraggingIdx(i);
@@ -1073,6 +1089,7 @@ function GapInsert({ mobile, open, suppressed, onToggle }: {
       tabIndex={suppressed ? -1 : 0}
       aria-label="Insert a section here"
       aria-expanded={open}
+      className="pl-rd-insert-point"
       onClick={() => { if (!suppressed) onToggle(); }}
       onKeyDown={(e) => {
         if (suppressed) return;
@@ -1088,7 +1105,9 @@ function GapInsert({ mobile, open, suppressed, onToggle }: {
         justifyContent: 'center',
         cursor: suppressed ? 'default' : 'pointer',
         pointerEvents: suppressed ? 'none' : 'auto',
-        outline: 'none',
+        // Focus outline lives in pearloom.css (:focus-visible) —
+        // the old outline:none here left keyboard stops invisible
+        // (A.4/L103).
       }}
     >
       {showPlus && (

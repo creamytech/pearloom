@@ -2038,6 +2038,16 @@ button.pl8-mobile-only { display: none !important; }
   }
 }
 
+/* Editor rail keyboard stops (A.4/L103) — the section rows and the
+   between-row insert points are divs with role=button; give their
+   keyboard focus a visible ring (pointer focus stays quiet via
+   :focus-visible). */
+.pl-rd-section-row:focus-visible,
+.pl-rd-insert-point:focus-visible {
+  outline: 2px solid var(--gold, #A8862D);
+  outline-offset: 1px;
+}
+
 /* Wizard Basics grid — the column layout lives HERE, never inline
    (A.1/L54). The old inline gridTemplateColumns:'1fr 1fr' beat the
    phone override below in practice, crushing NAME 1 to a 66px

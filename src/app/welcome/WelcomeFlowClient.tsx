@@ -493,6 +493,10 @@ export function WelcomeFlowClient({
                         type="button"
                         onClick={() => pickMark(on ? null : a.id)}
                         aria-pressed={on}
+                        // aria-label, not title alone — title is last-resort
+                        // accname, ignored by some mobile screen readers and
+                        // by voice control (A.4/L102).
+                        aria-label={a.label}
                         title={a.label}
                         initial={reduced ? false : { opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}

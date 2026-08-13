@@ -529,6 +529,24 @@ export function UserSettingsModal({
     return () => { document.body.style.overflow = prev; };
   }, [open]);
 
+  /* Escape closes — every other overlay honors it and this one
+     didn't (A.4/L66), leaving keyboard users hunting for the ✕.
+     Escape pressed INSIDE a field belongs to the field (the name
+     editor cancels its edit); the modal closes on the next one. */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) {
+        return;
+      }
+      onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   useEffect(() => {
     if (!open || typeof window === 'undefined') return;
     fetch('/api/ai-usage', { credentials: 'include' })
